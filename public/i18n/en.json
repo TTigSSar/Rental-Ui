@@ -4,6 +4,40 @@
       "brand": "StayFinder"
     }
   },
+  "auth": {
+    "form": {
+      "email": "Email",
+      "emailPlaceholder": "Enter your email",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "firstName": "First name",
+      "firstNamePlaceholder": "Enter your first name",
+      "lastName": "Last name",
+      "lastNamePlaceholder": "Enter your last name"
+    },
+    "validation": {
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Enter a valid email address.",
+      "passwordRequired": "Password is required.",
+      "passwordMinLength": "Password must be at least 6 characters.",
+      "firstNameRequired": "First name is required.",
+      "lastNameRequired": "Last name is required."
+    },
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Access your account to manage bookings and favorites.",
+      "submit": "Sign in",
+      "noAccount": "Don't have an account?",
+      "goToRegister": "Create one"
+    },
+    "register": {
+      "title": "Create account",
+      "subtitle": "Register to save favorites and book rentals securely.",
+      "submit": "Create account",
+      "haveAccount": "Already have an account?",
+      "goToLogin": "Sign in"
+    }
+  },
   "listings": {
     "common": {
       "retry": "Try again"

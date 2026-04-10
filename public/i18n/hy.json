@@ -4,6 +4,40 @@
       "brand": "StayFinder"
     }
   },
+  "auth": {
+    "form": {
+      "email": "Էլ. փոստ",
+      "emailPlaceholder": "Մուտքագրեք ձեր էլ. փոստը",
+      "password": "Գաղտնաբառ",
+      "passwordPlaceholder": "Մուտքագրեք ձեր գաղտնաբառը",
+      "firstName": "Անուն",
+      "firstNamePlaceholder": "Մուտքագրեք ձեր անունը",
+      "lastName": "Ազգանուն",
+      "lastNamePlaceholder": "Մուտքագրեք ձեր ազգանունը"
+    },
+    "validation": {
+      "emailRequired": "Էլ. փոստը պարտադիր է։",
+      "emailInvalid": "Մուտքագրեք վավեր էլ. փոստ։",
+      "passwordRequired": "Գաղտնաբառը պարտադիր է։",
+      "passwordMinLength": "Գաղտնաբառը պետք է լինի առնվազն 6 նիշ։",
+      "firstNameRequired": "Անունը պարտադիր է։",
+      "lastNameRequired": "Ազգանունը պարտադիր է։"
+    },
+    "login": {
+      "title": "Մուտք",
+      "subtitle": "Մուտք գործեք՝ ամրագրումները և ընտրյալները կառավարելու համար։",
+      "submit": "Մուտք գործել",
+      "noAccount": "Հաշիվ չունե՞ք։",
+      "goToRegister": "Ստեղծել"
+    },
+    "register": {
+      "title": "Ստեղծել հաշիվ",
+      "subtitle": "Գրանցվեք՝ ընտրյալներ պահելու և անվտանգ ամրագրումներ անելու համար։",
+      "submit": "Ստեղծել հաշիվ",
+      "haveAccount": "Արդեն հաշիվ ունե՞ք։",
+      "goToLogin": "Մուտք գործել"
+    }
+  },
   "listings": {
     "common": {
       "retry": "Փորձել կրկին"

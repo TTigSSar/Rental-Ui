@@ -4,6 +4,40 @@
       "brand": "StayFinder"
     }
   },
+  "auth": {
+    "form": {
+      "email": "Эл. почта",
+      "emailPlaceholder": "Введите вашу эл. почту",
+      "password": "Пароль",
+      "passwordPlaceholder": "Введите ваш пароль",
+      "firstName": "Имя",
+      "firstNamePlaceholder": "Введите ваше имя",
+      "lastName": "Фамилия",
+      "lastNamePlaceholder": "Введите вашу фамилию"
+    },
+    "validation": {
+      "emailRequired": "Эл. почта обязательна.",
+      "emailInvalid": "Введите корректный адрес эл. почты.",
+      "passwordRequired": "Пароль обязателен.",
+      "passwordMinLength": "Пароль должен содержать минимум 6 символов.",
+      "firstNameRequired": "Имя обязательно.",
+      "lastNameRequired": "Фамилия обязательна."
+    },
+    "login": {
+      "title": "Вход",
+      "subtitle": "Войдите, чтобы управлять бронированиями и избранным.",
+      "submit": "Войти",
+      "noAccount": "Нет аккаунта?",
+      "goToRegister": "Создать"
+    },
+    "register": {
+      "title": "Создать аккаунт",
+      "subtitle": "Зарегистрируйтесь, чтобы сохранять избранное и безопасно бронировать жилье.",
+      "submit": "Создать аккаунт",
+      "haveAccount": "Уже есть аккаунт?",
+      "goToLogin": "Войти"
+    }
+  },
   "listings": {
     "common": {
       "retry": "Попробовать снова"

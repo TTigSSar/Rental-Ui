@@ -1,0 +1,62 @@
+<div class="auth-page">
+  <p-card styleClass="auth-page__card">
+    <h1 class="auth-page__title">{{ 'auth.login.title' | translate }}</h1>
+    <p class="auth-page__subtitle">{{ 'auth.login.subtitle' | translate }}</p>
+
+    @if (error$ | async; as error) {
+      <p-message severity="error" styleClass="auth-page__message">
+        <span>{{ error }}</span>
+      </p-message>
+    }
+
+    <form class="auth-page__form" [formGroup]="loginForm" (ngSubmit)="submit()">
+      <div class="auth-page__field">
+        <label for="login-email">{{ 'auth.form.email' | translate }}</label>
+        <input
+          id="login-email"
+          pInputText
+          type="email"
+          formControlName="email"
+          [placeholder]="'auth.form.emailPlaceholder' | translate"
+          autocomplete="email"
+        />
+        @if (hasError('email', 'required')) {
+          <small class="auth-page__validation">{{ 'auth.validation.emailRequired' | translate }}</small>
+        }
+        @if (hasError('email', 'email')) {
+          <small class="auth-page__validation">{{ 'auth.validation.emailInvalid' | translate }}</small>
+        }
+      </div>
+
+      <div class="auth-page__field">
+        <label for="login-password">{{ 'auth.form.password' | translate }}</label>
+        <input
+          id="login-password"
+          pInputText
+          type="password"
+          formControlName="password"
+          [placeholder]="'auth.form.passwordPlaceholder' | translate"
+          autocomplete="current-password"
+        />
+        @if (hasError('password', 'required')) {
+          <small class="auth-page__validation">{{ 'auth.validation.passwordRequired' | translate }}</small>
+        }
+        @if (hasError('password', 'minlength')) {
+          <small class="auth-page__validation">{{ 'auth.validation.passwordMinLength' | translate }}</small>
+        }
+      </div>
+
+      <p-button
+        type="submit"
+        styleClass="auth-page__submit"
+        [loading]="(isLoading$ | async) ?? false"
+        [label]="'auth.login.submit' | translate"
+      />
+    </form>
+
+    <p class="auth-page__switch">
+      {{ 'auth.login.noAccount' | translate }}
+      <a routerLink="/auth/register">{{ 'auth.login.goToRegister' | translate }}</a>
+    </p>
+  </p-card>
+</div>
