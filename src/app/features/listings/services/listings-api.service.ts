@@ -11,6 +11,7 @@ import type { PagedResult } from '../models/paged-result.model';
 export class ListingsApiService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = '/api/listings';
+  private readonly favoritesUrl = '/api/favorites';
 
   getListings(
     filter: ListingsFilter,
@@ -24,6 +25,16 @@ export class ListingsApiService {
   getListingById(id: string): Observable<ListingDetails> {
     const url = `${this.baseUrl}/${encodeURIComponent(id)}`;
     return this.http.get<ListingDetails>(url);
+  }
+
+  addToFavorites(listingId: string): Observable<void> {
+    const url = `${this.favoritesUrl}/${encodeURIComponent(listingId)}`;
+    return this.http.post<void>(url, {});
+  }
+
+  removeFromFavorites(listingId: string): Observable<void> {
+    const url = `${this.favoritesUrl}/${encodeURIComponent(listingId)}`;
+    return this.http.delete<void>(url);
   }
 
   private buildListingsQueryParams(

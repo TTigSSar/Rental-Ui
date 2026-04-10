@@ -1,0 +1,49 @@
+{
+  "listings": {
+    "common": {
+      "retry": "Փորձել կրկին"
+    },
+    "card": {
+      "noImage": "Պատկեր չկա",
+      "pricePerDay": "{{amount}} օրական",
+      "toggleFavorite": "Նշել որպես ընտրյալ"
+    },
+    "filters": {
+      "city": "Քաղաք",
+      "cityPlaceholder": "Մուտքագրեք քաղաքը",
+      "categoryId": "Կատեգորիա",
+      "categoryPlaceholder": "Կատեգորիայի ID",
+      "minPrice": "Նվազագույն գին",
+      "minPricePlaceholder": "Նվ.",
+      "maxPrice": "Առավելագույն գին",
+      "maxPricePlaceholder": "Առավ."
+    },
+    "gallery": {
+      "mainImageAlt": "Հայտարարության պատկեր",
+      "thumbnailsLabel": "Պատկերների մանրապատկերներ",
+      "noImages": "Ցուցադրելու պատկերներ չկան"
+    },
+    "booking": {
+      "calendarLabel": "Ընտրեք մնալու ամսաթվերը",
+      "totalPrice": "Ընդամենը՝ {{amount}}",
+      "selectRangeHint": "Ընտրեք սկզբի և վերջի ամսաթիվը՝ ընդհանուր արժեքը տեսնելու համար։"
+    },
+    "page": {
+      "title": "Հայտարարություններ",
+      "empty": "Ձեր ֆիլտրերին համապատասխան հայտարարություններ չկան։",
+      "loading": "Հայտարարությունները բեռնվում են",
+      "loadingMore": "Բեռնվում են նոր հայտարարություններ"
+    },
+    "details": {
+      "back": "Վերադառնալ հայտարարություններին",
+      "subNavAria": "Հայտարարության նավիգացիա",
+      "invalidRoute": "Այս հայտարարության հղումը անվավեր է։",
+      "loading": "Հայտարարության մանրամասները բեռնվում են",
+      "cityLabel": "Տեղադրություն",
+      "priceLabel": "{{amount}} օրական",
+      "descriptionHeading": "Այս վայրի մասին",
+      "hostHeading": "Ձեր հյուրընկալողը",
+      "bookingHeading": "Ստուգեք հասանելիությունը"
+    }
+  }
+}

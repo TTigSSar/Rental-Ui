@@ -1,0 +1,49 @@
+{
+  "listings": {
+    "common": {
+      "retry": "Попробовать снова"
+    },
+    "card": {
+      "noImage": "Изображение отсутствует",
+      "pricePerDay": "{{amount}} в день",
+      "toggleFavorite": "Добавить в избранное"
+    },
+    "filters": {
+      "city": "Город",
+      "cityPlaceholder": "Введите город",
+      "categoryId": "Категория",
+      "categoryPlaceholder": "ID категории",
+      "minPrice": "Минимальная цена",
+      "minPricePlaceholder": "Мин.",
+      "maxPrice": "Максимальная цена",
+      "maxPricePlaceholder": "Макс."
+    },
+    "gallery": {
+      "mainImageAlt": "Изображение объявления",
+      "thumbnailsLabel": "Миниатюры галереи",
+      "noImages": "Нет изображений для отображения"
+    },
+    "booking": {
+      "calendarLabel": "Выберите даты проживания",
+      "totalPrice": "Итого: {{amount}}",
+      "selectRangeHint": "Выберите дату начала и окончания, чтобы увидеть итоговую стоимость."
+    },
+    "page": {
+      "title": "Объявления",
+      "empty": "По вашим фильтрам ничего не найдено.",
+      "loading": "Загрузка объявлений",
+      "loadingMore": "Загружаем еще объявления"
+    },
+    "details": {
+      "back": "Назад к объявлениям",
+      "subNavAria": "Навигация по объявлению",
+      "invalidRoute": "Ссылка на это объявление недействительна.",
+      "loading": "Загрузка деталей объявления",
+      "cityLabel": "Местоположение",
+      "priceLabel": "{{amount}} в день",
+      "descriptionHeading": "Об этом месте",
+      "hostHeading": "Ваш хозяин",
+      "bookingHeading": "Проверьте доступность"
+    }
+  }
+}

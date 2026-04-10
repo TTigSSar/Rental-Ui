@@ -68,15 +68,18 @@ function normalizeRangeSelection(
   return [value];
 }
 
-function countBookingNights(start: Date, end: Date): number {
+function countInclusiveRentalDays(start: Date, end: Date): number {
   const startUtc = Date.UTC(
     start.getFullYear(),
     start.getMonth(),
     start.getDate(),
   );
   const endUtc = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
-  const diffDays = Math.round((endUtc - startUtc) / 86_400_000);
-  return Math.max(0, diffDays);
+  const diffDays = Math.floor((endUtc - startUtc) / 86_400_000);
+  if (diffDays < 0) {
+    return 0;
+  }
+  return diffDays + 1;
 }
 
 @Component({
@@ -113,11 +116,11 @@ export class BookingCalendarComponent {
     if (!(start instanceof Date) || !(end instanceof Date)) {
       return null;
     }
-    const nights = countBookingNights(start, end);
-    if (nights <= 0) {
+    const rentalDays = countInclusiveRentalDays(start, end);
+    if (rentalDays <= 0) {
       return null;
     }
-    return nights * rate;
+    return rentalDays * rate;
   });
 
   protected onRangeChange(value: Date | Date[] | null | undefined): void {

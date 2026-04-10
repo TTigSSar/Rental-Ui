@@ -1,13 +1,16 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { Store } from '@ngrx/store';
+import { Store, createSelector } from '@ngrx/store';
 import {
   catchError,
+  concatMap,
+  EMPTY,
   filter,
   map,
   of,
   switchMap,
+  take,
   withLatestFrom,
 } from 'rxjs';
 
@@ -18,7 +21,26 @@ import {
   selectListingsHasMore,
   selectListingsPage,
   selectListingsPageSize,
+  selectListingsState,
 } from './listings.selectors';
+import type { ListingsState } from './listings.state';
+
+function selectFavoritePersistenceView(listingId: string) {
+  return createSelector(
+    selectListingsState,
+    (state: ListingsState): { tracked: boolean; isFavorite: boolean } => {
+      const selected = state.selectedListing;
+      if (selected !== null && selected.id === listingId) {
+        return { tracked: true, isFavorite: selected.isFavorite };
+      }
+      const item = state.items.find((i) => i.id === listingId);
+      if (item !== undefined) {
+        return { tracked: true, isFavorite: item.isFavorite };
+      }
+      return { tracked: false, isFavorite: false };
+    },
+  );
+}
 
 function toErrorMessage(error: unknown): string {
   if (error instanceof HttpErrorResponse) {
@@ -115,6 +137,34 @@ export class ListingsEffects {
               }),
             ),
           ),
+        ),
+      ),
+    ),
+  );
+
+  readonly persistFavoriteToggle$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ListingsActions.toggleFavoriteOptimistic),
+      concatMap(({ listingId }) =>
+        this.store.select(selectFavoritePersistenceView(listingId)).pipe(
+          take(1),
+          filter(({ tracked }) => tracked),
+          switchMap(({ isFavorite }) => {
+            const request$ = isFavorite
+              ? this.listingsApi.addToFavorites(listingId)
+              : this.listingsApi.removeFromFavorites(listingId);
+            return request$.pipe(
+              switchMap(() => EMPTY),
+              catchError(() =>
+                of(
+                  ListingsActions.toggleFavoriteRollback({
+                    listingId,
+                    isFavorite: !isFavorite,
+                  }),
+                ),
+              ),
+            );
+          }),
         ),
       ),
     ),
