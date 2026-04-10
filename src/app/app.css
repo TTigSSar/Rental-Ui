@@ -16,18 +16,15 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  backdrop-filter: blur(8px);
-  background: color-mix(in srgb, var(--p-surface-0, #ffffff) 88%, transparent);
-  border-bottom: 1px solid var(--p-content-border-color, #e4e4e7);
-}
-
-.app-shell__header-inner {
   display: flex;
   align-items: center;
   height: 3.25rem;
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
+  backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--p-surface-0, #ffffff) 88%, transparent);
+  border-bottom: 1px solid var(--p-content-border-color, #e4e4e7);
 }
 
 .app-shell__brand {
@@ -42,6 +39,6 @@
   text-decoration: underline;
 }
 
-.app-shell__main {
+.app-shell__content {
   min-height: calc(100dvh - 3.25rem);
 }
