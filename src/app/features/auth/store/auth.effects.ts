@@ -1,8 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Actions, createEffect, ofType } from '@ngrx/effects';
+import { Actions, ROOT_EFFECTS_INIT, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { catchError, map, mergeMap, of, tap, withLatestFrom } from 'rxjs';
+import { catchError, filter, map, mergeMap, of, tap, withLatestFrom } from 'rxjs';
 
 import { AuthApiService } from '../services/auth-api.service';
 import { AuthTokenService } from '../services/auth-token.service';
@@ -40,6 +40,15 @@ export class AuthEffects {
           ),
         ),
       ),
+    ),
+  );
+
+  readonly initAuth$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ROOT_EFFECTS_INIT),
+      map(() => this.tokenService.getToken()),
+      filter((token): token is string => token !== null && token !== ''),
+      map(() => AuthActions.loadCurrentUser()),
     ),
   );
 
