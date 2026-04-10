@@ -1,5 +1,11 @@
 <div class="app-shell">
-  <header class="app-shell__header" role="banner"></header>
+  <header class="app-shell__header" role="banner">
+    <div class="app-shell__header-inner">
+      <a class="app-shell__brand" [routerLink]="['/listings']">
+        {{ 'app.shell.brand' | translate }}
+      </a>
+    </div>
+  </header>
   <main class="app-shell__main" role="main">
     <router-outlet />
   </main>

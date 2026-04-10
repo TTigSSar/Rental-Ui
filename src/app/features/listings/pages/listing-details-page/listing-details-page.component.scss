@@ -99,8 +99,14 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--p-content-border-color, #e4e4e7);
+  padding: 1rem 1rem 1.15rem;
+  border-radius: var(--p-border-radius-md, 8px);
+  border: 1px solid var(--p-content-border-color, #e4e4e7);
+  background: color-mix(
+    in srgb,
+    var(--p-content-background, #fff) 92%,
+    var(--p-surface-50, #f8fafc)
+  );
 }
 
 .detail-page__title-row {
@@ -132,6 +138,12 @@
   color: var(--p-text-color, #18181b);
 }
 
+.detail-page__assurance {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--p-text-muted-color, #52525b);
+}
+
 .detail-page__section {
   display: flex;
   flex-direction: column;
@@ -146,7 +158,10 @@
 }
 
 .detail-page__section--booking {
-  padding-top: 0.5rem;
+  padding: 1.25rem;
+  border-radius: var(--p-border-radius-md, 8px);
+  border: 1px solid var(--p-content-border-color, #e4e4e7);
+  background: var(--p-content-background, #fff);
 }
 
 .detail-page__section-title {
@@ -173,6 +188,11 @@
   margin: 0;
 }
 
+.detail-page__owner-label {
+  color: var(--p-text-muted-color, #71717a);
+  margin-right: 0.35rem;
+}
+
 .detail-page__phone-link {
   font-size: 0.9375rem;
   color: var(--p-primary-color, #3b82f6);
@@ -181,4 +201,10 @@
   &:hover {
     text-decoration: underline;
   }
+}
+
+.detail-page__booking-subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--p-text-muted-color, #71717a);
 }

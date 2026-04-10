@@ -13,11 +13,24 @@
   gap: 1.25rem;
 }
 
+.listings-page__title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
 .listings-page__title {
   margin: 0;
-  font-size: 1.75rem;
-  font-weight: 600;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
   line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.listings-page__subtitle {
+  margin: 0;
+  color: var(--p-text-muted-color, #71717a);
+  font-size: 0.95rem;
 }
 
 .listings-page__error {
@@ -31,10 +44,16 @@
   width: 100%;
 }
 
+.listings-page__error-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .listings-page__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: clamp(1rem, 2vw, 1.5rem);
 }
 
 .listings-page__grid--skeleton {
@@ -52,11 +71,26 @@
 }
 
 .listings-page__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
   padding: 3rem 1.5rem;
   text-align: center;
   border-radius: var(--p-border-radius-md, 8px);
   border: 1px dashed var(--p-content-border-color, #e4e4e7);
   background: var(--p-content-background, #fafafa);
+}
+
+.listings-page__empty-icon {
+  font-size: 1.4rem;
+  color: var(--p-text-muted-color, #71717a);
+}
+
+.listings-page__empty-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
 }
 
 .listings-page__empty-text {

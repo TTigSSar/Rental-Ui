@@ -1,8 +1,13 @@
 <div class="listings-page">
   <header class="listings-page__header">
-    <h1 class="listings-page__title">
-      {{ 'listings.page.title' | translate }}
-    </h1>
+    <div class="listings-page__title-wrap">
+      <h1 class="listings-page__title">
+        {{ 'listings.page.title' | translate }}
+      </h1>
+      <p class="listings-page__subtitle">
+        {{ 'listings.page.subtitle' | translate }}
+      </p>
+    </div>
     <app-listings-filters (filtersChanged)="onFiltersChanged($event)" />
   </header>
 
@@ -10,7 +15,10 @@
     @if (vm.hasError && vm.error) {
       <div class="listings-page__error" role="alert">
         <p-message severity="error" styleClass="listings-page__message">
-          <span>{{ vm.error }}</span>
+          <div class="listings-page__error-content">
+            <strong>{{ 'listings.page.errorTitle' | translate }}</strong>
+            <span>{{ vm.error }}</span>
+          </div>
         </p-message>
         <p-button
           type="button"
@@ -40,6 +48,10 @@
 
     @if (vm.showEmpty) {
       <div class="listings-page__empty">
+        <span class="pi pi-search listings-page__empty-icon" aria-hidden="true"></span>
+        <h2 class="listings-page__empty-title">
+          {{ 'listings.page.emptyTitle' | translate }}
+        </h2>
         <p class="listings-page__empty-text">
           {{ 'listings.page.empty' | translate }}
         </p>

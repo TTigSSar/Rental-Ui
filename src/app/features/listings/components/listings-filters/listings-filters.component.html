@@ -1,4 +1,35 @@
 <form class="listings-filters" [formGroup]="filterForm">
+  <div class="listings-filters__top-row">
+    <p class="listings-filters__intro">
+      {{ 'listings.filters.intro' | translate }}
+    </p>
+    <p-button
+      type="button"
+      [text]="true"
+      icon="pi pi-filter-slash"
+      [label]="'listings.filters.clear' | translate"
+      (onClick)="clearFilters()"
+    />
+  </div>
+
+  <div class="listings-filters__field">
+    <span class="listings-filters__label">
+      {{ 'listings.filters.quickCategories' | translate }}
+    </span>
+    <div class="listings-filters__chips">
+      @for (category of quickCategories; track category.id) {
+        <p-button
+          type="button"
+          size="small"
+          [text]="filterForm.controls.categoryId.value !== category.id"
+          [outlined]="filterForm.controls.categoryId.value !== category.id"
+          [label]="category.labelKey | translate"
+          (onClick)="applyQuickCategory(category.id)"
+        />
+      }
+    </div>
+  </div>
+
   <div class="listings-filters__field">
     <label class="listings-filters__label" for="listings-filter-city">
       {{ 'listings.filters.city' | translate }}
@@ -27,6 +58,9 @@
       [placeholder]="'listings.filters.categoryPlaceholder' | translate"
       autocomplete="off"
     />
+    <small class="listings-filters__hint">
+      {{ 'listings.filters.categoryHint' | translate }}
+    </small>
   </div>
 
   <div class="listings-filters__row">

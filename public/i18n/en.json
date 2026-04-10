@@ -1,4 +1,9 @@
 {
+  "app": {
+    "shell": {
+      "brand": "StayFinder"
+    }
+  },
   "listings": {
     "common": {
       "retry": "Try again"
@@ -9,10 +14,21 @@
       "toggleFavorite": "Toggle favorite"
     },
     "filters": {
+      "intro": "Set filters to quickly find the right stay.",
+      "clear": "Clear filters",
+      "quickCategories": "Quick categories",
       "city": "City",
       "cityPlaceholder": "Enter city",
       "categoryId": "Category",
-      "categoryPlaceholder": "Category ID",
+      "categoryPlaceholder": "Pick a category or enter an ID",
+      "categoryHint": "Quick categories apply category IDs used by the API.",
+      "categories": {
+        "apartment": "Apartment",
+        "house": "House",
+        "villa": "Villa",
+        "studio": "Studio",
+        "cabin": "Cabin"
+      },
       "minPrice": "Minimum price",
       "minPricePlaceholder": "Min",
       "maxPrice": "Maximum price",
@@ -30,6 +46,9 @@
     },
     "page": {
       "title": "Listings",
+      "subtitle": "Browse verified listings and compare prices with confidence.",
+      "errorTitle": "Unable to load listings",
+      "emptyTitle": "No matching listings",
       "empty": "No listings match your filters.",
       "loading": "Loading listings",
       "loadingMore": "Loading more listings"
@@ -41,9 +60,12 @@
       "loading": "Loading listing details",
       "cityLabel": "Location",
       "priceLabel": "{{amount}} per day",
+      "assurance": "Verified listing details, transparent pricing, and secure host contact.",
       "descriptionHeading": "About this place",
       "hostHeading": "Your host",
-      "bookingHeading": "Check availability"
+      "contactLabel": "Contact",
+      "bookingHeading": "Check availability",
+      "bookingSubtitle": "Select your dates to estimate the full stay price before booking."
     }
   }
 }

@@ -85,6 +85,10 @@
                   }}
                 </span>
               </p>
+
+              <p class="detail-page__assurance">
+                {{ 'listings.details.assurance' | translate }}
+              </p>
             </header>
 
             <section
@@ -109,6 +113,9 @@
               </p>
               @if (listing.owner.phoneNumber) {
                 <p class="detail-page__owner-phone">
+                  <span class="detail-page__owner-label">
+                    {{ 'listings.details.contactLabel' | translate }}:
+                  </span>
                   <a
                     class="detail-page__phone-link"
                     [href]="'tel:' + listing.owner.phoneNumber"
@@ -128,6 +135,9 @@
           <h2 id="detail-booking-heading" class="detail-page__section-title">
             {{ 'listings.details.bookingHeading' | translate }}
           </h2>
+          <p class="detail-page__booking-subtitle">
+            {{ 'listings.details.bookingSubtitle' | translate }}
+          </p>
           <app-booking-calendar
             [bookedDates]="listing.bookedDates"
             [pricePerDay]="listing.pricePerDay"
