@@ -1,0 +1,40 @@
+import { provideHttpClient } from '@angular/common/http';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { provideEffects } from '@ngrx/effects';
+import { provideStore, provideState } from '@ngrx/store';
+import { provideTranslateService } from '@ngx-translate/core';
+import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
+import Aura from '@primeuix/themes/aura';
+import { providePrimeNG } from 'primeng/config';
+
+import { ListingsEffects } from './features/listings/store/listings.effects';
+import { listingsFeatureKey, listingsReducer } from './features/listings/store/listings.reducer';
+import { routes } from './app.routes';
+
+const translateHttpLoaderProviders = provideTranslateHttpLoader({
+  prefix: '/i18n/',
+  suffix: '.json',
+});
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideBrowserGlobalErrorListeners(),
+    provideRouter(routes),
+    provideHttpClient(),
+    provideStore(),
+    provideState(listingsFeatureKey, listingsReducer),
+    provideEffects(ListingsEffects),
+    translateHttpLoaderProviders[0],
+    ...provideTranslateService({
+      fallbackLang: 'en',
+      lang: 'en',
+      loader: translateHttpLoaderProviders[1],
+    }),
+    providePrimeNG({
+      theme: {
+        preset: Aura,
+      },
+    }),
+  ],
+};

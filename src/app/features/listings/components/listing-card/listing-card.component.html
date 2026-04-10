@@ -1,0 +1,48 @@
+<p-card styleClass="listing-card">
+  <ng-template pTemplate="header">
+    <div class="listing-card__media">
+      @if (listing().mainImageUrl) {
+        <img
+          class="listing-card__image"
+          [src]="listing().mainImageUrl"
+          [alt]="listing().title"
+          width="320"
+          height="200"
+          loading="lazy"
+        />
+      } @else {
+        <div class="listing-card__placeholder" role="img" [attr.aria-label]="listing().title">
+          {{ 'listings.card.noImage' | translate }}
+        </div>
+      }
+    </div>
+  </ng-template>
+
+  <div class="listing-card__body">
+    <h3 class="listing-card__title">{{ listing().title }}</h3>
+    <p class="listing-card__city">{{ listing().city }}</p>
+    <p class="listing-card__price">
+      {{
+        'listings.card.pricePerDay'
+          | translate
+            : {
+                amount: (listing().pricePerDay | currency),
+              }
+      }}
+    </p>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="listing-card__footer">
+      <p-button
+        type="button"
+        [rounded]="true"
+        [text]="true"
+        [attr.aria-label]="'listings.card.toggleFavorite' | translate"
+        [attr.aria-pressed]="listing().isFavorite"
+        [icon]="listing().isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'"
+        (onClick)="onFavoriteClick()"
+      />
+    </div>
+  </ng-template>
+</p-card>

@@ -1,0 +1,44 @@
+<div class="listing-gallery">
+  @if (mainImage(); as primary) {
+    <div class="listing-gallery__main">
+      <img
+        class="listing-gallery__main-img"
+        [src]="primary.url"
+        [alt]="'listings.gallery.mainImageAlt' | translate"
+        width="640"
+        height="400"
+        loading="lazy"
+      />
+    </div>
+
+    @if (sortedImages().length > 1) {
+      <div
+        class="listing-gallery__thumbs"
+        role="list"
+        [attr.aria-label]="'listings.gallery.thumbnailsLabel' | translate"
+      >
+        @for (image of sortedImages(); track trackByImageId($index, image); let i = $index) {
+          <div class="listing-gallery__thumb-wrap" role="listitem">
+            <p-button
+              type="button"
+              styleClass="listing-gallery__thumb-button"
+              [outlined]="mainImage()?.id !== image.id"
+              (onClick)="selectThumbnail(i)"
+            >
+              <img
+                class="listing-gallery__thumb-img"
+                [src]="image.url"
+                alt=""
+                width="96"
+                height="64"
+                loading="lazy"
+              />
+            </p-button>
+          </div>
+        }
+      </div>
+    }
+  } @else {
+    <p class="listing-gallery__empty">{{ 'listings.gallery.noImages' | translate }}</p>
+  }
+</div>

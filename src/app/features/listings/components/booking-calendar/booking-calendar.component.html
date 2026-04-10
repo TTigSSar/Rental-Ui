@@ -1,0 +1,30 @@
+<div class="booking-calendar">
+  <p-datepicker
+    inputId="booking-calendar-range"
+    selectionMode="range"
+    [inline]="true"
+    [showWeek]="true"
+    [disabledDates]="disabledDates()"
+    [ngModel]="rangeSelection()"
+    (ngModelChange)="onRangeChange($event)"
+    [attr.aria-label]="'listings.booking.calendarLabel' | translate"
+  />
+
+  <div class="booking-calendar__summary" aria-live="polite">
+    @if (totalPrice() !== null) {
+      <p class="booking-calendar__total">
+        {{
+          'listings.booking.totalPrice'
+            | translate
+              : {
+                  amount: (totalPrice()! | currency),
+                }
+        }}
+      </p>
+    } @else {
+      <p class="booking-calendar__hint">
+        {{ 'listings.booking.selectRangeHint' | translate }}
+      </p>
+    }
+  </div>
+</div>

@@ -1,0 +1,139 @@
+<div class="detail-page">
+  <nav
+    class="detail-page__nav"
+    [attr.aria-label]="'listings.details.subNavAria' | translate"
+  >
+    <a [routerLink]="['..']" class="detail-page__back">
+      <span class="pi pi-arrow-left detail-page__back-icon" aria-hidden="true"></span>
+      {{ 'listings.details.back' | translate }}
+    </a>
+  </nav>
+
+  @if (viewModel$ | async; as vm) {
+    @if (vm.showError) {
+      <div class="detail-page__error" role="alert">
+        @if (vm.invalidRoute) {
+          <p-message severity="warn" styleClass="detail-page__message">
+            <span>{{ 'listings.details.invalidRoute' | translate }}</span>
+          </p-message>
+        } @else {
+          <p-message severity="error" styleClass="detail-page__message">
+            <span>{{ vm.error }}</span>
+          </p-message>
+          <p-button
+            type="button"
+            styleClass="detail-page__retry"
+            [label]="'listings.common.retry' | translate"
+            (onClick)="retryLoad()"
+          />
+        }
+      </div>
+    }
+
+    @if (vm.showSkeleton) {
+      <div
+        class="detail-page__skeleton"
+        aria-busy="true"
+        [attr.aria-label]="'listings.details.loading' | translate"
+      >
+        <div class="detail-page__skeleton-gallery">
+          <p-skeleton width="100%" height="18rem" />
+        </div>
+        <div class="detail-page__skeleton-main">
+          <p-skeleton width="55%" height="2rem" />
+          <p-skeleton width="35%" height="1.25rem" />
+          <p-skeleton width="25%" height="1.25rem" />
+          <p-skeleton width="100%" height="5rem" />
+          <p-skeleton width="100%" height="4rem" />
+        </div>
+      </div>
+    }
+
+    @if (vm.showContent && vm.displayListing; as listing) {
+      <article class="detail-page__article">
+        <div class="detail-page__layout">
+          <div class="detail-page__media">
+            <app-listing-gallery [images]="listing.images" />
+          </div>
+
+          <div class="detail-page__primary">
+            <header class="detail-page__header">
+              <div class="detail-page__title-row">
+                <h1 class="detail-page__title">{{ listing.title }}</h1>
+                <p-button
+                  type="button"
+                  [text]="true"
+                  [rounded]="true"
+                  [icon]="listing.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'"
+                  [attr.aria-label]="'listings.card.toggleFavorite' | translate"
+                  [attr.aria-pressed]="listing.isFavorite"
+                  (onClick)="onFavoriteToggle(listing)"
+                />
+              </div>
+
+              <p class="detail-page__meta">
+                <span class="detail-page__city">
+                  {{ 'listings.details.cityLabel' | translate }}: {{ listing.city }}
+                </span>
+                <span class="detail-page__price" aria-live="polite">
+                  {{
+                    'listings.details.priceLabel'
+                      | translate
+                        : {
+                            amount: (listing.pricePerDay | currency),
+                          }
+                  }}
+                </span>
+              </p>
+            </header>
+
+            <section
+              class="detail-page__section"
+              aria-labelledby="detail-description-heading"
+            >
+              <h2 id="detail-description-heading" class="detail-page__section-title">
+                {{ 'listings.details.descriptionHeading' | translate }}
+              </h2>
+              <div class="detail-page__description">{{ listing.description }}</div>
+            </section>
+
+            <section
+              class="detail-page__section detail-page__section--owner"
+              aria-labelledby="detail-owner-heading"
+            >
+              <h2 id="detail-owner-heading" class="detail-page__section-title">
+                {{ 'listings.details.hostHeading' | translate }}
+              </h2>
+              <p class="detail-page__owner-name">
+                {{ listing.owner.firstName }} {{ listing.owner.lastName }}
+              </p>
+              @if (listing.owner.phoneNumber) {
+                <p class="detail-page__owner-phone">
+                  <a
+                    class="detail-page__phone-link"
+                    [href]="'tel:' + listing.owner.phoneNumber"
+                  >
+                    {{ listing.owner.phoneNumber }}
+                  </a>
+                </p>
+              }
+            </section>
+          </div>
+        </div>
+
+        <section
+          class="detail-page__section detail-page__section--booking"
+          aria-labelledby="detail-booking-heading"
+        >
+          <h2 id="detail-booking-heading" class="detail-page__section-title">
+            {{ 'listings.details.bookingHeading' | translate }}
+          </h2>
+          <app-booking-calendar
+            [bookedDates]="listing.bookedDates"
+            [pricePerDay]="listing.pricePerDay"
+          />
+        </section>
+      </article>
+    }
+  }
+</div>

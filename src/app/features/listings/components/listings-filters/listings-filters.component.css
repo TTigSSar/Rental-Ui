@@ -1,0 +1,26 @@
+.listings-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.listings-filters__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 1rem;
+}
+
+.listings-filters__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.listings-filters__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.listings-filters__input {
+  width: 100%;
+}

@@ -1,0 +1,77 @@
+.listings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.listings-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.listings-page__title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.listings-page__error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.listings-page__message {
+  width: 100%;
+}
+
+.listings-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
+  gap: 1.25rem;
+}
+
+.listings-page__grid--skeleton {
+  margin-top: 0;
+}
+
+.listings-page__skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: var(--p-border-radius-md, 8px);
+  border: 1px solid var(--p-content-border-color, #e4e4e7);
+  background: var(--p-content-background, #fff);
+}
+
+.listings-page__empty {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  border-radius: var(--p-border-radius-md, 8px);
+  border: 1px dashed var(--p-content-border-color, #e4e4e7);
+  background: var(--p-content-background, #fafafa);
+}
+
+.listings-page__empty-text {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--p-text-muted-color, #71717a);
+}
+
+.listings-page__append-loading {
+  margin-top: 0.5rem;
+}
+
+.listings-page__sentinel {
+  height: 1px;
+  width: 100%;
+  pointer-events: none;
+  visibility: hidden;
+}

@@ -1,0 +1,49 @@
+{
+  "listings": {
+    "common": {
+      "retry": "Try again"
+    },
+    "card": {
+      "noImage": "No image available",
+      "pricePerDay": "{{amount}} per day",
+      "toggleFavorite": "Toggle favorite"
+    },
+    "filters": {
+      "city": "City",
+      "cityPlaceholder": "Enter city",
+      "categoryId": "Category",
+      "categoryPlaceholder": "Category ID",
+      "minPrice": "Minimum price",
+      "minPricePlaceholder": "Min",
+      "maxPrice": "Maximum price",
+      "maxPricePlaceholder": "Max"
+    },
+    "gallery": {
+      "mainImageAlt": "Listing image",
+      "thumbnailsLabel": "Gallery thumbnails",
+      "noImages": "No images to display"
+    },
+    "booking": {
+      "calendarLabel": "Select stay dates",
+      "totalPrice": "Total: {{amount}}",
+      "selectRangeHint": "Select a start and end date to see the total."
+    },
+    "page": {
+      "title": "Listings",
+      "empty": "No listings match your filters.",
+      "loading": "Loading listings",
+      "loadingMore": "Loading more listings"
+    },
+    "details": {
+      "back": "Back to listings",
+      "subNavAria": "Listing navigation",
+      "invalidRoute": "This listing link is not valid.",
+      "loading": "Loading listing details",
+      "cityLabel": "Location",
+      "priceLabel": "{{amount}} per day",
+      "descriptionHeading": "About this place",
+      "hostHeading": "Your host",
+      "bookingHeading": "Check availability"
+    }
+  }
+}

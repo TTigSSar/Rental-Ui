@@ -1,0 +1,78 @@
+<div class="listings-page">
+  <header class="listings-page__header">
+    <h1 class="listings-page__title">
+      {{ 'listings.page.title' | translate }}
+    </h1>
+    <app-listings-filters (filtersChanged)="onFiltersChanged($event)" />
+  </header>
+
+  @if (viewModel$ | async; as vm) {
+    @if (vm.hasError && vm.error) {
+      <div class="listings-page__error" role="alert">
+        <p-message severity="error" styleClass="listings-page__message">
+          <span>{{ vm.error }}</span>
+        </p-message>
+        <p-button
+          type="button"
+          styleClass="listings-page__retry"
+          [label]="'listings.common.retry' | translate"
+          (onClick)="retryAfterError()"
+        />
+      </div>
+    }
+
+    @if (vm.showInitialSkeleton) {
+      <div
+        class="listings-page__grid listings-page__grid--skeleton"
+        aria-busy="true"
+        [attr.aria-label]="'listings.page.loading' | translate"
+      >
+        @for (i of skeletonItems(vm); track i) {
+          <div class="listings-page__skeleton-card">
+            <p-skeleton width="100%" height="10rem" />
+            <p-skeleton width="70%" height="1.25rem" />
+            <p-skeleton width="40%" height="1rem" />
+            <p-skeleton width="50%" height="1rem" />
+          </div>
+        }
+      </div>
+    }
+
+    @if (vm.showEmpty) {
+      <div class="listings-page__empty">
+        <p class="listings-page__empty-text">
+          {{ 'listings.page.empty' | translate }}
+        </p>
+      </div>
+    }
+
+    @if (vm.items.length > 0) {
+      <div class="listings-page__grid">
+        @for (listing of vm.items; track listing.id) {
+          <app-listing-card
+            [listing]="listing"
+            (favoriteToggled)="onFavoriteToggled($event)"
+          />
+        }
+      </div>
+    }
+
+    @if (vm.showAppendLoading) {
+      <div
+        class="listings-page__append-loading"
+        aria-live="polite"
+        [attr.aria-label]="'listings.page.loadingMore' | translate"
+      >
+        <p-skeleton width="100%" height="3rem" />
+      </div>
+    }
+
+    @if (vm.hasMore && !vm.hasError) {
+      <div
+        #loadMoreSentinel
+        class="listings-page__sentinel"
+        aria-hidden="true"
+      ></div>
+    }
+  }
+</div>
