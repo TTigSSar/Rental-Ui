@@ -22,4 +22,9 @@ export const routes: Routes = [
     loadChildren: () =>
       import('./features/my-listings').then((m) => m.myListingsRoutes),
   },
+  {
+    path: 'bookings',
+    loadChildren: () =>
+      import('./features/bookings').then((m) => m.bookingsRoutes),
+  },
 ];

@@ -1,0 +1,70 @@
+<section class="booking-requests-page">
+  <header class="booking-requests-page__header">
+    <h1 class="booking-requests-page__title">
+      {{ 'bookings.requests.title' | translate }}
+    </h1>
+    <p class="booking-requests-page__subtitle">
+      {{ 'bookings.requests.subtitle' | translate }}
+    </p>
+  </header>
+
+  @if (viewModel$ | async; as vm) {
+    @if (vm.hasError && vm.error) {
+      <div class="booking-requests-page__error" role="alert">
+        <p-message severity="error" styleClass="booking-requests-page__message">
+          <div class="booking-requests-page__error-content">
+            <strong>{{ 'bookings.requests.errorTitle' | translate }}</strong>
+            <span>{{ vm.error }}</span>
+          </div>
+        </p-message>
+        <p-button
+          type="button"
+          [label]="'listings.common.retry' | translate"
+          (onClick)="retry()"
+        />
+      </div>
+    }
+
+    @if (vm.showInitialSkeleton) {
+      <div class="booking-requests-page__grid">
+        @for (i of [0, 1, 2]; track i) {
+          <div class="booking-requests-page__skeleton-card">
+            <p-skeleton width="70%" height="1.2rem" />
+            <p-skeleton width="75%" height="1rem" />
+            <p-skeleton width="60%" height="1rem" />
+            <p-skeleton width="55%" height="1rem" />
+            <div class="booking-requests-page__skeleton-actions">
+              <p-skeleton width="5rem" height="2rem" />
+              <p-skeleton width="5rem" height="2rem" />
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (vm.showEmpty) {
+      <div class="booking-requests-page__empty">
+        <span class="pi pi-inbox booking-requests-page__empty-icon"></span>
+        <h2 class="booking-requests-page__empty-title">
+          {{ 'bookings.requests.emptyTitle' | translate }}
+        </h2>
+        <p class="booking-requests-page__empty-text">
+          {{ 'bookings.requests.empty' | translate }}
+        </p>
+      </div>
+    }
+
+    @if (vm.requests.length > 0) {
+      <div class="booking-requests-page__grid">
+        @for (request of vm.requests; track request.id) {
+          <app-booking-request-card
+            [request]="request"
+            [actionLoading]="isActionLoading(request.id, vm.actionIds)"
+            (approved)="approve($event)"
+            (rejected)="reject($event)"
+          />
+        }
+      </div>
+    }
+  }
+</section>

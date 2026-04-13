@@ -1,0 +1,73 @@
+<p-card styleClass="booking-request-card">
+  <div class="booking-request-card__top">
+    <h3 class="booking-request-card__title">{{ request().listingTitle }}</h3>
+    <p-tag
+      [value]="statusLabelKey() | translate"
+      [severity]="statusSeverity()"
+    />
+  </div>
+
+  <p class="booking-request-card__line">
+    {{ 'bookings.requests.renter' | translate }}:
+    {{ request().renterFirstName }} {{ request().renterLastName }}
+    ({{ request().renterEmail }})
+  </p>
+  <p class="booking-request-card__line">
+    {{ 'bookings.requests.dateRange' | translate }}:
+    {{ request().startDate | date: 'mediumDate' }} -
+    {{ request().endDate | date: 'mediumDate' }}
+  </p>
+  <p class="booking-request-card__line">
+    {{
+      'bookings.requests.totalPrice'
+        | translate
+          : {
+              amount: (request().totalPrice | currency),
+            }
+    }}
+  </p>
+  <p class="booking-request-card__line">
+    {{ 'bookings.common.createdAt' | translate }}:
+    @if (request().createdAt; as createdAt) {
+      {{ createdAt | date: 'mediumDate' }}
+    } @else {
+      {{ 'bookings.common.notAvailable' | translate }}
+    }
+  </p>
+
+  <ng-template pTemplate="footer">
+    <div class="booking-request-card__actions">
+      <p-button
+        type="button"
+        size="small"
+        [outlined]="true"
+        icon="pi pi-eye"
+        [label]="'bookings.actions.viewListing' | translate"
+        [routerLink]="['/listings', request().listingId]"
+      />
+      @if (canDecide()) {
+        <p-button
+          type="button"
+          size="small"
+          severity="success"
+          icon="pi pi-check"
+          [label]="'bookings.actions.approve' | translate"
+          [loading]="actionLoading()"
+          [disabled]="actionLoading()"
+          (onClick)="approve()"
+        />
+        <p-button
+          type="button"
+          size="small"
+          severity="danger"
+          [outlined]="true"
+          icon="pi pi-times"
+          [label]="'bookings.actions.reject' | translate"
+          [loading]="actionLoading()"
+          [disabled]="actionLoading()"
+          (onClick)="reject()"
+        />
+      }
+    </div>
+  </ng-template>
+</p-card>

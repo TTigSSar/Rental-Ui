@@ -11,6 +11,8 @@ import { providePrimeNG } from 'primeng/config';
 import { AuthEffects } from './features/auth/store/auth.effects';
 import { authInterceptor } from './features/auth/services/auth.interceptor';
 import { authFeatureKey, authReducer } from './features/auth/store/auth.reducer';
+import { BookingsEffects } from './features/bookings/store/bookings.effects';
+import { bookingsFeatureKey, bookingsReducer } from './features/bookings/store/bookings.reducer';
 import { ListingsEffects } from './features/listings/store/listings.effects';
 import { listingsFeatureKey, listingsReducer } from './features/listings/store/listings.reducer';
 import { MyListingsEffects } from './features/my-listings/store/my-listings.effects';
@@ -34,10 +36,12 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([authInterceptor])),
     provideStore(),
     provideState(authFeatureKey, authReducer),
+    provideState(bookingsFeatureKey, bookingsReducer),
     provideState(listingsFeatureKey, listingsReducer),
     provideState(myListingsFeatureKey, myListingsReducer),
     provideState(profileFeatureKey, profileReducer),
     provideEffects(AuthEffects),
+    provideEffects(BookingsEffects),
     provideEffects(ListingsEffects),
     provideEffects(MyListingsEffects),
     provideEffects(ProfileEffects),

@@ -61,7 +61,7 @@ export class App {
         primaryNav.push(
           { path: '/my-listings', labelKey: 'app.shell.nav.myListings' },
           {
-            path: '/booking-requests',
+            path: '/bookings/requests',
             labelKey: 'app.shell.nav.bookingRequests',
           },
         );

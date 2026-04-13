@@ -1,0 +1,45 @@
+<p-card styleClass="my-booking-card">
+  <div class="my-booking-card__top">
+    <h3 class="my-booking-card__title">{{ booking().listingTitle }}</h3>
+    <p-tag
+      [value]="statusLabelKey() | translate"
+      [severity]="statusSeverity()"
+    />
+  </div>
+
+  <p class="my-booking-card__line">
+    {{ 'bookings.myBookings.dateRange' | translate }}:
+    {{ booking().startDate | date: 'mediumDate' }} -
+    {{ booking().endDate | date: 'mediumDate' }}
+  </p>
+  <p class="my-booking-card__line">
+    {{
+      'bookings.myBookings.totalPrice'
+        | translate
+          : {
+              amount: (booking().totalPrice | currency),
+            }
+    }}
+  </p>
+  <p class="my-booking-card__line">
+    {{ 'bookings.common.createdAt' | translate }}:
+    @if (booking().createdAt; as createdAt) {
+      {{ createdAt | date: 'mediumDate' }}
+    } @else {
+      {{ 'bookings.common.notAvailable' | translate }}
+    }
+  </p>
+
+  <ng-template pTemplate="footer">
+    <div class="my-booking-card__actions">
+      <p-button
+        type="button"
+        size="small"
+        [outlined]="true"
+        icon="pi pi-eye"
+        [label]="'bookings.actions.viewListing' | translate"
+        [routerLink]="['/listings', booking().listingId]"
+      />
+    </div>
+  </ng-template>
+</p-card>

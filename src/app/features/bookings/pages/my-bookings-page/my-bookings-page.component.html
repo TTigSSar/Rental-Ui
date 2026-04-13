@@ -1,0 +1,61 @@
+<section class="bookings-page">
+  <header class="bookings-page__header">
+    <h1 class="bookings-page__title">
+      {{ 'bookings.myBookings.title' | translate }}
+    </h1>
+    <p class="bookings-page__subtitle">
+      {{ 'bookings.myBookings.subtitle' | translate }}
+    </p>
+  </header>
+
+  @if (viewModel$ | async; as vm) {
+    @if (vm.hasError && vm.error) {
+      <div class="bookings-page__error" role="alert">
+        <p-message severity="error" styleClass="bookings-page__message">
+          <div class="bookings-page__error-content">
+            <strong>{{ 'bookings.myBookings.errorTitle' | translate }}</strong>
+            <span>{{ vm.error }}</span>
+          </div>
+        </p-message>
+        <p-button
+          type="button"
+          [label]="'listings.common.retry' | translate"
+          (onClick)="retry()"
+        />
+      </div>
+    }
+
+    @if (vm.showInitialSkeleton) {
+      <div class="bookings-page__grid">
+        @for (i of [0, 1, 2, 3]; track i) {
+          <div class="bookings-page__skeleton-card">
+            <p-skeleton width="70%" height="1.2rem" />
+            <p-skeleton width="60%" height="1rem" />
+            <p-skeleton width="45%" height="1rem" />
+            <p-skeleton width="55%" height="1rem" />
+          </div>
+        }
+      </div>
+    }
+
+    @if (vm.showEmpty) {
+      <div class="bookings-page__empty">
+        <span class="pi pi-calendar-times bookings-page__empty-icon"></span>
+        <h2 class="bookings-page__empty-title">
+          {{ 'bookings.myBookings.emptyTitle' | translate }}
+        </h2>
+        <p class="bookings-page__empty-text">
+          {{ 'bookings.myBookings.empty' | translate }}
+        </p>
+      </div>
+    }
+
+    @if (vm.bookings.length > 0) {
+      <div class="bookings-page__grid">
+        @for (booking of vm.bookings; track booking.id) {
+          <app-my-booking-card [booking]="booking" />
+        }
+      </div>
+    }
+  }
+</section>

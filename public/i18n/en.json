@@ -204,5 +204,42 @@
     "common": {
       "notAvailable": "Not available"
     }
+  },
+  "bookings": {
+    "status": {
+      "pendingApproval": "Pending approval",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "archived": "Archived",
+      "cancelled": "Cancelled"
+    },
+    "actions": {
+      "viewListing": "View listing",
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "common": {
+      "createdAt": "Created",
+      "notAvailable": "Not available"
+    },
+    "myBookings": {
+      "title": "My bookings",
+      "subtitle": "Track your stays and booking outcomes in one place.",
+      "errorTitle": "Unable to load your bookings",
+      "emptyTitle": "No bookings yet",
+      "empty": "Your bookings will appear here once you reserve listings.",
+      "dateRange": "Date range",
+      "totalPrice": "Total: {{amount}}"
+    },
+    "requests": {
+      "title": "Booking requests",
+      "subtitle": "Review and manage booking requests for your listings.",
+      "errorTitle": "Unable to load booking requests",
+      "emptyTitle": "No booking requests",
+      "empty": "Incoming booking requests will appear here.",
+      "renter": "Renter",
+      "dateRange": "Date range",
+      "totalPrice": "Total: {{amount}}"
+    }
   }
 }
