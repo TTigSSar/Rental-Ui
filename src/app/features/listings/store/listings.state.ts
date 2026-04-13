@@ -1,4 +1,5 @@
 import type { ListingDetails } from '../models/listing-details.model';
+import type { ListingCategoryOption } from '../models/create-listing.model';
 import type { ListingPreview } from '../models/listing.model';
 import type { ListingsFilter } from '../models/listings-filter.model';
 
@@ -11,6 +12,11 @@ export interface ListingsState {
   hasMore: boolean;
   isLoading: boolean;
   isDetailsLoading: boolean;
+  categories: ListingCategoryOption[];
+  categoriesLoading: boolean;
+  createListingLoading: boolean;
+  createListingError: string | null;
+  createListingSuccessId: string | null;
   error: string | null;
 }
 
@@ -28,5 +34,10 @@ export const initialListingsState: ListingsState = {
   hasMore: false,
   isLoading: false,
   isDetailsLoading: false,
+  categories: [],
+  categoriesLoading: false,
+  createListingLoading: false,
+  createListingError: null,
+  createListingSuccessId: null,
   error: null,
 };

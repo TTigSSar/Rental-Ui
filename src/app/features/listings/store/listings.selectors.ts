@@ -1,5 +1,6 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 
+import type { ListingCategoryOption } from '../models/create-listing.model';
 import type { ListingDetails } from '../models/listing-details.model';
 import type { ListingPreview } from '../models/listing.model';
 import type { ListingsFilter } from '../models/listings-filter.model';
@@ -52,4 +53,29 @@ export const selectListingDetailsLoading = createSelector(
 export const selectListingsError = createSelector(
   selectListingsState,
   (state: ListingsState): string | null => state.error,
+);
+
+export const selectListingCategories = createSelector(
+  selectListingsState,
+  (state: ListingsState): ListingCategoryOption[] => state.categories,
+);
+
+export const selectListingCategoriesLoading = createSelector(
+  selectListingsState,
+  (state: ListingsState): boolean => state.categoriesLoading,
+);
+
+export const selectCreateListingLoading = createSelector(
+  selectListingsState,
+  (state: ListingsState): boolean => state.createListingLoading,
+);
+
+export const selectCreateListingError = createSelector(
+  selectListingsState,
+  (state: ListingsState): string | null => state.createListingError,
+);
+
+export const selectCreateListingSuccessId = createSelector(
+  selectListingsState,
+  (state: ListingsState): string | null => state.createListingSuccessId,
 );

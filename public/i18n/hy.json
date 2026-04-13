@@ -40,7 +40,8 @@
   },
   "listings": {
     "common": {
-      "retry": "Փորձել կրկին"
+      "retry": "Փորձել կրկին",
+      "cancel": "Չեղարկել"
     },
     "card": {
       "noImage": "Պատկեր չկա",
@@ -100,6 +101,39 @@
       "contactLabel": "Կապ",
       "bookingHeading": "Ստուգեք հասանելիությունը",
       "bookingSubtitle": "Ընտրեք օրերը՝ ամրագրումից առաջ ամբողջ արժեքը գնահատելու համար։"
+    },
+    "createPage": {
+      "title": "Ստեղծել հայտարարություն",
+      "loadingCategories": "Կատեգորիաները բեռնվում են...",
+      "success": "Հայտարարությունը հաջողությամբ ստեղծվել է։"
+    },
+    "createForm": {
+      "title": "Վերնագիր",
+      "titlePlaceholder": "Մուտքագրեք հայտարարության վերնագիրը",
+      "description": "Նկարագրություն",
+      "descriptionPlaceholder": "Նկարագրեք ձեր տարածքը",
+      "category": "Կատեգորիա",
+      "categoryPlaceholder": "Ընտրեք կատեգորիա",
+      "pricePerDay": "Գինը օրական",
+      "pricePerDayPlaceholder": "Մուտքագրեք օրական գինը",
+      "country": "Երկիր",
+      "countryPlaceholder": "Մուտքագրեք երկիրը",
+      "city": "Քաղաք",
+      "cityPlaceholder": "Մուտքագրեք քաղաքը",
+      "addressLine": "Հասցեի տող",
+      "addressLinePlaceholder": "Փողոց և շենք (ընտրովի)",
+      "latitude": "Լայնություն",
+      "latitudePlaceholder": "օր. 40.1792",
+      "longitude": "Երկայնություն",
+      "longitudePlaceholder": "օր. 44.4991",
+      "images": "Նկարներ",
+      "imagesSelected": "նկար ընտրված է",
+      "imagesHint": "Կարող եք ընտրել մեկ կամ մի քանի նկար։",
+      "submit": "Ստեղծել հայտարարություն",
+      "validation": {
+        "required": "Այս դաշտը պարտադիր է։",
+        "priceGreaterThanZero": "Գինը պետք է մեծ լինի 0-ից։"
+      }
     }
   }
 }

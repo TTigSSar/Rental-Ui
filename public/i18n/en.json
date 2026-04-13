@@ -40,7 +40,8 @@
   },
   "listings": {
     "common": {
-      "retry": "Try again"
+      "retry": "Try again",
+      "cancel": "Cancel"
     },
     "card": {
       "noImage": "No image available",
@@ -100,6 +101,39 @@
       "contactLabel": "Contact",
       "bookingHeading": "Check availability",
       "bookingSubtitle": "Select your dates to estimate the full stay price before booking."
+    },
+    "createPage": {
+      "title": "Create listing",
+      "loadingCategories": "Loading listing categories...",
+      "success": "Listing created successfully."
+    },
+    "createForm": {
+      "title": "Title",
+      "titlePlaceholder": "Enter listing title",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe your place",
+      "category": "Category",
+      "categoryPlaceholder": "Select category",
+      "pricePerDay": "Price per day",
+      "pricePerDayPlaceholder": "Enter daily price",
+      "country": "Country",
+      "countryPlaceholder": "Enter country",
+      "city": "City",
+      "cityPlaceholder": "Enter city",
+      "addressLine": "Address line",
+      "addressLinePlaceholder": "Street and building details (optional)",
+      "latitude": "Latitude",
+      "latitudePlaceholder": "e.g. 40.1792",
+      "longitude": "Longitude",
+      "longitudePlaceholder": "e.g. 44.4991",
+      "images": "Images",
+      "imagesSelected": "images selected",
+      "imagesHint": "You can select one or more listing images.",
+      "submit": "Create listing",
+      "validation": {
+        "required": "This field is required.",
+        "priceGreaterThanZero": "Price must be greater than 0."
+      }
     }
   }
 }

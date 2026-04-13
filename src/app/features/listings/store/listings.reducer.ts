@@ -148,4 +148,65 @@ export const listingsReducer = createReducer(
       ),
     }),
   ),
+  on(
+    ListingsActions.loadListingCategories,
+    (state): ListingsState => ({
+      ...state,
+      categoriesLoading: true,
+      error: null,
+    }),
+  ),
+  on(
+    ListingsActions.loadListingCategoriesSuccess,
+    (state, { categories }): ListingsState => ({
+      ...state,
+      categories: [...categories],
+      categoriesLoading: false,
+      error: null,
+    }),
+  ),
+  on(
+    ListingsActions.loadListingCategoriesFailure,
+    (state, { error }): ListingsState => ({
+      ...state,
+      categoriesLoading: false,
+      error,
+    }),
+  ),
+  on(
+    ListingsActions.createListing,
+    (state): ListingsState => ({
+      ...state,
+      createListingLoading: true,
+      createListingError: null,
+      createListingSuccessId: null,
+    }),
+  ),
+  on(
+    ListingsActions.createListingSuccess,
+    (state, { response }): ListingsState => ({
+      ...state,
+      createListingLoading: false,
+      createListingError: null,
+      createListingSuccessId: response.id,
+    }),
+  ),
+  on(
+    ListingsActions.createListingFailure,
+    (state, { error }): ListingsState => ({
+      ...state,
+      createListingLoading: false,
+      createListingError: error,
+      createListingSuccessId: null,
+    }),
+  ),
+  on(
+    ListingsActions.clearCreateListingState,
+    (state): ListingsState => ({
+      ...state,
+      createListingLoading: false,
+      createListingError: null,
+      createListingSuccessId: null,
+    }),
+  ),
 );

@@ -1,11 +1,42 @@
 <section class="create-listing-page">
   <header class="create-listing-page__header">
-    <h1 class="create-listing-page__title">Create Listing</h1>
+    <h1 class="create-listing-page__title">
+      {{ 'listings.createPage.title' | translate }}
+    </h1>
   </header>
 
-  <div class="create-listing-page__form-container">
-    <p class="create-listing-page__placeholder">
-      Listing creation form will be added here.
-    </p>
-  </div>
+  @if (vm$ | async; as vm) {
+    @if (vm.showCategoriesLoadingState) {
+      <p-message
+        severity="info"
+        styleClass="create-listing-page__message"
+        [text]="'listings.createPage.loadingCategories' | translate"
+      />
+    }
+
+    @if (vm.createListingError; as createError) {
+      <p-message
+        severity="error"
+        styleClass="create-listing-page__message"
+        [text]="createError"
+      />
+    }
+
+    @if (vm.createListingSuccessId) {
+      <p-message
+        severity="success"
+        styleClass="create-listing-page__message"
+        [text]="'listings.createPage.success' | translate"
+      />
+    }
+
+    <div class="create-listing-page__form-container">
+      <app-create-listing-form
+        [categories]="vm.categories"
+        [isSubmitting]="vm.createListingLoading"
+        (submitted)="onSubmitted($event)"
+        (cancelled)="onCancelled()"
+      />
+    </div>
+  }
 </section>

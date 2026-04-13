@@ -169,4 +169,50 @@ export class ListingsEffects {
       ),
     ),
   );
+
+  readonly loadListingCategories$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ListingsActions.loadListingCategories),
+      switchMap(() =>
+        this.listingsApi.getListingCategories().pipe(
+          map((categories) =>
+            ListingsActions.loadListingCategoriesSuccess({ categories }),
+          ),
+          catchError((error: unknown) =>
+            of(
+              ListingsActions.loadListingCategoriesFailure({
+                error: toErrorMessage(error),
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  readonly createListing$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ListingsActions.createListing),
+      switchMap(({ payload, files }) =>
+        this.listingsApi.createListing(payload).pipe(
+          switchMap((response) => {
+            if (files.length === 0) {
+              return of(ListingsActions.createListingSuccess({ response }));
+            }
+
+            return this.listingsApi.uploadListingImages(response.id, files).pipe(
+              map(() => ListingsActions.createListingSuccess({ response })),
+            );
+          }),
+          catchError((error: unknown) =>
+            of(
+              ListingsActions.createListingFailure({
+                error: toErrorMessage(error),
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }

@@ -1,5 +1,10 @@
 import { createAction, props } from '@ngrx/store';
 
+import type {
+  CreateListingRequest,
+  CreateListingResponse,
+  ListingCategoryOption,
+} from '../models/create-listing.model';
 import type { ListingDetails } from '../models/listing-details.model';
 import type { ListingPreview } from '../models/listing.model';
 import type { ListingsFilter } from '../models/listings-filter.model';
@@ -53,4 +58,37 @@ export const toggleFavoriteOptimistic = createAction(
 export const toggleFavoriteRollback = createAction(
   '[Listings] Toggle Favorite Rollback',
   props<{ listingId: string; isFavorite: boolean }>(),
+);
+
+export const loadListingCategories = createAction(
+  '[Listings] Load Listing Categories',
+);
+
+export const loadListingCategoriesSuccess = createAction(
+  '[Listings] Load Listing Categories Success',
+  props<{ categories: ListingCategoryOption[] }>(),
+);
+
+export const loadListingCategoriesFailure = createAction(
+  '[Listings] Load Listing Categories Failure',
+  props<{ error: string }>(),
+);
+
+export const createListing = createAction(
+  '[Listings] Create Listing',
+  props<{ payload: CreateListingRequest; files: File[] }>(),
+);
+
+export const createListingSuccess = createAction(
+  '[Listings] Create Listing Success',
+  props<{ response: CreateListingResponse }>(),
+);
+
+export const createListingFailure = createAction(
+  '[Listings] Create Listing Failure',
+  props<{ error: string }>(),
+);
+
+export const clearCreateListingState = createAction(
+  '[Listings] Clear Create Listing State',
 );

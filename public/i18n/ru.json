@@ -40,7 +40,8 @@
   },
   "listings": {
     "common": {
-      "retry": "Попробовать снова"
+      "retry": "Попробовать снова",
+      "cancel": "Отмена"
     },
     "card": {
       "noImage": "Изображение отсутствует",
@@ -100,6 +101,39 @@
       "contactLabel": "Контакт",
       "bookingHeading": "Проверьте доступность",
       "bookingSubtitle": "Выберите даты, чтобы заранее оценить полную стоимость проживания."
+    },
+    "createPage": {
+      "title": "Создать объявление",
+      "loadingCategories": "Загрузка категорий...",
+      "success": "Объявление успешно создано."
+    },
+    "createForm": {
+      "title": "Заголовок",
+      "titlePlaceholder": "Введите заголовок объявления",
+      "description": "Описание",
+      "descriptionPlaceholder": "Опишите ваше жилье",
+      "category": "Категория",
+      "categoryPlaceholder": "Выберите категорию",
+      "pricePerDay": "Цена за день",
+      "pricePerDayPlaceholder": "Введите цену за день",
+      "country": "Страна",
+      "countryPlaceholder": "Введите страну",
+      "city": "Город",
+      "cityPlaceholder": "Введите город",
+      "addressLine": "Адрес",
+      "addressLinePlaceholder": "Улица и дом (необязательно)",
+      "latitude": "Широта",
+      "latitudePlaceholder": "напр. 40.1792",
+      "longitude": "Долгота",
+      "longitudePlaceholder": "напр. 44.4991",
+      "images": "Изображения",
+      "imagesSelected": "изобр. выбрано",
+      "imagesHint": "Можно выбрать одно или несколько изображений.",
+      "submit": "Создать объявление",
+      "validation": {
+        "required": "Это поле обязательно.",
+        "priceGreaterThanZero": "Цена должна быть больше 0."
+      }
     }
   }
 }
