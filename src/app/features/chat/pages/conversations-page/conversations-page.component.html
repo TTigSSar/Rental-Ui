@@ -1,0 +1,87 @@
+<section class="conversations-page">
+  <header class="conversations-page__header">
+    <h1 class="conversations-page__title">{{ 'chat.conversations.title' | translate }}</h1>
+    <p class="conversations-page__subtitle">
+      {{ 'chat.conversations.subtitle' | translate }}
+    </p>
+  </header>
+
+  @if (viewModel$ | async; as vm) {
+    @if (vm.hasError && vm.error) {
+      <div class="conversations-page__error" role="alert">
+        <p-message severity="error" styleClass="conversations-page__message">
+          <div class="conversations-page__error-content">
+            <strong>{{ 'chat.conversations.errorTitle' | translate }}</strong>
+            <span>{{ vm.error }}</span>
+          </div>
+        </p-message>
+        <p-button
+          type="button"
+          [label]="'listings.common.retry' | translate"
+          (onClick)="retry()"
+        />
+      </div>
+    }
+
+    @if (vm.showInitialSkeleton) {
+      <div class="conversations-page__list">
+        @for (i of [0, 1, 2]; track i) {
+          <div class="conversations-page__skeleton-card">
+            <p-skeleton width="55%" height="1.25rem" />
+            <p-skeleton width="80%" height="1rem" />
+            <p-skeleton width="35%" height="1rem" />
+          </div>
+        }
+      </div>
+    }
+
+    @if (vm.showEmpty) {
+      <div class="conversations-page__empty">
+        <span class="pi pi-comments conversations-page__empty-icon"></span>
+        <h2 class="conversations-page__empty-title">
+          {{ 'chat.conversations.emptyTitle' | translate }}
+        </h2>
+        <p class="conversations-page__empty-text">
+          {{ 'chat.conversations.empty' | translate }}
+        </p>
+      </div>
+    }
+
+    @if (vm.conversations.length > 0) {
+      <div class="conversations-page__list">
+        @for (conversation of vm.conversations; track conversation.id) {
+          <a
+            class="conversations-page__item-link"
+            [routerLink]="['/chat', conversation.id]"
+          >
+            <p-card styleClass="conversations-page__item-card">
+              <div class="conversations-page__item-header">
+                <h3 class="conversations-page__item-title">
+                  {{ conversation.title }}
+                </h3>
+                @if (conversation.unreadCount > 0) {
+                  <span class="conversations-page__unread-badge">
+                    {{ conversation.unreadCount }}
+                  </span>
+                }
+              </div>
+              <p class="conversations-page__item-text">
+                {{
+                  conversation.lastMessageSnippet ??
+                    ('chat.conversations.noMessages' | translate)
+                }}
+              </p>
+              <p class="conversations-page__item-meta">
+                @if (conversation.lastMessageAt; as lastMessageAt) {
+                  {{ lastMessageAt | date: 'medium' }}
+                } @else {
+                  {{ 'chat.common.notAvailable' | translate }}
+                }
+              </p>
+            </p-card>
+          </a>
+        }
+      </div>
+    }
+  }
+</section>

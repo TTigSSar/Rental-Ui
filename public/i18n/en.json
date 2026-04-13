@@ -8,6 +8,7 @@
         "listings": "Listings",
         "favorites": "Favorites",
         "myListings": "My listings",
+        "chat": "Chat",
         "bookings": "Bookings",
         "bookingRequests": "Booking requests",
         "pendingModeration": "Pending moderation",
@@ -276,6 +277,28 @@
       "errorTitle": "Unable to load favorites",
       "emptyTitle": "No favorites yet",
       "empty": "Save listings to favorites to quickly find them later."
+    }
+  },
+  "chat": {
+    "common": {
+      "notAvailable": "Not available"
+    },
+    "conversations": {
+      "title": "Conversations",
+      "subtitle": "Stay connected with renters and hosts.",
+      "errorTitle": "Unable to load conversations",
+      "emptyTitle": "No conversations yet",
+      "empty": "Your conversations will appear here after you start chatting.",
+      "noMessages": "No messages yet"
+    },
+    "details": {
+      "backToConversations": "Back to conversations",
+      "errorTitle": "Unable to load conversation",
+      "emptyTitle": "Conversation not available",
+      "empty": "This conversation is unavailable or has no data.",
+      "noMessages": "No messages in this conversation yet.",
+      "messagePlaceholder": "Type your message",
+      "send": "Send"
     }
   }
 }

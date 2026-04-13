@@ -28,6 +28,11 @@ export const routes: Routes = [
       import('./features/bookings').then((m) => m.bookingsRoutes),
   },
   {
+    path: 'chat',
+    loadChildren: () =>
+      import('./features/chat').then((m) => m.chatRoutes),
+  },
+  {
     path: 'favorites',
     loadChildren: () =>
       import('./features/favorites').then((m) => m.favoritesRoutes),

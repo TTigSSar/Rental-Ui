@@ -18,6 +18,8 @@ import { authInterceptor } from './features/auth/services/auth.interceptor';
 import { authFeatureKey, authReducer } from './features/auth/store/auth.reducer';
 import { BookingsEffects } from './features/bookings/store/bookings.effects';
 import { bookingsFeatureKey, bookingsReducer } from './features/bookings/store/bookings.reducer';
+import { ChatEffects } from './features/chat/store/chat.effects';
+import { chatFeatureKey, chatReducer } from './features/chat/store/chat.reducer';
 import { FavoritesEffects } from './features/favorites/store/favorites.effects';
 import {
   favoritesFeatureKey,
@@ -48,6 +50,7 @@ export const appConfig: ApplicationConfig = {
     provideState(adminModerationFeatureKey, adminModerationReducer),
     provideState(authFeatureKey, authReducer),
     provideState(bookingsFeatureKey, bookingsReducer),
+    provideState(chatFeatureKey, chatReducer),
     provideState(favoritesFeatureKey, favoritesReducer),
     provideState(listingsFeatureKey, listingsReducer),
     provideState(myListingsFeatureKey, myListingsReducer),
@@ -55,6 +58,7 @@ export const appConfig: ApplicationConfig = {
     provideEffects(AdminModerationEffects),
     provideEffects(AuthEffects),
     provideEffects(BookingsEffects),
+    provideEffects(ChatEffects),
     provideEffects(FavoritesEffects),
     provideEffects(ListingsEffects),
     provideEffects(MyListingsEffects),

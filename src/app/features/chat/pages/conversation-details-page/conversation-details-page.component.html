@@ -1,0 +1,103 @@
+<section class="conversation-details-page">
+  <a class="conversation-details-page__back" routerLink="/chat">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    <span>{{ 'chat.details.backToConversations' | translate }}</span>
+  </a>
+
+  @if (viewModel$ | async; as vm) {
+    @if (vm.hasError && vm.error) {
+      <div class="conversation-details-page__error" role="alert">
+        <p-message severity="error" styleClass="conversation-details-page__message">
+          <div class="conversation-details-page__error-content">
+            <strong>{{ 'chat.details.errorTitle' | translate }}</strong>
+            <span>{{ vm.error }}</span>
+          </div>
+        </p-message>
+        <p-button
+          type="button"
+          [label]="'listings.common.retry' | translate"
+          (onClick)="retry()"
+        />
+      </div>
+    }
+
+    @if (vm.showInitialSkeleton) {
+      <div class="conversation-details-page__skeleton">
+        <p-skeleton width="45%" height="1.3rem" />
+        <p-skeleton width="100%" height="3rem" />
+        <p-skeleton width="100%" height="3rem" />
+        <p-skeleton width="60%" height="3rem" />
+      </div>
+    }
+
+    @if (vm.showEmpty) {
+      <div class="conversation-details-page__empty">
+        <span class="pi pi-comment conversation-details-page__empty-icon"></span>
+        <h2 class="conversation-details-page__empty-title">
+          {{ 'chat.details.emptyTitle' | translate }}
+        </h2>
+        <p class="conversation-details-page__empty-text">
+          {{ 'chat.details.empty' | translate }}
+        </p>
+      </div>
+    }
+
+    @if (vm.conversation; as conversation) {
+      <div class="conversation-details-page__panel">
+        <header class="conversation-details-page__header">
+          <h1 class="conversation-details-page__title">{{ conversation.title }}</h1>
+          <p class="conversation-details-page__meta">
+            {{
+              conversation.participantName ??
+                ('chat.common.notAvailable' | translate)
+            }}
+          </p>
+        </header>
+
+        <div class="conversation-details-page__messages">
+          @if (conversation.messages.length === 0) {
+            <p class="conversation-details-page__no-messages">
+              {{ 'chat.details.noMessages' | translate }}
+            </p>
+          } @else {
+            @for (message of conversation.messages; track message.id) {
+              <article class="conversation-details-page__message-bubble">
+                <header class="conversation-details-page__message-head">
+                  <strong>{{ message.senderName }}</strong>
+                  <time>{{ message.sentAt | date: 'short' }}</time>
+                </header>
+                <p>{{ message.content }}</p>
+              </article>
+            }
+          }
+        </div>
+
+        @if (vm.sendingMessageError; as sendingError) {
+          <p-message severity="error" styleClass="conversation-details-page__message">
+            <span>{{ sendingError }}</span>
+          </p-message>
+        }
+
+        <form
+          class="conversation-details-page__composer"
+          [formGroup]="messageForm"
+          (ngSubmit)="sendMessage(conversation.id)"
+        >
+          <input
+            pInputText
+            type="text"
+            formControlName="content"
+            [placeholder]="'chat.details.messagePlaceholder' | translate"
+          />
+          <p-button
+            type="submit"
+            icon="pi pi-send"
+            [label]="'chat.details.send' | translate"
+            [loading]="vm.sendingMessage"
+            [disabled]="messageForm.invalid || vm.sendingMessage"
+          />
+        </form>
+      </div>
+    }
+  }
+</section>
