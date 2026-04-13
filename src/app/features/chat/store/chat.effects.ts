@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { catchError, concatMap, map, of, switchMap } from 'rxjs';
 
 import { ChatApiService } from '../services/chat-api.service';
 import * as ChatActions from './chat.actions';
@@ -67,7 +67,7 @@ export class ChatEffects {
   readonly sendMessage$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ChatActions.sendMessage),
-      switchMap(({ conversationId, content }) =>
+      concatMap(({ conversationId, content }) =>
         this.chatApi.sendMessage(conversationId, { content }).pipe(
           map((message) => ChatActions.sendMessageSuccess({ message })),
           catchError((error: unknown) =>

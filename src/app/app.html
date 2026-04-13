@@ -20,18 +20,20 @@
         </nav>
 
         <div class="app-shell__actions">
-          <nav class="app-shell__nav app-shell__nav--secondary" [attr.aria-label]="'app.shell.secondaryNavAria' | translate">
-            @for (item of vm.secondaryNav; track item.path) {
-              <a
-                class="app-shell__nav-link"
-                [routerLink]="item.path"
-                routerLinkActive="app-shell__nav-link--active"
-                [routerLinkActiveOptions]="{ exact: false }"
-              >
-                {{ item.labelKey | translate }}
-              </a>
-            }
-          </nav>
+          @if (vm.isAuthenticated || !vm.isAuthLoading) {
+            <nav class="app-shell__nav app-shell__nav--secondary" [attr.aria-label]="'app.shell.secondaryNavAria' | translate">
+              @for (item of vm.secondaryNav; track item.path) {
+                <a
+                  class="app-shell__nav-link"
+                  [routerLink]="item.path"
+                  routerLinkActive="app-shell__nav-link--active"
+                  [routerLinkActiveOptions]="{ exact: false }"
+                >
+                  {{ item.labelKey | translate }}
+                </a>
+              }
+            </nav>
+          }
 
           @if (vm.isAuthenticated) {
             @if (vm.userDisplayName) {

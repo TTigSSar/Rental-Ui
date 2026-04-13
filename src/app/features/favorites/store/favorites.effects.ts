@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { catchError, concatMap, map, of, switchMap } from 'rxjs';
 
 import { FavoritesApiService } from '../services/favorites-api.service';
 import * as FavoritesActions from './favorites.actions';
@@ -45,7 +45,7 @@ export class FavoritesEffects {
   readonly removeFavorite$ = createEffect(() =>
     this.actions$.pipe(
       ofType(FavoritesActions.removeFavoriteOptimistic),
-      switchMap(({ listingId }) =>
+      concatMap(({ listingId }) =>
         this.favoritesApi.removeFromFavorites(listingId).pipe(
           map(() => FavoritesActions.removeFavoriteSuccess({ listingId })),
           catchError((error: unknown) =>

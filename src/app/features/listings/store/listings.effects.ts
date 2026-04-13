@@ -193,7 +193,7 @@ export class ListingsEffects {
   readonly createListing$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ListingsActions.createListing),
-      switchMap(({ payload, files }) =>
+      concatMap(({ payload, files }) =>
         this.listingsApi.createListing(payload).pipe(
           switchMap((response) => {
             if (files.length === 0) {

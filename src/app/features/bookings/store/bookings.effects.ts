@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { catchError, concatMap, map, of, switchMap } from 'rxjs';
 
 import { BookingsApiService } from '../services/bookings-api.service';
 import * as BookingsActions from './bookings.actions';
@@ -65,7 +65,7 @@ export class BookingsEffects {
   readonly approveBookingRequest$ = createEffect(() =>
     this.actions$.pipe(
       ofType(BookingsActions.approveBookingRequest),
-      switchMap(({ bookingId }) =>
+      concatMap(({ bookingId }) =>
         this.bookingsApi.approveBookingRequest(bookingId).pipe(
           map(() =>
             BookingsActions.approveBookingRequestSuccess({
@@ -89,7 +89,7 @@ export class BookingsEffects {
   readonly rejectBookingRequest$ = createEffect(() =>
     this.actions$.pipe(
       ofType(BookingsActions.rejectBookingRequest),
-      switchMap(({ bookingId }) =>
+      concatMap(({ bookingId }) =>
         this.bookingsApi.rejectBookingRequest(bookingId).pipe(
           map(() =>
             BookingsActions.rejectBookingRequestSuccess({

@@ -7,6 +7,7 @@ import { combineLatest, map } from 'rxjs';
 
 import * as AuthActions from './features/auth/store/auth.actions';
 import {
+  selectAuthLoading,
   selectAuthUser,
   selectIsAuthenticated,
 } from './features/auth/store/auth.selectors';
@@ -20,6 +21,7 @@ interface AppShellViewModel {
   readonly primaryNav: NavItem[];
   readonly secondaryNav: NavItem[];
   readonly isAuthenticated: boolean;
+  readonly isAuthLoading: boolean;
   readonly userDisplayName: string | null;
 }
 
@@ -44,12 +46,10 @@ export class App {
 
   protected readonly vm$ = combineLatest({
     isAuthenticated: this.store.select(selectIsAuthenticated),
+    isAuthLoading: this.store.select(selectAuthLoading),
     user: this.store.select(selectAuthUser),
   }).pipe(
-    map(({ isAuthenticated, user }): AppShellViewModel => {
-      const isOwner = user?.roles.some((role) =>
-        ['Owner', 'Host', 'Admin'].includes(role),
-      );
+    map(({ isAuthenticated, isAuthLoading, user }): AppShellViewModel => {
       const isAdmin = user?.roles.includes('Admin') ?? false;
 
       const primaryNav: NavItem[] = [
@@ -61,11 +61,6 @@ export class App {
           { path: '/favorites', labelKey: 'app.shell.nav.favorites' },
           { path: '/chat', labelKey: 'app.shell.nav.chat' },
           { path: '/bookings', labelKey: 'app.shell.nav.bookings' },
-        );
-      }
-
-      if (isAuthenticated && isOwner) {
-        primaryNav.push(
           { path: '/my-listings', labelKey: 'app.shell.nav.myListings' },
           {
             path: '/bookings/requests',
@@ -87,6 +82,7 @@ export class App {
           ? [...this.authSecondaryNavBase]
           : [...this.guestSecondaryNav],
         isAuthenticated,
+        isAuthLoading,
         userDisplayName:
           user === null ? null : `${user.firstName} ${user.lastName}`.trim(),
       };

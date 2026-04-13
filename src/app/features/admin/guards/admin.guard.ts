@@ -4,6 +4,7 @@ import { Store } from '@ngrx/store';
 
 import { AuthTokenService } from '../../auth/services/auth-token.service';
 import {
+  selectAuthLoading,
   selectAuthUser,
   selectIsAuthenticated,
 } from '../../auth/store/auth.selectors';
@@ -14,6 +15,7 @@ export const adminGuard: CanActivateFn = () => {
   const tokenService = inject(AuthTokenService);
 
   const isAuthenticated = store.selectSignal(selectIsAuthenticated)();
+  const isAuthLoading = store.selectSignal(selectAuthLoading)();
   const hasToken = tokenService.getToken() !== null;
   const user = store.selectSignal(selectAuthUser)();
 
@@ -21,15 +23,17 @@ export const adminGuard: CanActivateFn = () => {
     return router.createUrlTree(['/auth/login']);
   }
 
-  if (user === null) {
-    // Allow navigation while current user is hydrating from persisted token.
-    return hasToken;
+  if (user !== null) {
+    return user.roles.includes('Admin')
+      ? true
+      : router.createUrlTree(['/listings']);
   }
 
-  const hasAdminRole = user?.roles.includes('Admin') ?? false;
-  if (!hasAdminRole) {
+  // Token exists but user roles are not hydrated yet (or token is stale):
+  // keep access conservative and deterministic.
+  if (hasToken && isAuthLoading) {
     return router.createUrlTree(['/listings']);
   }
 
-  return true;
+  return router.createUrlTree(['/auth/login']);
 };

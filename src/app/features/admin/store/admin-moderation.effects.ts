@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { catchError, concatMap, map, of, switchMap } from 'rxjs';
 
 import { AdminListingsApiService } from '../services/admin-listings-api.service';
 import * as AdminModerationActions from './admin-moderation.actions';
@@ -47,7 +47,7 @@ export class AdminModerationEffects {
   readonly approvePendingListing$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AdminModerationActions.approvePendingListing),
-      switchMap(({ listingId }) =>
+      concatMap(({ listingId }) =>
         this.adminListingsApi.approveListing(listingId).pipe(
           map(() =>
             AdminModerationActions.approvePendingListingSuccess({ listingId }),
@@ -68,7 +68,7 @@ export class AdminModerationEffects {
   readonly rejectPendingListing$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AdminModerationActions.rejectPendingListing),
-      switchMap(({ listingId }) =>
+      concatMap(({ listingId }) =>
         this.adminListingsApi.rejectListing(listingId).pipe(
           map(() =>
             AdminModerationActions.rejectPendingListingSuccess({ listingId }),
