@@ -1,0 +1,62 @@
+<section class="favorites-page">
+  <header class="favorites-page__header">
+    <h1 class="favorites-page__title">{{ 'favorites.page.title' | translate }}</h1>
+    <p class="favorites-page__subtitle">
+      {{ 'favorites.page.subtitle' | translate }}
+    </p>
+  </header>
+
+  @if (viewModel$ | async; as vm) {
+    @if (vm.hasError && vm.error) {
+      <div class="favorites-page__error" role="alert">
+        <p-message severity="error" styleClass="favorites-page__message">
+          <div class="favorites-page__error-content">
+            <strong>{{ 'favorites.page.errorTitle' | translate }}</strong>
+            <span>{{ vm.error }}</span>
+          </div>
+        </p-message>
+        <p-button
+          type="button"
+          [label]="'listings.common.retry' | translate"
+          (onClick)="retry()"
+        />
+      </div>
+    }
+
+    @if (vm.showInitialSkeleton) {
+      <div class="favorites-page__grid favorites-page__grid--skeleton">
+        @for (i of [0, 1, 2, 3]; track i) {
+          <div class="favorites-page__skeleton-card">
+            <p-skeleton width="100%" height="10rem" />
+            <p-skeleton width="70%" height="1.25rem" />
+            <p-skeleton width="40%" height="1rem" />
+            <p-skeleton width="50%" height="1rem" />
+          </div>
+        }
+      </div>
+    }
+
+    @if (vm.showEmpty) {
+      <div class="favorites-page__empty">
+        <span class="pi pi-heart favorites-page__empty-icon" aria-hidden="true"></span>
+        <h2 class="favorites-page__empty-title">
+          {{ 'favorites.page.emptyTitle' | translate }}
+        </h2>
+        <p class="favorites-page__empty-text">
+          {{ 'favorites.page.empty' | translate }}
+        </p>
+      </div>
+    }
+
+    @if (vm.items.length > 0) {
+      <div class="favorites-page__grid">
+        @for (listing of vm.items; track listing.id) {
+          <app-listing-card
+            [listing]="listing"
+            (favoriteToggled)="onFavoriteToggled($event)"
+          />
+        }
+      </div>
+    }
+  }
+</section>

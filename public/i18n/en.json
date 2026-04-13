@@ -268,5 +268,14 @@
         "notAvailable": "Not available"
       }
     }
+  },
+  "favorites": {
+    "page": {
+      "title": "Favorites",
+      "subtitle": "Browse all listings you have saved.",
+      "errorTitle": "Unable to load favorites",
+      "emptyTitle": "No favorites yet",
+      "empty": "Save listings to favorites to quickly find them later."
+    }
   }
 }

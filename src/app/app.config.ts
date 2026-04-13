@@ -18,6 +18,11 @@ import { authInterceptor } from './features/auth/services/auth.interceptor';
 import { authFeatureKey, authReducer } from './features/auth/store/auth.reducer';
 import { BookingsEffects } from './features/bookings/store/bookings.effects';
 import { bookingsFeatureKey, bookingsReducer } from './features/bookings/store/bookings.reducer';
+import { FavoritesEffects } from './features/favorites/store/favorites.effects';
+import {
+  favoritesFeatureKey,
+  favoritesReducer,
+} from './features/favorites/store/favorites.reducer';
 import { ListingsEffects } from './features/listings/store/listings.effects';
 import { listingsFeatureKey, listingsReducer } from './features/listings/store/listings.reducer';
 import { MyListingsEffects } from './features/my-listings/store/my-listings.effects';
@@ -43,12 +48,14 @@ export const appConfig: ApplicationConfig = {
     provideState(adminModerationFeatureKey, adminModerationReducer),
     provideState(authFeatureKey, authReducer),
     provideState(bookingsFeatureKey, bookingsReducer),
+    provideState(favoritesFeatureKey, favoritesReducer),
     provideState(listingsFeatureKey, listingsReducer),
     provideState(myListingsFeatureKey, myListingsReducer),
     provideState(profileFeatureKey, profileReducer),
     provideEffects(AdminModerationEffects),
     provideEffects(AuthEffects),
     provideEffects(BookingsEffects),
+    provideEffects(FavoritesEffects),
     provideEffects(ListingsEffects),
     provideEffects(MyListingsEffects),
     provideEffects(ProfileEffects),

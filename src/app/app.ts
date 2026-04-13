@@ -54,7 +54,7 @@ export class App {
 
       const primaryNav: NavItem[] = [
         { path: '/listings', labelKey: 'app.shell.nav.listings' },
-        { path: '/listings/favorites', labelKey: 'app.shell.nav.favorites' },
+        { path: '/favorites', labelKey: 'app.shell.nav.favorites' },
         { path: '/bookings', labelKey: 'app.shell.nav.bookings' },
       ];
 
