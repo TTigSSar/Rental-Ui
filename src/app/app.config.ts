@@ -8,6 +8,11 @@ import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
 
+import { AdminModerationEffects } from './features/admin/store/admin-moderation.effects';
+import {
+  adminModerationFeatureKey,
+  adminModerationReducer,
+} from './features/admin/store/admin-moderation.reducer';
 import { AuthEffects } from './features/auth/store/auth.effects';
 import { authInterceptor } from './features/auth/services/auth.interceptor';
 import { authFeatureKey, authReducer } from './features/auth/store/auth.reducer';
@@ -35,11 +40,13 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
     provideStore(),
+    provideState(adminModerationFeatureKey, adminModerationReducer),
     provideState(authFeatureKey, authReducer),
     provideState(bookingsFeatureKey, bookingsReducer),
     provideState(listingsFeatureKey, listingsReducer),
     provideState(myListingsFeatureKey, myListingsReducer),
     provideState(profileFeatureKey, profileReducer),
+    provideEffects(AdminModerationEffects),
     provideEffects(AuthEffects),
     provideEffects(BookingsEffects),
     provideEffects(ListingsEffects),

@@ -1,0 +1,45 @@
+.pending-listing-card__media {
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--p-content-background, #f4f4f5);
+}
+
+.pending-listing-card__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pending-listing-card__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 10rem;
+  color: var(--p-text-muted-color, #71717a);
+}
+
+.pending-listing-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.pending-listing-card__title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.pending-listing-card__line {
+  margin: 0;
+  color: var(--p-text-muted-color, #71717a);
+  font-size: 0.9rem;
+}
+
+.pending-listing-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}

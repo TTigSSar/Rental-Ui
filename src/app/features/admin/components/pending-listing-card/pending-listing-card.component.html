@@ -1,0 +1,86 @@
+<p-card styleClass="pending-listing-card">
+  <ng-template pTemplate="header">
+    <div class="pending-listing-card__media">
+      @if (listing().imageUrl; as imageUrl) {
+        <img
+          class="pending-listing-card__image"
+          [src]="imageUrl"
+          [alt]="listing().title"
+          width="360"
+          height="220"
+          loading="lazy"
+        />
+      } @else {
+        <div class="pending-listing-card__placeholder">
+          {{ 'admin.pendingListings.card.noImage' | translate }}
+        </div>
+      }
+    </div>
+  </ng-template>
+
+  <div class="pending-listing-card__content">
+    <h3 class="pending-listing-card__title">{{ listing().title }}</h3>
+    <p class="pending-listing-card__line">
+      {{ 'admin.pendingListings.card.city' | translate }}: {{ listing().city }}
+    </p>
+    <p class="pending-listing-card__line">
+      {{
+        'admin.pendingListings.card.pricePerDay'
+          | translate
+            : {
+                amount: (listing().pricePerDay | currency),
+              }
+      }}
+    </p>
+    <p class="pending-listing-card__line">
+      {{ 'admin.pendingListings.card.createdAt' | translate }}:
+      @if (listing().createdAt; as createdAt) {
+        {{ createdAt | date: 'mediumDate' }}
+      } @else {
+        {{ 'admin.pendingListings.common.notAvailable' | translate }}
+      }
+    </p>
+    <p class="pending-listing-card__line">
+      {{ 'admin.pendingListings.card.owner' | translate }}:
+      @if (listing().owner; as owner) {
+        {{ owner.firstName }} {{ owner.lastName }} ({{ owner.email }})
+      } @else {
+        {{ 'admin.pendingListings.common.notAvailable' | translate }}
+      }
+    </p>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="pending-listing-card__actions">
+      <p-button
+        type="button"
+        size="small"
+        [outlined]="true"
+        icon="pi pi-eye"
+        [label]="'admin.pendingListings.actions.view' | translate"
+        [routerLink]="['/listings', listing().id]"
+      />
+      <p-button
+        type="button"
+        size="small"
+        severity="success"
+        icon="pi pi-check"
+        [label]="'admin.pendingListings.actions.approve' | translate"
+        [loading]="actionLoading()"
+        [disabled]="actionLoading()"
+        (onClick)="approve()"
+      />
+      <p-button
+        type="button"
+        size="small"
+        severity="danger"
+        [outlined]="true"
+        icon="pi pi-times"
+        [label]="'admin.pendingListings.actions.reject' | translate"
+        [loading]="actionLoading()"
+        [disabled]="actionLoading()"
+        (onClick)="reject()"
+      />
+    </div>
+  </ng-template>
+</p-card>

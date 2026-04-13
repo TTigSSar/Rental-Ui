@@ -50,6 +50,7 @@ export class App {
       const isOwner = user?.roles.some((role) =>
         ['Owner', 'Host', 'Admin'].includes(role),
       );
+      const isAdmin = user?.roles.includes('Admin') ?? false;
 
       const primaryNav: NavItem[] = [
         { path: '/listings', labelKey: 'app.shell.nav.listings' },
@@ -65,6 +66,13 @@ export class App {
             labelKey: 'app.shell.nav.bookingRequests',
           },
         );
+      }
+
+      if (isAuthenticated && isAdmin) {
+        primaryNav.push({
+          path: '/admin/listings/pending',
+          labelKey: 'app.shell.nav.pendingModeration',
+        });
       }
 
       return {

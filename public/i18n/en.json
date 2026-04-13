@@ -10,6 +10,7 @@
         "myListings": "My listings",
         "bookings": "Bookings",
         "bookingRequests": "Booking requests",
+        "pendingModeration": "Pending moderation",
         "profile": "Profile",
         "login": "Login",
         "register": "Register",
@@ -240,6 +241,32 @@
       "renter": "Renter",
       "dateRange": "Date range",
       "totalPrice": "Total: {{amount}}"
+    }
+  },
+  "admin": {
+    "pendingListings": {
+      "page": {
+        "title": "Pending listings moderation",
+        "subtitle": "Review pending listings before they become visible to renters.",
+        "errorTitle": "Unable to load pending listings",
+        "emptyTitle": "No pending listings",
+        "empty": "New pending listings will appear here for moderation."
+      },
+      "card": {
+        "noImage": "No image available",
+        "city": "City",
+        "pricePerDay": "{{amount}} per day",
+        "createdAt": "Created",
+        "owner": "Owner"
+      },
+      "actions": {
+        "view": "View",
+        "approve": "Approve",
+        "reject": "Reject"
+      },
+      "common": {
+        "notAvailable": "Not available"
+      }
     }
   }
 }
