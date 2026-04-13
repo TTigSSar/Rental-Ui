@@ -135,5 +135,32 @@
         "priceGreaterThanZero": "Գինը պետք է մեծ լինի 0-ից։"
       }
     }
+  },
+  "profile": {
+    "page": {
+      "title": "Իմ հաշիվը",
+      "subtitle": "Դիտեք ձեր հաշվի տվյալներն ու նախընտրելի կարգավորումները։",
+      "empty": "Հաշվի տվյալները հասանելի չեն։"
+    },
+    "fields": {
+      "firstName": "Անուն",
+      "lastName": "Ազգանուն",
+      "email": "Էլ. փոստ",
+      "phoneNumber": "Հեռախոսահամար",
+      "preferredLanguage": "Նախընտրելի լեզու"
+    },
+    "account": {
+      "heading": "Հաշվի տվյալներ"
+    },
+    "summary": {
+      "heading": "Հաշվի ամփոփում",
+      "accountId": "Հաշվի ID",
+      "roleCount": "Դերեր",
+      "status": "Կարգավիճակ",
+      "active": "Ակտիվ"
+    },
+    "common": {
+      "notAvailable": "Հասանելի չէ"
+    }
   }
 }

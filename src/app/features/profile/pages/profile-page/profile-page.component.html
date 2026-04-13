@@ -1,0 +1,97 @@
+<section class="profile-page">
+  <header class="profile-page__header">
+    <h1 class="profile-page__title">{{ 'profile.page.title' | translate }}</h1>
+    <p class="profile-page__subtitle">
+      {{ 'profile.page.subtitle' | translate }}
+    </p>
+  </header>
+
+  @if (vm$ | async; as vm) {
+    @if (vm.error; as error) {
+      <p-message severity="error" styleClass="profile-page__message">
+        <span>{{ error }}</span>
+      </p-message>
+    }
+
+    @if (vm.showLoading) {
+      <p-card styleClass="profile-page__card">
+        <div class="profile-page__loading">
+          <p-skeleton width="12rem" height="1.25rem" />
+          <p-skeleton width="100%" height="2.75rem" />
+          <p-skeleton width="100%" height="2.75rem" />
+          <p-skeleton width="100%" height="2.75rem" />
+          <p-skeleton width="100%" height="2.75rem" />
+        </div>
+      </p-card>
+    }
+
+    @if (vm.showEmpty) {
+      <p-card styleClass="profile-page__card">
+        <p class="profile-page__empty">{{ 'profile.page.empty' | translate }}</p>
+      </p-card>
+    }
+
+    @if (vm.profile; as profile) {
+      <div class="profile-page__content">
+        <p-card styleClass="profile-page__card">
+          <h2 class="profile-page__section-title">
+            {{ 'profile.account.heading' | translate }}
+          </h2>
+          <dl class="profile-page__details">
+            <div class="profile-page__detail-row">
+              <dt>{{ 'profile.fields.firstName' | translate }}</dt>
+              <dd>{{ profile.firstName }}</dd>
+            </div>
+            <div class="profile-page__detail-row">
+              <dt>{{ 'profile.fields.lastName' | translate }}</dt>
+              <dd>{{ profile.lastName }}</dd>
+            </div>
+            <div class="profile-page__detail-row">
+              <dt>{{ 'profile.fields.email' | translate }}</dt>
+              <dd>{{ profile.email }}</dd>
+            </div>
+            <div class="profile-page__detail-row">
+              <dt>{{ 'profile.fields.phoneNumber' | translate }}</dt>
+              <dd>{{ profile.phoneNumber ?? ('profile.common.notAvailable' | translate) }}</dd>
+            </div>
+            <div class="profile-page__detail-row">
+              <dt>{{ 'profile.fields.preferredLanguage' | translate }}</dt>
+              <dd>
+                {{
+                  profile.preferredLanguage ??
+                    ('profile.common.notAvailable' | translate)
+                }}
+              </dd>
+            </div>
+          </dl>
+        </p-card>
+
+        <p-card styleClass="profile-page__card">
+          <h2 class="profile-page__section-title">
+            {{ 'profile.summary.heading' | translate }}
+          </h2>
+          <div class="profile-page__summary">
+            <div class="profile-page__summary-item">
+              <span class="profile-page__summary-label">
+                {{ 'profile.summary.accountId' | translate }}
+              </span>
+              <strong>{{ profile.id }}</strong>
+            </div>
+            <div class="profile-page__summary-item">
+              <span class="profile-page__summary-label">
+                {{ 'profile.summary.roleCount' | translate }}
+              </span>
+              <strong>{{ profile.roles.length }}</strong>
+            </div>
+            <div class="profile-page__summary-item">
+              <span class="profile-page__summary-label">
+                {{ 'profile.summary.status' | translate }}
+              </span>
+              <strong>{{ 'profile.summary.active' | translate }}</strong>
+            </div>
+          </div>
+        </p-card>
+      </div>
+    }
+  }
+</section>

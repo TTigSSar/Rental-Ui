@@ -135,5 +135,32 @@
         "priceGreaterThanZero": "Price must be greater than 0."
       }
     }
+  },
+  "profile": {
+    "page": {
+      "title": "My account",
+      "subtitle": "Review your account information and preferred settings.",
+      "empty": "Profile information is not available."
+    },
+    "fields": {
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "Email",
+      "phoneNumber": "Phone number",
+      "preferredLanguage": "Preferred language"
+    },
+    "account": {
+      "heading": "Account information"
+    },
+    "summary": {
+      "heading": "Account summary",
+      "accountId": "Account ID",
+      "roleCount": "Roles",
+      "status": "Status",
+      "active": "Active"
+    },
+    "common": {
+      "notAvailable": "Not available"
+    }
   }
 }

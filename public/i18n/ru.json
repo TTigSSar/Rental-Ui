@@ -135,5 +135,32 @@
         "priceGreaterThanZero": "Цена должна быть больше 0."
       }
     }
+  },
+  "profile": {
+    "page": {
+      "title": "Мой аккаунт",
+      "subtitle": "Просматривайте данные аккаунта и предпочтительные настройки.",
+      "empty": "Информация профиля недоступна."
+    },
+    "fields": {
+      "firstName": "Имя",
+      "lastName": "Фамилия",
+      "email": "Эл. почта",
+      "phoneNumber": "Номер телефона",
+      "preferredLanguage": "Предпочтительный язык"
+    },
+    "account": {
+      "heading": "Данные аккаунта"
+    },
+    "summary": {
+      "heading": "Сводка аккаунта",
+      "accountId": "ID аккаунта",
+      "roleCount": "Роли",
+      "status": "Статус",
+      "active": "Активен"
+    },
+    "common": {
+      "notAvailable": "Недоступно"
+    }
   }
 }
