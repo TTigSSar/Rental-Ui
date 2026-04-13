@@ -21,6 +21,11 @@ export const adminGuard: CanActivateFn = () => {
     return router.createUrlTree(['/auth/login']);
   }
 
+  if (user === null) {
+    // Allow navigation while current user is hydrating from persisted token.
+    return hasToken;
+  }
+
   const hasAdminRole = user?.roles.includes('Admin') ?? false;
   if (!hasAdminRole) {
     return router.createUrlTree(['/listings']);
