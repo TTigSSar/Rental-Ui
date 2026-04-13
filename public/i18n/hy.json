@@ -1,7 +1,20 @@
 {
   "app": {
     "shell": {
-      "brand": "StayFinder"
+      "brand": "StayFinder",
+      "primaryNavAria": "Գլխավոր նավիգացիա",
+      "secondaryNavAria": "Հաշվի նավիգացիա",
+      "nav": {
+        "listings": "Հայտարարություններ",
+        "favorites": "Ընտրյալներ",
+        "myListings": "Իմ հայտարարությունները",
+        "bookings": "Ամրագրումներ",
+        "bookingRequests": "Ամրագրման հարցումներ",
+        "profile": "Պրոֆիլ",
+        "login": "Մուտք",
+        "register": "Գրանցում",
+        "logout": "Ելք"
+      }
     }
   },
   "auth": {

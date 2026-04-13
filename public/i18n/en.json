@@ -1,7 +1,20 @@
 {
   "app": {
     "shell": {
-      "brand": "StayFinder"
+      "brand": "StayFinder",
+      "primaryNavAria": "Primary navigation",
+      "secondaryNavAria": "Account navigation",
+      "nav": {
+        "listings": "Listings",
+        "favorites": "Favorites",
+        "myListings": "My listings",
+        "bookings": "Bookings",
+        "bookingRequests": "Booking requests",
+        "profile": "Profile",
+        "login": "Login",
+        "register": "Register",
+        "logout": "Logout"
+      }
     }
   },
   "auth": {
