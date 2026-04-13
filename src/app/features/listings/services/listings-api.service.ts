@@ -2,6 +2,12 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import type {
+  CreateListingRequest,
+  CreateListingResponse,
+  ListingCategoryOption,
+  ListingImageUploadResponse,
+} from '../models/create-listing.model';
 import type { ListingDetails } from '../models/listing-details.model';
 import type { ListingPreview } from '../models/listing.model';
 import type { ListingsFilter } from '../models/listings-filter.model';
@@ -12,6 +18,7 @@ export class ListingsApiService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = '/api/listings';
   private readonly favoritesUrl = '/api/favorites';
+  private readonly categoriesUrl = '/api/categories';
 
   getListings(
     filter: ListingsFilter,
@@ -25,6 +32,28 @@ export class ListingsApiService {
   getListingById(id: string): Observable<ListingDetails> {
     const url = `${this.baseUrl}/${encodeURIComponent(id)}`;
     return this.http.get<ListingDetails>(url);
+  }
+
+  createListing(payload: CreateListingRequest): Observable<CreateListingResponse> {
+    return this.http.post<CreateListingResponse>(this.baseUrl, payload);
+  }
+
+  uploadListingImages(
+    listingId: string,
+    files: File[],
+  ): Observable<ListingImageUploadResponse[]> {
+    const url = `${this.baseUrl}/${encodeURIComponent(listingId)}/images`;
+    const formData = new FormData();
+
+    for (const file of files) {
+      formData.append('files', file, file.name);
+    }
+
+    return this.http.post<ListingImageUploadResponse[]>(url, formData);
+  }
+
+  getListingCategories(): Observable<ListingCategoryOption[]> {
+    return this.http.get<ListingCategoryOption[]>(this.categoriesUrl);
   }
 
   addToFavorites(listingId: string): Observable<void> {
