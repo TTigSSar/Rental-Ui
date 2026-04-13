@@ -162,5 +162,34 @@
     "common": {
       "notAvailable": "Not available"
     }
+  },
+  "myListings": {
+    "page": {
+      "title": "My listings",
+      "subtitle": "Manage the listings you created and monitor their status.",
+      "errorTitle": "Unable to load your listings",
+      "emptyTitle": "No listings yet",
+      "empty": "Your created listings will appear here."
+    },
+    "card": {
+      "noImage": "No image available",
+      "city": "City",
+      "pricePerDay": "{{amount}} per day",
+      "createdAt": "Created"
+    },
+    "status": {
+      "pendingApproval": "Pending approval",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "archived": "Archived"
+    },
+    "actions": {
+      "view": "View",
+      "edit": "Edit",
+      "archive": "Archive"
+    },
+    "common": {
+      "notAvailable": "Not available"
+    }
   }
 }

@@ -13,6 +13,11 @@ import { authInterceptor } from './features/auth/services/auth.interceptor';
 import { authFeatureKey, authReducer } from './features/auth/store/auth.reducer';
 import { ListingsEffects } from './features/listings/store/listings.effects';
 import { listingsFeatureKey, listingsReducer } from './features/listings/store/listings.reducer';
+import { MyListingsEffects } from './features/my-listings/store/my-listings.effects';
+import {
+  myListingsFeatureKey,
+  myListingsReducer,
+} from './features/my-listings/store/my-listings.reducer';
 import { ProfileEffects } from './features/profile/store/profile.effects';
 import { profileFeatureKey, profileReducer } from './features/profile/store/profile.reducer';
 import { routes } from './app.routes';
@@ -30,9 +35,11 @@ export const appConfig: ApplicationConfig = {
     provideStore(),
     provideState(authFeatureKey, authReducer),
     provideState(listingsFeatureKey, listingsReducer),
+    provideState(myListingsFeatureKey, myListingsReducer),
     provideState(profileFeatureKey, profileReducer),
     provideEffects(AuthEffects),
     provideEffects(ListingsEffects),
+    provideEffects(MyListingsEffects),
     provideEffects(ProfileEffects),
     translateHttpLoaderProviders[0],
     ...provideTranslateService({

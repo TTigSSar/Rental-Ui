@@ -1,0 +1,83 @@
+<p-card styleClass="my-listing-card">
+  <ng-template pTemplate="header">
+    <div class="my-listing-card__media">
+      @if (listing().imageUrl; as imageUrl) {
+        <img
+          class="my-listing-card__image"
+          [src]="imageUrl"
+          [alt]="listing().title"
+          width="360"
+          height="220"
+          loading="lazy"
+        />
+      } @else {
+        <div class="my-listing-card__placeholder">
+          {{ 'myListings.card.noImage' | translate }}
+        </div>
+      }
+    </div>
+  </ng-template>
+
+  <div class="my-listing-card__content">
+    <div class="my-listing-card__top">
+      <h3 class="my-listing-card__title">{{ listing().title }}</h3>
+      <p-tag
+        [value]="statusLabelKey() | translate"
+        [severity]="statusSeverity()"
+      />
+    </div>
+
+    <p class="my-listing-card__meta">
+      {{ 'myListings.card.city' | translate }}: {{ listing().city }}
+    </p>
+    <p class="my-listing-card__meta">
+      {{
+        'myListings.card.pricePerDay'
+          | translate
+            : {
+                amount: (listing().pricePerDay | currency),
+              }
+      }}
+    </p>
+    <p class="my-listing-card__meta">
+      {{ 'myListings.card.createdAt' | translate }}:
+      @if (listing().createdAt; as createdAt) {
+        {{ createdAt | date: 'mediumDate' }}
+      } @else {
+        {{ 'myListings.common.notAvailable' | translate }}
+      }
+    </p>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="my-listing-card__actions">
+      <p-button
+        type="button"
+        size="small"
+        [outlined]="true"
+        icon="pi pi-eye"
+        [label]="'myListings.actions.view' | translate"
+        [routerLink]="['/listings', listing().id]"
+      />
+      <p-button
+        type="button"
+        size="small"
+        [outlined]="true"
+        icon="pi pi-pencil"
+        [label]="'myListings.actions.edit' | translate"
+        (onClick)="requestEdit()"
+      />
+      @if (listing().status !== 'Archived') {
+        <p-button
+          type="button"
+          size="small"
+          severity="secondary"
+          [text]="true"
+          icon="pi pi-box"
+          [label]="'myListings.actions.archive' | translate"
+          (onClick)="requestArchive()"
+        />
+      }
+    </div>
+  </ng-template>
+</p-card>

@@ -1,0 +1,53 @@
+.my-listing-card__media {
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--p-content-background, #f4f4f5);
+}
+
+.my-listing-card__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.my-listing-card__placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 10rem;
+  color: var(--p-text-muted-color, #71717a);
+  font-size: 0.875rem;
+}
+
+.my-listing-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.my-listing-card__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.my-listing-card__title {
+  margin: 0;
+  font-size: 1.1rem;
+  line-height: 1.35;
+}
+
+.my-listing-card__meta {
+  margin: 0;
+  color: var(--p-text-muted-color, #71717a);
+  font-size: 0.9rem;
+}
+
+.my-listing-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

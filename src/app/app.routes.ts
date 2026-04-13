@@ -17,4 +17,9 @@ export const routes: Routes = [
     loadChildren: () =>
       import('./features/profile').then((m) => m.profileRoutes),
   },
+  {
+    path: 'my-listings',
+    loadChildren: () =>
+      import('./features/my-listings').then((m) => m.myListingsRoutes),
+  },
 ];
