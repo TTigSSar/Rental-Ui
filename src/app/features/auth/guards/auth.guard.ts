@@ -11,7 +11,7 @@ export const authGuard: CanActivateFn = () => {
   const tokenService = inject(AuthTokenService);
 
   const isAuthenticated = store.selectSignal(selectIsAuthenticated)();
-  const hasToken = tokenService.getToken() !== null;
+  const hasToken = (tokenService.getToken() ?? '').trim().length > 0;
 
   if (isAuthenticated || hasToken) {
     return true;

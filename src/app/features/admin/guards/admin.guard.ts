@@ -16,7 +16,7 @@ export const adminGuard: CanActivateFn = () => {
 
   const isAuthenticated = store.selectSignal(selectIsAuthenticated)();
   const isAuthLoading = store.selectSignal(selectAuthLoading)();
-  const hasToken = tokenService.getToken() !== null;
+  const hasToken = (tokenService.getToken() ?? '').trim().length > 0;
   const user = store.selectSignal(selectAuthUser)();
 
   if (!isAuthenticated && !hasToken) {

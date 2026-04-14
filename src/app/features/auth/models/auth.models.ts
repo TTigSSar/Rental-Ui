@@ -23,3 +23,10 @@ export interface AuthResponse {
   expiresAt: string | null;
   user?: CurrentUser;
 }
+
+export interface BackendAuthResponse {
+  token?: string;
+  accessToken?: string;
+  expiresAt?: string | null;
+  user?: CurrentUser;
+}
