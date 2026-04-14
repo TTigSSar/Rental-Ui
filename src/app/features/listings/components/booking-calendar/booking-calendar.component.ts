@@ -24,15 +24,18 @@ export function expandBookedDateRangesToDisabledDates(
   for (const range of ranges) {
     const start = parseBookingDate(range.startDate);
     const end = parseBookingDate(range.endDate);
+    if (start === null || end === null) {
+      continue;
+    }
     out.push(...eachDateInclusive(start, end));
   }
   return out;
 }
 
-function parseBookingDate(isoDate: string): Date {
+function parseBookingDate(isoDate: string): Date | null {
   const parsed = new Date(isoDate);
   if (Number.isNaN(parsed.getTime())) {
-    return new Date(0);
+    return null;
   }
   return new Date(
     parsed.getFullYear(),

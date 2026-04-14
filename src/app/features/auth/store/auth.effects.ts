@@ -1,66 +1,20 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Actions, ROOT_EFFECTS_INIT, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { catchError, filter, map, mergeMap, of, tap, withLatestFrom } from 'rxjs';
 
+import { toApiErrorMessage } from '../../../api/http-error-message.util';
 import { AuthApiService } from '../services/auth-api.service';
 import { AuthTokenService } from '../services/auth-token.service';
 import * as AuthActions from './auth.actions';
 import { selectAuthToken } from './auth.selectors';
 
 function toErrorMessage(error: unknown): string {
-  if (error instanceof HttpErrorResponse) {
-    if (
-      typeof error.error === 'object' &&
-      error.error !== null &&
-      'errors' in error.error &&
-      typeof error.error.errors === 'object' &&
-      error.error.errors !== null
-    ) {
-      const validationErrors = Object.values(error.error.errors).flatMap((value) =>
-        Array.isArray(value)
-          ? value.filter((entry): entry is string => typeof entry === 'string')
-          : [],
-      );
-      if (validationErrors.length > 0) {
-        return validationErrors[0];
-      }
-    }
-    if (
-      typeof error.error === 'object' &&
-      error.error !== null &&
-      'detail' in error.error &&
-      typeof error.error.detail === 'string' &&
-      error.error.detail.length > 0
-    ) {
-      return error.error.detail;
-    }
-    if (
-      typeof error.error === 'object' &&
-      error.error !== null &&
-      'title' in error.error &&
-      typeof error.error.title === 'string' &&
-      error.error.title.length > 0
-    ) {
-      return error.error.title;
-    }
-    if (typeof error.error === 'string' && error.error.length > 0) {
-      return error.error;
-    }
-    if (error.status === 401) {
-      return 'Your session has expired. Please log in again.';
-    }
-    if (error.status >= 500) {
-      return 'Service is temporarily unavailable. Please try again.';
-    }
-    return error.message.length > 0 ? error.message : 'Request failed';
-  }
-  if (error instanceof Error && error.message.length > 0) {
-    return error.message;
-  }
-  return 'An unexpected error occurred';
+  return toApiErrorMessage(error, {
+    unauthorizedMessage: 'Your session has expired. Please log in again.',
+    serverErrorMessage: 'Service is temporarily unavailable. Please try again.',
+  });
 }
 
 @Injectable()

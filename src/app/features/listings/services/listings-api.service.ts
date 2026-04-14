@@ -10,7 +10,12 @@ import type {
   ListingImageUploadResponse,
 } from '../models/create-listing.model';
 import type { ListingDetails } from '../models/listing-details.model';
-import type { ListingPreview } from '../models/listing.model';
+import type {
+  BookedDateRange,
+  ListingImage,
+  ListingOwner,
+  ListingPreview,
+} from '../models/listing.model';
 import type { ListingsFilter } from '../models/listings-filter.model';
 import type { PagedResult } from '../models/paged-result.model';
 
@@ -31,7 +36,9 @@ export class ListingsApiService {
   }
 
   getListingById(id: string): Observable<ListingDetails> {
-    return this.http.get<ListingDetails>(toApiUrl(ApiContract.listings.byId(id)));
+    return this.http
+      .get<ListingDetails>(toApiUrl(ApiContract.listings.byId(id)))
+      .pipe(map((listing) => this.normalizeListingDetails(listing)));
   }
 
   createListing(payload: CreateListingRequest): Observable<CreateListingResponse> {
@@ -121,6 +128,31 @@ export class ListingsApiService {
       page,
       pageSize,
       hasMore,
+    };
+  }
+
+  private normalizeListingDetails(listing: ListingDetails): ListingDetails {
+    const owner: ListingOwner = listing.owner ?? {
+      id: '',
+      firstName: '',
+      lastName: '',
+      phoneNumber: null,
+    };
+    const images: ListingImage[] = Array.isArray(listing.images) ? listing.images : [];
+    const bookedDates: BookedDateRange[] = Array.isArray(listing.bookedDates)
+      ? listing.bookedDates
+      : [];
+
+    return {
+      ...listing,
+      owner,
+      images,
+      bookedDates,
+      isFavorite: listing.isFavorite ?? false,
+      city: listing.city ?? '',
+      description: listing.description ?? '',
+      title: listing.title ?? '',
+      pricePerDay: Number.isFinite(listing.pricePerDay) ? listing.pricePerDay : 0,
     };
   }
 }

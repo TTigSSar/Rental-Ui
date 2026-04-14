@@ -57,6 +57,7 @@ export class MyListingCardComponent {
 
   private mapStatusLabelKey(status: MyListingStatus): string {
     switch (status) {
+      case 'Pending':
       case 'PendingApproval':
         return 'myListings.status.pendingApproval';
       case 'Approved':
@@ -74,6 +75,7 @@ export class MyListingCardComponent {
     switch (status) {
       case 'Approved':
         return 'success';
+      case 'Pending':
       case 'PendingApproval':
         return 'warn';
       case 'Rejected':

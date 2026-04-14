@@ -1,9 +1,9 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { catchError, map, of, switchMap, take, withLatestFrom } from 'rxjs';
 
+import { toApiErrorMessage } from '../../../api/http-error-message.util';
 import { selectAuthUser } from '../../auth/store/auth.selectors';
 import type { CurrentUser } from '../../auth/models/auth.models';
 import type { UserProfile } from '../models/profile.model';
@@ -11,16 +11,7 @@ import { ProfileApiService } from '../services/profile-api.service';
 import * as ProfileActions from './profile.actions';
 
 function toErrorMessage(error: unknown): string {
-  if (error instanceof HttpErrorResponse) {
-    if (typeof error.error === 'string' && error.error.length > 0) {
-      return error.error;
-    }
-    return error.message.length > 0 ? error.message : 'Request failed';
-  }
-  if (error instanceof Error && error.message.length > 0) {
-    return error.message;
-  }
-  return 'An unexpected error occurred';
+  return toApiErrorMessage(error);
 }
 
 function mapAuthUserToProfile(user: CurrentUser): UserProfile {

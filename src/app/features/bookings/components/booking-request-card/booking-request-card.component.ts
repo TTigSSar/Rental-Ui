@@ -49,7 +49,7 @@ export class BookingRequestCardComponent {
   );
 
   protected readonly canDecide = computed(
-    () => this.request().status === 'PendingApproval',
+    () => this.request().status === 'PendingApproval' || this.request().status === 'Pending',
   );
 
   protected approve(): void {
@@ -62,6 +62,7 @@ export class BookingRequestCardComponent {
 
   private getStatusLabelKey(status: BookingStatus): string {
     switch (status) {
+      case 'Pending':
       case 'PendingApproval':
         return 'bookings.status.pendingApproval';
       case 'Approved':
@@ -81,6 +82,7 @@ export class BookingRequestCardComponent {
     switch (status) {
       case 'Approved':
         return 'success';
+      case 'Pending':
       case 'PendingApproval':
         return 'warn';
       case 'Rejected':

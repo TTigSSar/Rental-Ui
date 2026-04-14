@@ -1,5 +1,6 @@
 export type MyListingStatus =
   | 'PendingApproval'
+  | 'Pending'
   | 'Approved'
   | 'Rejected'
   | 'Archived';

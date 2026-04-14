@@ -39,6 +39,7 @@ export class MyBookingCardComponent {
 
   private getStatusLabelKey(status: BookingStatus): string {
     switch (status) {
+      case 'Pending':
       case 'PendingApproval':
         return 'bookings.status.pendingApproval';
       case 'Approved':
@@ -58,6 +59,7 @@ export class MyBookingCardComponent {
     switch (status) {
       case 'Approved':
         return 'success';
+      case 'Pending':
       case 'PendingApproval':
         return 'warn';
       case 'Rejected':
