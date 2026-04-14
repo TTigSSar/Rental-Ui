@@ -1,19 +1,19 @@
 .create-listing-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--ui-space-24);
 }
 
 .create-listing-form__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+  gap: var(--ui-space-16);
 }
 
 .create-listing-form__field {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: var(--ui-space-8);
 }
 
 .create-listing-form__field--full {
@@ -21,9 +21,9 @@
 }
 
 .create-listing-form__label {
-  font-size: 0.875rem;
+  font-size: var(--ui-font-size-caption);
   font-weight: 600;
-  color: var(--p-text-color, #18181b);
+  color: var(--ui-color-text-primary);
 }
 
 .create-listing-form__input,
@@ -35,10 +35,6 @@
 
 .create-listing-form__textarea,
 .create-listing-form__select {
-  border: 1px solid var(--p-content-border-color, #d4d4d8);
-  border-radius: var(--p-border-radius-md, 8px);
-  background: var(--p-content-background, #fff);
-  color: var(--p-text-color, #18181b);
   padding: 0.625rem 0.75rem;
   font: inherit;
 }
@@ -49,31 +45,39 @@
 }
 
 .create-listing-form__file-input {
-  border: 1px dashed var(--p-content-border-color, #d4d4d8);
-  border-radius: var(--p-border-radius-md, 8px);
+  border: 1px dashed var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
   padding: 0.75rem;
   background: color-mix(
     in srgb,
-    var(--p-content-background, #fff) 92%,
-    var(--p-surface-50, #f8fafc)
+    var(--ui-color-surface) 92%,
+    #f0f3ff
   );
 }
 
 .create-listing-form__error {
-  color: var(--p-red-500, #ef4444);
-  font-size: 0.75rem;
+  color: var(--ui-color-error);
+  font-size: var(--ui-font-size-caption);
 }
 
 .create-listing-form__hint,
 .create-listing-form__file-summary {
-  color: var(--p-text-muted-color, #71717a);
-  font-size: 0.75rem;
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-font-size-caption);
 }
 
 .create-listing-form__actions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
+  gap: var(--ui-space-12);
+}
+
+:host ::ng-deep .create-listing-form__actions .p-button:first-child {
+  min-width: 130px;
+}
+
+:host ::ng-deep .create-listing-form__actions .p-button:last-child {
+  min-width: 170px;
 }
 
 @media (max-width: 768px) {

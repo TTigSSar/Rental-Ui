@@ -7,18 +7,29 @@ export const authFeatureKey = 'auth' as const;
 
 export const authReducer = createReducer(
   initialAuthState,
-  on(AuthActions.login, AuthActions.register, AuthActions.loadCurrentUser, (state): AuthState => ({
-    ...state,
-    isLoading: true,
-    error: null,
-  })),
-  on(AuthActions.loginSuccess, AuthActions.registerSuccess, (state, { token }): AuthState => ({
-    ...state,
-    token,
-    isAuthenticated: true,
-    isLoading: false,
-    error: null,
-  })),
+  on(
+    AuthActions.login,
+    AuthActions.register,
+    AuthActions.externalAuth,
+    AuthActions.loadCurrentUser,
+    (state): AuthState => ({
+      ...state,
+      isLoading: true,
+      error: null,
+    }),
+  ),
+  on(
+    AuthActions.loginSuccess,
+    AuthActions.registerSuccess,
+    AuthActions.externalAuthSuccess,
+    (state, { token }): AuthState => ({
+      ...state,
+      token,
+      isAuthenticated: true,
+      isLoading: false,
+      error: null,
+    }),
+  ),
   on(AuthActions.loadCurrentUserSuccess, (state, { user }): AuthState => ({
     ...state,
     user,
@@ -29,6 +40,7 @@ export const authReducer = createReducer(
   on(
     AuthActions.loginFailure,
     AuthActions.registerFailure,
+    AuthActions.externalAuthFailure,
     (state, { error }): AuthState => ({
       ...state,
       isLoading: false,

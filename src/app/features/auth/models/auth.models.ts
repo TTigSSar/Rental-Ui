@@ -3,6 +3,13 @@ export interface LoginRequest {
   password: string;
 }
 
+export type ExternalAuthProvider = 'google' | 'apple';
+
+export interface ExternalAuthRequest {
+  provider: ExternalAuthProvider;
+  idToken: string;
+}
+
 export interface RegisterRequest {
   email: string;
   password: string;

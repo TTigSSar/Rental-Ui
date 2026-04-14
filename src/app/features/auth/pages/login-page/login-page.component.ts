@@ -9,6 +9,7 @@ import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 
+import type { ExternalAuthProvider } from '../../models/auth.models';
 import * as AuthActions from '../../store/auth.actions';
 import { selectAuthError, selectAuthLoading } from '../../store/auth.selectors';
 
@@ -49,6 +50,10 @@ export class LoginPageComponent {
 
     const payload = this.loginForm.getRawValue();
     this.store.dispatch(AuthActions.login({ payload }));
+  }
+
+  protected continueWithProvider(provider: ExternalAuthProvider): void {
+    this.store.dispatch(AuthActions.externalAuth({ provider, idToken: '' }));
   }
 
   protected hasError(controlName: 'email' | 'password', errorKey: string): boolean {

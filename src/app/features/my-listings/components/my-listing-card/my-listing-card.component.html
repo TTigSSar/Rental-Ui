@@ -1,6 +1,6 @@
 <p-card styleClass="my-listing-card">
   <ng-template pTemplate="header">
-    <div class="my-listing-card__media">
+    <app-ui-image-container class="my-listing-card__media" aspectRatio="16 / 10">
       @if (listing().imageUrl; as imageUrl) {
         <img
           class="my-listing-card__image"
@@ -15,16 +15,13 @@
           {{ 'myListings.card.noImage' | translate }}
         </div>
       }
-    </div>
+    </app-ui-image-container>
   </ng-template>
 
   <div class="my-listing-card__content">
     <div class="my-listing-card__top">
       <h3 class="my-listing-card__title">{{ listing().title }}</h3>
-      <p-tag
-        [value]="statusLabelKey() | translate"
-        [severity]="statusSeverity()"
-      />
+      <app-ui-badge [label]="statusLabelKey() | translate" [tone]="statusTone()" />
     </div>
 
     <p class="my-listing-card__meta">

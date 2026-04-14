@@ -1,0 +1,22 @@
+.ui-empty-state {
+  display: grid;
+  justify-items: center;
+  gap: var(--ui-space-8);
+  padding: var(--ui-space-32);
+  text-align: center;
+}
+
+.ui-empty-state__icon {
+  font-size: 1.5rem;
+  color: var(--ui-color-text-secondary);
+}
+
+.ui-empty-state__title {
+  font-size: var(--ui-font-size-h3);
+  font-weight: 700;
+}
+
+.ui-empty-state__text {
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-font-size-body);
+}

@@ -1,35 +1,32 @@
 .listings-page {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1.5rem 1rem 3rem;
+  gap: var(--ui-space-24);
+  padding-bottom: var(--ui-space-32);
 }
 
 .listings-page__header {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: var(--ui-space-16);
 }
 
 .listings-page__title-wrap {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: var(--ui-space-8);
 }
 
 .listings-page__title {
-  margin: 0;
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-size: var(--ui-font-size-h1);
   font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #1a1c28;
 }
 
 .listings-page__subtitle {
-  margin: 0;
-  color: var(--p-text-muted-color, #71717a);
+  color: var(--ui-color-text-secondary);
   font-size: 0.95rem;
 }
 
@@ -37,7 +34,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 1rem;
+  gap: var(--ui-space-16);
 }
 
 .listings-page__message {
@@ -47,60 +44,15 @@
 .listings-page__error-content {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--ui-space-4);
 }
 
 .listings-page__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
-  gap: clamp(1rem, 2vw, 1.5rem);
-}
-
-.listings-page__grid--skeleton {
-  margin-top: 0;
-}
-
-.listings-page__skeleton-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem;
-  border-radius: var(--p-border-radius-md, 8px);
-  border: 1px solid var(--p-content-border-color, #e4e4e7);
-  background: var(--p-content-background, #fff);
-}
-
-.listings-page__empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 3rem 1.5rem;
-  text-align: center;
-  border-radius: var(--p-border-radius-md, 8px);
-  border: 1px dashed var(--p-content-border-color, #e4e4e7);
-  background: var(--p-content-background, #fafafa);
-}
-
-.listings-page__empty-icon {
-  font-size: 1.4rem;
-  color: var(--p-text-muted-color, #71717a);
-}
-
-.listings-page__empty-title {
-  margin: 0;
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-.listings-page__empty-text {
-  margin: 0;
-  font-size: 1rem;
-  color: var(--p-text-muted-color, #71717a);
+  align-items: stretch;
 }
 
 .listings-page__append-loading {
-  margin-top: 0.5rem;
+  margin-top: var(--ui-space-8);
 }
 
 .listings-page__sentinel {

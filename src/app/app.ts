@@ -11,6 +11,7 @@ import {
   selectAuthUser,
   selectIsAuthenticated,
 } from './features/auth/store/auth.selectors';
+import { AvatarComponent } from './shared/ui/avatar/avatar.component';
 
 interface NavItem {
   readonly path: string;
@@ -27,7 +28,14 @@ interface AppShellViewModel {
 
 @Component({
   selector: 'app-root',
-  imports: [AsyncPipe, RouterLink, RouterLinkActive, RouterOutlet, TranslatePipe],
+  imports: [
+    AsyncPipe,
+    RouterLink,
+    RouterLinkActive,
+    RouterOutlet,
+    TranslatePipe,
+    AvatarComponent,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

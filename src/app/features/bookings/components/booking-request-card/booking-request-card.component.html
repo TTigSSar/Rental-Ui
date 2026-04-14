@@ -1,10 +1,7 @@
 <p-card styleClass="booking-request-card">
   <div class="booking-request-card__top">
     <h3 class="booking-request-card__title">{{ request().listingTitle }}</h3>
-    <p-tag
-      [value]="statusLabelKey() | translate"
-      [severity]="statusSeverity()"
-    />
+    <app-ui-badge [label]="statusLabelKey() | translate" [tone]="statusTone()" />
   </div>
 
   <p class="booking-request-card__line">

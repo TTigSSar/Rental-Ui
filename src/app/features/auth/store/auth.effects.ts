@@ -6,6 +6,7 @@ import { catchError, filter, map, mergeMap, of, tap, withLatestFrom } from 'rxjs
 
 import { toApiErrorMessage } from '../../../api/http-error-message.util';
 import { AuthApiService } from '../services/auth-api.service';
+import { ExternalAuthProviderService } from '../services/external-auth-provider.service';
 import { AuthTokenService } from '../services/auth-token.service';
 import * as AuthActions from './auth.actions';
 import { selectAuthToken } from './auth.selectors';
@@ -23,6 +24,7 @@ export class AuthEffects {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
   private readonly authApi = inject(AuthApiService);
+  private readonly externalAuthProvider = inject(ExternalAuthProviderService);
   private readonly tokenService = inject(AuthTokenService);
 
   readonly login$ = createEffect(() =>
@@ -62,10 +64,44 @@ export class AuthEffects {
     ),
   );
 
+  readonly externalAuth$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.externalAuth),
+      filter(({ idToken }) => idToken.trim() !== ''),
+      mergeMap(({ provider, idToken }) =>
+        this.authApi.externalAuth({ provider, idToken }).pipe(
+          map(({ token }) => AuthActions.externalAuthSuccess({ token })),
+          catchError((error: unknown) =>
+            of(AuthActions.externalAuthFailure({ error: toErrorMessage(error) })),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  readonly resolveExternalAuthToken$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.externalAuth),
+      filter(({ idToken }) => idToken === ''),
+      mergeMap(({ provider }) =>
+        this.externalAuthProvider.getIdToken(provider).pipe(
+          map((idToken) => AuthActions.externalAuth({ provider, idToken })),
+          catchError((error: unknown) =>
+            of(AuthActions.externalAuthFailure({ error: toErrorMessage(error) })),
+          ),
+        ),
+      ),
+    ),
+  );
+
   readonly persistToken$ = createEffect(
     () =>
       this.actions$.pipe(
-        ofType(AuthActions.loginSuccess, AuthActions.registerSuccess),
+        ofType(
+          AuthActions.loginSuccess,
+          AuthActions.registerSuccess,
+          AuthActions.externalAuthSuccess,
+        ),
         tap(({ token }) => {
           this.tokenService.saveToken(token);
         }),
@@ -75,7 +111,11 @@ export class AuthEffects {
 
   readonly loadCurrentUserAfterAuth$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(AuthActions.loginSuccess, AuthActions.registerSuccess),
+      ofType(
+        AuthActions.loginSuccess,
+        AuthActions.registerSuccess,
+        AuthActions.externalAuthSuccess,
+      ),
       map(() => AuthActions.loadCurrentUser()),
     ),
   );

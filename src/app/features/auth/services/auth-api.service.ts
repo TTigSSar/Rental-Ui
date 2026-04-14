@@ -7,6 +7,7 @@ import type {
   AuthResponse,
   BackendAuthResponse,
   CurrentUser,
+  ExternalAuthRequest,
   LoginRequest,
   RegisterRequest,
 } from '../models/auth.models';
@@ -24,6 +25,12 @@ export class AuthApiService {
   register(payload: RegisterRequest): Observable<AuthResponse> {
     return this.http
       .post<BackendAuthResponse>(toApiUrl(ApiContract.auth.register), payload)
+      .pipe(map((response) => this.normalizeAuthResponse(response)));
+  }
+
+  externalAuth(payload: ExternalAuthRequest): Observable<AuthResponse> {
+    return this.http
+      .post<BackendAuthResponse>(toApiUrl(ApiContract.auth.external), payload)
       .pipe(map((response) => this.normalizeAuthResponse(response)));
   }
 

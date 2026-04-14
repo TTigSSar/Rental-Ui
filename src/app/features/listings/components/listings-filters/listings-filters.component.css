@@ -1,15 +1,16 @@
 .listings-filters {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 1rem;
-  border: 1px solid var(--p-content-border-color, #e4e4e7);
-  border-radius: var(--p-border-radius-md, 8px);
+  gap: var(--ui-space-16);
+  padding: var(--ui-space-16);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
   background: color-mix(
     in srgb,
-    var(--p-content-background, #fff) 92%,
-    var(--p-surface-50, #f8fafc)
+    var(--ui-color-surface) 92%,
+    #f0f3ff
   );
+  box-shadow: none;
 }
 
 .listings-filters__top-row {
@@ -20,9 +21,8 @@
 }
 
 .listings-filters__intro {
-  margin: 0;
-  font-size: 0.875rem;
-  color: var(--p-text-muted-color, #71717a);
+  font-size: var(--ui-font-size-caption);
+  color: var(--ui-color-text-secondary);
 }
 
 .listings-filters__chips {
@@ -44,13 +44,14 @@
 }
 
 .listings-filters__label {
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: var(--ui-font-size-caption);
+  font-weight: 600;
+  color: var(--ui-color-text-primary);
 }
 
 .listings-filters__hint {
-  font-size: 0.75rem;
-  color: var(--p-text-muted-color, #71717a);
+  font-size: var(--ui-font-size-caption);
+  color: var(--ui-color-text-secondary);
 }
 
 .listings-filters__input {

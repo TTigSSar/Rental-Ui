@@ -1,7 +1,7 @@
 <div class="app-shell">
   @if (vm$ | async; as vm) {
     <header class="app-shell__header-wrap">
-      <div class="app-shell__header">
+      <div class="app-shell__header page-container">
         <a routerLink="/listings" class="app-shell__brand">
           {{ 'app.shell.brand' | translate }}
         </a>
@@ -37,7 +37,10 @@
 
           @if (vm.isAuthenticated) {
             @if (vm.userDisplayName) {
-              <span class="app-shell__user">{{ vm.userDisplayName }}</span>
+              <span class="app-shell__user">
+                <app-ui-avatar [name]="vm.userDisplayName" />
+                <span>{{ vm.userDisplayName }}</span>
+              </span>
             }
             <button type="button" class="app-shell__logout" (click)="logout()">
               {{ 'app.shell.nav.logout' | translate }}

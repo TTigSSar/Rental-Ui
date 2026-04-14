@@ -1,6 +1,11 @@
 import { createAction, props } from '@ngrx/store';
 
-import type { CurrentUser, LoginRequest, RegisterRequest } from '../models/auth.models';
+import type {
+  CurrentUser,
+  ExternalAuthProvider,
+  LoginRequest,
+  RegisterRequest,
+} from '../models/auth.models';
 
 export const login = createAction(
   '[Auth] Login',
@@ -29,6 +34,21 @@ export const registerSuccess = createAction(
 
 export const registerFailure = createAction(
   '[Auth] Register Failure',
+  props<{ error: string }>(),
+);
+
+export const externalAuth = createAction(
+  '[Auth] External Auth',
+  props<{ provider: ExternalAuthProvider; idToken: string }>(),
+);
+
+export const externalAuthSuccess = createAction(
+  '[Auth] External Auth Success',
+  props<{ token: string }>(),
+);
+
+export const externalAuthFailure = createAction(
+  '[Auth] External Auth Failure',
   props<{ error: string }>(),
 );
 

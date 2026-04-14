@@ -13,6 +13,7 @@ export const ApiContract = {
     login: '/api/auth/login',
     register: '/api/auth/register',
     currentUser: '/api/auth/me',
+    external: '/api/auth/external',
   },
   listings: {
     root: '/api/listings',

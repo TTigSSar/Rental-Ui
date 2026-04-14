@@ -11,11 +11,12 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { TagModule } from 'primeng/tag';
 
+import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
+import { ImageContainerComponent } from '../../../../shared/ui/image-container/image-container.component';
 import type { MyListing, MyListingStatus } from '../../models/my-listing.model';
 
-type TagSeverity = 'success' | 'warn' | 'danger' | 'secondary';
+type BadgeTone = 'approved' | 'pending' | 'rejected' | 'neutral';
 
 @Component({
   selector: 'app-my-listing-card',
@@ -26,8 +27,9 @@ type TagSeverity = 'success' | 'warn' | 'danger' | 'secondary';
     CurrencyPipe,
     DatePipe,
     RouterLink,
-    TagModule,
     TranslatePipe,
+    BadgeComponent,
+    ImageContainerComponent,
   ],
   templateUrl: './my-listing-card.component.html',
   styleUrl: './my-listing-card.component.scss',
@@ -43,8 +45,8 @@ export class MyListingCardComponent {
     this.mapStatusLabelKey(this.listing().status),
   );
 
-  protected readonly statusSeverity = computed(() =>
-    this.mapStatusSeverity(this.listing().status),
+  protected readonly statusTone = computed(() =>
+    this.mapStatusTone(this.listing().status),
   );
 
   protected requestEdit(): void {
@@ -71,19 +73,19 @@ export class MyListingCardComponent {
     }
   }
 
-  private mapStatusSeverity(status: MyListingStatus): TagSeverity {
+  private mapStatusTone(status: MyListingStatus): BadgeTone {
     switch (status) {
       case 'Approved':
-        return 'success';
+        return 'approved';
       case 'Pending':
       case 'PendingApproval':
-        return 'warn';
+        return 'pending';
       case 'Rejected':
-        return 'danger';
+        return 'rejected';
       case 'Archived':
-        return 'secondary';
+        return 'neutral';
       default:
-        return 'warn';
+        return 'pending';
     }
   }
 }

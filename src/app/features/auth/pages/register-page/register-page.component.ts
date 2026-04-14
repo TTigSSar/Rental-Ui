@@ -1,7 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
@@ -9,6 +8,7 @@ import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 
+import type { ExternalAuthProvider } from '../../models/auth.models';
 import * as AuthActions from '../../store/auth.actions';
 import { selectAuthError, selectAuthLoading } from '../../store/auth.selectors';
 
@@ -22,7 +22,6 @@ import { selectAuthError, selectAuthLoading } from '../../store/auth.selectors';
     InputTextModule,
     MessageModule,
     ReactiveFormsModule,
-    RouterLink,
     TranslatePipe,
   ],
   templateUrl: './register-page.component.html',
@@ -37,8 +36,8 @@ export class RegisterPageComponent {
   protected readonly error$ = this.store.select(selectAuthError);
 
   protected readonly registerForm = this.fb.nonNullable.group({
-    firstName: ['', [Validators.required]],
-    lastName: ['', [Validators.required]],
+    firstName: ['Guest', [Validators.required]],
+    lastName: ['User', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
   });
@@ -51,6 +50,10 @@ export class RegisterPageComponent {
 
     const payload = this.registerForm.getRawValue();
     this.store.dispatch(AuthActions.register({ payload }));
+  }
+
+  protected continueWithProvider(provider: ExternalAuthProvider): void {
+    this.store.dispatch(AuthActions.externalAuth({ provider, idToken: '' }));
   }
 
   protected hasError(

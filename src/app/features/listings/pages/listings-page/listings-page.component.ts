@@ -15,6 +15,8 @@ import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { firstValueFrom, take } from 'rxjs';
 
+import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
+import { LoadingSkeletonComponent } from '../../../../shared/ui/loading-skeleton/loading-skeleton.component';
 import { ListingCardComponent } from '../../components/listing-card/listing-card.component';
 import { ListingsFiltersComponent } from '../../components/listings-filters/listings-filters.component';
 import type { ListingsFilter } from '../../models/listings-filter.model';
@@ -88,6 +90,8 @@ const selectLoadMoreGate = createSelector(
     MessageModule,
     SkeletonModule,
     TranslatePipe,
+    EmptyStateComponent,
+    LoadingSkeletonComponent,
   ],
   templateUrl: './listings-page.component.html',
   styleUrl: './listings-page.component.scss',

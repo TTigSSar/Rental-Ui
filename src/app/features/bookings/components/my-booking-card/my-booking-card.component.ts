@@ -4,11 +4,11 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { TagModule } from 'primeng/tag';
+import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
 
 import type { BookingStatus, MyBooking } from '../../models/booking.model';
 
-type TagSeverity = 'success' | 'warn' | 'danger' | 'secondary' | 'contrast';
+type BadgeTone = 'approved' | 'pending' | 'rejected' | 'neutral';
 
 @Component({
   selector: 'app-my-booking-card',
@@ -19,7 +19,7 @@ type TagSeverity = 'success' | 'warn' | 'danger' | 'secondary' | 'contrast';
     CurrencyPipe,
     DatePipe,
     RouterLink,
-    TagModule,
+    BadgeComponent,
     TranslatePipe,
   ],
   templateUrl: './my-booking-card.component.html',
@@ -33,8 +33,8 @@ export class MyBookingCardComponent {
     this.getStatusLabelKey(this.booking().status),
   );
 
-  protected readonly statusSeverity = computed(() =>
-    this.getStatusSeverity(this.booking().status),
+  protected readonly statusTone = computed(() =>
+    this.getStatusTone(this.booking().status),
   );
 
   private getStatusLabelKey(status: BookingStatus): string {
@@ -55,21 +55,20 @@ export class MyBookingCardComponent {
     }
   }
 
-  private getStatusSeverity(status: BookingStatus): TagSeverity {
+  private getStatusTone(status: BookingStatus): BadgeTone {
     switch (status) {
       case 'Approved':
-        return 'success';
+        return 'approved';
       case 'Pending':
       case 'PendingApproval':
-        return 'warn';
+        return 'pending';
       case 'Rejected':
-        return 'danger';
+        return 'rejected';
       case 'Archived':
-        return 'secondary';
       case 'Cancelled':
-        return 'contrast';
+        return 'neutral';
       default:
-        return 'warn';
+        return 'pending';
     }
   }
 }

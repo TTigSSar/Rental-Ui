@@ -1,4 +1,4 @@
-<div class="listings-page">
+<div class="listings-page page-container section-stack">
   <header class="listings-page__header">
     <div class="listings-page__title-wrap">
       <h1 class="listings-page__title">
@@ -30,36 +30,19 @@
     }
 
     @if (vm.showInitialSkeleton) {
-      <div
-        class="listings-page__grid listings-page__grid--skeleton"
-        aria-busy="true"
-        [attr.aria-label]="'listings.page.loading' | translate"
-      >
-        @for (i of skeletonItems(vm); track i) {
-          <div class="listings-page__skeleton-card">
-            <p-skeleton width="100%" height="10rem" />
-            <p-skeleton width="70%" height="1.25rem" />
-            <p-skeleton width="40%" height="1rem" />
-            <p-skeleton width="50%" height="1rem" />
-          </div>
-        }
-      </div>
+      <app-ui-loading-skeleton [items]="skeletonItems(vm).length" />
     }
 
     @if (vm.showEmpty) {
-      <div class="listings-page__empty">
-        <span class="pi pi-search listings-page__empty-icon" aria-hidden="true"></span>
-        <h2 class="listings-page__empty-title">
-          {{ 'listings.page.emptyTitle' | translate }}
-        </h2>
-        <p class="listings-page__empty-text">
-          {{ 'listings.page.empty' | translate }}
-        </p>
-      </div>
+      <app-ui-empty-state
+        icon="pi pi-search"
+        [title]="'listings.page.emptyTitle' | translate"
+        [description]="'listings.page.empty' | translate"
+      />
     }
 
     @if (vm.items.length > 0) {
-      <div class="listings-page__grid">
+      <div class="listings-page__grid cards-grid">
         @for (listing of vm.items; track listing.id) {
           <app-listing-card
             [listing]="listing"

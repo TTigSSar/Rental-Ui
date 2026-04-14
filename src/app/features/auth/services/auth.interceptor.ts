@@ -9,6 +9,7 @@ import { AuthTokenService } from './auth-token.service';
 const unauthenticatedAuthEndpoints = new Set<string>([
   ApiContract.auth.login,
   ApiContract.auth.register,
+  ApiContract.auth.external,
 ]);
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {

@@ -1,2 +1,182 @@
-/* You can add global styles to this file, and also import other style files */
 @import 'primeicons/primeicons.css';
+
+:root {
+  --ui-color-primary: #ff6a00;
+  --ui-color-primary-strong: #e85e00;
+  --ui-color-secondary: #2b2f42;
+  --ui-color-background: #111217;
+  --ui-color-surface: #ffffff;
+  --ui-color-text-primary: #181a24;
+  --ui-color-text-secondary: #6a6f86;
+  --ui-color-border: #e2e5ef;
+  --ui-color-error: #d43f5e;
+
+  --ui-space-4: 4px;
+  --ui-space-8: 8px;
+  --ui-space-12: 12px;
+  --ui-space-16: 16px;
+  --ui-space-24: 24px;
+  --ui-space-32: 32px;
+  --ui-space-48: 48px;
+  --ui-space-64: 64px;
+
+  --ui-radius-sm: 6px;
+  --ui-radius-md: 12px;
+  --ui-radius-lg: 18px;
+
+  --ui-shadow-card: 0 10px 24px rgba(16, 18, 30, 0.07);
+  --ui-shadow-card-hover: 0 16px 34px rgba(16, 18, 30, 0.13);
+
+  --ui-font-size-h1: clamp(1.75rem, 3vw, 2.25rem);
+  --ui-font-size-h2: clamp(1.375rem, 2.5vw, 1.75rem);
+  --ui-font-size-h3: 1.125rem;
+  --ui-font-size-body: 1rem;
+  --ui-font-size-caption: 0.875rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+  background: var(--ui-color-background);
+  color: var(--ui-color-text-primary);
+  font-family:
+    'Inter',
+    'Segoe UI',
+    Roboto,
+    Arial,
+    sans-serif;
+  line-height: 1.5;
+}
+
+app-root {
+  display: block;
+  min-height: 100dvh;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+.page-container {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding-inline: var(--ui-space-16);
+}
+
+.section-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-24);
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--ui-space-24);
+}
+
+.ui-card-surface {
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface);
+  box-shadow: var(--ui-shadow-card);
+}
+
+.ui-input,
+.ui-textarea,
+.ui-select {
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-primary);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.ui-input:focus-visible,
+.ui-textarea:focus-visible,
+.ui-select:focus-visible {
+  border-color: var(--ui-color-primary);
+  box-shadow: 0 0 0 3px rgba(91, 91, 214, 0.16);
+  outline: none;
+}
+
+.ui-empty {
+  display: grid;
+  justify-items: center;
+  gap: var(--ui-space-8);
+  padding: var(--ui-space-32);
+  text-align: center;
+  color: var(--ui-color-text-secondary);
+  border: 1px dashed var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: color-mix(in srgb, var(--ui-color-surface) 94%, #fff3eb);
+}
+
+.p-button {
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  min-height: 2.35rem;
+  padding-inline: 1rem;
+}
+
+.p-button:not(.p-button-outlined):not(.p-button-text) {
+  background: var(--ui-color-primary);
+  border-color: var(--ui-color-primary);
+}
+
+.p-button:not(.p-button-outlined):not(.p-button-text):hover {
+  background: var(--ui-color-primary-strong);
+  border-color: var(--ui-color-primary-strong);
+}
+
+.p-button.p-button-outlined {
+  border-color: #c9cedd;
+  color: #34384a;
+  background: #fff;
+}
+
+.p-button.p-button-text {
+  color: var(--ui-color-secondary);
+}
+
+.p-inputtext,
+.p-inputnumber-input,
+textarea,
+select {
+  border-radius: var(--ui-radius-md);
+  border: 1px solid var(--ui-color-border);
+  background: #fff;
+  color: var(--ui-color-text-primary);
+}
+
+.p-inputtext:focus,
+.p-inputnumber-input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--ui-color-primary);
+  box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.15);
+  outline: none;
+}
+
+.p-card {
+  border-radius: var(--ui-radius-md);
+  border: 1px solid var(--ui-color-border);
+  box-shadow: var(--ui-shadow-card);
+}
+
+.p-card .p-card-body {
+  padding: var(--ui-space-16);
+}
