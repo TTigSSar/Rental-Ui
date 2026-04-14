@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, from } from 'rxjs';
 
 import type { ExternalAuthProvider } from '../models/auth.models';
+import { AppleAuthService } from './apple-auth.service';
 import { ExternalAuthConfigService } from './external-auth-config.service';
 
 interface GoogleCredentialResponse {
@@ -21,23 +22,6 @@ interface GoogleIdentityApi {
   prompt(listener: (notification: GooglePromptMomentNotification) => void): void;
 }
 
-interface AppleSignInResponse {
-  authorization?: {
-    id_token?: string;
-  };
-}
-
-interface AppleAuthApi {
-  init(config: {
-    clientId: string;
-    redirectURI: string;
-    scope: string;
-    state: string;
-    usePopup: boolean;
-  }): void;
-  signIn(): Promise<AppleSignInResponse>;
-}
-
 type ExternalAuthWindow = Window &
   typeof globalThis & {
     google?: {
@@ -45,17 +29,16 @@ type ExternalAuthWindow = Window &
         id?: GoogleIdentityApi;
       };
     };
-    AppleID?: {
-      auth?: AppleAuthApi;
-    };
   };
 
 @Injectable({ providedIn: 'root' })
 export class ExternalAuthProviderService {
-  constructor(private readonly authConfig: ExternalAuthConfigService) {}
+  constructor(
+    private readonly authConfig: ExternalAuthConfigService,
+    private readonly appleAuthService: AppleAuthService,
+  ) {}
 
   private googleScriptReadyPromise: Promise<void> | null = null;
-  private appleScriptReadyPromise: Promise<void> | null = null;
 
   getIdToken(provider: ExternalAuthProvider): Observable<string> {
     if (provider === 'google') {
@@ -121,35 +104,7 @@ export class ExternalAuthProviderService {
   }
 
   private async signInWithApple(): Promise<string> {
-    const appleConfig = this.authConfig.appleConfig;
-    const clientId = appleConfig.clientId.trim();
-    const redirectUri = appleConfig.redirectUri.trim();
-    if (clientId === '' || redirectUri === '') {
-      throw new Error('Apple sign-in is not configured. Please set clientId and redirectUri.');
-    }
-
-    await this.ensureAppleScript();
-    const authWindow = window as ExternalAuthWindow;
-    const appleAuth = authWindow.AppleID?.auth;
-    if (!appleAuth) {
-      throw new Error('Apple sign-in is unavailable right now. Please try again later.');
-    }
-
-    appleAuth.init({
-      clientId,
-      redirectURI: redirectUri,
-      scope: appleConfig.scope,
-      state: appleConfig.state,
-      usePopup: true,
-    });
-
-    const response = await appleAuth.signIn();
-    const idToken = (response.authorization?.id_token ?? '').trim();
-    if (idToken === '') {
-      throw new Error('Apple sign-in did not return an ID token.');
-    }
-
-    return idToken;
+    return this.appleAuthService.getIdToken();
   }
 
   private ensureGoogleScript(): Promise<void> {
@@ -163,19 +118,6 @@ export class ExternalAuthProviderService {
     );
 
     return this.googleScriptReadyPromise;
-  }
-
-  private ensureAppleScript(): Promise<void> {
-    if (this.appleScriptReadyPromise) {
-      return this.appleScriptReadyPromise;
-    }
-
-    this.appleScriptReadyPromise = this.loadScriptOnce(
-      'apple-signin-script',
-      'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js',
-    );
-
-    return this.appleScriptReadyPromise;
   }
 
   private loadScriptOnce(scriptId: string, src: string): Promise<void> {
