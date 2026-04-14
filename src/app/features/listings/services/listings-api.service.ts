@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { ApiContract, toApiUrl } from '../../../api/api-contract';
 import type {
   CreateListingRequest,
   CreateListingResponse,
@@ -16,9 +17,6 @@ import type { PagedResult } from '../models/paged-result.model';
 @Injectable({ providedIn: 'root' })
 export class ListingsApiService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = '/api/listings';
-  private readonly favoritesUrl = '/api/favorites';
-  private readonly categoriesUrl = '/api/categories';
 
   getListings(
     filter: ListingsFilter,
@@ -26,44 +24,49 @@ export class ListingsApiService {
     pageSize: number,
   ): Observable<PagedResult<ListingPreview>> {
     const params = this.buildListingsQueryParams(filter, page, pageSize);
-    return this.http.get<PagedResult<ListingPreview>>(this.baseUrl, { params });
+    return this.http.get<PagedResult<ListingPreview>>(
+      toApiUrl(ApiContract.listings.root),
+      { params },
+    );
   }
 
   getListingById(id: string): Observable<ListingDetails> {
-    const url = `${this.baseUrl}/${encodeURIComponent(id)}`;
-    return this.http.get<ListingDetails>(url);
+    return this.http.get<ListingDetails>(toApiUrl(ApiContract.listings.byId(id)));
   }
 
   createListing(payload: CreateListingRequest): Observable<CreateListingResponse> {
-    return this.http.post<CreateListingResponse>(this.baseUrl, payload);
+    return this.http.post<CreateListingResponse>(
+      toApiUrl(ApiContract.listings.root),
+      payload,
+    );
   }
 
   uploadListingImages(
     listingId: string,
     files: File[],
   ): Observable<ListingImageUploadResponse[]> {
-    const url = `${this.baseUrl}/${encodeURIComponent(listingId)}/images`;
     const formData = new FormData();
 
     for (const file of files) {
       formData.append('files', file, file.name);
     }
 
-    return this.http.post<ListingImageUploadResponse[]>(url, formData);
+    return this.http.post<ListingImageUploadResponse[]>(
+      toApiUrl(ApiContract.listings.uploadImages(listingId)),
+      formData,
+    );
   }
 
   getListingCategories(): Observable<ListingCategoryOption[]> {
-    return this.http.get<ListingCategoryOption[]>(this.categoriesUrl);
+    return this.http.get<ListingCategoryOption[]>(toApiUrl(ApiContract.categories.root));
   }
 
   addToFavorites(listingId: string): Observable<void> {
-    const url = `${this.favoritesUrl}/${encodeURIComponent(listingId)}`;
-    return this.http.post<void>(url, {});
+    return this.http.post<void>(toApiUrl(ApiContract.favorites.byListingId(listingId)), {});
   }
 
   removeFromFavorites(listingId: string): Observable<void> {
-    const url = `${this.favoritesUrl}/${encodeURIComponent(listingId)}`;
-    return this.http.delete<void>(url);
+    return this.http.delete<void>(toApiUrl(ApiContract.favorites.byListingId(listingId)));
   }
 
   private buildListingsQueryParams(

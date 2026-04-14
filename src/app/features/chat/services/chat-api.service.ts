@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { ApiContract, toApiUrl } from '../../../api/api-contract';
 import type {
   ChatConversationDetails,
   ChatConversationPreview,
@@ -12,24 +13,22 @@ import type {
 @Injectable({ providedIn: 'root' })
 export class ChatApiService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = '/api/chat';
 
   getConversations(): Observable<ChatConversationPreview[]> {
-    return this.http.get<ChatConversationPreview[]>(
-      `${this.baseUrl}/conversations`,
-    );
+    return this.http.get<ChatConversationPreview[]>(toApiUrl(ApiContract.chat.conversations));
   }
 
   getConversationDetails(conversationId: string): Observable<ChatConversationDetails> {
-    const url = `${this.baseUrl}/conversations/${encodeURIComponent(conversationId)}`;
-    return this.http.get<ChatConversationDetails>(url);
+    return this.http.get<ChatConversationDetails>(
+      toApiUrl(ApiContract.chat.conversationById(conversationId)),
+    );
   }
 
   sendMessage(
     conversationId: string,
     payload: SendChatMessageRequest,
   ): Observable<ChatMessage> {
-    return this.http.post<ChatMessage>(`${this.baseUrl}/messages`, {
+    return this.http.post<ChatMessage>(toApiUrl(ApiContract.chat.messages), {
       conversationId,
       ...payload,
     });

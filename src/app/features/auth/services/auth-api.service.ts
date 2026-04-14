@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { ApiContract, toApiUrl } from '../../../api/api-contract';
 import type {
   AuthResponse,
   CurrentUser,
@@ -12,17 +13,16 @@ import type {
 @Injectable({ providedIn: 'root' })
 export class AuthApiService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = '/api/auth';
 
   login(payload: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.baseUrl}/login`, payload);
+    return this.http.post<AuthResponse>(toApiUrl(ApiContract.auth.login), payload);
   }
 
   register(payload: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.baseUrl}/register`, payload);
+    return this.http.post<AuthResponse>(toApiUrl(ApiContract.auth.register), payload);
   }
 
   getCurrentUser(): Observable<CurrentUser> {
-    return this.http.get<CurrentUser>(`${this.baseUrl}/me`);
+    return this.http.get<CurrentUser>(toApiUrl(ApiContract.auth.currentUser));
   }
 }
