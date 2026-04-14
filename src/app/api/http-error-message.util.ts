@@ -51,6 +51,10 @@ export function toApiErrorMessage(
       return error.error;
     }
 
+    if (error.status === 0) {
+      return 'Unable to connect to the API. Please check that the backend is running.';
+    }
+
     if (error.status === 401 && options?.unauthorizedMessage) {
       return options.unauthorizedMessage;
     }
