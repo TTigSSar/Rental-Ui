@@ -8,6 +8,40 @@ import * as BookingsActions from './bookings.actions';
 
 function toErrorMessage(error: unknown): string {
   if (error instanceof HttpErrorResponse) {
+    if (
+      typeof error.error === 'object' &&
+      error.error !== null &&
+      'errors' in error.error &&
+      typeof error.error.errors === 'object' &&
+      error.error.errors !== null
+    ) {
+      const validationErrors = Object.values(error.error.errors).flatMap((value) =>
+        Array.isArray(value)
+          ? value.filter((entry): entry is string => typeof entry === 'string')
+          : [],
+      );
+      if (validationErrors.length > 0) {
+        return validationErrors[0];
+      }
+    }
+    if (
+      typeof error.error === 'object' &&
+      error.error !== null &&
+      'detail' in error.error &&
+      typeof error.error.detail === 'string' &&
+      error.error.detail.length > 0
+    ) {
+      return error.error.detail;
+    }
+    if (
+      typeof error.error === 'object' &&
+      error.error !== null &&
+      'title' in error.error &&
+      typeof error.error.title === 'string' &&
+      error.error.title.length > 0
+    ) {
+      return error.error.title;
+    }
     if (typeof error.error === 'string' && error.error.length > 0) {
       return error.error;
     }
@@ -23,6 +57,31 @@ function toErrorMessage(error: unknown): string {
 export class BookingsEffects {
   private readonly actions$ = inject(Actions);
   private readonly bookingsApi = inject(BookingsApiService);
+
+  readonly createBooking$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BookingsActions.createBooking),
+      concatMap(({ payload }) =>
+        this.bookingsApi.createBooking(payload).pipe(
+          map((booking) => BookingsActions.createBookingSuccess({ booking })),
+          catchError((error: unknown) =>
+            of(
+              BookingsActions.createBookingFailure({
+                error: toErrorMessage(error),
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  readonly refreshAfterCreateBookingSuccess$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BookingsActions.createBookingSuccess),
+      map(() => BookingsActions.loadMyBookings()),
+    ),
+  );
 
   readonly loadMyBookings$ = createEffect(() =>
     this.actions$.pipe(

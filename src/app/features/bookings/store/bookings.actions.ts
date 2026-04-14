@@ -1,6 +1,31 @@
 import { createAction, props } from '@ngrx/store';
 
-import type { BookingRequest, BookingStatus, MyBooking } from '../models/booking.model';
+import type {
+  BookingRequest,
+  BookingStatus,
+  CreateBookingRequest,
+  CreateBookingResponse,
+  MyBooking,
+} from '../models/booking.model';
+
+export const createBooking = createAction(
+  '[Bookings] Create Booking',
+  props<{ payload: CreateBookingRequest }>(),
+);
+
+export const createBookingSuccess = createAction(
+  '[Bookings] Create Booking Success',
+  props<{ booking: CreateBookingResponse }>(),
+);
+
+export const createBookingFailure = createAction(
+  '[Bookings] Create Booking Failure',
+  props<{ error: string }>(),
+);
+
+export const clearCreateBookingState = createAction(
+  '[Bookings] Clear Create Booking State',
+);
 
 export const loadMyBookings = createAction('[Bookings] Load My Bookings');
 

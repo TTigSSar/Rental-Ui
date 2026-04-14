@@ -141,7 +141,23 @@
           <app-booking-calendar
             [bookedDates]="listing.bookedDates"
             [pricePerDay]="listing.pricePerDay"
+            (dateRangeSelected)="onBookingRangeSelected($event)"
           />
+          @if (vm.createBookingLoading) {
+            <p-message severity="info" styleClass="detail-page__message">
+              <span>{{ 'listings.details.bookingSubmitting' | translate }}</span>
+            </p-message>
+          }
+          @if (vm.createBookingError; as bookingError) {
+            <p-message severity="error" styleClass="detail-page__message">
+              <span>{{ bookingError }}</span>
+            </p-message>
+          }
+          @if (vm.createBookingSuccess) {
+            <p-message severity="success" styleClass="detail-page__message">
+              <span>{{ 'listings.details.bookingSuccess' | translate }}</span>
+            </p-message>
+          }
         </section>
       </article>
     }

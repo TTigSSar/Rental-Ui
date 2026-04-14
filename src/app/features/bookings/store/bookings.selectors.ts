@@ -12,6 +12,21 @@ export const selectMyBookings = createSelector(
   (state: BookingsState): MyBooking[] => state.myBookings,
 );
 
+export const selectCreateBookingLoading = createSelector(
+  selectBookingsState,
+  (state: BookingsState): boolean => state.createBookingLoading,
+);
+
+export const selectCreateBookingError = createSelector(
+  selectBookingsState,
+  (state: BookingsState): string | null => state.createBookingError,
+);
+
+export const selectCreateBookingSuccessId = createSelector(
+  selectBookingsState,
+  (state: BookingsState): string | null => state.createBookingSuccessId,
+);
+
 export const selectMyBookingsLoading = createSelector(
   selectBookingsState,
   (state: BookingsState): boolean => state.myBookingsLoading,

@@ -1,6 +1,9 @@
 import type { BookingRequest, MyBooking } from '../models/booking.model';
 
 export interface BookingsState {
+  createBookingLoading: boolean;
+  createBookingError: string | null;
+  createBookingSuccessId: string | null;
   myBookings: MyBooking[];
   myBookingsLoading: boolean;
   myBookingsError: string | null;
@@ -11,6 +14,9 @@ export interface BookingsState {
 }
 
 export const initialBookingsState: BookingsState = {
+  createBookingLoading: false,
+  createBookingError: null,
+  createBookingSuccessId: null,
   myBookings: [],
   myBookingsLoading: false,
   myBookingsError: null,

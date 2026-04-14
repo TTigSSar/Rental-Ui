@@ -115,7 +115,9 @@
       "hostHeading": "Your host",
       "contactLabel": "Contact",
       "bookingHeading": "Check availability",
-      "bookingSubtitle": "Select your dates to estimate the full stay price before booking."
+      "bookingSubtitle": "Select your dates to estimate the full stay price before booking.",
+      "bookingSubmitting": "Submitting booking request...",
+      "bookingSuccess": "Booking request submitted successfully."
     },
     "createPage": {
       "title": "Create listing",

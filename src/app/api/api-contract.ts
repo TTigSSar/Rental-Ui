@@ -30,6 +30,7 @@ export const ApiContract = {
       `/api/favorites/${encodeURIComponent(listingId)}`,
   },
   bookings: {
+    create: '/api/bookings',
     mine: '/api/bookings/mine',
     requests: '/api/bookings/requests',
     approve: (bookingId: string): ApiPath =>

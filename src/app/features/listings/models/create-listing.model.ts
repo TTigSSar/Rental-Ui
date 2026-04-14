@@ -12,7 +12,7 @@ export interface CreateListingRequest {
 
 export interface CreateListingResponse {
   id: string;
-  status: string;
+  status: 'PendingApproval' | 'Approved' | 'Rejected' | 'Archived';
 }
 
 export interface ListingImageUploadResponse {

@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 import { ApiContract, toApiUrl } from '../../../api/api-contract';
 import type {
@@ -27,7 +27,7 @@ export class ListingsApiService {
     return this.http.get<PagedResult<ListingPreview>>(
       toApiUrl(ApiContract.listings.root),
       { params },
-    );
+    ).pipe(map((result) => this.normalizePagedResult(result, page, pageSize)));
   }
 
   getListingById(id: string): Observable<ListingDetails> {
@@ -96,5 +96,31 @@ export class ListingsApiService {
     }
 
     return params;
+  }
+
+  private normalizePagedResult<T>(
+    result: PagedResult<T>,
+    requestedPage: number,
+    requestedPageSize: number,
+  ): PagedResult<T> {
+    const totalCount = Number.isFinite(result.totalCount)
+      ? result.totalCount
+      : result.items.length;
+    const page = Number.isFinite(result.page) ? result.page : requestedPage;
+    const pageSize = Number.isFinite(result.pageSize)
+      ? result.pageSize
+      : requestedPageSize;
+    const hasMore =
+      typeof result.hasMore === 'boolean'
+        ? result.hasMore
+        : page * pageSize < totalCount;
+
+    return {
+      ...result,
+      totalCount,
+      page,
+      pageSize,
+      hasMore,
+    };
   }
 }

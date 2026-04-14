@@ -14,6 +14,12 @@ import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, map } from 'rxjs';
 
+import * as BookingsActions from '../../../bookings/store/bookings.actions';
+import {
+  selectCreateBookingError,
+  selectCreateBookingLoading,
+  selectCreateBookingSuccessId,
+} from '../../../bookings/store/bookings.selectors';
 import { BookingCalendarComponent } from '../../components/booking-calendar/booking-calendar.component';
 import { ListingGalleryComponent } from '../../components/listing-gallery/listing-gallery.component';
 import type { ListingDetails } from '../../models/listing-details.model';
@@ -32,6 +38,9 @@ export interface ListingDetailsPageViewModel {
   readonly showError: boolean;
   readonly showContent: boolean;
   readonly error: string | null;
+  readonly createBookingLoading: boolean;
+  readonly createBookingError: string | null;
+  readonly createBookingSuccess: boolean;
 }
 
 const selectListingDetailsBase = createSelector(
@@ -86,38 +95,55 @@ export class ListingDetailsPageComponent {
 
   protected readonly viewModel$ = combineLatest([
     this.store.select(selectListingDetailsBase),
+    this.store.select(selectCreateBookingLoading),
+    this.store.select(selectCreateBookingError),
+    this.store.select(selectCreateBookingSuccessId),
     this.routeId$,
   ]).pipe(
-    map(([state, routeId]): ListingDetailsPageViewModel => {
-      const invalidRoute = routeId === null || routeId === '';
-      if (invalidRoute) {
-        return {
-          routeId: null,
-          invalidRoute: true,
-          displayListing: null,
-          showSkeleton: false,
-          showError: true,
-          showContent: false,
-          error: null,
-        };
-      }
-
-      const listing = state.listing;
-      const loading = state.detailsLoading;
-      const err = state.error;
-      const hasError = err !== null;
-      const idMatches = listing !== null && listing.id === routeId;
-
-      return {
+    map(
+      ([
+        state,
+        createBookingLoading,
+        createBookingError,
+        createBookingSuccessId,
         routeId,
-        invalidRoute: false,
-        displayListing: idMatches ? listing : null,
-        showSkeleton: loading && !idMatches,
-        showError: hasError,
-        showContent: idMatches && !loading && !hasError,
-        error: err,
-      };
-    }),
+      ]): ListingDetailsPageViewModel => {
+        const invalidRoute = routeId === null || routeId === '';
+        if (invalidRoute) {
+          return {
+            routeId: null,
+            invalidRoute: true,
+            displayListing: null,
+            showSkeleton: false,
+            showError: true,
+            showContent: false,
+            error: null,
+            createBookingLoading,
+            createBookingError,
+            createBookingSuccess: false,
+          };
+        }
+
+        const listing = state.listing;
+        const loading = state.detailsLoading;
+        const err = state.error;
+        const hasError = err !== null;
+        const idMatches = listing !== null && listing.id === routeId;
+
+        return {
+          routeId,
+          invalidRoute: false,
+          displayListing: idMatches ? listing : null,
+          showSkeleton: loading && !idMatches,
+          showError: hasError,
+          showContent: idMatches && !loading && !hasError,
+          error: err,
+          createBookingLoading,
+          createBookingError,
+          createBookingSuccess: createBookingSuccessId !== null,
+        };
+      },
+    ),
   );
 
   constructor() {
@@ -140,5 +166,31 @@ export class ListingDetailsPageComponent {
     if (id !== null && id !== '') {
       this.store.dispatch(ListingsActions.loadListingDetails({ id }));
     }
+  }
+
+  protected onBookingRangeSelected(event: {
+    startDate: Date | null;
+    endDate: Date | null;
+  }): void {
+    const listingId = this.routeListingId();
+    if (
+      listingId === null ||
+      listingId === '' ||
+      event.startDate === null ||
+      event.endDate === null
+    ) {
+      return;
+    }
+
+    this.store.dispatch(BookingsActions.clearCreateBookingState());
+    this.store.dispatch(
+      BookingsActions.createBooking({
+        payload: {
+          listingId,
+          startDate: event.startDate.toISOString(),
+          endDate: event.endDate.toISOString(),
+        },
+      }),
+    );
   }
 }

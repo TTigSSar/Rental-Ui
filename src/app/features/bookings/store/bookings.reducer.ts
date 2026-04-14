@@ -30,6 +30,42 @@ function patchRequestStatus(
 export const bookingsReducer = createReducer(
   initialBookingsState,
   on(
+    BookingsActions.createBooking,
+    (state): BookingsState => ({
+      ...state,
+      createBookingLoading: true,
+      createBookingError: null,
+      createBookingSuccessId: null,
+    }),
+  ),
+  on(
+    BookingsActions.createBookingSuccess,
+    (state, { booking }): BookingsState => ({
+      ...state,
+      createBookingLoading: false,
+      createBookingError: null,
+      createBookingSuccessId: booking.id,
+    }),
+  ),
+  on(
+    BookingsActions.createBookingFailure,
+    (state, { error }): BookingsState => ({
+      ...state,
+      createBookingLoading: false,
+      createBookingError: error,
+      createBookingSuccessId: null,
+    }),
+  ),
+  on(
+    BookingsActions.clearCreateBookingState,
+    (state): BookingsState => ({
+      ...state,
+      createBookingLoading: false,
+      createBookingError: null,
+      createBookingSuccessId: null,
+    }),
+  ),
+  on(
     BookingsActions.loadMyBookings,
     (state): BookingsState => ({
       ...state,
