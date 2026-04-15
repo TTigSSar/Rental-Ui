@@ -1,13 +1,16 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
+import { filter, map, take } from 'rxjs';
 
 import { AuthTokenService } from '../../auth/services/auth-token.service';
 import {
+  selectAuthError,
   selectAuthLoading,
   selectAuthUser,
   selectIsAuthenticated,
 } from '../../auth/store/auth.selectors';
+import * as AuthActions from '../../auth/store/auth.actions';
 
 export const adminGuard: CanActivateFn = () => {
   const store = inject(Store);
@@ -29,10 +32,28 @@ export const adminGuard: CanActivateFn = () => {
       : router.createUrlTree(['/listings']);
   }
 
-  // Token exists but user roles are not hydrated yet (or token is stale):
-  // keep access conservative and deterministic.
-  if (hasToken && isAuthLoading) {
-    return router.createUrlTree(['/listings']);
+  if (hasToken) {
+    if (!isAuthLoading) {
+      store.dispatch(AuthActions.loadCurrentUser());
+    }
+
+    return store.select(selectAuthLoading).pipe(
+      filter((loading) => !loading),
+      take(1),
+      map(() => {
+        const hydratedUser = store.selectSignal(selectAuthUser)();
+        const authError = store.selectSignal(selectAuthError)();
+        if (hydratedUser?.roles.includes('Admin') === true) {
+          return true;
+        }
+
+        if (authError !== null) {
+          return router.createUrlTree(['/auth/login']);
+        }
+
+        return router.createUrlTree(['/listings']);
+      }),
+    );
   }
 
   return router.createUrlTree(['/auth/login']);

@@ -13,6 +13,9 @@ export interface AppleExternalAuthConfig {
 
 interface ExternalAuthConfig {
   googleClientId: string;
+  google: {
+    clientId: string;
+  };
   apple: AppleExternalAuthConfig;
 }
 
@@ -20,6 +23,9 @@ interface ExternalAuthConfig {
 export class ExternalAuthConfigService {
   private readonly config: ExternalAuthConfig = {
     googleClientId: environment.externalAuth.googleClientId,
+    google: {
+      clientId: environment.externalAuth.google.clientId,
+    },
     apple: {
       clientId: environment.externalAuth.apple.clientId,
       redirectUri: environment.externalAuth.apple.redirectUri,
@@ -31,6 +37,11 @@ export class ExternalAuthConfigService {
   };
 
   get googleClientId(): string {
+    const modernClientId = this.config.google.clientId.trim();
+    if (modernClientId !== '') {
+      return modernClientId;
+    }
+
     return this.config.googleClientId.trim();
   }
 

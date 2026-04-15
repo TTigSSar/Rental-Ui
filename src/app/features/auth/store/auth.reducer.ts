@@ -47,14 +47,17 @@ export const authReducer = createReducer(
       error,
     }),
   ),
-  on(AuthActions.loadCurrentUserFailure, (state, { error }): AuthState => ({
-    ...state,
-    user: null,
-    token: null,
-    isAuthenticated: false,
-    isLoading: false,
-    error,
-  })),
+  on(
+    AuthActions.loadCurrentUserFailure,
+    (state, { error, preserveSession = false }): AuthState => ({
+      ...state,
+      user: null,
+      token: preserveSession ? state.token : null,
+      isAuthenticated: preserveSession ? state.isAuthenticated : false,
+      isLoading: false,
+      error,
+    }),
+  ),
   on(AuthActions.logout, (): AuthState => ({
     ...initialAuthState,
   })),

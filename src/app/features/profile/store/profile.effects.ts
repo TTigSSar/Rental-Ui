@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { catchError, map, of, switchMap, take, withLatestFrom } from 'rxjs';
+import { catchError, map, of, switchMap, withLatestFrom } from 'rxjs';
 
 import { toApiErrorMessage } from '../../../api/http-error-message.util';
 import { selectAuthUser } from '../../auth/store/auth.selectors';
@@ -35,7 +35,7 @@ export class ProfileEffects {
   readonly loadProfile$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ProfileActions.loadProfile),
-      withLatestFrom(this.store.select(selectAuthUser).pipe(take(1))),
+      withLatestFrom(this.store.select(selectAuthUser)),
       switchMap(([, authUser]) => {
         if (authUser !== null) {
           return of(

@@ -140,12 +140,22 @@ export class AuthEffects {
       mergeMap(([, stateToken]) => {
         const token = stateToken ?? this.tokenService.getToken();
         if (!token) {
-          return of(AuthActions.loadCurrentUserFailure({ error: 'No auth token found' }));
+          return of(
+            AuthActions.loadCurrentUserFailure({
+              error: 'No auth token found',
+              preserveSession: true,
+            }),
+          );
         }
         return this.authApi.getCurrentUser().pipe(
           map((user) => AuthActions.loadCurrentUserSuccess({ user })),
           catchError((error: unknown) =>
-            of(AuthActions.loadCurrentUserFailure({ error: toErrorMessage(error) })),
+            of(
+              AuthActions.loadCurrentUserFailure({
+                error: toErrorMessage(error),
+                preserveSession: false,
+              }),
+            ),
           ),
         );
       }),
@@ -178,8 +188,10 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(AuthActions.loadCurrentUserFailure),
-        tap(() => {
-          this.tokenService.removeToken();
+        tap(({ preserveSession }) => {
+          if (!preserveSession) {
+            this.tokenService.removeToken();
+          }
         }),
       ),
     { dispatch: false },

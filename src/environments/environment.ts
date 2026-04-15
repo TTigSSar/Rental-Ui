@@ -2,7 +2,10 @@ export const environment = {
   production: false,
   apiBaseUrl: 'https://localhost:7241',
   externalAuth: {
-    googleClientId: '',
+    googleClientId: '6707214612-40dcffqfdopo4h12l9bg69h9gqp7oupt.apps.googleusercontent.com',
+    google: {
+      clientId: '6707214612-40dcffqfdopo4h12l9bg69h9gqp7oupt.apps.googleusercontent.com',
+    },
     apple: {
       clientId: '',
       redirectUri: '',

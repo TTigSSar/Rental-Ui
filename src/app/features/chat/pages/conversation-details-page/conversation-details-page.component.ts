@@ -9,7 +9,7 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
-import { distinctUntilChanged, filter, map } from 'rxjs';
+import { combineLatest, distinctUntilChanged, filter, map } from 'rxjs';
 
 import type { ChatConversationDetails } from '../../models/chat.model';
 import * as ChatActions from '../../store/chat.actions';
@@ -22,6 +22,7 @@ import {
 } from '../../store/chat.selectors';
 
 interface ConversationDetailsPageViewModel {
+  readonly routeConversationId: string | null;
   readonly conversation: ChatConversationDetails | null;
   readonly loading: boolean;
   readonly error: string | null;
@@ -32,25 +33,19 @@ interface ConversationDetailsPageViewModel {
   readonly hasError: boolean;
 }
 
-const selectConversationDetailsPageViewModel = createSelector(
+const selectConversationDetailsRouteState = createSelector(
   selectActiveConversation,
   selectActiveConversationLoading,
   selectActiveConversationError,
-  selectSendingMessage,
-  selectSendingMessageError,
-  (conversation, loading, error, sendingMessage, sendingMessageError): ConversationDetailsPageViewModel => {
-    const hasError = error !== null;
-    return {
-      conversation,
-      loading,
-      error,
-      sendingMessage,
-      sendingMessageError,
-      showInitialSkeleton: loading && conversation === null,
-      showEmpty: !loading && conversation === null && !hasError,
-      hasError,
-    };
-  },
+  (conversation, loading, error): {
+    readonly conversation: ChatConversationDetails | null;
+    readonly loading: boolean;
+    readonly error: string | null;
+  } => ({
+    conversation,
+    loading,
+    error,
+  }),
 );
 
 @Component({
@@ -75,10 +70,44 @@ export class ConversationDetailsPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly store = inject(Store);
   private readonly fb = inject(FormBuilder);
-  protected conversationId: string | null = null;
+  private readonly routeConversationId$ = this.route.paramMap.pipe(
+    map((params) => params.get('conversationId')),
+    distinctUntilChanged(),
+  );
 
-  protected readonly viewModel$ = this.store.select(
-    selectConversationDetailsPageViewModel,
+  protected readonly viewModel$ = combineLatest({
+    routeState: this.store.select(selectConversationDetailsRouteState),
+    sendingMessage: this.store.select(selectSendingMessage),
+    sendingMessageError: this.store.select(selectSendingMessageError),
+    routeConversationId: this.routeConversationId$,
+  }).pipe(
+    map(
+      ({
+        routeState,
+        sendingMessage,
+        sendingMessageError,
+        routeConversationId,
+      }): ConversationDetailsPageViewModel => {
+        const conversation = routeState.conversation;
+        const isMatch =
+          conversation !== null &&
+          routeConversationId !== null &&
+          conversation.id === routeConversationId;
+        const hasError = routeState.error !== null;
+
+        return {
+          routeConversationId,
+          conversation: isMatch ? conversation : null,
+          loading: routeState.loading,
+          error: routeState.error,
+          sendingMessage,
+          sendingMessageError,
+          showInitialSkeleton: routeState.loading && !isMatch,
+          showEmpty: !routeState.loading && !isMatch && !hasError,
+          hasError,
+        };
+      },
+    ),
   );
 
   protected readonly messageForm = this.fb.nonNullable.group({
@@ -86,25 +115,23 @@ export class ConversationDetailsPageComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.route.paramMap
+    this.routeConversationId$
       .pipe(
-        map((params) => params.get('conversationId')),
         filter((conversationId): conversationId is string => conversationId !== null),
-        distinctUntilChanged(),
         takeUntilDestroyed(),
       )
       .subscribe((conversationId) => {
-        this.conversationId = conversationId;
         this.store.dispatch(ChatActions.loadConversationDetails({ conversationId }));
       });
   }
 
   protected retry(): void {
-    if (this.conversationId === null) {
+    const routeConversationId = this.route.snapshot.paramMap.get('conversationId');
+    if (routeConversationId === null) {
       return;
     }
     this.store.dispatch(
-      ChatActions.loadConversationDetails({ conversationId: this.conversationId }),
+      ChatActions.loadConversationDetails({ conversationId: routeConversationId }),
     );
   }
 

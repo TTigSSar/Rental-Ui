@@ -61,7 +61,7 @@ export const loadCurrentUserSuccess = createAction(
 
 export const loadCurrentUserFailure = createAction(
   '[Auth] Load Current User Failure',
-  props<{ error: string }>(),
+  props<{ error: string; preserveSession?: boolean }>(),
 );
 
 export const logout = createAction('[Auth] Logout');

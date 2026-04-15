@@ -93,21 +93,21 @@ export class ListingDetailsPageComponent {
     initialValue: null as string | null,
   });
 
-  protected readonly viewModel$ = combineLatest([
-    this.store.select(selectListingDetailsBase),
-    this.store.select(selectCreateBookingLoading),
-    this.store.select(selectCreateBookingError),
-    this.store.select(selectCreateBookingSuccessId),
-    this.routeId$,
-  ]).pipe(
+  protected readonly viewModel$ = combineLatest({
+    listingState: this.store.select(selectListingDetailsBase),
+    createBookingLoading: this.store.select(selectCreateBookingLoading),
+    createBookingError: this.store.select(selectCreateBookingError),
+    createBookingSuccessId: this.store.select(selectCreateBookingSuccessId),
+    routeId: this.routeId$,
+  }).pipe(
     map(
-      ([
-        state,
+      ({
+        listingState: state,
         createBookingLoading,
         createBookingError,
         createBookingSuccessId,
         routeId,
-      ]): ListingDetailsPageViewModel => {
+      }): ListingDetailsPageViewModel => {
         const invalidRoute = routeId === null || routeId === '';
         if (invalidRoute) {
           return {
