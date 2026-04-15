@@ -156,7 +156,7 @@ p {
 .p-inputnumber-input,
 textarea,
 select {
-  border-radius: var(--ui-radius-md);
+  border-radius: 40px;
   border: 1px solid var(--ui-color-border);
   background: #fff;
   color: var(--ui-color-text-primary);

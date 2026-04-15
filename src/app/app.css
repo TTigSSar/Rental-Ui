@@ -112,8 +112,8 @@
 }
 
 .app-shell__content {
-  min-height: calc(100dvh - 4.25rem);
-  padding-block: var(--ui-space-24) var(--ui-space-48);
+  /*min-height: calc(100dvh - 4.25rem);*/
+  /*padding-block: var(--ui-space-24) var(--ui-space-48);*/
   background: #f6f7fb;
 }
 

@@ -14,7 +14,7 @@
   grid-template-columns: 42% 58%;
   border-radius: 16px;
   overflow: hidden;
-  background: #f8f8fb;
+  background: #ff6a00;
   box-shadow: 0 20px 48px rgba(4, 8, 18, 0.35);
 }
 
@@ -66,10 +66,14 @@
   justify-content: center;
   padding: clamp(1.5rem, 3.5vw, 2.5rem);
   border-left: 1px solid #eceef6;
+  border-top-left-radius: 40px;
+  border-bottom-left-radius: 40px;
 }
 
 .register-page__card {
   width: min(100%, 500px);
+  border: unset;
+  padding: 24px;
 }
 
 :host ::ng-deep .register-page__card .p-card {
@@ -101,10 +105,23 @@
   margin-top: var(--ui-space-16);
 }
 
+.register-page__error-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-4);
+}
+
 .register-page__form {
   margin-top: var(--ui-space-20);
   display: flex;
   flex-direction: column;
+  gap: var(--ui-space-12);
+  padding: 16px 0;
+}
+
+.register-page__field-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--ui-space-12);
 }
 
@@ -112,15 +129,29 @@
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-8);
+  position: relative;
+}
+
+.register-page__label {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #5e6478;
 }
 
 .register-page__input {
   width: 100%;
 }
 
+.register-page__hint {
+  font-size: 0.75rem;
+  color: #8f94a9;
+}
+
 .register-page__validation {
   color: var(--ui-color-error);
-  font-size: var(--ui-font-size-caption);
+  font-size: 12px;
+  font-weight: 500;
+  position: absolute;
 }
 
 .register-page__continue-button {
@@ -128,6 +159,8 @@
 }
 
 :host ::ng-deep .register-page__continue-button.p-button {
+  width: 100%;
+  margin-top: 16px;
   border-radius: 999px;
   min-height: 3rem;
   background: #ff6a00;
@@ -139,7 +172,7 @@
 :host ::ng-deep .register-page__continue-button.p-button:hover:not(:disabled) {
   background: #e75f00;
   border-color: #e75f00;
-  box-shadow: 0 12px 24px rgba(255, 106, 0, 0.28);
+  box-shadow: 0 2px 24px rgba(255, 106, 0, 0.28);
   transform: translateY(-1px);
 }
 
@@ -165,6 +198,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-12);
+  padding: 16px 0;
 }
 
 .register-page__social {
@@ -280,11 +314,11 @@
 }
 
 .register-page__switch {
-  margin-top: var(--ui-space-20);
+  margin-top: 12px;
   text-align: center;
   font-size: 0.9rem;
   color: #8d92a6;
-  padding-top: var(--ui-space-8);
+  padding-top: 16px;
   border-top: 1px solid #eceef6;
 }
 
@@ -318,5 +352,9 @@
     width: 100%;
     max-width: none;
     height: 120px;
+  }
+
+  .register-page__field-row {
+    grid-template-columns: 1fr;
   }
 }

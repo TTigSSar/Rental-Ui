@@ -13,24 +13,28 @@
     <div class="login-page__right-panel">
       <p-card styleClass="login-page__card">
         <h1 class="login-page__title">Sign In</h1>
-        <p class="login-page__subtitle">Use your account credentials to continue.</p>
 
         @if (error$ | async; as error) {
-          <p-message severity="error" styleClass="login-page__message">
-            <span>{{ error }}</span>
+          <p-message severity="error" styleClass="login-page__message login-page__message--error">
+            <div class="login-page__error-content">
+              <strong>Couldn’t sign you in</strong>
+              <span>{{ error }}</span>
+            </div>
           </p-message>
         }
 
         <form class="login-page__form" [formGroup]="loginForm" (ngSubmit)="submit()">
           <div class="login-page__field">
+            <label class="login-page__label" for="login-email">Email</label>
             <input
               id="login-email"
               pInputText
               type="email"
               class="login-page__input ui-input"
               formControlName="email"
-              placeholder="Email"
+              placeholder="you@example.com"
               autocomplete="email"
+              [disabled]="(isLoading$ | async) ?? false"
             />
             @if (hasError('email', 'required')) {
               <small class="login-page__validation">{{ 'auth.validation.emailRequired' | translate }}</small>
@@ -41,6 +45,7 @@
           </div>
 
           <div class="login-page__field">
+            <label class="login-page__label" for="login-password">Password</label>
             <input
               id="login-password"
               pInputText
@@ -49,12 +54,13 @@
               formControlName="password"
               placeholder="Password"
               autocomplete="current-password"
+              [disabled]="(isLoading$ | async) ?? false"
             />
             @if (hasError('password', 'required')) {
               <small class="login-page__validation">{{ 'auth.validation.passwordRequired' | translate }}</small>
             }
             @if (hasError('password', 'minlength')) {
-              <small class="login-page__validation">{{ 'auth.validation.passwordMinLength' | translate }}</small>
+              <small class="login-page__validation">Password must be at least 8 characters.</small>
             }
           </div>
 
@@ -62,6 +68,7 @@
             type="submit"
             styleClass="login-page__continue-button"
             [loading]="(isLoading$ | async) ?? false"
+            [disabled]="(isLoading$ | async) ?? false"
             label="Continue"
           />
         </form>
@@ -85,7 +92,7 @@
             (click)="continueWithProvider('apple')"
           >
             <span class="pi pi-apple login-page__social-apple-icon" aria-hidden="true"></span>
-            Continue with Apple
+            Sign in with Apple
           </button>
         </div>
 

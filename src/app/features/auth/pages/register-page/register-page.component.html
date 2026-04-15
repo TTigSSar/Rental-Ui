@@ -13,24 +13,64 @@
     <div class="register-page__right-panel">
       <p-card styleClass="register-page__card">
         <h1 class="register-page__title">Create Account</h1>
-        <p class="register-page__subtitle">Create your account to start renting and listing.</p>
 
         @if (error$ | async; as error) {
-          <p-message severity="error" styleClass="register-page__message">
-            <span>{{ error }}</span>
+          <p-message severity="error" styleClass="register-page__message register-page__message--error">
+            <div class="register-page__error-content">
+              <strong>Couldn’t create your account</strong>
+              <span>{{ error }}</span>
+            </div>
           </p-message>
         }
 
         <form class="register-page__form" [formGroup]="registerForm" (ngSubmit)="submit()">
+          <div class="register-page__field-row">
+            <div class="register-page__field">
+              <label class="register-page__label" for="register-first-name">First name</label>
+              <input
+                id="register-first-name"
+                pInputText
+                type="text"
+                class="register-page__input ui-input"
+                formControlName="firstName"
+                placeholder="First name"
+                autocomplete="given-name"
+                [disabled]="(isLoading$ | async) ?? false"
+              />
+              @if (hasError('firstName', 'required')) {
+                <small class="register-page__validation">First name is required.</small>
+              }
+            </div>
+
+            <div class="register-page__field">
+              <label class="register-page__label" for="register-last-name">Last name</label>
+              <input
+                id="register-last-name"
+                pInputText
+                type="text"
+                class="register-page__input ui-input"
+                formControlName="lastName"
+                placeholder="Last name"
+                autocomplete="family-name"
+                [disabled]="(isLoading$ | async) ?? false"
+              />
+              @if (hasError('lastName', 'required')) {
+                <small class="register-page__validation">Last name is required.</small>
+              }
+            </div>
+          </div>
+
           <div class="register-page__field">
+            <label class="register-page__label" for="register-email">Email</label>
             <input
               id="register-email"
               pInputText
               type="email"
               class="register-page__input ui-input"
               formControlName="email"
-              placeholder="Email"
+              placeholder="you@example.com"
               autocomplete="email"
+              [disabled]="(isLoading$ | async) ?? false"
             />
             @if (hasError('email', 'required')) {
               <small class="register-page__validation">{{ 'auth.validation.emailRequired' | translate }}</small>
@@ -41,6 +81,7 @@
           </div>
 
           <div class="register-page__field">
+            <label class="register-page__label" for="register-password">Password</label>
             <input
               id="register-password"
               pInputText
@@ -49,12 +90,14 @@
               formControlName="password"
               placeholder="Password"
               autocomplete="new-password"
+              [disabled]="(isLoading$ | async) ?? false"
             />
+            <small class="register-page__hint">Use at least 8 characters for better security.</small>
             @if (hasError('password', 'required')) {
               <small class="register-page__validation">{{ 'auth.validation.passwordRequired' | translate }}</small>
             }
             @if (hasError('password', 'minlength')) {
-              <small class="register-page__validation">{{ 'auth.validation.passwordMinLength' | translate }}</small>
+              <small class="register-page__validation">Password must be at least 8 characters.</small>
             }
           </div>
 
@@ -62,6 +105,7 @@
             type="submit"
             styleClass="register-page__continue-button"
             [loading]="(isLoading$ | async) ?? false"
+            [disabled]="(isLoading$ | async) ?? false"
             label="Continue"
           />
         </form>
@@ -76,7 +120,7 @@
             (click)="continueWithProvider('google')"
           >
             <span class="register-page__social-icon">G</span>
-            Sign in with Google
+            Continue with Google
           </button>
           <button
             type="button"

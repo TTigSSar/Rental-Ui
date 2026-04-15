@@ -14,7 +14,7 @@
   grid-template-columns: 42% 58%;
   border-radius: 16px;
   overflow: hidden;
-  background: #f8f8fb;
+  background: #ff6a00;;
   box-shadow: 0 20px 48px rgba(4, 8, 18, 0.35);
 }
 
@@ -66,10 +66,14 @@
   justify-content: center;
   padding: clamp(1.5rem, 3.5vw, 2.5rem);
   border-left: 1px solid #eceef6;
+  border-top-left-radius: 40px;
+  border-bottom-left-radius: 40px;
 }
 
 .login-page__card {
   width: min(100%, 500px);
+  border: unset;
+  padding: 24px;
 }
 
 :host ::ng-deep .login-page__card .p-card {
@@ -101,11 +105,18 @@
   margin-top: var(--ui-space-16);
 }
 
+.login-page__error-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-4);
+}
+
 .login-page__form {
   margin-top: var(--ui-space-20);
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-12);
+  padding: 16px 0;
 }
 
 .login-page__field {
@@ -114,13 +125,20 @@
   gap: var(--ui-space-8);
 }
 
+.login-page__label {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #5e6478;
+}
+
 .login-page__input {
   width: 100%;
 }
 
 .login-page__validation {
   color: var(--ui-color-error);
-  font-size: var(--ui-font-size-caption);
+  font-size: 12px;
+  font-weight: 500px;
 }
 
 .login-page__continue-button {
@@ -128,6 +146,8 @@
 }
 
 :host ::ng-deep .login-page__continue-button.p-button {
+  width: 100%;
+  margin-top: 16px;
   border-radius: 999px;
   min-height: 3rem;
   background: #ff6a00;
@@ -139,7 +159,7 @@
 :host ::ng-deep .login-page__continue-button.p-button:hover:not(:disabled) {
   background: #e75f00;
   border-color: #e75f00;
-  box-shadow: 0 12px 24px rgba(255, 106, 0, 0.28);
+  box-shadow: 0 2px 24px rgba(255, 106, 0, 0.28);
   transform: translateY(-1px);
 }
 
@@ -165,6 +185,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-12);
+  padding: 16px 0;
 }
 
 .login-page__social {
@@ -229,11 +250,11 @@
 }
 
 .login-page__switch {
-  margin-top: var(--ui-space-20);
+  margin-top: 12px;
   text-align: center;
   font-size: 0.9rem;
   color: #8d92a6;
-  padding-top: var(--ui-space-8);
+  padding-top: 16px;
   border-top: 1px solid #eceef6;
 }
 

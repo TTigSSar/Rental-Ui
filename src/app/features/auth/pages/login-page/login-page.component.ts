@@ -33,16 +33,21 @@ import { selectAuthError, selectAuthLoading } from '../../store/auth.selectors';
 export class LoginPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly store = inject(Store);
+  private readonly isLoading = this.store.selectSignal(selectAuthLoading);
 
   protected readonly isLoading$ = this.store.select(selectAuthLoading);
   protected readonly error$ = this.store.select(selectAuthError);
 
   protected readonly loginForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
   });
 
   protected submit(): void {
+    if (this.isLoading()) {
+      return;
+    }
+
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       return;
@@ -53,6 +58,10 @@ export class LoginPageComponent {
   }
 
   protected continueWithProvider(provider: ExternalAuthProvider): void {
+    if (this.isLoading()) {
+      return;
+    }
+
     this.store.dispatch(AuthActions.externalAuth({ provider, idToken: '' }));
   }
 

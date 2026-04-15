@@ -33,18 +33,23 @@ import { selectAuthError, selectAuthLoading } from '../../store/auth.selectors';
 export class RegisterPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly store = inject(Store);
+  private readonly isLoading = this.store.selectSignal(selectAuthLoading);
 
   protected readonly isLoading$ = this.store.select(selectAuthLoading);
   protected readonly error$ = this.store.select(selectAuthError);
 
   protected readonly registerForm = this.fb.nonNullable.group({
-    firstName: ['Guest', [Validators.required]],
-    lastName: ['User', [Validators.required]],
+    firstName: ['', [Validators.required]],
+    lastName: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
   });
 
   protected submit(): void {
+    if (this.isLoading()) {
+      return;
+    }
+
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
       return;
@@ -55,6 +60,10 @@ export class RegisterPageComponent {
   }
 
   protected continueWithProvider(provider: ExternalAuthProvider): void {
+    if (this.isLoading()) {
+      return;
+    }
+
     this.store.dispatch(AuthActions.externalAuth({ provider, idToken: '' }));
   }
 
