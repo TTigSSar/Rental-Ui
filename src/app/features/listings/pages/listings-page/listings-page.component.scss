@@ -8,7 +8,7 @@
 .listings-page__header {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-16);
+  gap: var(--ui-space-20);
 }
 
 .listings-page__title-wrap {
@@ -27,7 +27,7 @@
 
 .listings-page__subtitle {
   color: var(--ui-color-text-secondary);
-  font-size: 0.95rem;
+  font-size: 0.98rem;
 }
 
 .listings-page__error {
@@ -52,7 +52,7 @@
 }
 
 .listings-page__append-loading {
-  margin-top: var(--ui-space-8);
+  margin-top: var(--ui-space-12);
 }
 
 .listings-page__sentinel {

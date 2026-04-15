@@ -13,6 +13,7 @@
     <div class="login-page__right-panel">
       <p-card styleClass="login-page__card">
         <h1 class="login-page__title">Sign In</h1>
+        <p class="login-page__subtitle">Use your account credentials to continue.</p>
 
         @if (error$ | async; as error) {
           <p-message severity="error" styleClass="login-page__message">
@@ -86,28 +87,6 @@
             <span class="pi pi-apple login-page__social-apple-icon" aria-hidden="true"></span>
             Continue with Apple
           </button>
-        </div>
-
-        <div class="login-page__steps" aria-label="Sign in progress">
-          <div class="login-page__step login-page__step--active">
-            <span class="login-page__step-circle">1</span>
-            <span class="login-page__step-label">Account</span>
-          </div>
-          <div class="login-page__step-line"></div>
-          <div class="login-page__step">
-            <span class="login-page__step-circle">2</span>
-            <span class="login-page__step-label">Details</span>
-          </div>
-          <div class="login-page__step-line"></div>
-          <div class="login-page__step">
-            <span class="login-page__step-circle">3</span>
-            <span class="login-page__step-label">Verification</span>
-          </div>
-          <div class="login-page__step-line"></div>
-          <div class="login-page__step">
-            <span class="login-page__step-circle">4</span>
-            <span class="login-page__step-label">Success</span>
-          </div>
         </div>
 
         <p class="login-page__switch">

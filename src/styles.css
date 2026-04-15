@@ -8,7 +8,7 @@
   --ui-color-surface: #ffffff;
   --ui-color-text-primary: #181a24;
   --ui-color-text-secondary: #6a6f86;
-  --ui-color-border: #e2e5ef;
+  --ui-color-border: #e6e8f1;
   --ui-color-error: #d43f5e;
 
   --ui-space-4: 4px;
@@ -21,8 +21,8 @@
   --ui-space-64: 64px;
 
   --ui-radius-sm: 6px;
-  --ui-radius-md: 12px;
-  --ui-radius-lg: 18px;
+  --ui-radius-md: 14px;
+  --ui-radius-lg: 20px;
 
   --ui-shadow-card: 0 10px 24px rgba(16, 18, 30, 0.07);
   --ui-shadow-card-hover: 0 16px 34px rgba(16, 18, 30, 0.13);
@@ -70,9 +70,9 @@ p {
 }
 
 .page-container {
-  width: min(1180px, 100%);
+  width: min(1200px, 100%);
   margin: 0 auto;
-  padding-inline: var(--ui-space-16);
+  padding-inline: var(--ui-space-24);
 }
 
 .section-stack {
@@ -83,8 +83,8 @@ p {
 
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: var(--ui-space-24);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--ui-space-20);
 }
 
 .ui-card-surface {
@@ -108,7 +108,7 @@ p {
 .ui-textarea:focus-visible,
 .ui-select:focus-visible {
   border-color: var(--ui-color-primary);
-  box-shadow: 0 0 0 3px rgba(91, 91, 214, 0.16);
+  box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.16);
   outline: none;
 }
 
@@ -178,5 +178,11 @@ select:focus {
 }
 
 .p-card .p-card-body {
-  padding: var(--ui-space-16);
+  padding: var(--ui-space-20);
+}
+
+@media (max-width: 900px) {
+  .page-container {
+    padding-inline: var(--ui-space-16);
+  }
 }

@@ -65,10 +65,11 @@
   align-items: center;
   justify-content: center;
   padding: clamp(1.5rem, 3.5vw, 2.5rem);
+  border-left: 1px solid #eceef6;
 }
 
 .register-page__card {
-  width: min(100%, 480px);
+  width: min(100%, 500px);
 }
 
 :host ::ng-deep .register-page__card .p-card {
@@ -90,6 +91,12 @@
   letter-spacing: -0.02em;
 }
 
+.register-page__subtitle {
+  margin: var(--ui-space-8) 0 0;
+  color: #8d92a6;
+  font-size: 0.95rem;
+}
+
 .register-page__message {
   margin-top: var(--ui-space-16);
 }
@@ -98,7 +105,7 @@
   margin-top: var(--ui-space-20);
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-16);
+  gap: var(--ui-space-12);
 }
 
 .register-page__field {
@@ -270,6 +277,25 @@
 .register-page__step-line {
   height: 1px;
   background: #d7dceb;
+}
+
+.register-page__switch {
+  margin-top: var(--ui-space-20);
+  text-align: center;
+  font-size: 0.9rem;
+  color: #8d92a6;
+  padding-top: var(--ui-space-8);
+  border-top: 1px solid #eceef6;
+}
+
+.register-page__switch a {
+  color: #ff6a00;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.register-page__switch a:hover {
+  text-decoration: underline;
 }
 
 @media (max-width: 920px) {

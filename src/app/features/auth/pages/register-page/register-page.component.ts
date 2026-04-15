@@ -1,6 +1,7 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
@@ -22,6 +23,7 @@ import { selectAuthError, selectAuthLoading } from '../../store/auth.selectors';
     InputTextModule,
     MessageModule,
     ReactiveFormsModule,
+    RouterLink,
     TranslatePipe,
   ],
   templateUrl: './register-page.component.html',

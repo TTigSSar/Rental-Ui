@@ -1,10 +1,8 @@
 .my-listings-page {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1.5rem 1rem 3rem;
+  gap: var(--ui-space-24);
+  padding-bottom: var(--ui-space-32);
 }
 
 .my-listings-page__header {
@@ -15,13 +13,14 @@
 
 .my-listings-page__title {
   margin: 0;
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-size: var(--ui-font-size-h1);
+  font-weight: 700;
   line-height: 1.2;
 }
 
 .my-listings-page__subtitle {
   margin: 0;
-  color: var(--p-text-muted-color, #71717a);
+  color: var(--ui-color-text-secondary);
 }
 
 .my-listings-page__error {
@@ -44,16 +43,17 @@
 .my-listings-page__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
-  gap: 1rem;
+  gap: var(--ui-space-16);
 }
 
 .my-listings-page__skeleton-card {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
-  border: 1px solid var(--p-content-border-color, #e4e4e7);
-  border-radius: var(--p-border-radius-md, 8px);
-  padding: 1rem;
+  gap: var(--ui-space-8);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  padding: var(--ui-space-16);
+  background: #fff;
 }
 
 .my-listings-page__skeleton-actions {
@@ -67,15 +67,16 @@
   flex-direction: column;
   align-items: center;
   gap: 0.6rem;
-  border: 1px dashed var(--p-content-border-color, #e4e4e7);
-  border-radius: var(--p-border-radius-md, 8px);
+  border: 1px dashed var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
   padding: 2.5rem 1.5rem;
   text-align: center;
+  background: #fff;
 }
 
 .my-listings-page__empty-icon {
   font-size: 1.4rem;
-  color: var(--p-text-muted-color, #71717a);
+  color: var(--ui-color-text-secondary);
 }
 
 .my-listings-page__empty-title {
@@ -85,5 +86,5 @@
 
 .my-listings-page__empty-text {
   margin: 0;
-  color: var(--p-text-muted-color, #71717a);
+  color: var(--ui-color-text-secondary);
 }

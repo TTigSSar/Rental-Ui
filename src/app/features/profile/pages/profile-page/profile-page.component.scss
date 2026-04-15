@@ -1,10 +1,9 @@
 .profile-page {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: var(--ui-space-24);
   max-width: 960px;
-  margin: 0 auto;
-  padding: 1.5rem 1rem 3rem;
+  padding-bottom: var(--ui-space-32);
 }
 
 .profile-page__header {
@@ -15,13 +14,14 @@
 
 .profile-page__title {
   margin: 0;
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-size: var(--ui-font-size-h1);
+  font-weight: 700;
   line-height: 1.2;
 }
 
 .profile-page__subtitle {
   margin: 0;
-  color: var(--p-text-muted-color, #71717a);
+  color: var(--ui-color-text-secondary);
 }
 
 .profile-page__message,
@@ -32,40 +32,41 @@
 .profile-page__loading {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--ui-space-12);
 }
 
 .profile-page__empty {
   margin: 0;
-  color: var(--p-text-muted-color, #71717a);
+  color: var(--ui-color-text-secondary);
 }
 
 .profile-page__content {
   display: grid;
-  gap: 1rem;
+  gap: var(--ui-space-16);
 }
 
 .profile-page__section-title {
-  margin: 0 0 1rem;
-  font-size: 1.1rem;
+  margin: 0 0 var(--ui-space-12);
+  font-size: var(--ui-font-size-h3);
+  font-weight: 700;
 }
 
 .profile-page__details {
   margin: 0;
   display: grid;
-  gap: 0.75rem;
+  gap: var(--ui-space-12);
 }
 
 .profile-page__detail-row {
   display: grid;
   grid-template-columns: minmax(10rem, 14rem) 1fr;
-  gap: 0.75rem;
+  gap: var(--ui-space-12);
   align-items: baseline;
 }
 
 .profile-page__detail-row dt {
   font-weight: 600;
-  color: var(--p-text-muted-color, #71717a);
+  color: var(--ui-color-text-secondary);
 }
 
 .profile-page__detail-row dd {
@@ -76,21 +77,22 @@
 .profile-page__summary {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-  gap: 0.75rem;
+  gap: var(--ui-space-12);
 }
 
 .profile-page__summary-item {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.75rem;
-  border: 1px solid var(--p-content-border-color, #e4e4e7);
-  border-radius: var(--p-border-radius-md, 8px);
+  gap: var(--ui-space-4);
+  padding: var(--ui-space-12);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: #fff;
 }
 
 .profile-page__summary-label {
   font-size: 0.8rem;
-  color: var(--p-text-muted-color, #71717a);
+  color: var(--ui-color-text-secondary);
 }
 
 @media (max-width: 640px) {

@@ -25,14 +25,14 @@
 .listing-card__body {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-4);
+  gap: var(--ui-space-8);
 }
 
 .listing-card__title {
   font-size: var(--ui-font-size-h3);
   line-height: 1.25;
   letter-spacing: -0.01em;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .listing-card__city {
@@ -41,9 +41,9 @@
 }
 
 .listing-card__price {
-  margin-top: var(--ui-space-4);
+  margin-top: var(--ui-space-8);
   font-weight: 700;
-  color: #333a52;
+  color: #20263b;
 }
 
 .listing-card__footer {
@@ -69,7 +69,7 @@
 }
 
 :host ::ng-deep .listing-card.p-card .p-card-body {
-  padding: var(--ui-space-16);
+  padding: var(--ui-space-20);
 }
 
 :host ::ng-deep .listing-card.p-card:hover .listing-card__image {

@@ -2,7 +2,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-24);
-  max-width: 960px;
+  max-width: 980px;
+  padding-bottom: var(--ui-space-32);
 }
 
 .create-listing-page__header {
@@ -15,6 +16,7 @@
   font-size: var(--ui-font-size-h1);
   font-weight: 700;
   line-height: 1.15;
+  color: var(--ui-color-text-primary);
 }
 
 .create-listing-page__message {

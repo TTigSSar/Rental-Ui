@@ -2,15 +2,11 @@
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-16);
-  padding: var(--ui-space-16);
+  padding: var(--ui-space-20);
   border: 1px solid var(--ui-color-border);
   border-radius: var(--ui-radius-md);
-  background: color-mix(
-    in srgb,
-    var(--ui-color-surface) 92%,
-    #f0f3ff
-  );
-  box-shadow: none;
+  background: #fff;
+  box-shadow: var(--ui-shadow-card);
 }
 
 .listings-filters__top-row {
@@ -33,8 +29,8 @@
 
 .listings-filters__row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--ui-space-16);
 }
 
 .listings-filters__field {

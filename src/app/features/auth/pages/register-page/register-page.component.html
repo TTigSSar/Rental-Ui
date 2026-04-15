@@ -13,6 +13,7 @@
     <div class="register-page__right-panel">
       <p-card styleClass="register-page__card">
         <h1 class="register-page__title">Create Account</h1>
+        <p class="register-page__subtitle">Create your account to start renting and listing.</p>
 
         @if (error$ | async; as error) {
           <p-message severity="error" styleClass="register-page__message">
@@ -109,6 +110,11 @@
             <span class="register-page__step-label">Success</span>
           </div>
         </div>
+
+        <p class="register-page__switch">
+          Already have an account?
+          <a routerLink="/auth/login">Sign in</a>
+        </p>
       </p-card>
     </div>
   </section>
