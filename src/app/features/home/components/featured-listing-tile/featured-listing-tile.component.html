@@ -1,0 +1,43 @@
+<a
+  class="featured-tile"
+  [routerLink]="['/listings', listing().id]"
+  [attr.aria-label]="listing().title"
+>
+  <app-ui-image-container class="featured-tile__media" aspectRatio="16 / 11">
+    @if (listing().mainImageUrl) {
+      <img
+        class="featured-tile__image"
+        [src]="listing().mainImageUrl"
+        [alt]="listing().title"
+        loading="lazy"
+        width="320"
+        height="220"
+      />
+    } @else {
+      <span
+        class="featured-tile__placeholder"
+        role="img"
+        [attr.aria-label]="listing().title"
+      >
+        {{ 'listings.card.noImage' | translate }}
+      </span>
+    }
+  </app-ui-image-container>
+
+  <div class="featured-tile__body">
+    <p class="featured-tile__city">
+      <i class="pi pi-map-marker" aria-hidden="true"></i>
+      {{ listing().city }}
+    </p>
+    <h3 class="featured-tile__title">{{ listing().title }}</h3>
+    <p class="featured-tile__price">
+      {{
+        'listings.card.pricePerDay'
+          | translate
+            : {
+                amount: (listing().pricePerDay | currency),
+              }
+      }}
+    </p>
+  </div>
+</a>

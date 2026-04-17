@@ -5,6 +5,7 @@
       "primaryNavAria": "Primary navigation",
       "secondaryNavAria": "Account navigation",
       "nav": {
+        "home": "Home",
         "listings": "Listings",
         "favorites": "Favorites",
         "myListings": "My listings",
@@ -17,6 +18,60 @@
         "register": "Register",
         "logout": "Logout"
       }
+    }
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Rental marketplace",
+      "title": "Find a place you'll love to stay.",
+      "subtitle": "Browse verified listings from trusted hosts, compare prices clearly, and book with confidence — all in one place.",
+      "stats": {
+        "listings": { "value": "1,200+", "label": "Active listings" },
+        "cities": { "value": "40+", "label": "Cities covered" },
+        "hosts": { "value": "98%", "label": "Host response rate" }
+      }
+    },
+    "search": {
+      "ariaLabel": "Search listings by city",
+      "cityLabel": "City",
+      "placeholder": "Where are you going?",
+      "submit": "Search"
+    },
+    "categories": {
+      "title": "Browse by category",
+      "subtitle": "Pick a space that matches the way you want to stay."
+    },
+    "featured": {
+      "title": "Featured listings",
+      "subtitle": "A fresh selection of places from our latest hosts.",
+      "seeAll": "See all listings",
+      "emptyTitle": "No listings yet",
+      "empty": "Listings from new hosts will appear here shortly.",
+      "errorTitle": "We couldn't load featured listings"
+    },
+    "value": {
+      "title": "Why stay with us",
+      "subtitle": "A marketplace built around safe stays and honest pricing.",
+      "items": {
+        "verified": {
+          "title": "Verified listings",
+          "text": "Each place passes a moderation review before it's published."
+        },
+        "secure": {
+          "title": "Secure bookings",
+          "text": "Transparent pricing and protected payment flows for every stay."
+        },
+        "chat": {
+          "title": "Built-in chat",
+          "text": "Ask hosts anything and get fast, clear answers before you book."
+        }
+      }
+    },
+    "host": {
+      "eyebrow": "Become a host",
+      "title": "Have a place to rent? List it in minutes.",
+      "subtitle": "Reach travelers looking for exactly what you offer, with a simple listing flow and built-in tools.",
+      "cta": "List your place"
     }
   },
   "auth": {

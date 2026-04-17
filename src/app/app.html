@@ -2,7 +2,7 @@
   @if (vm$ | async; as vm) {
     <header class="app-shell__header-wrap">
       <div class="app-shell__header page-container">
-        <a routerLink="/listings" class="app-shell__brand">
+        <a routerLink="/" class="app-shell__brand">
           {{ 'app.shell.brand' | translate }}
         </a>
 
@@ -12,7 +12,7 @@
               class="app-shell__nav-link"
               [routerLink]="item.path"
               routerLinkActive="app-shell__nav-link--active"
-              [routerLinkActiveOptions]="{ exact: false }"
+              [routerLinkActiveOptions]="{ exact: item.exactMatch }"
             >
               {{ item.labelKey | translate }}
             </a>
@@ -27,7 +27,7 @@
                   class="app-shell__nav-link"
                   [routerLink]="item.path"
                   routerLinkActive="app-shell__nav-link--active"
-                  [routerLinkActiveOptions]="{ exact: false }"
+                  [routerLinkActiveOptions]="{ exact: item.exactMatch }"
                 >
                   {{ item.labelKey | translate }}
                 </a>

@@ -1,7 +1,12 @@
 import type { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'listings' },
+  {
+    path: '',
+    pathMatch: 'full',
+    loadChildren: () =>
+      import('./features/home').then((m) => m.homeRoutes),
+  },
   {
     path: 'auth',
     loadChildren: () =>

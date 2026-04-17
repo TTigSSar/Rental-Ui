@@ -16,6 +16,7 @@ import { AvatarComponent } from './shared/ui/avatar/avatar.component';
 interface NavItem {
   readonly path: string;
   readonly labelKey: string;
+  readonly exactMatch: boolean;
 }
 
 interface AppShellViewModel {
@@ -44,12 +45,16 @@ export class App {
   private readonly store = inject(Store);
 
   private readonly guestSecondaryNav: readonly NavItem[] = [
-    { path: '/auth/login', labelKey: 'app.shell.nav.login' },
-    { path: '/auth/register', labelKey: 'app.shell.nav.register' },
+    { path: '/auth/login', labelKey: 'app.shell.nav.login', exactMatch: false },
+    {
+      path: '/auth/register',
+      labelKey: 'app.shell.nav.register',
+      exactMatch: false,
+    },
   ];
 
   private readonly authSecondaryNavBase: readonly NavItem[] = [
-    { path: '/profile', labelKey: 'app.shell.nav.profile' },
+    { path: '/profile', labelKey: 'app.shell.nav.profile', exactMatch: false },
   ];
 
   protected readonly vm$ = combineLatest({
@@ -61,18 +66,36 @@ export class App {
       const isAdmin = user?.roles.includes('Admin') ?? false;
 
       const primaryNav: NavItem[] = [
-        { path: '/listings', labelKey: 'app.shell.nav.listings' },
+        { path: '/', labelKey: 'app.shell.nav.home', exactMatch: true },
+        {
+          path: '/listings',
+          labelKey: 'app.shell.nav.listings',
+          exactMatch: false,
+        },
       ];
 
       if (isAuthenticated) {
         primaryNav.push(
-          { path: '/favorites', labelKey: 'app.shell.nav.favorites' },
-          { path: '/chat', labelKey: 'app.shell.nav.chat' },
-          { path: '/bookings', labelKey: 'app.shell.nav.bookings' },
-          { path: '/my-listings', labelKey: 'app.shell.nav.myListings' },
+          {
+            path: '/favorites',
+            labelKey: 'app.shell.nav.favorites',
+            exactMatch: false,
+          },
+          { path: '/chat', labelKey: 'app.shell.nav.chat', exactMatch: false },
+          {
+            path: '/bookings',
+            labelKey: 'app.shell.nav.bookings',
+            exactMatch: true,
+          },
+          {
+            path: '/my-listings',
+            labelKey: 'app.shell.nav.myListings',
+            exactMatch: false,
+          },
           {
             path: '/bookings/requests',
             labelKey: 'app.shell.nav.bookingRequests',
+            exactMatch: false,
           },
         );
       }
@@ -81,6 +104,7 @@ export class App {
         primaryNav.push({
           path: '/admin/listings/pending',
           labelKey: 'app.shell.nav.pendingModeration',
+          exactMatch: false,
         });
       }
 
