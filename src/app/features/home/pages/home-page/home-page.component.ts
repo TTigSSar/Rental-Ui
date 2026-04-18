@@ -1,5 +1,11 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  signal,
+  inject,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
@@ -19,61 +25,193 @@ import {
   selectListingsError,
   selectListingsLoading,
 } from '../../../listings/store/listings.selectors';
+import {
+  CategoryTileComponent,
+  type HomeCategoryTileVm,
+} from '../../components/category-tile/category-tile.component';
 import { FeaturedListingTileComponent } from '../../components/featured-listing-tile/featured-listing-tile.component';
 
-interface StaticCategoryFallback {
-  readonly slug: string;
-  readonly labelKey: string;
+type ProcessMode = 'renting' | 'lending';
+
+interface CategoryVisual {
   readonly icon: string;
+  readonly tintA: string;
+  readonly tintB: string;
 }
 
-const FEATURED_LIMIT = 8;
+interface HomeFaqEntry {
+  readonly id: string;
+  readonly questionKey: string;
+  readonly answerKey: string;
+}
 
-const STATIC_CATEGORIES: readonly StaticCategoryFallback[] = [
-  {
-    slug: 'apartment',
-    labelKey: 'listings.filters.categories.apartment',
-    icon: 'pi pi-building',
-  },
-  {
-    slug: 'house',
-    labelKey: 'listings.filters.categories.house',
-    icon: 'pi pi-home',
-  },
-  {
-    slug: 'villa',
-    labelKey: 'listings.filters.categories.villa',
-    icon: 'pi pi-star',
-  },
-  {
-    slug: 'studio',
-    labelKey: 'listings.filters.categories.studio',
-    icon: 'pi pi-box',
-  },
-  {
-    slug: 'cabin',
-    labelKey: 'listings.filters.categories.cabin',
-    icon: 'pi pi-compass',
-  },
-];
-
-interface HomeCategoryVm {
-  readonly id: string | null;
-  readonly displayLabel: string;
-  readonly labelTranslateKey: string | null;
+interface HomeProcessStep {
+  readonly id: string;
   readonly icon: string;
-  readonly isStatic: boolean;
+  readonly titleKeyRenting: string;
+  readonly descKeyRenting: string;
+  readonly titleKeyLending: string;
+  readonly descKeyLending: string;
 }
 
 interface HomePageViewModel {
   readonly featured: ListingPreview[];
-  readonly featuredError: string | null;
   readonly showFeaturedSkeleton: boolean;
+  readonly featuredError: string | null;
   readonly showFeaturedEmpty: boolean;
-  readonly categories: HomeCategoryVm[];
+  readonly categories: HomeCategoryTileVm[];
+  readonly showCategoriesSkeleton: boolean;
+  readonly showCategoriesEmpty: boolean;
+  readonly isAuthenticated: boolean;
+}
+
+const FEATURED_LIMIT = 12;
+
+const DEFAULT_VISUAL: CategoryVisual = {
+  icon: 'pi pi-tag',
+  tintA: '#2a2c41',
+  tintB: '#7b7a7a',
+};
+
+/**
+ * Slug -> PrimeIcon + gradient tint mapping used when the API returns
+ * categories without image URLs. Mirrors the category names visible in the
+ * Figma "All Categories" carousel so the tiles feel cohesive even without
+ * real imagery.
+ */
+const CATEGORY_VISUALS: Readonly<Record<string, CategoryVisual>> = {
+  construction: {
+    icon: 'pi pi-wrench',
+    tintA: '#ff6008',
+    tintB: '#fd8b47',
+  },
+  'construction-equipment-tools': {
+    icon: 'pi pi-wrench',
+    tintA: '#ff6008',
+    tintB: '#fd8b47',
+  },
+  tools: { icon: 'pi pi-wrench', tintA: '#ff6008', tintB: '#fd8b47' },
+  electronics: { icon: 'pi pi-bolt', tintA: '#2a2c41', tintB: '#4a4d6f' },
+  film: { icon: 'pi pi-camera', tintA: '#8b5cf6', tintB: '#6366f1' },
+  'film-photography': {
+    icon: 'pi pi-camera',
+    tintA: '#8b5cf6',
+    tintB: '#6366f1',
+  },
+  photography: { icon: 'pi pi-camera', tintA: '#8b5cf6', tintB: '#6366f1' },
+  garden: { icon: 'pi pi-sun', tintA: '#15803d', tintB: '#65a30d' },
+  home: { icon: 'pi pi-home', tintA: '#0e7490', tintB: '#0284c7' },
+  party: { icon: 'pi pi-gift', tintA: '#db2777', tintB: '#ec4899' },
+  sports: { icon: 'pi pi-star', tintA: '#b91c1c', tintB: '#ef4444' },
+  'sports-hobbies': {
+    icon: 'pi pi-star',
+    tintA: '#b91c1c',
+    tintB: '#ef4444',
+  },
+  hobbies: { icon: 'pi pi-star', tintA: '#b91c1c', tintB: '#ef4444' },
+  vehicle: { icon: 'pi pi-car', tintA: '#1f2937', tintB: '#374151' },
+  vehicles: { icon: 'pi pi-car', tintA: '#1f2937', tintB: '#374151' },
+  premises: { icon: 'pi pi-building', tintA: '#0f766e', tintB: '#14b8a6' },
+  permises: { icon: 'pi pi-building', tintA: '#0f766e', tintB: '#14b8a6' },
+  other: { icon: 'pi pi-tag', tintA: '#475569', tintB: '#64748b' },
+  apartment: { icon: 'pi pi-building', tintA: '#0f766e', tintB: '#14b8a6' },
+  house: { icon: 'pi pi-home', tintA: '#0e7490', tintB: '#0284c7' },
+  villa: { icon: 'pi pi-star', tintA: '#b45309', tintB: '#f59e0b' },
+  studio: { icon: 'pi pi-box', tintA: '#4c1d95', tintB: '#7c3aed' },
+  cabin: { icon: 'pi pi-compass', tintA: '#78350f', tintB: '#b45309' },
+};
+
+const PROCESS_STEPS: readonly HomeProcessStep[] = [
+  {
+    id: 'step1',
+    icon: 'pi pi-user',
+    titleKeyRenting: 'home.process.renting.step1.title',
+    descKeyRenting: 'home.process.renting.step1.text',
+    titleKeyLending: 'home.process.lending.step1.title',
+    descKeyLending: 'home.process.lending.step1.text',
+  },
+  {
+    id: 'step2',
+    icon: 'pi pi-search',
+    titleKeyRenting: 'home.process.renting.step2.title',
+    descKeyRenting: 'home.process.renting.step2.text',
+    titleKeyLending: 'home.process.lending.step2.title',
+    descKeyLending: 'home.process.lending.step2.text',
+  },
+  {
+    id: 'step3',
+    icon: 'pi pi-calendar',
+    titleKeyRenting: 'home.process.renting.step3.title',
+    descKeyRenting: 'home.process.renting.step3.text',
+    titleKeyLending: 'home.process.lending.step3.title',
+    descKeyLending: 'home.process.lending.step3.text',
+  },
+  {
+    id: 'step4',
+    icon: 'pi pi-send',
+    titleKeyRenting: 'home.process.renting.step4.title',
+    descKeyRenting: 'home.process.renting.step4.text',
+    titleKeyLending: 'home.process.lending.step4.title',
+    descKeyLending: 'home.process.lending.step4.text',
+  },
+  {
+    id: 'step5',
+    icon: 'pi pi-check-circle',
+    titleKeyRenting: 'home.process.renting.step5.title',
+    descKeyRenting: 'home.process.renting.step5.text',
+    titleKeyLending: 'home.process.lending.step5.title',
+    descKeyLending: 'home.process.lending.step5.text',
+  },
+  {
+    id: 'step6',
+    icon: 'pi pi-star',
+    titleKeyRenting: 'home.process.renting.step6.title',
+    descKeyRenting: 'home.process.renting.step6.text',
+    titleKeyLending: 'home.process.lending.step6.title',
+    descKeyLending: 'home.process.lending.step6.text',
+  },
+];
+
+const FAQ_ENTRIES: readonly HomeFaqEntry[] = [
+  {
+    id: 'q1',
+    questionKey: 'home.faq.items.q1.question',
+    answerKey: 'home.faq.items.q1.answer',
+  },
+  {
+    id: 'q2',
+    questionKey: 'home.faq.items.q2.question',
+    answerKey: 'home.faq.items.q2.answer',
+  },
+  {
+    id: 'q3',
+    questionKey: 'home.faq.items.q3.question',
+    answerKey: 'home.faq.items.q3.answer',
+  },
+  {
+    id: 'q4',
+    questionKey: 'home.faq.items.q4.question',
+    answerKey: 'home.faq.items.q4.answer',
+  },
+  {
+    id: 'q5',
+    questionKey: 'home.faq.items.q5.question',
+    answerKey: 'home.faq.items.q5.answer',
+  },
+  {
+    id: 'q6',
+    questionKey: 'home.faq.items.q6.question',
+    answerKey: 'home.faq.items.q6.answer',
+  },
+];
+
+interface HomeSource {
+  readonly items: ListingPreview[];
+  readonly listingsLoading: boolean;
+  readonly listingsError: string | null;
+  readonly categories: ListingCategoryOption[];
   readonly categoriesLoading: boolean;
   readonly isAuthenticated: boolean;
-  readonly primaryCtaPath: string;
 }
 
 const selectHomeSource = createSelector(
@@ -90,14 +228,7 @@ const selectHomeSource = createSelector(
     categories,
     categoriesLoading,
     isAuthenticated,
-  ): {
-    items: ListingPreview[];
-    listingsLoading: boolean;
-    listingsError: string | null;
-    categories: ListingCategoryOption[];
-    categoriesLoading: boolean;
-    isAuthenticated: boolean;
-  } => ({
+  ): HomeSource => ({
     items,
     listingsLoading,
     listingsError,
@@ -118,6 +249,7 @@ const selectHomeSource = createSelector(
     EmptyStateComponent,
     LoadingSkeletonComponent,
     FeaturedListingTileComponent,
+    CategoryTileComponent,
   ],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.scss',
@@ -128,57 +260,53 @@ export class HomePageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
 
+  protected readonly processSteps = PROCESS_STEPS;
+  protected readonly faqEntries = FAQ_ENTRIES;
+
+  protected readonly processMode = signal<ProcessMode>('renting');
+  protected readonly expandedFaq = signal<string | null>('q1');
+
   protected readonly searchForm = this.fb.nonNullable.group({
-    city: this.fb.nonNullable.control(''),
+    query: this.fb.nonNullable.control(''),
   });
 
   protected readonly viewModel$: Observable<HomePageViewModel> = this.store
     .select(selectHomeSource)
     .pipe(
-      map(
-        ({
-          items,
-          listingsLoading,
-          listingsError,
-          categories,
-          categoriesLoading,
-          isAuthenticated,
-        }): HomePageViewModel => {
-          const featured = items.slice(0, FEATURED_LIMIT);
-          const mappedCategories: HomeCategoryVm[] =
-            categories.length === 0
-              ? STATIC_CATEGORIES.map(
-                  (c): HomeCategoryVm => ({
-                    id: null,
-                    displayLabel: '',
-                    labelTranslateKey: c.labelKey,
-                    icon: c.icon,
-                    isStatic: true,
-                  }),
-                )
-              : categories.slice(0, 8).map(
-                  (c): HomeCategoryVm => ({
-                    id: c.id,
-                    displayLabel: c.name,
-                    labelTranslateKey: null,
-                    icon: this.iconForSlug(c.slug),
-                    isStatic: false,
-                  }),
-                );
+      map((source): HomePageViewModel => {
+        const featured = source.items.slice(0, FEATURED_LIMIT);
+        const mappedCategories: HomeCategoryTileVm[] = source.categories.map(
+          (category): HomeCategoryTileVm => {
+            const visual =
+              CATEGORY_VISUALS[category.slug.toLowerCase()] ?? DEFAULT_VISUAL;
+            return {
+              id: category.id,
+              slug: category.slug,
+              label: category.name,
+              icon: visual.icon,
+              tintA: visual.tintA,
+              tintB: visual.tintB,
+            };
+          },
+        );
 
-          return {
-            featured,
-            featuredError: listingsError,
-            showFeaturedSkeleton: listingsLoading && featured.length === 0,
-            showFeaturedEmpty:
-              !listingsLoading && featured.length === 0 && listingsError === null,
-            categories: mappedCategories,
-            categoriesLoading,
-            isAuthenticated,
-            primaryCtaPath: isAuthenticated ? '/listings/create' : '/auth/register',
-          };
-        },
-      ),
+        return {
+          featured,
+          featuredError: source.listingsError,
+          showFeaturedSkeleton:
+            source.listingsLoading && featured.length === 0,
+          showFeaturedEmpty:
+            !source.listingsLoading &&
+            featured.length === 0 &&
+            source.listingsError === null,
+          categories: mappedCategories,
+          showCategoriesSkeleton:
+            source.categoriesLoading && mappedCategories.length === 0,
+          showCategoriesEmpty:
+            !source.categoriesLoading && mappedCategories.length === 0,
+          isAuthenticated: source.isAuthenticated,
+        };
+      }),
     );
 
   ngOnInit(): void {
@@ -197,11 +325,11 @@ export class HomePageComponent implements OnInit {
   }
 
   protected onSearchSubmit(): void {
-    const city = this.searchForm.controls.city.value.trim();
+    const raw = this.searchForm.controls.query.value.trim();
     this.store.dispatch(
       ListingsActions.updateFilters({
         filters: {
-          city: city === '' ? null : city,
+          city: raw === '' ? null : raw,
           categoryId: null,
           minPrice: null,
           maxPrice: null,
@@ -211,11 +339,7 @@ export class HomePageComponent implements OnInit {
     void this.router.navigate(['/listings']);
   }
 
-  protected onCategoryClick(category: HomeCategoryVm): void {
-    if (category.isStatic || category.id === null) {
-      void this.router.navigate(['/listings']);
-      return;
-    }
+  protected onCategorySelect(category: HomeCategoryTileVm): void {
     this.store.dispatch(
       ListingsActions.updateFilters({
         filters: {
@@ -229,13 +353,38 @@ export class HomePageComponent implements OnInit {
     void this.router.navigate(['/listings']);
   }
 
+  protected onExploreCtaClick(): void {
+    this.store.dispatch(
+      ListingsActions.updateFilters({
+        filters: {
+          city: null,
+          categoryId: null,
+          minPrice: null,
+          maxPrice: null,
+        },
+      }),
+    );
+    void this.router.navigate(['/listings']);
+  }
+
+  protected onFavoriteToggle(listingId: string): void {
+    this.store.dispatch(ListingsActions.toggleFavoriteOptimistic({ listingId }));
+  }
+
+  protected setProcessMode(mode: ProcessMode): void {
+    this.processMode.set(mode);
+  }
+
+  protected toggleFaq(id: string): void {
+    this.expandedFaq.update((current) => (current === id ? null : id));
+  }
+
   protected retryFeatured(): void {
     this.store.dispatch(ListingsActions.loadListings());
   }
 
-  private iconForSlug(slug: string): string {
-    const normalized = slug.toLowerCase();
-    const match = STATIC_CATEGORIES.find((c) => c.slug === normalized);
-    return match?.icon ?? 'pi pi-tag';
+  protected scrollCarousel(carousel: HTMLElement, direction: -1 | 1): void {
+    const amount = carousel.clientWidth * 0.8;
+    carousel.scrollBy({ left: direction * amount, behavior: 'smooth' });
   }
 }

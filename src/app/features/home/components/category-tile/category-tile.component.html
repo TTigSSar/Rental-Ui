@@ -1,0 +1,18 @@
+@let data = category();
+<button
+  type="button"
+  class="category-tile"
+  [attr.aria-label]="data.label"
+  (click)="onClick()"
+>
+  <div
+    class="category-tile__media"
+    [style.background]="
+      'linear-gradient(135deg, ' + data.tintA + ', ' + data.tintB + ')'
+    "
+    aria-hidden="true"
+  >
+    <i class="category-tile__icon" [class]="data.icon"></i>
+  </div>
+  <span class="category-tile__chip">{{ data.label }}</span>
+</button>

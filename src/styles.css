@@ -1,14 +1,19 @@
 @import 'primeicons/primeicons.css';
 
 :root {
-  --ui-color-primary: #ff6a00;
-  --ui-color-primary-strong: #e85e00;
-  --ui-color-secondary: #2b2f42;
+  --ui-color-primary: #ff6008;
+  --ui-color-primary-strong: #e85500;
+  --ui-color-primary-soft: #fd8b47;
+  --ui-color-secondary: #2a2c41;
   --ui-color-background: #111217;
   --ui-color-surface: #ffffff;
+  --ui-color-surface-muted: #f4f4f8;
+  --ui-color-footer: #7b7a7a;
   --ui-color-text-primary: #181a24;
   --ui-color-text-secondary: #6a6f86;
+  --ui-color-text-muted: #b5b6b7;
   --ui-color-border: #e6e8f1;
+  --ui-color-border-strong: #b5b6b7;
   --ui-color-error: #d43f5e;
 
   --ui-space-4: 4px;
@@ -108,7 +113,7 @@ p {
 .ui-textarea:focus-visible,
 .ui-select:focus-visible {
   border-color: var(--ui-color-primary);
-  box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.16);
+  box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.18);
   outline: none;
 }
 
@@ -167,7 +172,7 @@ select {
 textarea:focus,
 select:focus {
   border-color: var(--ui-color-primary);
-  box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.15);
+  box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.18);
   outline: none;
 }
 

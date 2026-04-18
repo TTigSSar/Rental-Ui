@@ -22,56 +22,137 @@
   },
   "home": {
     "hero": {
-      "eyebrow": "Rental marketplace",
-      "title": "Find a place you'll love to stay.",
-      "subtitle": "Browse verified listings from trusted hosts, compare prices clearly, and book with confidence — all in one place.",
-      "stats": {
-        "listings": { "value": "1,200+", "label": "Active listings" },
-        "cities": { "value": "40+", "label": "Cities covered" },
-        "hosts": { "value": "98%", "label": "Host response rate" }
-      }
+      "title": "Share more, own less, and rent from people in your local community.",
+      "subtitle": "Support neighbors and build trust through sharing.",
+      "cta": "Explore items near you",
+      "imageAlt": "People sharing items in a local community"
     },
     "search": {
-      "ariaLabel": "Search listings by city",
-      "cityLabel": "City",
-      "placeholder": "Where are you going?",
+      "placeholder": "Find what you’re looking for",
+      "ariaLabel": "Search listings",
       "submit": "Search"
     },
-    "categories": {
-      "title": "Browse by category",
-      "subtitle": "Pick a space that matches the way you want to stay."
-    },
+    "categoriesLabel": "All Categories",
+    "topProductsLabel": "Top Products",
     "featured": {
-      "title": "Featured listings",
-      "subtitle": "A fresh selection of places from our latest hosts.",
-      "seeAll": "See all listings",
+      "pricePerDay": "{{amount}} per day",
       "emptyTitle": "No listings yet",
-      "empty": "Listings from new hosts will appear here shortly.",
-      "errorTitle": "We couldn't load featured listings"
+      "empty": "New items from our community will appear here soon.",
+      "errorTitle": "We couldn’t load top products",
+      "prevLabel": "Previous products",
+      "nextLabel": "Next products",
+      "toggleFavorite": "Save to favorites",
+      "openChat": "Message the owner",
+      "placeholderCategory": "Rental"
     },
-    "value": {
-      "title": "Why stay with us",
-      "subtitle": "A marketplace built around safe stays and honest pricing.",
-      "items": {
-        "verified": {
-          "title": "Verified listings",
-          "text": "Each place passes a moderation review before it's published."
+    "categories": {
+      "emptyTitle": "Categories are on the way",
+      "empty": "Your marketplace categories will appear here.",
+      "errorTitle": "We couldn’t load categories",
+      "prevLabel": "Previous categories",
+      "nextLabel": "Next categories"
+    },
+    "process": {
+      "modes": {
+        "renting": "Renting",
+        "lending": "Lending"
+      },
+      "renting": {
+        "step1": {
+          "title": "Log in or Sign up",
+          "text": "Log in or create an account to start your journey."
         },
-        "secure": {
-          "title": "Secure bookings",
-          "text": "Transparent pricing and protected payment flows for every stay."
+        "step2": {
+          "title": "Find What You Need",
+          "text": "Search or browse items near you by category and location."
         },
-        "chat": {
-          "title": "Built-in chat",
-          "text": "Ask hosts anything and get fast, clear answers before you book."
+        "step3": {
+          "title": "Choose Dates",
+          "text": "Select the rental period and check availability instantly."
+        },
+        "step4": {
+          "title": "Send a Request",
+          "text": "Request the item or book instantly in just a few clicks."
+        },
+        "step5": {
+          "title": "Pick Up & Use",
+          "text": "Meet the owner, pick up the item, and enjoy using it."
+        },
+        "step6": {
+          "title": "Return & Review",
+          "text": "Return the item on time and leave a review."
+        }
+      },
+      "lending": {
+        "step1": {
+          "title": "Create Your Listing",
+          "text": "Add photos, a description, and daily pricing in a few minutes."
+        },
+        "step2": {
+          "title": "Receive Requests",
+          "text": "Renters in your area will find your listing and ask to borrow."
+        },
+        "step3": {
+          "title": "Approve a Booking",
+          "text": "Accept the dates that work for you and lock in the rental."
+        },
+        "step4": {
+          "title": "Hand Over the Item",
+          "text": "Meet the renter, verify their ID, and hand the item over."
+        },
+        "step5": {
+          "title": "Get Paid",
+          "text": "Payouts are released after pickup with transparent pricing."
+        },
+        "step6": {
+          "title": "Review & Repeat",
+          "text": "Get the item back, leave a review, and keep earning."
         }
       }
     },
-    "host": {
-      "eyebrow": "Become a host",
-      "title": "Have a place to rent? List it in minutes.",
-      "subtitle": "Reach travelers looking for exactly what you offer, with a simple listing flow and built-in tools.",
-      "cta": "List your place"
+    "faq": {
+      "title": "Frequently asked questions",
+      "helpTitle": "Still have questions?",
+      "helpText": "Send us an email & we’ll get back to you as soon as possible!",
+      "helpCta": "Send email",
+      "items": {
+        "q1": {
+          "question": "How does renting work?",
+          "answer": "Find an item, pick your dates, send a request, and meet the owner to pick it up. Return it on time and leave a review."
+        },
+        "q2": {
+          "question": "Is it safe to rent from other people?",
+          "answer": "Every renter goes through verification, and every transaction is tracked. You always see who you are renting from before confirming."
+        },
+        "q3": {
+          "question": "What happens if an item gets damaged?",
+          "answer": "We offer damage protection on every confirmed rental. Report any issue within 24 hours of returning the item and we will help resolve it."
+        },
+        "q4": {
+          "question": "How do payments work?",
+          "answer": "Payments are processed securely when your booking is confirmed, and owners receive their payout after the pickup is verified."
+        },
+        "q5": {
+          "question": "Can I cancel a rental?",
+          "answer": "Free cancellation up to two days before the rental starts. After that, a partial refund may apply depending on the owner’s policy."
+        },
+        "q6": {
+          "question": "What do I need to list an item for rent?",
+          "answer": "Create an account, add at least one clear photo, a short description, and a daily price. You can start earning within minutes."
+        }
+      }
+    },
+    "footer": {
+      "aboutUs": "About us",
+      "faq": "FAQ’s",
+      "terms": "Terms and Conditions",
+      "privacy": "Privacy & Policy",
+      "partnership": "Partnership",
+      "allCategories": "All categories",
+      "findUs": "You can find us in:",
+      "instagram": "Instagram",
+      "facebook": "Facebook",
+      "twitter": "X (Twitter)"
     }
   },
   "auth": {

@@ -1,43 +1,65 @@
+@let data = listing();
 <a
-  class="featured-tile"
-  [routerLink]="['/listings', listing().id]"
-  [attr.aria-label]="listing().title"
+  class="product-card"
+  [routerLink]="['/listings', data.id]"
+  [attr.aria-label]="data.title"
 >
-  <app-ui-image-container class="featured-tile__media" aspectRatio="16 / 11">
-    @if (listing().mainImageUrl) {
+  <app-ui-image-container class="product-card__media" aspectRatio="325 / 380">
+    @if (data.mainImageUrl) {
       <img
-        class="featured-tile__image"
-        [src]="listing().mainImageUrl"
-        [alt]="listing().title"
+        class="product-card__image"
+        [src]="data.mainImageUrl"
+        [alt]="data.title"
         loading="lazy"
-        width="320"
-        height="220"
+        width="325"
+        height="380"
       />
     } @else {
-      <span
-        class="featured-tile__placeholder"
-        role="img"
-        [attr.aria-label]="listing().title"
-      >
-        {{ 'listings.card.noImage' | translate }}
-      </span>
+      <div class="product-card__placeholder" aria-hidden="true">
+        <i class="pi pi-image"></i>
+      </div>
     }
   </app-ui-image-container>
 
-  <div class="featured-tile__body">
-    <p class="featured-tile__city">
-      <i class="pi pi-map-marker" aria-hidden="true"></i>
-      {{ listing().city }}
-    </p>
-    <h3 class="featured-tile__title">{{ listing().title }}</h3>
-    <p class="featured-tile__price">
-      {{
-        'listings.card.pricePerDay'
-          | translate
-            : {
-                amount: (listing().pricePerDay | currency),
-              }
-      }}
-    </p>
+  <div class="product-card__body">
+    <div class="product-card__top">
+      <h3 class="product-card__title">{{ data.title }}</h3>
+      <p class="product-card__city">{{ data.city }}</p>
+    </div>
+
+    <div class="product-card__meta">
+      <span class="product-card__category">
+        {{ 'home.featured.placeholderCategory' | translate }}
+      </span>
+    </div>
+
+    <div class="product-card__footer">
+      <p class="product-card__price">
+        {{
+          'home.featured.pricePerDay'
+            | translate: { amount: (data.pricePerDay | currency) }
+        }}
+      </p>
+      <div class="product-card__actions">
+        <span
+          class="product-card__action product-card__action--chat"
+          aria-hidden="true"
+        >
+          <i class="pi pi-comment"></i>
+        </span>
+        <button
+          type="button"
+          class="product-card__action product-card__action--save"
+          [class.product-card__action--active]="data.isFavorite"
+          [attr.aria-label]="'home.featured.toggleFavorite' | translate"
+          [attr.aria-pressed]="data.isFavorite"
+          (click)="onFavoriteClick($event)"
+        >
+          <i
+            [class]="data.isFavorite ? 'pi pi-bookmark-fill' : 'pi pi-bookmark'"
+          ></i>
+        </button>
+      </div>
+    </div>
   </div>
 </a>

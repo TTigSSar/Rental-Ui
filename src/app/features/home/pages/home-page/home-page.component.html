@@ -1,199 +1,346 @@
-<section class="home-hero" aria-labelledby="home-hero-title">
-  <div class="home-hero__glow" aria-hidden="true"></div>
-  <div class="home-hero__inner page-container">
-    <p class="home-hero__eyebrow">{{ 'home.hero.eyebrow' | translate }}</p>
-    <h1 id="home-hero-title" class="home-hero__title">
-      {{ 'home.hero.title' | translate }}
-    </h1>
-    <p class="home-hero__subtitle">{{ 'home.hero.subtitle' | translate }}</p>
-
-    <form
-      class="home-search"
-      [formGroup]="searchForm"
-      (ngSubmit)="onSearchSubmit()"
-      [attr.aria-label]="'home.search.ariaLabel' | translate"
-    >
-      <label class="home-search__field">
-        <i class="home-search__icon pi pi-map-marker" aria-hidden="true"></i>
-        <input
-          type="text"
-          class="home-search__input"
-          formControlName="city"
-          [placeholder]="'home.search.placeholder' | translate"
-          [attr.aria-label]="'home.search.cityLabel' | translate"
-        />
-      </label>
-      <button type="submit" class="home-search__submit">
-        <i class="pi pi-search" aria-hidden="true"></i>
-        <span>{{ 'home.search.submit' | translate }}</span>
-      </button>
-    </form>
-
-    <ul class="home-hero__stats" role="list">
-      <li>
-        <strong>{{ 'home.hero.stats.listings.value' | translate }}</strong>
-        <span>{{ 'home.hero.stats.listings.label' | translate }}</span>
-      </li>
-      <li>
-        <strong>{{ 'home.hero.stats.cities.value' | translate }}</strong>
-        <span>{{ 'home.hero.stats.cities.label' | translate }}</span>
-      </li>
-      <li>
-        <strong>{{ 'home.hero.stats.hosts.value' | translate }}</strong>
-        <span>{{ 'home.hero.stats.hosts.label' | translate }}</span>
-      </li>
-    </ul>
-  </div>
-</section>
-
 @if (viewModel$ | async; as vm) {
-  <section class="home-section home-categories" aria-labelledby="home-categories-title">
-    <div class="page-container home-section__inner">
-      <header class="home-section__header">
-        <h2 id="home-categories-title" class="home-section__title">
-          {{ 'home.categories.title' | translate }}
-        </h2>
-        <p class="home-section__subtitle">
-          {{ 'home.categories.subtitle' | translate }}
-        </p>
-      </header>
+  <div class="home">
+    <!-- Hero banner -->
+    <section class="home__hero">
+      <img
+        class="home__hero-image"
+        src="/assets/home/hero-banner.jpg"
+        [alt]="'home.hero.imageAlt' | translate"
+        fetchpriority="high"
+      />
+      <div class="home__hero-overlay" aria-hidden="true"></div>
+      <div class="home__hero-content">
+        <div class="home__hero-text">
+          <h1 class="home__hero-title">{{ 'home.hero.title' | translate }}</h1>
+          <p class="home__hero-subtitle">
+            {{ 'home.hero.subtitle' | translate }}
+          </p>
+        </div>
+        <form
+          class="home__hero-search"
+          [formGroup]="searchForm"
+          (ngSubmit)="onSearchSubmit()"
+          [attr.aria-label]="'home.search.ariaLabel' | translate"
+        >
+          <i class="pi pi-search home__hero-search-icon" aria-hidden="true"></i>
+          <input
+            type="text"
+            class="home__hero-search-input"
+            formControlName="query"
+            [placeholder]="'home.search.placeholder' | translate"
+            [attr.aria-label]="'home.search.ariaLabel' | translate"
+          />
+          <button type="submit" class="home__hero-search-submit">
+            {{ 'home.search.submit' | translate }}
+          </button>
+        </form>
+        <button
+          type="button"
+          class="home__hero-cta"
+          (click)="onExploreCtaClick()"
+        >
+          {{ 'home.hero.cta' | translate }}
+        </button>
+      </div>
+    </section>
 
-      <ul class="home-categories__list" role="list">
-        @for (category of vm.categories; track category.id ?? category.labelTranslateKey) {
-          <li>
+    <div class="home__container">
+      <!-- Categories section -->
+      <section class="home__section" aria-labelledby="home-categories-heading">
+        <h2 id="home-categories-heading" class="home__pill-heading">
+          {{ 'home.categoriesLabel' | translate }}
+        </h2>
+
+        @if (vm.showCategoriesSkeleton) {
+          <app-ui-loading-skeleton class="home__skeleton" [items]="4" />
+        } @else if (vm.showCategoriesEmpty) {
+          <app-ui-empty-state
+            [title]="'home.categories.emptyTitle' | translate"
+            [description]="'home.categories.empty' | translate"
+          />
+        } @else {
+          <div class="home__carousel-wrapper">
             <button
               type="button"
-              class="home-category"
-              (click)="onCategoryClick(category)"
+              class="home__carousel-nav home__carousel-nav--prev"
+              [attr.aria-label]="'home.categories.prevLabel' | translate"
+              (click)="scrollCarousel(categoryCarousel, -1)"
             >
-              <span class="home-category__icon" aria-hidden="true">
-                <i [class]="category.icon"></i>
-              </span>
-              <span class="home-category__label">
-                @if (category.labelTranslateKey) {
-                  {{ category.labelTranslateKey | translate }}
-                } @else {
-                  {{ category.displayLabel }}
-                }
-              </span>
+              <i class="pi pi-chevron-left" aria-hidden="true"></i>
             </button>
-          </li>
-        }
-      </ul>
-    </div>
-  </section>
-
-  <section class="home-section home-featured" aria-labelledby="home-featured-title">
-    <div class="page-container home-section__inner">
-      <header class="home-section__header home-section__header--row">
-        <div class="home-section__header-text">
-          <h2 id="home-featured-title" class="home-section__title">
-            {{ 'home.featured.title' | translate }}
-          </h2>
-          <p class="home-section__subtitle">
-            {{ 'home.featured.subtitle' | translate }}
-          </p>
-        </div>
-        <a class="home-link-cta" routerLink="/listings">
-          <span>{{ 'home.featured.seeAll' | translate }}</span>
-          <i class="pi pi-arrow-right" aria-hidden="true"></i>
-        </a>
-      </header>
-
-      @if (vm.featuredError) {
-        <div class="home-featured__error" role="alert">
-          <div class="home-featured__error-copy">
-            <strong>{{ 'home.featured.errorTitle' | translate }}</strong>
-            <span>{{ vm.featuredError }}</span>
+            <div #categoryCarousel class="home__carousel home__carousel--categories">
+              @for (category of vm.categories; track category.slug) {
+                <app-home-category-tile
+                  class="home__carousel-item"
+                  [category]="category"
+                  (select)="onCategorySelect($event)"
+                />
+              }
+            </div>
+            <button
+              type="button"
+              class="home__carousel-nav home__carousel-nav--next"
+              [attr.aria-label]="'home.categories.nextLabel' | translate"
+              (click)="scrollCarousel(categoryCarousel, 1)"
+            >
+              <i class="pi pi-chevron-right" aria-hidden="true"></i>
+            </button>
           </div>
-          <button type="button" class="home-featured__retry" (click)="retryFeatured()">
-            {{ 'listings.common.retry' | translate }}
+        }
+      </section>
+
+      <!-- Top products section -->
+      <section class="home__section" aria-labelledby="home-products-heading">
+        <h2 id="home-products-heading" class="home__pill-heading">
+          {{ 'home.topProductsLabel' | translate }}
+        </h2>
+
+        @if (vm.featuredError) {
+          <div class="home__error" role="alert">
+            <app-ui-empty-state
+              icon="pi pi-exclamation-triangle"
+              [title]="'home.featured.errorTitle' | translate"
+              [description]="vm.featuredError"
+            />
+            <button
+              type="button"
+              class="home__error-retry"
+              (click)="retryFeatured()"
+            >
+              {{ 'listings.common.retry' | translate }}
+            </button>
+          </div>
+        } @else if (vm.showFeaturedSkeleton) {
+          <app-ui-loading-skeleton class="home__skeleton" [items]="4" />
+        } @else if (vm.showFeaturedEmpty) {
+          <app-ui-empty-state
+            [title]="'home.featured.emptyTitle' | translate"
+            [description]="'home.featured.empty' | translate"
+          />
+        } @else {
+          <div class="home__carousel-wrapper">
+            <button
+              type="button"
+              class="home__carousel-nav home__carousel-nav--prev"
+              [attr.aria-label]="'home.featured.prevLabel' | translate"
+              (click)="scrollCarousel(productCarousel, -1)"
+            >
+              <i class="pi pi-chevron-left" aria-hidden="true"></i>
+            </button>
+            <div #productCarousel class="home__carousel home__carousel--products">
+              @for (item of vm.featured; track item.id) {
+                <app-featured-listing-tile
+                  class="home__carousel-item home__carousel-item--product"
+                  [listing]="item"
+                  (favoriteToggle)="onFavoriteToggle($event)"
+                />
+              }
+            </div>
+            <button
+              type="button"
+              class="home__carousel-nav home__carousel-nav--next"
+              [attr.aria-label]="'home.featured.nextLabel' | translate"
+              (click)="scrollCarousel(productCarousel, 1)"
+            >
+              <i class="pi pi-chevron-right" aria-hidden="true"></i>
+            </button>
+          </div>
+        }
+      </section>
+
+      <!-- Process section (Renting / Lending toggle + steps) -->
+      <section class="home__process" aria-labelledby="home-process-heading">
+        <h2 id="home-process-heading" class="home__sr-only">
+          {{ 'home.process.modes.' + processMode() | translate }}
+        </h2>
+        <div
+          class="home__process-toggle"
+          role="tablist"
+          [attr.aria-label]="'home.process.modes.' + processMode() | translate"
+        >
+          <button
+            type="button"
+            role="tab"
+            class="home__process-toggle-btn"
+            [class.home__process-toggle-btn--active]="processMode() === 'renting'"
+            [attr.aria-selected]="processMode() === 'renting'"
+            (click)="setProcessMode('renting')"
+          >
+            {{ 'home.process.modes.renting' | translate }}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            class="home__process-toggle-btn"
+            [class.home__process-toggle-btn--active]="processMode() === 'lending'"
+            [attr.aria-selected]="processMode() === 'lending'"
+            (click)="setProcessMode('lending')"
+          >
+            {{ 'home.process.modes.lending' | translate }}
           </button>
         </div>
-      }
 
-      @if (vm.showFeaturedSkeleton) {
-        <app-ui-loading-skeleton [items]="8" />
-      } @else if (vm.showFeaturedEmpty) {
-        <app-ui-empty-state
-          icon="pi pi-search"
-          [title]="'home.featured.emptyTitle' | translate"
-          [description]="'home.featured.empty' | translate"
-        />
-      } @else if (vm.featured.length > 0) {
-        <div class="home-featured__grid">
-          @for (listing of vm.featured; track listing.id) {
-            <app-featured-listing-tile [listing]="listing" />
+        <ol class="home__process-steps">
+          @for (step of processSteps; track step.id; let isLast = $last) {
+            <li class="home__process-step">
+              <div class="home__process-step-media">
+                <span class="home__process-step-icon" aria-hidden="true">
+                  <i [class]="step.icon"></i>
+                </span>
+                @if (!isLast) {
+                  <span class="home__process-step-line" aria-hidden="true"></span>
+                }
+              </div>
+              <h3 class="home__process-step-title">
+                {{
+                  (processMode() === 'renting'
+                    ? step.titleKeyRenting
+                    : step.titleKeyLending) | translate
+                }}
+              </h3>
+              <p class="home__process-step-text">
+                {{
+                  (processMode() === 'renting'
+                    ? step.descKeyRenting
+                    : step.descKeyLending) | translate
+                }}
+              </p>
+            </li>
+          }
+        </ol>
+      </section>
+
+      <!-- FAQ section -->
+      <section class="home__faq" aria-labelledby="home-faq-heading">
+        <div class="home__faq-left">
+          <h2 id="home-faq-heading" class="home__faq-heading">
+            {{ 'home.faq.title' | translate }}
+          </h2>
+          <div class="home__faq-help">
+            <h3 class="home__faq-help-title">
+              {{ 'home.faq.helpTitle' | translate }}
+            </h3>
+            <p class="home__faq-help-text">
+              {{ 'home.faq.helpText' | translate }}
+            </p>
+            <button type="button" class="home__faq-help-cta">
+              {{ 'home.faq.helpCta' | translate }}
+            </button>
+          </div>
+        </div>
+
+        <div class="home__faq-right">
+          @for (entry of faqEntries; track entry.id) {
+            <div
+              class="home__faq-item"
+              [class.home__faq-item--open]="expandedFaq() === entry.id"
+            >
+              <button
+                type="button"
+                class="home__faq-item-header"
+                [attr.aria-expanded]="expandedFaq() === entry.id"
+                [attr.aria-controls]="'home-faq-panel-' + entry.id"
+                (click)="toggleFaq(entry.id)"
+              >
+                <span class="home__faq-item-question">
+                  {{ entry.questionKey | translate }}
+                </span>
+                <i
+                  class="home__faq-item-chevron pi"
+                  [class.pi-chevron-down]="expandedFaq() !== entry.id"
+                  [class.pi-chevron-up]="expandedFaq() === entry.id"
+                  aria-hidden="true"
+                ></i>
+              </button>
+              @if (expandedFaq() === entry.id) {
+                <p
+                  class="home__faq-item-answer"
+                  [id]="'home-faq-panel-' + entry.id"
+                >
+                  {{ entry.answerKey | translate }}
+                </p>
+              }
+            </div>
           }
         </div>
-      }
+      </section>
     </div>
-  </section>
 
-  <section class="home-section home-value" aria-labelledby="home-value-title">
-    <div class="page-container home-section__inner">
-      <header class="home-section__header">
-        <h2 id="home-value-title" class="home-section__title">
-          {{ 'home.value.title' | translate }}
-        </h2>
-        <p class="home-section__subtitle">
-          {{ 'home.value.subtitle' | translate }}
-        </p>
-      </header>
-
-      <ul class="home-value__list" role="list">
-        <li class="home-value__card">
-          <span class="home-value__icon" aria-hidden="true">
-            <i class="pi pi-check-circle"></i>
-          </span>
-          <h3 class="home-value__card-title">
-            {{ 'home.value.items.verified.title' | translate }}
-          </h3>
-          <p class="home-value__card-text">
-            {{ 'home.value.items.verified.text' | translate }}
+    <!-- Footer -->
+    <footer class="home__footer" aria-labelledby="home-footer-heading">
+      <h2 id="home-footer-heading" class="home__sr-only">
+        {{ 'home.footer.aboutUs' | translate }}
+      </h2>
+      <div class="home__footer-inner">
+        <ul class="home__footer-column">
+          <li>
+            <a class="home__footer-link" routerLink="/">{{
+              'home.footer.aboutUs' | translate
+            }}</a>
+          </li>
+          <li>
+            <a class="home__footer-link" routerLink="/">{{
+              'home.footer.faq' | translate
+            }}</a>
+          </li>
+          <li>
+            <a class="home__footer-link" routerLink="/">{{
+              'home.footer.terms' | translate
+            }}</a>
+          </li>
+          <li>
+            <a class="home__footer-link" routerLink="/">{{
+              'home.footer.privacy' | translate
+            }}</a>
+          </li>
+        </ul>
+        <ul class="home__footer-column">
+          <li>
+            <a class="home__footer-link" routerLink="/">{{
+              'home.footer.partnership' | translate
+            }}</a>
+          </li>
+          <li>
+            <a class="home__footer-link" routerLink="/listings">{{
+              'home.footer.allCategories' | translate
+            }}</a>
+          </li>
+        </ul>
+        <div class="home__footer-social">
+          <p class="home__footer-link home__footer-link--heading">
+            {{ 'home.footer.findUs' | translate }}
           </p>
-        </li>
-        <li class="home-value__card">
-          <span class="home-value__icon" aria-hidden="true">
-            <i class="pi pi-shield"></i>
-          </span>
-          <h3 class="home-value__card-title">
-            {{ 'home.value.items.secure.title' | translate }}
-          </h3>
-          <p class="home-value__card-text">
-            {{ 'home.value.items.secure.text' | translate }}
-          </p>
-        </li>
-        <li class="home-value__card">
-          <span class="home-value__icon" aria-hidden="true">
-            <i class="pi pi-comments"></i>
-          </span>
-          <h3 class="home-value__card-title">
-            {{ 'home.value.items.chat.title' | translate }}
-          </h3>
-          <p class="home-value__card-text">
-            {{ 'home.value.items.chat.text' | translate }}
-          </p>
-        </li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="home-section home-host" aria-labelledby="home-host-title">
-    <div class="page-container">
-      <div class="home-host__card">
-        <div class="home-host__copy">
-          <p class="home-host__eyebrow">{{ 'home.host.eyebrow' | translate }}</p>
-          <h2 id="home-host-title" class="home-host__title">
-            {{ 'home.host.title' | translate }}
-          </h2>
-          <p class="home-host__subtitle">{{ 'home.host.subtitle' | translate }}</p>
+          <div class="home__footer-social-row">
+            <a
+              class="home__footer-social-link"
+              href="https://instagram.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              [attr.aria-label]="'home.footer.instagram' | translate"
+            >
+              <i class="pi pi-instagram" aria-hidden="true"></i>
+            </a>
+            <a
+              class="home__footer-social-link"
+              href="https://facebook.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              [attr.aria-label]="'home.footer.facebook' | translate"
+            >
+              <i class="pi pi-facebook" aria-hidden="true"></i>
+            </a>
+            <a
+              class="home__footer-social-link"
+              href="https://x.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              [attr.aria-label]="'home.footer.twitter' | translate"
+            >
+              <i class="pi pi-twitter" aria-hidden="true"></i>
+            </a>
+          </div>
         </div>
-        <a class="home-host__cta" [routerLink]="vm.primaryCtaPath">
-          <span>{{ 'home.host.cta' | translate }}</span>
-          <i class="pi pi-arrow-right" aria-hidden="true"></i>
-        </a>
       </div>
-    </div>
-  </section>
+    </footer>
+  </div>
 }
