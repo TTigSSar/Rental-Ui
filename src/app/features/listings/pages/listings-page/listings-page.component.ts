@@ -2,18 +2,13 @@ import { AsyncPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  ElementRef,
   OnInit,
-  effect,
   inject,
-  viewChild,
 } from '@angular/core';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
-import { SkeletonModule } from 'primeng/skeleton';
-import { firstValueFrom, take } from 'rxjs';
 
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { LoadingSkeletonComponent } from '../../../../shared/ui/loading-skeleton/loading-skeleton.component';
@@ -37,8 +32,9 @@ export interface ListingsPageViewModel {
   readonly hasMore: boolean;
   readonly pageSize: number;
   readonly showInitialSkeleton: boolean;
-  readonly showAppendLoading: boolean;
+  readonly showAppendSkeleton: boolean;
   readonly showEmpty: boolean;
+  readonly showLoadMore: boolean;
   readonly hasError: boolean;
 }
 
@@ -48,13 +44,7 @@ const selectListingsPageViewModel = createSelector(
   selectListingsError,
   selectListingsHasMore,
   selectListingsPageSize,
-  (
-    items,
-    loading,
-    error,
-    hasMore,
-    pageSize,
-  ): ListingsPageViewModel => {
+  (items, loading, error, hasMore, pageSize): ListingsPageViewModel => {
     const hasError = error !== null;
     return {
       items,
@@ -63,20 +53,12 @@ const selectListingsPageViewModel = createSelector(
       hasMore,
       pageSize,
       showInitialSkeleton: loading && items.length === 0,
-      showAppendLoading: loading && items.length > 0,
+      showAppendSkeleton: loading && items.length > 0,
       showEmpty: !loading && items.length === 0 && !hasError,
+      showLoadMore: hasMore && !hasError && !loading,
       hasError,
     };
   },
-);
-
-const selectLoadMoreGate = createSelector(
-  selectListingsHasMore,
-  selectListingsLoading,
-  (hasMore, loading): { hasMore: boolean; loading: boolean } => ({
-    hasMore,
-    loading,
-  }),
 );
 
 @Component({
@@ -85,13 +67,12 @@ const selectLoadMoreGate = createSelector(
   imports: [
     AsyncPipe,
     ButtonModule,
+    EmptyStateComponent,
     ListingCardComponent,
     ListingsFiltersComponent,
-    MessageModule,
-    SkeletonModule,
-    TranslatePipe,
-    EmptyStateComponent,
     LoadingSkeletonComponent,
+    MessageModule,
+    TranslatePipe,
   ],
   templateUrl: './listings-page.component.html',
   styleUrl: './listings-page.component.scss',
@@ -100,35 +81,7 @@ const selectLoadMoreGate = createSelector(
 export class ListingsPageComponent implements OnInit {
   private readonly store = inject(Store);
 
-  private readonly loadMoreSentinel =
-    viewChild<ElementRef<HTMLElement>>('loadMoreSentinel');
-
-  protected readonly viewModel$ = this.store.select(
-    selectListingsPageViewModel,
-  );
-
-  constructor() {
-    effect((onCleanup) => {
-      const sentinel = this.loadMoreSentinel()?.nativeElement;
-      if (!sentinel) {
-        return;
-      }
-      const observer = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            if (entry.isIntersecting) {
-              void this.tryDispatchLoadNextPage();
-            }
-          }
-        },
-        { root: null, rootMargin: '320px 0px', threshold: 0 },
-      );
-      observer.observe(sentinel);
-      onCleanup(() => {
-        observer.disconnect();
-      });
-    });
-  }
+  protected readonly viewModel$ = this.store.select(selectListingsPageViewModel);
 
   ngOnInit(): void {
     this.store.dispatch(ListingsActions.loadListings());
@@ -140,26 +93,18 @@ export class ListingsPageComponent implements OnInit {
   }
 
   protected onFavoriteToggled(listingId: string): void {
-    this.store.dispatch(
-      ListingsActions.toggleFavoriteOptimistic({ listingId }),
-    );
+    this.store.dispatch(ListingsActions.toggleFavoriteOptimistic({ listingId }));
+  }
+
+  protected loadMore(): void {
+    this.store.dispatch(ListingsActions.loadNextPage());
   }
 
   protected retryAfterError(): void {
     this.store.dispatch(ListingsActions.loadListings());
   }
 
-  protected skeletonItems(vm: ListingsPageViewModel): number[] {
-    const count = Math.min(Math.max(vm.pageSize, 1), 12);
-    return Array.from({ length: count }, (_, i) => i);
-  }
-
-  private async tryDispatchLoadNextPage(): Promise<void> {
-    const { hasMore, loading } = await firstValueFrom(
-      this.store.select(selectLoadMoreGate).pipe(take(1)),
-    );
-    if (hasMore && !loading) {
-      this.store.dispatch(ListingsActions.loadNextPage());
-    }
+  protected skeletonCount(vm: ListingsPageViewModel): number {
+    return Math.min(Math.max(vm.pageSize, 1), 12);
   }
 }

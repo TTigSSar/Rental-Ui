@@ -42,9 +42,9 @@ export class ListingsFiltersComponent implements OnInit {
 
   @Output() readonly filtersChanged = new EventEmitter<ListingsFilter>();
 
-  protected readonly categories = toSignal<ListingCategoryOption[]>(
+  protected readonly categories = toSignal(
     this.store.select(selectListingCategories),
-    { initialValue: [] },
+    { initialValue: [] as ListingCategoryOption[] },
   );
 
   readonly filterForm = this.fb.group({

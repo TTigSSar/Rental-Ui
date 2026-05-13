@@ -247,7 +247,8 @@
       "emptyTitle": "No toys match your filters",
       "empty": "Try adjusting filters to see more toys.",
       "loading": "Loading toys",
-      "loadingMore": "Loading more toys"
+      "loadingMore": "Loading more toys",
+      "loadMore": "Load more toys"
     },
     "details": {
       "back": "Back to toys",

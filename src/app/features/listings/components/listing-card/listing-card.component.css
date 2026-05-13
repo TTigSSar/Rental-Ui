@@ -38,9 +38,10 @@
     0 0 0 4px rgba(255, 96, 8, 0.55);
 }
 
-/* ── Media area ─────────────────────────────────────────── */
+/* ── Media area (class applied directly to app-ui-image-container host) ── */
 .listing-card__media {
   display: block;
+  width: 100%;
   overflow: hidden;
 }
 

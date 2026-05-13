@@ -8,7 +8,6 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { ButtonModule } from 'primeng/button';
 
 import { ImageContainerComponent } from '../../../../shared/ui/image-container/image-container.component';
 import type { ListingPreview } from '../../models/listing.model';
@@ -17,7 +16,6 @@ import type { ListingPreview } from '../../models/listing.model';
   selector: 'app-listing-card',
   standalone: true,
   imports: [
-    ButtonModule,
     CurrencyPipe,
     ImageContainerComponent,
     RouterLink,

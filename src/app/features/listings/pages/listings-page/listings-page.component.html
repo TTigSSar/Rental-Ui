@@ -30,12 +30,12 @@
     }
 
     @if (vm.showInitialSkeleton) {
-      <app-ui-loading-skeleton [items]="skeletonItems(vm).length" />
+      <app-ui-loading-skeleton [items]="skeletonCount(vm)" />
     }
 
     @if (vm.showEmpty) {
       <app-ui-empty-state
-        icon="pi pi-search"
+        icon="pi pi-gift"
         [title]="'listings.page.emptyTitle' | translate"
         [description]="'listings.page.empty' | translate"
       />
@@ -52,22 +52,26 @@
       </div>
     }
 
-    @if (vm.showAppendLoading) {
+    @if (vm.showAppendSkeleton) {
       <div
         class="listings-page__append-loading"
         aria-live="polite"
         [attr.aria-label]="'listings.page.loadingMore' | translate"
       >
-        <p-skeleton width="100%" height="3rem" />
+        <app-ui-loading-skeleton [items]="3" />
       </div>
     }
 
-    @if (vm.hasMore && !vm.hasError) {
-      <div
-        #loadMoreSentinel
-        class="listings-page__sentinel"
-        aria-hidden="true"
-      ></div>
+    @if (vm.showLoadMore) {
+      <div class="listings-page__load-more">
+        <p-button
+          type="button"
+          [outlined]="true"
+          icon="pi pi-angle-down"
+          [label]="'listings.page.loadMore' | translate"
+          (onClick)="loadMore()"
+        />
+      </div>
     }
   }
 </div>

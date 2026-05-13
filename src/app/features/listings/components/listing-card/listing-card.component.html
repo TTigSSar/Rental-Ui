@@ -4,29 +4,26 @@
     [routerLink]="['/listings', listing().id]"
     [attr.aria-label]="listing().title"
   >
-    <div class="listing-card__media">
-      <app-ui-image-container aspectRatio="16 / 10">
-        @if (listing().mainImageUrl) {
-          <img
-            class="listing-card__img"
-            [src]="listing().mainImageUrl"
-            [alt]="listing().title"
-            width="320"
-            height="200"
-            loading="lazy"
-          />
-        } @else {
-          <div
-            class="listing-card__no-image"
-            role="img"
-            [attr.aria-label]="listing().title"
-          >
-            <span class="pi pi-gift listing-card__no-image-icon" aria-hidden="true"></span>
-            <span>{{ 'listings.card.noImage' | translate }}</span>
-          </div>
-        }
-      </app-ui-image-container>
-    </div>
+    <!-- app-ui-image-container is the media element so display:block applies to its host -->
+    <app-ui-image-container class="listing-card__media" aspectRatio="16 / 10">
+      @if (listing().mainImageUrl) {
+        <img
+          class="listing-card__img"
+          [src]="listing().mainImageUrl"
+          [alt]="listing().title"
+          loading="lazy"
+        />
+      } @else {
+        <div
+          class="listing-card__no-image"
+          role="img"
+          [attr.aria-label]="listing().title"
+        >
+          <span class="pi pi-gift listing-card__no-image-icon" aria-hidden="true"></span>
+          <span>{{ 'listings.card.noImage' | translate }}</span>
+        </div>
+      }
+    </app-ui-image-container>
 
     <div class="listing-card__body">
       <h3 class="listing-card__title">{{ listing().title }}</h3>
