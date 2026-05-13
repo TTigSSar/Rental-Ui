@@ -1,165 +1,232 @@
-<div class="detail-page page-container section-stack">
-  <nav
-    class="detail-page__nav"
-    [attr.aria-label]="'listings.details.subNavAria' | translate"
-  >
-    <a [routerLink]="['..']" class="detail-page__back">
-      <span class="pi pi-arrow-left detail-page__back-icon" aria-hidden="true"></span>
-      {{ 'listings.details.back' | translate }}
-    </a>
-  </nav>
-
-  @if (viewModel$ | async; as vm) {
-    @if (vm.showError) {
-      <div class="detail-page__error" role="alert">
-        @if (vm.invalidRoute) {
-          <p-message severity="warn" styleClass="detail-page__message">
-            <span>{{ 'listings.details.invalidRoute' | translate }}</span>
-          </p-message>
-        } @else {
-          <p-message severity="error" styleClass="detail-page__message">
-            <span>{{ vm.error }}</span>
-          </p-message>
-          <p-button
-            type="button"
-            styleClass="detail-page__retry"
-            [label]="'listings.common.retry' | translate"
-            (onClick)="retryLoad()"
-          />
-        }
-      </div>
-    }
-
-    @if (vm.showSkeleton) {
-      <div
-        class="detail-page__skeleton"
-        aria-busy="true"
-        [attr.aria-label]="'listings.details.loading' | translate"
+<div class="detail-page">
+  <div class="detail-page__container page-container">
+    @if (viewModel$ | async; as vm) {
+      <nav
+        class="detail-page__breadcrumb"
+        [attr.aria-label]="'listings.details.subNavAria' | translate"
       >
-        <div class="detail-page__skeleton-gallery">
-          <p-skeleton width="100%" height="18rem" />
-        </div>
-        <div class="detail-page__skeleton-main">
-          <p-skeleton width="55%" height="2rem" />
-          <p-skeleton width="35%" height="1.25rem" />
-          <p-skeleton width="25%" height="1.25rem" />
-          <p-skeleton width="100%" height="5rem" />
-          <p-skeleton width="100%" height="4rem" />
-        </div>
-      </div>
-    }
+        <a class="detail-page__crumb detail-page__crumb--link" routerLink="/">
+          {{ 'listings.details.breadcrumb.home' | translate }}
+        </a>
+        <span class="pi pi-angle-right detail-page__crumb-sep" aria-hidden="true"></span>
+        <a
+          class="detail-page__crumb detail-page__crumb--link"
+          routerLink="/listings"
+        >
+          {{ 'listings.details.breadcrumb.listings' | translate }}
+        </a>
+        @if (vm.displayListing; as listing) {
+          <span class="pi pi-angle-right detail-page__crumb-sep" aria-hidden="true"></span>
+          <span class="detail-page__crumb detail-page__crumb--current">
+            {{ listing.title }}
+          </span>
+        }
+      </nav>
 
-    @if (vm.showContent && vm.displayListing; as listing) {
-      <article class="detail-page__article">
-        <div class="detail-page__layout">
-          <div class="detail-page__media">
+      @if (vm.showError) {
+        <div class="detail-page__error" role="alert">
+          @if (vm.invalidRoute) {
+            <div class="detail-page__error-card detail-page__error-card--warn">
+              <i class="pi pi-info-circle" aria-hidden="true"></i>
+              <p>{{ 'listings.details.invalidRoute' | translate }}</p>
+              <a
+                class="detail-page__error-link"
+                routerLink="/listings"
+              >
+                {{ 'listings.details.back' | translate }}
+              </a>
+            </div>
+          } @else {
+            <div class="detail-page__error-card">
+              <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+              <p>{{ vm.error }}</p>
+              <p-button
+                type="button"
+                [label]="'listings.common.retry' | translate"
+                styleClass="detail-page__retry"
+                (onClick)="retryLoad()"
+              />
+            </div>
+          }
+        </div>
+      }
+
+      @if (vm.showSkeleton) {
+        <div
+          class="detail-page__skeleton"
+          aria-busy="true"
+          [attr.aria-label]="'listings.details.loading' | translate"
+        >
+          <div class="detail-page__skeleton-hero">
+            <p-skeleton width="100%" height="100%" borderRadius="4px" />
+          </div>
+          <div class="detail-page__skeleton-grid">
+            <div class="detail-page__skeleton-col">
+              <p-skeleton width="70%" height="2.5rem" />
+              <p-skeleton width="40%" height="1.25rem" />
+              <div class="detail-page__skeleton-section">
+                <p-skeleton width="30%" height="1.25rem" />
+                <p-skeleton width="100%" height="1rem" />
+                <p-skeleton width="95%" height="1rem" />
+                <p-skeleton width="80%" height="1rem" />
+              </div>
+              <div class="detail-page__skeleton-section">
+                <p-skeleton width="35%" height="1.25rem" />
+                <p-skeleton width="100%" height="1rem" />
+                <p-skeleton width="65%" height="1rem" />
+              </div>
+            </div>
+            <div class="detail-page__skeleton-col detail-page__skeleton-col--sidebar">
+              <p-skeleton width="100%" height="22rem" borderRadius="20px" />
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (vm.showContent && vm.displayListing; as listing) {
+        <article class="detail-page__article">
+          <div class="detail-page__hero">
             <app-listing-gallery [images]="listing.images" />
           </div>
 
-          <div class="detail-page__primary">
-            <header class="detail-page__header">
-              <div class="detail-page__title-row">
+          <div class="detail-page__body">
+            <div class="detail-page__main">
+              <header class="detail-page__heading">
                 <h1 class="detail-page__title">{{ listing.title }}</h1>
-                <p-button
-                  type="button"
-                  [text]="true"
-                  [rounded]="true"
-                  [icon]="listing.isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'"
-                  [attr.aria-label]="'listings.card.toggleFavorite' | translate"
-                  [attr.aria-pressed]="listing.isFavorite"
-                  (onClick)="onFavoriteToggle(listing)"
+                <div class="detail-page__title-meta">
+                  <span class="detail-page__city">
+                    <i class="pi pi-map-marker" aria-hidden="true"></i>
+                    <span>{{ listing.city }}</span>
+                  </span>
+                  <button
+                    type="button"
+                    class="detail-page__favorite"
+                    [class.detail-page__favorite--active]="listing.isFavorite"
+                    [attr.aria-label]="'listings.card.toggleFavorite' | translate"
+                    [attr.aria-pressed]="listing.isFavorite"
+                    (click)="onFavoriteToggle(listing)"
+                  >
+                    <i
+                      class="pi"
+                      [class.pi-heart-fill]="listing.isFavorite"
+                      [class.pi-heart]="!listing.isFavorite"
+                      aria-hidden="true"
+                    ></i>
+                  </button>
+                </div>
+              </header>
+
+              <div class="detail-page__sections">
+                <section
+                  class="detail-page__section"
+                  aria-labelledby="detail-description-heading"
+                >
+                  <h2
+                    id="detail-description-heading"
+                    class="detail-page__section-title"
+                  >
+                    {{ 'listings.details.descriptionHeading' | translate }}
+                  </h2>
+                  <p class="detail-page__section-body">
+                    {{ listing.description }}
+                  </p>
+                </section>
+
+                <section
+                  class="detail-page__section"
+                  aria-labelledby="detail-cancellation-heading"
+                >
+                  <h2
+                    id="detail-cancellation-heading"
+                    class="detail-page__section-title"
+                  >
+                    {{ 'listings.details.cancellation.title' | translate }}
+                  </h2>
+                  <p class="detail-page__section-body">
+                    {{ 'listings.details.cancellation.body' | translate }}
+                  </p>
+                </section>
+
+                <section
+                  class="detail-page__section"
+                  aria-labelledby="detail-protection-heading"
+                >
+                  <h2
+                    id="detail-protection-heading"
+                    class="detail-page__section-title"
+                  >
+                    {{ 'listings.details.protection.title' | translate }}
+                  </h2>
+                  <div class="detail-page__section-body">
+                    <p>{{ 'listings.details.protection.intro' | translate }}</p>
+                    <p class="detail-page__protection-sub">
+                      {{ 'listings.details.protection.whatIncluded' | translate }}
+                    </p>
+                    <p class="detail-page__protection-sub">
+                      {{ 'listings.details.protection.forAllRentals' | translate }}
+                    </p>
+                    <ul class="detail-page__bullets">
+                      @for (bullet of protectionBullets; track bullet.id) {
+                        <li>{{ bullet.key | translate }}</li>
+                      }
+                    </ul>
+                  </div>
+                </section>
+
+                <section
+                  class="detail-page__section detail-page__section--host"
+                  aria-labelledby="detail-host-heading"
+                >
+                  <h2
+                    id="detail-host-heading"
+                    class="detail-page__section-title"
+                  >
+                    {{ 'listings.details.hostHeading' | translate }}
+                  </h2>
+                  <div class="detail-page__host">
+                    <div class="detail-page__host-avatar" aria-hidden="true">
+                      {{ listing.owner.firstName.charAt(0)
+                      }}{{ listing.owner.lastName.charAt(0) }}
+                    </div>
+                    <div class="detail-page__host-info">
+                      <p class="detail-page__host-name">
+                        {{ listing.owner.firstName }}
+                        {{ listing.owner.lastName }}
+                      </p>
+                      @if (listing.owner.phoneNumber) {
+                        <a
+                          class="detail-page__host-phone"
+                          [href]="'tel:' + listing.owner.phoneNumber"
+                        >
+                          <i class="pi pi-phone" aria-hidden="true"></i>
+                          <span>{{ listing.owner.phoneNumber }}</span>
+                        </a>
+                      } @else {
+                        <p class="detail-page__host-placeholder">
+                          {{ 'listings.details.contactLabel' | translate }}
+                        </p>
+                      }
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+
+            <aside class="detail-page__sidebar">
+              <div class="detail-page__sidebar-sticky">
+                <app-booking-panel
+                  [pricePerDay]="listing.pricePerDay"
+                  [bookedDates]="listing.bookedDates"
+                  [submitting]="vm.createBookingLoading"
+                  [submitError]="vm.createBookingError"
+                  [submitSuccess]="vm.createBookingSuccess"
+                  (bookingSubmit)="onBookingSubmit($event)"
                 />
               </div>
-
-              <p class="detail-page__meta">
-                <span class="detail-page__city">
-                  {{ 'listings.details.cityLabel' | translate }}: {{ listing.city }}
-                </span>
-                <span class="detail-page__price" aria-live="polite">
-                  {{
-                    'listings.details.priceLabel'
-                      | translate
-                        : {
-                            amount: (listing.pricePerDay | currency),
-                          }
-                  }}
-                </span>
-              </p>
-
-              <p class="detail-page__assurance">
-                {{ 'listings.details.assurance' | translate }}
-              </p>
-            </header>
-
-            <section
-              class="detail-page__section"
-              aria-labelledby="detail-description-heading"
-            >
-              <h2 id="detail-description-heading" class="detail-page__section-title">
-                {{ 'listings.details.descriptionHeading' | translate }}
-              </h2>
-              <div class="detail-page__description">{{ listing.description }}</div>
-            </section>
-
-            <section
-              class="detail-page__section detail-page__section--owner"
-              aria-labelledby="detail-owner-heading"
-            >
-              <h2 id="detail-owner-heading" class="detail-page__section-title">
-                {{ 'listings.details.hostHeading' | translate }}
-              </h2>
-              <p class="detail-page__owner-name">
-                {{ listing.owner.firstName }} {{ listing.owner.lastName }}
-              </p>
-              @if (listing.owner.phoneNumber) {
-                <p class="detail-page__owner-phone">
-                  <span class="detail-page__owner-label">
-                    {{ 'listings.details.contactLabel' | translate }}:
-                  </span>
-                  <a
-                    class="detail-page__phone-link"
-                    [href]="'tel:' + listing.owner.phoneNumber"
-                  >
-                    {{ listing.owner.phoneNumber }}
-                  </a>
-                </p>
-              }
-            </section>
+            </aside>
           </div>
-        </div>
-
-        <section
-          class="detail-page__section detail-page__section--booking"
-          aria-labelledby="detail-booking-heading"
-        >
-          <h2 id="detail-booking-heading" class="detail-page__section-title">
-            {{ 'listings.details.bookingHeading' | translate }}
-          </h2>
-          <p class="detail-page__booking-subtitle">
-            {{ 'listings.details.bookingSubtitle' | translate }}
-          </p>
-          <app-booking-calendar
-            [bookedDates]="listing.bookedDates"
-            [pricePerDay]="listing.pricePerDay"
-            (dateRangeSelected)="onBookingRangeSelected($event)"
-          />
-          @if (vm.createBookingLoading) {
-            <p-message severity="info" styleClass="detail-page__message">
-              <span>{{ 'listings.details.bookingSubmitting' | translate }}</span>
-            </p-message>
-          }
-          @if (vm.createBookingError; as bookingError) {
-            <p-message severity="error" styleClass="detail-page__message">
-              <span>{{ bookingError }}</span>
-            </p-message>
-          }
-          @if (vm.createBookingSuccess) {
-            <p-message severity="success" styleClass="detail-page__message">
-              <span>{{ 'listings.details.bookingSuccess' | translate }}</span>
-            </p-message>
-          }
-        </section>
-      </article>
+        </article>
+      }
     }
-  }
+  </div>
 </div>

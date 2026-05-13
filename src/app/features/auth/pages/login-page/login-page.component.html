@@ -76,15 +76,7 @@
         <div class="login-page__separator">or</div>
 
         <div class="login-page__social-actions">
-          <button
-            type="button"
-            class="login-page__social login-page__social--google"
-            [disabled]="(isLoading$ | async) ?? false"
-            (click)="continueWithProvider('google')"
-          >
-            <span class="login-page__social-icon">G</span>
-            Sign in with Google
-          </button>
+          <div #googleButton class="login-page__google-button"></div>
           <button
             type="button"
             class="login-page__social login-page__social--apple"

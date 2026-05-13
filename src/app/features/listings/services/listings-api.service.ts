@@ -19,6 +19,25 @@ import type {
 import type { ListingsFilter } from '../models/listings-filter.model';
 import type { PagedResult } from '../models/paged-result.model';
 
+export function normalizeListingPreview(
+  item: Partial<ListingPreview> & { id: string },
+): ListingPreview {
+  return {
+    id: String(item.id),
+    title: typeof item.title === 'string' ? item.title : '',
+    city: typeof item.city === 'string' ? item.city : '',
+    pricePerDay:
+      typeof item.pricePerDay === 'number' && Number.isFinite(item.pricePerDay)
+        ? item.pricePerDay
+        : 0,
+    mainImageUrl:
+      typeof item.mainImageUrl === 'string' && item.mainImageUrl.length > 0
+        ? item.mainImageUrl
+        : null,
+    isFavorite: item.isFavorite === true,
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class ListingsApiService {
   private readonly http = inject(HttpClient);
@@ -32,7 +51,13 @@ export class ListingsApiService {
     return this.http.get<PagedResult<ListingPreview>>(
       toApiUrl(ApiContract.listings.root),
       { params },
-    ).pipe(map((result) => this.normalizePagedResult(result, page, pageSize)));
+    ).pipe(
+      map((result) => this.normalizePagedResult(result, page, pageSize)),
+      map((result) => ({
+        ...result,
+        items: (result.items ?? []).map((item) => normalizeListingPreview(item)),
+      })),
+    );
   }
 
   getListingById(id: string): Observable<ListingDetails> {
@@ -65,7 +90,26 @@ export class ListingsApiService {
   }
 
   getListingCategories(): Observable<ListingCategoryOption[]> {
-    return this.http.get<ListingCategoryOption[]>(toApiUrl(ApiContract.categories.root));
+    return this.http
+      .get<ListingCategoryOption[]>(toApiUrl(ApiContract.categories.root))
+      .pipe(
+        map((categories) =>
+          Array.isArray(categories)
+            ? categories
+                .filter(
+                  (category): category is ListingCategoryOption =>
+                    category !== null &&
+                    category !== undefined &&
+                    typeof category.id === 'string',
+                )
+                .map((category) => ({
+                  id: category.id,
+                  name: typeof category.name === 'string' ? category.name : '',
+                  slug: typeof category.slug === 'string' ? category.slug : '',
+                }))
+            : [],
+        ),
+      );
   }
 
   addToFavorites(listingId: string): Observable<void> {
@@ -110,20 +154,26 @@ export class ListingsApiService {
     requestedPage: number,
     requestedPageSize: number,
   ): PagedResult<T> {
-    const totalCount = Number.isFinite(result.totalCount)
-      ? result.totalCount
-      : result.items.length;
-    const page = Number.isFinite(result.page) ? result.page : requestedPage;
-    const pageSize = Number.isFinite(result.pageSize)
-      ? result.pageSize
-      : requestedPageSize;
+    const items = Array.isArray(result.items) ? result.items : [];
+    const totalCount =
+      typeof result.totalCount === 'number' && Number.isFinite(result.totalCount)
+        ? result.totalCount
+        : items.length;
+    const page =
+      typeof result.page === 'number' && Number.isFinite(result.page)
+        ? result.page
+        : requestedPage;
+    const pageSize =
+      typeof result.pageSize === 'number' && Number.isFinite(result.pageSize)
+        ? result.pageSize
+        : requestedPageSize;
     const hasMore =
       typeof result.hasMore === 'boolean'
         ? result.hasMore
         : page * pageSize < totalCount;
 
     return {
-      ...result,
+      items,
       totalCount,
       page,
       pageSize,
@@ -132,27 +182,56 @@ export class ListingsApiService {
   }
 
   private normalizeListingDetails(listing: ListingDetails): ListingDetails {
-    const owner: ListingOwner = listing.owner ?? {
-      id: '',
-      firstName: '',
-      lastName: '',
-      phoneNumber: null,
+    const rawOwner = listing.owner;
+    const owner: ListingOwner = {
+      id: typeof rawOwner?.id === 'string' ? rawOwner.id : '',
+      firstName: typeof rawOwner?.firstName === 'string' ? rawOwner.firstName : '',
+      lastName: typeof rawOwner?.lastName === 'string' ? rawOwner.lastName : '',
+      phoneNumber:
+        typeof rawOwner?.phoneNumber === 'string' && rawOwner.phoneNumber.length > 0
+          ? rawOwner.phoneNumber
+          : null,
     };
-    const images: ListingImage[] = Array.isArray(listing.images) ? listing.images : [];
+
+    const images: ListingImage[] = Array.isArray(listing.images)
+      ? listing.images
+          .filter((image): image is ListingImage => image !== null && image !== undefined)
+          .map((image) => ({
+            id: typeof image.id === 'string' ? image.id : '',
+            url: typeof image.url === 'string' ? image.url : '',
+            isPrimary: image.isPrimary === true,
+            sortOrder:
+              typeof image.sortOrder === 'number' && Number.isFinite(image.sortOrder)
+                ? image.sortOrder
+                : 0,
+          }))
+          .filter((image) => image.url.length > 0)
+      : [];
+
     const bookedDates: BookedDateRange[] = Array.isArray(listing.bookedDates)
-      ? listing.bookedDates
+      ? listing.bookedDates.filter(
+          (range): range is BookedDateRange =>
+            range !== null &&
+            range !== undefined &&
+            typeof range.startDate === 'string' &&
+            typeof range.endDate === 'string',
+        )
       : [];
 
     return {
       ...listing,
+      id: String(listing.id),
       owner,
       images,
       bookedDates,
-      isFavorite: listing.isFavorite ?? false,
-      city: listing.city ?? '',
-      description: listing.description ?? '',
-      title: listing.title ?? '',
-      pricePerDay: Number.isFinite(listing.pricePerDay) ? listing.pricePerDay : 0,
+      isFavorite: listing.isFavorite === true,
+      city: typeof listing.city === 'string' ? listing.city : '',
+      description: typeof listing.description === 'string' ? listing.description : '',
+      title: typeof listing.title === 'string' ? listing.title : '',
+      pricePerDay:
+        typeof listing.pricePerDay === 'number' && Number.isFinite(listing.pricePerDay)
+          ? listing.pricePerDay
+          : 0,
     };
   }
 }

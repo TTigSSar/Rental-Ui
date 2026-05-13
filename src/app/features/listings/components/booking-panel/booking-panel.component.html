@@ -1,0 +1,93 @@
+<section
+  class="booking-panel"
+  aria-labelledby="booking-panel-heading"
+>
+  <header class="booking-panel__header">
+    <p class="booking-panel__price">
+      <span class="booking-panel__price-amount">{{ pricePerDay() | currency }}</span>
+      <span class="booking-panel__price-suffix">
+        {{ 'listings.booking.priceSuffix' | translate }}
+      </span>
+    </p>
+    <h2 id="booking-panel-heading" class="booking-panel__heading">
+      {{ 'listings.details.bookingHeading' | translate }}
+    </h2>
+    <p class="booking-panel__subtitle">
+      {{ 'listings.details.bookingSubtitle' | translate }}
+    </p>
+    <div class="booking-panel__divider" aria-hidden="true"></div>
+  </header>
+
+  <div class="booking-panel__calendar">
+    <app-booking-calendar
+      [bookedDates]="bookedDates()"
+      [pricePerDay]="pricePerDay()"
+      (dateRangeSelected)="onRangeChange($event)"
+    />
+  </div>
+
+  <dl class="booking-panel__summary" aria-live="polite">
+    <div class="booking-panel__summary-row">
+      <dt>
+        {{
+          'listings.booking.nights'
+            | translate: { count: rentalDays() }
+        }}
+      </dt>
+      <dd>
+        @if (rentalDays() > 0) {
+          {{ (pricePerDay() * rentalDays()) | currency }}
+        } @else {
+          <span class="booking-panel__summary-empty">
+            {{ 'listings.booking.disabledHint' | translate }}
+          </span>
+        }
+      </dd>
+    </div>
+
+    <div class="booking-panel__summary-row booking-panel__summary-row--total">
+      <dt>{{ 'listings.booking.totalLabel' | translate }}</dt>
+      <dd>
+        @if (totalPrice(); as total) {
+          {{ total | currency }}
+        } @else {
+          <span class="booking-panel__summary-empty">—</span>
+        }
+      </dd>
+    </div>
+  </dl>
+
+  <p-button
+    type="button"
+    styleClass="booking-panel__cta"
+    [label]="
+      submitting()
+        ? ('listings.booking.submitting' | translate)
+        : ('listings.booking.cta' | translate)
+    "
+    icon="pi pi-calendar"
+    iconPos="left"
+    [disabled]="!canSubmit()"
+    [loading]="submitting()"
+    (onClick)="onSubmitClick()"
+  />
+
+  @if (submitError(); as error) {
+    <p class="booking-panel__status booking-panel__status--error" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ error }}</span>
+    </p>
+  }
+
+  @if (submitSuccess()) {
+    <p class="booking-panel__status booking-panel__status--success" role="status">
+      <i class="pi pi-check-circle" aria-hidden="true"></i>
+      <span>{{ 'listings.details.bookingSuccess' | translate }}</span>
+    </p>
+  }
+
+  <p class="booking-panel__assurance">
+    <i class="pi pi-shield" aria-hidden="true"></i>
+    <span>{{ 'listings.booking.assurance' | translate }}</span>
+  </p>
+</section>

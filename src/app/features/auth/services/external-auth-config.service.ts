@@ -12,17 +12,21 @@ export interface AppleExternalAuthConfig {
 }
 
 interface ExternalAuthConfig {
-  googleClientId: string;
   google: {
     clientId: string;
   };
   apple: AppleExternalAuthConfig;
 }
 
+/**
+ * Single source of truth for external-auth configuration.
+ *
+ * All external-auth client IDs are read from `environment.externalAuth.*`.
+ * For Google specifically, the canonical key is `environment.externalAuth.google.clientId`.
+ */
 @Injectable({ providedIn: 'root' })
 export class ExternalAuthConfigService {
   private readonly config: ExternalAuthConfig = {
-    googleClientId: environment.externalAuth.googleClientId,
     google: {
       clientId: environment.externalAuth.google.clientId,
     },
@@ -37,12 +41,7 @@ export class ExternalAuthConfigService {
   };
 
   get googleClientId(): string {
-    const modernClientId = this.config.google.clientId.trim();
-    if (modernClientId !== '') {
-      return modernClientId;
-    }
-
-    return this.config.googleClientId.trim();
+    return this.config.google.clientId.trim();
   }
 
   get appleClientId(): string {

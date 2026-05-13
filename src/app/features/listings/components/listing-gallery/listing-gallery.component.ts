@@ -8,14 +8,13 @@ import {
   untracked,
 } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { ButtonModule } from 'primeng/button';
 
 import type { ListingImage } from '../../models/listing.model';
 
 @Component({
   selector: 'app-listing-gallery',
   standalone: true,
-  imports: [ButtonModule, TranslatePipe],
+  imports: [TranslatePipe],
   templateUrl: './listing-gallery.component.html',
   styleUrl: './listing-gallery.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,7 +22,7 @@ import type { ListingImage } from '../../models/listing.model';
 export class ListingGalleryComponent {
   readonly images = input.required<ListingImage[]>();
 
-  private readonly activeIndex = signal(0);
+  protected readonly activeIndex = signal(0);
 
   readonly sortedImages = computed(() =>
     [...this.images()].sort((a, b) => a.sortOrder - b.sortOrder),
@@ -38,6 +37,10 @@ export class ListingGalleryComponent {
     return sorted[idx] ?? sorted[0] ?? null;
   });
 
+  readonly hasMultipleImages = computed(
+    () => this.sortedImages().length > 1,
+  );
+
   constructor() {
     effect(() => {
       this.images();
@@ -45,8 +48,21 @@ export class ListingGalleryComponent {
     });
   }
 
-  protected selectThumbnail(index: number): void {
-    this.activeIndex.set(index);
+  protected selectIndex(index: number): void {
+    const length = this.sortedImages().length;
+    if (length === 0) {
+      return;
+    }
+    const safe = ((index % length) + length) % length;
+    this.activeIndex.set(safe);
+  }
+
+  protected goPrev(): void {
+    this.selectIndex(this.activeIndex() - 1);
+  }
+
+  protected goNext(): void {
+    this.selectIndex(this.activeIndex() + 1);
   }
 
   protected trackByImageId(_index: number, image: ListingImage): string {

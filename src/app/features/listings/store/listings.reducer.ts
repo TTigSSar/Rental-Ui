@@ -1,5 +1,6 @@
 import { createReducer, on } from '@ngrx/store';
 
+import * as FavoritesActions from '../../favorites/store/favorites.actions';
 import type { ListingDetails } from '../models/listing-details.model';
 import type { ListingPreview } from '../models/listing.model';
 import * as ListingsActions from './listings.actions';
@@ -207,6 +208,22 @@ export const listingsReducer = createReducer(
       createListingLoading: false,
       createListingError: null,
       createListingSuccessId: null,
+    }),
+  ),
+  on(
+    FavoritesActions.removeFavoriteOptimistic,
+    (state, { listingId }): ListingsState => ({
+      ...state,
+      items: mapItemsSetFavorite(state.items, listingId, false),
+      selectedListing: setFavoriteOnDetails(state.selectedListing, listingId, false),
+    }),
+  ),
+  on(
+    FavoritesActions.removeFavoriteFailure,
+    (state, { listingId }): ListingsState => ({
+      ...state,
+      items: mapItemsSetFavorite(state.items, listingId, true),
+      selectedListing: setFavoriteOnDetails(state.selectedListing, listingId, true),
     }),
   ),
 );

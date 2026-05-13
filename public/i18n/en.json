@@ -2,8 +2,15 @@
   "app": {
     "shell": {
       "brand": "StayFinder",
+      "brandPrefix": "Stay",
+      "brandSuffix": "Finder",
       "primaryNavAria": "Primary navigation",
       "secondaryNavAria": "Account navigation",
+      "menuToggleAria": "Open menu",
+      "userMenuToggleAria": "Account menu",
+      "language": {
+        "switchAria": "Change language"
+      },
       "nav": {
         "home": "Home",
         "listings": "Listings",
@@ -14,9 +21,10 @@
         "bookingRequests": "Booking requests",
         "pendingModeration": "Pending moderation",
         "profile": "Profile",
-        "login": "Login",
-        "register": "Register",
-        "logout": "Logout"
+        "login": "Log in",
+        "register": "Sign up",
+        "logout": "Log out",
+        "addListing": "Add listing"
       }
     }
   },
@@ -223,12 +231,23 @@
     "gallery": {
       "mainImageAlt": "Listing image",
       "thumbnailsLabel": "Gallery thumbnails",
-      "noImages": "No images to display"
+      "noImages": "No images to display",
+      "prev": "Previous image",
+      "next": "Next image",
+      "dotNavLabel": "Image pagination",
+      "dotLabel": "Go to image {{index}}"
     },
     "booking": {
       "calendarLabel": "Select stay dates",
       "totalPrice": "Total: {{amount}}",
-      "selectRangeHint": "Select a start and end date to see the total."
+      "selectRangeHint": "Select a start and end date to see the total.",
+      "priceSuffix": "per day",
+      "totalLabel": "Total",
+      "cta": "Request to book",
+      "submitting": "Submitting...",
+      "disabledHint": "Select dates",
+      "nights": "{{count}} day(s)",
+      "assurance": "Free cancellation up to 48h before pickup. Damage protection included."
     },
     "page": {
       "title": "Listings",
@@ -241,19 +260,38 @@
     },
     "details": {
       "back": "Back to listings",
-      "subNavAria": "Listing navigation",
+      "subNavAria": "Listing breadcrumb",
       "invalidRoute": "This listing link is not valid.",
       "loading": "Loading listing details",
       "cityLabel": "Location",
       "priceLabel": "{{amount}} per day",
       "assurance": "Verified listing details, transparent pricing, and secure host contact.",
-      "descriptionHeading": "About this place",
+      "descriptionHeading": "Description",
       "hostHeading": "Your host",
-      "contactLabel": "Contact",
+      "contactLabel": "Contact not shared",
       "bookingHeading": "Check availability",
-      "bookingSubtitle": "Select your dates to estimate the full stay price before booking.",
+      "bookingSubtitle": "Pick your rental dates and see the total before you request.",
       "bookingSubmitting": "Submitting booking request...",
-      "bookingSuccess": "Booking request submitted successfully."
+      "bookingSuccess": "Booking request submitted successfully.",
+      "breadcrumb": {
+        "home": "Home",
+        "listings": "Listings"
+      },
+      "cancellation": {
+        "title": "Cancellation Terms",
+        "body": "Free cancellation until 2 days before your rental starts. After that, you'll get half your money back until the day before."
+      },
+      "protection": {
+        "title": "Damage, Theft, or Loss",
+        "intro": "Every rental on StayFinder includes protection against damage, theft, or loss. The exact coverage depends on which market you rent in and what type of item it is.",
+        "whatIncluded": "What is included",
+        "forAllRentals": "For all rentals (all markets)",
+        "bullet1": "Protection against sudden and unforeseen damage, theft, or loss during a confirmed rental period",
+        "bullet2": "Coverage applies only for bookings made through StayFinder",
+        "bullet3": "Only verified borrowers are eligible for protection — your verification must be fully approved before the rental starts",
+        "bullet4": "No excess for general items",
+        "bullet5": "Excess applies only for vehicles and trailers."
+      }
     },
     "createPage": {
       "title": "Create listing",

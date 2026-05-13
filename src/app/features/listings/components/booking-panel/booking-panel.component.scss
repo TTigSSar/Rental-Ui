@@ -1,0 +1,222 @@
+:host {
+  display: block;
+}
+
+.booking-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 28px 28px 24px;
+  background: var(--ui-color-surface);
+  border-radius: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08), 0 24px 48px rgba(16, 18, 30, 0.08);
+  border: 1px solid var(--ui-color-border);
+}
+
+.booking-panel__header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.booking-panel__price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0 0 2px;
+  color: var(--ui-color-text-primary);
+}
+
+.booking-panel__price-amount {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.booking-panel__price-suffix {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ui-color-footer);
+}
+
+.booking-panel__heading {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ui-color-text-primary);
+  margin: 0;
+}
+
+.booking-panel__subtitle {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ui-color-footer);
+  margin: 0;
+}
+
+.booking-panel__divider {
+  height: 1px;
+  background: var(--ui-color-border);
+  margin-top: 14px;
+  border-radius: 1px;
+}
+
+.booking-panel__calendar {
+  border: 1px solid var(--ui-color-border);
+  border-radius: 14px;
+  padding: 12px;
+  background: #fff;
+}
+
+.booking-panel__calendar :deep(.p-datepicker),
+.booking-panel__calendar ::ng-deep .p-datepicker {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  width: 100%;
+}
+
+.booking-panel__calendar ::ng-deep .p-datepicker-inline {
+  border: none;
+  box-shadow: none;
+}
+
+.booking-panel__calendar ::ng-deep .booking-calendar__summary {
+  display: none;
+}
+
+.booking-panel__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  margin: 0;
+  background: var(--ui-color-surface-muted);
+  border-radius: 14px;
+}
+
+.booking-panel__summary-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--ui-color-text-primary);
+}
+
+.booking-panel__summary-row dt,
+.booking-panel__summary-row dd {
+  margin: 0;
+  font-weight: 500;
+}
+
+.booking-panel__summary-row--total {
+  padding-top: 10px;
+  border-top: 1px solid var(--ui-color-border);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.booking-panel__summary-row--total dt,
+.booking-panel__summary-row--total dd {
+  font-weight: 700;
+}
+
+.booking-panel__summary-empty {
+  color: var(--ui-color-footer);
+  font-weight: 500;
+}
+
+::ng-deep .booking-panel__cta {
+  width: 100%;
+}
+
+::ng-deep .booking-panel__cta.p-button {
+  width: 100%;
+  min-height: 3rem;
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  border-radius: 999px;
+  background: var(--ui-color-primary);
+  border-color: var(--ui-color-primary);
+  transition: background-color 140ms ease, box-shadow 140ms ease,
+    transform 120ms ease;
+  box-shadow: 0 10px 24px rgba(255, 96, 8, 0.28);
+}
+
+::ng-deep .booking-panel__cta.p-button:hover:not(:disabled) {
+  background: var(--ui-color-primary-strong);
+  border-color: var(--ui-color-primary-strong);
+  box-shadow: 0 14px 30px rgba(232, 85, 0, 0.32);
+  transform: translateY(-1px);
+}
+
+::ng-deep .booking-panel__cta.p-button:focus-visible {
+  outline: 2px solid var(--ui-color-primary-strong);
+  outline-offset: 3px;
+}
+
+::ng-deep .booking-panel__cta.p-button:disabled {
+  background: #f4cfb7;
+  border-color: #f4cfb7;
+  color: #fff;
+  box-shadow: none;
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+.booking-panel__status {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.booking-panel__status i {
+  font-size: 16px;
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.booking-panel__status--error {
+  background: #fff1f3;
+  color: var(--ui-color-error);
+  border: 1px solid #f6ccd3;
+}
+
+.booking-panel__status--success {
+  background: #edf9f1;
+  color: #1f8a4c;
+  border: 1px solid #c6ebd2;
+}
+
+.booking-panel__assurance {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding-top: 6px;
+  font-size: 13px;
+  color: var(--ui-color-footer);
+}
+
+.booking-panel__assurance i {
+  color: var(--ui-color-primary);
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .booking-panel {
+    padding: 20px 18px;
+    border-radius: 16px;
+  }
+
+  .booking-panel__price-amount {
+    font-size: 24px;
+  }
+}

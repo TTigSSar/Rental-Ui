@@ -211,7 +211,7 @@ npm run start
 | Variable / field | Location | Purpose |
 |------------------|----------|---------|
 | `apiBaseUrl` | `src/environments/environment.ts` / `environment.prod.ts` | All API calls via `toApiUrl` |
-| `externalAuth` | Same files | `googleClientId` / nested `google.clientId`, Apple `clientId`, `redirectUri`, `scope`, `state`, `usePopup`, `scriptSrc` |
+| `externalAuth` | Same files | `google.clientId` (sole source of truth for Google sign-in), Apple `clientId`, `redirectUri`, `scope`, `state`, `usePopup`, `scriptSrc` |
 
 Production build replaces `environment.ts` with `environment.prod.ts` per `angular.json` `fileReplacements`.
 

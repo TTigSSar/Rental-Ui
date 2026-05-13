@@ -36,25 +36,25 @@ export class ProfileEffects {
     this.actions$.pipe(
       ofType(ProfileActions.loadProfile),
       withLatestFrom(this.store.select(selectAuthUser)),
-      switchMap(([, authUser]) => {
-        if (authUser !== null) {
-          return of(
-            ProfileActions.loadProfileSuccess({
-              profile: mapAuthUserToProfile(authUser),
-            }),
-          );
-        }
-        return this.profileApi.getMyProfile().pipe(
+      switchMap(([, authUser]) =>
+        this.profileApi.getMyProfile().pipe(
           map((profile) => ProfileActions.loadProfileSuccess({ profile })),
-          catchError((error: unknown) =>
-            of(
+          catchError((error: unknown) => {
+            if (authUser !== null) {
+              return of(
+                ProfileActions.loadProfileSuccess({
+                  profile: mapAuthUserToProfile(authUser),
+                }),
+              );
+            }
+            return of(
               ProfileActions.loadProfileFailure({
                 error: toErrorMessage(error),
               }),
-            ),
-          ),
-        );
-      }),
+            );
+          }),
+        ),
+      ),
     ),
   );
 }

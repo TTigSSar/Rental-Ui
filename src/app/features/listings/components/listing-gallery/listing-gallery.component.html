@@ -1,44 +1,95 @@
 <div class="listing-gallery">
   @if (mainImage(); as primary) {
-    <div class="listing-gallery__main">
+    <div class="listing-gallery__hero">
       <img
-        class="listing-gallery__main-img"
+        class="listing-gallery__hero-img"
         [src]="primary.url"
         [alt]="'listings.gallery.mainImageAlt' | translate"
-        width="640"
-        height="400"
-        loading="lazy"
+        loading="eager"
       />
+
+      @if (hasMultipleImages()) {
+        <button
+          type="button"
+          class="listing-gallery__nav listing-gallery__nav--prev"
+          (click)="goPrev()"
+          [attr.aria-label]="'listings.gallery.prev' | translate"
+        >
+          <span class="pi pi-chevron-left" aria-hidden="true"></span>
+        </button>
+
+        <button
+          type="button"
+          class="listing-gallery__nav listing-gallery__nav--next"
+          (click)="goNext()"
+          [attr.aria-label]="'listings.gallery.next' | translate"
+        >
+          <span class="pi pi-chevron-right" aria-hidden="true"></span>
+        </button>
+      }
     </div>
 
-    @if (sortedImages().length > 1) {
+    @if (hasMultipleImages()) {
+      <div
+        class="listing-gallery__dots"
+        role="tablist"
+        [attr.aria-label]="'listings.gallery.dotNavLabel' | translate"
+      >
+        @for (
+          image of sortedImages();
+          track trackByImageId($index, image);
+          let i = $index
+        ) {
+          <button
+            type="button"
+            role="tab"
+            class="listing-gallery__dot"
+            [class.listing-gallery__dot--active]="i === activeIndex()"
+            [attr.aria-selected]="i === activeIndex()"
+            [attr.aria-label]="
+              'listings.gallery.dotLabel' | translate: { index: i + 1 }
+            "
+            (click)="selectIndex(i)"
+          ></button>
+        }
+      </div>
+
       <div
         class="listing-gallery__thumbs"
         role="list"
         [attr.aria-label]="'listings.gallery.thumbnailsLabel' | translate"
       >
-        @for (image of sortedImages(); track trackByImageId($index, image); let i = $index) {
-          <div class="listing-gallery__thumb-wrap" role="listitem">
-            <p-button
-              type="button"
-              styleClass="listing-gallery__thumb-button"
-              [outlined]="mainImage()?.id !== image.id"
-              (onClick)="selectThumbnail(i)"
-            >
-              <img
-                class="listing-gallery__thumb-img"
-                [src]="image.url"
-                alt=""
-                width="96"
-                height="64"
-                loading="lazy"
-              />
-            </p-button>
-          </div>
+        @for (
+          image of sortedImages();
+          track trackByImageId($index, image);
+          let i = $index
+        ) {
+          <button
+            type="button"
+            role="listitem"
+            class="listing-gallery__thumb"
+            [class.listing-gallery__thumb--active]="i === activeIndex()"
+            (click)="selectIndex(i)"
+            [attr.aria-label]="
+              'listings.gallery.dotLabel' | translate: { index: i + 1 }
+            "
+          >
+            <img
+              class="listing-gallery__thumb-img"
+              [src]="image.url"
+              alt=""
+              loading="lazy"
+            />
+          </button>
         }
       </div>
     }
   } @else {
-    <p class="listing-gallery__empty">{{ 'listings.gallery.noImages' | translate }}</p>
+    <div class="listing-gallery__hero listing-gallery__hero--empty">
+      <span class="pi pi-image listing-gallery__empty-icon" aria-hidden="true"></span>
+      <p class="listing-gallery__empty-text">
+        {{ 'listings.gallery.noImages' | translate }}
+      </p>
+    </div>
   }
 </div>

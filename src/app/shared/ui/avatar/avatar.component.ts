@@ -3,12 +3,15 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 @Component({
   selector: 'app-ui-avatar',
   standalone: true,
-  template: `<span class="ui-avatar" [attr.aria-label]="label()">{{ initials() }}</span>`,
+  template:
+    '<span class="ui-avatar" [class.ui-avatar--md]="size() === \'md\'" [attr.aria-label]="label()">{{ initials() }}</span>',
   styleUrl: './avatar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AvatarComponent {
   readonly name = input<string | null>(null);
+  /** `md` matches header / account triggers; `sm` is default for dense UI. */
+  readonly size = input<'sm' | 'md'>('sm');
 
   protected readonly initials = computed(() => {
     const value = this.name()?.trim() ?? '';

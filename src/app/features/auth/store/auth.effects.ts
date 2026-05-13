@@ -79,10 +79,16 @@ export class AuthEffects {
     ),
   );
 
+  /**
+   * Non-Google providers (currently Apple) dispatch `externalAuth` with an
+   * empty `idToken` and resolve it asynchronously here. Google is handled
+   * directly by the pages via `ExternalAuthProviderService.renderGoogleButton`,
+   * which dispatches `externalAuth` with the idToken already filled.
+   */
   readonly resolveExternalAuthToken$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.externalAuth),
-      filter(({ idToken }) => idToken === ''),
+      filter(({ provider, idToken }) => provider !== 'google' && idToken === ''),
       mergeMap(({ provider }) =>
         this.externalAuthProvider.getIdToken(provider).pipe(
           map((idToken) => AuthActions.externalAuth({ provider, idToken })),

@@ -1,4 +1,4 @@
-import { AsyncPipe, CurrencyPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -10,7 +10,6 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
-import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, map } from 'rxjs';
 
@@ -20,7 +19,10 @@ import {
   selectCreateBookingLoading,
   selectCreateBookingSuccessId,
 } from '../../../bookings/store/bookings.selectors';
-import { BookingCalendarComponent } from '../../components/booking-calendar/booking-calendar.component';
+import {
+  BookingPanelComponent,
+  type BookingSubmitPayload,
+} from '../../components/booking-panel/booking-panel.component';
 import { ListingGalleryComponent } from '../../components/listing-gallery/listing-gallery.component';
 import type { ListingDetails } from '../../models/listing-details.model';
 import * as ListingsActions from '../../store/listings.actions';
@@ -42,6 +44,19 @@ export interface ListingDetailsPageViewModel {
   readonly createBookingError: string | null;
   readonly createBookingSuccess: boolean;
 }
+
+interface ProtectionBulletKey {
+  readonly id: string;
+  readonly key: string;
+}
+
+const PROTECTION_BULLET_KEYS: readonly ProtectionBulletKey[] = [
+  { id: 'b1', key: 'listings.details.protection.bullet1' },
+  { id: 'b2', key: 'listings.details.protection.bullet2' },
+  { id: 'b3', key: 'listings.details.protection.bullet3' },
+  { id: 'b4', key: 'listings.details.protection.bullet4' },
+  { id: 'b5', key: 'listings.details.protection.bullet5' },
+];
 
 const selectListingDetailsBase = createSelector(
   selectSelectedListing,
@@ -66,12 +81,10 @@ const selectListingDetailsBase = createSelector(
   selector: 'app-listing-details-page',
   standalone: true,
   imports: [
-    AsyncPipe,
-    BookingCalendarComponent,
+    BookingPanelComponent,
     ButtonModule,
-    CurrencyPipe,
+    CommonModule,
     ListingGalleryComponent,
-    MessageModule,
     RouterLink,
     SkeletonModule,
     TranslatePipe,
@@ -83,6 +96,8 @@ const selectListingDetailsBase = createSelector(
 export class ListingDetailsPageComponent {
   private readonly store = inject(Store);
   private readonly route = inject(ActivatedRoute);
+
+  protected readonly protectionBullets = PROTECTION_BULLET_KEYS;
 
   private readonly routeId$ = this.route.paramMap.pipe(
     map((params) => params.get('id')),
@@ -151,6 +166,7 @@ export class ListingDetailsPageComponent {
       const id = this.routeListingId();
       if (id !== null && id !== '') {
         this.store.dispatch(ListingsActions.loadListingDetails({ id }));
+        this.store.dispatch(BookingsActions.clearCreateBookingState());
       }
     });
   }
@@ -168,17 +184,9 @@ export class ListingDetailsPageComponent {
     }
   }
 
-  protected onBookingRangeSelected(event: {
-    startDate: Date | null;
-    endDate: Date | null;
-  }): void {
+  protected onBookingSubmit(payload: BookingSubmitPayload): void {
     const listingId = this.routeListingId();
-    if (
-      listingId === null ||
-      listingId === '' ||
-      event.startDate === null ||
-      event.endDate === null
-    ) {
+    if (listingId === null || listingId === '') {
       return;
     }
 
@@ -187,10 +195,17 @@ export class ListingDetailsPageComponent {
       BookingsActions.createBooking({
         payload: {
           listingId,
-          startDate: event.startDate.toISOString(),
-          endDate: event.endDate.toISOString(),
+          startDate: toLocalIsoDate(payload.startDate),
+          endDate: toLocalIsoDate(payload.endDate),
         },
       }),
     );
   }
+}
+
+function toLocalIsoDate(value: Date): string {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }

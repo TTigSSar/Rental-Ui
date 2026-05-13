@@ -188,6 +188,21 @@
   padding: 16px 0;
 }
 
+.login-page__google-button {
+  min-height: 2.85rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+ :host::ng-deep.login-page__google-button > div {
+  width: 100% !important;
+   .nsm7Bb-HzV7m-LgbsSe{
+     width: unset!important;
+     max-width: unset!important;
+   }
+}
+
 .login-page__social {
   width: 100%;
   min-height: 2.85rem;
