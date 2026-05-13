@@ -1,48 +1,66 @@
-<p-card styleClass="listing-card ui-card-surface">
-  <ng-template pTemplate="header">
-    <app-ui-image-container class="listing-card__media" aspectRatio="16 / 10">
-      @if (listing().mainImageUrl) {
-        <img
-          class="listing-card__image"
-          [src]="listing().mainImageUrl"
-          [alt]="listing().title"
-          width="320"
-          height="200"
-          loading="lazy"
-        />
-      } @else {
-        <div class="listing-card__placeholder" role="img" [attr.aria-label]="listing().title">
-          {{ 'listings.card.noImage' | translate }}
-        </div>
-      }
-    </app-ui-image-container>
-  </ng-template>
-
-  <div class="listing-card__body">
-    <h3 class="listing-card__title">{{ listing().title }}</h3>
-    <p class="listing-card__city">{{ listing().city }}</p>
-    <p class="listing-card__price">
-      {{
-        'listings.card.pricePerDay'
-          | translate
-            : {
-                amount: (listing().pricePerDay | currency),
-              }
-      }}
-    </p>
-  </div>
-
-  <ng-template pTemplate="footer">
-    <div class="listing-card__footer">
-      <p-button
-        type="button"
-        [rounded]="true"
-        [text]="true"
-        [attr.aria-label]="'listings.card.toggleFavorite' | translate"
-        [attr.aria-pressed]="listing().isFavorite"
-        [icon]="listing().isFavorite ? 'pi pi-heart-fill' : 'pi pi-heart'"
-        (onClick)="onFavoriteClick()"
-      />
+<article class="listing-card">
+  <a
+    class="listing-card__link"
+    [routerLink]="['/listings', listing().id]"
+    [attr.aria-label]="listing().title"
+  >
+    <div class="listing-card__media">
+      <app-ui-image-container aspectRatio="16 / 10">
+        @if (listing().mainImageUrl) {
+          <img
+            class="listing-card__img"
+            [src]="listing().mainImageUrl"
+            [alt]="listing().title"
+            width="320"
+            height="200"
+            loading="lazy"
+          />
+        } @else {
+          <div
+            class="listing-card__no-image"
+            role="img"
+            [attr.aria-label]="listing().title"
+          >
+            <span class="pi pi-gift listing-card__no-image-icon" aria-hidden="true"></span>
+            <span>{{ 'listings.card.noImage' | translate }}</span>
+          </div>
+        }
+      </app-ui-image-container>
     </div>
-  </ng-template>
-</p-card>
+
+    <div class="listing-card__body">
+      <h3 class="listing-card__title">{{ listing().title }}</h3>
+
+      @if (listing().city) {
+        <p class="listing-card__city">
+          <span class="pi pi-map-marker" aria-hidden="true"></span>
+          {{ listing().city }}
+        </p>
+      }
+
+      <p class="listing-card__price">
+        {{
+          'listings.card.pricePerDay'
+            | translate : { amount: (listing().pricePerDay | currency) }
+        }}
+      </p>
+    </div>
+  </a>
+
+  <div class="listing-card__footer">
+    <button
+      type="button"
+      class="listing-card__fav-btn"
+      [attr.aria-label]="'listings.card.toggleFavorite' | translate"
+      [attr.aria-pressed]="listing().isFavorite"
+      (click)="onFavoriteClick($event)"
+    >
+      <span
+        class="pi listing-card__fav-icon"
+        [class.pi-heart-fill]="listing().isFavorite"
+        [class.pi-heart]="!listing().isFavorite"
+        aria-hidden="true"
+      ></span>
+    </button>
+  </div>
+</article>

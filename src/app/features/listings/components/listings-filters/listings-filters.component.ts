@@ -4,16 +4,22 @@ import {
   DestroyRef,
   EventEmitter,
   inject,
+  OnInit,
   Output,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { Store } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
+import { debounceTime } from 'rxjs';
 
+import type { ListingCategoryOption } from '../../models/create-listing.model';
 import type { ListingsFilter } from '../../models/listings-filter.model';
+import * as ListingsActions from '../../store/listings.actions';
+import { selectListingCategories } from '../../store/listings.selectors';
 
 @Component({
   selector: 'app-listings-filters',
@@ -29,11 +35,17 @@ import type { ListingsFilter } from '../../models/listings-filter.model';
   styleUrl: './listings-filters.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ListingsFiltersComponent {
+export class ListingsFiltersComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
+  private readonly store = inject(Store);
 
   @Output() readonly filtersChanged = new EventEmitter<ListingsFilter>();
+
+  protected readonly categories = toSignal<ListingCategoryOption[]>(
+    this.store.select(selectListingCategories),
+    { initialValue: [] },
+  );
 
   readonly filterForm = this.fb.group({
     city: this.fb.nonNullable.control(''),
@@ -44,10 +56,23 @@ export class ListingsFiltersComponent {
 
   constructor() {
     this.filterForm.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(debounceTime(300), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
         this.filtersChanged.emit(this.toListingsFilter());
       });
+  }
+
+  ngOnInit(): void {
+    this.store.dispatch(ListingsActions.loadListingCategories());
+  }
+
+  protected clearFilters(): void {
+    this.filterForm.setValue({
+      city: '',
+      categoryId: '',
+      minPrice: null,
+      maxPrice: null,
+    });
   }
 
   private toListingsFilter(): ListingsFilter {
@@ -60,14 +85,5 @@ export class ListingsFiltersComponent {
       minPrice: raw.minPrice,
       maxPrice: raw.maxPrice,
     };
-  }
-
-  protected clearFilters(): void {
-    this.filterForm.setValue({
-      city: '',
-      categoryId: '',
-      minPrice: null,
-      maxPrice: null,
-    });
   }
 }

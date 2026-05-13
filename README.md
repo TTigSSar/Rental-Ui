@@ -1,192 +1,225 @@
-# Angular Rental Marketplace (Frontend)
+# ToyRent — Child Toys Rental (Frontend)
 
 ## A. Project Overview
 
-This repository is an **Angular standalone** single-page application for a **rental marketplace**: browse listings, open listing details, create listings (authenticated), manage favorites and bookings, moderate pending listings (admin role), view a profile, and use chat when signed in.
+This repository is an **Angular standalone** single-page application for a **child toys rental MVP**: parents can browse rentable toys, view toy details, list their own toys for rent, manage bookings, and moderate pending toy listings (admin role).
 
-**Main user flows present in code**
+**Product niche:** Families renting quality child toys to each other — less clutter at home, more variety for kids.
 
-- **Guest:** Browse `/listings`, open `/listings/:id`, register/login.
-- **Authenticated:** Favorites, chat, my bookings, booking requests for hosts, my listings, create listing, profile; optional **Admin** pending listings moderation.
-- **Auth:** Email/password login and register; **Google** and **Apple** external sign-in call the backend when provider tokens are obtained (see Auth Flow).
+**MVP user flows**
+
+| Role | Flows |
+|------|-------|
+| **Guest** | Browse toys (`/listings`), open toy details (`/listings/:id`), register, log in |
+| **Authenticated parent** | Browse toys, view toy details + send rental request, list a toy (`/listings/create`), my toys (`/my-listings`), my bookings (`/bookings`), rental requests (`/bookings/requests`), profile |
+| **Admin** | All authenticated flows + pending toy listings moderation (`/admin/listings/pending`) |
+
+**Non-MVP features (code present, not promoted in primary nav)**
+
+- **Chat** (`/chat`) — fully wired to the backend but hidden from the primary navigation.
+- **Favorites** (`/favorites`) — wired; the favorite toggle on listing cards still works but the favorites page is not in the primary nav.
+- **Google / Apple external auth** — code exists; Google requires a configured `clientId` in environment; Apple requires `clientId` + `redirectUri`; neither is stable in the default dev environment.
 
 ---
 
 ## B. Tech Stack
 
-| Area | Package / setup (from `package.json` and `app.config.ts`) |
-|------|-------------------------------------------------------------|
+| Area | Package / setup |
+|------|-----------------|
 | **Angular** | `^21.2.x` (application builder `@angular/build`) |
 | **State** | **NgRx Store + Effects** `@ngrx/store`, `@ngrx/effects` `^21.1.x` |
-| **HTTP** | `provideHttpClient` with a **functional interceptor** (`authInterceptor`) |
-| **UI** | **PrimeNG** `^21.1.5`, **PrimeIcons**, **@primeuix/themes** with **Aura** preset via `providePrimeNG` |
-| **i18n** | **ngx-translate** `@ngx-translate/core` + `@ngx-translate/http-loader`; JSON under `public/i18n/` (`en`, `ru`, `hy` files exist) |
-| **Other** | RxJS `~7.8`, TypeScript `~5.9`, **Vitest** in devDependencies; unit test entry is `ng test` (builder present) |
+| **HTTP** | `provideHttpClient` with a functional interceptor (`authInterceptor`) |
+| **UI** | **PrimeNG** `^21.1.5`, **PrimeIcons**, **@primeuix/themes** Aura preset via `providePrimeNG` |
+| **i18n** | **ngx-translate** `@ngx-translate/core` + `@ngx-translate/http-loader`; JSON files under `public/i18n/` (`en`, `ru`, `hy`) |
+| **Other** | RxJS `~7.8`, TypeScript `~5.9`, **Vitest** in devDependencies |
 
 ---
 
 ## C. Architecture
 
-### Folder layout (high level)
+### Folder layout
 
 ```
 src/app/
-  api/                 # Shared API helpers: contract, URL builder, HTTP error text utility
-  features/            # Domain features (each with pages, components, services, store)
-  shared/ui/           # Reusable presentational UI (avatar, badge, empty state, etc.)
-  app.ts, app.html     # Root shell (nav, auth-aware menu, router-outlet)
+  api/                 # Shared API helpers: ApiContract, toApiUrl, http-error-message util
+  features/            # Domain features (pages, components, services, NgRx store)
+  shared/ui/           # Reusable presentational components (Avatar, Badge, EmptyState, …)
+  app.ts               # Root shell: nav, auth-aware menu, router-outlet
+  app.html             # Shell template
   app.routes.ts        # Top-level lazy routes
-  app.config.ts        # Router, HttpClient, NgRx, Translate, PrimeNG
+  app.config.ts        # Router, HttpClient, NgRx, Translate, PrimeNG providers
 ```
 
-There is **no** `src/app/core/` folder in this codebase; cross-cutting API concerns live under `src/app/api/`.
+There is **no** `src/app/core/` folder; cross-cutting concerns live in `src/app/api/`.
 
 ### Feature structure
 
-Each feature under `src/app/features/<name>/` typically includes:
+Each `src/app/features/<name>/` folder typically contains:
 
-- **`routes.ts`** — lazy-loaded child routes (where applicable)
-- **`services/*-api.service.ts`** — `HttpClient` calls only in services (not in components, per project pattern)
-- **`store/`** — actions, reducer, effects, selectors, state interface (for features using NgRx)
-- **`pages/`**, **`components/`** — routed pages and building blocks
+- **`routes.ts`** — lazy-loaded child routes
+- **`services/*-api.service.ts`** — all `HttpClient` calls (never in components)
+- **`store/`** — NgRx actions, reducer, effects, selectors, state interface
+- **`pages/`** — routed page components
+- **`components/`** — reusable building-block components
+- **`models/`** — TypeScript interfaces for the feature domain
 
 ### State management
 
-- **NgRx** is registered in `app.config.ts` with `provideStore()`, `provideState(...)` per feature, and `provideEffects(...)`.
-- **Feature slices** (keys match `*FeatureKey` exports): `auth`, `listings`, `favorites`, `bookings`, `myListings`, `profile`, `chat`, `adminModeration`.
-- **Global vs feature:** All listed slices are registered at app root; there is no separate “meta-reducer” folder beyond standard NgRx usage in each feature.
+- NgRx is bootstrapped in `app.config.ts` with `provideStore()` and per-feature `provideState()` + `provideEffects()`.
+- Feature state keys: `auth`, `listings`, `favorites`, `bookings`, `myListings`, `profile`, `chat`, `adminModeration`.
 
 ### API communication pattern
 
-- **`src/app/api/api-contract.ts`** defines path constants and small helpers (e.g. `byId(id)`).
-- **`toApiUrl(path)`** prefixes paths with `environment.apiBaseUrl` (trailing slashes normalized).
-- Feature **API services** inject `HttpClient` and call `toApiUrl(ApiContract....)`.
-- **`src/app/api/http-error-message.util.ts`** centralizes parsing of `HttpErrorResponse` into user-facing strings (used heavily in effects).
+- **`ApiContract`** in `src/app/api/api-contract.ts` holds all path constants.
+- **`toApiUrl(path)`** prepends `environment.apiBaseUrl`.
+- Components dispatch NgRx actions → effects call services → services call `HttpClient`.
+- **`toApiErrorMessage`** in `http-error-message.util.ts` converts `HttpErrorResponse` to user-facing strings used in effects.
 
 ---
 
 ## D. Implemented Features
 
-Only what exists in the repository is listed below.
-
 ### Auth (`features/auth`)
 
-- **Implemented:** Login and register pages (`/auth/login`, `/auth/register`) with reactive forms, validation messaging, loading on `selectAuthLoading`, store-driven errors. **External auth** actions/effects call `POST /api/auth/external` after Google GIS or Apple flow supplies an `idToken`. Token saved via `AuthTokenService` (localStorage). On `ROOT_EFFECTS_INIT`, if a token exists, `loadCurrentUser` runs. After `loadCurrentUserSuccess`, navigation to `/listings` occurs **only if** the current URL starts with `/auth/`.
-- **Guards:** `authGuard`, `guestGuard`; admin uses `adminGuard` under `features/admin`.
-- **Incomplete / caveats:** Apple config in `environment.ts` / `environment.prod.ts` has **empty** `clientId` and `redirectUri` by default—Apple sign-in will fail until configured. Google requires a non-empty client id from environment. **Redirect-after-login to a deep link** beyond “leave `/auth/*`” is not implemented in effects (only the `/auth/` → `/listings` rule exists).
+- Login and register pages (`/auth/login`, `/auth/register`) with reactive forms, validation, and store-driven errors.
+- Token persisted to `localStorage` via `AuthTokenService`; on app start, if a token exists `loadCurrentUser` is dispatched.
+- **External auth (Google / Apple)** is wired but not the primary login path. Both require environment credentials to function.
+- Guards: `authGuard`, `guestGuard`, `adminGuard`.
 
-### Listings (`features/listings`)
+### Toy Listings (`features/listings`)
 
-- **Implemented:** List page with filters, pagination/infinite append, loading/error/empty UI; listing details with gallery, favorite toggle, booking UI tied to bookings store; create listing with categories load, multipart image upload after create, success navigation to new listing id via `CreateListingPageComponent` effect.
-- **Favorites from listings:** Optimistic favorite toggle is handled in **listings** effects (`toggleFavoriteOptimistic` → API add/remove), with rollback on failure—not in the favorites feature slice.
+**Browse toys (`/listings`)**
+- Infinite-scroll list with filters (city, category ID, price range).
+- Quick-category chips removed; categories come from the backend `/api/categories` endpoint.
 
-### Favorites (`features/favorites`)
+**Toy details (`/listings/:id`)**
+- Gallery, description, owner contact, and booking panel.
+- Toy-specific fields displayed **only when returned by the backend** (no fake data):
+  - `ageFromMonths` / `ageToMonths` → formatted age range
+  - `condition` → mapped to a localised label or shown as-is
+  - `hygieneNotes` → hygiene & cleaning section
+  - `safetyNotes` → safety notes section
+  - `depositAmount` → refundable deposit amount
 
-- **Implemented:** Load favorites list; **remove** favorite with optimistic update and rollback path in reducer/effects.
-- **Incomplete:** There is **no** “add favorite” action in the favorites store; adding is done via **listings** toggle only. The favorites page does not re-fetch after an add from elsewhere unless the user refreshes or navigates in a way that dispatches `loadFavorites` again.
+**List a toy (`/listings/create`)** — requires auth
+- Form submits to `POST /api/listings`.
+- Required fields: toy name, description, category (from `/api/categories`), price/day, country, city.
+- Optional toy-specific fields: `ageFromMonths`, `ageToMonths`, `condition`, `hygieneNotes`, `safetyNotes`, `depositAmount`.
+- Image upload after listing creation via `POST /api/listings/{id}/images`.
+
+### My Toys (`features/my-listings`)
+
+- Loads the authenticated user's own listings via `GET /api/listings/mine`.
+- Displays listing status (PendingApproval / Approved / Rejected / Archived).
 
 ### Bookings (`features/bookings`)
 
-- **Implemented:** Create booking (from listing details flow), load my bookings, load booking requests, approve/reject request; NgRx effects call `BookingsApiService`.
+- **My Bookings** (`/bookings`): rentals made by the current user.
+- **Rental Requests** (`/bookings/requests`): incoming requests for the user's toys; owner can approve or reject.
 
-### My listings (`features/my-listings`)
+### Admin Moderation (`features/admin`)
 
-- **Implemented:** Load current user’s listings via dedicated API service and NgRx slice; cards and page chrome present.
-
-### Admin moderation (`features/admin`)
-
-- **Implemented:** Pending listings page at `/admin/listings/pending`, load/approve/reject via `AdminListingsApiService`; guarded by `adminGuard` checking `user.roles` for `'Admin'`.
+- Pending Toy Listings at `/admin/listings/pending`.
+- Load / approve / reject via `AdminListingsApiService`.
+- Guarded by `adminGuard` (checks `user.roles` for `'Admin'`).
 
 ### Profile (`features/profile`)
 
-- **Implemented:** Profile page loads: if `selectAuthUser` is already set, profile is **mapped from auth user** without an extra HTTP call; if `authUser` is null, it falls back to `GET` profile API. NgRx profile slice exists.
+- Reads from `selectAuthUser` when available; falls back to `GET /api/profile/me`.
 
-### Chat (`features/chat`)
+### Chat (`features/chat`) — hidden from primary nav
 
-- **Implemented:** Conversations list and conversation detail routes; effects load conversations, load details, send message via `ChatApiService` against contract paths. **Not “partial” in the sense of mocks**—it is wired like other features.
-- **Caveats:** Behavior depends entirely on backend availability and response shapes; no separate mock layer was found in the chat API service.
+- Conversations list and conversation detail; fully wired to the backend.
+- Not accessible from the primary navigation (MVP deprioritised).
 
----
+### Favorites (`features/favorites`) — hidden from primary nav
 
-## E. Auth Flow
-
-1. **Login / register:** Components dispatch `login` / `register` with payloads matching `LoginRequest` / `RegisterRequest` in `auth.models.ts`. Effects call `AuthApiService` → `POST` login/register → `*Success` stores token in state → `persistToken$` writes **localStorage** (`auth_token`) → `loadCurrentUserAfterAuth$` dispatches `loadCurrentUser`.
-2. **`GET /api/auth/me`:** `loadCurrentUser$` uses token from store or `AuthTokenService`. On failure, `loadCurrentUserFailure` may pass **`preserveSession: true`** (no token) or **`false`** (API error path clears token via effect).
-3. **Interceptor:** `authInterceptor` attaches `Authorization: Bearer <token>` for requests whose pathname is **not** in the unauthenticated set: login, register, external.
-4. **Guards:**
-   - **`authGuard`:** Allows route if `selectIsAuthenticated` **or** a non-empty trimmed token exists.
-   - **`guestGuard`:** Redirects to `/listings` if authenticated **or** token present.
-   - **`adminGuard`:** Requires admin role; may dispatch `loadCurrentUser()` and wait for loading to finish before deciding.
-5. **External auth (Google / Apple):** UI dispatches `externalAuth` with empty `idToken`; `resolveExternalAuthToken$` obtains token via `ExternalAuthProviderService` (GIS / Apple script), then `externalAuth$` posts to backend. Success path matches email auth (token + `loadCurrentUser`).
+- Load and remove favorites. Add-favorite is handled by the listings store toggle.
+- Page exists at `/favorites` but is not linked from primary nav.
 
 ---
 
-## F. State Management (NgRx)
+## E. API Integration
 
-| Feature key | Typical responsibilities |
-|-------------|-------------------------|
-| `auth` | Token, user, loading, error; login/register/external/loadCurrentUser/logout |
-| `listings` | List, filters, pagination, details, categories, create listing + upload, favorite toggle persistence |
-| `favorites` | Favorites list load/remove optimistic |
-| `bookings` | Create booking, my bookings, requests, approve/reject |
-| `myListings` | Owner listings list |
-| `profile` | Profile view model (often derived from auth user) |
+> The backend still uses the generic `/api/listings` endpoints. **No API paths were renamed** during the child-toys MVP refocus.
+
+| Domain | Endpoint |
+|--------|----------|
+| Auth | `POST /api/auth/login`, `/register`, `GET /api/auth/me`, `POST /api/auth/external` |
+| Toy listings | `GET/POST /api/listings`, `GET /api/listings/{id}`, `GET /api/listings/mine`, `POST /api/listings/{id}/images` |
+| Categories | `GET /api/categories` |
+| Favorites | `GET /api/favorites`, `POST/DELETE /api/favorites/{listingId}` |
+| Bookings | `POST /api/bookings`, `GET /api/bookings/mine`, `GET /api/bookings/requests`, `POST /api/bookings/{id}/approve`, `POST /api/bookings/{id}/reject` |
+| Admin | `GET /api/admin/listings/pending`, `POST /api/admin/listings/{id}/approve`, `POST /api/admin/listings/{id}/reject` |
+| Profile | `GET /api/profile/me` |
+| Chat | `GET /api/chat/conversations`, `GET /api/chat/conversations/{id}`, `POST /api/chat/messages` |
+
+- **Base URL:** `environment.apiBaseUrl` — `https://localhost:7241` in `environment.ts`; `https://api.example.com` placeholder in `environment.prod.ts`.
+- **Interceptor:** `authInterceptor` attaches `Authorization: Bearer <token>` for all requests except the three auth endpoints.
+
+---
+
+## F. Toy-Specific Data Fields
+
+The following optional fields were added to `ListingDetails` and `CreateListingRequest`. They are only sent to / read from the backend — never faked client-side:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `ageFromMonths` | `number \| null` | Minimum recommended age in months |
+| `ageToMonths` | `number \| null` | Maximum recommended age in months |
+| `condition` | `string \| null` | Toy condition: `New`, `LikeNew`, `Good`, `Fair`, or any string |
+| `hygieneNotes` | `string \| null` | How the toy is cleaned between rentals |
+| `safetyNotes` | `string \| null` | Safety warnings, small parts notices, etc. |
+| `depositAmount` | `number \| null` | Refundable deposit amount |
+
+---
+
+## G. State Management (NgRx)
+
+| Feature key | Responsibilities |
+|-------------|-----------------|
+| `auth` | Token, user object, loading, error; login / register / external auth / loadCurrentUser / logout |
+| `listings` | Toy list, filters, pagination, details, categories, create listing + image upload, favorite toggle (optimistic) |
+| `favorites` | Favorites list load / remove (optimistic) |
+| `bookings` | Create booking, my bookings, rental requests, approve / reject |
+| `myListings` | Owner toy listings |
+| `profile` | Profile view model (derived from auth user or API) |
 | `chat` | Conversations, active conversation, messages, send |
-| `adminModeration` | Pending listings moderation |
-
-Selectors and actions are colocated under each feature’s `store/` folder.
+| `adminModeration` | Pending toy listings moderation |
 
 ---
 
-## G. Routing
+## H. Routing
 
-**Root (`app.routes.ts`)**
+| Path | Auth | Notes |
+|------|------|-------|
+| `''` | — | Redirects to `/listings` |
+| `auth` | Guest only | Login / register |
+| `listings` | Public | Browse toys; nested `create` (auth required) and `:id` |
+| `my-listings` | Auth | My toys |
+| `bookings` | Auth | My bookings; nested `requests` |
+| `profile` | Auth | Profile page |
+| `admin` | Admin role | Pending toy listings moderation |
+| `chat` | Auth | Conversations (not in primary nav) |
+| `favorites` | Auth | Saved toys (not in primary nav) |
+| `**` | — | Redirects to `/listings` |
 
-| Path | Load | Notes |
-|------|------|--------|
-| `''` | redirect | → `listings` |
-| `auth` | lazy | guest-only login/register |
-| `listings` | lazy | public list + details; `create` and `:id` nested in feature routes |
-| `profile` | lazy | `authGuard` |
-| `my-listings` | lazy | `authGuard` |
-| `bookings` | lazy | `authGuard`; nested `requests` |
-| `chat` | lazy | `authGuard`; nested `:conversationId` |
-| `favorites` | lazy | `authGuard` |
-| `admin` | lazy | `adminGuard`; child `listings/pending` |
-| `**` | redirect | → `listings` |
+**Primary navigation (visible in header)**
 
-**Notable feature paths**
-
-- Create listing: `/listings/create` (`authGuard`).
-- Listing details: `/listings/:id` (public).
-- Booking requests: `/bookings/requests` (still under parent `authGuard`).
-
----
-
-## H. API Integration
-
-- **Base URL:** `environment.apiBaseUrl` (`https://localhost:7241` in `environment.ts`; `https://api.example.com` placeholder in `environment.prod.ts`).
-- **Contract:** `ApiContract` in `src/app/api/api-contract.ts` documents paths used by services, including:
-  - **Auth:** `/api/auth/login`, `/register`, `/me`, `/external`
-  - **Listings:** `/api/listings`, `/api/listings/{id}`, `/api/listings/mine`, `/api/listings/{id}/images`
-  - **Categories:** `/api/categories`
-  - **Favorites:** `/api/favorites`, `/api/favorites/{listingId}`
-  - **Bookings:** `/api/bookings`, `/mine`, `/requests`, `/{id}/approve`, `/{id}/reject`
-  - **Admin:** `/api/admin/listings/pending`, approve/reject by listing id
-  - **Profile:** `/api/profile/me`
-  - **Chat:** `/api/chat/conversations`, `/api/chat/conversations/{id}`, `/api/chat/messages`
-- **Interceptor:** Adds JWT except for the three auth endpoints above.
-- **Errors:** Effects generally map failures through `toApiErrorMessage` (with a few auth-specific overrides in auth effects).
+| State | Nav links |
+|-------|-----------|
+| Guest | Browse Toys, Log in, Sign up |
+| Authenticated | Browse Toys, My Toys, My Bookings, Rental Requests, [Admin — if admin role] |
 
 ---
 
-## I. UI / Design Status
+## I. i18n
 
-- **Global styling:** `src/styles.css` defines CSS variables (colors, spacing, radii, shadows) and utility classes (e.g. `page-container`, `cards-grid`, input helpers). PrimeNG components receive global overrides there.
-- **Shell:** `app.html` / `app.css` implement header, primary/secondary nav, avatar + logout when authenticated.
-- **Shared UI:** `src/app/shared/ui/` contains **Avatar**, **Badge**, **EmptyState**, **LoadingSkeleton**, **ImageContainer**—used on several marketplace pages.
-- **Auth pages:** Split-panel layout with marketing aside and form panel; social buttons styled as distinct Google (light) and Apple (dark) rows.
-- **Figma:** The README cannot verify visual parity with an external Figma file; the codebase shows **intentional design-system styling** across listings, details, create listing, bookings, favorites, profile, admin, and auth. Any claim of “pixel-perfect Figma match” would require a separate design review.
+Translation files in `public/i18n/`: `en.json`, `ru.json`, `hy.json`.
+
+All user-facing strings use toy-focused language: "toys" instead of "listings", "rental request" instead of "booking request", "List a Toy" instead of "Add listing", etc.
+
+The `LANGUAGE_STORAGE_KEY` is `stayfinder.lang` (legacy key retained to preserve saved language preference).
 
 ---
 
@@ -194,57 +227,58 @@ Selectors and actions are colocated under each feature’s `store/` folder.
 
 ### Prerequisites
 
-- **Node.js** compatible with Angular 21 (see Angular docs for current LTS range).
-- **npm** (project pins `packageManager` to npm `11.6.1` in `package.json`).
+- Node.js compatible with Angular 21.
+- npm (`packageManager` pinned to `npm@11.6.1` in `package.json`).
 
 ### Install and run
 
 ```bash
 npm install
-npm run start
+npm run start   # dev server on http://localhost:4200
 ```
 
-`ng serve` defaults to port **4200**; use `ng serve --port <port>` if the port is busy.
+### Build
+
+```bash
+npm run build   # production build (uses environment.prod.ts)
+```
 
 ### Configuration
 
-| Variable / field | Location | Purpose |
-|------------------|----------|---------|
-| `apiBaseUrl` | `src/environments/environment.ts` / `environment.prod.ts` | All API calls via `toApiUrl` |
-| `externalAuth` | Same files | `google.clientId` (sole source of truth for Google sign-in), Apple `clientId`, `redirectUri`, `scope`, `state`, `usePopup`, `scriptSrc` |
-
-Production build replaces `environment.ts` with `environment.prod.ts` per `angular.json` `fileReplacements`.
+| Key | File | Purpose |
+|-----|------|---------|
+| `apiBaseUrl` | `src/environments/environment.ts` / `environment.prod.ts` | Base URL for all API calls |
+| `externalAuth.google.clientId` | Same files | Required for Google Sign-in |
+| `externalAuth.apple.*` | Same files | Required for Apple Sign-in |
 
 ---
 
 ## K. Known Gaps / TODO
 
-Facts inferred only from code:
-
-- **Favorites slice:** No add-favorite flow in `favorites` store; list may drift until reload if favorites are added only via listings toggle.
-- **Apple sign-in:** Environment placeholders empty—won’t work until filled and backend supports it.
-- **Tests:** Only `src/app/app.spec.ts` found; no broad unit/e2e suite for features.
-- **No `core/` module:** If you expect a `core` layer (singleton services, interceptors folder), this project instead uses `api/` + feature services.
-- **Backend dependency:** All flows assume a live API; there is no in-repo mock server. Database or server errors surface as user-facing strings only after `toApiErrorMessage` processing (still dependent on backend payload shape).
-- **Auth redirect:** Post-login redirect is fixed to `/listings` when leaving `/auth/*` after successful `me`; no `returnUrl` query handling was found in `auth.effects.ts`.
+- **External auth:** Google requires a real `clientId`; Apple requires `clientId` + `redirectUri`. Both are empty in the default dev environment.
+- **Tests:** Only `src/app/app.spec.ts` exists; no broad feature-level test suite.
+- **Auth redirect:** After login, the app always navigates to `/listings`. There is no `returnUrl` handling in `auth.effects.ts`.
+- **Favorites add:** The add-favorite flow lives in the listings store; the favorites page list can drift until a reload dispatches `loadFavorites`.
+- **Chat:** Fully wired but deprioritised in the MVP nav; backend availability required.
 
 ---
 
-## L. Development Rules (Observed in Code)
+## L. Development Rules
 
-- **Standalone components** only (no NgModules in the app structure inspected).
-- **Lazy-loaded routes** for each major feature from `app.routes.ts`.
-- **NgRx** for server-backed state in the features listed above; components dispatch actions and bind to selectors/`async` pipes.
-- **HTTP restricted to API services** under features (and `AuthApiService`, etc.); components use the store, not `HttpClient` directly.
-- **Typed models** in `features/*/models` and `auth.models.ts`; avoid introducing `any` (project convention stated in prior tasks).
-- **Strong typing for API paths** via `ApiContract` and `toApiUrl`.
+- **Standalone components only** — no NgModules anywhere in the app.
+- **Lazy-loaded routes** for every feature.
+- **NgRx** for all server-backed state; components dispatch actions and read selectors only.
+- **HTTP only in API services** — components never inject `HttpClient`.
+- **No `any`** — all models and API payloads are explicitly typed.
+- **No fake data** — toy-specific fields are shown only when the backend returns them.
+- **API paths via `ApiContract`** — no inline URL strings in services.
 
 ---
 
-## Quick reference: NPM scripts
+## Quick reference
 
 | Script | Command |
 |--------|---------|
-| Start dev server | `npm run start` |
+| Dev server | `npm run start` |
 | Production build | `npm run build` |
 | Unit tests | `npm run test` |

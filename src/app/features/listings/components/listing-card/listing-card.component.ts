@@ -6,9 +6,9 @@ import {
   input,
   Output,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 
 import { ImageContainerComponent } from '../../../../shared/ui/image-container/image-container.component';
 import type { ListingPreview } from '../../models/listing.model';
@@ -16,7 +16,13 @@ import type { ListingPreview } from '../../models/listing.model';
 @Component({
   selector: 'app-listing-card',
   standalone: true,
-  imports: [ButtonModule, CardModule, CurrencyPipe, TranslatePipe, ImageContainerComponent],
+  imports: [
+    ButtonModule,
+    CurrencyPipe,
+    ImageContainerComponent,
+    RouterLink,
+    TranslatePipe,
+  ],
   templateUrl: './listing-card.component.html',
   styleUrl: './listing-card.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,7 +32,9 @@ export class ListingCardComponent {
 
   @Output() readonly favoriteToggled = new EventEmitter<string>();
 
-  protected onFavoriteClick(): void {
+  protected onFavoriteClick(event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
     this.favoriteToggled.emit(this.listing().id);
   }
 }

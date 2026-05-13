@@ -1,8 +1,50 @@
-.listing-card__media {
+:host {
   display: block;
 }
 
-.listing-card__image {
+/* ── Card shell ──────────────────────────────────────────── */
+.listing-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  box-shadow: var(--ui-shadow-card);
+  overflow: hidden;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.listing-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ui-shadow-card-hover);
+}
+
+/* ── Clickable area (image + body) ───────────────────────── */
+.listing-card__link {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  text-decoration: none;
+  color: inherit;
+  outline: none;
+}
+
+.listing-card__link:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--ui-color-surface),
+    0 0 0 4px rgba(255, 96, 8, 0.55);
+}
+
+/* ── Media area ─────────────────────────────────────────── */
+.listing-card__media {
+  display: block;
+  overflow: hidden;
+}
+
+.listing-card__img {
   display: block;
   width: 100%;
   height: 100%;
@@ -10,68 +52,113 @@
   transition: transform 220ms ease;
 }
 
-.listing-card__placeholder {
+.listing-card:hover .listing-card__img {
+  transform: scale(1.03);
+}
+
+.listing-card__no-image {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   height: 100%;
   min-height: 10.5rem;
   padding: var(--ui-space-16);
-  text-align: center;
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 80%, #f0f2ff);
   color: var(--ui-color-text-secondary);
   font-size: var(--ui-font-size-caption);
+  text-align: center;
 }
 
+.listing-card__no-image-icon {
+  font-size: 2rem;
+  opacity: 0.3;
+}
+
+/* ── Text body ──────────────────────────────────────────── */
 .listing-card__body {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-8);
+  gap: var(--ui-space-4);
+  padding: var(--ui-space-16) var(--ui-space-20) var(--ui-space-12);
+  flex: 1 1 auto;
 }
 
 .listing-card__title {
   font-size: var(--ui-font-size-h3);
-  line-height: 1.25;
-  letter-spacing: -0.01em;
   font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--ui-color-text-primary);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .listing-card__city {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-4);
   font-size: var(--ui-font-size-caption);
   color: var(--ui-color-text-secondary);
 }
 
-.listing-card__price {
-  margin-top: var(--ui-space-8);
-  font-weight: 700;
-  color: #20263b;
+.listing-card__city .pi {
+  font-size: 0.7rem;
+  flex-shrink: 0;
 }
 
+.listing-card__price {
+  margin-top: var(--ui-space-8);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ui-color-primary-strong);
+}
+
+/* ── Footer: favorite button ────────────────────────────── */
 .listing-card__footer {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  padding: var(--ui-space-8) var(--ui-space-12);
+  border-top: 1px solid var(--ui-color-border);
 }
 
-:host {
-  display: block;
+.listing-card__fav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  color: var(--ui-color-text-secondary);
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+  padding: 0;
 }
 
-:host ::ng-deep .listing-card.p-card {
-  border-radius: var(--ui-radius-md);
-  border: 1px solid var(--ui-color-border);
-  overflow: hidden;
-  box-shadow: var(--ui-shadow-card);
-  transition: transform 180ms ease, box-shadow 180ms ease;
+.listing-card__fav-btn:hover {
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-primary);
 }
 
-:host ::ng-deep .listing-card.p-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--ui-shadow-card-hover);
+.listing-card__fav-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--ui-color-surface),
+    0 0 0 4px rgba(255, 96, 8, 0.55);
 }
 
-:host ::ng-deep .listing-card.p-card .p-card-body {
-  padding: var(--ui-space-20);
+.listing-card__fav-icon {
+  font-size: 1rem;
 }
 
-:host ::ng-deep .listing-card.p-card:hover .listing-card__image {
-  transform: scale(1.02);
+.listing-card__fav-icon.pi-heart-fill {
+  color: var(--ui-color-primary);
 }
