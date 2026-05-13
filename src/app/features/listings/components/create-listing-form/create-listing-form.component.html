@@ -174,6 +174,133 @@
     </div>
   </div>
 
+  <fieldset class="create-listing-form__toy-section">
+    <legend class="create-listing-form__toy-section-title">
+      {{ 'listings.createForm.toySection' | translate }}
+    </legend>
+    <p class="create-listing-form__toy-section-hint">
+      {{ 'listings.createForm.toySectionHint' | translate }}
+    </p>
+
+    <div class="create-listing-form__grid">
+      <div class="create-listing-form__field">
+        <label class="create-listing-form__label" for="create-listing-age-from">
+          {{ 'listings.createForm.ageFromMonths' | translate }}
+        </label>
+        <p-inputNumber
+          inputId="create-listing-age-from"
+          formControlName="ageFromMonths"
+          mode="decimal"
+          [min]="0"
+          [minFractionDigits]="0"
+          [maxFractionDigits]="0"
+          [useGrouping]="false"
+          [placeholder]="'listings.createForm.ageFromMonthsPlaceholder' | translate"
+          styleClass="create-listing-form__input"
+        />
+        @if (hasError('ageFromMonths')) {
+          <small class="create-listing-form__error">
+            {{ 'listings.createForm.validation.ageNonNegative' | translate }}
+          </small>
+        }
+      </div>
+
+      <div class="create-listing-form__field">
+        <label class="create-listing-form__label" for="create-listing-age-to">
+          {{ 'listings.createForm.ageToMonths' | translate }}
+        </label>
+        <p-inputNumber
+          inputId="create-listing-age-to"
+          formControlName="ageToMonths"
+          mode="decimal"
+          [min]="0"
+          [minFractionDigits]="0"
+          [maxFractionDigits]="0"
+          [useGrouping]="false"
+          [placeholder]="'listings.createForm.ageToMonthsPlaceholder' | translate"
+          styleClass="create-listing-form__input"
+        />
+        @if (hasError('ageToMonths')) {
+          <small class="create-listing-form__error">
+            {{ 'listings.createForm.validation.ageNonNegative' | translate }}
+          </small>
+        }
+      </div>
+
+      @if (hasAgeRangeError()) {
+        <small class="create-listing-form__error create-listing-form__field--full">
+          {{ 'listings.createForm.validation.ageRangeInvalid' | translate }}
+        </small>
+      }
+
+      <div class="create-listing-form__field">
+        <label class="create-listing-form__label" for="create-listing-condition">
+          {{ 'listings.createForm.condition' | translate }}
+        </label>
+        <select
+          id="create-listing-condition"
+          class="create-listing-form__select ui-select"
+          formControlName="condition"
+        >
+          <option value="">
+            {{ 'listings.createForm.conditionPlaceholder' | translate }}
+          </option>
+          @for (option of conditionOptions; track option.value) {
+            <option [value]="option.value">{{ option.labelKey | translate }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="create-listing-form__field">
+        <label class="create-listing-form__label" for="create-listing-deposit">
+          {{ 'listings.createForm.depositAmount' | translate }}
+        </label>
+        <p-inputNumber
+          inputId="create-listing-deposit"
+          formControlName="depositAmount"
+          mode="decimal"
+          [min]="0"
+          [minFractionDigits]="0"
+          [maxFractionDigits]="2"
+          [useGrouping]="true"
+          [placeholder]="'listings.createForm.depositAmountPlaceholder' | translate"
+          styleClass="create-listing-form__input"
+        />
+        @if (hasError('depositAmount')) {
+          <small class="create-listing-form__error">
+            {{ 'listings.createForm.validation.depositNonNegative' | translate }}
+          </small>
+        }
+      </div>
+
+      <div class="create-listing-form__field create-listing-form__field--full">
+        <label class="create-listing-form__label" for="create-listing-hygiene">
+          {{ 'listings.createForm.hygieneNotes' | translate }}
+        </label>
+        <textarea
+          id="create-listing-hygiene"
+          class="create-listing-form__textarea ui-textarea"
+          formControlName="hygieneNotes"
+          rows="3"
+          [placeholder]="'listings.createForm.hygieneNotesPlaceholder' | translate"
+        ></textarea>
+      </div>
+
+      <div class="create-listing-form__field create-listing-form__field--full">
+        <label class="create-listing-form__label" for="create-listing-safety">
+          {{ 'listings.createForm.safetyNotes' | translate }}
+        </label>
+        <textarea
+          id="create-listing-safety"
+          class="create-listing-form__textarea ui-textarea"
+          formControlName="safetyNotes"
+          rows="3"
+          [placeholder]="'listings.createForm.safetyNotesPlaceholder' | translate"
+        ></textarea>
+      </div>
+    </div>
+  </fieldset>
+
   <div class="create-listing-form__field create-listing-form__field--full">
     <label class="create-listing-form__label" for="create-listing-images">
       {{ 'listings.createForm.images' | translate }}

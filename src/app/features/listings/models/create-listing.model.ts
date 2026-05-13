@@ -1,3 +1,5 @@
+import type { ToyCondition } from './listing-details.model';
+
 export interface CreateListingRequest {
   title: string;
   description: string;
@@ -8,6 +10,14 @@ export interface CreateListingRequest {
   addressLine: string | null;
   latitude: number | null;
   longitude: number | null;
+
+  // Optional toy-specific fields. Only sent when the owner fills them in.
+  ageFromMonths?: number | null;
+  ageToMonths?: number | null;
+  condition?: ToyCondition | null;
+  hygieneNotes?: string | null;
+  safetyNotes?: string | null;
+  depositAmount?: number | null;
 }
 
 export interface CreateListingResponse {

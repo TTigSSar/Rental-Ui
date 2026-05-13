@@ -132,6 +132,82 @@
                   </p>
                 </section>
 
+                @if (hasAnyToyDetail(listing)) {
+                  <section
+                    class="detail-page__section"
+                    aria-labelledby="detail-toy-heading"
+                  >
+                    <h2
+                      id="detail-toy-heading"
+                      class="detail-page__section-title"
+                    >
+                      {{ 'listings.details.toyDetails.heading' | translate }}
+                    </h2>
+                    <dl class="detail-page__specs">
+                      @if (resolveAgeRangeDisplay(listing.ageFromMonths, listing.ageToMonths); as ageRange) {
+                        <div class="detail-page__spec">
+                          <dt class="detail-page__spec-label">
+                            {{ 'listings.details.toyDetails.ageRange' | translate }}
+                          </dt>
+                          <dd class="detail-page__spec-value">
+                            {{ ageRange.key | translate: ageRange.params }}
+                          </dd>
+                        </div>
+                      }
+                      @if (listing.condition; as condition) {
+                        <div class="detail-page__spec">
+                          <dt class="detail-page__spec-label">
+                            {{ 'listings.details.toyDetails.condition' | translate }}
+                          </dt>
+                          <dd class="detail-page__spec-value">
+                            @if (resolveConditionLabelKey(condition); as conditionKey) {
+                              {{ conditionKey | translate }}
+                            } @else {
+                              {{ condition }}
+                            }
+                          </dd>
+                        </div>
+                      }
+                      @if (listing.depositAmount !== null && listing.depositAmount !== undefined) {
+                        <div class="detail-page__spec">
+                          <dt class="detail-page__spec-label">
+                            {{ 'listings.details.toyDetails.deposit' | translate }}
+                          </dt>
+                          <dd class="detail-page__spec-value">
+                            {{
+                              'listings.details.toyDetails.depositValue'
+                                | translate
+                                  : {
+                                      amount: (listing.depositAmount | currency),
+                                    }
+                            }}
+                          </dd>
+                        </div>
+                      }
+                      @if (listing.hygieneNotes; as hygieneNotes) {
+                        <div class="detail-page__spec detail-page__spec--block">
+                          <dt class="detail-page__spec-label">
+                            {{ 'listings.details.toyDetails.hygieneNotes' | translate }}
+                          </dt>
+                          <dd class="detail-page__spec-value detail-page__spec-value--block">
+                            {{ hygieneNotes }}
+                          </dd>
+                        </div>
+                      }
+                      @if (listing.safetyNotes; as safetyNotes) {
+                        <div class="detail-page__spec detail-page__spec--block">
+                          <dt class="detail-page__spec-label">
+                            {{ 'listings.details.toyDetails.safetyNotes' | translate }}
+                          </dt>
+                          <dd class="detail-page__spec-value detail-page__spec-value--block">
+                            {{ safetyNotes }}
+                          </dd>
+                        </div>
+                      }
+                    </dl>
+                  </section>
+                }
+
                 <section
                   class="detail-page__section"
                   aria-labelledby="detail-cancellation-heading"

@@ -13,24 +13,6 @@
   </div>
 
   <div class="listings-filters__field">
-    <span class="listings-filters__label">
-      {{ 'listings.filters.quickCategories' | translate }}
-    </span>
-    <div class="listings-filters__chips">
-      @for (category of quickCategories; track category.id) {
-        <p-button
-          type="button"
-          size="small"
-          [text]="filterForm.controls.categoryId.value !== category.id"
-          [outlined]="filterForm.controls.categoryId.value !== category.id"
-          [label]="category.labelKey | translate"
-          (onClick)="applyQuickCategory(category.id)"
-        />
-      }
-    </div>
-  </div>
-
-  <div class="listings-filters__field">
     <label class="listings-filters__label" for="listings-filter-city">
       {{ 'listings.filters.city' | translate }}
     </label>

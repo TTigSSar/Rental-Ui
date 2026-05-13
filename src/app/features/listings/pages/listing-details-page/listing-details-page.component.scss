@@ -315,6 +315,50 @@
   }
 }
 
+.detail-page__specs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px 24px;
+  margin: 0;
+}
+
+.detail-page__spec {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.detail-page__spec--block {
+  grid-column: 1 / -1;
+}
+
+.detail-page__spec-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ui-color-footer);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+.detail-page__spec-value {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ui-color-text-primary);
+  margin: 0;
+}
+
+.detail-page__spec-value--block {
+  white-space: pre-line;
+}
+
+@media (max-width: 600px) {
+  .detail-page__specs {
+    grid-template-columns: 1fr;
+  }
+}
+
 .detail-page__section--host {
   padding: 24px;
   background: #fff;

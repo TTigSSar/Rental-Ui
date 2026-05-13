@@ -42,14 +42,6 @@ export class ListingsFiltersComponent {
     maxPrice: this.fb.control<number | null>(null),
   });
 
-  readonly quickCategories: ReadonlyArray<{ id: string; labelKey: string }> = [
-    { id: 'apartment', labelKey: 'listings.filters.categories.apartment' },
-    { id: 'house', labelKey: 'listings.filters.categories.house' },
-    { id: 'villa', labelKey: 'listings.filters.categories.villa' },
-    { id: 'studio', labelKey: 'listings.filters.categories.studio' },
-    { id: 'cabin', labelKey: 'listings.filters.categories.cabin' },
-  ];
-
   constructor() {
     this.filterForm.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -68,10 +60,6 @@ export class ListingsFiltersComponent {
       minPrice: raw.minPrice,
       maxPrice: raw.maxPrice,
     };
-  }
-
-  protected applyQuickCategory(categoryId: string): void {
-    this.filterForm.controls.categoryId.setValue(categoryId);
   }
 
   protected clearFilters(): void {

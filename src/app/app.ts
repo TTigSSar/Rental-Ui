@@ -70,12 +70,6 @@ export class App {
   /** Shown in the authenticated user menu (desktop dropdown + mobile drawer). */
   protected readonly accountMenuItems: readonly NavItem[] = [
     { path: '/profile', labelKey: 'app.shell.nav.profile', exactMatch: false },
-    { path: '/my-listings', labelKey: 'app.shell.nav.myListings', exactMatch: false },
-    {
-      path: '/bookings/requests',
-      labelKey: 'app.shell.nav.bookingRequests',
-      exactMatch: false,
-    },
   ];
 
   protected readonly availableLanguages: readonly LanguageOption[] = [
@@ -103,7 +97,6 @@ export class App {
       const isAdmin = user?.roles.includes('Admin') ?? false;
 
       const primaryNav: NavItem[] = [
-        { path: '/', labelKey: 'app.shell.nav.home', exactMatch: true },
         {
           path: '/listings',
           labelKey: 'app.shell.nav.listings',
@@ -114,15 +107,19 @@ export class App {
       if (isAuthenticated) {
         primaryNav.push(
           {
-            path: '/favorites',
-            labelKey: 'app.shell.nav.favorites',
+            path: '/my-listings',
+            labelKey: 'app.shell.nav.myListings',
             exactMatch: false,
           },
-          { path: '/chat', labelKey: 'app.shell.nav.chat', exactMatch: false },
           {
             path: '/bookings',
             labelKey: 'app.shell.nav.bookings',
             exactMatch: true,
+          },
+          {
+            path: '/bookings/requests',
+            labelKey: 'app.shell.nav.bookingRequests',
+            exactMatch: false,
           },
         );
       }

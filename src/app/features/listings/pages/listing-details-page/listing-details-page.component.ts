@@ -45,6 +45,75 @@ export interface ListingDetailsPageViewModel {
   readonly createBookingSuccess: boolean;
 }
 
+/**
+ * Resolves a backend `condition` string to a translation key when it matches
+ * a known canonical value. Returns `null` so the template can fall back to
+ * showing the raw backend string when the value is unknown.
+ */
+export function resolveConditionLabelKey(value: string | null | undefined): string | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const normalized = value.trim().toLowerCase().replace(/[\s_-]+/g, '');
+  switch (normalized) {
+    case 'new':
+      return 'listings.details.conditionValues.new';
+    case 'likenew':
+      return 'listings.details.conditionValues.likeNew';
+    case 'good':
+      return 'listings.details.conditionValues.good';
+    case 'fair':
+      return 'listings.details.conditionValues.fair';
+    default:
+      return null;
+  }
+}
+
+export interface AgeRangeDisplay {
+  readonly key: 'listings.details.toyDetails.ageRangeFromTo'
+    | 'listings.details.toyDetails.ageRangeFromOnly'
+    | 'listings.details.toyDetails.ageRangeToOnly';
+  readonly params: { from?: number; to?: number };
+}
+
+export function resolveAgeRangeDisplay(
+  fromMonths: number | null | undefined,
+  toMonths: number | null | undefined,
+): AgeRangeDisplay | null {
+  const hasFrom = typeof fromMonths === 'number' && Number.isFinite(fromMonths);
+  const hasTo = typeof toMonths === 'number' && Number.isFinite(toMonths);
+
+  if (hasFrom && hasTo) {
+    return {
+      key: 'listings.details.toyDetails.ageRangeFromTo',
+      params: { from: fromMonths, to: toMonths },
+    };
+  }
+  if (hasFrom) {
+    return {
+      key: 'listings.details.toyDetails.ageRangeFromOnly',
+      params: { from: fromMonths },
+    };
+  }
+  if (hasTo) {
+    return {
+      key: 'listings.details.toyDetails.ageRangeToOnly',
+      params: { to: toMonths },
+    };
+  }
+  return null;
+}
+
+export function hasAnyToyDetail(listing: ListingDetails): boolean {
+  return (
+    resolveAgeRangeDisplay(listing.ageFromMonths, listing.ageToMonths) !== null ||
+    (typeof listing.condition === 'string' && listing.condition.trim().length > 0) ||
+    (typeof listing.hygieneNotes === 'string' && listing.hygieneNotes.trim().length > 0) ||
+    (typeof listing.safetyNotes === 'string' && listing.safetyNotes.trim().length > 0) ||
+    (typeof listing.depositAmount === 'number' && Number.isFinite(listing.depositAmount))
+  );
+}
+
 interface ProtectionBulletKey {
   readonly id: string;
   readonly key: string;
@@ -98,6 +167,10 @@ export class ListingDetailsPageComponent {
   private readonly route = inject(ActivatedRoute);
 
   protected readonly protectionBullets = PROTECTION_BULLET_KEYS;
+
+  protected readonly resolveConditionLabelKey = resolveConditionLabelKey;
+  protected readonly resolveAgeRangeDisplay = resolveAgeRangeDisplay;
+  protected readonly hasAnyToyDetail = hasAnyToyDetail;
 
   private readonly routeId$ = this.route.paramMap.pipe(
     map((params) => params.get('id')),

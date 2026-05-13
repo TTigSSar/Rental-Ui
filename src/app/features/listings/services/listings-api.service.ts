@@ -232,6 +232,24 @@ export class ListingsApiService {
         typeof listing.pricePerDay === 'number' && Number.isFinite(listing.pricePerDay)
           ? listing.pricePerDay
           : 0,
+      ageFromMonths: normalizeFiniteNumber(listing.ageFromMonths),
+      ageToMonths: normalizeFiniteNumber(listing.ageToMonths),
+      condition: normalizeNonEmptyString(listing.condition),
+      hygieneNotes: normalizeNonEmptyString(listing.hygieneNotes),
+      safetyNotes: normalizeNonEmptyString(listing.safetyNotes),
+      depositAmount: normalizeFiniteNumber(listing.depositAmount),
     };
   }
+}
+
+function normalizeFiniteNumber(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function normalizeNonEmptyString(value: unknown): string | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? null : trimmed;
 }

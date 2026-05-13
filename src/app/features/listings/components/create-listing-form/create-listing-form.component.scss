@@ -66,6 +66,33 @@
   font-size: var(--ui-font-size-caption);
 }
 
+.create-listing-form__toy-section {
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  padding: var(--ui-space-16);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-12);
+  background: color-mix(
+    in srgb,
+    var(--ui-color-surface) 96%,
+    #fff
+  );
+}
+
+.create-listing-form__toy-section-title {
+  font-size: var(--ui-font-size-body);
+  font-weight: 600;
+  color: var(--ui-color-text-primary);
+  padding: 0 var(--ui-space-4);
+}
+
+.create-listing-form__toy-section-hint {
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-font-size-caption);
+  margin: 0;
+}
+
 .create-listing-form__actions {
   display: flex;
   justify-content: flex-end;

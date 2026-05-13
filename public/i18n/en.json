@@ -1,9 +1,9 @@
 {
   "app": {
     "shell": {
-      "brand": "StayFinder",
-      "brandPrefix": "Stay",
-      "brandSuffix": "Finder",
+      "brand": "ToyRent",
+      "brandPrefix": "Toy",
+      "brandSuffix": "Rent",
       "primaryNavAria": "Primary navigation",
       "secondaryNavAria": "Account navigation",
       "menuToggleAria": "Open menu",
@@ -13,108 +13,108 @@
       },
       "nav": {
         "home": "Home",
-        "listings": "Listings",
+        "listings": "Browse Toys",
         "favorites": "Favorites",
-        "myListings": "My listings",
+        "myListings": "My Toys",
         "chat": "Chat",
-        "bookings": "Bookings",
-        "bookingRequests": "Booking requests",
-        "pendingModeration": "Pending moderation",
+        "bookings": "My Bookings",
+        "bookingRequests": "Rental Requests",
+        "pendingModeration": "Pending Toy Listings",
         "profile": "Profile",
         "login": "Log in",
         "register": "Sign up",
         "logout": "Log out",
-        "addListing": "Add listing"
+        "addListing": "List a Toy"
       }
     }
   },
   "home": {
     "hero": {
-      "title": "Share more, own less, and rent from people in your local community.",
-      "subtitle": "Support neighbors and build trust through sharing.",
-      "cta": "Explore items near you",
-      "imageAlt": "People sharing items in a local community"
+      "title": "Rent quality toys for your child, close to home.",
+      "subtitle": "Less clutter at home, more variety for kids. Share toys with families in your area.",
+      "cta": "Browse toys near you",
+      "imageAlt": "Children playing with shared toys"
     },
     "search": {
-      "placeholder": "Find what you’re looking for",
-      "ariaLabel": "Search listings",
+      "placeholder": "Search toys by city",
+      "ariaLabel": "Search toys",
       "submit": "Search"
     },
-    "categoriesLabel": "All Categories",
-    "topProductsLabel": "Top Products",
+    "categoriesLabel": "Toy Categories",
+    "topProductsLabel": "Popular Toys",
     "featured": {
       "pricePerDay": "{{amount}} per day",
-      "emptyTitle": "No listings yet",
-      "empty": "New items from our community will appear here soon.",
-      "errorTitle": "We couldn’t load top products",
-      "prevLabel": "Previous products",
-      "nextLabel": "Next products",
+      "emptyTitle": "No toys yet",
+      "empty": "New toys from families in your area will appear here soon.",
+      "errorTitle": "We couldn’t load toys",
+      "prevLabel": "Previous toys",
+      "nextLabel": "Next toys",
       "toggleFavorite": "Save to favorites",
       "openChat": "Message the owner",
-      "placeholderCategory": "Rental"
+      "placeholderCategory": "Toy"
     },
     "categories": {
-      "emptyTitle": "Categories are on the way",
-      "empty": "Your marketplace categories will appear here.",
+      "emptyTitle": "Toy categories coming soon",
+      "empty": "Toy categories will appear here.",
       "errorTitle": "We couldn’t load categories",
       "prevLabel": "Previous categories",
       "nextLabel": "Next categories"
     },
     "process": {
       "modes": {
-        "renting": "Renting",
-        "lending": "Lending"
+        "renting": "Renting a toy",
+        "lending": "Listing a toy"
       },
       "renting": {
         "step1": {
           "title": "Log in or Sign up",
-          "text": "Log in or create an account to start your journey."
+          "text": "Create a parent account to start renting toys."
         },
         "step2": {
-          "title": "Find What You Need",
-          "text": "Search or browse items near you by category and location."
+          "title": "Find the right toy",
+          "text": "Browse toys near you by category, age range, and city."
         },
         "step3": {
-          "title": "Choose Dates",
-          "text": "Select the rental period and check availability instantly."
+          "title": "Choose dates",
+          "text": "Pick rental dates and check availability instantly."
         },
         "step4": {
-          "title": "Send a Request",
-          "text": "Request the item or book instantly in just a few clicks."
+          "title": "Send a request",
+          "text": "Send a rental request to the owner in a few clicks."
         },
         "step5": {
-          "title": "Pick Up & Use",
-          "text": "Meet the owner, pick up the item, and enjoy using it."
+          "title": "Pick up & play",
+          "text": "Meet the owner, collect the toy, and let your child enjoy."
         },
         "step6": {
-          "title": "Return & Review",
-          "text": "Return the item on time and leave a review."
+          "title": "Return on time",
+          "text": "Return the toy clean and on time, then rent the next one."
         }
       },
       "lending": {
         "step1": {
-          "title": "Create Your Listing",
-          "text": "Add photos, a description, and daily pricing in a few minutes."
+          "title": "List your toy",
+          "text": "Add photos, age range, condition, and a daily price in minutes."
         },
         "step2": {
-          "title": "Receive Requests",
-          "text": "Renters in your area will find your listing and ask to borrow."
+          "title": "Receive rental requests",
+          "text": "Parents nearby find your toy and send rental requests."
         },
         "step3": {
-          "title": "Approve a Booking",
-          "text": "Accept the dates that work for you and lock in the rental."
+          "title": "Approve a request",
+          "text": "Accept the dates that work for your family."
         },
         "step4": {
-          "title": "Hand Over the Item",
-          "text": "Meet the renter, verify their ID, and hand the item over."
+          "title": "Hand over the toy",
+          "text": "Meet the renter and hand over the toy clean and safe."
         },
         "step5": {
-          "title": "Get Paid",
-          "text": "Payouts are released after pickup with transparent pricing."
+          "title": "Get the toy back",
+          "text": "Get the toy returned on the agreed date."
         },
         "step6": {
-          "title": "Review & Repeat",
-          "text": "Get the item back, leave a review, and keep earning."
+          "title": "Repeat",
+          "text": "List more toys your child has outgrown and keep them in use."
         }
       }
     },
@@ -125,28 +125,28 @@
       "helpCta": "Send email",
       "items": {
         "q1": {
-          "question": "How does renting work?",
-          "answer": "Find an item, pick your dates, send a request, and meet the owner to pick it up. Return it on time and leave a review."
+          "question": "How does renting a toy work?",
+          "answer": "Find a toy your child will love, pick rental dates, send a request, and meet the owner to pick it up. Return it clean and on time."
         },
         "q2": {
-          "question": "Is it safe to rent from other people?",
-          "answer": "Every renter goes through verification, and every transaction is tracked. You always see who you are renting from before confirming."
+          "question": "Is it safe to rent toys from other families?",
+          "answer": "Owners share photos, condition, and hygiene notes. Every booking goes through the owner so you always know who you are renting from."
         },
         "q3": {
-          "question": "What happens if an item gets damaged?",
-          "answer": "We offer damage protection on every confirmed rental. Report any issue within 24 hours of returning the item and we will help resolve it."
+          "question": "How are toys cleaned between rentals?",
+          "answer": "Owners describe how each toy is cleaned in the listing. Many also charge a small refundable deposit to cover damage or excessive wear."
         },
         "q4": {
-          "question": "How do payments work?",
-          "answer": "Payments are processed securely when your booking is confirmed, and owners receive their payout after the pickup is verified."
+          "question": "What if my child loses a part of the toy?",
+          "answer": "Report it to the owner as soon as possible. If a deposit was set, it can be used to cover damage or replacement."
         },
         "q5": {
           "question": "Can I cancel a rental?",
-          "answer": "Free cancellation up to two days before the rental starts. After that, a partial refund may apply depending on the owner’s policy."
+          "answer": "You can cancel a pending rental request at any time. Once approved, cancellation depends on the owner’s policy."
         },
         "q6": {
-          "question": "What do I need to list an item for rent?",
-          "answer": "Create an account, add at least one clear photo, a short description, and a daily price. You can start earning within minutes."
+          "question": "What do I need to list a toy?",
+          "answer": "Create an account, add at least one clear photo, choose a toy category, add a description and a daily price. Optionally add an age range and a refundable deposit."
         }
       }
     },
@@ -156,7 +156,7 @@
       "terms": "Terms and Conditions",
       "privacy": "Privacy & Policy",
       "partnership": "Partnership",
-      "allCategories": "All categories",
+      "allCategories": "All toy categories",
       "findUs": "You can find us in:",
       "instagram": "Instagram",
       "facebook": "Facebook",
@@ -184,14 +184,14 @@
     },
     "login": {
       "title": "Sign in",
-      "subtitle": "Access your account to manage bookings and favorites.",
+      "subtitle": "Access your account to manage toy rentals.",
       "submit": "Sign in",
       "noAccount": "Don't have an account?",
       "goToRegister": "Create one"
     },
     "register": {
       "title": "Create account",
-      "subtitle": "Register to save favorites and book rentals securely.",
+      "subtitle": "Register to rent and list child toys with families nearby.",
       "submit": "Create account",
       "haveAccount": "Already have an account?",
       "goToLogin": "Sign in"
@@ -208,28 +208,20 @@
       "toggleFavorite": "Toggle favorite"
     },
     "filters": {
-      "intro": "Set filters to quickly find the right stay.",
+      "intro": "Filter to find the right toy quickly.",
       "clear": "Clear filters",
-      "quickCategories": "Quick categories",
       "city": "City",
       "cityPlaceholder": "Enter city",
-      "categoryId": "Category",
-      "categoryPlaceholder": "Pick a category or enter an ID",
-      "categoryHint": "Quick categories apply category IDs used by the API.",
-      "categories": {
-        "apartment": "Apartment",
-        "house": "House",
-        "villa": "Villa",
-        "studio": "Studio",
-        "cabin": "Cabin"
-      },
+      "categoryId": "Toy category",
+      "categoryPlaceholder": "Enter a toy category ID",
+      "categoryHint": "Category IDs come from the toy categories returned by the API.",
       "minPrice": "Minimum price",
       "minPricePlaceholder": "Min",
       "maxPrice": "Maximum price",
       "maxPricePlaceholder": "Max"
     },
     "gallery": {
-      "mainImageAlt": "Listing image",
+      "mainImageAlt": "Toy image",
       "thumbnailsLabel": "Gallery thumbnails",
       "noImages": "No images to display",
       "prev": "Previous image",
@@ -238,73 +230,91 @@
       "dotLabel": "Go to image {{index}}"
     },
     "booking": {
-      "calendarLabel": "Select stay dates",
+      "calendarLabel": "Select rental dates",
       "totalPrice": "Total: {{amount}}",
       "selectRangeHint": "Select a start and end date to see the total.",
       "priceSuffix": "per day",
       "totalLabel": "Total",
-      "cta": "Request to book",
+      "cta": "Send rental request",
       "submitting": "Submitting...",
       "disabledHint": "Select dates",
       "nights": "{{count}} day(s)",
-      "assurance": "Free cancellation up to 48h before pickup. Damage protection included."
+      "assurance": "Send a request to the owner. The owner approves your rental dates before you pick up the toy."
     },
     "page": {
-      "title": "Listings",
-      "subtitle": "Browse verified listings and compare prices with confidence.",
-      "errorTitle": "Unable to load listings",
-      "emptyTitle": "No matching listings",
-      "empty": "No listings match your filters.",
-      "loading": "Loading listings",
-      "loadingMore": "Loading more listings"
+      "title": "Browse Toys",
+      "subtitle": "Find rentable toys from families near you.",
+      "errorTitle": "Unable to load toys",
+      "emptyTitle": "No toys match your filters",
+      "empty": "Try adjusting filters to see more toys.",
+      "loading": "Loading toys",
+      "loadingMore": "Loading more toys"
     },
     "details": {
-      "back": "Back to listings",
-      "subNavAria": "Listing breadcrumb",
-      "invalidRoute": "This listing link is not valid.",
-      "loading": "Loading listing details",
+      "back": "Back to toys",
+      "subNavAria": "Toy listing breadcrumb",
+      "invalidRoute": "This toy listing link is not valid.",
+      "loading": "Loading toy details",
       "cityLabel": "Location",
       "priceLabel": "{{amount}} per day",
-      "assurance": "Verified listing details, transparent pricing, and secure host contact.",
+      "assurance": "Owner-managed toy rentals with transparent pricing.",
       "descriptionHeading": "Description",
-      "hostHeading": "Your host",
+      "hostHeading": "Toy owner",
       "contactLabel": "Contact not shared",
       "bookingHeading": "Check availability",
-      "bookingSubtitle": "Pick your rental dates and see the total before you request.",
-      "bookingSubmitting": "Submitting booking request...",
-      "bookingSuccess": "Booking request submitted successfully.",
+      "bookingSubtitle": "Pick your rental dates and see the total before you send a rental request.",
+      "bookingSubmitting": "Submitting rental request...",
+      "bookingSuccess": "Rental request submitted successfully.",
       "breadcrumb": {
         "home": "Home",
-        "listings": "Listings"
+        "listings": "Browse Toys"
+      },
+      "toyDetails": {
+        "heading": "Toy details",
+        "ageRange": "Recommended age",
+        "ageRangeFromTo": "{{from}}–{{to}} months",
+        "ageRangeFromOnly": "From {{from}} months",
+        "ageRangeToOnly": "Up to {{to}} months",
+        "condition": "Condition",
+        "hygieneNotes": "Hygiene & cleaning",
+        "safetyNotes": "Safety notes",
+        "deposit": "Refundable deposit",
+        "depositValue": "{{amount}} deposit"
+      },
+      "conditionValues": {
+        "new": "New",
+        "likeNew": "Like new",
+        "good": "Good",
+        "fair": "Fair"
       },
       "cancellation": {
         "title": "Cancellation Terms",
-        "body": "Free cancellation until 2 days before your rental starts. After that, you'll get half your money back until the day before."
+        "body": "Cancel a pending rental request at any time. Once the owner approves your booking, cancellation depends on the owner’s policy."
       },
       "protection": {
-        "title": "Damage, Theft, or Loss",
-        "intro": "Every rental on StayFinder includes protection against damage, theft, or loss. The exact coverage depends on which market you rent in and what type of item it is.",
-        "whatIncluded": "What is included",
-        "forAllRentals": "For all rentals (all markets)",
-        "bullet1": "Protection against sudden and unforeseen damage, theft, or loss during a confirmed rental period",
-        "bullet2": "Coverage applies only for bookings made through StayFinder",
-        "bullet3": "Only verified borrowers are eligible for protection — your verification must be fully approved before the rental starts",
-        "bullet4": "No excess for general items",
-        "bullet5": "Excess applies only for vehicles and trailers."
+        "title": "Damage, Loss & Deposit",
+        "intro": "Many toy owners on ToyRent ask for a small refundable deposit. The exact deposit and refund policy is set by each owner.",
+        "whatIncluded": "What this covers",
+        "forAllRentals": "For all toy rentals",
+        "bullet1": "The deposit can be used to cover damage, missing parts, or excessive wear",
+        "bullet2": "The deposit is refunded after the toy is returned in the agreed condition",
+        "bullet3": "Owners describe how each toy is cleaned between rentals in the hygiene notes",
+        "bullet4": "Renters must respect any age and safety notes set by the owner",
+        "bullet5": "If there is a dispute, contact the owner first and then ToyRent support."
       }
     },
     "createPage": {
-      "title": "Create listing",
-      "loadingCategories": "Loading listing categories...",
-      "success": "Listing created successfully."
+      "title": "List a Toy",
+      "loadingCategories": "Loading toy categories...",
+      "success": "Toy listing created successfully."
     },
     "createForm": {
-      "title": "Title",
-      "titlePlaceholder": "Enter listing title",
+      "title": "Toy name",
+      "titlePlaceholder": "e.g. Wooden train set",
       "description": "Description",
-      "descriptionPlaceholder": "Describe your place",
-      "category": "Category",
-      "categoryPlaceholder": "Select category",
+      "descriptionPlaceholder": "Describe the toy, what’s included, and how it’s used.",
+      "category": "Toy category",
+      "categoryPlaceholder": "Select toy category",
       "pricePerDay": "Price per day",
       "pricePerDayPlaceholder": "Enter daily price",
       "country": "Country",
@@ -317,13 +327,36 @@
       "latitudePlaceholder": "e.g. 40.1792",
       "longitude": "Longitude",
       "longitudePlaceholder": "e.g. 44.4991",
-      "images": "Images",
-      "imagesSelected": "images selected",
-      "imagesHint": "You can select one or more listing images.",
-      "submit": "Create listing",
+      "images": "Toy photos",
+      "imagesSelected": "photos selected",
+      "imagesHint": "Add one or more clear photos of the toy.",
+      "submit": "List toy",
+      "toySection": "Toy details (optional)",
+      "toySectionHint": "These fields help parents decide if the toy fits their child.",
+      "ageFromMonths": "Min age (months)",
+      "ageFromMonthsPlaceholder": "e.g. 12",
+      "ageToMonths": "Max age (months)",
+      "ageToMonthsPlaceholder": "e.g. 36",
+      "condition": "Condition",
+      "conditionPlaceholder": "Select condition",
+      "conditionOptions": {
+        "new": "New",
+        "likeNew": "Like new",
+        "good": "Good",
+        "fair": "Fair"
+      },
+      "hygieneNotes": "Hygiene & cleaning notes",
+      "hygieneNotesPlaceholder": "How is the toy cleaned between rentals?",
+      "safetyNotes": "Safety notes",
+      "safetyNotesPlaceholder": "Small parts, age warnings, supervision required, etc.",
+      "depositAmount": "Refundable deposit",
+      "depositAmountPlaceholder": "Optional deposit amount",
       "validation": {
         "required": "This field is required.",
-        "priceGreaterThanZero": "Price must be greater than 0."
+        "priceGreaterThanZero": "Price must be greater than 0.",
+        "ageRangeInvalid": "Max age must be greater than or equal to min age.",
+        "depositNonNegative": "Deposit cannot be negative.",
+        "ageNonNegative": "Age cannot be negative."
       }
     }
   },
@@ -356,11 +389,11 @@
   },
   "myListings": {
     "page": {
-      "title": "My listings",
-      "subtitle": "Manage the listings you created and monitor their status.",
-      "errorTitle": "Unable to load your listings",
-      "emptyTitle": "No listings yet",
-      "empty": "Your created listings will appear here."
+      "title": "My Toys",
+      "subtitle": "Manage the toys you’ve listed and watch their status.",
+      "errorTitle": "Unable to load your toys",
+      "emptyTitle": "No toys yet",
+      "empty": "Toys you list will appear here."
     },
     "card": {
       "noImage": "No image available",
@@ -392,7 +425,7 @@
       "cancelled": "Cancelled"
     },
     "actions": {
-      "viewListing": "View listing",
+      "viewListing": "View toy",
       "approve": "Approve",
       "reject": "Reject"
     },
@@ -401,20 +434,20 @@
       "notAvailable": "Not available"
     },
     "myBookings": {
-      "title": "My bookings",
-      "subtitle": "Track your stays and booking outcomes in one place.",
+      "title": "My Bookings",
+      "subtitle": "Track the toys you’ve rented in one place.",
       "errorTitle": "Unable to load your bookings",
       "emptyTitle": "No bookings yet",
-      "empty": "Your bookings will appear here once you reserve listings.",
+      "empty": "Once you rent a toy, your bookings will appear here.",
       "dateRange": "Date range",
       "totalPrice": "Total: {{amount}}"
     },
     "requests": {
-      "title": "Booking requests",
-      "subtitle": "Review and manage booking requests for your listings.",
-      "errorTitle": "Unable to load booking requests",
-      "emptyTitle": "No booking requests",
-      "empty": "Incoming booking requests will appear here.",
+      "title": "Rental Requests",
+      "subtitle": "Review and respond to rental requests for your toys.",
+      "errorTitle": "Unable to load rental requests",
+      "emptyTitle": "No rental requests",
+      "empty": "Incoming rental requests for your toys will appear here.",
       "renter": "Renter",
       "dateRange": "Date range",
       "totalPrice": "Total: {{amount}}"
@@ -423,11 +456,11 @@
   "admin": {
     "pendingListings": {
       "page": {
-        "title": "Pending listings moderation",
-        "subtitle": "Review pending listings before they become visible to renters.",
-        "errorTitle": "Unable to load pending listings",
-        "emptyTitle": "No pending listings",
-        "empty": "New pending listings will appear here for moderation."
+        "title": "Pending Toy Listings",
+        "subtitle": "Review pending toy listings before they’re visible to parents.",
+        "errorTitle": "Unable to load pending toy listings",
+        "emptyTitle": "No pending toys",
+        "empty": "New toy listings awaiting approval will appear here."
       },
       "card": {
         "noImage": "No image available",
@@ -438,8 +471,8 @@
       },
       "actions": {
         "view": "View",
-        "approve": "Approve",
-        "reject": "Reject"
+        "approve": "Approve toy",
+        "reject": "Reject toy"
       },
       "common": {
         "notAvailable": "Not available"
@@ -449,10 +482,10 @@
   "favorites": {
     "page": {
       "title": "Favorites",
-      "subtitle": "Browse all listings you have saved.",
+      "subtitle": "Browse all toys you have saved.",
       "errorTitle": "Unable to load favorites",
       "emptyTitle": "No favorites yet",
-      "empty": "Save listings to favorites to quickly find them later."
+      "empty": "Save toys to favorites to quickly find them later."
     }
   },
   "chat": {
@@ -461,7 +494,7 @@
     },
     "conversations": {
       "title": "Conversations",
-      "subtitle": "Stay connected with renters and hosts.",
+      "subtitle": "Stay connected with renters and owners.",
       "errorTitle": "Unable to load conversations",
       "emptyTitle": "No conversations yet",
       "empty": "Your conversations will appear here after you start chatting.",
