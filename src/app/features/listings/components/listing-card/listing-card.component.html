@@ -4,7 +4,6 @@
     [routerLink]="['/listings', listing().id]"
     [attr.aria-label]="listing().title"
   >
-    <!-- app-ui-image-container is the media element so display:block applies to its host -->
     <app-ui-image-container class="listing-card__media" aspectRatio="16 / 10">
       @if (listing().mainImageUrl) {
         <img
