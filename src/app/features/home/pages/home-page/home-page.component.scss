@@ -282,6 +282,12 @@
   height: auto;
 }
 
+.home__carousel--sections .home__carousel-item--section {
+  width: 280px;
+  max-width: 100%;
+  height: auto;
+}
+
 @media (max-width: 600px) {
   .home__carousel--categories .home__carousel-item,
   .home__carousel--products .home__carousel-item--product {

@@ -9,6 +9,8 @@ import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
 
 import { AdminModerationEffects } from './features/admin/store/admin-moderation.effects';
+import { HomeEffects } from './features/home/store/home.effects';
+import { homeFeatureKey, homeReducer } from './features/home/store/home.reducer';
 import {
   adminModerationFeatureKey,
   adminModerationReducer,
@@ -48,6 +50,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([authInterceptor])),
     provideStore(),
     provideState(adminModerationFeatureKey, adminModerationReducer),
+    provideState(homeFeatureKey, homeReducer),
     provideState(authFeatureKey, authReducer),
     provideState(bookingsFeatureKey, bookingsReducer),
     provideState(chatFeatureKey, chatReducer),
@@ -56,6 +59,7 @@ export const appConfig: ApplicationConfig = {
     provideState(myListingsFeatureKey, myListingsReducer),
     provideState(profileFeatureKey, profileReducer),
     provideEffects(AdminModerationEffects),
+    provideEffects(HomeEffects),
     provideEffects(AuthEffects),
     provideEffects(BookingsEffects),
     provideEffects(ChatEffects),

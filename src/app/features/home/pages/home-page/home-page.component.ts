@@ -10,7 +10,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
-import { Observable, map } from 'rxjs';
+import { Observable, combineLatest, map } from 'rxjs';
 
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { LoadingSkeletonComponent } from '../../../../shared/ui/loading-skeleton/loading-skeleton.component';
@@ -25,6 +25,13 @@ import {
   selectListingsError,
   selectListingsLoading,
 } from '../../../listings/store/listings.selectors';
+import type { HomeSectionResponse } from '../../models/home-section.model';
+import { HomeSectionsActions } from '../../store/home.actions';
+import {
+  selectHomeSections,
+  selectHomeSectionsError,
+  selectHomeSectionsLoading,
+} from '../../store/home.selectors';
 import {
   CategoryTileComponent,
   type HomeCategoryTileVm,
@@ -63,6 +70,9 @@ interface HomePageViewModel {
   readonly showCategoriesSkeleton: boolean;
   readonly showCategoriesEmpty: boolean;
   readonly isAuthenticated: boolean;
+  readonly sections: HomeSectionResponse[];
+  readonly sectionsLoading: boolean;
+  readonly sectionsError: string | null;
 }
 
 const FEATURED_LIMIT = 12;
@@ -75,9 +85,7 @@ const DEFAULT_VISUAL: CategoryVisual = {
 
 /**
  * Slug -> PrimeIcon + gradient tint mapping used when the API returns
- * categories without image URLs. Mirrors the category names visible in the
- * Figma "All Categories" carousel so the tiles feel cohesive even without
- * real imagery.
+ * categories without image URLs.
  */
 const CATEGORY_VISUALS: Readonly<Record<string, CategoryVisual>> = {
   construction: {
@@ -270,44 +278,49 @@ export class HomePageComponent implements OnInit {
     query: this.fb.nonNullable.control(''),
   });
 
-  protected readonly viewModel$: Observable<HomePageViewModel> = this.store
-    .select(selectHomeSource)
-    .pipe(
-      map((source): HomePageViewModel => {
-        const featured = source.items.slice(0, FEATURED_LIMIT);
-        const mappedCategories: HomeCategoryTileVm[] = source.categories.map(
-          (category): HomeCategoryTileVm => {
-            const visual =
-              CATEGORY_VISUALS[category.slug.toLowerCase()] ?? DEFAULT_VISUAL;
-            return {
-              id: category.id,
-              slug: category.slug,
-              label: category.name,
-              icon: visual.icon,
-              tintA: visual.tintA,
-              tintB: visual.tintB,
-            };
-          },
-        );
+  protected readonly viewModel$: Observable<HomePageViewModel> = combineLatest([
+    this.store.select(selectHomeSource),
+    this.store.select(selectHomeSections),
+    this.store.select(selectHomeSectionsLoading),
+    this.store.select(selectHomeSectionsError),
+  ]).pipe(
+    map(([source, sections, sectionsLoading, sectionsError]): HomePageViewModel => {
+      const featured = source.items.slice(0, FEATURED_LIMIT);
+      const mappedCategories: HomeCategoryTileVm[] = source.categories.map(
+        (category): HomeCategoryTileVm => {
+          const visual =
+            CATEGORY_VISUALS[category.slug.toLowerCase()] ?? DEFAULT_VISUAL;
+          return {
+            id: category.id,
+            slug: category.slug,
+            label: category.name,
+            icon: visual.icon,
+            tintA: visual.tintA,
+            tintB: visual.tintB,
+          };
+        },
+      );
 
-        return {
-          featured,
-          featuredError: source.listingsError,
-          showFeaturedSkeleton:
-            source.listingsLoading && featured.length === 0,
-          showFeaturedEmpty:
-            !source.listingsLoading &&
-            featured.length === 0 &&
-            source.listingsError === null,
-          categories: mappedCategories,
-          showCategoriesSkeleton:
-            source.categoriesLoading && mappedCategories.length === 0,
-          showCategoriesEmpty:
-            !source.categoriesLoading && mappedCategories.length === 0,
-          isAuthenticated: source.isAuthenticated,
-        };
-      }),
-    );
+      return {
+        featured,
+        featuredError: source.listingsError,
+        showFeaturedSkeleton: source.listingsLoading && featured.length === 0,
+        showFeaturedEmpty:
+          !source.listingsLoading &&
+          featured.length === 0 &&
+          source.listingsError === null,
+        categories: mappedCategories,
+        showCategoriesSkeleton:
+          source.categoriesLoading && mappedCategories.length === 0,
+        showCategoriesEmpty:
+          !source.categoriesLoading && mappedCategories.length === 0,
+        isAuthenticated: source.isAuthenticated,
+        sections,
+        sectionsLoading,
+        sectionsError,
+      };
+    }),
+  );
 
   ngOnInit(): void {
     this.store.dispatch(
@@ -322,6 +335,7 @@ export class HomePageComponent implements OnInit {
     );
     this.store.dispatch(ListingsActions.loadListings());
     this.store.dispatch(ListingsActions.loadListingCategories());
+    this.store.dispatch(HomeSectionsActions.load());
   }
 
   protected onSearchSubmit(): void {
@@ -381,6 +395,10 @@ export class HomePageComponent implements OnInit {
 
   protected retryFeatured(): void {
     this.store.dispatch(ListingsActions.loadListings());
+  }
+
+  protected retryHomeSections(): void {
+    this.store.dispatch(HomeSectionsActions.load());
   }
 
   protected scrollCarousel(carousel: HTMLElement, direction: -1 | 1): void {

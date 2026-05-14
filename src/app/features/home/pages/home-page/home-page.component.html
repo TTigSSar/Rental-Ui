@@ -148,6 +148,76 @@
         }
       </section>
 
+      <!-- Toy sections from backend (Popular Toys, Most Recent, etc.) -->
+      @if (vm.sectionsLoading) {
+        <section class="home__section">
+          <app-ui-loading-skeleton class="home__skeleton" [items]="4" />
+        </section>
+      } @else if (vm.sectionsError) {
+        <section class="home__section">
+          <div class="home__error" role="alert">
+            <app-ui-empty-state
+              icon="pi pi-exclamation-triangle"
+              [title]="'home.sections.errorTitle' | translate"
+              [description]="vm.sectionsError"
+            />
+            <button
+              type="button"
+              class="home__error-retry"
+              (click)="retryHomeSections()"
+            >
+              {{ 'listings.common.retry' | translate }}
+            </button>
+          </div>
+        </section>
+      } @else {
+        @for (section of vm.sections; track section.key) {
+          @if (section.items.length > 0) {
+            <section
+              class="home__section"
+              [attr.aria-labelledby]="'home-section-' + section.key"
+            >
+              <h2
+                [id]="'home-section-' + section.key"
+                class="home__pill-heading"
+              >
+                {{ section.title }}
+              </h2>
+              <div class="home__carousel-wrapper">
+                <button
+                  type="button"
+                  class="home__carousel-nav home__carousel-nav--prev"
+                  [attr.aria-label]="'home.featured.prevLabel' | translate"
+                  (click)="scrollCarousel(sectionCarousel, -1)"
+                >
+                  <i class="pi pi-chevron-left" aria-hidden="true"></i>
+                </button>
+                <div
+                  #sectionCarousel
+                  class="home__carousel home__carousel--sections"
+                >
+                  @for (item of section.items; track item.id) {
+                    <app-featured-listing-tile
+                      class="home__carousel-item home__carousel-item--section"
+                      [listing]="item"
+                      (favoriteToggle)="onFavoriteToggle($event)"
+                    />
+                  }
+                </div>
+                <button
+                  type="button"
+                  class="home__carousel-nav home__carousel-nav--next"
+                  [attr.aria-label]="'home.featured.nextLabel' | translate"
+                  (click)="scrollCarousel(sectionCarousel, 1)"
+                >
+                  <i class="pi pi-chevron-right" aria-hidden="true"></i>
+                </button>
+              </div>
+            </section>
+          }
+        }
+      }
+
       <!-- Process section (Renting / Lending toggle + steps) -->
       <section class="home__process" aria-labelledby="home-process-heading">
         <h2 id="home-process-heading" class="home__sr-only">

@@ -60,6 +60,9 @@
       "prevLabel": "Previous categories",
       "nextLabel": "Next categories"
     },
+    "sections": {
+      "errorTitle": "We couldn't load toy sections"
+    },
     "process": {
       "modes": {
         "renting": "Renting a toy",

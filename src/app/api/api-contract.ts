@@ -49,6 +49,9 @@ export const ApiContract = {
   profile: {
     me: '/api/profile/me',
   },
+  home: {
+    sections: '/api/home/sections',
+  },
   chat: {
     conversations: '/api/chat/conversations',
     conversationById: (conversationId: string): ApiPath =>
