@@ -1,19 +1,21 @@
 <section class="create-listing-page page-container section-stack">
+  <!-- Page header -->
   <header class="create-listing-page__header">
-    <h1 class="create-listing-page__title">
-      {{ 'listings.createPage.title' | translate }}
-    </h1>
+    <div class="create-listing-page__title-wrap">
+      <h1 class="create-listing-page__title">
+        {{ 'listings.createPage.title' | translate }}
+      </h1>
+      <p class="create-listing-page__subtitle">
+        {{ 'listings.createPage.subtitle' | translate }}
+      </p>
+    </div>
+    <div class="create-listing-page__notice" role="note">
+      <span class="pi pi-info-circle create-listing-page__notice-icon" aria-hidden="true"></span>
+      {{ 'listings.createPage.adminReviewNotice' | translate }}
+    </div>
   </header>
 
   @if (vm$ | async; as vm) {
-    @if (vm.showCategoriesLoadingState) {
-      <p-message
-        severity="info"
-        styleClass="create-listing-page__message"
-        [text]="'listings.createPage.loadingCategories' | translate"
-      />
-    }
-
     @if (vm.createListingError; as createError) {
       <p-message
         severity="error"
@@ -22,21 +24,51 @@
       />
     }
 
-    @if (vm.createListingSuccessId) {
-      <p-message
-        severity="success"
-        styleClass="create-listing-page__message"
-        [text]="'listings.createPage.success' | translate"
-      />
-    }
+    <!-- Two-column layout: form (main) + tips (sidebar) -->
+    <div class="create-listing-page__layout">
+      <!-- Main column: form -->
+      <div class="create-listing-page__main">
+        <app-create-listing-form
+          [categories]="vm.categories"
+          [isSubmitting]="vm.createListingLoading"
+          (submitted)="onSubmitted($event)"
+          (cancelled)="onCancelled()"
+        />
+      </div>
 
-    <div class="create-listing-page__form-container">
-      <app-create-listing-form
-        [categories]="vm.categories"
-        [isSubmitting]="vm.createListingLoading"
-        (submitted)="onSubmitted($event)"
-        (cancelled)="onCancelled()"
-      />
+      <!-- Sidebar: tips and guidance -->
+      <aside class="create-listing-page__sidebar" aria-label="Listing tips">
+        <div class="create-listing-page__tips-card">
+          <h2 class="create-listing-page__tips-title">
+            <span class="pi pi-lightbulb" aria-hidden="true"></span>
+            {{ 'listings.createPage.tips.title' | translate }}
+          </h2>
+
+          <ul class="create-listing-page__tips-list">
+            <li class="create-listing-page__tips-item">
+              <span class="pi pi-camera create-listing-page__tips-icon" aria-hidden="true"></span>
+              <span>{{ 'listings.createPage.tips.realPhotos' | translate }}</span>
+            </li>
+            <li class="create-listing-page__tips-item">
+              <span class="pi pi-list create-listing-page__tips-icon" aria-hidden="true"></span>
+              <span>{{ 'listings.createPage.tips.missingPieces' | translate }}</span>
+            </li>
+            <li class="create-listing-page__tips-item">
+              <span class="pi pi-heart create-listing-page__tips-icon" aria-hidden="true"></span>
+              <span>{{ 'listings.createPage.tips.hygiene' | translate }}</span>
+            </li>
+            <li class="create-listing-page__tips-item">
+              <span class="pi pi-tag create-listing-page__tips-icon" aria-hidden="true"></span>
+              <span>{{ 'listings.createPage.tips.fairPrice' | translate }}</span>
+            </li>
+          </ul>
+
+          <div class="create-listing-page__tips-approval">
+            <span class="pi pi-shield create-listing-page__tips-icon" aria-hidden="true"></span>
+            <span>{{ 'listings.createPage.tips.adminApproval' | translate }}</span>
+          </div>
+        </div>
+      </aside>
     </div>
   }
 </section>

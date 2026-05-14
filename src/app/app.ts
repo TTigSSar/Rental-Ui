@@ -96,13 +96,7 @@ export class App {
     map(({ isAuthenticated, isAuthLoading, user }): AppShellViewModel => {
       const isAdmin = user?.roles.includes('Admin') ?? false;
 
-      const primaryNav: NavItem[] = [
-        {
-          path: '/listings',
-          labelKey: 'app.shell.nav.listings',
-          exactMatch: false,
-        },
-      ];
+      const primaryNav: NavItem[] = [];
 
       if (isAuthenticated) {
         primaryNav.push(

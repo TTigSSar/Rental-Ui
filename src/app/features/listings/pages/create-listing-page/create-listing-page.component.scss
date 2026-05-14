@@ -1,33 +1,158 @@
+/* ── Page shell ──────────────────────────────────────────── */
 .create-listing-page {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-24);
-  max-width: 980px;
-  padding-bottom: var(--ui-space-32);
+  padding-top: var(--ui-space-32);
+  padding-bottom: var(--ui-space-64);
 }
 
+/* ── Header ───────────────────────────────────────────────── */
 .create-listing-page__header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--ui-space-16);
+}
+
+.create-listing-page__title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-8);
 }
 
 .create-listing-page__title {
   font-size: var(--ui-font-size-h1);
   font-weight: 700;
   line-height: 1.15;
+  letter-spacing: -0.02em;
   color: var(--ui-color-text-primary);
+  max-width: 32ch;
 }
 
+.create-listing-page__subtitle {
+  color: var(--ui-color-text-secondary);
+  font-size: 0.98rem;
+  max-width: 52ch;
+}
+
+/* ── Admin review notice ─────────────────────────────────── */
+.create-listing-page__notice {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-8);
+  padding: var(--ui-space-12) var(--ui-space-16);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, #fff8f3);
+  border: 1px solid color-mix(in srgb, var(--ui-color-primary-soft) 40%, transparent);
+  border-radius: var(--ui-radius-md);
+  font-size: var(--ui-font-size-caption);
+  color: var(--ui-color-secondary);
+  align-self: flex-start;
+}
+
+.create-listing-page__notice-icon {
+  color: var(--ui-color-primary);
+  flex-shrink: 0;
+}
+
+/* ── Error message ───────────────────────────────────────── */
 .create-listing-page__message {
   width: 100%;
 }
 
-.create-listing-page__form-container {
-  min-height: 360px;
-  padding: var(--ui-space-24);
+/* ── Two-column layout ───────────────────────────────────── */
+.create-listing-page__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: var(--ui-space-32);
+  align-items: start;
+}
+
+.create-listing-page__main {
+  min-width: 0;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────── */
+.create-listing-page__sidebar {
+  position: sticky;
+  top: calc(4rem + var(--ui-space-24));
+}
+
+.create-listing-page__tips-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-16);
+  padding: var(--ui-space-20);
+  background: var(--ui-color-surface);
   border: 1px solid var(--ui-color-border);
   border-radius: var(--ui-radius-md);
-  background: var(--ui-color-surface);
   box-shadow: var(--ui-shadow-card);
+}
+
+.create-listing-page__tips-title {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-8);
+  font-size: var(--ui-font-size-body);
+  font-weight: 700;
+  color: var(--ui-color-text-primary);
+  padding-bottom: var(--ui-space-12);
+  border-bottom: 1px solid var(--ui-color-border);
+  margin: 0;
+}
+
+.create-listing-page__tips-title .pi {
+  color: var(--ui-color-primary);
+  font-size: 1.1rem;
+}
+
+.create-listing-page__tips-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-12);
+}
+
+.create-listing-page__tips-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-8);
+  font-size: var(--ui-font-size-caption);
+  color: var(--ui-color-text-secondary);
+  line-height: 1.5;
+}
+
+.create-listing-page__tips-icon {
+  color: var(--ui-color-primary);
+  font-size: 0.875rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Admin-approval callout at the bottom of the tips card */
+.create-listing-page__tips-approval {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-8);
+  padding: var(--ui-space-12) var(--ui-space-12);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 50%, #fff8f3);
+  border: 1px solid color-mix(in srgb, var(--ui-color-primary-soft) 35%, transparent);
+  border-radius: var(--ui-radius-sm);
+  font-size: var(--ui-font-size-caption);
+  color: var(--ui-color-secondary);
+  line-height: 1.5;
+}
+
+.create-listing-page__tips-approval .create-listing-page__tips-icon {
+  color: var(--ui-color-primary);
+  margin-top: 2px;
+}
+
+/* ── Responsive: collapse sidebar below form on small screens ─ */
+@media (max-width: 900px) {
+  .create-listing-page__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .create-listing-page__sidebar {
+    position: static;
+  }
 }

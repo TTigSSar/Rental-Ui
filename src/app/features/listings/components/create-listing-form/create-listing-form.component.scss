@@ -1,9 +1,46 @@
+/* ── Form shell ──────────────────────────────────────────── */
 .create-listing-form {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-24);
+  gap: var(--ui-space-20);
 }
 
+/* ── Section card ────────────────────────────────────────── */
+.create-listing-form__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-16);
+  padding: var(--ui-space-20);
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  box-shadow: var(--ui-shadow-card);
+}
+
+.create-listing-form__section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-8);
+  font-size: var(--ui-font-size-body);
+  font-weight: 700;
+  color: var(--ui-color-text-primary);
+  padding-bottom: var(--ui-space-12);
+  border-bottom: 1px solid var(--ui-color-border);
+  margin: 0;
+}
+
+.create-listing-form__section-title .pi {
+  color: var(--ui-color-primary);
+  font-size: 1.05rem;
+}
+
+.create-listing-form__section-hint {
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-font-size-caption);
+  margin: 0;
+}
+
+/* ── Field grid ──────────────────────────────────────────── */
 .create-listing-form__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -13,48 +50,82 @@
 .create-listing-form__field {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-8);
+  gap: var(--ui-space-6);
 }
 
 .create-listing-form__field--full {
   grid-column: 1 / -1;
 }
 
+/* ── Labels ──────────────────────────────────────────────── */
 .create-listing-form__label {
   font-size: var(--ui-font-size-caption);
   font-weight: 600;
   color: var(--ui-color-text-primary);
 }
 
+.create-listing-form__required {
+  color: var(--ui-color-error);
+  margin-left: 2px;
+}
+
+/* ── Inputs ──────────────────────────────────────────────── */
 .create-listing-form__input,
 .create-listing-form__textarea,
-.create-listing-form__select,
-.create-listing-form__file-input {
+.create-listing-form__select {
   width: 100%;
 }
 
-.create-listing-form__textarea,
-.create-listing-form__select {
+.create-listing-form__textarea {
   padding: 0.625rem 0.75rem;
   font: inherit;
-}
-
-.create-listing-form__textarea {
   resize: vertical;
   min-height: 8rem;
 }
 
-.create-listing-form__file-input {
-  border: 1px dashed var(--ui-color-border);
-  border-radius: var(--ui-radius-md);
-  padding: 0.75rem;
-  background: color-mix(
-    in srgb,
-    var(--ui-color-surface) 92%,
-    #f0f3ff
-  );
+.create-listing-form__select {
+  padding: 0 0.75rem;
+  height: 2.5rem;
+  font: inherit;
 }
 
+/* ── File upload drop area ───────────────────────────────── */
+.create-listing-form__file-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-space-8);
+  padding: var(--ui-space-24) var(--ui-space-16);
+  border: 2px dashed var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: color-mix(in srgb, var(--ui-color-surface) 90%, #f0f4ff);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    border-color: var(--ui-color-primary);
+    background: color-mix(in srgb, var(--ui-color-surface) 80%, #f0f4ff);
+  }
+}
+
+.create-listing-form__file-drop-icon {
+  font-size: 1.75rem;
+  color: var(--ui-color-primary-soft, var(--ui-color-primary));
+}
+
+.create-listing-form__file-input {
+  /* visually hidden but still accessible */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+/* ── Validation and hints ────────────────────────────────── */
 .create-listing-form__error {
   color: var(--ui-color-error);
   font-size: var(--ui-font-size-caption);
@@ -66,37 +137,16 @@
   font-size: var(--ui-font-size-caption);
 }
 
-.create-listing-form__toy-section {
-  border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-md);
-  padding: var(--ui-space-16);
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-12);
-  background: color-mix(
-    in srgb,
-    var(--ui-color-surface) 96%,
-    #fff
-  );
+.create-listing-form__file-summary {
+  word-break: break-all;
 }
 
-.create-listing-form__toy-section-title {
-  font-size: var(--ui-font-size-body);
-  font-weight: 600;
-  color: var(--ui-color-text-primary);
-  padding: 0 var(--ui-space-4);
-}
-
-.create-listing-form__toy-section-hint {
-  color: var(--ui-color-text-secondary);
-  font-size: var(--ui-font-size-caption);
-  margin: 0;
-}
-
+/* ── Actions bar ─────────────────────────────────────────── */
 .create-listing-form__actions {
   display: flex;
   justify-content: flex-end;
   gap: var(--ui-space-12);
+  padding-top: var(--ui-space-4);
 }
 
 :host ::ng-deep .create-listing-form__actions .p-button:first-child {
@@ -107,12 +157,23 @@
   min-width: 170px;
 }
 
-@media (max-width: 768px) {
+:host ::ng-deep .p-inputnumber-input {
+  width: 100%;
+  height: 2.5rem;
+  padding-block: 0;
+}
+
+/* ── Mobile ──────────────────────────────────────────────── */
+@media (max-width: 640px) {
   .create-listing-form__grid {
     grid-template-columns: 1fr;
   }
 
   .create-listing-form__actions {
-    justify-content: stretch;
+    flex-direction: column-reverse;
+  }
+
+  :host ::ng-deep .create-listing-form__actions .p-button {
+    width: 100%;
   }
 }

@@ -308,10 +308,24 @@
     },
     "createPage": {
       "title": "List a Toy",
+      "subtitle": "Share toys your child has outgrown and let other families rent them.",
+      "adminReviewNotice": "Your listing will be reviewed by our team before it becomes visible to other parents.",
       "loadingCategories": "Loading toy categories...",
-      "success": "Toy listing created successfully."
+      "success": "Toy listing created successfully.",
+      "tips": {
+        "title": "Tips for a great listing",
+        "realPhotos": "Use real, clear photos — they build trust with parents.",
+        "missingPieces": "Mention if any parts are missing or worn out.",
+        "hygiene": "Describe how you clean the toy between rentals.",
+        "fairPrice": "Set a fair daily price to attract more families.",
+        "adminApproval": "Your listing goes live only after our team approves it."
+      }
     },
     "createForm": {
+      "sectionBasic": "Basic information",
+      "sectionLocation": "Location",
+      "sectionToyDetails": "Toy details (optional)",
+      "sectionPhotos": "Photos",
       "title": "Toy name",
       "titlePlaceholder": "e.g. Wooden train set",
       "description": "Description",

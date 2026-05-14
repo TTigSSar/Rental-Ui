@@ -4,181 +4,167 @@
   (ngSubmit)="onSubmit()"
   novalidate
 >
-  <div class="create-listing-form__grid">
-    <div class="create-listing-form__field create-listing-form__field--full">
-      <label class="create-listing-form__label" for="create-listing-title">
-        {{ 'listings.createForm.title' | translate }}
-      </label>
-      <input
-        id="create-listing-title"
-        pInputText
-        type="text"
-        class="create-listing-form__input ui-input"
-        formControlName="title"
-        [placeholder]="'listings.createForm.titlePlaceholder' | translate"
-      />
-      @if (hasError('title')) {
-        <small class="create-listing-form__error">
-          {{ 'listings.createForm.validation.required' | translate }}
-        </small>
-      }
-    </div>
+  <!-- ── Section A: Basic information ───────────────────── -->
+  <div class="create-listing-form__section">
+    <h3 class="create-listing-form__section-title">
+      <span class="pi pi-info-circle" aria-hidden="true"></span>
+      {{ 'listings.createForm.sectionBasic' | translate }}
+    </h3>
 
-    <div class="create-listing-form__field create-listing-form__field--full">
-      <label class="create-listing-form__label" for="create-listing-description">
-        {{ 'listings.createForm.description' | translate }}
-      </label>
-      <textarea
-        id="create-listing-description"
-        class="create-listing-form__textarea ui-textarea"
-        formControlName="description"
-        rows="5"
-        [placeholder]="'listings.createForm.descriptionPlaceholder' | translate"
-      ></textarea>
-      @if (hasError('description')) {
-        <small class="create-listing-form__error">
-          {{ 'listings.createForm.validation.required' | translate }}
-        </small>
-      }
-    </div>
-
-    <div class="create-listing-form__field">
-      <label class="create-listing-form__label" for="create-listing-category">
-        {{ 'listings.createForm.category' | translate }}
-      </label>
-      <select
-        id="create-listing-category"
-        class="create-listing-form__select ui-select"
-        formControlName="categoryId"
-      >
-        <option value="">
-          {{ 'listings.createForm.categoryPlaceholder' | translate }}
-        </option>
-        @for (category of categories; track category.id) {
-          <option [value]="category.id">{{ category.name }}</option>
+    <div class="create-listing-form__grid">
+      <div class="create-listing-form__field create-listing-form__field--full">
+        <label class="create-listing-form__label" for="create-listing-title">
+          {{ 'listings.createForm.title' | translate }}
+          <span class="create-listing-form__required" aria-hidden="true">*</span>
+        </label>
+        <input
+          id="create-listing-title"
+          pInputText
+          type="text"
+          class="create-listing-form__input ui-input"
+          formControlName="title"
+          [placeholder]="'listings.createForm.titlePlaceholder' | translate"
+        />
+        @if (hasError('title')) {
+          <small class="create-listing-form__error" role="alert">
+            {{ 'listings.createForm.validation.required' | translate }}
+          </small>
         }
-      </select>
-      @if (hasError('categoryId')) {
-        <small class="create-listing-form__error">
-          {{ 'listings.createForm.validation.required' | translate }}
-        </small>
-      }
-    </div>
+      </div>
 
-    <div class="create-listing-form__field">
-      <label class="create-listing-form__label" for="create-listing-price-per-day">
-        {{ 'listings.createForm.pricePerDay' | translate }}
-      </label>
-      <p-inputNumber
-        inputId="create-listing-price-per-day"
-        formControlName="pricePerDay"
-        mode="decimal"
-        [min]="0.01"
-        [minFractionDigits]="0"
-        [maxFractionDigits]="2"
-        [useGrouping]="true"
-        [placeholder]="'listings.createForm.pricePerDayPlaceholder' | translate"
-        styleClass="create-listing-form__input"
-      />
-      @if (hasError('pricePerDay')) {
-        <small class="create-listing-form__error">
-          {{
-            createListingForm.controls.pricePerDay.hasError('min')
-              ? ('listings.createForm.validation.priceGreaterThanZero' | translate)
-              : ('listings.createForm.validation.required' | translate)
-          }}
-        </small>
-      }
-    </div>
+      <div class="create-listing-form__field create-listing-form__field--full">
+        <label class="create-listing-form__label" for="create-listing-description">
+          {{ 'listings.createForm.description' | translate }}
+          <span class="create-listing-form__required" aria-hidden="true">*</span>
+        </label>
+        <textarea
+          id="create-listing-description"
+          class="create-listing-form__textarea ui-textarea"
+          formControlName="description"
+          rows="5"
+          [placeholder]="'listings.createForm.descriptionPlaceholder' | translate"
+        ></textarea>
+        @if (hasError('description')) {
+          <small class="create-listing-form__error" role="alert">
+            {{ 'listings.createForm.validation.required' | translate }}
+          </small>
+        }
+      </div>
 
-    <div class="create-listing-form__field">
-      <label class="create-listing-form__label" for="create-listing-country">
-        {{ 'listings.createForm.country' | translate }}
-      </label>
-      <input
-        id="create-listing-country"
-        pInputText
-        type="text"
-        class="create-listing-form__input ui-input"
-        formControlName="country"
-        [placeholder]="'listings.createForm.countryPlaceholder' | translate"
-      />
-      @if (hasError('country')) {
-        <small class="create-listing-form__error">
-          {{ 'listings.createForm.validation.required' | translate }}
-        </small>
-      }
-    </div>
+      <div class="create-listing-form__field">
+        <label class="create-listing-form__label" for="create-listing-category">
+          {{ 'listings.createForm.category' | translate }}
+          <span class="create-listing-form__required" aria-hidden="true">*</span>
+        </label>
+        <select
+          id="create-listing-category"
+          class="create-listing-form__select ui-select"
+          formControlName="categoryId"
+        >
+          <option value="">
+            {{ 'listings.createForm.categoryPlaceholder' | translate }}
+          </option>
+          @for (category of categories; track category.id) {
+            <option [value]="category.id">{{ category.name }}</option>
+          }
+        </select>
+        @if (hasError('categoryId')) {
+          <small class="create-listing-form__error" role="alert">
+            {{ 'listings.createForm.validation.required' | translate }}
+          </small>
+        }
+      </div>
 
-    <div class="create-listing-form__field">
-      <label class="create-listing-form__label" for="create-listing-city">
-        {{ 'listings.createForm.city' | translate }}
-      </label>
-      <input
-        id="create-listing-city"
-        pInputText
-        type="text"
-        class="create-listing-form__input ui-input"
-        formControlName="city"
-        [placeholder]="'listings.createForm.cityPlaceholder' | translate"
-      />
-      @if (hasError('city')) {
-        <small class="create-listing-form__error">
-          {{ 'listings.createForm.validation.required' | translate }}
-        </small>
-      }
-    </div>
-
-    <div class="create-listing-form__field create-listing-form__field--full">
-      <label class="create-listing-form__label" for="create-listing-address-line">
-        {{ 'listings.createForm.addressLine' | translate }}
-      </label>
-      <input
-        id="create-listing-address-line"
-        pInputText
-        type="text"
-        class="create-listing-form__input ui-input"
-        formControlName="addressLine"
-        [placeholder]="'listings.createForm.addressLinePlaceholder' | translate"
-      />
-    </div>
-
-    <div class="create-listing-form__field">
-      <label class="create-listing-form__label" for="create-listing-latitude">
-        {{ 'listings.createForm.latitude' | translate }}
-      </label>
-      <p-inputNumber
-        inputId="create-listing-latitude"
-        formControlName="latitude"
-        mode="decimal"
-        [minFractionDigits]="0"
-        [maxFractionDigits]="8"
-        [placeholder]="'listings.createForm.latitudePlaceholder' | translate"
-        styleClass="create-listing-form__input"
-      />
-    </div>
-
-    <div class="create-listing-form__field">
-      <label class="create-listing-form__label" for="create-listing-longitude">
-        {{ 'listings.createForm.longitude' | translate }}
-      </label>
-      <p-inputNumber
-        inputId="create-listing-longitude"
-        formControlName="longitude"
-        mode="decimal"
-        [minFractionDigits]="0"
-        [maxFractionDigits]="8"
-        [placeholder]="'listings.createForm.longitudePlaceholder' | translate"
-        styleClass="create-listing-form__input"
-      />
+      <div class="create-listing-form__field">
+        <label class="create-listing-form__label" for="create-listing-price-per-day">
+          {{ 'listings.createForm.pricePerDay' | translate }}
+          <span class="create-listing-form__required" aria-hidden="true">*</span>
+        </label>
+        <p-inputNumber
+          inputId="create-listing-price-per-day"
+          formControlName="pricePerDay"
+          mode="decimal"
+          [min]="0.01"
+          [minFractionDigits]="0"
+          [maxFractionDigits]="2"
+          [useGrouping]="true"
+          [placeholder]="'listings.createForm.pricePerDayPlaceholder' | translate"
+          styleClass="create-listing-form__input"
+        />
+        @if (hasError('pricePerDay')) {
+          <small class="create-listing-form__error" role="alert">
+            {{
+              createListingForm.controls.pricePerDay.hasError('min')
+                ? ('listings.createForm.validation.priceGreaterThanZero' | translate)
+                : ('listings.createForm.validation.required' | translate)
+            }}
+          </small>
+        }
+      </div>
     </div>
   </div>
 
-  <fieldset class="create-listing-form__toy-section">
-    <legend class="create-listing-form__toy-section-title">
-      {{ 'listings.createForm.toySection' | translate }}
-    </legend>
-    <p class="create-listing-form__toy-section-hint">
+  <!-- ── Section B: Location ────────────────────────────── -->
+  <div class="create-listing-form__section">
+    <h3 class="create-listing-form__section-title">
+      <span class="pi pi-map-marker" aria-hidden="true"></span>
+      {{ 'listings.createForm.sectionLocation' | translate }}
+    </h3>
+
+    <div class="create-listing-form__grid">
+      <div class="create-listing-form__field create-listing-form__field--full">
+        <label class="create-listing-form__label" for="create-listing-address-line">
+          {{ 'listings.createForm.addressLine' | translate }}
+        </label>
+        <input
+          id="create-listing-address-line"
+          pInputText
+          type="text"
+          class="create-listing-form__input ui-input"
+          formControlName="addressLine"
+          [placeholder]="'listings.createForm.addressLinePlaceholder' | translate"
+        />
+      </div>
+
+      <div class="create-listing-form__field">
+        <label class="create-listing-form__label" for="create-listing-latitude">
+          {{ 'listings.createForm.latitude' | translate }}
+        </label>
+        <p-inputNumber
+          inputId="create-listing-latitude"
+          formControlName="latitude"
+          mode="decimal"
+          [minFractionDigits]="0"
+          [maxFractionDigits]="8"
+          [placeholder]="'listings.createForm.latitudePlaceholder' | translate"
+          styleClass="create-listing-form__input"
+        />
+      </div>
+
+      <div class="create-listing-form__field">
+        <label class="create-listing-form__label" for="create-listing-longitude">
+          {{ 'listings.createForm.longitude' | translate }}
+        </label>
+        <p-inputNumber
+          inputId="create-listing-longitude"
+          formControlName="longitude"
+          mode="decimal"
+          [minFractionDigits]="0"
+          [maxFractionDigits]="8"
+          [placeholder]="'listings.createForm.longitudePlaceholder' | translate"
+          styleClass="create-listing-form__input"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section C: Toy details (optional) ─────────────── -->
+  <div class="create-listing-form__section">
+    <h3 class="create-listing-form__section-title">
+      <span class="pi pi-gift" aria-hidden="true"></span>
+      {{ 'listings.createForm.sectionToyDetails' | translate }}
+    </h3>
+    <p class="create-listing-form__section-hint">
       {{ 'listings.createForm.toySectionHint' | translate }}
     </p>
 
@@ -199,7 +185,7 @@
           styleClass="create-listing-form__input"
         />
         @if (hasError('ageFromMonths')) {
-          <small class="create-listing-form__error">
+          <small class="create-listing-form__error" role="alert">
             {{ 'listings.createForm.validation.ageNonNegative' | translate }}
           </small>
         }
@@ -221,14 +207,14 @@
           styleClass="create-listing-form__input"
         />
         @if (hasError('ageToMonths')) {
-          <small class="create-listing-form__error">
+          <small class="create-listing-form__error" role="alert">
             {{ 'listings.createForm.validation.ageNonNegative' | translate }}
           </small>
         }
       </div>
 
       @if (hasAgeRangeError()) {
-        <small class="create-listing-form__error create-listing-form__field--full">
+        <small class="create-listing-form__error create-listing-form__field--full" role="alert">
           {{ 'listings.createForm.validation.ageRangeInvalid' | translate }}
         </small>
       }
@@ -267,7 +253,7 @@
           styleClass="create-listing-form__input"
         />
         @if (hasError('depositAmount')) {
-          <small class="create-listing-form__error">
+          <small class="create-listing-form__error" role="alert">
             {{ 'listings.createForm.validation.depositNonNegative' | translate }}
           </small>
         }
@@ -299,34 +285,45 @@
         ></textarea>
       </div>
     </div>
-  </fieldset>
-
-  <div class="create-listing-form__field create-listing-form__field--full">
-    <label class="create-listing-form__label" for="create-listing-images">
-      {{ 'listings.createForm.images' | translate }}
-    </label>
-    <input
-      id="create-listing-images"
-      type="file"
-      class="create-listing-form__file-input"
-      [disabled]="isSubmitting"
-      multiple
-      accept="image/*"
-      (change)="onImagesSelected($event)"
-    />
-    @if (selectedFiles.length > 0) {
-      <small class="create-listing-form__file-summary">
-        {{ selectedFiles.length }}
-        {{ 'listings.createForm.imagesSelected' | translate }}:
-        {{ fileNames() }}
-      </small>
-    } @else {
-      <small class="create-listing-form__hint">
-        {{ 'listings.createForm.imagesHint' | translate }}
-      </small>
-    }
   </div>
 
+  <!-- ── Section D: Photos ──────────────────────────────── -->
+  <div class="create-listing-form__section">
+    <h3 class="create-listing-form__section-title">
+      <span class="pi pi-camera" aria-hidden="true"></span>
+      {{ 'listings.createForm.sectionPhotos' | translate }}
+    </h3>
+
+    <div class="create-listing-form__field">
+      <label class="create-listing-form__label" for="create-listing-images">
+        {{ 'listings.createForm.images' | translate }}
+      </label>
+      <label class="create-listing-form__file-drop" for="create-listing-images">
+        <span class="pi pi-cloud-upload create-listing-form__file-drop-icon" aria-hidden="true"></span>
+        @if (selectedFiles.length > 0) {
+          <span class="create-listing-form__file-summary">
+            {{ selectedFiles.length }}&nbsp;{{ 'listings.createForm.imagesSelected' | translate }}:
+            {{ fileNames() }}
+          </span>
+        } @else {
+          <span class="create-listing-form__hint">
+            {{ 'listings.createForm.imagesHint' | translate }}
+          </span>
+        }
+        <input
+          id="create-listing-images"
+          type="file"
+          class="create-listing-form__file-input"
+          [disabled]="isSubmitting"
+          multiple
+          accept="image/*"
+          (change)="onImagesSelected($event)"
+        />
+      </label>
+    </div>
+  </div>
+
+  <!-- ── Actions ────────────────────────────────────────── -->
   <div class="create-listing-form__actions">
     <p-button
       type="button"
