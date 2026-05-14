@@ -1,15 +1,19 @@
+/* ── Page shell ──────────────────────────────────────────── */
 .listings-page {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-24);
+  gap: var(--ui-space-32);
   padding-top: var(--ui-space-32);
-  padding-bottom: var(--ui-space-48);
+  padding-bottom: var(--ui-space-64);
+  /* prevent the page from collapsing to just the header while loading */
+  min-height: calc(100dvh - 4rem);
 }
 
+/* ── Page header (title + filters) ───────────────────────── */
 .listings-page__header {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-20);
+  gap: var(--ui-space-24);
 }
 
 .listings-page__title-wrap {
@@ -24,13 +28,16 @@
   line-height: 1.15;
   letter-spacing: -0.02em;
   color: #1a1c28;
+  max-width: 32ch;
 }
 
 .listings-page__subtitle {
   color: var(--ui-color-text-secondary);
   font-size: 0.98rem;
+  max-width: 52ch;
 }
 
+/* ── Error state ──────────────────────────────────────────── */
 .listings-page__error {
   display: flex;
   flex-direction: column;
@@ -48,16 +55,33 @@
   gap: var(--ui-space-4);
 }
 
+/* ── Card grid ─────────────────────────────────────────────
+   Override global .cards-grid (auto-fit) with explicit
+   breakpoint columns to prevent last-row cards from
+   stretching across the full container width.
+   ────────────────────────────────────────────────────────── */
 .listings-page__grid {
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: stretch;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+  }
 }
 
+/* ── Append loading (load-more skeleton) ─────────────────── */
 .listings-page__append-loading {
-  margin-top: var(--ui-space-12);
+  /* parent flex gap already provides vertical separation */
 }
 
+/* ── Load more button ─────────────────────────────────────── */
 .listings-page__load-more {
   display: flex;
   justify-content: center;
-  padding-block: var(--ui-space-8);
+  padding-block: var(--ui-space-16);
 }

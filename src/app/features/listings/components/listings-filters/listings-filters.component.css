@@ -1,3 +1,4 @@
+/* ── Filter card shell ───────────────────────────────────── */
 .listings-filters {
   display: flex;
   flex-direction: column;
@@ -9,16 +10,20 @@
   box-shadow: var(--ui-shadow-card);
 }
 
+/* ── Top row: intro text + clear button ──────────────────── */
 .listings-filters__top-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 16px;
 }
 
 .listings-filters__intro {
   font-size: var(--ui-font-size-caption);
   color: var(--ui-color-text-secondary);
+  margin: 0;
 }
 
 /* ── Filter fields grid ──────────────────────────────────── */
@@ -26,23 +31,33 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
   gap: var(--ui-space-16);
+  align-items: end;
+  padding: 24px 16px;
 }
 
 .listings-filters__field {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  /* fields should never overflow the filter card */
+  min-width: 0;
 }
 
 .listings-filters__label {
   font-size: var(--ui-font-size-caption);
   font-weight: 600;
   color: var(--ui-color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ── Text / number inputs ───────────────────────────────── */
-.listings-filters__input {
+/* ── Shared height / width for all input types ───────────── */
+/* pInputText (native input with pInputText directive) */
+.listings-filters__input.p-inputtext {
   width: 100%;
+  height: 2.5rem;
+  padding-block: 0;
 }
 
 /* ── Category dropdown ──────────────────────────────────── */
@@ -72,4 +87,22 @@
 .listings-filters__select:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* ── PrimeNG InputNumber: fix inner input to fill wrapper ───
+   styleClass on p-inputNumber applies to the host element.
+   The actual <input> inside uses .p-inputnumber-input.
+   Without explicit sizing the inner input can be narrower
+   than the container.
+   ─────────────────────────────────────────────────────────── */
+.listings-filters__input {
+  width: 100%;
+  display: block;
+}
+
+/* reach into p-inputNumber's inner input */
+.listings-filters__input ::ng-deep .p-inputnumber-input {
+  width: 100%;
+  height: 2.5rem;
+  padding-block: 0;
 }
