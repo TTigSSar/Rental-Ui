@@ -9,7 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Toast } from 'primeng/toast';
@@ -50,6 +50,16 @@ interface AppShellViewModel {
 const LANGUAGE_STORAGE_KEY = 'stayfinder.lang';
 const SCROLL_SHRINK_THRESHOLD = 8;
 
+/**
+ * Returns `true` when the URL is a single listing details page (/listings/:id)
+ * and should therefore suppress the global footer.
+ * Excludes /listings/create which is a separate page that should show the footer.
+ */
+function isListingDetailsUrl(url: string): boolean {
+  const path = url.split('?')[0];
+  return /^\/listings\/(?!create$)[^/]+$/.test(path);
+}
+
 @Component({
   selector: 'app-root',
   imports: [
@@ -86,6 +96,8 @@ export class App {
   protected readonly languageMenuOpen = signal(false);
   protected readonly scrolled = signal(false);
   protected readonly currentLang = signal<LanguageOption>(this.availableLanguages[0]);
+  /** Hides the global footer on single listing detail pages for a focused booking UX. */
+  protected readonly showFooter = signal(!isListingDetailsUrl(this.router.url));
 
   private readonly userMenuHost = viewChild<ElementRef<HTMLElement>>('userMenuHost');
   private readonly mobileNavHost = viewChild<ElementRef<HTMLElement>>('mobileNavHost');
@@ -157,6 +169,15 @@ export class App {
         this.mobileNavOpen.set(false);
         this.userMenuOpen.set(false);
         this.languageMenuOpen.set(false);
+      });
+
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
+      .subscribe((event) => {
+        this.showFooter.set(!isListingDetailsUrl(event.urlAfterRedirects));
       });
   }
 

@@ -7,7 +7,7 @@ import {
   inject,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Observable, combineLatest, map } from 'rxjs';
@@ -252,7 +252,6 @@ const selectHomeSource = createSelector(
   imports: [
     AsyncPipe,
     ReactiveFormsModule,
-    RouterLink,
     TranslatePipe,
     EmptyStateComponent,
     LoadingSkeletonComponent,
