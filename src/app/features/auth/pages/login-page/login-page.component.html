@@ -73,21 +73,6 @@
           />
         </form>
 
-        <div class="login-page__separator">or</div>
-
-        <div class="login-page__social-actions">
-          <div #googleButton class="login-page__google-button"></div>
-          <button
-            type="button"
-            class="login-page__social login-page__social--apple"
-            [disabled]="(isLoading$ | async) ?? false"
-            (click)="continueWithProvider('apple')"
-          >
-            <span class="pi pi-apple login-page__social-apple-icon" aria-hidden="true"></span>
-            Sign in with Apple
-          </button>
-        </div>
-
         <p class="login-page__switch">
           {{ 'auth.login.noAccount' | translate }}
           <a routerLink="/auth/register">{{ 'auth.login.goToRegister' | translate }}</a>

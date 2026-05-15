@@ -110,21 +110,6 @@
           />
         </form>
 
-        <div class="register-page__separator">or</div>
-
-        <div class="register-page__social-actions">
-          <div #googleButton class="register-page__google-button"></div>
-          <button
-            type="button"
-            class="register-page__social register-page__social--apple"
-            [disabled]="(isLoading$ | async) ?? false"
-            (click)="continueWithProvider('apple')"
-          >
-            <span class="pi pi-apple register-page__social-apple-icon" aria-hidden="true"></span>
-            Continue with Apple
-          </button>
-        </div>
-
         <div class="register-page__steps" aria-label="Registration progress">
           <div class="register-page__step register-page__step--active">
             <span class="register-page__step-circle">1</span>
