@@ -312,6 +312,10 @@
       "adminReviewNotice": "Your listing will be reviewed by our team before it becomes visible to other parents.",
       "loadingCategories": "Loading toy categories...",
       "success": "Toy listing created successfully.",
+      "successTitle": "Toy submitted for review",
+      "successMessage": "Your toy publication is under review. We'll inform you by email once it is approved.",
+      "imageUploadWarningTitle": "Toy listed — photos failed",
+      "imageUploadWarning": "Your toy was listed, but the photo upload failed. You can add photos later from My Toys.",
       "tips": {
         "title": "Tips for a great listing",
         "realPhotos": "Use real, clear photos — they build trust with parents.",
@@ -370,6 +374,10 @@
       "depositAmountPlaceholder": "Optional deposit amount",
       "validation": {
         "required": "This field is required.",
+        "titleTooShort": "Toy name must be at least 3 characters.",
+        "titleTooLong": "Toy name must be at most 200 characters.",
+        "descriptionTooShort": "Description must be at least 20 characters.",
+        "descriptionTooLong": "Description must be at most 4000 characters.",
         "priceGreaterThanZero": "Price must be greater than 0.",
         "ageRangeInvalid": "Max age must be greater than or equal to min age.",
         "depositNonNegative": "Deposit cannot be negative.",

@@ -290,6 +290,12 @@
       </div>
     </header>
 
+    <!-- Global toast overlay — used by features (e.g. create-listing success) -->
+    <p-toast
+      position="top-center"
+      [breakpoints]="{'640px': {width: '100%', right: '0', left: '0'}}"
+    />
+
     <main class="app-shell__content">
       <router-outlet></router-outlet>
     </main>

@@ -44,13 +44,19 @@
 .create-listing-form__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--ui-space-16);
+  /* row-gap is intentionally smaller than column-gap: field padding-bottom
+     provides the visual row separation and reserves the error slot. */
+  gap: 0 var(--ui-space-16);
 }
 
 .create-listing-form__field {
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-6);
+  position: relative;
+  /* Reserve a fixed slot at the bottom for validation messages so
+     the grid rows never shift when an error appears or disappears. */
+  padding-bottom: 1.25rem;
 }
 
 .create-listing-form__field--full {
@@ -127,8 +133,42 @@
 
 /* ── Validation and hints ────────────────────────────────── */
 .create-listing-form__error {
+  position: absolute;
+  bottom: 0.125rem;
+  left: 0;
+  right: 0;
   color: var(--ui-color-error);
-  font-size: var(--ui-font-size-caption);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.3;
+  animation: form-validation-appear 120ms ease;
+}
+
+/* Age-range cross-field error — always in the DOM as a grid child
+   (visibility toggle instead of *ngIf) so the grid row height is stable. */
+.create-listing-form__range-error {
+  visibility: hidden;
+  min-height: 1rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--ui-color-error);
+  line-height: 1.3;
+}
+
+.create-listing-form__range-error--active {
+  visibility: visible;
+  animation: form-validation-appear 120ms ease;
+}
+
+@keyframes form-validation-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .create-listing-form__hint,

@@ -81,7 +81,7 @@ export const createListing = createAction(
 
 export const createListingSuccess = createAction(
   '[Listings] Create Listing Success',
-  props<{ response: CreateListingResponse }>(),
+  props<{ response: CreateListingResponse; imageUploadFailed: boolean }>(),
 );
 
 export const createListingFailure = createAction(

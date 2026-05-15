@@ -60,8 +60,16 @@ export class CreateListingFormComponent {
 
   readonly createListingForm = this.fb.group(
     {
-      title: this.fb.nonNullable.control('', [Validators.required]),
-      description: this.fb.nonNullable.control('', [Validators.required]),
+      title: this.fb.nonNullable.control('', [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(200),
+      ]),
+      description: this.fb.nonNullable.control('', [
+        Validators.required,
+        Validators.minLength(20),
+        Validators.maxLength(4000),
+      ]),
       categoryId: this.fb.nonNullable.control('', [Validators.required]),
       pricePerDay: this.fb.control<number | null>(null, [
         Validators.required,

@@ -1,5 +1,6 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { MessageService } from 'primeng/api';
 import { provideRouter } from '@angular/router';
 import { provideEffects } from '@ngrx/effects';
 import { provideStore, provideState } from '@ngrx/store';
@@ -78,5 +79,6 @@ export const appConfig: ApplicationConfig = {
         preset: Aura,
       },
     }),
+    MessageService,
   ],
 };

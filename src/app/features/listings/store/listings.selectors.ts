@@ -79,3 +79,8 @@ export const selectCreateListingSuccessId = createSelector(
   selectListingsState,
   (state: ListingsState): string | null => state.createListingSuccessId,
 );
+
+export const selectCreateListingImageUploadFailed = createSelector(
+  selectListingsState,
+  (state: ListingsState): boolean => state.createListingImageUploadFailed,
+);

@@ -27,7 +27,13 @@
         />
         @if (hasError('title')) {
           <small class="create-listing-form__error" role="alert">
-            {{ 'listings.createForm.validation.required' | translate }}
+            @if (createListingForm.controls.title.hasError('required')) {
+              {{ 'listings.createForm.validation.required' | translate }}
+            } @else if (createListingForm.controls.title.hasError('minlength')) {
+              {{ 'listings.createForm.validation.titleTooShort' | translate }}
+            } @else if (createListingForm.controls.title.hasError('maxlength')) {
+              {{ 'listings.createForm.validation.titleTooLong' | translate }}
+            }
           </small>
         }
       </div>
@@ -46,7 +52,13 @@
         ></textarea>
         @if (hasError('description')) {
           <small class="create-listing-form__error" role="alert">
-            {{ 'listings.createForm.validation.required' | translate }}
+            @if (createListingForm.controls.description.hasError('required')) {
+              {{ 'listings.createForm.validation.required' | translate }}
+            } @else if (createListingForm.controls.description.hasError('minlength')) {
+              {{ 'listings.createForm.validation.descriptionTooShort' | translate }}
+            } @else if (createListingForm.controls.description.hasError('maxlength')) {
+              {{ 'listings.createForm.validation.descriptionTooLong' | translate }}
+            }
           </small>
         }
       </div>
@@ -213,11 +225,17 @@
         }
       </div>
 
-      @if (hasAgeRangeError()) {
-        <small class="create-listing-form__error create-listing-form__field--full" role="alert">
+      <!-- Always rendered so the grid row never shifts when the error appears. -->
+      <span
+        class="create-listing-form__range-error create-listing-form__field--full"
+        [class.create-listing-form__range-error--active]="hasAgeRangeError()"
+        aria-live="polite"
+        [attr.aria-hidden]="hasAgeRangeError() ? null : 'true'"
+      >
+        @if (hasAgeRangeError()) {
           {{ 'listings.createForm.validation.ageRangeInvalid' | translate }}
-        </small>
-      }
+        }
+      </span>
 
       <div class="create-listing-form__field">
         <label class="create-listing-form__label" for="create-listing-condition">

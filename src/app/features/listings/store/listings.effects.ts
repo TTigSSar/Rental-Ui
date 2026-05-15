@@ -188,14 +188,31 @@ export class ListingsEffects {
         this.listingsApi.createListing(payload).pipe(
           switchMap((response) => {
             if (files.length === 0) {
-              return of(ListingsActions.createListingSuccess({ response }));
+              return of(
+                ListingsActions.createListingSuccess({
+                  response,
+                  imageUploadFailed: false,
+                }),
+              );
             }
 
+            // Image upload failure must NOT prevent success/redirect — the
+            // listing was already created on the backend. Catch the upload
+            // error, surface it via the `imageUploadFailed` flag so the UI
+            // can show a contextual warning, then treat the overall operation
+            // as a success so the user is redirected to My Toys.
             return this.listingsApi.uploadListingImages(response.id, files).pipe(
-              map(() => ListingsActions.createListingSuccess({ response })),
+              catchError(() => of(null)),
+              map((uploadResult) =>
+                ListingsActions.createListingSuccess({
+                  response,
+                  imageUploadFailed: uploadResult === null,
+                }),
+              ),
             );
           }),
           catchError((error: unknown) =>
+            // Only listing-creation failures reach this branch.
             of(
               ListingsActions.createListingFailure({
                 error: toErrorMessage(error),

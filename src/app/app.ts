@@ -12,6 +12,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { Toast } from 'primeng/toast';
 import { combineLatest, filter, map } from 'rxjs';
 
 import * as AuthActions from './features/auth/store/auth.actions';
@@ -57,6 +58,7 @@ const SCROLL_SHRINK_THRESHOLD = 8;
     RouterOutlet,
     TranslatePipe,
     AvatarComponent,
+    Toast,
   ],
   templateUrl: './app.html',
   styleUrl: './app.css',

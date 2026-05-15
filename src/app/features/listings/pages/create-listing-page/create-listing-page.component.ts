@@ -8,7 +8,8 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { MessageService } from 'primeng/api';
 import { MessageModule } from 'primeng/message';
 import { combineLatest, map } from 'rxjs';
 
@@ -17,6 +18,7 @@ import type { CreateListingRequest } from '../../models/create-listing.model';
 import * as ListingsActions from '../../store/listings.actions';
 import {
   selectCreateListingError,
+  selectCreateListingImageUploadFailed,
   selectCreateListingLoading,
   selectCreateListingSuccessId,
   selectListingCategories,
@@ -34,8 +36,14 @@ import {
 export class CreateListingPageComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
+  private readonly messageService = inject(MessageService);
+  private readonly translate = inject(TranslateService);
+
   private readonly createListingSuccessId = this.store.selectSignal(
     selectCreateListingSuccessId,
+  );
+  private readonly createListingImageUploadFailed = this.store.selectSignal(
+    selectCreateListingImageUploadFailed,
   );
 
   protected readonly vm$ = combineLatest({
@@ -43,7 +51,6 @@ export class CreateListingPageComponent implements OnInit {
     categoriesLoading: this.store.select(selectListingCategoriesLoading),
     createListingLoading: this.store.select(selectCreateListingLoading),
     createListingError: this.store.select(selectCreateListingError),
-    createListingSuccessId: this.store.select(selectCreateListingSuccessId),
   }).pipe(
     map((vm) => ({
       ...vm,
@@ -59,8 +66,26 @@ export class CreateListingPageComponent implements OnInit {
         return;
       }
 
-      void this.router.navigate(['/listings', createdListingId]);
+      const imageUploadFailed = this.createListingImageUploadFailed();
+
+      if (imageUploadFailed) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: this.translate.instant('listings.createPage.imageUploadWarningTitle'),
+          detail: this.translate.instant('listings.createPage.imageUploadWarning'),
+          life: 5000,
+        });
+      } else {
+        this.messageService.add({
+          severity: 'success',
+          summary: this.translate.instant('listings.createPage.successTitle'),
+          detail: this.translate.instant('listings.createPage.successMessage'),
+          life: 5000,
+        });
+      }
+
       this.store.dispatch(ListingsActions.clearCreateListingState());
+      void this.router.navigate(['/my-listings']);
     });
   }
 
