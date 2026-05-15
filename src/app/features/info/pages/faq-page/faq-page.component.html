@@ -1,0 +1,64 @@
+<div class="info-page">
+
+  <!-- Hero -->
+  <header class="info-page__hero">
+    <span class="info-page__hero-icon" aria-hidden="true">
+      <i class="pi pi-question-circle"></i>
+    </span>
+    <h1 class="info-page__hero-title">{{ 'info.faq.heroTitle' | translate }}</h1>
+    <p class="info-page__hero-lead">{{ 'info.faq.heroLead' | translate }}</p>
+  </header>
+
+  <div class="info-page__container">
+    @for (group of faqGroups; track group.id) {
+      <section class="info-page__section" [attr.aria-labelledby]="'faq-group-' + group.id">
+        <h2 [id]="'faq-group-' + group.id" class="info-page__section-heading">
+          {{ group.heading }}
+        </h2>
+
+        <div class="faq-accordion" role="list">
+          @for (item of group.items; track item.id) {
+            <div
+              class="faq-accordion__item"
+              [class.faq-accordion__item--open]="expandedId() === item.id"
+              role="listitem"
+            >
+              <button
+                type="button"
+                class="faq-accordion__trigger"
+                [attr.aria-expanded]="expandedId() === item.id"
+                [attr.aria-controls]="'faq-panel-' + item.id"
+                (click)="toggle(item.id)"
+              >
+                <span class="faq-accordion__question">{{ item.question }}</span>
+                <i
+                  class="faq-accordion__chevron pi"
+                  [class.pi-chevron-down]="expandedId() !== item.id"
+                  [class.pi-chevron-up]="expandedId() === item.id"
+                  aria-hidden="true"
+                ></i>
+              </button>
+              @if (expandedId() === item.id) {
+                <p
+                  class="faq-accordion__answer"
+                  [id]="'faq-panel-' + item.id"
+                >
+                  {{ item.answer }}
+                </p>
+              }
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Contact nudge -->
+    <div class="faq-contact">
+      <i class="pi pi-envelope faq-contact__icon" aria-hidden="true"></i>
+      <p class="faq-contact__text">Still have a question? We're happy to help.</p>
+      <a class="faq-contact__link" href="mailto:support@toyshare.local">
+        support@toyshare.local
+      </a>
+    </div>
+  </div>
+</div>

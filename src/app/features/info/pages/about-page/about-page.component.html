@@ -1,0 +1,127 @@
+<div class="info-page">
+
+  <!-- Hero -->
+  <header class="info-page__hero">
+    <span class="info-page__hero-icon" aria-hidden="true">
+      <i class="pi pi-heart-fill"></i>
+    </span>
+    <h1 class="info-page__hero-title">{{ 'info.about.heroTitle' | translate }}</h1>
+    <p class="info-page__hero-lead">{{ 'info.about.heroLead' | translate }}</p>
+  </header>
+
+  <div class="info-page__container">
+
+    <!-- Mission -->
+    <section class="info-page__section" aria-labelledby="about-mission">
+      <h2 id="about-mission" class="info-page__section-heading">
+        {{ 'info.about.missionHeading' | translate }}
+      </h2>
+      <p class="info-page__prose">
+        ToyShare started with a simple observation: children outgrow their toys quickly, yet new toys are expensive and often end up forgotten in storage. We built this platform to help families share the toys they already have — reducing waste, saving money, and giving every child access to a wider world of play.
+      </p>
+      <p class="info-page__prose">
+        Our goal is to make toy sharing as easy and trustworthy as borrowing from a neighbor you already know. Every listing is reviewed by our team, and every owner shares the condition, hygiene notes, and safety details of their toy before it goes live.
+      </p>
+    </section>
+
+    <!-- How it works -->
+    <section class="info-page__section" aria-labelledby="about-how">
+      <h2 id="about-how" class="info-page__section-heading">
+        {{ 'info.about.howHeading' | translate }}
+      </h2>
+      <div class="info-page__steps">
+        <div class="info-page__step">
+          <span class="info-page__step-icon" aria-hidden="true">
+            <i class="pi pi-search"></i>
+          </span>
+          <div>
+            <h3 class="info-page__step-title">Discover</h3>
+            <p class="info-page__step-text">
+              Browse toys by name, category, or age range. Use filters on the listings page to narrow down by price or toy type.
+            </p>
+          </div>
+        </div>
+        <div class="info-page__step">
+          <span class="info-page__step-icon" aria-hidden="true">
+            <i class="pi pi-send"></i>
+          </span>
+          <div>
+            <h3 class="info-page__step-title">Request</h3>
+            <p class="info-page__step-text">
+              Found something your child will love? Send a rental request to the owner, choose your dates, and wait for confirmation.
+            </p>
+          </div>
+        </div>
+        <div class="info-page__step">
+          <span class="info-page__step-icon" aria-hidden="true">
+            <i class="pi pi-star"></i>
+          </span>
+          <div>
+            <h3 class="info-page__step-title">Enjoy &amp; Return</h3>
+            <p class="info-page__step-text">
+              Meet the owner, pick up the toy, and let the fun begin. Return it clean and on time — then discover the next one.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Trust & Safety -->
+    <section class="info-page__section info-page__section--highlight" aria-labelledby="about-trust">
+      <h2 id="about-trust" class="info-page__section-heading">
+        {{ 'info.about.trustHeading' | translate }}
+      </h2>
+      <div class="info-page__trust-grid">
+        <div class="info-page__trust-item">
+          <i class="pi pi-verified info-page__trust-icon" aria-hidden="true"></i>
+          <h3 class="info-page__trust-title">Reviewed Listings</h3>
+          <p class="info-page__trust-text">
+            Every toy listing is manually reviewed before it appears on the platform. We check photos, descriptions, and toy details to ensure quality and accuracy.
+          </p>
+        </div>
+        <div class="info-page__trust-item">
+          <i class="pi pi-info-circle info-page__trust-icon" aria-hidden="true"></i>
+          <h3 class="info-page__trust-title">Hygiene &amp; Condition Details</h3>
+          <p class="info-page__trust-text">
+            Owners are required to provide the toy's condition, hygiene notes, and any relevant safety information. You always know what you're renting before you commit.
+          </p>
+        </div>
+        <div class="info-page__trust-item">
+          <i class="pi pi-users info-page__trust-icon" aria-hidden="true"></i>
+          <h3 class="info-page__trust-title">Family-to-Family</h3>
+          <p class="info-page__trust-text">
+            You rent directly from real families, not anonymous sellers. Communication happens through our platform so both parties are always informed and protected.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Moderation Process -->
+    <section class="info-page__section" aria-labelledby="about-moderation">
+      <h2 id="about-moderation" class="info-page__section-heading">
+        {{ 'info.about.moderationHeading' | translate }}
+      </h2>
+      <p class="info-page__prose">
+        When a family lists a toy, it enters a pending review state and is not publicly visible until approved. Our moderation team checks each submission for:
+      </p>
+      <ul class="info-page__list">
+        <li>Clear, accurate photos and descriptions</li>
+        <li>Age-appropriate and safe toys</li>
+        <li>Honest condition and hygiene information</li>
+        <li>Absence of prohibited or unsafe items</li>
+      </ul>
+      <p class="info-page__prose">
+        Once approved, the owner receives an email confirmation and the listing goes live. Listings that do not meet our standards are rejected with a clear reason, and owners can resubmit after making corrections.
+      </p>
+    </section>
+
+    <!-- CTA -->
+    <div class="info-page__cta-block">
+      <p class="info-page__cta-text">Ready to find the perfect toy for your child?</p>
+      <a class="info-page__cta-btn" routerLink="/listings">
+        {{ 'info.about.ctaLabel' | translate }}
+      </a>
+    </div>
+
+  </div>
+</div>

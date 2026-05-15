@@ -5,6 +5,7 @@ import { Store } from '@ngrx/store';
 import { catchError, filter, map, mergeMap, of, tap, withLatestFrom } from 'rxjs';
 
 import { toApiErrorMessage } from '../../../api/http-error-message.util';
+import { AuthRedirectService } from '../services/auth-redirect.service';
 import { AuthApiService } from '../services/auth-api.service';
 import { ExternalAuthProviderService } from '../services/external-auth-provider.service';
 import { AuthTokenService } from '../services/auth-token.service';
@@ -26,6 +27,7 @@ export class AuthEffects {
   private readonly authApi = inject(AuthApiService);
   private readonly externalAuthProvider = inject(ExternalAuthProviderService);
   private readonly tokenService = inject(AuthTokenService);
+  private readonly authRedirect = inject(AuthRedirectService);
 
   readonly login$ = createEffect(() =>
     this.actions$.pipe(
@@ -132,7 +134,8 @@ export class AuthEffects {
         ofType(AuthActions.loadCurrentUserSuccess),
         tap(() => {
           if (this.router.url.startsWith('/auth/')) {
-            void this.router.navigateByUrl('/listings');
+            const returnUrl = this.authRedirect.consume();
+            void this.router.navigateByUrl(returnUrl ?? '/listings');
           }
         }),
       ),

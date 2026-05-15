@@ -290,14 +290,48 @@
 
             <aside class="detail-page__sidebar">
               <div class="detail-page__sidebar-sticky">
-                <app-booking-panel
-                  [pricePerDay]="listing.pricePerDay"
-                  [bookedDates]="listing.bookedDates"
-                  [submitting]="vm.createBookingLoading"
-                  [submitError]="vm.createBookingError"
-                  [submitSuccess]="vm.createBookingSuccess"
-                  (bookingSubmit)="onBookingSubmit($event)"
-                />
+                @if (isAuthenticated()) {
+                  <app-booking-panel
+                    [pricePerDay]="listing.pricePerDay"
+                    [bookedDates]="listing.bookedDates"
+                    [submitting]="vm.createBookingLoading"
+                    [submitError]="vm.createBookingError"
+                    [submitSuccess]="vm.createBookingSuccess"
+                    (bookingSubmit)="onBookingSubmit($event)"
+                  />
+                } @else {
+                  <div class="detail-page__guest-panel">
+                    <p class="detail-page__guest-price">
+                      {{ 'listings.details.priceLabel' | translate: { amount: (listing.pricePerDay | currency) } }}
+                    </p>
+                    <div class="detail-page__guest-divider" aria-hidden="true"></div>
+                    <div class="detail-page__guest-body">
+                      <span class="detail-page__guest-lock" aria-hidden="true">
+                        <i class="pi pi-lock"></i>
+                      </span>
+                      <p class="detail-page__guest-prompt">
+                        {{ 'listings.details.guestRentPrompt' | translate }}
+                      </p>
+                      <p class="detail-page__guest-subtext">
+                        {{ 'listings.details.guestRentSubtext' | translate }}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      class="detail-page__guest-signin"
+                      (click)="onGuestRentAttempt('/auth/login')"
+                    >
+                      {{ 'listings.details.guestSignIn' | translate }}
+                    </button>
+                    <button
+                      type="button"
+                      class="detail-page__guest-signup"
+                      (click)="onGuestRentAttempt('/auth/register')"
+                    >
+                      {{ 'listings.details.guestSignUp' | translate }}
+                    </button>
+                  </div>
+                }
               </div>
             </aside>
           </div>

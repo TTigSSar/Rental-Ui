@@ -482,3 +482,113 @@
     padding: 20px;
   }
 }
+
+/* ============================================================
+   Guest rent panel (shown to non-authenticated users)
+   ============================================================ */
+.detail-page__guest-panel {
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: var(--ui-shadow-card);
+}
+
+.detail-page__guest-price {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--ui-color-text-primary);
+}
+
+.detail-page__guest-divider {
+  height: 1px;
+  background: var(--ui-color-border);
+}
+
+.detail-page__guest-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 0 8px;
+  text-align: center;
+}
+
+.detail-page__guest-lock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 96, 8, 0.08);
+  color: var(--ui-color-primary);
+  font-size: 1.25rem;
+}
+
+.detail-page__guest-prompt {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ui-color-text-primary);
+}
+
+.detail-page__guest-subtext {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ui-color-text-secondary);
+  line-height: 1.5;
+}
+
+.detail-page__guest-signin {
+  width: 100%;
+  padding: 13px 20px;
+  background: var(--ui-color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 40px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 160ms ease, transform 120ms ease;
+
+  &:hover {
+    background: var(--ui-color-primary-strong);
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary);
+    outline-offset: 3px;
+  }
+}
+
+.detail-page__guest-signup {
+  width: 100%;
+  padding: 12px 20px;
+  background: transparent;
+  color: var(--ui-color-primary);
+  border: 1.5px solid var(--ui-color-primary);
+  border-radius: 40px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    color 160ms ease;
+
+  &:hover {
+    background: rgba(255, 96, 8, 0.06);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary);
+    outline-offset: 3px;
+  }
+}

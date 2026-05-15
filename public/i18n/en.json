@@ -30,13 +30,13 @@
   },
   "home": {
     "hero": {
-      "title": "Rent quality toys for your child, close to home.",
-      "subtitle": "Less clutter at home, more variety for kids. Share toys with families in your area.",
-      "cta": "Browse toys near you",
+      "title": "Rent quality toys for your child.",
+      "subtitle": "Less clutter at home, more variety for kids. Discover toys shared by trusted families.",
+      "cta": "Browse all toys",
       "imageAlt": "Children playing with shared toys"
     },
     "search": {
-      "placeholder": "Search toys by city",
+      "placeholder": "Search toys by name…",
       "ariaLabel": "Search toys",
       "submit": "Search"
     },
@@ -45,7 +45,7 @@
     "featured": {
       "pricePerDay": "{{amount}} per day",
       "emptyTitle": "No toys yet",
-      "empty": "New toys from families in your area will appear here soon.",
+      "empty": "New toys from trusted families will appear here soon.",
       "errorTitle": "We couldn’t load toys",
       "prevLabel": "Previous toys",
       "nextLabel": "Next toys",
@@ -75,7 +75,7 @@
         },
         "step2": {
           "title": "Find the right toy",
-          "text": "Browse toys near you by category, age range, and city."
+          "text": "Browse toys by name, category, and age range."
         },
         "step3": {
           "title": "Choose dates",
@@ -101,7 +101,7 @@
         },
         "step2": {
           "title": "Receive rental requests",
-          "text": "Parents nearby find your toy and send rental requests."
+          "text": "Parents discover your toy and send rental requests."
         },
         "step3": {
           "title": "Approve a request",
@@ -268,6 +268,10 @@
       "bookingSubtitle": "Pick your rental dates and see the total before you send a rental request.",
       "bookingSubmitting": "Submitting rental request...",
       "bookingSuccess": "Rental request submitted successfully.",
+      "guestRentPrompt": "Sign in to rent this toy",
+      "guestRentSubtext": "Create a free account or sign in to send a rental request.",
+      "guestSignIn": "Sign In",
+      "guestSignUp": "Create Account",
       "breadcrumb": {
         "home": "Home",
         "listings": "Browse Toys"
@@ -567,6 +571,33 @@
       "noMessages": "No messages in this conversation yet.",
       "messagePlaceholder": "Type your message",
       "send": "Send"
+    }
+  },
+  "info": {
+    "about": {
+      "pageTitle": "About Us",
+      "heroTitle": "About ToyShare",
+      "heroLead": "We believe every child deserves access to great toys — without the clutter or the price tag.",
+      "missionHeading": "Our Mission",
+      "howHeading": "How It Works",
+      "trustHeading": "Trust & Safety",
+      "moderationHeading": "Our Review Process",
+      "ctaLabel": "Browse Toys"
+    },
+    "faq": {
+      "pageTitle": "FAQ",
+      "heroTitle": "Frequently Asked Questions",
+      "heroLead": "Find answers to the most common questions about renting and listing toys."
+    },
+    "terms": {
+      "pageTitle": "Terms and Conditions",
+      "heroTitle": "Terms and Conditions",
+      "lastUpdated": "Last updated: May 2026"
+    },
+    "privacy": {
+      "pageTitle": "Privacy Policy",
+      "heroTitle": "Privacy Policy",
+      "lastUpdated": "Last updated: May 2026"
     }
   }
 }

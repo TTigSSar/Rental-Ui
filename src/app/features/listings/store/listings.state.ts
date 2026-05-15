@@ -25,6 +25,7 @@ export const initialListingsState: ListingsState = {
   items: [],
   selectedListing: null,
   filters: {
+    query: null,
     city: null,
     categoryId: null,
     minPrice: null,

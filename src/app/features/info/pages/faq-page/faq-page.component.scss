@@ -1,0 +1,127 @@
+@use '../info-page' as *;
+
+/* ============================================================
+   Accordion
+   ============================================================ */
+.faq-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.faq-accordion__item {
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  overflow: hidden;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.faq-accordion__item--open {
+  border-color: var(--ui-color-primary);
+  box-shadow: 0 4px 16px rgba(255, 96, 8, 0.08);
+}
+
+.faq-accordion__trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 120ms ease;
+
+  &:hover {
+    background: rgba(255, 96, 8, 0.03);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary);
+    outline-offset: -2px;
+  }
+}
+
+.faq-accordion__question {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--ui-color-text-primary);
+  line-height: 1.4;
+  flex: 1;
+}
+
+.faq-accordion__chevron {
+  flex-shrink: 0;
+  font-size: 1rem;
+  color: var(--ui-color-primary);
+  transition: transform 160ms ease;
+}
+
+.faq-accordion__answer {
+  margin: 0;
+  padding: 0 22px 20px;
+  font-size: 0.95rem;
+  color: var(--ui-color-text-secondary);
+  line-height: 1.65;
+  animation: faq-expand 150ms ease;
+}
+
+@keyframes faq-expand {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================
+   Contact nudge
+   ============================================================ */
+.faq-contact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 44px 24px;
+  background: var(--ui-color-surface);
+  border-radius: var(--ui-radius-lg);
+  border: 1px solid var(--ui-color-border);
+  text-align: center;
+}
+
+.faq-contact__icon {
+  font-size: 2rem;
+  color: var(--ui-color-primary);
+}
+
+.faq-contact__text {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--ui-color-text-secondary);
+}
+
+.faq-contact__link {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ui-color-primary);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}

@@ -129,6 +129,11 @@ export class ListingsApiService {
       .set('page', String(page))
       .set('pageSize', String(pageSize));
 
+    const query = filter.query?.trim();
+    if (query) {
+      params = params.set('title', query);
+    }
+
     const city = filter.city?.trim();
     if (city) {
       params = params.set('city', city);

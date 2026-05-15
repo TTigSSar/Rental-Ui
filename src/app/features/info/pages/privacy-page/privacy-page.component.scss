@@ -1,0 +1,11 @@
+@use '../info-page' as *;
+
+.info-page__inline-link {
+  color: var(--ui-color-primary);
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

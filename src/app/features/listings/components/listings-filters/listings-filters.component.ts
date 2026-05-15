@@ -67,12 +67,8 @@ export class ListingsFiltersComponent implements OnInit {
   }
 
   protected clearFilters(): void {
-    this.filterForm.setValue({
-      city: '',
-      categoryId: '',
-      minPrice: null,
-      maxPrice: null,
-    });
+    this.filterForm.setValue({ city: '', categoryId: '', minPrice: null, maxPrice: null });
+    this.filtersChanged.emit({ query: null, city: null, categoryId: null, minPrice: null, maxPrice: null });
   }
 
   private toListingsFilter(): ListingsFilter {
@@ -80,6 +76,7 @@ export class ListingsFiltersComponent implements OnInit {
     const city = raw.city.trim();
     const categoryId = raw.categoryId.trim();
     return {
+      query: null,
       city: city === '' ? null : city,
       categoryId: categoryId === '' ? null : categoryId,
       minPrice: raw.minPrice,

@@ -6,12 +6,15 @@ import {
   inject,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, map } from 'rxjs';
+
+import { AuthRedirectService } from '../../../auth/services/auth-redirect.service';
+import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 
 import * as BookingsActions from '../../../bookings/store/bookings.actions';
 import {
@@ -165,6 +168,10 @@ const selectListingDetailsBase = createSelector(
 export class ListingDetailsPageComponent {
   private readonly store = inject(Store);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly authRedirect = inject(AuthRedirectService);
+
+  protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
 
   protected readonly protectionBullets = PROTECTION_BULLET_KEYS;
 
@@ -257,9 +264,20 @@ export class ListingDetailsPageComponent {
     }
   }
 
+  protected onGuestRentAttempt(authPath: '/auth/login' | '/auth/register' = '/auth/login'): void {
+    this.authRedirect.set(this.router.url);
+    void this.router.navigateByUrl(authPath);
+  }
+
   protected onBookingSubmit(payload: BookingSubmitPayload): void {
     const listingId = this.routeListingId();
     if (listingId === null || listingId === '') {
+      return;
+    }
+
+    if (!this.isAuthenticated()) {
+      this.authRedirect.set(this.router.url);
+      void this.router.navigateByUrl('/auth/login');
       return;
     }
 

@@ -326,6 +326,7 @@ export class HomePageComponent implements OnInit {
     this.store.dispatch(
       ListingsActions.updateFilters({
         filters: {
+          query: null,
           city: null,
           categoryId: null,
           minPrice: null,
@@ -343,7 +344,8 @@ export class HomePageComponent implements OnInit {
     this.store.dispatch(
       ListingsActions.updateFilters({
         filters: {
-          city: raw === '' ? null : raw,
+          query: raw === '' ? null : raw,
+          city: null,
           categoryId: null,
           minPrice: null,
           maxPrice: null,
@@ -357,6 +359,7 @@ export class HomePageComponent implements OnInit {
     this.store.dispatch(
       ListingsActions.updateFilters({
         filters: {
+          query: null,
           city: null,
           categoryId: category.id,
           minPrice: null,
@@ -371,6 +374,7 @@ export class HomePageComponent implements OnInit {
     this.store.dispatch(
       ListingsActions.updateFilters({
         filters: {
+          query: null,
           city: null,
           categoryId: null,
           minPrice: null,
