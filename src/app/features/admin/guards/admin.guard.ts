@@ -43,7 +43,7 @@ export const adminGuard: CanActivateFn = () => {
       map(() => {
         const hydratedUser = store.selectSignal(selectAuthUser)();
         const authError = store.selectSignal(selectAuthError)();
-        if (hydratedUser?.roles.includes('Admin') === true) {
+        if (hydratedUser?.roles?.includes('Admin') === true) {
           return true;
         }
 

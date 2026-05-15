@@ -42,6 +42,7 @@ interface AppShellViewModel {
   readonly isGuest: boolean;
   /** `true` while `/auth/me` is hydrating and we don't yet know if the user is logged in. */
   readonly isAuthPending: boolean;
+  readonly isAdmin: boolean;
   readonly userDisplayName: string | null;
   readonly userEmail: string | null;
 }
@@ -100,7 +101,15 @@ export class App {
 
       const primaryNav: NavItem[] = [];
 
-      if (isAuthenticated) {
+      if (isAuthenticated && isAdmin) {
+        // Admins are moderators only — show moderation routes, not marketplace ones.
+        primaryNav.push({
+          path: '/admin/listings/pending',
+          labelKey: 'app.shell.nav.pendingModeration',
+          exactMatch: false,
+        });
+      } else if (isAuthenticated) {
+        // Regular authenticated users: renter/owner marketplace routes.
         primaryNav.push(
           {
             path: '/my-listings',
@@ -120,14 +129,6 @@ export class App {
         );
       }
 
-      if (isAuthenticated && isAdmin) {
-        primaryNav.push({
-          path: '/admin/listings/pending',
-          labelKey: 'app.shell.nav.pendingModeration',
-          exactMatch: false,
-        });
-      }
-
       const isAuthPending = isAuthLoading && !isAuthenticated;
       const isGuest = !isAuthenticated && !isAuthLoading;
 
@@ -136,6 +137,7 @@ export class App {
         isAuthenticated,
         isGuest,
         isAuthPending,
+        isAdmin,
         userDisplayName:
           user === null ? null : `${user.firstName} ${user.lastName}`.trim(),
         userEmail: user?.email ?? null,

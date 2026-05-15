@@ -41,7 +41,7 @@
           </nav>
 
           <div class="app-shell__trailing">
-            @if (vm.isAuthenticated) {
+            @if (vm.isAuthenticated && !vm.isAdmin) {
               <a
                 class="app-shell__btn app-shell__btn--primary app-shell__add-listing"
                 routerLink="/listings/create"
@@ -196,7 +196,7 @@
                         {{ item.labelKey | translate }}
                       </a>
                     }
-                    @if (vm.isAuthenticated) {
+                    @if (vm.isAuthenticated && !vm.isAdmin) {
                       <a
                         class="app-shell__drawer-link app-shell__drawer-link--cta"
                         routerLink="/listings/create"
