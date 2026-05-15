@@ -82,3 +82,58 @@
   margin: 0;
   color: var(--ui-color-text-secondary);
 }
+
+/* ── Reject dialog ───────────────────────────────────────────────── */
+
+.reject-dialog__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.reject-dialog__header-icon {
+  color: var(--p-red-500, #ef4444);
+  font-size: 1.1rem;
+}
+
+.reject-dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.reject-dialog__label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ui-color-text-primary);
+}
+
+.reject-dialog__required {
+  color: var(--p-red-500, #ef4444);
+  margin-left: 0.2em;
+}
+
+.reject-dialog__textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 5rem;
+}
+
+.reject-dialog__error {
+  min-height: 1.2em;
+  font-size: 0.8rem;
+  color: var(--p-red-500, #ef4444);
+  visibility: hidden;
+}
+
+.reject-dialog__error--visible {
+  visibility: visible;
+}
+
+.reject-dialog__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}

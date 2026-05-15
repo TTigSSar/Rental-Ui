@@ -488,16 +488,50 @@
         "empty": "New toy listings awaiting approval will appear here."
       },
       "card": {
-        "noImage": "No image available",
-        "city": "City",
-        "pricePerDay": "{{amount}} per day",
+        "noImage": "No image",
+        "owner": "Owner",
+        "location": "Location",
+        "priceLabel": "Price",
+        "pricePerDay": "{{amount}} / day",
+        "depositAmount": "deposit {{amount}}",
         "createdAt": "Created",
-        "owner": "Owner"
+        "toyDetails": "Toy details",
+        "ageRange": "Age",
+        "ageFromTo": "{{from}}–{{to}} months",
+        "ageFrom": "From {{months}} months",
+        "ageTo": "Up to {{months}} months",
+        "condition": "Condition",
+        "hygieneNotes": "Hygiene notes",
+        "safetyNotes": "Safety notes"
+      },
+      "condition": {
+        "New": "New",
+        "LikeNew": "Like New",
+        "Good": "Good",
+        "Fair": "Fair",
+        "Poor": "Poor"
       },
       "actions": {
         "view": "View",
         "approve": "Approve toy",
         "reject": "Reject toy"
+      },
+      "toast": {
+        "approveSuccessTitle": "Toy approved",
+        "approveSuccess": "Toy listing approved. The owner will be notified by email.",
+        "rejectSuccessTitle": "Toy rejected",
+        "rejectSuccess": "Toy listing rejected. The owner will be notified by email.",
+        "actionFailureTitle": "Action failed"
+      },
+      "rejectModal": {
+        "title": "Reject toy listing",
+        "reasonLabel": "Rejection reason",
+        "reasonPlaceholder": "Explain why this listing does not meet the guidelines...",
+        "reasonRequired": "Please enter a rejection reason.",
+        "reasonTooShort": "Reason must be at least 3 characters.",
+        "reasonTooLong": "Reason may not exceed 500 characters.",
+        "cancel": "Cancel",
+        "submit": "Reject listing"
       },
       "common": {
         "notAvailable": "Not available"

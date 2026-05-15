@@ -13,30 +13,166 @@
 
 .pending-listing-card__placeholder {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 0.4rem;
   height: 100%;
   min-height: 10rem;
   color: var(--p-text-muted-color, #71717a);
+  font-size: 0.85rem;
+}
+
+.pending-listing-card__placeholder-icon {
+  font-size: 1.5rem;
+  opacity: 0.5;
 }
 
 .pending-listing-card__content {
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.75rem;
+}
+
+.pending-listing-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
 .pending-listing-card__title {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.3;
 }
 
-.pending-listing-card__line {
+.pending-listing-card__description {
   margin: 0;
+  font-size: 0.85rem;
   color: var(--p-text-muted-color, #71717a);
-  font-size: 0.9rem;
+  line-height: 1.5;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
+/* Meta key-value grid */
+.pending-listing-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+}
+
+.pending-listing-card__meta-row {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+
+  dt {
+    color: var(--p-text-muted-color, #71717a);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--ui-color-text-primary, #18181b);
+    word-break: break-word;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+  }
+}
+
+.pending-listing-card__meta-row--notes {
+  grid-template-columns: 1fr;
+  gap: 0.15rem;
+
+  dt {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+}
+
+.pending-listing-card__owner-email {
+  font-size: 0.8rem;
+  color: var(--p-primary-color, #6366f1);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Toy section */
+.pending-listing-card__toy-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  border-top: 1px solid var(--ui-color-border, #e4e4e7);
+  padding-top: 0.65rem;
+}
+
+.pending-listing-card__toy-section-title {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--p-text-muted-color, #71717a);
+}
+
+/* Badges */
+.pending-listing-card__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  line-height: 1.5;
+
+  &--category {
+    background: #eff6ff;
+    color: #1d4ed8;
+  }
+
+  &--condition-New {
+    background: #f0fdf4;
+    color: #15803d;
+  }
+
+  &--condition-LikeNew {
+    background: #ecfdf5;
+    color: #059669;
+  }
+
+  &--condition-Good {
+    background: #fefce8;
+    color: #a16207;
+  }
+
+  &--condition-Fair {
+    background: #fff7ed;
+    color: #c2410c;
+  }
+
+  &--condition-Poor {
+    background: #fef2f2;
+    color: #b91c1c;
+  }
+}
+
+/* Actions */
 .pending-listing-card__actions {
   display: flex;
   flex-wrap: wrap;

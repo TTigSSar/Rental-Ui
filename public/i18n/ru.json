@@ -488,16 +488,50 @@
         "empty": "Новые игрушки для модерации появятся здесь."
       },
       "card": {
-        "noImage": "Изображение отсутствует",
-        "city": "Город",
-        "pricePerDay": "{{amount}} в день",
+        "noImage": "Нет фото",
+        "owner": "Владелец",
+        "location": "Местоположение",
+        "priceLabel": "Цена",
+        "pricePerDay": "{{amount}} / день",
+        "depositAmount": "залог {{amount}}",
         "createdAt": "Создано",
-        "owner": "Владелец"
+        "toyDetails": "Детали игрушки",
+        "ageRange": "Возраст",
+        "ageFromTo": "{{from}}–{{to}} мес.",
+        "ageFrom": "От {{months}} мес.",
+        "ageTo": "До {{months}} мес.",
+        "condition": "Состояние",
+        "hygieneNotes": "Гигиена",
+        "safetyNotes": "Безопасность"
+      },
+      "condition": {
+        "New": "Новое",
+        "LikeNew": "Как новое",
+        "Good": "Хорошее",
+        "Fair": "Удовлетворительное",
+        "Poor": "Плохое"
       },
       "actions": {
         "view": "Открыть",
         "approve": "Одобрить игрушку",
         "reject": "Отклонить игрушку"
+      },
+      "toast": {
+        "approveSuccessTitle": "Игрушка одобрена",
+        "approveSuccess": "Объявление одобрено. Владелец получит уведомление по электронной почте.",
+        "rejectSuccessTitle": "Игрушка отклонена",
+        "rejectSuccess": "Объявление отклонено. Владелец получит уведомление по электронной почте.",
+        "actionFailureTitle": "Ошибка действия"
+      },
+      "rejectModal": {
+        "title": "Отклонить объявление",
+        "reasonLabel": "Причина отклонения",
+        "reasonPlaceholder": "Объясните, почему объявление не соответствует требованиям...",
+        "reasonRequired": "Укажите причину отклонения.",
+        "reasonTooShort": "Причина должна содержать не менее 3 символов.",
+        "reasonTooLong": "Причина не может превышать 500 символов.",
+        "cancel": "Отмена",
+        "submit": "Отклонить объявление"
       },
       "common": {
         "notAvailable": "Недоступно"

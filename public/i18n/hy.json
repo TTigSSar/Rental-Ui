@@ -489,15 +489,49 @@
       },
       "card": {
         "noImage": "Պատկեր չկա",
-        "city": "Քաղաք",
-        "pricePerDay": "{{amount}} օրական",
+        "owner": "Սեփականատեր",
+        "location": "Գտնվելու վայր",
+        "priceLabel": "Գին",
+        "pricePerDay": "{{amount}} / օր",
+        "depositAmount": "գրավ {{amount}}",
         "createdAt": "Ստեղծվել է",
-        "owner": "Սեփականատեր"
+        "toyDetails": "Խաղալիքի մանրամասներ",
+        "ageRange": "Տարիք",
+        "ageFromTo": "{{from}}–{{to}} ամիս",
+        "ageFrom": "{{months}} ամսից",
+        "ageTo": "Մինչև {{months}} ամիս",
+        "condition": "Վիճակ",
+        "hygieneNotes": "Հիգիենա",
+        "safetyNotes": "Անվտանգություն"
+      },
+      "condition": {
+        "New": "Նոր",
+        "LikeNew": "Գրեթե նոր",
+        "Good": "Լավ",
+        "Fair": "Բավարար",
+        "Poor": "Վատ"
       },
       "actions": {
         "view": "Դիտել",
         "approve": "Հաստատել խաղալիքը",
         "reject": "Մերժել խաղալիքը"
+      },
+      "toast": {
+        "approveSuccessTitle": "Խաղալիքն հաստատված է",
+        "approveSuccess": "Հայտարարությունը հաստատվեց։ Սեփականատերը կտեղեկացվի էլ. փոստով։",
+        "rejectSuccessTitle": "Խաղալիքն մերժված է",
+        "rejectSuccess": "Հայտարարությունը մերժվեց։ Սեփականատերը կտեղեկացվի էլ. փոստով։",
+        "actionFailureTitle": "Գործողությունը ձախողվեց"
+      },
+      "rejectModal": {
+        "title": "Մերժել հայտարարությունը",
+        "reasonLabel": "Մերժման պատճառ",
+        "reasonPlaceholder": "Բացատրեք, թե ինչու հայտարարությունը չի համապատասխանում պահանջներին...",
+        "reasonRequired": "Խնդրում ենք նշել մերժման պատճառը։",
+        "reasonTooShort": "Պատճառը պետք է պարունակի առնվազն 3 նիշ։",
+        "reasonTooLong": "Պատճառը չի կարող գերազանցել 500 նիշը։",
+        "cancel": "Չեղարկել",
+        "submit": "Մերժել հայտարարությունը"
       },
       "common": {
         "notAvailable": "Հասանելի չէ"

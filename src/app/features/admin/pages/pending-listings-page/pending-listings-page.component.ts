@@ -1,8 +1,18 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
+import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
+import { Dialog } from 'primeng/dialog';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 
@@ -51,8 +61,10 @@ const selectPendingListingsPageViewModel = createSelector(
   imports: [
     AsyncPipe,
     ButtonModule,
+    Dialog,
     MessageModule,
     PendingListingCardComponent,
+    ReactiveFormsModule,
     SkeletonModule,
     TranslatePipe,
   ],
@@ -63,9 +75,41 @@ const selectPendingListingsPageViewModel = createSelector(
 export class PendingListingsPageComponent implements OnInit {
   private readonly store = inject(Store);
 
-  protected readonly viewModel$ = this.store.select(
-    selectPendingListingsPageViewModel,
-  );
+  protected readonly viewModel$ = this.store.select(selectPendingListingsPageViewModel);
+
+  // --- Reject modal state ---
+  protected readonly rejectingListingId = signal<string | null>(null);
+  protected readonly isDialogOpen = signal(false);
+
+  protected readonly rejectReasonControl = new FormControl('', {
+    nonNullable: true,
+    validators: [
+      Validators.required,
+      Validators.minLength(3),
+      Validators.maxLength(500),
+    ],
+  });
+
+  private readonly actionIds = this.store.selectSignal(selectPendingListingActionIds);
+  private readonly pendingListings = this.store.selectSignal(selectPendingListings);
+
+  protected readonly isRejectSubmitting = computed(() => {
+    const id = this.rejectingListingId();
+    if (id === null) return false;
+    return this.actionIds().includes(id);
+  });
+
+  constructor() {
+    // Close the modal once the rejected listing disappears from the pending list
+    effect(() => {
+      const id = this.rejectingListingId();
+      if (id === null) return;
+      const stillPending = this.pendingListings().some((item) => item.id === id);
+      if (!stillPending) {
+        this.closeRejectModal();
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.store.dispatch(AdminModerationActions.loadPendingListings());
@@ -80,14 +124,34 @@ export class PendingListingsPageComponent implements OnInit {
   }
 
   protected approve(listingId: string): void {
-    this.store.dispatch(
-      AdminModerationActions.approvePendingListing({ listingId }),
-    );
+    this.store.dispatch(AdminModerationActions.approvePendingListing({ listingId }));
   }
 
-  protected reject(listingId: string): void {
+  protected openRejectModal(listingId: string): void {
+    this.rejectingListingId.set(listingId);
+    this.rejectReasonControl.reset('');
+    this.isDialogOpen.set(true);
+  }
+
+  protected closeRejectModal(): void {
+    this.rejectingListingId.set(null);
+    this.isDialogOpen.set(false);
+    this.rejectReasonControl.reset('');
+  }
+
+  protected submitReject(): void {
+    this.rejectReasonControl.markAsTouched();
+
+    if (this.rejectReasonControl.invalid) {
+      return;
+    }
+
+    const listingId = this.rejectingListingId();
+    if (listingId === null) return;
+
+    const reason = this.rejectReasonControl.value.trim();
     this.store.dispatch(
-      AdminModerationActions.rejectPendingListing({ listingId }),
+      AdminModerationActions.rejectPendingListing({ listingId, reason }),
     );
   }
 }
