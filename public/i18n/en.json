@@ -269,9 +269,9 @@
       "bookingSubmitting": "Submitting rental request...",
       "bookingSuccess": "Rental request submitted successfully.",
       "guestRentPrompt": "Sign in to rent this toy",
-      "guestRentSubtext": "Create a free account or sign in to send a rental request.",
+      "guestRentSubtext": "Please sign in or create an account to request this toy.",
       "guestSignIn": "Sign In",
-      "guestSignUp": "Create Account",
+      "guestSignUp": "Sign Up",
       "breadcrumb": {
         "home": "Home",
         "listings": "Browse Toys"

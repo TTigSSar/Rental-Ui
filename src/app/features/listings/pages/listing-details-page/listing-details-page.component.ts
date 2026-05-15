@@ -4,12 +4,14 @@ import {
   Component,
   effect,
   inject,
+  signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
+import { Dialog } from 'primeng/dialog';
 import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, map } from 'rxjs';
 
@@ -156,6 +158,7 @@ const selectListingDetailsBase = createSelector(
     BookingPanelComponent,
     ButtonModule,
     CommonModule,
+    Dialog,
     ListingGalleryComponent,
     RouterLink,
     SkeletonModule,
@@ -172,6 +175,7 @@ export class ListingDetailsPageComponent {
   private readonly authRedirect = inject(AuthRedirectService);
 
   protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
+  protected readonly showAuthDialog = signal(false);
 
   protected readonly protectionBullets = PROTECTION_BULLET_KEYS;
 
@@ -265,6 +269,7 @@ export class ListingDetailsPageComponent {
   }
 
   protected onGuestRentAttempt(authPath: '/auth/login' | '/auth/register' = '/auth/login'): void {
+    this.showAuthDialog.set(false);
     this.authRedirect.set(this.router.url);
     void this.router.navigateByUrl(authPath);
   }
@@ -276,8 +281,7 @@ export class ListingDetailsPageComponent {
     }
 
     if (!this.isAuthenticated()) {
-      this.authRedirect.set(this.router.url);
-      void this.router.navigateByUrl('/auth/login');
+      this.showAuthDialog.set(true);
       return;
     }
 

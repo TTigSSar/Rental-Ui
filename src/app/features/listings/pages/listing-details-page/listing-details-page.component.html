@@ -290,53 +290,61 @@
 
             <aside class="detail-page__sidebar">
               <div class="detail-page__sidebar-sticky">
-                @if (isAuthenticated()) {
-                  <app-booking-panel
-                    [pricePerDay]="listing.pricePerDay"
-                    [bookedDates]="listing.bookedDates"
-                    [submitting]="vm.createBookingLoading"
-                    [submitError]="vm.createBookingError"
-                    [submitSuccess]="vm.createBookingSuccess"
-                    (bookingSubmit)="onBookingSubmit($event)"
-                  />
-                } @else {
-                  <div class="detail-page__guest-panel">
-                    <p class="detail-page__guest-price">
-                      {{ 'listings.details.priceLabel' | translate: { amount: (listing.pricePerDay | currency) } }}
-                    </p>
-                    <div class="detail-page__guest-divider" aria-hidden="true"></div>
-                    <div class="detail-page__guest-body">
-                      <span class="detail-page__guest-lock" aria-hidden="true">
-                        <i class="pi pi-lock"></i>
-                      </span>
-                      <p class="detail-page__guest-prompt">
-                        {{ 'listings.details.guestRentPrompt' | translate }}
-                      </p>
-                      <p class="detail-page__guest-subtext">
-                        {{ 'listings.details.guestRentSubtext' | translate }}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      class="detail-page__guest-signin"
-                      (click)="onGuestRentAttempt('/auth/login')"
-                    >
-                      {{ 'listings.details.guestSignIn' | translate }}
-                    </button>
-                    <button
-                      type="button"
-                      class="detail-page__guest-signup"
-                      (click)="onGuestRentAttempt('/auth/register')"
-                    >
-                      {{ 'listings.details.guestSignUp' | translate }}
-                    </button>
-                  </div>
-                }
+                <app-booking-panel
+                  [pricePerDay]="listing.pricePerDay"
+                  [bookedDates]="listing.bookedDates"
+                  [submitting]="vm.createBookingLoading"
+                  [submitError]="vm.createBookingError"
+                  [submitSuccess]="vm.createBookingSuccess"
+                  (bookingSubmit)="onBookingSubmit($event)"
+                />
               </div>
             </aside>
           </div>
         </article>
       }
+
+      <!-- Auth dialog shown when a guest clicks the booking CTA -->
+      <p-dialog
+        [visible]="showAuthDialog()"
+        (visibleChange)="showAuthDialog.set($event)"
+        [modal]="true"
+        [closable]="true"
+        [dismissableMask]="true"
+        [draggable]="false"
+        [resizable]="false"
+        styleClass="detail-auth-dialog-host"
+        appendTo="body"
+      >
+        <ng-template pTemplate="header">
+          <span class="detail-auth-dialog__title">
+            <i class="pi pi-lock" aria-hidden="true"></i>
+            {{ 'listings.details.guestRentPrompt' | translate }}
+          </span>
+        </ng-template>
+
+        <div class="detail-auth-dialog">
+          <p class="detail-auth-dialog__text">
+            {{ 'listings.details.guestRentSubtext' | translate }}
+          </p>
+          <div class="detail-auth-dialog__actions">
+            <button
+              type="button"
+              class="detail-auth-dialog__btn detail-auth-dialog__btn--primary"
+              (click)="onGuestRentAttempt('/auth/login')"
+            >
+              {{ 'listings.details.guestSignIn' | translate }}
+            </button>
+            <button
+              type="button"
+              class="detail-auth-dialog__btn detail-auth-dialog__btn--secondary"
+              (click)="onGuestRentAttempt('/auth/register')"
+            >
+              {{ 'listings.details.guestSignUp' | translate }}
+            </button>
+          </div>
+        </div>
+      </p-dialog>
     }
   </div>
 </div>
