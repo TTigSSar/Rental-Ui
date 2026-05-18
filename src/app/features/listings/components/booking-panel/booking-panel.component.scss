@@ -2,6 +2,10 @@
   display: block;
 }
 
+// -----------------------------------------------------------------------------
+// Panel shell
+// -----------------------------------------------------------------------------
+
 .booking-panel {
   display: flex;
   flex-direction: column;
@@ -62,6 +66,10 @@
   border-radius: 1px;
 }
 
+// -----------------------------------------------------------------------------
+// Calendar
+// -----------------------------------------------------------------------------
+
 .booking-panel__calendar {
   border: 1px solid var(--ui-color-border);
   border-radius: var(--ui-radius-md);
@@ -85,6 +93,10 @@
 .booking-panel__calendar ::ng-deep .booking-calendar__summary {
   display: none;
 }
+
+// -----------------------------------------------------------------------------
+// Price summary (in-flow on desktop / tablet)
+// -----------------------------------------------------------------------------
 
 .booking-panel__summary {
   display: flex;
@@ -128,6 +140,10 @@
   font-weight: 500;
 }
 
+// -----------------------------------------------------------------------------
+// Primary CTA (shared by in-flow footer and mobile sticky strip)
+// -----------------------------------------------------------------------------
+
 ::ng-deep .booking-panel__cta {
   width: 100%;
 }
@@ -140,7 +156,9 @@
   border-radius: var(--ui-radius-pill);
   background: var(--ui-color-primary);
   border-color: var(--ui-color-primary);
-  transition: background-color 140ms ease, box-shadow 140ms ease,
+  transition:
+    background-color 140ms ease,
+    box-shadow 140ms ease,
     transform 120ms ease;
   box-shadow: var(--ui-shadow-booking-cta);
 }
@@ -165,6 +183,10 @@
   opacity: 1;
   cursor: not-allowed;
 }
+
+// -----------------------------------------------------------------------------
+// Submit status + assurance
+// -----------------------------------------------------------------------------
 
 .booking-panel__status {
   display: flex;
@@ -210,6 +232,10 @@
   font-size: 14px;
 }
 
+// -----------------------------------------------------------------------------
+// Compact panel padding (narrow phones)
+// -----------------------------------------------------------------------------
+
 @media (max-width: 600px) {
   .booking-panel {
     padding: 20px 18px;
@@ -221,22 +247,41 @@
   }
 }
 
-/* —— Desktop + tablet: full summary + CTA in document flow —— */
+// -----------------------------------------------------------------------------
+// In-flow booking footer (desktop + tablet ≥961px; also calendar-only host on mobile)
+// -----------------------------------------------------------------------------
+
 .booking-panel__desktop-footer {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-/* —— Phone (≤960px): fixed strip above bottom nav; tablet unchanged —— */
+// -----------------------------------------------------------------------------
+// Mobile sticky booking strip
+//
+// Breakpoint: max-width 960px (`shell-md`, DESIGN_RULES) — not phone-only (767px).
+// Matches app shell bottom navigation visibility (app.css). Phone + small tablet
+// share the sticky strip so the CTA stays above the nav; ≥961px keeps the full
+// in-flow summary + CTA unchanged.
+// -----------------------------------------------------------------------------
+
 .booking-panel__mobile-sticky {
   display: none;
 }
 
 @media (max-width: 960px) {
   :host {
-    /* Scroll clearance: fixed strip + app bottom nav + safe-area */
-    padding-bottom: calc(132px + 64px + env(safe-area-inset-bottom, 0px));
+    // Tuned to sticky inner height (~132px); must stay in sync if strip layout changes.
+    --booking-panel-sticky-height: 132px;
+    // Matches .app-bottom-nav min-height (app.css).
+    --booking-panel-bottom-nav-height: 64px;
+    --booking-panel-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+
+    padding-bottom: calc(
+      var(--booking-panel-sticky-height) + var(--booking-panel-bottom-nav-height) +
+        var(--booking-panel-safe-area-bottom)
+    );
   }
 
   .booking-panel__desktop-footer {
@@ -248,8 +293,10 @@
     position: fixed;
     left: 0;
     right: 0;
-    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
     z-index: 98;
+    bottom: calc(
+      var(--booking-panel-bottom-nav-height) + var(--booking-panel-safe-area-bottom)
+    );
     padding: 0 var(--ui-space-16, 16px) 10px;
     pointer-events: none;
   }
