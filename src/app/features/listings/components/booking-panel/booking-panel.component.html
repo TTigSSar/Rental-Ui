@@ -26,68 +26,151 @@
     />
   </div>
 
-  <dl class="booking-panel__summary" aria-live="polite">
-    <div class="booking-panel__summary-row">
-      <dt>
-        {{
-          'listings.booking.nights'
-            | translate: { count: rentalDays() }
-        }}
-      </dt>
-      <dd>
-        @if (rentalDays() > 0) {
-          {{ (pricePerDay() * rentalDays()) | currency }}
-        } @else {
-          <span class="booking-panel__summary-empty">
-            {{ 'listings.booking.disabledHint' | translate }}
-          </span>
-        }
-      </dd>
-    </div>
+  <div class="booking-panel__desktop-footer">
+    <dl class="booking-panel__summary" aria-live="polite">
+      <div class="booking-panel__summary-row">
+        <dt>
+          {{
+            'listings.booking.nights'
+              | translate: { count: rentalDays() }
+          }}
+        </dt>
+        <dd>
+          @if (rentalDays() > 0) {
+            {{ (pricePerDay() * rentalDays()) | currency }}
+          } @else {
+            <span class="booking-panel__summary-empty">
+              {{ 'listings.booking.disabledHint' | translate }}
+            </span>
+          }
+        </dd>
+      </div>
 
-    <div class="booking-panel__summary-row booking-panel__summary-row--total">
-      <dt>{{ 'listings.booking.totalLabel' | translate }}</dt>
-      <dd>
-        @if (totalPrice(); as total) {
-          {{ total | currency }}
-        } @else {
-          <span class="booking-panel__summary-empty">—</span>
-        }
-      </dd>
-    </div>
-  </dl>
+      <div class="booking-panel__summary-row booking-panel__summary-row--total">
+        <dt>{{ 'listings.booking.totalLabel' | translate }}</dt>
+        <dd>
+          @if (totalPrice(); as total) {
+            {{ total | currency }}
+          } @else {
+            <span class="booking-panel__summary-empty">—</span>
+          }
+        </dd>
+      </div>
+    </dl>
 
-  <p-button
-    type="button"
-    styleClass="booking-panel__cta"
-    [label]="
-      submitting()
-        ? ('listings.booking.submitting' | translate)
-        : ('listings.booking.cta' | translate)
-    "
-    icon="pi pi-calendar"
-    iconPos="left"
-    [disabled]="!canSubmit()"
-    [loading]="submitting()"
-    (onClick)="onSubmitClick()"
-  />
+    <p-button
+      type="button"
+      styleClass="booking-panel__cta"
+      [label]="
+        submitting()
+          ? ('listings.booking.submitting' | translate)
+          : ('listings.booking.cta' | translate)
+      "
+      icon="pi pi-calendar"
+      iconPos="left"
+      [disabled]="!canSubmit()"
+      [loading]="submitting()"
+      (onClick)="onSubmitClick()"
+    />
 
-  @if (submitError(); as error) {
-    <p class="booking-panel__status booking-panel__status--error" role="alert">
-      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-      <span>{{ error }}</span>
-    </p>
-  }
+    @if (submitError(); as error) {
+      <p class="booking-panel__status booking-panel__status--error" role="alert">
+        <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+        <span>{{ error }}</span>
+      </p>
+    }
 
-  @if (submitSuccess()) {
-    <p class="booking-panel__status booking-panel__status--success" role="status">
-      <i class="pi pi-check-circle" aria-hidden="true"></i>
-      <span>{{ 'listings.details.bookingSuccess' | translate }}</span>
-    </p>
-  }
+    @if (submitSuccess()) {
+      <p class="booking-panel__status booking-panel__status--success" role="status">
+        <i class="pi pi-check-circle" aria-hidden="true"></i>
+        <span>{{ 'listings.details.bookingSuccess' | translate }}</span>
+      </p>
+    }
+  </div>
 
   <p class="booking-panel__assurance">
     <i class="pi pi-shield" aria-hidden="true"></i>
     <span>{{ 'listings.booking.assurance' | translate }}</span>
   </p>
+
+  <div
+    class="booking-panel__mobile-sticky"
+    role="region"
+    [attr.aria-label]="'listings.details.bookingHeading' | translate"
+  >
+    <div class="booking-panel__mobile-sticky-inner">
+      @if (submitError(); as stickyError) {
+        <p
+          class="booking-panel__sticky-status booking-panel__sticky-status--error"
+          role="alert"
+        >
+          <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+          <span>{{ stickyError }}</span>
+        </p>
+      }
+
+      @if (submitSuccess()) {
+        <p
+          class="booking-panel__sticky-status booking-panel__sticky-status--success"
+          role="status"
+        >
+          <i class="pi pi-check-circle" aria-hidden="true"></i>
+          <span>{{ 'listings.details.bookingSuccess' | translate }}</span>
+        </p>
+      }
+
+      <div class="booking-panel__sticky-summary">
+        <div class="booking-panel__sticky-price-block">
+          <p class="booking-panel__sticky-price">
+            <span class="booking-panel__sticky-price-amount">{{
+              pricePerDay() | currency
+            }}</span>
+            <span class="booking-panel__sticky-price-suffix">{{
+              'listings.booking.priceSuffix' | translate
+            }}</span>
+          </p>
+          <p class="booking-panel__sticky-dates">
+            @if (startDate(); as sd) {
+              @if (endDate(); as ed) {
+                <span class="booking-panel__sticky-date-range">
+                  {{ sd | date: 'mediumDate' }} — {{ ed | date: 'mediumDate' }}
+                </span>
+              }
+            } @else {
+              <span class="booking-panel__sticky-date-placeholder">{{
+                'listings.booking.disabledHint' | translate
+              }}</span>
+            }
+          </p>
+        </div>
+        @if (rentalDays() > 0) {
+          <div class="booking-panel__sticky-totals" aria-live="polite">
+            <span class="booking-panel__sticky-nights">{{
+              'listings.booking.nights' | translate: { count: rentalDays() }
+            }}</span>
+            @if (totalPrice(); as stickyTotal) {
+              <span class="booking-panel__sticky-total">{{
+                stickyTotal | currency
+              }}</span>
+            }
+          </div>
+        }
+      </div>
+
+      <p-button
+        type="button"
+        styleClass="booking-panel__cta booking-panel__sticky-cta"
+        [label]="
+          submitting()
+            ? ('listings.booking.submitting' | translate)
+            : ('listings.booking.cta' | translate)
+        "
+        icon="pi pi-calendar"
+        iconPos="left"
+        [disabled]="!canSubmit()"
+        [loading]="submitting()"
+        (onClick)="onSubmitClick()"
+      />
+    </div>
+  </div>
 </section>
