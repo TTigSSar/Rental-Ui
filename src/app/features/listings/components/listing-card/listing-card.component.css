@@ -157,7 +157,9 @@
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.35;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .listing-card__trust-badge--hygiene {
