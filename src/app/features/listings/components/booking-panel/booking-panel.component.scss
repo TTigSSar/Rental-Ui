@@ -221,22 +221,22 @@
   }
 }
 
-/* —— Desktop: full summary + CTA in document flow —— */
+/* —— Desktop + tablet: full summary + CTA in document flow —— */
 .booking-panel__desktop-footer {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-/* —— Mobile / tablet (<1100px): fixed booking strip (listing details) —— */
+/* —— Phone (≤960px): fixed strip above bottom nav; tablet unchanged —— */
 .booking-panel__mobile-sticky {
   display: none;
 }
 
-@media (max-width: 1099px) {
+@media (max-width: 960px) {
   :host {
-    /* Scroll clearance so page content is not hidden under fixed strip + bottom nav */
-    padding-bottom: calc(132px + env(safe-area-inset-bottom, 0px));
+    /* Scroll clearance: fixed strip + app bottom nav + safe-area */
+    padding-bottom: calc(132px + 64px + env(safe-area-inset-bottom, 0px));
   }
 
   .booking-panel__desktop-footer {
@@ -248,10 +248,9 @@
     position: fixed;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
     z-index: 98;
-    padding: 0 var(--ui-space-16, 16px)
-      calc(10px + env(safe-area-inset-bottom, 0px));
+    padding: 0 var(--ui-space-16, 16px) 10px;
     pointer-events: none;
   }
 
@@ -262,10 +261,10 @@
     padding: 12px 14px 14px;
     background: var(--ui-color-surface);
     border: 1px solid var(--ui-color-border);
-    border-radius: var(--ui-radius-lg) var(--ui-radius-lg) 0 0;
+    border-radius: var(--ui-radius-lg);
     box-shadow:
-      0 -8px 28px rgba(16, 18, 30, 0.08),
-      0 -2px 8px rgba(16, 18, 30, 0.04);
+      0 -10px 32px rgba(16, 18, 30, 0.1),
+      0 -2px 10px rgba(16, 18, 30, 0.05);
   }
 
   .booking-panel__sticky-summary {
@@ -361,24 +360,5 @@
     background: var(--ui-color-success-surface);
     color: var(--ui-color-success);
     border: 1px solid var(--ui-color-success-border);
-  }
-}
-
-@media (max-width: 960px) {
-  :host {
-    padding-bottom: calc(132px + 64px + env(safe-area-inset-bottom, 0px));
-  }
-
-  .booking-panel__mobile-sticky {
-    bottom: calc(64px + env(safe-area-inset-bottom, 0px));
-    padding-bottom: 10px;
-  }
-
-  .booking-panel__mobile-sticky-inner {
-    border-radius: var(--ui-radius-lg);
-    margin-bottom: 0;
-    box-shadow:
-      0 -10px 32px rgba(16, 18, 30, 0.1),
-      0 -2px 10px rgba(16, 18, 30, 0.05);
   }
 }
