@@ -34,11 +34,19 @@
     }
 
     @if (vm.showEmpty) {
-      <app-ui-empty-state
-        icon="pi pi-gift"
-        [title]="'listings.page.emptyTitle' | translate"
-        [description]="'listings.page.empty' | translate"
-      />
+      @if (vm.hasActiveFilters) {
+        <app-ui-empty-state
+          icon="pi pi-filter-slash"
+          [title]="'listings.page.emptyFilterTitle' | translate"
+          [description]="'listings.page.emptyFilter' | translate"
+        />
+      } @else {
+        <app-ui-empty-state
+          icon="pi pi-gift"
+          [title]="'listings.page.emptyTitle' | translate"
+          [description]="'listings.page.empty' | translate"
+        />
+      }
     }
 
     @if (vm.items.length > 0) {

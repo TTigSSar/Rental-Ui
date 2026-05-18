@@ -10,36 +10,62 @@
   box-shadow: var(--ui-shadow-card);
 }
 
-/* ── Top row: intro text + clear button ──────────────────── */
-.listings-filters__top-row {
+/* ── Primary search field ────────────────────────────────── */
+.listings-filters__search-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.listings-filters__search-field {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  padding: 16px;
 }
 
-.listings-filters__intro {
-  font-size: var(--ui-font-size-caption);
+.listings-filters__search-icon {
+  position: absolute;
+  left: 0.75rem;
   color: var(--ui-color-text-secondary);
-  margin: 0;
+  font-size: 0.875rem;
+  pointer-events: none;
+  z-index: 1;
 }
 
-/* ── Filter fields grid ──────────────────────────────────── */
+.listings-filters__input--search.p-inputtext {
+  width: 100%;
+  height: 2.75rem;
+  padding-left: 2.25rem;
+  padding-block: 0;
+}
+
+/* ── Secondary: refinement filters + clear button ────────── */
+.listings-filters__secondary {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--ui-space-16);
+  flex-wrap: wrap;
+}
+
 .listings-filters__fields {
+  flex: 1 1 0;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
   gap: var(--ui-space-16);
   align-items: end;
-  padding: 24px 16px;
+  min-width: 0;
 }
 
+.listings-filters__clear {
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+
+/* ── Individual filter field ─────────────────────────────── */
 .listings-filters__field {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  /* fields should never overflow the filter card */
   min-width: 0;
 }
 
@@ -53,7 +79,6 @@
 }
 
 /* ── Shared height / width for all input types ───────────── */
-/* pInputText (native input with pInputText directive) */
 .listings-filters__input.p-inputtext {
   width: 100%;
   height: 2.5rem;
@@ -89,20 +114,27 @@
   cursor: not-allowed;
 }
 
-/* ── PrimeNG InputNumber: fix inner input to fill wrapper ───
-   styleClass on p-inputNumber applies to the host element.
-   The actual <input> inside uses .p-inputnumber-input.
-   Without explicit sizing the inner input can be narrower
-   than the container.
-   ─────────────────────────────────────────────────────────── */
+/* ── PrimeNG InputNumber inner input ────────────────────── */
 .listings-filters__input {
   width: 100%;
   display: block;
 }
 
-/* reach into p-inputNumber's inner input */
 .listings-filters__input ::ng-deep .p-inputnumber-input {
   width: 100%;
   height: 2.5rem;
   padding-block: 0;
+}
+
+/* ── Mobile: stack secondary filters vertically ─────────── */
+@media (max-width: 560px) {
+  .listings-filters__secondary {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .listings-filters__clear {
+    align-self: stretch;
+    width: 100%;
+  }
 }

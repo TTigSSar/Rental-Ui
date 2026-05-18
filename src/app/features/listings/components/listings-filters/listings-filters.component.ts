@@ -48,6 +48,7 @@ export class ListingsFiltersComponent implements OnInit {
   );
 
   readonly filterForm = this.fb.group({
+    query: this.fb.nonNullable.control(''),
     city: this.fb.nonNullable.control(''),
     categoryId: this.fb.nonNullable.control(''),
     minPrice: this.fb.control<number | null>(null),
@@ -67,16 +68,17 @@ export class ListingsFiltersComponent implements OnInit {
   }
 
   protected clearFilters(): void {
-    this.filterForm.setValue({ city: '', categoryId: '', minPrice: null, maxPrice: null });
+    this.filterForm.setValue({ query: '', city: '', categoryId: '', minPrice: null, maxPrice: null });
     this.filtersChanged.emit({ query: null, city: null, categoryId: null, minPrice: null, maxPrice: null });
   }
 
   private toListingsFilter(): ListingsFilter {
     const raw = this.filterForm.getRawValue();
+    const query = raw.query.trim();
     const city = raw.city.trim();
     const categoryId = raw.categoryId.trim();
     return {
-      query: null,
+      query: query === '' ? null : query,
       city: city === '' ? null : city,
       categoryId: categoryId === '' ? null : categoryId,
       minPrice: raw.minPrice,

@@ -219,6 +219,8 @@
     "filters": {
       "intro": "Filter to find the right toy quickly.",
       "clear": "Clear filters",
+      "query": "Search",
+      "queryPlaceholder": "Search by toy name…",
       "city": "City",
       "cityPlaceholder": "Enter city",
       "categoryId": "Toy category",
@@ -253,8 +255,10 @@
       "title": "Browse Toys",
       "subtitle": "Find rentable toys from families near you.",
       "errorTitle": "Unable to load toys",
-      "emptyTitle": "No toys match your filters",
-      "empty": "Try adjusting filters to see more toys.",
+      "emptyTitle": "No toys listed yet",
+      "empty": "Be the first to list a toy — families in your area are looking!",
+      "emptyFilterTitle": "No toys match your filters",
+      "emptyFilter": "Try clearing some filters or searching by a different name.",
       "loading": "Loading toys",
       "loadingMore": "Loading more toys",
       "loadMore": "Load more toys"

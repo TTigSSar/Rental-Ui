@@ -1,79 +1,97 @@
 <form class="listings-filters" [formGroup]="filterForm">
-  <div class="listings-filters__top-row">
-    <p class="listings-filters__intro">
-      {{ 'listings.filters.intro' | translate }}
-    </p>
+  <!-- Primary search field -->
+  <div class="listings-filters__search-wrap">
+    <label class="listings-filters__label" for="listings-filter-query">
+      {{ 'listings.filters.query' | translate }}
+    </label>
+    <div class="listings-filters__search-field">
+      <span class="pi pi-search listings-filters__search-icon" aria-hidden="true"></span>
+      <input
+        pInputText
+        class="listings-filters__input listings-filters__input--search"
+        id="listings-filter-query"
+        type="search"
+        formControlName="query"
+        [placeholder]="'listings.filters.queryPlaceholder' | translate"
+        autocomplete="off"
+      />
+    </div>
+  </div>
+
+  <!-- Secondary refinement filters -->
+  <div class="listings-filters__secondary">
+    <div class="listings-filters__fields">
+      <div class="listings-filters__field">
+        <label class="listings-filters__label" for="listings-filter-city">
+          {{ 'listings.filters.city' | translate }}
+        </label>
+        <input
+          pInputText
+          class="listings-filters__input"
+          id="listings-filter-city"
+          type="text"
+          formControlName="city"
+          [placeholder]="'listings.filters.cityPlaceholder' | translate"
+          autocomplete="address-level2"
+        />
+      </div>
+
+      <div class="listings-filters__field">
+        <label class="listings-filters__label" for="listings-filter-category">
+          {{ 'listings.filters.categoryId' | translate }}
+        </label>
+        <select
+          class="listings-filters__select"
+          id="listings-filter-category"
+          formControlName="categoryId"
+        >
+          <option value="">{{ 'listings.filters.categoryPlaceholder' | translate }}</option>
+          @for (cat of categories(); track cat.id) {
+            <option [value]="cat.id">{{ cat.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="listings-filters__field">
+        <label class="listings-filters__label" for="listings-filter-min-price">
+          {{ 'listings.filters.minPrice' | translate }}
+        </label>
+        <p-inputNumber
+          inputId="listings-filter-min-price"
+          formControlName="minPrice"
+          mode="decimal"
+          [minFractionDigits]="0"
+          [maxFractionDigits]="2"
+          [useGrouping]="true"
+          [placeholder]="'listings.filters.minPricePlaceholder' | translate"
+          styleClass="listings-filters__input"
+        />
+      </div>
+
+      <div class="listings-filters__field">
+        <label class="listings-filters__label" for="listings-filter-max-price">
+          {{ 'listings.filters.maxPrice' | translate }}
+        </label>
+        <p-inputNumber
+          inputId="listings-filter-max-price"
+          formControlName="maxPrice"
+          mode="decimal"
+          [minFractionDigits]="0"
+          [maxFractionDigits]="2"
+          [useGrouping]="true"
+          [placeholder]="'listings.filters.maxPricePlaceholder' | translate"
+          styleClass="listings-filters__input"
+        />
+      </div>
+    </div>
+
     <p-button
       type="button"
+      class="listings-filters__clear"
       [text]="true"
       icon="pi pi-filter-slash"
       [label]="'listings.filters.clear' | translate"
       (onClick)="clearFilters()"
     />
-  </div>
-
-  <div class="listings-filters__fields">
-    <div class="listings-filters__field">
-      <label class="listings-filters__label" for="listings-filter-city">
-        {{ 'listings.filters.city' | translate }}
-      </label>
-      <input
-        pInputText
-        class="listings-filters__input"
-        id="listings-filter-city"
-        type="text"
-        formControlName="city"
-        [placeholder]="'listings.filters.cityPlaceholder' | translate"
-        autocomplete="address-level2"
-      />
-    </div>
-
-    <div class="listings-filters__field">
-      <label class="listings-filters__label" for="listings-filter-category">
-        {{ 'listings.filters.categoryId' | translate }}
-      </label>
-      <select
-        class="listings-filters__select"
-        id="listings-filter-category"
-        formControlName="categoryId"
-      >
-        <option value="">{{ 'listings.filters.categoryPlaceholder' | translate }}</option>
-        @for (cat of categories(); track cat.id) {
-          <option [value]="cat.id">{{ cat.name }}</option>
-        }
-      </select>
-    </div>
-
-    <div class="listings-filters__field">
-      <label class="listings-filters__label" for="listings-filter-min-price">
-        {{ 'listings.filters.minPrice' | translate }}
-      </label>
-      <p-inputNumber
-        inputId="listings-filter-min-price"
-        formControlName="minPrice"
-        mode="decimal"
-        [minFractionDigits]="0"
-        [maxFractionDigits]="2"
-        [useGrouping]="true"
-        [placeholder]="'listings.filters.minPricePlaceholder' | translate"
-        styleClass="listings-filters__input"
-      />
-    </div>
-
-    <div class="listings-filters__field">
-      <label class="listings-filters__label" for="listings-filter-max-price">
-        {{ 'listings.filters.maxPrice' | translate }}
-      </label>
-      <p-inputNumber
-        inputId="listings-filter-max-price"
-        formControlName="maxPrice"
-        mode="decimal"
-        [minFractionDigits]="0"
-        [maxFractionDigits]="2"
-        [useGrouping]="true"
-        [placeholder]="'listings.filters.maxPricePlaceholder' | translate"
-        styleClass="listings-filters__input"
-      />
-    </div>
   </div>
 </form>

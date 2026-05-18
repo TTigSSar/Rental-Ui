@@ -61,7 +61,7 @@
    stretching across the full container width.
    ────────────────────────────────────────────────────────── */
 .listings-page__grid {
-  gap: var(--ui-space-16);
+  gap: var(--ui-space-24);
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: stretch;
 
@@ -70,6 +70,7 @@
   }
 
   @media (max-width: 560px) {
+    gap: var(--ui-space-16);
     grid-template-columns: 1fr;
   }
 }

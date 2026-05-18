@@ -20,6 +20,7 @@ import * as ListingsActions from '../../store/listings.actions';
 import {
   selectListingItems,
   selectListingsError,
+  selectListingsFilters,
   selectListingsHasMore,
   selectListingsLoading,
   selectListingsPageSize,
@@ -36,6 +37,7 @@ export interface ListingsPageViewModel {
   readonly showEmpty: boolean;
   readonly showLoadMore: boolean;
   readonly hasError: boolean;
+  readonly hasActiveFilters: boolean;
 }
 
 const selectListingsPageViewModel = createSelector(
@@ -44,8 +46,12 @@ const selectListingsPageViewModel = createSelector(
   selectListingsError,
   selectListingsHasMore,
   selectListingsPageSize,
-  (items, loading, error, hasMore, pageSize): ListingsPageViewModel => {
+  selectListingsFilters,
+  (items, loading, error, hasMore, pageSize, filters): ListingsPageViewModel => {
     const hasError = error !== null;
+    const hasActiveFilters =
+      filters !== null &&
+      Object.values(filters).some((v) => v !== null && v !== '');
     return {
       items,
       loading,
@@ -57,6 +63,7 @@ const selectListingsPageViewModel = createSelector(
       showEmpty: !loading && items.length === 0 && !hasError,
       showLoadMore: hasMore && !hasError && !loading,
       hasError,
+      hasActiveFilters,
     };
   },
 );
