@@ -527,7 +527,8 @@
         "subtitle": "Review pending toy listings before they’re visible to parents.",
         "errorTitle": "Unable to load pending toy listings",
         "emptyTitle": "No pending toys",
-        "empty": "New toy listings awaiting approval will appear here."
+        "empty": "New toy listings awaiting approval will appear here.",
+        "queueCount": "{{count}} listing(s) awaiting your review"
       },
       "card": {
         "noImage": "No image",
@@ -544,7 +545,8 @@
         "ageTo": "Up to {{months}} months",
         "condition": "Condition",
         "hygieneNotes": "Hygiene notes",
-        "safetyNotes": "Safety notes"
+        "safetyNotes": "Safety notes",
+        "missingTrustNote": "Condition or hygiene info not provided — review carefully."
       },
       "condition": {
         "New": "New",

@@ -88,6 +88,14 @@
       </div>
     </dl>
 
+    <!-- Missing trust signals warning -->
+    @if (hasMissingTrustSignals()) {
+      <div class="pending-listing-card__trust-warning" role="note">
+        <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+        {{ 'admin.pendingListings.card.missingTrustNote' | translate }}
+      </div>
+    }
+
     <!-- Toy-specific details -->
     @if (hasAnyToyDetails()) {
       <div class="pending-listing-card__toy-section">
@@ -147,7 +155,6 @@
       />
       <p-button
         type="button"
-        size="small"
         severity="success"
         icon="pi pi-check"
         [label]="'admin.pendingListings.actions.approve' | translate"
@@ -157,7 +164,6 @@
       />
       <p-button
         type="button"
-        size="small"
         severity="danger"
         [outlined]="true"
         icon="pi pi-times"

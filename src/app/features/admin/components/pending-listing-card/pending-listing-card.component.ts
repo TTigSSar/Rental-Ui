@@ -50,6 +50,12 @@ export class PendingListingCardComponent {
     );
   });
 
+  // Condition and hygiene notes are the two most critical trust signals for toy safety.
+  protected readonly hasMissingTrustSignals = computed(() => {
+    const l = this.listing();
+    return l.condition === null || l.hygieneNotes === null;
+  });
+
   protected readonly ageRangeLabel = computed((): string => {
     const l = this.listing();
     const from = l.ageFromMonths;

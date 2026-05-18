@@ -52,6 +52,9 @@
     }
 
     @if (vm.items.length > 0) {
+      <p class="pending-listings-page__queue-count">
+        {{ 'admin.pendingListings.page.queueCount' | translate : { count: vm.items.length } }}
+      </p>
       <div class="pending-listings-page__grid">
         @for (item of vm.items; track item.id) {
           <app-pending-listing-card

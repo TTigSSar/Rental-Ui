@@ -1,7 +1,7 @@
 .pending-listing-card__media {
   aspect-ratio: 16 / 10;
   overflow: hidden;
-  background: var(--p-content-background, #f4f4f5);
+  background: var(--ui-color-surface-muted);
 }
 
 .pending-listing-card__image {
@@ -16,11 +16,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: var(--ui-space-4);
   height: 100%;
   min-height: 10rem;
-  color: var(--p-text-muted-color, #71717a);
-  font-size: 0.85rem;
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-font-size-caption);
 }
 
 .pending-listing-card__placeholder-icon {
@@ -31,27 +31,27 @@
 .pending-listing-card__content {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--ui-space-12);
 }
 
 .pending-listing-card__top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: var(--ui-space-8);
 }
 
 .pending-listing-card__title {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: var(--ui-font-size-h3);
   font-weight: 600;
   line-height: 1.3;
 }
 
 .pending-listing-card__description {
   margin: 0;
-  font-size: 0.85rem;
-  color: var(--p-text-muted-color, #71717a);
+  font-size: var(--ui-font-size-caption);
+  color: var(--ui-color-text-secondary);
   line-height: 1.5;
   overflow: hidden;
   display: -webkit-box;
@@ -59,11 +59,11 @@
   -webkit-box-orient: vertical;
 }
 
-/* Meta key-value grid */
+/* ── Meta key-value grid ──────────────────────────────────────────── */
 .pending-listing-card__meta {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: var(--ui-space-4);
   margin: 0;
   padding: 0;
 }
@@ -71,32 +71,32 @@
 .pending-listing-card__meta-row {
   display: grid;
   grid-template-columns: 7rem 1fr;
-  gap: 0.25rem;
-  font-size: 0.85rem;
+  gap: var(--ui-space-4);
+  font-size: var(--ui-font-size-caption);
 
   dt {
-    color: var(--p-text-muted-color, #71717a);
+    color: var(--ui-color-text-secondary);
     font-weight: 500;
     white-space: nowrap;
   }
 
   dd {
     margin: 0;
-    color: var(--ui-color-text-primary, #18181b);
+    color: var(--ui-color-text-primary);
     word-break: break-word;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.25rem;
+    gap: var(--ui-space-4);
   }
 }
 
 .pending-listing-card__meta-row--notes {
   grid-template-columns: 1fr;
-  gap: 0.15rem;
+  gap: 2px;
 
   dt {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }
@@ -104,7 +104,7 @@
 
 .pending-listing-card__owner-email {
   font-size: 0.8rem;
-  color: var(--p-primary-color, #6366f1);
+  color: var(--ui-color-primary);
   text-decoration: none;
 
   &:hover {
@@ -112,70 +112,98 @@
   }
 }
 
-/* Toy section */
+/* ── Missing trust signals warning ───────────────────────────────── */
+.pending-listing-card__trust-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-6);
+  padding: var(--ui-space-8) var(--ui-space-12);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-color-warning-surface);
+  color: var(--ui-color-warning);
+  font-size: var(--ui-font-size-caption);
+  line-height: 1.4;
+
+  .pi {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: var(--ui-font-size-caption);
+  }
+}
+
+/* ── Toy section ──────────────────────────────────────────────────── */
 .pending-listing-card__toy-section {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  border-top: 1px solid var(--ui-color-border, #e4e4e7);
-  padding-top: 0.65rem;
+  gap: var(--ui-space-8);
+  border-top: 1px solid var(--ui-color-border);
+  padding-top: var(--ui-space-12);
 }
 
 .pending-listing-card__toy-section-title {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--p-text-muted-color, #71717a);
+  color: var(--ui-color-text-secondary);
 }
 
-/* Badges */
+/* ── Badges ───────────────────────────────────────────────────────── */
 .pending-listing-card__badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.15rem 0.55rem;
-  border-radius: 999px;
+  padding: 2px var(--ui-space-8);
+  border-radius: var(--ui-radius-pill);
   font-size: 0.75rem;
   font-weight: 500;
   white-space: nowrap;
   line-height: 1.5;
 
   &--category {
-    background: #eff6ff;
-    color: #1d4ed8;
+    background: var(--ui-color-neutral-badge-surface);
+    color: var(--ui-color-text-secondary);
   }
 
   &--condition-New {
-    background: #f0fdf4;
-    color: #15803d;
+    background: var(--ui-color-approved-surface);
+    color: var(--ui-color-approved);
   }
 
   &--condition-LikeNew {
-    background: #ecfdf5;
-    color: #059669;
+    background: var(--ui-color-success-surface);
+    color: var(--ui-color-success);
   }
 
   &--condition-Good {
-    background: #fefce8;
-    color: #a16207;
+    background: var(--ui-color-neutral-badge-surface);
+    color: var(--ui-color-text-secondary);
   }
 
   &--condition-Fair {
-    background: #fff7ed;
-    color: #c2410c;
+    background: var(--ui-color-warning-surface);
+    color: var(--ui-color-warning);
   }
 
   &--condition-Poor {
-    background: #fef2f2;
-    color: #b91c1c;
+    background: var(--ui-color-rejected-surface);
+    color: var(--ui-color-rejected);
   }
 }
 
-/* Actions */
+/* ── Actions row ──────────────────────────────────────────────────── */
 .pending-listing-card__actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 0.5rem;
+  gap: var(--ui-space-8);
+
+  @media (max-width: 560px) {
+    flex-direction: column;
+
+    &>* {
+      width: 100%;
+      min-height: 2.75rem;
+    }
+  }
 }
