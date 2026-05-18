@@ -147,7 +147,9 @@ export class CreateListingFormComponent {
   }
 
   private scrollToTop(): void {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   protected getCategoryName(): string {
