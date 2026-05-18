@@ -7,6 +7,7 @@
       "primaryNavAria": "Primary navigation",
       "secondaryNavAria": "Account navigation",
       "menuToggleAria": "Open menu",
+      "bottomNavAria": "Mobile navigation",
       "userMenuToggleAria": "Account menu",
       "language": {
         "switchAria": "Change language"
@@ -24,7 +25,10 @@
         "login": "Log in",
         "register": "Sign up",
         "logout": "Log out",
-        "addListing": "List a Toy"
+        "addListing": "List a Toy",
+        "browseShort": "Browse",
+        "menu": "Menu",
+        "moderationShort": "Moderate"
       }
     }
   },

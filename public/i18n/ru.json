@@ -7,6 +7,7 @@
       "primaryNavAria": "Основная навигация",
       "secondaryNavAria": "Навигация аккаунта",
       "menuToggleAria": "Открыть меню",
+      "bottomNavAria": "Мобильная навигация",
       "userMenuToggleAria": "Меню аккаунта",
       "language": {
         "switchAria": "Сменить язык"
@@ -24,7 +25,10 @@
         "login": "Войти",
         "register": "Регистрация",
         "logout": "Выйти",
-        "addListing": "Сдать игрушку"
+        "addListing": "Сдать игрушку",
+        "browseShort": "Каталог",
+        "menu": "Меню",
+        "moderationShort": "Модерация"
       }
     }
   },

@@ -7,6 +7,7 @@
       "primaryNavAria": "Գլխավոր նավիգացիա",
       "secondaryNavAria": "Հաշվի նավիգացիա",
       "menuToggleAria": "Բացել ընտրացանկը",
+      "bottomNavAria": "Բջջային նավիգացիա",
       "userMenuToggleAria": "Հաշվի ընտրացանկ",
       "language": {
         "switchAria": "Փոխել լեզուն"
@@ -24,7 +25,10 @@
         "login": "Մուտք",
         "register": "Գրանցում",
         "logout": "Ելք",
-        "addListing": "Տրամադրել խաղալիք"
+        "addListing": "Տրամադրել խաղալիք",
+        "browseShort": "Կատալոգ",
+        "menu": "Մենյու",
+        "moderationShort": "Մոդերացիա"
       }
     }
   },

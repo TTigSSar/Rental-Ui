@@ -296,9 +296,145 @@
       [breakpoints]="{'640px': {width: '100%', right: '0', left: '0'}}"
     />
 
-    <main class="app-shell__content">
+    <main class="app-shell__content app-shell__content--with-bottom-nav">
       <router-outlet></router-outlet>
     </main>
+
+    <nav
+      class="app-bottom-nav"
+      [class.app-bottom-nav--admin]="vm.isAdmin"
+      [attr.aria-label]="'app.shell.bottomNavAria' | translate"
+    >
+      @if (vm.isAdmin) {
+        <a
+          class="app-bottom-nav__item"
+          routerLink="/"
+          routerLinkActive="app-bottom-nav__item--active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMobileNav()"
+        >
+          <i class="pi pi-home app-bottom-nav__icon" aria-hidden="true"></i>
+          <span class="app-bottom-nav__label">{{ 'app.shell.nav.home' | translate }}</span>
+        </a>
+        <a
+          class="app-bottom-nav__item"
+          routerLink="/admin/listings/pending"
+          routerLinkActive="app-bottom-nav__item--active"
+          [routerLinkActiveOptions]="{ exact: false }"
+          (click)="closeMobileNav()"
+        >
+          <i class="pi pi-shield app-bottom-nav__icon" aria-hidden="true"></i>
+          <span class="app-bottom-nav__label">{{
+            'app.shell.nav.moderationShort' | translate
+          }}</span>
+        </a>
+        <a
+          class="app-bottom-nav__item"
+          routerLink="/profile"
+          routerLinkActive="app-bottom-nav__item--active"
+          [routerLinkActiveOptions]="{ exact: false }"
+          (click)="closeMobileNav()"
+        >
+          <i class="pi pi-user app-bottom-nav__icon" aria-hidden="true"></i>
+          <span class="app-bottom-nav__label">{{ 'app.shell.nav.profile' | translate }}</span>
+        </a>
+        <button
+          type="button"
+          class="app-bottom-nav__item"
+          [attr.aria-label]="'app.shell.nav.menu' | translate"
+          (click)="onBottomNavMenuClick()"
+        >
+          <i class="pi pi-bars app-bottom-nav__icon" aria-hidden="true"></i>
+          <span class="app-bottom-nav__label">{{ 'app.shell.nav.menu' | translate }}</span>
+        </button>
+      } @else {
+        <a
+          class="app-bottom-nav__item"
+          routerLink="/"
+          routerLinkActive="app-bottom-nav__item--active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMobileNav()"
+        >
+          <i class="pi pi-home app-bottom-nav__icon" aria-hidden="true"></i>
+          <span class="app-bottom-nav__label">{{ 'app.shell.nav.home' | translate }}</span>
+        </a>
+        <a
+          class="app-bottom-nav__item"
+          routerLink="/listings"
+          routerLinkActive="app-bottom-nav__item--active"
+          [routerLinkActiveOptions]="{ exact: false }"
+          (click)="closeMobileNav()"
+        >
+          <i class="pi pi-search app-bottom-nav__icon" aria-hidden="true"></i>
+          <span class="app-bottom-nav__label">{{ 'app.shell.nav.browseShort' | translate }}</span>
+        </a>
+
+        @if (vm.isAuthenticated) {
+          <a
+            class="app-bottom-nav__fab"
+            routerLink="/listings/create"
+            [attr.aria-label]="'app.shell.nav.addListing' | translate"
+            (click)="closeMobileNav()"
+          >
+            <i class="pi pi-plus" aria-hidden="true"></i>
+          </a>
+        } @else if (vm.isGuest) {
+          <button
+            type="button"
+            class="app-bottom-nav__fab"
+            [attr.aria-label]="'app.shell.nav.addListing' | translate"
+            (click)="onGuestListToyClick()"
+          >
+            <i class="pi pi-plus" aria-hidden="true"></i>
+          </button>
+        } @else {
+          <span class="app-bottom-nav__fab-spacer" aria-hidden="true"></span>
+        }
+
+        @if (vm.isAuthenticated) {
+          <a
+            class="app-bottom-nav__item"
+            routerLink="/my-listings"
+            routerLinkActive="app-bottom-nav__item--active"
+            [routerLinkActiveOptions]="{ exact: false }"
+            (click)="closeMobileNav()"
+          >
+            <i class="pi pi-box app-bottom-nav__icon" aria-hidden="true"></i>
+            <span class="app-bottom-nav__label">{{ 'app.shell.nav.myListings' | translate }}</span>
+          </a>
+          <a
+            class="app-bottom-nav__item"
+            routerLink="/profile"
+            routerLinkActive="app-bottom-nav__item--active"
+            [routerLinkActiveOptions]="{ exact: false }"
+            (click)="closeMobileNav()"
+          >
+            <i class="pi pi-user app-bottom-nav__icon" aria-hidden="true"></i>
+            <span class="app-bottom-nav__label">{{ 'app.shell.nav.profile' | translate }}</span>
+          </a>
+        } @else {
+          <a
+            class="app-bottom-nav__item"
+            routerLink="/auth/login"
+            routerLinkActive="app-bottom-nav__item--active"
+            [routerLinkActiveOptions]="{ exact: false }"
+            (click)="closeMobileNav()"
+          >
+            <i class="pi pi-sign-in app-bottom-nav__icon" aria-hidden="true"></i>
+            <span class="app-bottom-nav__label">{{ 'app.shell.nav.login' | translate }}</span>
+          </a>
+          <button
+            type="button"
+            class="app-bottom-nav__item"
+            [attr.aria-label]="'app.shell.nav.menu' | translate"
+            (click)="onBottomNavMenuClick()"
+          >
+            <i class="pi pi-bars app-bottom-nav__icon" aria-hidden="true"></i>
+            <span class="app-bottom-nav__label">{{ 'app.shell.nav.menu' | translate }}</span>
+          </button>
+        }
+      }
+    </nav>
   }
 
   @if (showFooter()) {

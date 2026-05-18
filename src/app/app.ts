@@ -15,6 +15,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Toast } from 'primeng/toast';
 import { combineLatest, filter, map } from 'rxjs';
 
+import { AuthRedirectService } from './features/auth/services/auth-redirect.service';
 import * as AuthActions from './features/auth/store/auth.actions';
 import {
   selectAuthLoading,
@@ -79,6 +80,7 @@ export class App {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
+  private readonly authRedirect = inject(AuthRedirectService);
 
   /** Shown in the authenticated user menu (desktop dropdown + mobile drawer). */
   protected readonly accountMenuItems: readonly NavItem[] = [
@@ -222,6 +224,16 @@ export class App {
     this.store.dispatch(AuthActions.logout());
     this.userMenuOpen.set(false);
     this.mobileNavOpen.set(false);
+  }
+
+  /** Guest center FAB — preserve intended create-listing destination after auth. */
+  protected onGuestListToyClick(): void {
+    this.authRedirect.set('/listings/create');
+    void this.router.navigate(['/auth/login']);
+  }
+
+  protected onBottomNavMenuClick(): void {
+    this.toggleMobileNav();
   }
 
   @HostListener('document:click', ['$event'])
