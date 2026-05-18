@@ -116,25 +116,43 @@
                 </div>
               </header>
 
-              <div class="detail-page__sections">
-                <section
-                  class="detail-page__section"
-                  aria-labelledby="detail-description-heading"
+              <!-- Trust summary strip: quick-scan chips for condition, age, hygiene -->
+              @if (listing.condition || listing.ageFromMonths || listing.ageToMonths || listing.hygieneNotes) {
+                <div
+                  class="detail-page__trust-strip"
+                  [attr.aria-label]="'listings.details.toyDetails.heading' | translate"
                 >
-                  <h2
-                    id="detail-description-heading"
-                    class="detail-page__section-title"
-                  >
-                    {{ 'listings.details.descriptionHeading' | translate }}
-                  </h2>
-                  <p class="detail-page__section-body">
-                    {{ listing.description }}
-                  </p>
-                </section>
+                  @if (resolveConditionLabelKey(listing.condition); as conditionKey) {
+                    <span class="detail-page__trust-chip detail-page__trust-chip--neutral">
+                      <i class="pi pi-tag" aria-hidden="true"></i>
+                      <span>{{ conditionKey | translate }}</span>
+                    </span>
+                  } @else if (listing.condition) {
+                    <span class="detail-page__trust-chip detail-page__trust-chip--neutral">
+                      <i class="pi pi-tag" aria-hidden="true"></i>
+                      <span>{{ listing.condition }}</span>
+                    </span>
+                  }
+                  @if (resolveAgeRangeDisplay(listing.ageFromMonths, listing.ageToMonths); as ageRange) {
+                    <span class="detail-page__trust-chip detail-page__trust-chip--neutral">
+                      <i class="pi pi-clock" aria-hidden="true"></i>
+                      <span>{{ ageRange.key | translate: ageRange.params }}</span>
+                    </span>
+                  }
+                  @if (listing.hygieneNotes) {
+                    <span class="detail-page__trust-chip detail-page__trust-chip--hygiene">
+                      <i class="pi pi-shield" aria-hidden="true"></i>
+                      <span>{{ 'listings.card.hygieneProvided' | translate }}</span>
+                    </span>
+                  }
+                </div>
+              }
 
+              <div class="detail-page__sections">
+                <!-- 1. Toy trust details — moved first so parents see condition/age/hygiene before description -->
                 @if (hasAnyToyDetail(listing)) {
                   <section
-                    class="detail-page__section"
+                    class="detail-page__section detail-page__section--toydetails"
                     aria-labelledby="detail-toy-heading"
                   >
                     <h2
@@ -207,6 +225,22 @@
                     </dl>
                   </section>
                 }
+
+                <!-- 2. Description — after trust details -->
+                <section
+                  class="detail-page__section"
+                  aria-labelledby="detail-description-heading"
+                >
+                  <h2
+                    id="detail-description-heading"
+                    class="detail-page__section-title"
+                  >
+                    {{ 'listings.details.descriptionHeading' | translate }}
+                  </h2>
+                  <p class="detail-page__section-body">
+                    {{ listing.description }}
+                  </p>
+                </section>
 
                 <section
                   class="detail-page__section"

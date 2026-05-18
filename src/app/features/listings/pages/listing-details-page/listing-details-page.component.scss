@@ -257,11 +257,49 @@
   background: #fff4ea;
 }
 
+/* ── Trust summary strip ──────────────────────────────────── */
+.detail-page__trust-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space-8);
+  margin-top: var(--ui-space-16);
+}
+
+.detail-page__trust-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-4);
+  padding: var(--ui-space-4) 12px;
+  border-radius: var(--ui-radius-pill);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
+
+  .pi {
+    font-size: 0.72rem;
+    flex-shrink: 0;
+  }
+}
+
+.detail-page__trust-chip--neutral {
+  color: var(--ui-color-text-secondary);
+  background: var(--ui-color-neutral-badge-surface);
+}
+
+.detail-page__trust-chip--hygiene {
+  color: var(--ui-color-success);
+  background: var(--ui-color-success-surface);
+}
+
+/* ── Sections stack ───────────────────────────────────────── */
 .detail-page__sections {
   display: flex;
   flex-direction: column;
   gap: 40px;
-  margin-top: clamp(40px, 7vw, 100px);
+  margin-top: clamp(24px, 3vw, 40px);
 }
 
 .detail-page__section {
@@ -367,6 +405,14 @@
   box-shadow: var(--ui-shadow-card);
 }
 
+.detail-page__section--toydetails {
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  padding: var(--ui-space-20);
+  box-shadow: var(--ui-shadow-card);
+}
+
 .detail-page__host {
   display: flex;
   align-items: center;
@@ -453,7 +499,7 @@
   }
 
   .detail-page__sections {
-    margin-top: 40px;
+    margin-top: var(--ui-space-24);
   }
 }
 
@@ -480,6 +526,10 @@
 
   .detail-page__section--host {
     padding: 20px;
+  }
+
+  .detail-page__section--toydetails {
+    padding: var(--ui-space-16);
   }
 }
 
