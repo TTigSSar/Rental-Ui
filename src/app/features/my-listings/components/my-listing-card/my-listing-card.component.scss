@@ -1,7 +1,7 @@
 .my-listing-card__media {
   aspect-ratio: 16 / 10;
   overflow: hidden;
-  background: var(--p-content-background, #f4f4f5);
+  background: var(--ui-color-surface-muted);
 }
 
 .my-listing-card__image {
@@ -17,37 +17,77 @@
   justify-content: center;
   height: 100%;
   min-height: 10rem;
-  color: var(--p-text-muted-color, #71717a);
-  font-size: 0.875rem;
+  color: var(--ui-color-text-muted);
+  font-size: var(--ui-font-size-caption);
 }
 
 .my-listing-card__content {
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: var(--ui-space-6);
 }
 
 .my-listing-card__top {
   display: flex;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: var(--ui-space-8);
   align-items: flex-start;
 }
 
 .my-listing-card__title {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: var(--ui-font-size-h3);
+  font-weight: 600;
   line-height: 1.35;
 }
 
 .my-listing-card__meta {
   margin: 0;
-  color: var(--p-text-muted-color, #71717a);
-  font-size: 0.9rem;
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-font-size-caption);
 }
 
+/* ── Status context notes ────────────────────────────────── */
+.my-listing-card__status-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-6);
+  margin: var(--ui-space-4) 0 0;
+  padding: var(--ui-space-6) var(--ui-space-8);
+  border-radius: var(--ui-radius-sm);
+  font-size: 0.75rem;
+  line-height: 1.4;
+
+  .pi {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 0.75rem;
+  }
+}
+
+.my-listing-card__status-note--pending {
+  background: var(--ui-color-warning-surface);
+  color: var(--ui-color-warning);
+}
+
+.my-listing-card__status-note--rejected {
+  background: var(--ui-color-rejected-surface);
+  color: var(--ui-color-rejected);
+}
+
+.my-listing-card__status-note--approved {
+  background: var(--ui-color-approved-surface);
+  color: var(--ui-color-approved);
+}
+
+.my-listing-card__status-note--archived {
+  background: var(--ui-color-neutral-badge-surface);
+  color: var(--ui-color-text-secondary);
+}
+
+/* ── Actions row ─────────────────────────────────────────── */
 .my-listing-card__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--ui-space-8);
 }

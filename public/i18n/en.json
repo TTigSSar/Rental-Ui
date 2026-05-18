@@ -443,7 +443,8 @@
       "subtitle": "Manage the toys you’ve listed and watch their status.",
       "errorTitle": "Unable to load your toys",
       "emptyTitle": "No toys yet",
-      "empty": "Toys you list will appear here."
+      "empty": "Toys you list will appear here.",
+      "emptyReviewNote": "Every listing is reviewed by our team before it goes live."
     },
     "card": {
       "noImage": "No image available",
@@ -460,10 +461,26 @@
     "actions": {
       "view": "View",
       "edit": "Edit",
-      "archive": "Archive"
+      "archive": "Archive",
+      "listToy": "List a Toy"
     },
     "common": {
       "notAvailable": "Not available"
+    },
+    "filter": {
+      "label": "Filter by status",
+      "all": "All",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "archived": "Archived",
+      "noResults": "No listings match this filter."
+    },
+    "statusNote": {
+      "pending": "Under review — usually within 24–48 hours.",
+      "rejected": "This listing was not approved. You may edit and relist it.",
+      "approved": "Live — renters can find and book this toy.",
+      "archived": "Hidden from renters."
     }
   },
   "bookings": {

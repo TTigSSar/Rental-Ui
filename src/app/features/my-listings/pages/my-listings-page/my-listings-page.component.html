@@ -1,9 +1,17 @@
 <section class="my-listings-page page-container section-stack">
   <header class="my-listings-page__header">
-    <h1 class="my-listings-page__title">{{ 'myListings.page.title' | translate }}</h1>
-    <p class="my-listings-page__subtitle">
-      {{ 'myListings.page.subtitle' | translate }}
-    </p>
+    <div class="my-listings-page__header-text">
+      <h1 class="my-listings-page__title">{{ 'myListings.page.title' | translate }}</h1>
+      <p class="my-listings-page__subtitle">
+        {{ 'myListings.page.subtitle' | translate }}
+      </p>
+    </div>
+    <p-button
+      type="button"
+      icon="pi pi-plus"
+      [label]="'myListings.actions.listToy' | translate"
+      [routerLink]="['/listings/create']"
+    />
   </header>
 
   @if (viewModel$ | async; as vm) {
@@ -42,26 +50,67 @@
 
     @if (vm.showEmpty) {
       <div class="my-listings-page__empty">
-        <span class="pi pi-inbox my-listings-page__empty-icon" aria-hidden="true"></span>
+        <span class="pi pi-gift my-listings-page__empty-icon" aria-hidden="true"></span>
         <h2 class="my-listings-page__empty-title">
           {{ 'myListings.page.emptyTitle' | translate }}
         </h2>
         <p class="my-listings-page__empty-text">
           {{ 'myListings.page.empty' | translate }}
         </p>
+        <p class="my-listings-page__empty-note">
+          <span class="pi pi-shield" aria-hidden="true"></span>
+          {{ 'myListings.page.emptyReviewNote' | translate }}
+        </p>
+        <p-button
+          type="button"
+          icon="pi pi-plus"
+          [label]="'myListings.actions.listToy' | translate"
+          [routerLink]="['/listings/create']"
+        />
       </div>
     }
 
     @if (vm.items.length > 0) {
-      <div class="my-listings-page__grid">
-        @for (listing of vm.items; track listing.id) {
-          <app-my-listing-card
-            [listing]="listing"
-            (editRequested)="onEditRequested($event)"
-            (archiveRequested)="onArchiveRequested($event)"
-          />
+      <!-- Status filter tabs -->
+      <div
+        class="my-listings-page__filters"
+        role="tablist"
+        [attr.aria-label]="'myListings.filter.label' | translate"
+      >
+        @for (tab of FILTER_TABS; track tab.key) {
+          @if (tab.key === 'All' || countForFilter(vm.items, tab.key) > 0) {
+            <button
+              type="button"
+              class="my-listings-page__filter-tab"
+              [class.my-listings-page__filter-tab--active]="activeFilter() === tab.key"
+              role="tab"
+              [attr.aria-selected]="activeFilter() === tab.key"
+              (click)="setFilter(tab.key)"
+            >
+              {{ tab.labelKey | translate }}
+              <span class="my-listings-page__filter-count" aria-hidden="true">
+                {{ countForFilter(vm.items, tab.key) }}
+              </span>
+            </button>
+          }
         }
       </div>
+
+      @if (filterItems(vm.items).length > 0) {
+        <div class="my-listings-page__grid">
+          @for (listing of filterItems(vm.items); track listing.id) {
+            <app-my-listing-card
+              [listing]="listing"
+              (editRequested)="onEditRequested($event)"
+              (archiveRequested)="onArchiveRequested($event)"
+            />
+          }
+        </div>
+      } @else {
+        <p class="my-listings-page__filter-empty">
+          {{ 'myListings.filter.noResults' | translate }}
+        </p>
+      }
     }
   }
 </section>

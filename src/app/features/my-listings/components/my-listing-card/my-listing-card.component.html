@@ -44,6 +44,28 @@
         {{ 'myListings.common.notAvailable' | translate }}
       }
     </p>
+
+    @if (listing().status === 'PendingApproval' || listing().status === 'Pending') {
+      <p class="my-listing-card__status-note my-listing-card__status-note--pending">
+        <span class="pi pi-clock" aria-hidden="true"></span>
+        {{ 'myListings.statusNote.pending' | translate }}
+      </p>
+    } @else if (listing().status === 'Rejected') {
+      <p class="my-listing-card__status-note my-listing-card__status-note--rejected">
+        <span class="pi pi-times-circle" aria-hidden="true"></span>
+        {{ 'myListings.statusNote.rejected' | translate }}
+      </p>
+    } @else if (listing().status === 'Approved') {
+      <p class="my-listing-card__status-note my-listing-card__status-note--approved">
+        <span class="pi pi-check-circle" aria-hidden="true"></span>
+        {{ 'myListings.statusNote.approved' | translate }}
+      </p>
+    } @else if (listing().status === 'Archived') {
+      <p class="my-listing-card__status-note my-listing-card__status-note--archived">
+        <span class="pi pi-eye-slash" aria-hidden="true"></span>
+        {{ 'myListings.statusNote.archived' | translate }}
+      </p>
+    }
   </div>
 
   <ng-template pTemplate="footer">
