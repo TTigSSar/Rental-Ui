@@ -1,5 +1,5 @@
-import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -53,7 +53,6 @@ const selectMyListingsPageViewModel = createSelector(
   selector: 'app-my-listings-page',
   standalone: true,
   imports: [
-    AsyncPipe,
     ButtonModule,
     MessageModule,
     MyListingCardComponent,
@@ -68,7 +67,12 @@ const selectMyListingsPageViewModel = createSelector(
 export class MyListingsPageComponent implements OnInit {
   private readonly store = inject(Store);
 
-  protected readonly viewModel$ = this.store.select(selectMyListingsPageViewModel);
+  // NgRx selectors emit synchronously — requireSync gives Signal<T> (no undefined).
+  protected readonly viewModel = toSignal(
+    this.store.select(selectMyListingsPageViewModel),
+    { requireSync: true },
+  );
+
   protected readonly activeFilter = signal<FilterStatus>('All');
 
   protected readonly FILTER_TABS: readonly FilterTab[] = [
@@ -78,6 +82,31 @@ export class MyListingsPageComponent implements OnInit {
     { key: 'Rejected', labelKey: 'myListings.filter.rejected' },
     { key: 'Archived', labelKey: 'myListings.filter.archived' },
   ];
+
+  // Recalculates only when items or activeFilter changes.
+  protected readonly filteredItems = computed(() => {
+    const items = this.viewModel().items;
+    const f = this.activeFilter();
+    if (f === 'All') return items;
+    if (f === 'PendingApproval') {
+      return items.filter(i => i.status === 'PendingApproval' || i.status === 'Pending');
+    }
+    return items.filter(i => i.status === f);
+  });
+
+  // Recalculates only when items change; a single pass covers all tabs.
+  protected readonly tabCounts = computed((): ReadonlyMap<FilterStatus, number> => {
+    const items = this.viewModel().items;
+    return new Map<FilterStatus, number>([
+      ['All', items.length],
+      ['PendingApproval', items.filter(
+        i => i.status === 'PendingApproval' || i.status === 'Pending',
+      ).length],
+      ['Approved', items.filter(i => i.status === 'Approved').length],
+      ['Rejected', items.filter(i => i.status === 'Rejected').length],
+      ['Archived', items.filter(i => i.status === 'Archived').length],
+    ]);
+  });
 
   ngOnInit(): void {
     this.store.dispatch(MyListingsActions.loadMyListings());
@@ -89,23 +118,6 @@ export class MyListingsPageComponent implements OnInit {
 
   protected setFilter(filter: FilterStatus): void {
     this.activeFilter.set(filter);
-  }
-
-  protected filterItems(items: MyListing[]): MyListing[] {
-    const f = this.activeFilter();
-    if (f === 'All') return items;
-    if (f === 'PendingApproval') {
-      return items.filter(i => i.status === 'PendingApproval' || i.status === 'Pending');
-    }
-    return items.filter(i => i.status === f);
-  }
-
-  protected countForFilter(items: MyListing[], filter: FilterStatus): number {
-    if (filter === 'All') return items.length;
-    if (filter === 'PendingApproval') {
-      return items.filter(i => i.status === 'PendingApproval' || i.status === 'Pending').length;
-    }
-    return items.filter(i => i.status === filter).length;
   }
 
   protected onEditRequested(_: string): void {
