@@ -368,6 +368,7 @@
       "cityPlaceholder": "Enter city",
       "addressLine": "Address line",
       "addressLinePlaceholder": "Street and building details (optional)",
+      "locationFixedNote": "Listings are currently available in Yerevan, Armenia only. The address line is an optional pickup detail.",
       "latitude": "Latitude",
       "latitudePlaceholder": "e.g. 40.1792",
       "longitude": "Longitude",

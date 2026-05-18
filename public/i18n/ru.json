@@ -368,6 +368,7 @@
       "cityPlaceholder": "Введите город",
       "addressLine": "Адрес",
       "addressLinePlaceholder": "Улица и дом (необязательно)",
+      "locationFixedNote": "Объявления пока доступны только в Ереване, Армения. Адресная строка — необязательные детали для самовывоза.",
       "latitude": "Широта",
       "latitudePlaceholder": "напр. 40.1792",
       "longitude": "Долгота",

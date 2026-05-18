@@ -226,6 +226,27 @@
   margin: 0;
 }
 
+.create-listing-form__location-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-8);
+  padding: var(--ui-space-8) var(--ui-space-12);
+  background: var(--ui-color-surface-muted);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-sm);
+  font-size: var(--ui-font-size-caption);
+  color: var(--ui-color-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+
+  .pi {
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--ui-color-primary);
+  }
+}
+
 /* ── Field grid ──────────────────────────────────────────── */
 .create-listing-form__grid {
   display: grid;
