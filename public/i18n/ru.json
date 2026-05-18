@@ -333,6 +333,20 @@
         "hygiene": "Опишите, как вы чистите игрушку между арендами.",
         "fairPrice": "Установите справедливую ежедневную цену, чтобы привлечь больше семей.",
         "adminApproval": "Ваше объявление появится только после одобрения нашей командой."
+      },
+      "wizard": {
+        "step1Label": "Основное",
+        "step2Label": "Детали",
+        "step3Label": "Фото",
+        "step4Label": "Проверка",
+        "stepProgress": "Шаг {{current}} из {{total}}",
+        "back": "Назад",
+        "continue": "Продолжить",
+        "reviewTitle": "Проверьте объявление",
+        "editStep": "Изменить",
+        "reviewNoPhotos": "Фото не выбраны",
+        "reviewPhotosCount": "{{count}} фото выбрано",
+        "reviewCityFixed": "Ереван, Армения"
       }
     },
     "createForm": {

@@ -4,357 +4,502 @@
   (ngSubmit)="onSubmit()"
   novalidate
 >
-  <!-- ── Section A: Basic information ───────────────────── -->
-  <div class="create-listing-form__section">
-    <h3 class="create-listing-form__section-title">
-      <span class="pi pi-info-circle" aria-hidden="true"></span>
-      {{ 'listings.createForm.sectionBasic' | translate }}
-    </h3>
-
-    <div class="create-listing-form__grid">
-      <div class="create-listing-form__field create-listing-form__field--full">
-        <label class="create-listing-form__label" for="create-listing-title">
-          {{ 'listings.createForm.title' | translate }}
-          <span class="create-listing-form__required" aria-hidden="true">*</span>
-        </label>
-        <input
-          id="create-listing-title"
-          pInputText
-          type="text"
-          class="create-listing-form__input ui-input"
-          formControlName="title"
-          [placeholder]="'listings.createForm.titlePlaceholder' | translate"
-        />
-        @if (hasError('title')) {
-          <small class="create-listing-form__error" role="alert">
-            @if (createListingForm.controls.title.hasError('required')) {
-              {{ 'listings.createForm.validation.required' | translate }}
-            } @else if (createListingForm.controls.title.hasError('minlength')) {
-              {{ 'listings.createForm.validation.titleTooShort' | translate }}
-            } @else if (createListingForm.controls.title.hasError('maxlength')) {
-              {{ 'listings.createForm.validation.titleTooLong' | translate }}
-            }
-          </small>
-        }
-      </div>
-
-      <div class="create-listing-form__field create-listing-form__field--full">
-        <label class="create-listing-form__label" for="create-listing-description">
-          {{ 'listings.createForm.description' | translate }}
-          <span class="create-listing-form__required" aria-hidden="true">*</span>
-        </label>
-        <textarea
-          id="create-listing-description"
-          class="create-listing-form__textarea ui-textarea"
-          formControlName="description"
-          rows="5"
-          [placeholder]="'listings.createForm.descriptionPlaceholder' | translate"
-        ></textarea>
-        @if (hasError('description')) {
-          <small class="create-listing-form__error" role="alert">
-            @if (createListingForm.controls.description.hasError('required')) {
-              {{ 'listings.createForm.validation.required' | translate }}
-            } @else if (createListingForm.controls.description.hasError('minlength')) {
-              {{ 'listings.createForm.validation.descriptionTooShort' | translate }}
-            } @else if (createListingForm.controls.description.hasError('maxlength')) {
-              {{ 'listings.createForm.validation.descriptionTooLong' | translate }}
-            }
-          </small>
-        }
-      </div>
-
-      <div class="create-listing-form__field">
-        <label class="create-listing-form__label" for="create-listing-category">
-          {{ 'listings.createForm.category' | translate }}
-          <span class="create-listing-form__required" aria-hidden="true">*</span>
-        </label>
-        <select
-          id="create-listing-category"
-          class="create-listing-form__select ui-select"
-          formControlName="categoryId"
-        >
-          <option value="">
-            {{ 'listings.createForm.categoryPlaceholder' | translate }}
-          </option>
-          @for (category of categories; track category.id) {
-            <option [value]="category.id">{{ category.name }}</option>
-          }
-        </select>
-        @if (hasError('categoryId')) {
-          <small class="create-listing-form__error" role="alert">
-            {{ 'listings.createForm.validation.required' | translate }}
-          </small>
-        }
-      </div>
-
-      <div class="create-listing-form__field">
-        <label class="create-listing-form__label" for="create-listing-price-per-day">
-          {{ 'listings.createForm.pricePerDay' | translate }}
-          <span class="create-listing-form__required" aria-hidden="true">*</span>
-        </label>
-        <p-inputNumber
-          inputId="create-listing-price-per-day"
-          formControlName="pricePerDay"
-          mode="decimal"
-          [min]="0.01"
-          [minFractionDigits]="0"
-          [maxFractionDigits]="2"
-          [useGrouping]="true"
-          [placeholder]="'listings.createForm.pricePerDayPlaceholder' | translate"
-          styleClass="create-listing-form__input"
-        />
-        @if (hasError('pricePerDay')) {
-          <small class="create-listing-form__error" role="alert">
-            {{
-              createListingForm.controls.pricePerDay.hasError('min')
-                ? ('listings.createForm.validation.priceGreaterThanZero' | translate)
-                : ('listings.createForm.validation.required' | translate)
-            }}
-          </small>
-        }
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Section B: Location ────────────────────────────── -->
-  <div class="create-listing-form__section">
-    <h3 class="create-listing-form__section-title">
-      <span class="pi pi-map-marker" aria-hidden="true"></span>
-      {{ 'listings.createForm.sectionLocation' | translate }}
-    </h3>
-
-    <div class="create-listing-form__grid">
-      <div class="create-listing-form__field create-listing-form__field--full">
-        <label class="create-listing-form__label" for="create-listing-address-line">
-          {{ 'listings.createForm.addressLine' | translate }}
-        </label>
-        <input
-          id="create-listing-address-line"
-          pInputText
-          type="text"
-          class="create-listing-form__input ui-input"
-          formControlName="addressLine"
-          [placeholder]="'listings.createForm.addressLinePlaceholder' | translate"
-        />
-      </div>
-
-      <div class="create-listing-form__field">
-        <label class="create-listing-form__label" for="create-listing-latitude">
-          {{ 'listings.createForm.latitude' | translate }}
-        </label>
-        <p-inputNumber
-          inputId="create-listing-latitude"
-          formControlName="latitude"
-          mode="decimal"
-          [minFractionDigits]="0"
-          [maxFractionDigits]="8"
-          [placeholder]="'listings.createForm.latitudePlaceholder' | translate"
-          styleClass="create-listing-form__input"
-        />
-      </div>
-
-      <div class="create-listing-form__field">
-        <label class="create-listing-form__label" for="create-listing-longitude">
-          {{ 'listings.createForm.longitude' | translate }}
-        </label>
-        <p-inputNumber
-          inputId="create-listing-longitude"
-          formControlName="longitude"
-          mode="decimal"
-          [minFractionDigits]="0"
-          [maxFractionDigits]="8"
-          [placeholder]="'listings.createForm.longitudePlaceholder' | translate"
-          styleClass="create-listing-form__input"
-        />
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Section C: Toy details (optional) ─────────────── -->
-  <div class="create-listing-form__section">
-    <h3 class="create-listing-form__section-title">
-      <span class="pi pi-gift" aria-hidden="true"></span>
-      {{ 'listings.createForm.sectionToyDetails' | translate }}
-    </h3>
-    <p class="create-listing-form__section-hint">
-      {{ 'listings.createForm.toySectionHint' | translate }}
-    </p>
-
-    <div class="create-listing-form__grid">
-      <div class="create-listing-form__field">
-        <label class="create-listing-form__label" for="create-listing-age-from">
-          {{ 'listings.createForm.ageFromMonths' | translate }}
-        </label>
-        <p-inputNumber
-          inputId="create-listing-age-from"
-          formControlName="ageFromMonths"
-          mode="decimal"
-          [min]="0"
-          [minFractionDigits]="0"
-          [maxFractionDigits]="0"
-          [useGrouping]="false"
-          [placeholder]="'listings.createForm.ageFromMonthsPlaceholder' | translate"
-          styleClass="create-listing-form__input"
-        />
-        @if (hasError('ageFromMonths')) {
-          <small class="create-listing-form__error" role="alert">
-            {{ 'listings.createForm.validation.ageNonNegative' | translate }}
-          </small>
-        }
-      </div>
-
-      <div class="create-listing-form__field">
-        <label class="create-listing-form__label" for="create-listing-age-to">
-          {{ 'listings.createForm.ageToMonths' | translate }}
-        </label>
-        <p-inputNumber
-          inputId="create-listing-age-to"
-          formControlName="ageToMonths"
-          mode="decimal"
-          [min]="0"
-          [minFractionDigits]="0"
-          [maxFractionDigits]="0"
-          [useGrouping]="false"
-          [placeholder]="'listings.createForm.ageToMonthsPlaceholder' | translate"
-          styleClass="create-listing-form__input"
-        />
-        @if (hasError('ageToMonths')) {
-          <small class="create-listing-form__error" role="alert">
-            {{ 'listings.createForm.validation.ageNonNegative' | translate }}
-          </small>
-        }
-      </div>
-
-      <!-- Always rendered so the grid row never shifts when the error appears. -->
-      <span
-        class="create-listing-form__range-error create-listing-form__field--full"
-        [class.create-listing-form__range-error--active]="hasAgeRangeError()"
-        aria-live="polite"
-        [attr.aria-hidden]="hasAgeRangeError() ? null : 'true'"
+  <!-- ── Stepper header ─────────────────────────────────── -->
+  <nav class="wizard-stepper" aria-label="Form progress">
+    @for (step of WIZARD_STEPS; track step.index; let isLast = $last) {
+      <div
+        class="wizard-stepper__step"
+        [class.wizard-stepper__step--active]="currentStep() === step.index"
+        [class.wizard-stepper__step--done]="currentStep() > step.index"
       >
-        @if (hasAgeRangeError()) {
-          {{ 'listings.createForm.validation.ageRangeInvalid' | translate }}
-        }
-      </span>
-
-      <div class="create-listing-form__field">
-        <label class="create-listing-form__label" for="create-listing-condition">
-          {{ 'listings.createForm.condition' | translate }}
-        </label>
-        <select
-          id="create-listing-condition"
-          class="create-listing-form__select ui-select"
-          formControlName="condition"
-        >
-          <option value="">
-            {{ 'listings.createForm.conditionPlaceholder' | translate }}
-          </option>
-          @for (option of conditionOptions; track option.value) {
-            <option [value]="option.value">{{ option.labelKey | translate }}</option>
+        <span class="wizard-stepper__dot" aria-hidden="true">
+          @if (currentStep() > step.index) {
+            <i class="pi pi-check"></i>
+          } @else {
+            {{ step.index }}
           }
-        </select>
+        </span>
+        <span class="wizard-stepper__label">{{ step.labelKey | translate }}</span>
       </div>
+      @if (!isLast) {
+        <span class="wizard-stepper__connector" aria-hidden="true"></span>
+      }
+    }
+  </nav>
 
-      <div class="create-listing-form__field">
-        <label class="create-listing-form__label" for="create-listing-deposit">
-          {{ 'listings.createForm.depositAmount' | translate }}
-        </label>
-        <p-inputNumber
-          inputId="create-listing-deposit"
-          formControlName="depositAmount"
-          mode="decimal"
-          [min]="0"
-          [minFractionDigits]="0"
-          [maxFractionDigits]="2"
-          [useGrouping]="true"
-          [placeholder]="'listings.createForm.depositAmountPlaceholder' | translate"
-          styleClass="create-listing-form__input"
-        />
-        @if (hasError('depositAmount')) {
-          <small class="create-listing-form__error" role="alert">
-            {{ 'listings.createForm.validation.depositNonNegative' | translate }}
-          </small>
-        }
-      </div>
+  <!-- ── Step 1: Basic info ─────────────────────────────── -->
+  @if (currentStep() === 1) {
+    <div class="wizard-step">
+      <h3 class="wizard-step__title">
+        <span class="pi pi-info-circle" aria-hidden="true"></span>
+        {{ 'listings.createForm.sectionBasic' | translate }}
+      </h3>
 
-      <div class="create-listing-form__field create-listing-form__field--full">
-        <label class="create-listing-form__label" for="create-listing-hygiene">
-          {{ 'listings.createForm.hygieneNotes' | translate }}
-        </label>
-        <textarea
-          id="create-listing-hygiene"
-          class="create-listing-form__textarea ui-textarea"
-          formControlName="hygieneNotes"
-          rows="3"
-          [placeholder]="'listings.createForm.hygieneNotesPlaceholder' | translate"
-        ></textarea>
-      </div>
+      <div class="create-listing-form__grid">
+        <div class="create-listing-form__field create-listing-form__field--full">
+          <label class="create-listing-form__label" for="create-listing-title">
+            {{ 'listings.createForm.title' | translate }}
+            <span class="create-listing-form__required" aria-hidden="true">*</span>
+          </label>
+          <input
+            id="create-listing-title"
+            pInputText
+            type="text"
+            class="create-listing-form__input ui-input"
+            formControlName="title"
+            [placeholder]="'listings.createForm.titlePlaceholder' | translate"
+          />
+          @if (hasError('title')) {
+            <small class="create-listing-form__error" role="alert">
+              @if (createListingForm.controls.title.hasError('required')) {
+                {{ 'listings.createForm.validation.required' | translate }}
+              } @else if (createListingForm.controls.title.hasError('minlength')) {
+                {{ 'listings.createForm.validation.titleTooShort' | translate }}
+              } @else if (createListingForm.controls.title.hasError('maxlength')) {
+                {{ 'listings.createForm.validation.titleTooLong' | translate }}
+              }
+            </small>
+          }
+        </div>
 
-      <div class="create-listing-form__field create-listing-form__field--full">
-        <label class="create-listing-form__label" for="create-listing-safety">
-          {{ 'listings.createForm.safetyNotes' | translate }}
-        </label>
-        <textarea
-          id="create-listing-safety"
-          class="create-listing-form__textarea ui-textarea"
-          formControlName="safetyNotes"
-          rows="3"
-          [placeholder]="'listings.createForm.safetyNotesPlaceholder' | translate"
-        ></textarea>
+        <div class="create-listing-form__field">
+          <label class="create-listing-form__label" for="create-listing-category">
+            {{ 'listings.createForm.category' | translate }}
+            <span class="create-listing-form__required" aria-hidden="true">*</span>
+          </label>
+          <select
+            id="create-listing-category"
+            class="create-listing-form__select ui-select"
+            formControlName="categoryId"
+          >
+            <option value="">
+              {{ 'listings.createForm.categoryPlaceholder' | translate }}
+            </option>
+            @for (category of categories; track category.id) {
+              <option [value]="category.id">{{ category.name }}</option>
+            }
+          </select>
+          @if (hasError('categoryId')) {
+            <small class="create-listing-form__error" role="alert">
+              {{ 'listings.createForm.validation.required' | translate }}
+            </small>
+          }
+        </div>
+
+        <div class="create-listing-form__field">
+          <label class="create-listing-form__label" for="create-listing-price-per-day">
+            {{ 'listings.createForm.pricePerDay' | translate }}
+            <span class="create-listing-form__required" aria-hidden="true">*</span>
+          </label>
+          <p-inputNumber
+            inputId="create-listing-price-per-day"
+            formControlName="pricePerDay"
+            mode="decimal"
+            [min]="0.01"
+            [minFractionDigits]="0"
+            [maxFractionDigits]="2"
+            [useGrouping]="true"
+            [placeholder]="'listings.createForm.pricePerDayPlaceholder' | translate"
+            styleClass="create-listing-form__input"
+          />
+          @if (hasError('pricePerDay')) {
+            <small class="create-listing-form__error" role="alert">
+              {{
+                createListingForm.controls.pricePerDay.hasError('min')
+                  ? ('listings.createForm.validation.priceGreaterThanZero' | translate)
+                  : ('listings.createForm.validation.required' | translate)
+              }}
+            </small>
+          }
+        </div>
+
+        <div class="create-listing-form__field create-listing-form__field--full">
+          <label class="create-listing-form__label" for="create-listing-address-line">
+            {{ 'listings.createForm.addressLine' | translate }}
+          </label>
+          <input
+            id="create-listing-address-line"
+            pInputText
+            type="text"
+            class="create-listing-form__input ui-input"
+            formControlName="addressLine"
+            [placeholder]="'listings.createForm.addressLinePlaceholder' | translate"
+          />
+        </div>
       </div>
     </div>
-  </div>
+  }
 
-  <!-- ── Section D: Photos ──────────────────────────────── -->
-  <div class="create-listing-form__section">
-    <h3 class="create-listing-form__section-title">
-      <span class="pi pi-camera" aria-hidden="true"></span>
-      {{ 'listings.createForm.sectionPhotos' | translate }}
-    </h3>
+  <!-- ── Step 2: Toy details ────────────────────────────── -->
+  @if (currentStep() === 2) {
+    <div class="wizard-step">
+      <h3 class="wizard-step__title">
+        <span class="pi pi-gift" aria-hidden="true"></span>
+        {{ 'listings.createForm.sectionToyDetails' | translate }}
+      </h3>
+      <p class="create-listing-form__section-hint">
+        {{ 'listings.createForm.toySectionHint' | translate }}
+      </p>
 
-    <div class="create-listing-form__field">
-      <label class="create-listing-form__label" for="create-listing-images">
-        {{ 'listings.createForm.images' | translate }}
-      </label>
-      <label class="create-listing-form__file-drop" for="create-listing-images">
-        <span class="pi pi-cloud-upload create-listing-form__file-drop-icon" aria-hidden="true"></span>
-        @if (selectedFiles.length > 0) {
-          <span class="create-listing-form__file-summary">
-            {{ selectedFiles.length }}&nbsp;{{ 'listings.createForm.imagesSelected' | translate }}:
-            {{ fileNames() }}
-          </span>
-        } @else {
-          <span class="create-listing-form__hint">
-            {{ 'listings.createForm.imagesHint' | translate }}
-          </span>
-        }
-        <input
-          id="create-listing-images"
-          type="file"
-          class="create-listing-form__file-input"
-          [disabled]="isSubmitting"
-          multiple
-          accept="image/*"
-          (change)="onImagesSelected($event)"
-        />
-      </label>
+      <div class="create-listing-form__grid">
+        <div class="create-listing-form__field">
+          <label class="create-listing-form__label" for="create-listing-age-from">
+            {{ 'listings.createForm.ageFromMonths' | translate }}
+          </label>
+          <p-inputNumber
+            inputId="create-listing-age-from"
+            formControlName="ageFromMonths"
+            mode="decimal"
+            [min]="0"
+            [minFractionDigits]="0"
+            [maxFractionDigits]="0"
+            [useGrouping]="false"
+            [placeholder]="'listings.createForm.ageFromMonthsPlaceholder' | translate"
+            styleClass="create-listing-form__input"
+          />
+          @if (hasError('ageFromMonths')) {
+            <small class="create-listing-form__error" role="alert">
+              {{ 'listings.createForm.validation.ageNonNegative' | translate }}
+            </small>
+          }
+        </div>
+
+        <div class="create-listing-form__field">
+          <label class="create-listing-form__label" for="create-listing-age-to">
+            {{ 'listings.createForm.ageToMonths' | translate }}
+          </label>
+          <p-inputNumber
+            inputId="create-listing-age-to"
+            formControlName="ageToMonths"
+            mode="decimal"
+            [min]="0"
+            [minFractionDigits]="0"
+            [maxFractionDigits]="0"
+            [useGrouping]="false"
+            [placeholder]="'listings.createForm.ageToMonthsPlaceholder' | translate"
+            styleClass="create-listing-form__input"
+          />
+          @if (hasError('ageToMonths')) {
+            <small class="create-listing-form__error" role="alert">
+              {{ 'listings.createForm.validation.ageNonNegative' | translate }}
+            </small>
+          }
+        </div>
+
+        <!-- Always rendered so the grid row never shifts when the error appears. -->
+        <span
+          class="create-listing-form__range-error create-listing-form__field--full"
+          [class.create-listing-form__range-error--active]="hasAgeRangeError()"
+          aria-live="polite"
+          [attr.aria-hidden]="hasAgeRangeError() ? null : 'true'"
+        >
+          @if (hasAgeRangeError()) {
+            {{ 'listings.createForm.validation.ageRangeInvalid' | translate }}
+          }
+        </span>
+
+        <div class="create-listing-form__field">
+          <label class="create-listing-form__label" for="create-listing-condition">
+            {{ 'listings.createForm.condition' | translate }}
+          </label>
+          <select
+            id="create-listing-condition"
+            class="create-listing-form__select ui-select"
+            formControlName="condition"
+          >
+            <option value="">
+              {{ 'listings.createForm.conditionPlaceholder' | translate }}
+            </option>
+            @for (option of conditionOptions; track option.value) {
+              <option [value]="option.value">{{ option.labelKey | translate }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="create-listing-form__field">
+          <label class="create-listing-form__label" for="create-listing-deposit">
+            {{ 'listings.createForm.depositAmount' | translate }}
+          </label>
+          <p-inputNumber
+            inputId="create-listing-deposit"
+            formControlName="depositAmount"
+            mode="decimal"
+            [min]="0"
+            [minFractionDigits]="0"
+            [maxFractionDigits]="2"
+            [useGrouping]="true"
+            [placeholder]="'listings.createForm.depositAmountPlaceholder' | translate"
+            styleClass="create-listing-form__input"
+          />
+          @if (hasError('depositAmount')) {
+            <small class="create-listing-form__error" role="alert">
+              {{ 'listings.createForm.validation.depositNonNegative' | translate }}
+            </small>
+          }
+        </div>
+
+        <div class="create-listing-form__field create-listing-form__field--full">
+          <label class="create-listing-form__label" for="create-listing-hygiene">
+            {{ 'listings.createForm.hygieneNotes' | translate }}
+          </label>
+          <textarea
+            id="create-listing-hygiene"
+            class="create-listing-form__textarea ui-textarea"
+            formControlName="hygieneNotes"
+            rows="3"
+            [placeholder]="'listings.createForm.hygieneNotesPlaceholder' | translate"
+          ></textarea>
+        </div>
+
+        <div class="create-listing-form__field create-listing-form__field--full">
+          <label class="create-listing-form__label" for="create-listing-safety">
+            {{ 'listings.createForm.safetyNotes' | translate }}
+          </label>
+          <textarea
+            id="create-listing-safety"
+            class="create-listing-form__textarea ui-textarea"
+            formControlName="safetyNotes"
+            rows="3"
+            [placeholder]="'listings.createForm.safetyNotesPlaceholder' | translate"
+          ></textarea>
+        </div>
+      </div>
     </div>
-  </div>
+  }
 
-  <!-- ── Actions ────────────────────────────────────────── -->
-  <div class="create-listing-form__actions">
-    <p-button
-      type="button"
-      [outlined]="true"
-      [label]="'listings.common.cancel' | translate"
-      [disabled]="isSubmitting"
-      (onClick)="onCancel()"
-    />
-    <p-button
-      type="submit"
-      [label]="'listings.createForm.submit' | translate"
-      [loading]="isSubmitting"
-      [disabled]="createListingForm.invalid || isSubmitting"
-    />
+  <!-- ── Step 3: Photos + description ──────────────────── -->
+  @if (currentStep() === 3) {
+    <div class="wizard-step">
+      <h3 class="wizard-step__title">
+        <span class="pi pi-camera" aria-hidden="true"></span>
+        {{ 'listings.createForm.sectionPhotos' | translate }}
+      </h3>
+
+      <div class="create-listing-form__grid">
+        <div class="create-listing-form__field create-listing-form__field--full">
+          <label class="create-listing-form__label" for="create-listing-images">
+            {{ 'listings.createForm.images' | translate }}
+          </label>
+          <label class="create-listing-form__file-drop" for="create-listing-images">
+            <span class="pi pi-cloud-upload create-listing-form__file-drop-icon" aria-hidden="true"></span>
+            @if (selectedFiles.length > 0) {
+              <span class="create-listing-form__file-summary">
+                {{ selectedFiles.length }}&nbsp;{{ 'listings.createForm.imagesSelected' | translate }}:
+                {{ fileNames() }}
+              </span>
+            } @else {
+              <span class="create-listing-form__hint">
+                {{ 'listings.createForm.imagesHint' | translate }}
+              </span>
+            }
+            <input
+              id="create-listing-images"
+              type="file"
+              class="create-listing-form__file-input"
+              [disabled]="isSubmitting"
+              multiple
+              accept="image/*"
+              (change)="onImagesSelected($event)"
+            />
+          </label>
+        </div>
+
+        <div class="create-listing-form__field create-listing-form__field--full">
+          <label class="create-listing-form__label" for="create-listing-description">
+            {{ 'listings.createForm.description' | translate }}
+            <span class="create-listing-form__required" aria-hidden="true">*</span>
+          </label>
+          <textarea
+            id="create-listing-description"
+            class="create-listing-form__textarea ui-textarea"
+            formControlName="description"
+            rows="6"
+            [placeholder]="'listings.createForm.descriptionPlaceholder' | translate"
+          ></textarea>
+          @if (hasError('description')) {
+            <small class="create-listing-form__error" role="alert">
+              @if (createListingForm.controls.description.hasError('required')) {
+                {{ 'listings.createForm.validation.required' | translate }}
+              } @else if (createListingForm.controls.description.hasError('minlength')) {
+                {{ 'listings.createForm.validation.descriptionTooShort' | translate }}
+              } @else if (createListingForm.controls.description.hasError('maxlength')) {
+                {{ 'listings.createForm.validation.descriptionTooLong' | translate }}
+              }
+            </small>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Step 4: Review + submit ────────────────────────── -->
+  @if (currentStep() === 4) {
+    <div class="wizard-step">
+      <h3 class="wizard-step__title">
+        <span class="pi pi-check-circle" aria-hidden="true"></span>
+        {{ 'listings.createPage.wizard.reviewTitle' | translate }}
+      </h3>
+
+      <div class="wizard-review">
+        <!-- Basic info summary -->
+        <div class="wizard-review__group">
+          <div class="wizard-review__group-header">
+            <span class="wizard-review__group-label">
+              {{ 'listings.createForm.sectionBasic' | translate }}
+            </span>
+            <button type="button" class="wizard-review__edit-btn" (click)="jumpToStep(1)">
+              {{ 'listings.createPage.wizard.editStep' | translate }}
+            </button>
+          </div>
+          <dl class="wizard-review__dl">
+            <div class="wizard-review__row">
+              <dt>{{ 'listings.createForm.title' | translate }}</dt>
+              <dd>{{ createListingForm.controls.title.value }}</dd>
+            </div>
+            <div class="wizard-review__row">
+              <dt>{{ 'listings.createForm.category' | translate }}</dt>
+              <dd>{{ getCategoryName() }}</dd>
+            </div>
+            <div class="wizard-review__row">
+              <dt>{{ 'listings.createForm.pricePerDay' | translate }}</dt>
+              <dd>{{ createListingForm.controls.pricePerDay.value | currency }}</dd>
+            </div>
+            @if (createListingForm.controls.addressLine.value) {
+              <div class="wizard-review__row">
+                <dt>{{ 'listings.createForm.addressLine' | translate }}</dt>
+                <dd>{{ createListingForm.controls.addressLine.value }}</dd>
+              </div>
+            }
+            <div class="wizard-review__row">
+              <dt>{{ 'listings.createForm.city' | translate }}</dt>
+              <dd>{{ 'listings.createPage.wizard.reviewCityFixed' | translate }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <!-- Toy details summary (only if user filled anything) -->
+        @if (hasToyDetailValues()) {
+          <div class="wizard-review__group">
+            <div class="wizard-review__group-header">
+              <span class="wizard-review__group-label">
+                {{ 'listings.createForm.sectionToyDetails' | translate }}
+              </span>
+              <button type="button" class="wizard-review__edit-btn" (click)="jumpToStep(2)">
+                {{ 'listings.createPage.wizard.editStep' | translate }}
+              </button>
+            </div>
+            <dl class="wizard-review__dl">
+              @if (createListingForm.controls.condition.value) {
+                <div class="wizard-review__row">
+                  <dt>{{ 'listings.createForm.condition' | translate }}</dt>
+                  <dd>
+                    @if (getConditionLabelKey(); as condKey) {
+                      {{ condKey | translate }}
+                    } @else {
+                      {{ createListingForm.controls.condition.value }}
+                    }
+                  </dd>
+                </div>
+              }
+              @if (createListingForm.controls.ageFromMonths.value !== null || createListingForm.controls.ageToMonths.value !== null) {
+                <div class="wizard-review__row">
+                  <dt>{{ 'listings.details.toyDetails.ageRange' | translate }}</dt>
+                  <dd>
+                    @if (createListingForm.controls.ageFromMonths.value !== null && createListingForm.controls.ageToMonths.value !== null) {
+                      {{ 'listings.details.toyDetails.ageRangeFromTo' | translate: { from: createListingForm.controls.ageFromMonths.value, to: createListingForm.controls.ageToMonths.value } }}
+                    } @else if (createListingForm.controls.ageFromMonths.value !== null) {
+                      {{ 'listings.details.toyDetails.ageRangeFromOnly' | translate: { from: createListingForm.controls.ageFromMonths.value } }}
+                    } @else {
+                      {{ 'listings.details.toyDetails.ageRangeToOnly' | translate: { to: createListingForm.controls.ageToMonths.value } }}
+                    }
+                  </dd>
+                </div>
+              }
+              @if (createListingForm.controls.depositAmount.value !== null) {
+                <div class="wizard-review__row">
+                  <dt>{{ 'listings.createForm.depositAmount' | translate }}</dt>
+                  <dd>{{ createListingForm.controls.depositAmount.value | currency }}</dd>
+                </div>
+              }
+              @if (createListingForm.controls.hygieneNotes.value) {
+                <div class="wizard-review__row">
+                  <dt>{{ 'listings.createForm.hygieneNotes' | translate }}</dt>
+                  <dd class="wizard-review__dd--block">{{ createListingForm.controls.hygieneNotes.value }}</dd>
+                </div>
+              }
+              @if (createListingForm.controls.safetyNotes.value) {
+                <div class="wizard-review__row">
+                  <dt>{{ 'listings.createForm.safetyNotes' | translate }}</dt>
+                  <dd class="wizard-review__dd--block">{{ createListingForm.controls.safetyNotes.value }}</dd>
+                </div>
+              }
+            </dl>
+          </div>
+        }
+
+        <!-- Photos + description summary -->
+        <div class="wizard-review__group">
+          <div class="wizard-review__group-header">
+            <span class="wizard-review__group-label">
+              {{ 'listings.createForm.sectionPhotos' | translate }}
+            </span>
+            <button type="button" class="wizard-review__edit-btn" (click)="jumpToStep(3)">
+              {{ 'listings.createPage.wizard.editStep' | translate }}
+            </button>
+          </div>
+          <dl class="wizard-review__dl">
+            <div class="wizard-review__row">
+              <dt>{{ 'listings.createForm.images' | translate }}</dt>
+              <dd>
+                @if (selectedFiles.length > 0) {
+                  {{ 'listings.createPage.wizard.reviewPhotosCount' | translate: { count: selectedFiles.length } }}
+                } @else {
+                  {{ 'listings.createPage.wizard.reviewNoPhotos' | translate }}
+                }
+              </dd>
+            </div>
+            <div class="wizard-review__row">
+              <dt>{{ 'listings.createForm.description' | translate }}</dt>
+              <dd class="wizard-review__dd--block">{{ createListingForm.controls.description.value }}</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── Wizard actions ─────────────────────────────────── -->
+  <div class="wizard-actions">
+    @if (currentStep() > 1) {
+      <p-button
+        type="button"
+        [outlined]="true"
+        [label]="'listings.createPage.wizard.back' | translate"
+        [disabled]="isSubmitting"
+        (onClick)="goToPrevStep()"
+      />
+    } @else {
+      <p-button
+        type="button"
+        [outlined]="true"
+        [label]="'listings.common.cancel' | translate"
+        [disabled]="isSubmitting"
+        (onClick)="onCancel()"
+      />
+    }
+    @if (currentStep() < totalSteps) {
+      <p-button
+        type="button"
+        [label]="'listings.createPage.wizard.continue' | translate"
+        (onClick)="goToNextStep()"
+      />
+    } @else {
+      <p-button
+        type="submit"
+        [label]="'listings.createForm.submit' | translate"
+        [loading]="isSubmitting"
+        [disabled]="createListingForm.invalid || isSubmitting"
+      />
+    }
   </div>
 </form>

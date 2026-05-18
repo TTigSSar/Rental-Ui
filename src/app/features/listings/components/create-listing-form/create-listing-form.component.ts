@@ -5,7 +5,9 @@ import {
   Input,
   Output,
   inject,
+  signal,
 } from '@angular/core';
+import { CurrencyPipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import type { AbstractControl, ValidationErrors } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -20,6 +22,11 @@ import type {
 
 interface ConditionOption {
   readonly value: 'New' | 'LikeNew' | 'Good' | 'Fair';
+  readonly labelKey: string;
+}
+
+interface WizardStep {
+  readonly index: number;
   readonly labelKey: string;
 }
 
@@ -42,7 +49,14 @@ function ageRangeValidator(control: AbstractControl): ValidationErrors | null {
 @Component({
   selector: 'app-create-listing-form',
   standalone: true,
-  imports: [ButtonModule, InputNumberModule, InputTextModule, ReactiveFormsModule, TranslatePipe],
+  imports: [
+    ButtonModule,
+    CurrencyPipe,
+    InputNumberModule,
+    InputTextModule,
+    ReactiveFormsModule,
+    TranslatePipe,
+  ],
   templateUrl: './create-listing-form.component.html',
   styleUrl: './create-listing-form.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -57,6 +71,23 @@ export class CreateListingFormComponent {
   @Output() readonly cancelled = new EventEmitter<void>();
 
   protected readonly conditionOptions = CONDITION_OPTIONS;
+
+  protected readonly currentStep = signal(1);
+  protected readonly totalSteps = 4;
+
+  protected readonly WIZARD_STEPS: readonly WizardStep[] = [
+    { index: 1, labelKey: 'listings.createPage.wizard.step1Label' },
+    { index: 2, labelKey: 'listings.createPage.wizard.step2Label' },
+    { index: 3, labelKey: 'listings.createPage.wizard.step3Label' },
+    { index: 4, labelKey: 'listings.createPage.wizard.step4Label' },
+  ];
+
+  private readonly STEP_CONTROL_NAMES: readonly string[][] = [
+    ['title', 'categoryId', 'pricePerDay'],
+    ['ageFromMonths', 'ageToMonths'],
+    ['description'],
+    [],
+  ];
 
   readonly createListingForm = this.fb.group(
     {
@@ -89,6 +120,51 @@ export class CreateListingFormComponent {
   );
 
   protected selectedFiles: File[] = [];
+
+  protected goToNextStep(): void {
+    const step = this.currentStep();
+    const names = this.STEP_CONTROL_NAMES[step - 1] ?? [];
+    names.forEach(name => this.createListingForm.get(name)?.markAsTouched());
+    const fieldsValid = names.every(name => {
+      const ctrl = this.createListingForm.get(name);
+      return ctrl === null || ctrl.valid;
+    });
+    const noCrossError = step !== 2 || !this.createListingForm.hasError('ageRangeInvalid');
+    if (fieldsValid && noCrossError) {
+      this.currentStep.update(s => Math.min(s + 1, this.totalSteps));
+    }
+  }
+
+  protected goToPrevStep(): void {
+    this.currentStep.update(s => Math.max(s - 1, 1));
+  }
+
+  protected jumpToStep(step: number): void {
+    this.currentStep.set(step);
+  }
+
+  protected getCategoryName(): string {
+    const id = this.createListingForm.controls.categoryId.value;
+    return this.categories.find(c => c.id === id)?.name ?? id;
+  }
+
+  protected getConditionLabelKey(): string | null {
+    const val = this.createListingForm.controls.condition.value;
+    if (!val) return null;
+    return this.conditionOptions.find(o => o.value === val)?.labelKey ?? null;
+  }
+
+  protected hasToyDetailValues(): boolean {
+    const c = this.createListingForm.controls;
+    return !!(
+      c.ageFromMonths.value ||
+      c.ageToMonths.value ||
+      c.condition.value ||
+      c.hygieneNotes.value ||
+      c.safetyNotes.value ||
+      c.depositAmount.value
+    );
+  }
 
   protected onSubmit(): void {
     if (this.createListingForm.invalid) {

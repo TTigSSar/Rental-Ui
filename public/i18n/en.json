@@ -333,6 +333,20 @@
         "hygiene": "Describe how you clean the toy between rentals.",
         "fairPrice": "Set a fair daily price to attract more families.",
         "adminApproval": "Your listing goes live only after our team approves it."
+      },
+      "wizard": {
+        "step1Label": "Basic Info",
+        "step2Label": "Toy Details",
+        "step3Label": "Photos",
+        "step4Label": "Review",
+        "stepProgress": "Step {{current}} of {{total}}",
+        "back": "Back",
+        "continue": "Continue",
+        "reviewTitle": "Review your listing",
+        "editStep": "Edit",
+        "reviewNoPhotos": "No photos selected",
+        "reviewPhotosCount": "{{count}} photo(s) selected",
+        "reviewCityFixed": "Yerevan, Armenia"
       }
     },
     "createForm": {
