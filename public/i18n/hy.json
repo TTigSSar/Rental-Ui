@@ -212,7 +212,9 @@
     "card": {
       "noImage": "Պատկեր չկա",
       "pricePerDay": "{{amount}} օրական",
-      "toggleFavorite": "Նշել որպես ընտրյալ"
+      "toggleFavorite": "Նշել որպես ընտրյալ",
+      "trustAria": "Խաղալիքի վստահության մանրամասներ",
+      "hygieneProvided": "Հիգիենա"
     },
     "filters": {
       "intro": "Կարգավորե՛ք ֆիլտրերը՝ ճիշտ խաղալիք արագ գտնելու համար։",

@@ -212,7 +212,9 @@
     "card": {
       "noImage": "No image available",
       "pricePerDay": "{{amount}} per day",
-      "toggleFavorite": "Toggle favorite"
+      "toggleFavorite": "Toggle favorite",
+      "trustAria": "Toy trust details",
+      "hygieneProvided": "Hygiene notes"
     },
     "filters": {
       "intro": "Filter to find the right toy quickly.",

@@ -2,6 +2,7 @@ import { CurrencyPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   EventEmitter,
   input,
   Output,
@@ -9,13 +10,70 @@ import {
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
 import { ImageContainerComponent } from '../../../../shared/ui/image-container/image-container.component';
 import type { ListingPreview } from '../../models/listing.model';
+
+interface AgeRangeDisplay {
+  readonly key:
+    | 'listings.details.toyDetails.ageRangeFromTo'
+    | 'listings.details.toyDetails.ageRangeFromOnly'
+    | 'listings.details.toyDetails.ageRangeToOnly';
+  readonly params: { from?: number; to?: number };
+}
+
+function resolveConditionLabelKey(value: string | null | undefined): string | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const normalized = value.trim().toLowerCase().replace(/[\s_-]+/g, '');
+  switch (normalized) {
+    case 'new':
+      return 'listings.details.conditionValues.new';
+    case 'likenew':
+      return 'listings.details.conditionValues.likeNew';
+    case 'good':
+      return 'listings.details.conditionValues.good';
+    case 'fair':
+      return 'listings.details.conditionValues.fair';
+    default:
+      return null;
+  }
+}
+
+function resolveAgeRangeDisplay(
+  fromMonths: number | null | undefined,
+  toMonths: number | null | undefined,
+): AgeRangeDisplay | null {
+  const hasFrom = typeof fromMonths === 'number' && Number.isFinite(fromMonths);
+  const hasTo = typeof toMonths === 'number' && Number.isFinite(toMonths);
+
+  if (hasFrom && hasTo) {
+    return {
+      key: 'listings.details.toyDetails.ageRangeFromTo',
+      params: { from: fromMonths, to: toMonths },
+    };
+  }
+  if (hasFrom) {
+    return {
+      key: 'listings.details.toyDetails.ageRangeFromOnly',
+      params: { from: fromMonths },
+    };
+  }
+  if (hasTo) {
+    return {
+      key: 'listings.details.toyDetails.ageRangeToOnly',
+      params: { to: toMonths },
+    };
+  }
+  return null;
+}
 
 @Component({
   selector: 'app-listing-card',
   standalone: true,
   imports: [
+    BadgeComponent,
     CurrencyPipe,
     ImageContainerComponent,
     RouterLink,
@@ -29,6 +87,30 @@ export class ListingCardComponent {
   readonly listing = input.required<ListingPreview>();
 
   @Output() readonly favoriteToggled = new EventEmitter<string>();
+
+  protected readonly ageRange = computed(() => {
+    const listing = this.listing();
+    return resolveAgeRangeDisplay(listing.ageFromMonths, listing.ageToMonths);
+  });
+
+  protected readonly conditionLabelKey = computed(() =>
+    resolveConditionLabelKey(this.listing().condition),
+  );
+
+  protected readonly hasHygieneNotes = computed(() => {
+    const notes = this.listing().hygieneNotes;
+    return typeof notes === 'string' && notes.trim().length > 0;
+  });
+
+  protected readonly hasCondition = computed(() => {
+    const condition = this.listing().condition;
+    return typeof condition === 'string' && condition.trim().length > 0;
+  });
+
+  protected readonly showTrustRow = computed(
+    () =>
+      this.ageRange() !== null || this.hasCondition() || this.hasHygieneNotes(),
+  );
 
   protected onFavoriteClick(event: MouseEvent): void {
     event.preventDefault();

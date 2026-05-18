@@ -34,11 +34,48 @@
         </p>
       }
 
+      @if (showTrustRow()) {
+        <ul
+          class="listing-card__trust"
+          [attr.aria-label]="'listings.card.trustAria' | translate"
+        >
+          @if (ageRange(); as range) {
+            <li class="listing-card__trust-item">
+              <app-ui-badge
+                tone="neutral"
+                [label]="range.key | translate: range.params"
+              />
+            </li>
+          }
+
+          @if (hasCondition()) {
+            <li class="listing-card__trust-item">
+              @if (conditionLabelKey(); as conditionKey) {
+                <app-ui-badge tone="neutral" [label]="conditionKey | translate" />
+              } @else {
+                <app-ui-badge tone="neutral" [label]="listing().condition!" />
+              }
+            </li>
+          }
+
+          @if (hasHygieneNotes()) {
+            <li class="listing-card__trust-item">
+              <span class="listing-card__trust-badge listing-card__trust-badge--hygiene">
+                <span class="pi pi-shield" aria-hidden="true"></span>
+                <span>{{ 'listings.card.hygieneProvided' | translate }}</span>
+              </span>
+            </li>
+          }
+        </ul>
+      }
+
       <p class="listing-card__price">
-        {{
-          'listings.card.pricePerDay'
-            | translate : { amount: (listing().pricePerDay | currency) }
-        }}
+        <span class="listing-card__price-amount">{{
+          listing().pricePerDay | currency
+        }}</span>
+        <span class="listing-card__price-suffix">{{
+          'listings.booking.priceSuffix' | translate
+        }}</span>
       </p>
     </div>
   </a>

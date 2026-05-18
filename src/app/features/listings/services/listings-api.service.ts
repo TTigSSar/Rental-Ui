@@ -35,7 +35,23 @@ export function normalizeListingPreview(
         ? item.mainImageUrl
         : null,
     isFavorite: item.isFavorite === true,
+    ageFromMonths: normalizeFiniteNumber(item.ageFromMonths),
+    ageToMonths: normalizeFiniteNumber(item.ageToMonths),
+    condition: normalizeNonEmptyString(item.condition),
+    hygieneNotes: normalizeNonEmptyString(item.hygieneNotes),
   };
+}
+
+function normalizeFiniteNumber(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function normalizeNonEmptyString(value: unknown): string | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? null : trimmed;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -245,16 +261,4 @@ export class ListingsApiService {
       depositAmount: normalizeFiniteNumber(listing.depositAmount),
     };
   }
-}
-
-function normalizeFiniteNumber(value: unknown): number | null {
-  return typeof value === 'number' && Number.isFinite(value) ? value : null;
-}
-
-function normalizeNonEmptyString(value: unknown): string | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-  const trimmed = value.trim();
-  return trimmed.length === 0 ? null : trimmed;
 }

@@ -5,6 +5,11 @@ export interface ListingPreview {
   pricePerDay: number;
   mainImageUrl: string | null;
   isFavorite: boolean;
+  /** Trust fields when returned by list/favorites APIs. */
+  ageFromMonths?: number | null;
+  ageToMonths?: number | null;
+  condition?: string | null;
+  hygieneNotes?: string | null;
 }
 
 export interface ListingImage {
