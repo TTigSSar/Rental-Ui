@@ -11,6 +11,7 @@
         class="wizard-stepper__step"
         [class.wizard-stepper__step--active]="currentStep() === step.index"
         [class.wizard-stepper__step--done]="currentStep() > step.index"
+        [attr.aria-current]="currentStep() === step.index ? 'step' : null"
       >
         <span class="wizard-stepper__dot" aria-hidden="true">
           @if (currentStep() > step.index) {

@@ -132,15 +132,22 @@ export class CreateListingFormComponent {
     const noCrossError = step !== 2 || !this.createListingForm.hasError('ageRangeInvalid');
     if (fieldsValid && noCrossError) {
       this.currentStep.update(s => Math.min(s + 1, this.totalSteps));
+      this.scrollToTop();
     }
   }
 
   protected goToPrevStep(): void {
     this.currentStep.update(s => Math.max(s - 1, 1));
+    this.scrollToTop();
   }
 
   protected jumpToStep(step: number): void {
     this.currentStep.set(step);
+    this.scrollToTop();
+  }
+
+  private scrollToTop(): void {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   protected getCategoryName(): string {

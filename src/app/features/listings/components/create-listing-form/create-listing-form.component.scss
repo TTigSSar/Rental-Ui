@@ -69,6 +69,11 @@
   background: var(--ui-color-border);
   margin: 1rem var(--ui-space-8) 0;
   min-width: var(--ui-space-8);
+  transition: background 160ms ease;
+}
+
+.wizard-stepper__step--done + .wizard-stepper__connector {
+  background: var(--ui-color-primary-soft);
 }
 
 @media (max-width: 480px) {
@@ -143,7 +148,8 @@
   font-size: var(--ui-font-size-caption);
   font-weight: 600;
   cursor: pointer;
-  padding: 2px 4px;
+  padding: var(--ui-space-4) var(--ui-space-8);
+  min-height: 2rem;
   border-radius: 4px;
   font-family: inherit;
 
@@ -321,6 +327,11 @@
     border-color: var(--ui-color-primary);
     background: color-mix(in srgb, var(--ui-color-surface) 80%, var(--ui-color-placeholder-tint));
   }
+
+  &:active {
+    border-color: var(--ui-color-primary);
+    background: color-mix(in srgb, var(--ui-color-surface) 80%, var(--ui-color-placeholder-tint));
+  }
 }
 
 .create-listing-form__file-drop-icon {
@@ -411,6 +422,18 @@
 }
 
 /* ── Mobile ──────────────────────────────────────────────── */
+/* ── Narrow screen review rows ──────────────────────────── */
+@media (max-width: 380px) {
+  .wizard-review__row {
+    flex-direction: column;
+    gap: var(--ui-space-4);
+
+    dt {
+      flex: none;
+    }
+  }
+}
+
 @media (max-width: 640px) {
   .create-listing-form__grid {
     grid-template-columns: 1fr;
@@ -437,9 +460,16 @@
   :host ::ng-deep .wizard-actions .p-button {
     flex: 1;
     min-width: 0 !important;
+    /* 44px minimum touch target (DESIGN_RULES §3) */
+    min-height: 2.75rem;
+  }
+
+  .create-listing-form__textarea {
+    max-height: 12rem;
   }
 
   .create-listing-form {
-    padding-bottom: 7rem;
+    /* nav 64px + safe-area + bar (~68px) + buffer */
+    padding-bottom: calc(64px + env(safe-area-inset-bottom) + 5.5rem);
   }
 }
