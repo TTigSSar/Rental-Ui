@@ -8,8 +8,8 @@
   gap: 24px;
   padding: 28px 28px 24px;
   background: var(--ui-color-surface);
-  border-radius: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08), 0 24px 48px rgba(16, 18, 30, 0.08);
+  border-radius: var(--ui-radius-lg);
+  box-shadow: var(--ui-shadow-booking-panel);
   border: 1px solid var(--ui-color-border);
 }
 
@@ -64,7 +64,7 @@
 
 .booking-panel__calendar {
   border: 1px solid var(--ui-color-border);
-  border-radius: 14px;
+  border-radius: var(--ui-radius-md);
   padding: 12px;
   background: #fff;
 }
@@ -93,7 +93,7 @@
   padding: 16px 18px;
   margin: 0;
   background: var(--ui-color-surface-muted);
-  border-radius: 14px;
+  border-radius: var(--ui-radius-md);
 }
 
 .booking-panel__summary-row {
@@ -137,18 +137,18 @@
   min-height: 3rem;
   font-size: 15px;
   letter-spacing: 0.01em;
-  border-radius: 999px;
+  border-radius: var(--ui-radius-pill);
   background: var(--ui-color-primary);
   border-color: var(--ui-color-primary);
   transition: background-color 140ms ease, box-shadow 140ms ease,
     transform 120ms ease;
-  box-shadow: 0 10px 24px rgba(255, 96, 8, 0.28);
+  box-shadow: var(--ui-shadow-booking-cta);
 }
 
 ::ng-deep .booking-panel__cta.p-button:hover:not(:disabled) {
   background: var(--ui-color-primary-strong);
   border-color: var(--ui-color-primary-strong);
-  box-shadow: 0 14px 30px rgba(232, 85, 0, 0.32);
+  box-shadow: var(--ui-shadow-primary-hover);
   transform: translateY(-1px);
 }
 
@@ -158,9 +158,9 @@
 }
 
 ::ng-deep .booking-panel__cta.p-button:disabled {
-  background: #f4cfb7;
-  border-color: #f4cfb7;
-  color: #fff;
+  background: var(--ui-color-primary-disabled);
+  border-color: var(--ui-color-primary-disabled);
+  color: var(--ui-color-on-primary);
   box-shadow: none;
   opacity: 1;
   cursor: not-allowed;
@@ -184,15 +184,15 @@
 }
 
 .booking-panel__status--error {
-  background: #fff1f3;
+  background: var(--ui-color-error-surface);
   color: var(--ui-color-error);
-  border: 1px solid #f6ccd3;
+  border: 1px solid var(--ui-color-error-border);
 }
 
 .booking-panel__status--success {
-  background: #edf9f1;
-  color: #1f8a4c;
-  border: 1px solid #c6ebd2;
+  background: var(--ui-color-success-surface);
+  color: var(--ui-color-success);
+  border: 1px solid var(--ui-color-success-border);
 }
 
 .booking-panel__assurance {

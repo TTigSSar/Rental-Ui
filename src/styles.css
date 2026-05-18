@@ -1,42 +1,103 @@
 @import 'primeicons/primeicons.css';
 
+/*
+ * ToyRent design tokens — Direction A: Refined Warm
+ * Canonical breakpoints (use consistently — see DESIGN_RULES.md):
+ *   xs:       < 560px
+ *   sm:       560–639px
+ *   md:       640–899px
+ *   lg:       900–1099px
+ *   xl:       ≥ 1100px
+ *   shell-md: 960px — header nav visibility toggles
+ */
+
 :root {
+  /* —— Brand & core colors —— */
   --ui-color-primary: #ff6008;
   --ui-color-primary-strong: #e85500;
   --ui-color-primary-soft: #fd8b47;
+  --ui-color-primary-disabled: #f4cfb7;
   --ui-color-secondary: #2a2c41;
   --ui-color-background: #111217;
+  --ui-color-canvas-dark: #14161e;
   --ui-color-surface: #ffffff;
   --ui-color-surface-muted: #f4f4f8;
+  --ui-color-surface-elevated: #fbfbfe;
   --ui-color-footer: #7b7a7a;
   --ui-color-text-primary: #181a24;
   --ui-color-text-secondary: #6a6f86;
   --ui-color-text-muted: #b5b6b7;
+  --ui-color-text-label: #5e6478;
+  --ui-color-text-hint: #8d92a6;
   --ui-color-border: #e6e8f1;
   --ui-color-border-strong: #b5b6b7;
-  --ui-color-error: #d43f5e;
+  --ui-color-border-subtle: #eceef6;
+  --ui-color-border-input: #d8dbe7;
+  --ui-color-border-separator: #e3e6f0;
+  --ui-color-on-primary: #ffffff;
 
+  /* —— Semantic / trust colors —— */
+  --ui-color-success: #1f8a4c;
+  --ui-color-success-surface: #edf9f1;
+  --ui-color-success-border: #c6ebd2;
+  --ui-color-warning: #8a5c00;
+  --ui-color-warning-surface: #fff4d6;
+  --ui-color-approved: #0e6245;
+  --ui-color-approved-surface: #dff8ee;
+  --ui-color-rejected: #8a2133;
+  --ui-color-rejected-surface: #ffe5ea;
+  --ui-color-neutral-badge-surface: #eef1fa;
+  --ui-color-error-surface: #fff1f3;
+  --ui-color-error-border: #f6ccd3;
+  --ui-color-empty-tint: #fff3eb;
+  --ui-color-placeholder-tint: #f0f4ff;
+
+  /* —— Spacing (4px base unit) —— */
   --ui-space-4: 4px;
+  --ui-space-6: 6px;
   --ui-space-8: 8px;
   --ui-space-12: 12px;
   --ui-space-16: 16px;
+  --ui-space-20: 20px;
   --ui-space-24: 24px;
   --ui-space-32: 32px;
   --ui-space-48: 48px;
   --ui-space-64: 64px;
 
+  /* —— Radius —— */
   --ui-radius-sm: 6px;
   --ui-radius-md: 14px;
   --ui-radius-lg: 20px;
+  --ui-radius-pill: 999px;
+  --ui-radius-input: 40px;
+  --ui-radius-auth-panel: 16px;
 
+  /* —— Shadows —— */
   --ui-shadow-card: 0 10px 24px rgba(16, 18, 30, 0.07);
   --ui-shadow-card-hover: 0 16px 34px rgba(16, 18, 30, 0.13);
+  --ui-shadow-booking-panel: 0 4px 6px rgba(0, 0, 0, 0.08), 0 24px 48px rgba(16, 18, 30, 0.08);
+  --ui-shadow-primary-button: 0 4px 14px rgba(255, 96, 8, 0.28);
+  --ui-shadow-booking-cta: 0 10px 24px rgba(255, 96, 8, 0.28);
+  --ui-shadow-primary-hover: 0 14px 30px rgba(232, 85, 0, 0.32);
+  --ui-shadow-header: 0 8px 24px rgba(16, 18, 30, 0.05);
+  --ui-shadow-auth-shell: 0 20px 48px rgba(4, 8, 18, 0.35);
+  --ui-shadow-social-hover: 0 8px 16px rgba(9, 16, 30, 0.08);
 
+  /* —— Typography —— */
   --ui-font-size-h1: clamp(1.75rem, 3vw, 2.25rem);
   --ui-font-size-h2: clamp(1.375rem, 2.5vw, 1.75rem);
   --ui-font-size-h3: 1.125rem;
   --ui-font-size-body: 1rem;
   --ui-font-size-caption: 0.875rem;
+
+  /* —— Buttons & inputs —— */
+  --ui-button-min-height: 2.35rem;
+  --ui-button-min-height-lg: 3rem;
+  --ui-button-font-size: 0.875rem;
+  --ui-button-font-weight: 600;
+  --ui-focus-ring: 0 0 0 3px rgba(255, 96, 8, 0.18);
+  --ui-color-button-outlined-border: #c9cedd;
+  --ui-color-button-outlined-text: #34384a;
 }
 
 *,
@@ -113,7 +174,7 @@ p {
 .ui-textarea:focus-visible,
 .ui-select:focus-visible {
   border-color: var(--ui-color-primary);
-  box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.18);
+  box-shadow: var(--ui-focus-ring);
   outline: none;
 }
 
@@ -126,14 +187,14 @@ p {
   color: var(--ui-color-text-secondary);
   border: 1px dashed var(--ui-color-border);
   border-radius: var(--ui-radius-md);
-  background: color-mix(in srgb, var(--ui-color-surface) 94%, #fff3eb);
+  background: color-mix(in srgb, var(--ui-color-surface) 94%, var(--ui-color-empty-tint));
 }
 
 .p-button {
-  border-radius: 999px;
-  font-weight: 600;
-  font-size: 0.875rem;
-  min-height: 2.35rem;
+  border-radius: var(--ui-radius-pill);
+  font-weight: var(--ui-button-font-weight);
+  font-size: var(--ui-button-font-size);
+  min-height: var(--ui-button-min-height);
   padding-inline: 1rem;
 }
 
@@ -147,10 +208,16 @@ p {
   border-color: var(--ui-color-primary-strong);
 }
 
+.p-button:not(.p-button-outlined):not(.p-button-text):disabled {
+  background: var(--ui-color-primary-disabled);
+  border-color: var(--ui-color-primary-disabled);
+  opacity: 1;
+}
+
 .p-button.p-button-outlined {
-  border-color: #c9cedd;
-  color: #34384a;
-  background: #fff;
+  border-color: var(--ui-color-button-outlined-border);
+  color: var(--ui-color-button-outlined-text);
+  background: var(--ui-color-surface);
 }
 
 .p-button.p-button-text {
@@ -161,9 +228,9 @@ p {
 .p-inputnumber-input,
 textarea,
 select {
-  border-radius: 40px;
+  border-radius: var(--ui-radius-input);
   border: 1px solid var(--ui-color-border);
-  background: #fff;
+  background: var(--ui-color-surface);
   color: var(--ui-color-text-primary);
 }
 
@@ -172,7 +239,7 @@ select {
 textarea:focus,
 select:focus {
   border-color: var(--ui-color-primary);
-  box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.18);
+  box-shadow: var(--ui-focus-ring);
   outline: none;
 }
 

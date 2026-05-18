@@ -27,7 +27,7 @@
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: #1a1c28;
+  color: var(--ui-color-text-primary);
   max-width: 32ch;
 }
 
@@ -61,7 +61,7 @@
    stretching across the full container width.
    ────────────────────────────────────────────────────────── */
 .listings-page__grid {
-  gap: 16px;
+  gap: var(--ui-space-16);
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: stretch;
 

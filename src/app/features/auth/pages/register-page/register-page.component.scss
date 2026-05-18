@@ -4,7 +4,7 @@
   justify-content: center;
   align-items: center;
   padding: var(--ui-space-24);
-  background: #14161e;
+  background: var(--ui-color-canvas-dark);
 }
 
 .register-page__shell {
@@ -12,15 +12,15 @@
   min-height: min(760px, calc(100dvh - 8rem));
   display: grid;
   grid-template-columns: 42% 58%;
-  border-radius: 16px;
+  border-radius: var(--ui-radius-auth-panel);
   overflow: hidden;
-  background: #ff6a00;
-  box-shadow: 0 20px 48px rgba(4, 8, 18, 0.35);
+  background: var(--ui-color-primary);
+  box-shadow: var(--ui-shadow-auth-shell);
 }
 
 .register-page__left-panel {
-  background: #ff6a00;
-  color: #fff;
+  background: var(--ui-color-primary);
+  color: var(--ui-color-on-primary);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -52,7 +52,7 @@
 .register-page__illustration {
   width: min(100%, 300px);
   height: 180px;
-  border-radius: 16px;
+  border-radius: var(--ui-radius-auth-panel);
   background:
     radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0) 40%),
     linear-gradient(140deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
@@ -60,25 +60,25 @@
 }
 
 .register-page__right-panel {
-  background: #fbfbfe;
+  background: var(--ui-color-surface-elevated);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: clamp(1.5rem, 3.5vw, 2.5rem);
-  border-left: 1px solid #eceef6;
-  border-top-left-radius: 40px;
-  border-bottom-left-radius: 40px;
+  border-left: 1px solid var(--ui-color-border-subtle);
+  border-top-left-radius: var(--ui-radius-input);
+  border-bottom-left-radius: var(--ui-radius-input);
 }
 
 .register-page__card {
   width: min(100%, 500px);
   border: unset;
-  padding: 24px;
+  padding: var(--ui-space-24);
 }
 
 :host ::ng-deep .register-page__card .p-card {
   border: 0;
-  border-radius: 16px;
+  border-radius: var(--ui-radius-auth-panel);
   background: transparent;
   box-shadow: none;
 }
@@ -91,13 +91,13 @@
   margin: 0;
   font-size: clamp(1.7rem, 3vw, 2.2rem);
   font-weight: 700;
-  color: #181a24;
+  color: var(--ui-color-text-primary);
   letter-spacing: -0.02em;
 }
 
 .register-page__subtitle {
   margin: var(--ui-space-8) 0 0;
-  color: #8d92a6;
+  color: var(--ui-color-text-hint);
   font-size: 0.95rem;
 }
 
@@ -116,7 +116,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 16px 0;
+  padding: var(--ui-space-16) 0;
 }
 
 .register-page__field-row {
@@ -137,7 +137,7 @@
 .register-page__label {
   font-size: 0.84rem;
   font-weight: 600;
-  color: #5e6478;
+  color: var(--ui-color-text-label);
 }
 
 .register-page__input {
@@ -146,7 +146,7 @@
 
 .register-page__hint {
   font-size: 0.75rem;
-  color: #8f94a9;
+  color: var(--ui-color-text-hint);
 }
 
 .register-page__validation {
@@ -178,19 +178,19 @@
 
 :host ::ng-deep .register-page__continue-button.p-button {
   width: 100%;
-  margin-top: 16px;
-  border-radius: 999px;
-  min-height: 3rem;
-  background: #ff6a00;
-  border-color: #ff6a00;
+  margin-top: var(--ui-space-16);
+  border-radius: var(--ui-radius-pill);
+  min-height: var(--ui-button-min-height-lg);
+  background: var(--ui-color-primary);
+  border-color: var(--ui-color-primary);
   font-weight: 600;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 :host ::ng-deep .register-page__continue-button.p-button:hover:not(:disabled) {
-  background: #e75f00;
-  border-color: #e75f00;
-  box-shadow: 0 2px 24px rgba(255, 106, 0, 0.28);
+  background: var(--ui-color-primary-strong);
+  border-color: var(--ui-color-primary-strong);
+  box-shadow: var(--ui-shadow-primary-button);
   transform: translateY(-1px);
 }
 
@@ -199,7 +199,7 @@
   display: flex;
   align-items: center;
   gap: var(--ui-space-12);
-  color: #8f94a9;
+  color: var(--ui-color-text-hint);
   font-size: 0.9rem;
   text-transform: lowercase;
 }
@@ -209,14 +209,14 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: #e3e6f0;
+  background: var(--ui-color-border-separator);
 }
 
 .register-page__social-actions {
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-12);
-  padding: 16px 0;
+  padding: var(--ui-space-16) 0;
 }
 
 .register-page__google-button {
@@ -234,7 +234,7 @@
 .register-page__social {
   width: 100%;
   min-height: 2.85rem;
-  border-radius: 999px;
+  border-radius: var(--ui-radius-pill);
   border: 1px solid transparent;
   display: inline-flex;
   align-items: center;
@@ -258,18 +258,18 @@
 }
 
 .register-page__social--google {
-  background: #fff;
-  border-color: #d8dbe7;
-  color: #1a1e2f;
+  background: var(--ui-color-surface);
+  border-color: var(--ui-color-border-input);
+  color: var(--ui-color-text-primary);
 }
 
 .register-page__social--google:hover {
-  box-shadow: 0 8px 16px rgba(9, 16, 30, 0.08);
+  box-shadow: var(--ui-shadow-social-hover);
 }
 
 .register-page__social--apple {
-  background: #111217;
-  color: #fff;
+  background: var(--ui-color-background);
+  color: var(--ui-color-on-primary);
 }
 
 .register-page__social--apple:hover {
@@ -280,7 +280,7 @@
   width: 1.4rem;
   height: 1.4rem;
   border-radius: 50%;
-  border: 1px solid #d8dbe7;
+  border: 1px solid var(--ui-color-border-input);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -311,9 +311,9 @@
   width: 1.55rem;
   height: 1.55rem;
   border-radius: 50%;
-  border: 1px solid #c9cedf;
-  background: #eff1f7;
-  color: #7f8598;
+  border: 1px solid var(--ui-color-button-outlined-border);
+  background: var(--ui-color-neutral-badge-surface);
+  color: var(--ui-color-text-secondary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -323,37 +323,37 @@
 
 .register-page__step-label {
   font-size: 0.72rem;
-  color: #8d92a6;
+  color: var(--ui-color-text-hint);
   white-space: nowrap;
 }
 
 .register-page__step--active .register-page__step-circle {
-  background: #ff6a00;
-  border-color: #ff6a00;
-  color: #fff;
+  background: var(--ui-color-primary);
+  border-color: var(--ui-color-primary);
+  color: var(--ui-color-on-primary);
 }
 
 .register-page__step--active .register-page__step-label {
-  color: #ff6a00;
+  color: var(--ui-color-primary);
   font-weight: 600;
 }
 
 .register-page__step-line {
   height: 1px;
-  background: #d7dceb;
+  background: var(--ui-color-border);
 }
 
 .register-page__switch {
   margin-top: 12px;
   text-align: center;
   font-size: 0.9rem;
-  color: #8d92a6;
-  padding-top: 16px;
-  border-top: 1px solid #eceef6;
+  color: var(--ui-color-text-hint);
+  padding-top: var(--ui-space-16);
+  border-top: 1px solid var(--ui-color-border-subtle);
 }
 
 .register-page__switch a {
-  color: #ff6a00;
+  color: var(--ui-color-primary);
   font-weight: 600;
   text-decoration: none;
 }
@@ -375,7 +375,7 @@
 
   .register-page__left-panel {
     align-items: flex-start;
-    border-radius: 16px 16px 0 0;
+    border-radius: var(--ui-radius-auth-panel) var(--ui-radius-auth-panel) 0 0;
   }
 
   .register-page__illustration {
