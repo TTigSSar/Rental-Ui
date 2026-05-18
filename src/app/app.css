@@ -48,7 +48,7 @@
   transition: min-height 180ms ease;
 }
 
-.app-shell__header-wrap--scrolled .app-shell__header-row {
+.app-shell__header-row {
   min-height: 3.5rem;
 }
 
