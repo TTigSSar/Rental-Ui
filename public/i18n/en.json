@@ -249,7 +249,8 @@
       "submitting": "Submitting...",
       "disabledHint": "Select dates",
       "nights": "{{count}} day(s)",
-      "assurance": "Send a request to the owner. The owner approves your rental dates before you pick up the toy."
+      "assurance": "The owner reviews and approves your request before the rental begins.",
+      "assuranceTransparency": "Pricing is shown upfront — no hidden fees or surprises."
     },
     "page": {
       "title": "Browse Toys",
@@ -278,6 +279,9 @@
       "bookingSubtitle": "Pick your rental dates and see the total before you send a rental request.",
       "bookingSubmitting": "Submitting rental request...",
       "bookingSuccess": "Rental request submitted successfully.",
+      "trustBadge": {
+        "reviewed": "Reviewed listing"
+      },
       "guestRentPrompt": "Sign in to rent this toy",
       "guestRentSubtext": "Please sign in or create an account to request this toy.",
       "guestSignIn": "Sign In",
@@ -309,15 +313,15 @@
         "body": "Cancel a pending rental request at any time. Once the owner approves your booking, cancellation depends on the owner’s policy."
       },
       "protection": {
-        "title": "Damage, Loss & Deposit",
-        "intro": "Many toy owners on ToyRent ask for a small refundable deposit. The exact deposit and refund policy is set by each owner.",
-        "whatIncluded": "What this covers",
+        "title": "Rental Deposit & Coverage",
+        "intro": "Some owners ask for a small refundable deposit — the amount and refund terms are set by each owner.",
+        "whatIncluded": "What the deposit covers",
         "forAllRentals": "For all toy rentals",
         "bullet1": "The deposit can be used to cover damage, missing parts, or excessive wear",
-        "bullet2": "The deposit is refunded after the toy is returned in the agreed condition",
-        "bullet3": "Owners describe how each toy is cleaned between rentals in the hygiene notes",
-        "bullet4": "Renters must respect any age and safety notes set by the owner",
-        "bullet5": "If there is a dispute, contact the owner first and then ToyRent support."
+        "bullet2": "The deposit is fully refunded when the toy is returned in the agreed condition",
+        "bullet3": "Each owner describes how the toy is cleaned between rentals",
+        "bullet4": "Please follow the owner's age and safety guidance",
+        "bullet5": "If an issue comes up, contact the owner first — ToyRent support is also here to help."
       }
     },
     "createPage": {

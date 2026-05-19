@@ -294,6 +294,11 @@
   background: var(--ui-color-success-surface);
 }
 
+.detail-page__trust-chip--reviewed {
+  color: var(--ui-color-success);
+  background: var(--ui-color-success-surface);
+}
+
 /* ── Sections stack ───────────────────────────────────────── */
 .detail-page__sections {
   display: flex;

@@ -116,37 +116,39 @@
                 </div>
               </header>
 
-              <!-- Trust summary strip: quick-scan chips for condition, age, hygiene -->
-              @if (listing.condition || listing.ageFromMonths || listing.ageToMonths || listing.hygieneNotes) {
-                <div
-                  class="detail-page__trust-strip"
-                  [attr.aria-label]="'listings.details.toyDetails.heading' | translate"
-                >
-                  @if (resolveConditionLabelKey(listing.condition); as conditionKey) {
-                    <span class="detail-page__trust-chip detail-page__trust-chip--neutral">
-                      <i class="pi pi-tag" aria-hidden="true"></i>
-                      <span>{{ conditionKey | translate }}</span>
-                    </span>
-                  } @else if (listing.condition) {
-                    <span class="detail-page__trust-chip detail-page__trust-chip--neutral">
-                      <i class="pi pi-tag" aria-hidden="true"></i>
-                      <span>{{ listing.condition }}</span>
-                    </span>
-                  }
-                  @if (resolveAgeRangeDisplay(listing.ageFromMonths, listing.ageToMonths); as ageRange) {
-                    <span class="detail-page__trust-chip detail-page__trust-chip--neutral">
-                      <i class="pi pi-clock" aria-hidden="true"></i>
-                      <span>{{ ageRange.key | translate: ageRange.params }}</span>
-                    </span>
-                  }
-                  @if (listing.hygieneNotes) {
-                    <span class="detail-page__trust-chip detail-page__trust-chip--hygiene">
-                      <i class="pi pi-shield" aria-hidden="true"></i>
-                      <span>{{ 'listings.card.hygieneProvided' | translate }}</span>
-                    </span>
-                  }
-                </div>
-              }
+              <!-- Trust summary strip: reviewed badge + quick-scan chips for condition, age, hygiene -->
+              <div
+                class="detail-page__trust-strip"
+                [attr.aria-label]="'listings.details.toyDetails.heading' | translate"
+              >
+                <span class="detail-page__trust-chip detail-page__trust-chip--reviewed">
+                  <i class="pi pi-check-circle" aria-hidden="true"></i>
+                  <span>{{ 'listings.details.trustBadge.reviewed' | translate }}</span>
+                </span>
+                @if (resolveConditionLabelKey(listing.condition); as conditionKey) {
+                  <span class="detail-page__trust-chip detail-page__trust-chip--neutral">
+                    <i class="pi pi-tag" aria-hidden="true"></i>
+                    <span>{{ conditionKey | translate }}</span>
+                  </span>
+                } @else if (listing.condition) {
+                  <span class="detail-page__trust-chip detail-page__trust-chip--neutral">
+                    <i class="pi pi-tag" aria-hidden="true"></i>
+                    <span>{{ listing.condition }}</span>
+                  </span>
+                }
+                @if (resolveAgeRangeDisplay(listing.ageFromMonths, listing.ageToMonths); as ageRange) {
+                  <span class="detail-page__trust-chip detail-page__trust-chip--neutral">
+                    <i class="pi pi-clock" aria-hidden="true"></i>
+                    <span>{{ ageRange.key | translate: ageRange.params }}</span>
+                  </span>
+                }
+                @if (listing.hygieneNotes) {
+                  <span class="detail-page__trust-chip detail-page__trust-chip--hygiene">
+                    <i class="pi pi-shield" aria-hidden="true"></i>
+                    <span>{{ 'listings.card.hygieneProvided' | translate }}</span>
+                  </span>
+                }
+              </div>
 
               <div class="detail-page__sections">
                 <!-- 1. Toy trust details — moved first so parents see condition/age/hygiene before description -->

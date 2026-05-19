@@ -163,8 +163,8 @@
 }
 
 .listing-card__trust-badge--hygiene {
-  color: var(--ui-color-primary-strong);
-  background: var(--ui-color-primary-soft);
+  color: var(--ui-color-success);
+  background: var(--ui-color-success-surface);
 }
 
 .listing-card__trust-badge--hygiene .pi {

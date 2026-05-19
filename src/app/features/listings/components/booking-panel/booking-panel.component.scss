@@ -217,12 +217,18 @@
   border: 1px solid var(--ui-color-success-border);
 }
 
+.booking-panel__assurance-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 4px;
+}
+
 .booking-panel__assurance {
   display: flex;
   align-items: center;
   gap: 8px;
   margin: 0;
-  padding-top: 6px;
   font-size: 13px;
   color: var(--ui-color-footer);
 }
@@ -230,6 +236,7 @@
 .booking-panel__assurance i {
   color: var(--ui-color-primary);
   font-size: 14px;
+  flex-shrink: 0;
 }
 
 // -----------------------------------------------------------------------------
