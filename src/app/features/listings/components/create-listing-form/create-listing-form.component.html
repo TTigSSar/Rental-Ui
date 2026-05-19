@@ -5,36 +5,34 @@
   novalidate
 >
   <!-- ── Stepper header ─────────────────────────────────── -->
-  <nav class="wizard-stepper" aria-label="Form progress">
-    @for (step of WIZARD_STEPS; track step.index; let isLast = $last) {
-      <div
-        class="wizard-stepper__step"
-        [class.wizard-stepper__step--active]="currentStep() === step.index"
-        [class.wizard-stepper__step--done]="currentStep() > step.index"
-        [attr.aria-current]="currentStep() === step.index ? 'step' : null"
-      >
-        <span class="wizard-stepper__dot" aria-hidden="true">
-          @if (currentStep() > step.index) {
-            <i class="pi pi-check"></i>
-          } @else {
-            {{ step.index }}
-          }
-        </span>
-        <span class="wizard-stepper__label">{{ step.labelKey | translate }}</span>
-      </div>
-      @if (!isLast) {
-        <span class="wizard-stepper__connector" aria-hidden="true"></span>
+  <div
+    class="wizard-stepper"
+    role="progressbar"
+    [attr.aria-valuenow]="currentStep()"
+    aria-valuemin="1"
+    [attr.aria-valuemax]="totalSteps"
+    [attr.aria-label]="'listings.createPage.wizard.stepProgress' | translate: { current: currentStep(), total: totalSteps }"
+  >
+    <div class="wizard-stepper__meta">
+      <span class="wizard-stepper__step-name">{{ WIZARD_STEPS[currentStep() - 1]?.labelKey | translate }}</span>
+      <span class="wizard-stepper__counter">{{ 'listings.createPage.wizard.stepProgress' | translate: { current: currentStep(), total: totalSteps } }}</span>
+    </div>
+    <div class="wizard-stepper__track" aria-hidden="true">
+      @for (step of WIZARD_STEPS; track step.index) {
+        <div
+          class="wizard-stepper__segment"
+          [class.wizard-stepper__segment--done]="currentStep() > step.index"
+          [class.wizard-stepper__segment--active]="currentStep() === step.index"
+        ></div>
       }
-    }
-  </nav>
+    </div>
+  </div>
 
   <!-- ── Step 1: Basic info ─────────────────────────────── -->
   @if (currentStep() === 1) {
     <div class="wizard-step">
-      <h3 class="wizard-step__title">
-        <span class="pi pi-info-circle" aria-hidden="true"></span>
-        {{ 'listings.createForm.sectionBasic' | translate }}
-      </h3>
+      <h2 class="wizard-step__heading">{{ 'listings.createPage.wizard.step1Heading' | translate }}</h2>
+      <p class="wizard-step__hint">{{ 'listings.createPage.wizard.step1Hint' | translate }}</p>
 
       <div class="create-listing-form__grid">
         <div class="create-listing-form__field create-listing-form__field--full">
@@ -139,13 +137,8 @@
   <!-- ── Step 2: Toy details ────────────────────────────── -->
   @if (currentStep() === 2) {
     <div class="wizard-step">
-      <h3 class="wizard-step__title">
-        <span class="pi pi-gift" aria-hidden="true"></span>
-        {{ 'listings.createForm.sectionToyDetails' | translate }}
-      </h3>
-      <p class="create-listing-form__section-hint">
-        {{ 'listings.createForm.toySectionHint' | translate }}
-      </p>
+      <h2 class="wizard-step__heading">{{ 'listings.createPage.wizard.step2Heading' | translate }}</h2>
+      <p class="wizard-step__hint">{{ 'listings.createPage.wizard.step2Hint' | translate }}</p>
 
       <div class="create-listing-form__grid">
         <div class="create-listing-form__field">
@@ -276,10 +269,8 @@
   <!-- ── Step 3: Photos + description ──────────────────── -->
   @if (currentStep() === 3) {
     <div class="wizard-step">
-      <h3 class="wizard-step__title">
-        <span class="pi pi-camera" aria-hidden="true"></span>
-        {{ 'listings.createForm.sectionPhotos' | translate }}
-      </h3>
+      <h2 class="wizard-step__heading">{{ 'listings.createPage.wizard.step3Heading' | translate }}</h2>
+      <p class="wizard-step__hint">{{ 'listings.createPage.wizard.step3Hint' | translate }}</p>
 
       <div class="create-listing-form__grid">
         <div class="create-listing-form__field create-listing-form__field--full">
@@ -341,10 +332,8 @@
   <!-- ── Step 4: Review + submit ────────────────────────── -->
   @if (currentStep() === 4) {
     <div class="wizard-step">
-      <h3 class="wizard-step__title">
-        <span class="pi pi-check-circle" aria-hidden="true"></span>
-        {{ 'listings.createPage.wizard.reviewTitle' | translate }}
-      </h3>
+      <h2 class="wizard-step__heading">{{ 'listings.createPage.wizard.step4Heading' | translate }}</h2>
+      <p class="wizard-step__hint">{{ 'listings.createPage.wizard.step4Hint' | translate }}</p>
 
       <div class="wizard-review">
         <!-- Basic info summary -->
@@ -366,9 +355,9 @@
               <dt>{{ 'listings.createForm.category' | translate }}</dt>
               <dd>{{ getCategoryName() }}</dd>
             </div>
-            <div class="wizard-review__row">
+            <div class="wizard-review__row wizard-review__row--price">
               <dt>{{ 'listings.createForm.pricePerDay' | translate }}</dt>
-              <dd>{{ createListingForm.controls.pricePerDay.value | currency }}</dd>
+              <dd class="wizard-review__price">{{ createListingForm.controls.pricePerDay.value | currency }}</dd>
             </div>
             @if (createListingForm.controls.addressLine.value) {
               <div class="wizard-review__row">
@@ -471,6 +460,11 @@
           </dl>
         </div>
       </div>
+
+      <div class="wizard-step__submit-note">
+        <i class="pi pi-shield" aria-hidden="true"></i>
+        <span>{{ 'listings.createPage.wizard.submitNote' | translate }}</span>
+      </div>
     </div>
   }
 
@@ -480,6 +474,7 @@
       <p-button
         type="button"
         [outlined]="true"
+        styleClass="wizard-actions__back"
         [label]="'listings.createPage.wizard.back' | translate"
         [disabled]="isSubmitting"
         (onClick)="goToPrevStep()"
@@ -488,6 +483,7 @@
       <p-button
         type="button"
         [outlined]="true"
+        styleClass="wizard-actions__back"
         [label]="'listings.common.cancel' | translate"
         [disabled]="isSubmitting"
         (onClick)="onCancel()"
@@ -496,12 +492,14 @@
     @if (currentStep() < totalSteps) {
       <p-button
         type="button"
+        styleClass="wizard-actions__primary"
         [label]="'listings.createPage.wizard.continue' | translate"
         (onClick)="goToNextStep()"
       />
     } @else {
       <p-button
         type="submit"
+        styleClass="wizard-actions__primary"
         [label]="'listings.createForm.submit' | translate"
         [loading]="isSubmitting"
         [disabled]="createListingForm.invalid || isSubmitting"

@@ -375,7 +375,16 @@
         "editStep": "Edit",
         "reviewNoPhotos": "No photos selected",
         "reviewPhotosCount": "{{count}} photo(s) selected",
-        "reviewCityFixed": "Yerevan, Armenia"
+        "reviewCityFixed": "Yerevan, Armenia",
+        "step1Heading": "What are you listing?",
+        "step1Hint": "Give it a clear name so parents can find it quickly.",
+        "step2Heading": "Tell us about the toy",
+        "step2Hint": "Age range and condition help parents choose — the more you share, the faster you'll find a renter.",
+        "step3Heading": "Add photos and describe it",
+        "step3Hint": "Clear photos are the top reason parents choose a listing.",
+        "step4Heading": "Everything look right?",
+        "step4Hint": "Take a moment to check your listing before submitting. You can always go back to make changes.",
+        "submitNote": "Once submitted, our team will review your listing and get back to you within 24–48 hours."
       }
     },
     "createForm": {

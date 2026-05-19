@@ -5,88 +5,57 @@
   gap: var(--ui-space-20);
 }
 
-/* ── Wizard stepper ──────────────────────────────────────── */
+/* ── Wizard stepper (segmented progress bar) ─────────────── */
 .wizard-stepper {
   display: flex;
-  align-items: flex-start;
-  gap: 0;
-}
-
-.wizard-stepper__step {
-  display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--ui-space-4);
-  flex: 0 0 auto;
+  gap: var(--ui-space-8);
 }
 
-.wizard-stepper__dot {
+.wizard-stepper__meta {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  border: 2px solid var(--ui-color-border);
-  background: var(--ui-color-surface);
-  color: var(--ui-color-text-secondary);
-  font-size: 0.8125rem;
-  font-weight: 700;
-  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
-
-  .pi {
-    font-size: 0.75rem;
-  }
+  justify-content: space-between;
 }
 
-.wizard-stepper__step--active .wizard-stepper__dot {
-  border-color: var(--ui-color-primary);
-  background: var(--ui-color-primary);
-  color: #fff;
-}
-
-.wizard-stepper__step--done .wizard-stepper__dot {
-  border-color: var(--ui-color-primary);
-  background: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary);
-}
-
-.wizard-stepper__label {
-  font-size: 0.6875rem;
+.wizard-stepper__step-name {
+  font-size: var(--ui-font-size-caption);
   font-weight: 600;
-  color: var(--ui-color-text-secondary);
-  white-space: nowrap;
+  color: var(--ui-color-text-primary);
 }
 
-.wizard-stepper__step--active .wizard-stepper__label,
-.wizard-stepper__step--done .wizard-stepper__label {
-  color: var(--ui-color-primary);
+.wizard-stepper__counter {
+  font-size: var(--ui-font-size-caption);
+  font-weight: 500;
+  color: var(--ui-color-text-hint);
 }
 
-.wizard-stepper__connector {
+.wizard-stepper__track {
+  display: flex;
+  gap: 4px;
+}
+
+.wizard-stepper__segment {
   flex: 1;
-  height: 2px;
+  height: 4px;
+  border-radius: 2px;
   background: var(--ui-color-border);
-  margin: 1rem var(--ui-space-8) 0;
-  min-width: var(--ui-space-8);
-  transition: background 160ms ease;
+  transition: background 200ms ease;
 }
 
-.wizard-stepper__step--done + .wizard-stepper__connector {
-  background: var(--ui-color-primary-soft);
+.wizard-stepper__segment--done {
+  background: var(--ui-color-primary);
 }
 
-@media (max-width: 480px) {
-  .wizard-stepper__label {
-    display: none;
-  }
+.wizard-stepper__segment--active {
+  background: var(--ui-color-primary);
 }
 
 /* ── Wizard step content card ────────────────────────────── */
 .wizard-step {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-16);
+  gap: var(--ui-space-12);
   padding: var(--ui-space-20);
   background: var(--ui-color-surface);
   border: 1px solid var(--ui-color-border);
@@ -94,20 +63,40 @@
   box-shadow: var(--ui-shadow-card);
 }
 
-.wizard-step__title {
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-8);
-  font-size: var(--ui-font-size-body);
+.wizard-step__heading {
+  margin: 0;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--ui-color-text-primary);
-  padding-bottom: var(--ui-space-12);
-  border-bottom: 1px solid var(--ui-color-border);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.wizard-step__hint {
   margin: 0;
+  font-size: var(--ui-font-size-caption);
+  color: var(--ui-color-text-secondary);
+  line-height: 1.5;
+}
+
+/* Submit reassurance note inside review step */
+.wizard-step__submit-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-8);
+  padding: var(--ui-space-12) var(--ui-space-16);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, #fff8f3);
+  border: 1px solid color-mix(in srgb, var(--ui-color-primary-soft) 40%, transparent);
+  border-radius: var(--ui-radius-md);
+  font-size: var(--ui-font-size-caption);
+  color: var(--ui-color-text-secondary);
+  line-height: 1.5;
 
   .pi {
+    flex-shrink: 0;
     color: var(--ui-color-primary);
-    font-size: 1.05rem;
+    font-size: 0.9rem;
+    margin-top: 1px;
   }
 }
 
@@ -134,11 +123,9 @@
 }
 
 .wizard-review__group-label {
-  font-size: 0.6875rem;
-  font-weight: 700;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--ui-color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .wizard-review__edit-btn {
@@ -191,6 +178,12 @@
     color: var(--ui-color-text-primary);
     word-break: break-word;
   }
+}
+
+/* Price value stands out in review */
+.wizard-review__price {
+  font-weight: 700;
+  color: var(--ui-color-primary-strong) !important;
 }
 
 .wizard-review__dd--block {
@@ -356,7 +349,7 @@
   left: 0;
   right: 0;
   color: var(--ui-color-error);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   line-height: 1.3;
   animation: form-validation-appear 120ms ease;
@@ -367,7 +360,7 @@
 .create-listing-form__range-error {
   visibility: hidden;
   min-height: 1rem;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--ui-color-error);
   line-height: 1.3;
@@ -407,11 +400,11 @@
   padding-top: var(--ui-space-4);
 }
 
-:host ::ng-deep .wizard-actions .p-button:first-child {
+:host ::ng-deep .wizard-actions .wizard-actions__back.p-button {
   min-width: 130px;
 }
 
-:host ::ng-deep .wizard-actions .p-button:last-child {
+:host ::ng-deep .wizard-actions .wizard-actions__primary.p-button {
   min-width: 170px;
 }
 
@@ -457,10 +450,17 @@
     gap: var(--ui-space-8);
   }
 
-  :host ::ng-deep .wizard-actions .p-button {
+  /* Back button: compact, sized to content */
+  :host ::ng-deep .wizard-actions .wizard-actions__back.p-button {
+    flex: 0 0 auto;
+    min-width: 5rem !important;
+    min-height: 2.75rem;
+  }
+
+  /* Continue / Submit: fills remaining space */
+  :host ::ng-deep .wizard-actions .wizard-actions__primary.p-button {
     flex: 1;
     min-width: 0 !important;
-    /* 44px minimum touch target (DESIGN_RULES §3) */
     min-height: 2.75rem;
   }
 
