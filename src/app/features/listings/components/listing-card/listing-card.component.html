@@ -4,26 +4,36 @@
     [routerLink]="['/listings', listing().id]"
     [attr.aria-label]="listing().title"
   >
-    <app-ui-image-container class="listing-card__media" aspectRatio="16 / 10">
-      @if (listing().mainImageUrl) {
-        <img
-          class="listing-card__img"
-          [src]="listing().mainImageUrl"
-          [alt]="listing().title"
-          loading="lazy"
-          decoding="async"
-        />
-      } @else {
-        <div
-          class="listing-card__no-image"
-          role="img"
-          [attr.aria-label]="listing().title"
-        >
-          <span class="pi pi-gift listing-card__no-image-icon" aria-hidden="true"></span>
-          <span>{{ 'listings.card.noImage' | translate }}</span>
+    <!-- Image + overlays wrapper -->
+    <div class="listing-card__media-wrap">
+      <app-ui-image-container class="listing-card__media" aspectRatio="16 / 10">
+        @if (listing().mainImageUrl) {
+          <img
+            class="listing-card__img"
+            [src]="listing().mainImageUrl"
+            [alt]="listing().title"
+            loading="lazy"
+            decoding="async"
+          />
+        } @else {
+          <div
+            class="listing-card__no-image"
+            role="img"
+            [attr.aria-label]="listing().title"
+          >
+            <span class="pi pi-gift listing-card__no-image-icon" aria-hidden="true"></span>
+            <span>{{ 'listings.card.noImage' | translate }}</span>
+          </div>
+        }
+      </app-ui-image-container>
+
+      <!-- Age range pill: Direction A image overlay (bottom-left) -->
+      @if (ageRange(); as range) {
+        <div class="listing-card__age-pill" aria-hidden="true">
+          {{ range.key | translate: range.params }}
         </div>
       }
-    </app-ui-image-container>
+    </div>
 
     <div class="listing-card__body">
       <h3 class="listing-card__title">{{ listing().title }}</h3>
@@ -35,41 +45,6 @@
         </p>
       }
 
-      @if (showTrustRow()) {
-        <ul
-          class="listing-card__trust"
-          [attr.aria-label]="'listings.card.trustAria' | translate"
-        >
-          @if (ageRange(); as range) {
-            <li class="listing-card__trust-item">
-              <app-ui-badge
-                tone="neutral"
-                [label]="range.key | translate: range.params"
-              />
-            </li>
-          }
-
-          @if (hasCondition()) {
-            <li class="listing-card__trust-item">
-              @if (conditionLabelKey(); as conditionKey) {
-                <app-ui-badge tone="neutral" [label]="conditionKey | translate" />
-              } @else {
-                <app-ui-badge tone="neutral" [label]="listing().condition!" />
-              }
-            </li>
-          }
-
-          @if (hasHygieneNotes()) {
-            <li class="listing-card__trust-item">
-              <span class="listing-card__trust-badge listing-card__trust-badge--hygiene">
-                <span class="pi pi-shield" aria-hidden="true"></span>
-                <span>{{ 'listings.card.hygieneProvided' | translate }}</span>
-              </span>
-            </li>
-          }
-        </ul>
-      }
-
       <p class="listing-card__price">
         <span class="listing-card__price-amount">{{
           listing().pricePerDay | currency
@@ -79,22 +54,45 @@
         }}</span>
       </p>
     </div>
+
+    <!-- Trust footer: hygiene + condition (only when data exists) -->
+    @if (showTrustFooter()) {
+      <div
+        class="listing-card__trust-footer"
+        [attr.aria-label]="'listings.card.trustAria' | translate"
+      >
+        @if (hasHygieneNotes()) {
+          <span class="listing-card__trust-hygiene">
+            <span class="pi pi-shield" aria-hidden="true"></span>
+            {{ 'listings.card.hygieneProvided' | translate }}
+          </span>
+        }
+        @if (hasCondition()) {
+          <span class="listing-card__trust-condition">
+            @if (conditionLabelKey(); as condKey) {
+              {{ condKey | translate }}
+            } @else {
+              {{ listing().condition }}
+            }
+          </span>
+        }
+      </div>
+    }
   </a>
 
-  <div class="listing-card__footer">
-    <button
-      type="button"
-      class="listing-card__fav-btn"
-      [attr.aria-label]="'listings.card.toggleFavorite' | translate"
-      [attr.aria-pressed]="listing().isFavorite"
-      (click)="onFavoriteClick($event)"
-    >
-      <span
-        class="pi listing-card__fav-icon"
-        [class.pi-heart-fill]="listing().isFavorite"
-        [class.pi-heart]="!listing().isFavorite"
-        aria-hidden="true"
-      ></span>
-    </button>
-  </div>
+  <!-- Favorite button: overlaid on image (outside <a> for semantic clarity) -->
+  <button
+    type="button"
+    class="listing-card__fav-btn"
+    [attr.aria-label]="'listings.card.toggleFavorite' | translate"
+    [attr.aria-pressed]="listing().isFavorite"
+    (click)="onFavoriteClick($event)"
+  >
+    <span
+      class="pi listing-card__fav-icon"
+      [class.pi-heart-fill]="listing().isFavorite"
+      [class.pi-heart]="!listing().isFavorite"
+      aria-hidden="true"
+    ></span>
+  </button>
 </article>

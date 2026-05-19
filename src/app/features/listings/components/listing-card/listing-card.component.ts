@@ -10,7 +10,6 @@ import {
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
 import { ImageContainerComponent } from '../../../../shared/ui/image-container/image-container.component';
 import type { ListingPreview } from '../../models/listing.model';
 
@@ -73,7 +72,6 @@ function resolveAgeRangeDisplay(
   selector: 'app-listing-card',
   standalone: true,
   imports: [
-    BadgeComponent,
     CurrencyPipe,
     ImageContainerComponent,
     RouterLink,
@@ -107,9 +105,9 @@ export class ListingCardComponent {
     return typeof condition === 'string' && condition.trim().length > 0;
   });
 
-  protected readonly showTrustRow = computed(
-    () =>
-      this.ageRange() !== null || this.hasCondition() || this.hasHygieneNotes(),
+  // Age is shown in the image overlay; condition + hygiene in the trust footer row.
+  protected readonly showTrustFooter = computed(
+    () => this.hasCondition() || this.hasHygieneNotes(),
   );
 
   protected onFavoriteClick(event: MouseEvent): void {
