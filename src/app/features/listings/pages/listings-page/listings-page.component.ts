@@ -111,6 +111,15 @@ export class ListingsPageComponent implements OnInit {
     this.store.dispatch(ListingsActions.loadListings());
   }
 
+  protected clearFilters(): void {
+    this.store.dispatch(
+      ListingsActions.updateFilters({
+        filters: { query: null, city: null, categoryId: null, minPrice: null, maxPrice: null },
+      }),
+    );
+    this.store.dispatch(ListingsActions.loadListings());
+  }
+
   protected skeletonCount(vm: ListingsPageViewModel): number {
     return Math.min(Math.max(vm.pageSize, 1), 12);
   }

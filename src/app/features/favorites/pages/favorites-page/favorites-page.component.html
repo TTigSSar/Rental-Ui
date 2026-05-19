@@ -41,15 +41,13 @@
     }
 
     @if (vm.showEmpty) {
-      <div class="favorites-page__empty">
-        <span class="pi pi-heart favorites-page__empty-icon" aria-hidden="true"></span>
-        <h2 class="favorites-page__empty-title">
-          {{ 'favorites.page.emptyTitle' | translate }}
-        </h2>
-        <p class="favorites-page__empty-text">
-          {{ 'favorites.page.empty' | translate }}
-        </p>
-      </div>
+      <app-ui-empty-state
+        icon="pi pi-heart"
+        [title]="'favorites.page.emptyTitle' | translate"
+        [description]="'favorites.page.empty' | translate"
+        [ctaLabel]="'favorites.page.emptyCta' | translate"
+        [ctaRouterLink]="['/listings']"
+      />
     }
 
     @if (vm.items.length > 0) {

@@ -39,15 +39,13 @@
     }
 
     @if (vm.showEmpty) {
-      <div class="bookings-page__empty">
-        <span class="pi pi-calendar-times bookings-page__empty-icon"></span>
-        <h2 class="bookings-page__empty-title">
-          {{ 'bookings.myBookings.emptyTitle' | translate }}
-        </h2>
-        <p class="bookings-page__empty-text">
-          {{ 'bookings.myBookings.empty' | translate }}
-        </p>
-      </div>
+      <app-ui-empty-state
+        icon="pi pi-calendar-times"
+        [title]="'bookings.myBookings.emptyTitle' | translate"
+        [description]="'bookings.myBookings.empty' | translate"
+        [ctaLabel]="'bookings.myBookings.emptyCta' | translate"
+        [ctaRouterLink]="['/listings']"
+      />
     }
 
     @if (vm.bookings.length > 0) {

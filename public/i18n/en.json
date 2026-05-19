@@ -271,7 +271,8 @@
       "emptyTitle": "No toys listed yet",
       "empty": "Be the first to list a toy — families in your area are looking!",
       "emptyFilterTitle": "No toys match your filters",
-      "emptyFilter": "Try clearing some filters or searching by a different name.",
+      "emptyFilter": "Try a different keyword or remove some filters.",
+      "emptyFilterCta": "Clear filters",
       "loading": "Loading toys",
       "loadingMore": "Loading more toys",
       "loadMore": "Load more toys"
@@ -462,9 +463,8 @@
       "title": "My Toys",
       "subtitle": "Manage the toys you’ve listed and watch their status.",
       "errorTitle": "Unable to load your toys",
-      "emptyTitle": "No toys yet",
-      "empty": "Toys you list will appear here.",
-      "emptyReviewNote": "Every listing is reviewed by our team before it goes live."
+      "emptyTitle": "No toys listed yet",
+      "empty": "List your first toy and start earning from toys gathering dust."
     },
     "card": {
       "noImage": "No image available",
@@ -526,6 +526,7 @@
       "errorTitle": "Unable to load your bookings",
       "emptyTitle": "No bookings yet",
       "empty": "Once you rent a toy, your bookings will appear here.",
+      "emptyCta": "Browse toys",
       "dateRange": "Date range",
       "totalPrice": "Total: {{amount}}"
     },
@@ -533,8 +534,8 @@
       "title": "Rental Requests",
       "subtitle": "Review and respond to rental requests for your toys.",
       "errorTitle": "Unable to load rental requests",
-      "emptyTitle": "No rental requests",
-      "empty": "Incoming rental requests for your toys will appear here.",
+      "emptyTitle": "No rental requests yet",
+      "empty": "When a parent requests one of your toys, it will appear here.",
       "renter": "Renter",
       "dateRange": "Date range",
       "totalPrice": "Total: {{amount}}"
@@ -546,8 +547,8 @@
         "title": "Pending Toy Listings",
         "subtitle": "Review pending toy listings before they’re visible to parents.",
         "errorTitle": "Unable to load pending toy listings",
-        "emptyTitle": "No pending toys",
-        "empty": "New toy listings awaiting approval will appear here.",
+        "emptyTitle": "All caught up",
+        "empty": "No listings are waiting for review. New submissions will appear here.",
         "queueCount": "{{count}} listing(s) awaiting your review"
       },
       "card": {
@@ -608,7 +609,8 @@
       "subtitle": "Browse all toys you have saved.",
       "errorTitle": "Unable to load favorites",
       "emptyTitle": "No favorites yet",
-      "empty": "Save toys to favorites to quickly find them later."
+      "empty": "Tap the heart on any toy to save it here.",
+      "emptyCta": "Browse toys"
     }
   },
   "chat": {

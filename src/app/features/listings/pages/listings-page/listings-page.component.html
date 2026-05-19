@@ -36,9 +36,12 @@
     @if (vm.showEmpty) {
       @if (vm.hasActiveFilters) {
         <app-ui-empty-state
+          tone="neutral"
           icon="pi pi-filter-slash"
           [title]="'listings.page.emptyFilterTitle' | translate"
           [description]="'listings.page.emptyFilter' | translate"
+          [ctaLabel]="'listings.page.emptyFilterCta' | translate"
+          (ctaClicked)="clearFilters()"
         />
       } @else {
         <app-ui-empty-state

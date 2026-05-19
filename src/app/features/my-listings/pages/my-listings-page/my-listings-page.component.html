@@ -52,25 +52,14 @@
   }
 
   @if (viewModel().showEmpty) {
-    <div class="my-listings-page__empty">
-      <span class="pi pi-gift my-listings-page__empty-icon" aria-hidden="true"></span>
-      <h2 class="my-listings-page__empty-title">
-        {{ 'myListings.page.emptyTitle' | translate }}
-      </h2>
-      <p class="my-listings-page__empty-text">
-        {{ 'myListings.page.empty' | translate }}
-      </p>
-      <p class="my-listings-page__empty-note">
-        <span class="pi pi-shield" aria-hidden="true"></span>
-        {{ 'myListings.page.emptyReviewNote' | translate }}
-      </p>
-      <p-button
-        type="button"
-        icon="pi pi-plus"
-        [label]="'myListings.actions.listToy' | translate"
-        [routerLink]="['/listings/create']"
-      />
-    </div>
+    <app-ui-empty-state
+      icon="pi pi-gift"
+      [title]="'myListings.page.emptyTitle' | translate"
+      [description]="'myListings.page.empty' | translate"
+      [ctaLabel]="'myListings.actions.listToy' | translate"
+      ctaIcon="pi pi-plus"
+      [ctaRouterLink]="['/listings/create']"
+    />
   }
 
   @if (viewModel().items.length > 0) {

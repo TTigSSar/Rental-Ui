@@ -16,6 +16,7 @@ import { Dialog } from 'primeng/dialog';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 
+import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { PendingListingCardComponent } from '../../components/pending-listing-card/pending-listing-card.component';
 import type { PendingListing } from '../../models/pending-listing.model';
 import * as AdminModerationActions from '../../store/admin-moderation.actions';
@@ -62,6 +63,7 @@ const selectPendingListingsPageViewModel = createSelector(
     AsyncPipe,
     ButtonModule,
     Dialog,
+    EmptyStateComponent,
     MessageModule,
     PendingListingCardComponent,
     ReactiveFormsModule,

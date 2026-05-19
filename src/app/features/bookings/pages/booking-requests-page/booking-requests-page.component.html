@@ -43,15 +43,11 @@
     }
 
     @if (vm.showEmpty) {
-      <div class="booking-requests-page__empty">
-        <span class="pi pi-inbox booking-requests-page__empty-icon"></span>
-        <h2 class="booking-requests-page__empty-title">
-          {{ 'bookings.requests.emptyTitle' | translate }}
-        </h2>
-        <p class="booking-requests-page__empty-text">
-          {{ 'bookings.requests.empty' | translate }}
-        </p>
-      </div>
+      <app-ui-empty-state
+        icon="pi pi-inbox"
+        [title]="'bookings.requests.emptyTitle' | translate"
+        [description]="'bookings.requests.empty' | translate"
+      />
     }
 
     @if (vm.requests.length > 0) {

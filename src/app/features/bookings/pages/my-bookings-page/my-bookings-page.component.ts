@@ -6,6 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 
+import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { MyBookingCardComponent } from '../../components/my-booking-card/my-booking-card.component';
 import type { MyBooking } from '../../models/booking.model';
 import * as BookingsActions from '../../store/bookings.actions';
@@ -47,6 +48,7 @@ const selectMyBookingsPageViewModel = createSelector(
   imports: [
     AsyncPipe,
     ButtonModule,
+    EmptyStateComponent,
     MessageModule,
     MyBookingCardComponent,
     SkeletonModule,

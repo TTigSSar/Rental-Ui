@@ -1,22 +1,72 @@
 .ui-empty-state {
-  display: grid;
-  justify-items: center;
-  gap: var(--ui-space-8);
-  padding: var(--ui-space-32);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ui-space-12);
+  padding: var(--ui-space-48) var(--ui-space-32);
   text-align: center;
 }
 
-.ui-empty-state__icon {
-  font-size: 1.5rem;
-  color: var(--ui-color-text-secondary);
+/* ── Icon container: 64×64 rounded, tinted bg ──────────── */
+.ui-empty-state__icon-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin-bottom: var(--ui-space-4);
 }
 
+.ui-empty-state__icon-wrap--primary {
+  background: var(--ui-color-primary-soft);
+
+  .ui-empty-state__icon {
+    color: var(--ui-color-primary);
+  }
+}
+
+.ui-empty-state__icon-wrap--neutral {
+  background: var(--ui-color-surface-muted);
+
+  .ui-empty-state__icon {
+    color: var(--ui-color-text-secondary);
+  }
+}
+
+.ui-empty-state__icon-wrap--success {
+  background: var(--ui-color-success-surface);
+
+  .ui-empty-state__icon {
+    color: var(--ui-color-approved);
+  }
+}
+
+.ui-empty-state__icon {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+/* ── Text ──────────────────────────────────────────────── */
 .ui-empty-state__title {
+  margin: 0;
   font-size: var(--ui-font-size-h3);
   font-weight: 700;
+  color: var(--ui-color-text-primary);
+  letter-spacing: -0.01em;
 }
 
 .ui-empty-state__text {
+  margin: 0;
   color: var(--ui-color-text-secondary);
-  font-size: var(--ui-font-size-body);
+  font-size: var(--ui-font-size-caption);
+  line-height: 1.55;
+  max-width: 30ch;
+}
+
+/* ── Mobile: reduce top/bottom padding ─────────────────── */
+@media (max-width: 560px) {
+  .ui-empty-state {
+    padding: var(--ui-space-32) var(--ui-space-24);
+  }
 }

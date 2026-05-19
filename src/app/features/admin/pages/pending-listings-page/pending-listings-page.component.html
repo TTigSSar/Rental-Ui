@@ -44,15 +44,12 @@
     }
 
     @if (vm.showEmpty) {
-      <div class="pending-listings-page__empty">
-        <span class="pi pi-check-circle pending-listings-page__empty-icon"></span>
-        <h2 class="pending-listings-page__empty-title">
-          {{ 'admin.pendingListings.page.emptyTitle' | translate }}
-        </h2>
-        <p class="pending-listings-page__empty-text">
-          {{ 'admin.pendingListings.page.empty' | translate }}
-        </p>
-      </div>
+      <app-ui-empty-state
+        tone="success"
+        icon="pi pi-check-circle"
+        [title]="'admin.pendingListings.page.emptyTitle' | translate"
+        [description]="'admin.pendingListings.page.empty' | translate"
+      />
     }
 
     @if (vm.items.length > 0) {
