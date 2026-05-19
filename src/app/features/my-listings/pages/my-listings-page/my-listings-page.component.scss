@@ -3,6 +3,7 @@
   flex-direction: column;
   gap: var(--ui-space-24);
   padding-bottom: var(--ui-space-32);
+  min-height: calc(100dvh - 4rem);
 }
 
 /* ── Page header ─────────────────────────────────────────── */
@@ -60,11 +61,22 @@
 .my-listings-page__skeleton-card {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-8);
   border: 1px solid var(--ui-color-border);
   border-radius: var(--ui-radius-md);
-  padding: var(--ui-space-16);
+  overflow: hidden;
   background: var(--ui-color-surface);
+}
+
+.my-listings-page__skeleton-image {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+}
+
+.my-listings-page__skeleton-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-8);
+  padding: var(--ui-space-16);
 }
 
 .my-listings-page__skeleton-actions {

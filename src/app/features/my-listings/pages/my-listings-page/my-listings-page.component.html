@@ -34,13 +34,17 @@
     <div class="my-listings-page__grid my-listings-page__grid--skeleton">
       @for (item of [0, 1, 2, 3]; track item) {
         <div class="my-listings-page__skeleton-card">
-          <p-skeleton width="100%" height="10rem" />
-          <p-skeleton width="75%" height="1.25rem" />
-          <p-skeleton width="50%" height="1rem" />
-          <p-skeleton width="60%" height="1rem" />
-          <div class="my-listings-page__skeleton-actions">
-            <p-skeleton width="5rem" height="2rem" />
-            <p-skeleton width="5rem" height="2rem" />
+          <div class="my-listings-page__skeleton-image">
+            <p-skeleton width="100%" height="100%" />
+          </div>
+          <div class="my-listings-page__skeleton-body">
+            <p-skeleton width="75%" height="1.25rem" />
+            <p-skeleton width="50%" height="1rem" />
+            <p-skeleton width="60%" height="1rem" />
+            <div class="my-listings-page__skeleton-actions">
+              <p-skeleton width="5rem" height="2rem" />
+              <p-skeleton width="5rem" height="2rem" />
+            </div>
           </div>
         </div>
       }

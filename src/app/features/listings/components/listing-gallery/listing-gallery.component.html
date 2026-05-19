@@ -6,6 +6,7 @@
         [src]="primary.url"
         [alt]="'listings.gallery.mainImageAlt' | translate"
         loading="eager"
+        decoding="async"
       />
 
       @if (hasMultipleImages()) {
@@ -79,6 +80,7 @@
               [src]="image.url"
               alt=""
               loading="lazy"
+              decoding="async"
             />
           </button>
         }

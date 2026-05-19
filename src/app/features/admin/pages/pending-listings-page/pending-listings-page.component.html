@@ -29,11 +29,15 @@
       <div class="pending-listings-page__grid">
         @for (i of [0, 1, 2]; track i) {
           <div class="pending-listings-page__skeleton-card">
-            <p-skeleton width="100%" height="10rem" />
-            <p-skeleton width="70%" height="1.25rem" />
-            <p-skeleton width="80%" height="1rem" />
-            <p-skeleton width="55%" height="1rem" />
-            <p-skeleton width="65%" height="1rem" />
+            <div class="pending-listings-page__skeleton-image">
+              <p-skeleton width="100%" height="100%" />
+            </div>
+            <div class="pending-listings-page__skeleton-body">
+              <p-skeleton width="70%" height="1.25rem" />
+              <p-skeleton width="80%" height="1rem" />
+              <p-skeleton width="55%" height="1rem" />
+              <p-skeleton width="65%" height="1rem" />
+            </div>
           </div>
         }
       </div>

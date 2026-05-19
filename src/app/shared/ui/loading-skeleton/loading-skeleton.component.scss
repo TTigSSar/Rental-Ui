@@ -1,12 +1,34 @@
+/* Columns match the browse listing grid exactly — see listings-page.component.scss */
 .ui-loading-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--ui-space-24);
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+    gap: var(--ui-space-16);
+  }
 }
 
 .ui-loading-card {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+/* Aspect-ratio matches the 16:10 card image — prevents CLS on skeleton→content swap */
+.ui-loading-card__image {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+}
+
+.ui-loading-card__body {
+  display: flex;
+  flex-direction: column;
   gap: var(--ui-space-12);
-  padding: var(--ui-space-12);
+  padding: var(--ui-space-16) var(--ui-space-12);
 }

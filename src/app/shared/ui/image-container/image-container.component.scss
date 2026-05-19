@@ -9,4 +9,13 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: opacity 200ms ease;
+}
+
+/* Fade images in on first render — browsers that don't support @starting-style
+   simply skip this block, so images appear at full opacity (no broken state). */
+@starting-style {
+  .ui-image-frame ::ng-deep img {
+    opacity: 0;
+  }
 }
