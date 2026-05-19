@@ -13,6 +13,7 @@
     <div class="register-page__right-panel">
       <p-card styleClass="register-page__card">
         <h1 class="register-page__title">{{ 'auth.register.title' | translate }}</h1>
+        <p class="register-page__subtitle">{{ 'auth.register.subtitle' | translate }}</p>
 
         @if (error$ | async; as error) {
           <p-message severity="error" styleClass="register-page__message register-page__message--error">
@@ -110,32 +111,15 @@
           />
         </form>
 
-        <div class="register-page__steps" [attr.aria-label]="'auth.register.stepsAriaLabel' | translate">
-          <div class="register-page__step register-page__step--active">
-            <span class="register-page__step-circle">1</span>
-            <span class="register-page__step-label">{{ 'auth.register.stepAccount' | translate }}</span>
-          </div>
-          <div class="register-page__step-line"></div>
-          <div class="register-page__step">
-            <span class="register-page__step-circle">2</span>
-            <span class="register-page__step-label">{{ 'auth.register.stepDetails' | translate }}</span>
-          </div>
-          <div class="register-page__step-line"></div>
-          <div class="register-page__step">
-            <span class="register-page__step-circle">3</span>
-            <span class="register-page__step-label">{{ 'auth.register.stepVerification' | translate }}</span>
-          </div>
-          <div class="register-page__step-line"></div>
-          <div class="register-page__step">
-            <span class="register-page__step-circle">4</span>
-            <span class="register-page__step-label">{{ 'auth.register.stepSuccess' | translate }}</span>
-          </div>
-        </div>
-
         <p class="register-page__switch">
           {{ 'auth.register.haveAccount' | translate }}
           <a routerLink="/auth/login">{{ 'auth.register.goToLogin' | translate }}</a>
         </p>
+
+        <div class="register-page__trust">
+          <i class="pi pi-shield" aria-hidden="true"></i>
+          <span>{{ 'auth.register.trustNote' | translate }}</span>
+        </div>
       </p-card>
     </div>
   </section>

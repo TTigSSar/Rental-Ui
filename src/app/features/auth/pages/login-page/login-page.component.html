@@ -13,6 +13,7 @@
     <div class="login-page__right-panel">
       <p-card styleClass="login-page__card">
         <h1 class="login-page__title">{{ 'auth.login.title' | translate }}</h1>
+        <p class="login-page__subtitle">{{ 'auth.login.subtitle' | translate }}</p>
 
         @if (error$ | async; as error) {
           <p-message severity="error" styleClass="login-page__message login-page__message--error">
@@ -77,6 +78,11 @@
           {{ 'auth.login.noAccount' | translate }}
           <a routerLink="/auth/register">{{ 'auth.login.goToRegister' | translate }}</a>
         </p>
+
+        <div class="login-page__trust">
+          <i class="pi pi-shield" aria-hidden="true"></i>
+          <span>{{ 'auth.login.trustNote' | translate }}</span>
+        </div>
       </p-card>
     </div>
   </section>

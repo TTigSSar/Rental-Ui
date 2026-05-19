@@ -202,7 +202,8 @@
       "goToRegister": "Create one",
       "welcomeTitle": "Welcome back!",
       "welcomeSubtitle": "Sign in to manage your toy rentals and listings.",
-      "errorTitle": "Couldn't sign you in"
+      "errorTitle": "Couldn't sign you in",
+      "trustNote": "Your account is secured and your personal data stays private."
     },
     "register": {
       "title": "Create account",
@@ -218,7 +219,8 @@
       "stepDetails": "Details",
       "stepVerification": "Verification",
       "stepSuccess": "Success",
-      "stepsAriaLabel": "Registration progress"
+      "stepsAriaLabel": "Registration progress",
+      "trustNote": "Your account is secured. We never share your personal information."
     }
   },
   "listings": {
@@ -304,6 +306,7 @@
       "guestRentSubtext": "Please sign in or create an account to request this toy.",
       "guestSignIn": "Sign In",
       "guestSignUp": "Sign Up",
+      "guestAuthPrivacy": "Your data stays private and is never shared.",
       "breadcrumb": {
         "home": "Home",
         "listings": "Browse Toys"

@@ -612,3 +612,21 @@
     background: rgba(255, 96, 8, 0.06);
   }
 }
+
+.detail-auth-dialog__privacy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-space-6);
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--ui-color-text-hint);
+  line-height: 1.4;
+  text-align: center;
+
+  .pi {
+    flex-shrink: 0;
+    color: var(--ui-color-success);
+    font-size: 0.8rem;
+  }
+}
