@@ -279,8 +279,8 @@
 
 @media (max-width: 960px) {
   :host {
-    // Tuned to sticky inner height (~132px); must stay in sync if strip layout changes.
-    --booking-panel-sticky-height: 132px;
+    // Tuned to single-row sticky inner height (~88px); must stay in sync if strip layout changes.
+    --booking-panel-sticky-height: 88px;
     // Matches .app-bottom-nav min-height (app.css).
     --booking-panel-bottom-nav-height: 64px;
     --booking-panel-safe-area-bottom: env(safe-area-inset-bottom, 0px);
@@ -321,12 +321,10 @@
       0 -2px 10px rgba(16, 18, 30, 0.05);
   }
 
-  .booking-panel__sticky-summary {
+  .booking-panel__sticky-row {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
+    align-items: center;
     gap: 12px;
-    margin-bottom: 10px;
   }
 
   .booking-panel__sticky-price-block {
@@ -338,26 +336,26 @@
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
-    gap: 6px;
-    margin: 0 0 4px;
+    gap: 4px;
+    margin: 0 0 3px;
   }
 
   .booking-panel__sticky-price-amount {
     font-size: 1.25rem;
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: -0.02em;
     color: var(--ui-color-text-primary);
   }
 
   .booking-panel__sticky-price-suffix {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
     color: var(--ui-color-footer);
   }
 
-  .booking-panel__sticky-dates {
+  .booking-panel__sticky-sub {
     margin: 0;
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1.35;
     color: var(--ui-color-text-secondary);
   }
@@ -366,25 +364,14 @@
     color: var(--ui-color-footer);
   }
 
-  .booking-panel__sticky-totals {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-    flex-shrink: 0;
-    text-align: right;
-  }
-
-  .booking-panel__sticky-nights {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--ui-color-text-secondary);
-  }
-
   .booking-panel__sticky-total {
-    font-size: 1rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--ui-color-text-primary);
+  }
+
+  ::ng-deep .booking-panel__sticky-cta.p-button {
+    width: auto;
+    flex-shrink: 0;
   }
 
   .booking-panel__sticky-status {

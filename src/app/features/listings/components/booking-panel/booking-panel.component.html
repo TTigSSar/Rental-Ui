@@ -125,7 +125,7 @@
         </p>
       }
 
-      <div class="booking-panel__sticky-summary">
+      <div class="booking-panel__sticky-row">
         <div class="booking-panel__sticky-price-block">
           <p class="booking-panel__sticky-price">
             <span class="booking-panel__sticky-price-amount">{{
@@ -135,12 +135,15 @@
               'listings.booking.priceSuffix' | translate
             }}</span>
           </p>
-          <p class="booking-panel__sticky-dates">
+          <p class="booking-panel__sticky-sub" aria-live="polite">
             @if (startDate(); as sd) {
               @if (endDate(); as ed) {
                 <span class="booking-panel__sticky-date-range">
                   {{ sd | date: 'mediumDate' }} — {{ ed | date: 'mediumDate' }}
                 </span>
+                @if (totalPrice(); as stickyTotal) {
+                  <span class="booking-panel__sticky-total"> · {{ stickyTotal | currency }}</span>
+                }
               }
             } @else {
               <span class="booking-panel__sticky-date-placeholder">{{
@@ -149,34 +152,20 @@
             }
           </p>
         </div>
-        @if (rentalDays() > 0) {
-          <div class="booking-panel__sticky-totals" aria-live="polite">
-            <span class="booking-panel__sticky-nights">{{
-              'listings.booking.nights' | translate: { count: rentalDays() }
-            }}</span>
-            @if (totalPrice(); as stickyTotal) {
-              <span class="booking-panel__sticky-total">{{
-                stickyTotal | currency
-              }}</span>
-            }
-          </div>
-        }
-      </div>
 
-      <p-button
-        type="button"
-        styleClass="booking-panel__cta booking-panel__sticky-cta"
-        [label]="
-          submitting()
-            ? ('listings.booking.submitting' | translate)
-            : ('listings.booking.cta' | translate)
-        "
-        icon="pi pi-calendar"
-        iconPos="left"
-        [disabled]="!canSubmit()"
-        [loading]="submitting()"
-        (onClick)="onSubmitClick()"
-      />
+        <p-button
+          type="button"
+          styleClass="booking-panel__cta booking-panel__sticky-cta"
+          [label]="
+            submitting()
+              ? ('listings.booking.submitting' | translate)
+              : ('listings.booking.cta' | translate)
+          "
+          [disabled]="!canSubmit()"
+          [loading]="submitting()"
+          (onClick)="onSubmitClick()"
+        />
+      </div>
     </div>
   </div>
 </section>
