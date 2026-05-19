@@ -485,7 +485,8 @@
 .app-shell__dropdown-item:focus-visible,
 .app-shell__drawer-link:focus-visible,
 .app-shell__drawer-lang:focus-visible,
-.app-shell__drawer-logout:focus-visible {
+.app-shell__drawer-logout:focus-visible,
+.app-bottom-nav__item:focus-visible {
   outline: none;
   box-shadow:
     0 0 0 2px var(--ui-color-surface),
@@ -810,7 +811,6 @@
   .app-bottom-nav__item:focus-visible {
     color: var(--ui-color-primary);
     background: var(--ui-color-primary-soft);
-    outline: none;
   }
 
   .app-bottom-nav__item--active {
@@ -854,12 +854,20 @@
       transform 140ms ease;
   }
 
-  .app-bottom-nav__fab:hover,
-  .app-bottom-nav__fab:focus-visible {
+  .app-bottom-nav__fab:hover {
     background: var(--ui-color-primary-strong);
     box-shadow: var(--ui-shadow-primary-hover);
     transform: translateY(-1px);
+  }
+
+  .app-bottom-nav__fab:focus-visible {
+    background: var(--ui-color-primary-strong);
+    transform: translateY(-1px);
     outline: none;
+    box-shadow:
+      var(--ui-shadow-primary-hover),
+      0 0 0 2px var(--ui-color-surface),
+      0 0 0 4px rgba(255, 96, 8, 0.55);
   }
 
   .app-bottom-nav__fab-spacer {
