@@ -80,6 +80,8 @@
   [closable]="!isRejectSubmitting()"
   [style]="{ width: '32rem', maxWidth: '95vw' }"
   styleClass="reject-dialog"
+  showTransitionOptions="200ms cubic-bezier(0.4, 0, 0.2, 1)"
+  hideTransitionOptions="120ms cubic-bezier(0.4, 0, 1, 1)"
 >
   <ng-template pTemplate="header">
     <span class="reject-dialog__header">

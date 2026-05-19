@@ -584,7 +584,12 @@
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 160ms ease, transform 120ms ease;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease,
+    transform 120ms ease;
 
   &:focus-visible {
     outline: 2px solid var(--ui-color-primary);
@@ -596,10 +601,18 @@
   background: var(--ui-color-primary);
   color: #fff;
   border: none;
+  box-shadow: var(--ui-shadow-primary-button);
 
   &:hover {
     background: var(--ui-color-primary-strong);
+    box-shadow: var(--ui-shadow-primary-hover);
     transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: var(--ui-shadow-primary-button);
+    transition-duration: 80ms;
   }
 }
 
@@ -610,6 +623,12 @@
 
   &:hover {
     background: rgba(255, 96, 8, 0.06);
+    border-color: var(--ui-color-primary-strong);
+  }
+
+  &:active {
+    background: rgba(255, 96, 8, 0.1);
+    transition-duration: 80ms;
   }
 }
 

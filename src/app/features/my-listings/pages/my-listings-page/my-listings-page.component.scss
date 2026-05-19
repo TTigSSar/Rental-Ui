@@ -159,6 +159,11 @@
     color: var(--ui-color-primary);
   }
 
+  &:active {
+    transform: scale(0.96);
+    transition-duration: 80ms;
+  }
+
   &:focus-visible {
     outline: 2px solid var(--ui-color-primary);
     outline-offset: 2px;

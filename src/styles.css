@@ -254,6 +254,37 @@ select:focus {
   padding: var(--ui-space-20);
 }
 
+/* ── PrimeNG button micro-interactions ───────────────────── */
+/* Ensure all PrimeNG button variants get smooth transitions  */
+.p-button {
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+/* ── PrimeNG dialog overlay — calmer, softer backdrop ───── */
+/* Adds subtle blur behind modal overlays                    */
+.p-dialog-mask {
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+/* ── Reduced-motion: global kill-switch ─────────────────── */
+/* Respects user OS preference to disable motion             */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 @media (max-width: 900px) {
   .page-container {
     padding-inline: var(--ui-space-16);

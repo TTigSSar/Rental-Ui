@@ -26,7 +26,16 @@
   }
 
   .listing-card:hover .listing-card__img {
-    transform: scale(1.03);
+    transform: scale(1.02);
+  }
+}
+
+/* Touch-device tap feedback — replaces hover lift on mobile */
+@media (hover: none) {
+  .listing-card:active {
+    transform: scale(0.985);
+    box-shadow: var(--ui-shadow-card);
+    transition-duration: 80ms;
   }
 }
 
@@ -142,6 +151,11 @@
     color: var(--ui-color-primary);
     transform: scale(1.08);
   }
+}
+
+.listing-card__fav-btn:active {
+  transform: scale(0.92);
+  transition-duration: 80ms;
 }
 
 .listing-card__fav-btn:focus-visible {

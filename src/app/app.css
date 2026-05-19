@@ -802,9 +802,11 @@
     line-height: 1.2;
     cursor: pointer;
     border-radius: var(--ui-radius-sm);
+    position: relative;
     transition:
       color 140ms ease,
-      background-color 140ms ease;
+      background-color 140ms ease,
+      transform 100ms ease;
   }
 
   .app-bottom-nav__item:hover,
@@ -813,8 +815,32 @@
     background: var(--ui-color-primary-soft);
   }
 
+  .app-bottom-nav__item:active {
+    transform: scale(0.9);
+    transition-duration: 80ms;
+  }
+
+  /* Active indicator: small pill above the icon */
   .app-bottom-nav__item--active {
     color: var(--ui-color-primary-strong);
+  }
+
+  .app-bottom-nav__item--active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1.5rem;
+    height: 2px;
+    border-radius: 0 0 2px 2px;
+    background: var(--ui-color-primary-strong);
+    animation: bottom-nav-indicator-in 160ms ease-out both;
+  }
+
+  @keyframes bottom-nav-indicator-in {
+    from { opacity: 0; transform: translateX(-50%) scaleX(0.4); }
+    to   { opacity: 1; transform: translateX(-50%) scaleX(1); }
   }
 
   .app-bottom-nav__icon {
@@ -858,6 +884,11 @@
     background: var(--ui-color-primary-strong);
     box-shadow: var(--ui-shadow-primary-hover);
     transform: translateY(-1px);
+  }
+
+  .app-bottom-nav__fab:active {
+    transform: translateY(0) scale(0.94);
+    transition-duration: 80ms;
   }
 
   .app-bottom-nav__fab:focus-visible {
