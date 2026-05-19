@@ -629,6 +629,7 @@
 }
 
 .home__faq-help-cta {
+  display: block;
   width: 210px;
   padding: 10px;
   border-radius: 40px;
@@ -638,6 +639,8 @@
   font-family: inherit;
   font-weight: 600;
   font-size: 1.125rem;
+  text-align: center;
+  text-decoration: none;
   cursor: pointer;
   transition: background 140ms ease;
 }

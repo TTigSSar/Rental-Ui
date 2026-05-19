@@ -133,8 +133,9 @@
     "faq": {
       "title": "Frequently asked questions",
       "helpTitle": "Still have questions?",
-      "helpText": "Send us an email & we’ll get back to you as soon as possible!",
-      "helpCta": "Send email",
+      "helpText": "Send us an email and we’ll get back to you as soon as possible.",
+      "helpCta": "Send us an email",
+      "helpEmail": "hello@toyrent.am",
       "items": {
         "q1": {
           "question": "How does renting a toy work?",
@@ -190,7 +191,7 @@
       "emailRequired": "Email is required.",
       "emailInvalid": "Enter a valid email address.",
       "passwordRequired": "Password is required.",
-      "passwordMinLength": "Password must be at least 6 characters.",
+      "passwordMinLength": "Password must be at least 8 characters.",
       "firstNameRequired": "First name is required.",
       "lastNameRequired": "Last name is required."
     },
@@ -231,7 +232,7 @@
     "card": {
       "noImage": "No image available",
       "pricePerDay": "{{amount}} per day",
-      "toggleFavorite": "Toggle favorite",
+      "toggleFavorite": "Save to favorites",
       "trustAria": "Toy trust details",
       "hygieneProvided": "Hygiene notes"
     },
@@ -267,7 +268,8 @@
       "cta": "Send rental request",
       "submitting": "Submitting...",
       "disabledHint": "Select dates",
-      "nights": "{{count}} day(s)",
+      "night": "{{count}} day",
+      "nights": "{{count}} days",
       "assurance": "The owner reviews and approves your request before the rental begins.",
       "assuranceTransparency": "Pricing is shown upfront — no hidden fees or surprises."
     },
@@ -664,7 +666,7 @@
   "info": {
     "about": {
       "pageTitle": "About Us",
-      "heroTitle": "About ToyShare",
+      "heroTitle": "About ToyRent",
       "heroLead": "We believe every child deserves access to great toys — without the clutter or the price tag.",
       "missionHeading": "Our Mission",
       "howHeading": "How It Works",

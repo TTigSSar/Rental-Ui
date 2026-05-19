@@ -317,9 +317,12 @@
             <p class="home__faq-help-text">
               {{ 'home.faq.helpText' | translate }}
             </p>
-            <button type="button" class="home__faq-help-cta">
+            <a
+              class="home__faq-help-cta"
+              [href]="'mailto:' + ('home.faq.helpEmail' | translate)"
+            >
               {{ 'home.faq.helpCta' | translate }}
-            </button>
+            </a>
           </div>
         </div>
 

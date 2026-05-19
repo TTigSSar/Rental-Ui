@@ -31,7 +31,9 @@
       <div class="booking-panel__summary-row">
         <dt>
           {{
-            'listings.booking.nights'
+            (rentalDays() === 1
+              ? 'listings.booking.night'
+              : 'listings.booking.nights')
               | translate: { count: rentalDays() }
           }}
         </dt>
