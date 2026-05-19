@@ -2,10 +2,42 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>AngularApp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ToyRent — Rent Toys for Your Child</title>
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Primary metadata -->
+  <meta name="description" content="Rent quality toys for your child from trusted families nearby. Safe, reviewed, and affordable toy rentals in Yerevan.">
+  <meta name="robots" content="index, follow">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#ff6008">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ToyRent">
+  <meta property="og:title" content="ToyRent — Rent Toys for Your Child">
+  <meta property="og:description" content="Rent quality toys for your child from trusted families nearby. Safe, reviewed, and affordable toy rentals in Yerevan.">
+  <meta property="og:image" content="/assets/home/hero-banner.jpg">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ToyRent — Rent Toys for Your Child">
+  <meta name="twitter:description" content="Rent quality toys for your child from trusted families nearby.">
+  <meta name="twitter:image" content="/assets/home/hero-banner.jpg">
+
+  <!-- iOS / Apple mobile -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="ToyRent">
+
+  <!-- PWA manifest -->
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <!-- Prevent white flash before Angular initialises (matches --ui-color-background) -->
+  <style>body{background:#faf8f4}</style>
 </head>
 <body>
   <app-root></app-root>

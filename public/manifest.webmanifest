@@ -1,0 +1,19 @@
+{
+  "name": "ToyRent",
+  "short_name": "ToyRent",
+  "description": "Rent quality toys for your child from trusted families nearby.",
+  "lang": "en",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf8f4",
+  "theme_color": "#ff6008",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon",
+      "purpose": "any"
+    }
+  ]
+}
