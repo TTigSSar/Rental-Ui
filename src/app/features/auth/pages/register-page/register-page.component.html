@@ -37,9 +37,11 @@
                 [placeholder]="'auth.form.firstNamePlaceholder' | translate"
                 autocomplete="given-name"
                 [disabled]="(isLoading$ | async) ?? false"
+                [attr.aria-invalid]="isInvalid('firstName') ? 'true' : null"
+                [attr.aria-describedby]="isInvalid('firstName') ? 'register-first-name-error' : null"
               />
               @if (hasError('firstName', 'required')) {
-                <small class="register-page__validation">{{ 'auth.validation.firstNameRequired' | translate }}</small>
+                <small id="register-first-name-error" class="register-page__validation">{{ 'auth.validation.firstNameRequired' | translate }}</small>
               }
             </div>
 
@@ -54,9 +56,11 @@
                 [placeholder]="'auth.form.lastNamePlaceholder' | translate"
                 autocomplete="family-name"
                 [disabled]="(isLoading$ | async) ?? false"
+                [attr.aria-invalid]="isInvalid('lastName') ? 'true' : null"
+                [attr.aria-describedby]="isInvalid('lastName') ? 'register-last-name-error' : null"
               />
               @if (hasError('lastName', 'required')) {
-                <small class="register-page__validation">{{ 'auth.validation.lastNameRequired' | translate }}</small>
+                <small id="register-last-name-error" class="register-page__validation">{{ 'auth.validation.lastNameRequired' | translate }}</small>
               }
             </div>
           </div>
@@ -72,12 +76,14 @@
               [placeholder]="'auth.form.emailPlaceholder' | translate"
               autocomplete="email"
               [disabled]="(isLoading$ | async) ?? false"
+              [attr.aria-invalid]="isInvalid('email') ? 'true' : null"
+              [attr.aria-describedby]="isInvalid('email') ? 'register-email-error' : null"
             />
             @if (hasError('email', 'required')) {
-              <small class="register-page__validation">{{ 'auth.validation.emailRequired' | translate }}</small>
+              <small id="register-email-error" class="register-page__validation">{{ 'auth.validation.emailRequired' | translate }}</small>
             }
             @if (hasError('email', 'email')) {
-              <small class="register-page__validation">{{ 'auth.validation.emailInvalid' | translate }}</small>
+              <small id="register-email-error" class="register-page__validation">{{ 'auth.validation.emailInvalid' | translate }}</small>
             }
           </div>
 
@@ -92,13 +98,15 @@
               [placeholder]="'auth.form.passwordPlaceholder' | translate"
               autocomplete="new-password"
               [disabled]="(isLoading$ | async) ?? false"
+              [attr.aria-invalid]="isInvalid('password') ? 'true' : null"
+              [attr.aria-describedby]="isInvalid('password') ? 'register-password-error' : 'register-password-hint'"
             />
-            <small class="register-page__hint">{{ 'auth.register.passwordHint' | translate }}</small>
+            <small id="register-password-hint" class="register-page__hint">{{ 'auth.register.passwordHint' | translate }}</small>
             @if (hasError('password', 'required')) {
-              <small class="register-page__validation">{{ 'auth.validation.passwordRequired' | translate }}</small>
+              <small id="register-password-error" class="register-page__validation">{{ 'auth.validation.passwordRequired' | translate }}</small>
             }
             @if (hasError('password', 'minlength')) {
-              <small class="register-page__validation">{{ 'auth.validation.passwordMinLength' | translate }}</small>
+              <small id="register-password-error" class="register-page__validation">{{ 'auth.validation.passwordMinLength' | translate }}</small>
             }
           </div>
 

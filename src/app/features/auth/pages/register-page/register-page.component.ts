@@ -69,4 +69,9 @@ export class RegisterPageComponent {
     const control = this.registerForm.controls[controlName];
     return control.touched && control.hasError(errorKey);
   }
+
+  protected isInvalid(controlName: 'firstName' | 'lastName' | 'email' | 'password'): boolean {
+    const control = this.registerForm.controls[controlName];
+    return control.touched && control.invalid;
+  }
 }

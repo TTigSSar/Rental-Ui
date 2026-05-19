@@ -47,9 +47,11 @@
             class="create-listing-form__input ui-input"
             formControlName="title"
             [placeholder]="'listings.createForm.titlePlaceholder' | translate"
+            [attr.aria-invalid]="hasError('title') ? 'true' : null"
+            [attr.aria-describedby]="hasError('title') ? 'create-listing-title-error' : null"
           />
           @if (hasError('title')) {
-            <small class="create-listing-form__error" role="alert">
+            <small id="create-listing-title-error" class="create-listing-form__error" role="alert">
               @if (createListingForm.controls.title.hasError('required')) {
                 {{ 'listings.createForm.validation.required' | translate }}
               } @else if (createListingForm.controls.title.hasError('minlength')) {
@@ -70,6 +72,8 @@
             id="create-listing-category"
             class="create-listing-form__select ui-select"
             formControlName="categoryId"
+            [attr.aria-invalid]="hasError('categoryId') ? 'true' : null"
+            [attr.aria-describedby]="hasError('categoryId') ? 'create-listing-category-error' : null"
           >
             <option value="">
               {{ 'listings.createForm.categoryPlaceholder' | translate }}
@@ -79,7 +83,7 @@
             }
           </select>
           @if (hasError('categoryId')) {
-            <small class="create-listing-form__error" role="alert">
+            <small id="create-listing-category-error" class="create-listing-form__error" role="alert">
               {{ 'listings.createForm.validation.required' | translate }}
             </small>
           }
@@ -100,9 +104,10 @@
             [useGrouping]="true"
             [placeholder]="'listings.createForm.pricePerDayPlaceholder' | translate"
             styleClass="create-listing-form__input"
+            [pt]="{ pcInputText: { root: { 'aria-invalid': hasError('pricePerDay') ? 'true' : null, 'aria-describedby': hasError('pricePerDay') ? 'create-listing-price-error' : null } } }"
           />
           @if (hasError('pricePerDay')) {
-            <small class="create-listing-form__error" role="alert">
+            <small id="create-listing-price-error" class="create-listing-form__error" role="alert">
               {{
                 createListingForm.controls.pricePerDay.hasError('min')
                   ? ('listings.createForm.validation.priceGreaterThanZero' | translate)
@@ -155,9 +160,10 @@
             [useGrouping]="false"
             [placeholder]="'listings.createForm.ageFromMonthsPlaceholder' | translate"
             styleClass="create-listing-form__input"
+            [pt]="{ pcInputText: { root: { 'aria-invalid': hasError('ageFromMonths') ? 'true' : null, 'aria-describedby': hasError('ageFromMonths') ? 'create-listing-age-from-error' : null } } }"
           />
           @if (hasError('ageFromMonths')) {
-            <small class="create-listing-form__error" role="alert">
+            <small id="create-listing-age-from-error" class="create-listing-form__error" role="alert">
               {{ 'listings.createForm.validation.ageNonNegative' | translate }}
             </small>
           }
@@ -177,9 +183,10 @@
             [useGrouping]="false"
             [placeholder]="'listings.createForm.ageToMonthsPlaceholder' | translate"
             styleClass="create-listing-form__input"
+            [pt]="{ pcInputText: { root: { 'aria-invalid': hasError('ageToMonths') ? 'true' : null, 'aria-describedby': hasError('ageToMonths') ? 'create-listing-age-to-error' : null } } }"
           />
           @if (hasError('ageToMonths')) {
-            <small class="create-listing-form__error" role="alert">
+            <small id="create-listing-age-to-error" class="create-listing-form__error" role="alert">
               {{ 'listings.createForm.validation.ageNonNegative' | translate }}
             </small>
           }
@@ -229,9 +236,10 @@
             [useGrouping]="true"
             [placeholder]="'listings.createForm.depositAmountPlaceholder' | translate"
             styleClass="create-listing-form__input"
+            [pt]="{ pcInputText: { root: { 'aria-invalid': hasError('depositAmount') ? 'true' : null, 'aria-describedby': hasError('depositAmount') ? 'create-listing-deposit-error' : null } } }"
           />
           @if (hasError('depositAmount')) {
-            <small class="create-listing-form__error" role="alert">
+            <small id="create-listing-deposit-error" class="create-listing-form__error" role="alert">
               {{ 'listings.createForm.validation.depositNonNegative' | translate }}
             </small>
           }
@@ -312,9 +320,11 @@
             formControlName="description"
             rows="6"
             [placeholder]="'listings.createForm.descriptionPlaceholder' | translate"
+            [attr.aria-invalid]="hasError('description') ? 'true' : null"
+            [attr.aria-describedby]="hasError('description') ? 'create-listing-description-error' : null"
           ></textarea>
           @if (hasError('description')) {
-            <small class="create-listing-form__error" role="alert">
+            <small id="create-listing-description-error" class="create-listing-form__error" role="alert">
               @if (createListingForm.controls.description.hasError('required')) {
                 {{ 'listings.createForm.validation.required' | translate }}
               } @else if (createListingForm.controls.description.hasError('minlength')) {

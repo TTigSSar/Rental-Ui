@@ -64,4 +64,9 @@ export class LoginPageComponent {
     const control = this.loginForm.controls[controlName];
     return control.touched && control.hasError(errorKey);
   }
+
+  protected isInvalid(controlName: 'email' | 'password'): boolean {
+    const control = this.loginForm.controls[controlName];
+    return control.touched && control.invalid;
+  }
 }

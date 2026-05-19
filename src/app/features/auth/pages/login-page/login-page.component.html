@@ -36,12 +36,14 @@
               [placeholder]="'auth.form.emailPlaceholder' | translate"
               autocomplete="email"
               [disabled]="(isLoading$ | async) ?? false"
+              [attr.aria-invalid]="isInvalid('email') ? 'true' : null"
+              [attr.aria-describedby]="isInvalid('email') ? 'login-email-error' : null"
             />
             @if (hasError('email', 'required')) {
-              <small class="login-page__validation">{{ 'auth.validation.emailRequired' | translate }}</small>
+              <small id="login-email-error" class="login-page__validation">{{ 'auth.validation.emailRequired' | translate }}</small>
             }
             @if (hasError('email', 'email')) {
-              <small class="login-page__validation">{{ 'auth.validation.emailInvalid' | translate }}</small>
+              <small id="login-email-error" class="login-page__validation">{{ 'auth.validation.emailInvalid' | translate }}</small>
             }
           </div>
 
@@ -56,12 +58,14 @@
               [placeholder]="'auth.form.passwordPlaceholder' | translate"
               autocomplete="current-password"
               [disabled]="(isLoading$ | async) ?? false"
+              [attr.aria-invalid]="isInvalid('password') ? 'true' : null"
+              [attr.aria-describedby]="isInvalid('password') ? 'login-password-error' : null"
             />
             @if (hasError('password', 'required')) {
-              <small class="login-page__validation">{{ 'auth.validation.passwordRequired' | translate }}</small>
+              <small id="login-password-error" class="login-page__validation">{{ 'auth.validation.passwordRequired' | translate }}</small>
             }
             @if (hasError('password', 'minlength')) {
-              <small class="login-page__validation">{{ 'auth.validation.passwordMinLength' | translate }}</small>
+              <small id="login-password-error" class="login-page__validation">{{ 'auth.validation.passwordMinLength' | translate }}</small>
             }
           </div>
 
