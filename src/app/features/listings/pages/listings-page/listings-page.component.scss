@@ -1,3 +1,14 @@
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* ── Page shell ──────────────────────────────────────────── */
 .listings-page {
   display: flex;
@@ -7,6 +18,7 @@
   padding-bottom: var(--ui-space-64);
   /* prevent the page from collapsing to just the header while loading */
   min-height: calc(100dvh - 4rem);
+  animation: page-fade-in 200ms ease-out both;
 }
 
 /* ── Page header (title + filters) ───────────────────────── */

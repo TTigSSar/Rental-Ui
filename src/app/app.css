@@ -976,24 +976,29 @@
 
 .app-footer__link {
   display: block;
-  padding: 8px 0;
-  color: #ffffff;
-  font-size: 1.3rem;
-  font-weight: 500;
+  padding: 6px 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.9375rem;
+  font-weight: 400;
   text-decoration: none;
-  line-height: 1.2;
+  line-height: 1.5;
+  transition: color 120ms ease;
 }
 
 .app-footer__link:hover,
 .app-footer__link:focus-visible {
+  color: #ffffff;
   text-decoration: underline;
   outline: none;
 }
 
 .app-footer__link--heading {
-  font-size: 1.3rem;
-  font-weight: 500;
-  margin: 0 0 12px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 0 10px;
   padding: 0;
 }
 

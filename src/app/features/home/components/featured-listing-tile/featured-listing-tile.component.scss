@@ -16,15 +16,26 @@
   box-shadow: var(--ui-shadow-card);
   overflow: hidden;
   transition:
-    transform 160ms ease,
-    box-shadow 160ms ease;
+    transform 180ms ease,
+    box-shadow 180ms ease;
 }
 
-.product-card:hover,
-.product-card:focus-visible {
-  transform: translateY(-2px);
-  box-shadow: var(--ui-shadow-card-hover);
-  outline: none;
+@media (hover: hover) {
+  .product-card:hover,
+  .product-card:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: var(--ui-shadow-card-hover);
+    outline: none;
+  }
+}
+
+/* Touch-device tap feedback — mirrors listing-card behaviour */
+@media (hover: none) {
+  .product-card:active {
+    transform: scale(0.985);
+    box-shadow: var(--ui-shadow-card);
+    transition-duration: 80ms;
+  }
 }
 
 .product-card__media {
@@ -68,21 +79,22 @@
 }
 
 .product-card__title {
-  font-size: 1.25rem;
+  font-size: var(--ui-font-size-h3);
   font-weight: 600;
   color: var(--ui-color-text-primary);
-  line-height: 1.25;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 3.1rem;
+  min-height: 2.9rem;
 }
 
 .product-card__city {
-  font-size: 1rem;
+  font-size: var(--ui-font-size-caption);
   font-weight: 500;
-  color: var(--ui-color-text-muted);
+  color: var(--ui-color-text-secondary);
 }
 
 .product-card__meta {
@@ -94,10 +106,10 @@
   border: 1px solid var(--ui-color-primary-soft);
   color: var(--ui-color-primary);
   font-size: var(--ui-font-size-caption);
-  font-weight: 500;
-  letter-spacing: -0.011em;
-  padding: var(--ui-space-6) 18px;
-  border-radius: var(--ui-radius-input);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  padding: var(--ui-space-4) var(--ui-space-12);
+  border-radius: var(--ui-radius-pill);
   background: var(--ui-color-primary-soft);
   white-space: nowrap;
 }
@@ -112,7 +124,7 @@
 
 .product-card__price {
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--ui-color-primary-strong);
 }
 
