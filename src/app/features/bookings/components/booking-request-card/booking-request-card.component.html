@@ -7,8 +7,8 @@
   <p class="booking-request-card__line">
     {{ 'bookings.requests.renter' | translate }}:
     {{ request().renterFirstName }} {{ request().renterLastName }}
-    ({{ request().renterEmail }})
   </p>
+  <p class="booking-request-card__renter-email">{{ request().renterEmail }}</p>
   <p class="booking-request-card__line">
     {{ 'bookings.requests.dateRange' | translate }}:
     {{ request().startDate | date: 'mediumDate' }} -

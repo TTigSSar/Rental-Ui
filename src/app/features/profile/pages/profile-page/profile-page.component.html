@@ -68,28 +68,19 @@
 
         <p-card styleClass="profile-page__card">
           <h2 class="profile-page__section-title">
-            {{ 'profile.summary.heading' | translate }}
+            {{ 'profile.membership.heading' | translate }}
           </h2>
-          <div class="profile-page__summary">
-            <div class="profile-page__summary-item">
-              <span class="profile-page__summary-label">
-                {{ 'profile.summary.accountId' | translate }}
+          <div class="profile-page__roles">
+            @for (role of profile.roles; track role) {
+              <span class="profile-page__role-chip">
+                {{ ('profile.role.' + role.toLowerCase()) | translate }}
               </span>
-              <strong>{{ profile.id }}</strong>
-            </div>
-            <div class="profile-page__summary-item">
-              <span class="profile-page__summary-label">
-                {{ 'profile.summary.roleCount' | translate }}
-              </span>
-              <strong>{{ profile.roles.length }}</strong>
-            </div>
-            <div class="profile-page__summary-item">
-              <span class="profile-page__summary-label">
-                {{ 'profile.summary.status' | translate }}
-              </span>
-              <strong>{{ 'profile.summary.active' | translate }}</strong>
-            </div>
+            }
           </div>
+          <p class="profile-page__membership-note">
+            <i class="pi pi-shield" aria-hidden="true"></i>
+            {{ 'profile.membership.note' | translate }}
+          </p>
         </p-card>
       </div>
     }

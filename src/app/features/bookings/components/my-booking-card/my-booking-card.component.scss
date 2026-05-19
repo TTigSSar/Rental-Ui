@@ -2,17 +2,20 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: var(--ui-space-8);
 }
 
 .my-booking-card__title {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: var(--ui-font-size-h3);
+  font-weight: 600;
+  line-height: 1.35;
 }
 
 .my-booking-card__line {
-  margin: 0.5rem 0 0;
-  color: var(--p-text-muted-color, #71717a);
+  margin: var(--ui-space-6) 0 0;
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-font-size-caption);
 }
 
 .my-booking-card__actions {

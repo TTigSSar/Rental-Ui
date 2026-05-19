@@ -471,6 +471,15 @@
       "status": "Status",
       "active": "Active"
     },
+    "membership": {
+      "heading": "Membership",
+      "note": "Your account is verified and your data stays private."
+    },
+    "role": {
+      "user": "Standard member",
+      "owner": "Toy owner",
+      "admin": "Administrator"
+    },
     "common": {
       "notAvailable": "Not available"
     }
