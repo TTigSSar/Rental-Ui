@@ -3,12 +3,13 @@
   flex-direction: column;
   gap: var(--ui-space-24);
   padding-bottom: var(--ui-space-32);
+  min-height: calc(100dvh - 4rem);
 }
 
 .bookings-page__header {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: var(--ui-space-4);
 }
 
 .bookings-page__title {
@@ -26,7 +27,7 @@
 .bookings-page__error {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--ui-space-12);
   align-items: flex-start;
 }
 
@@ -37,7 +38,7 @@
 .bookings-page__error-content {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--ui-space-4);
 }
 
 .bookings-page__grid {
@@ -53,19 +54,19 @@
   border: 1px solid var(--ui-color-border);
   border-radius: var(--ui-radius-md);
   padding: var(--ui-space-16);
-  background: #fff;
+  background: var(--ui-color-surface);
 }
 
 .bookings-page__empty {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.6rem;
+  gap: var(--ui-space-8);
   border: 1px dashed var(--ui-color-border);
   border-radius: var(--ui-radius-md);
-  padding: 2.5rem 1.5rem;
+  padding: var(--ui-space-48) var(--ui-space-24);
   text-align: center;
-  background: #fff;
+  background: var(--ui-color-surface);
 }
 
 .bookings-page__empty-icon {

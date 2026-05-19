@@ -2,9 +2,9 @@
   <section class="login-page__shell">
     <aside class="login-page__left-panel">
       <div class="login-page__brand-block">
-        <h2 class="login-page__welcome-title">Welcome back!</h2>
+        <h2 class="login-page__welcome-title">{{ 'auth.login.welcomeTitle' | translate }}</h2>
         <p class="login-page__welcome-subtitle">
-          Sign in to manage your toy rentals and listings.
+          {{ 'auth.login.welcomeSubtitle' | translate }}
         </p>
       </div>
       <div class="login-page__illustration" aria-hidden="true"></div>
@@ -12,12 +12,12 @@
 
     <div class="login-page__right-panel">
       <p-card styleClass="login-page__card">
-        <h1 class="login-page__title">Sign In</h1>
+        <h1 class="login-page__title">{{ 'auth.login.title' | translate }}</h1>
 
         @if (error$ | async; as error) {
           <p-message severity="error" styleClass="login-page__message login-page__message--error">
             <div class="login-page__error-content">
-              <strong>Couldn’t sign you in</strong>
+              <strong>{{ 'auth.login.errorTitle' | translate }}</strong>
               <span>{{ error }}</span>
             </div>
           </p-message>
@@ -25,14 +25,14 @@
 
         <form class="login-page__form" [formGroup]="loginForm" (ngSubmit)="submit()">
           <div class="login-page__field">
-            <label class="login-page__label" for="login-email">Email</label>
+            <label class="login-page__label" for="login-email">{{ 'auth.form.email' | translate }}</label>
             <input
               id="login-email"
               pInputText
               type="email"
               class="login-page__input ui-input"
               formControlName="email"
-              placeholder="you@example.com"
+              [placeholder]="'auth.form.emailPlaceholder' | translate"
               autocomplete="email"
               [disabled]="(isLoading$ | async) ?? false"
             />
@@ -45,14 +45,14 @@
           </div>
 
           <div class="login-page__field">
-            <label class="login-page__label" for="login-password">Password</label>
+            <label class="login-page__label" for="login-password">{{ 'auth.form.password' | translate }}</label>
             <input
               id="login-password"
               pInputText
               type="password"
               class="login-page__input ui-input"
               formControlName="password"
-              placeholder="Password"
+              [placeholder]="'auth.form.passwordPlaceholder' | translate"
               autocomplete="current-password"
               [disabled]="(isLoading$ | async) ?? false"
             />
@@ -60,7 +60,7 @@
               <small class="login-page__validation">{{ 'auth.validation.passwordRequired' | translate }}</small>
             }
             @if (hasError('password', 'minlength')) {
-              <small class="login-page__validation">Password must be at least 8 characters.</small>
+              <small class="login-page__validation">{{ 'auth.validation.passwordMinLength' | translate }}</small>
             }
           </div>
 
@@ -69,7 +69,7 @@
             styleClass="login-page__continue-button"
             [loading]="(isLoading$ | async) ?? false"
             [disabled]="(isLoading$ | async) ?? false"
-            label="Continue"
+            [label]="'auth.login.submit' | translate"
           />
         </form>
 

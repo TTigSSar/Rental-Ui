@@ -2,9 +2,9 @@
   <section class="register-page__shell">
     <aside class="register-page__left-panel">
       <div class="register-page__brand-block">
-        <h2 class="register-page__welcome-title">Join ToyRent</h2>
+        <h2 class="register-page__welcome-title">{{ 'auth.register.welcomeTitle' | translate }}</h2>
         <p class="register-page__welcome-subtitle">
-          Rent quality toys for your child or share toys you no longer need.
+          {{ 'auth.register.welcomeSubtitle' | translate }}
         </p>
       </div>
       <div class="register-page__illustration" aria-hidden="true"></div>
@@ -12,12 +12,12 @@
 
     <div class="register-page__right-panel">
       <p-card styleClass="register-page__card">
-        <h1 class="register-page__title">Create Account</h1>
+        <h1 class="register-page__title">{{ 'auth.register.title' | translate }}</h1>
 
         @if (error$ | async; as error) {
           <p-message severity="error" styleClass="register-page__message register-page__message--error">
             <div class="register-page__error-content">
-              <strong>Couldn’t create your account</strong>
+              <strong>{{ 'auth.register.errorTitle' | translate }}</strong>
               <span>{{ error }}</span>
             </div>
           </p-message>
@@ -26,49 +26,49 @@
         <form class="register-page__form" [formGroup]="registerForm" (ngSubmit)="submit()">
           <div class="register-page__field-row">
             <div class="register-page__field">
-              <label class="register-page__label" for="register-first-name">First name</label>
+              <label class="register-page__label" for="register-first-name">{{ 'auth.form.firstName' | translate }}</label>
               <input
                 id="register-first-name"
                 pInputText
                 type="text"
                 class="register-page__input ui-input"
                 formControlName="firstName"
-                placeholder="First name"
+                [placeholder]="'auth.form.firstNamePlaceholder' | translate"
                 autocomplete="given-name"
                 [disabled]="(isLoading$ | async) ?? false"
               />
               @if (hasError('firstName', 'required')) {
-                <small class="register-page__validation">First name is required.</small>
+                <small class="register-page__validation">{{ 'auth.validation.firstNameRequired' | translate }}</small>
               }
             </div>
 
             <div class="register-page__field">
-              <label class="register-page__label" for="register-last-name">Last name</label>
+              <label class="register-page__label" for="register-last-name">{{ 'auth.form.lastName' | translate }}</label>
               <input
                 id="register-last-name"
                 pInputText
                 type="text"
                 class="register-page__input ui-input"
                 formControlName="lastName"
-                placeholder="Last name"
+                [placeholder]="'auth.form.lastNamePlaceholder' | translate"
                 autocomplete="family-name"
                 [disabled]="(isLoading$ | async) ?? false"
               />
               @if (hasError('lastName', 'required')) {
-                <small class="register-page__validation">Last name is required.</small>
+                <small class="register-page__validation">{{ 'auth.validation.lastNameRequired' | translate }}</small>
               }
             </div>
           </div>
 
           <div class="register-page__field">
-            <label class="register-page__label" for="register-email">Email</label>
+            <label class="register-page__label" for="register-email">{{ 'auth.form.email' | translate }}</label>
             <input
               id="register-email"
               pInputText
               type="email"
               class="register-page__input ui-input"
               formControlName="email"
-              placeholder="you@example.com"
+              [placeholder]="'auth.form.emailPlaceholder' | translate"
               autocomplete="email"
               [disabled]="(isLoading$ | async) ?? false"
             />
@@ -81,23 +81,23 @@
           </div>
 
           <div class="register-page__field">
-            <label class="register-page__label" for="register-password">Password</label>
+            <label class="register-page__label" for="register-password">{{ 'auth.form.password' | translate }}</label>
             <input
               id="register-password"
               pInputText
               type="password"
               class="register-page__input ui-input"
               formControlName="password"
-              placeholder="Password"
+              [placeholder]="'auth.form.passwordPlaceholder' | translate"
               autocomplete="new-password"
               [disabled]="(isLoading$ | async) ?? false"
             />
-            <small class="register-page__hint">Use at least 8 characters for better security.</small>
+            <small class="register-page__hint">{{ 'auth.register.passwordHint' | translate }}</small>
             @if (hasError('password', 'required')) {
               <small class="register-page__validation">{{ 'auth.validation.passwordRequired' | translate }}</small>
             }
             @if (hasError('password', 'minlength')) {
-              <small class="register-page__validation">Password must be at least 8 characters.</small>
+              <small class="register-page__validation">{{ 'auth.validation.passwordMinLength' | translate }}</small>
             }
           </div>
 
@@ -106,35 +106,35 @@
             styleClass="register-page__continue-button"
             [loading]="(isLoading$ | async) ?? false"
             [disabled]="(isLoading$ | async) ?? false"
-            label="Continue"
+            [label]="'auth.register.submit' | translate"
           />
         </form>
 
-        <div class="register-page__steps" aria-label="Registration progress">
+        <div class="register-page__steps" [attr.aria-label]="'auth.register.stepsAriaLabel' | translate">
           <div class="register-page__step register-page__step--active">
             <span class="register-page__step-circle">1</span>
-            <span class="register-page__step-label">Account</span>
+            <span class="register-page__step-label">{{ 'auth.register.stepAccount' | translate }}</span>
           </div>
           <div class="register-page__step-line"></div>
           <div class="register-page__step">
             <span class="register-page__step-circle">2</span>
-            <span class="register-page__step-label">Details</span>
+            <span class="register-page__step-label">{{ 'auth.register.stepDetails' | translate }}</span>
           </div>
           <div class="register-page__step-line"></div>
           <div class="register-page__step">
             <span class="register-page__step-circle">3</span>
-            <span class="register-page__step-label">Verification</span>
+            <span class="register-page__step-label">{{ 'auth.register.stepVerification' | translate }}</span>
           </div>
           <div class="register-page__step-line"></div>
           <div class="register-page__step">
             <span class="register-page__step-circle">4</span>
-            <span class="register-page__step-label">Success</span>
+            <span class="register-page__step-label">{{ 'auth.register.stepSuccess' | translate }}</span>
           </div>
         </div>
 
         <p class="register-page__switch">
-          Already have an account?
-          <a routerLink="/auth/login">Sign in</a>
+          {{ 'auth.register.haveAccount' | translate }}
+          <a routerLink="/auth/login">{{ 'auth.register.goToLogin' | translate }}</a>
         </p>
       </p-card>
     </div>
