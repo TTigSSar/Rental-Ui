@@ -46,6 +46,11 @@
     },
     "categoriesLabel": "Toy Categories",
     "topProductsLabel": "Popular Toys",
+    "seeAll": "Browse all",
+    "trustStrip": {
+      "title": "Every toy is reviewed",
+      "text": "Hygiene, photos and condition checked before listings go live."
+    },
     "featured": {
       "pricePerDay": "{{amount}} per day",
       "emptyTitle": "No toys yet",

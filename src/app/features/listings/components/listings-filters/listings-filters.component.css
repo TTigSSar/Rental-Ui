@@ -7,7 +7,6 @@
   border: 1px solid var(--ui-color-border);
   border-radius: var(--ui-radius-md);
   background: var(--ui-color-surface);
-  box-shadow: var(--ui-shadow-card);
 }
 
 /* ── Primary search field ────────────────────────────────── */

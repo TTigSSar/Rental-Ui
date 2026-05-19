@@ -10,7 +10,7 @@
   height: 100%;
   text-decoration: none;
   color: inherit;
-  background: var(--ui-color-surface-muted);
+  background: var(--ui-color-surface);
   border: 1px solid var(--ui-color-border);
   border-radius: var(--ui-radius-md);
   box-shadow: var(--ui-shadow-card);
@@ -92,13 +92,13 @@
 
 .product-card__category {
   border: 1px solid var(--ui-color-primary-soft);
-  color: var(--ui-color-primary-soft);
+  color: var(--ui-color-primary);
   font-size: var(--ui-font-size-caption);
   font-weight: 500;
   letter-spacing: -0.011em;
   padding: var(--ui-space-6) 18px;
   border-radius: var(--ui-radius-input);
-  background: var(--ui-color-surface-muted);
+  background: var(--ui-color-primary-soft);
   white-space: nowrap;
 }
 
@@ -112,8 +112,8 @@
 
 .product-card__price {
   font-size: 1rem;
-  font-weight: 500;
-  color: var(--ui-color-secondary);
+  font-weight: 600;
+  color: var(--ui-color-primary-strong);
 }
 
 .product-card__actions {
@@ -125,12 +125,12 @@
 .product-card__action {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   border: none;
   background: transparent;
-  color: var(--ui-color-secondary);
+  color: var(--ui-color-text-secondary);
   font-size: 1.125rem;
   cursor: default;
 }

@@ -47,9 +47,14 @@
     <div class="home__container">
       <!-- Categories section -->
       <section class="home__section" aria-labelledby="home-categories-heading">
-        <h2 id="home-categories-heading" class="home__pill-heading">
-          {{ 'home.categoriesLabel' | translate }}
-        </h2>
+        <div class="home__section-header">
+          <h2 id="home-categories-heading" class="home__section-title">
+            {{ 'home.categoriesLabel' | translate }}
+          </h2>
+          <a [routerLink]="['/listings']" class="home__section-action">
+            {{ 'home.seeAll' | translate }}
+          </a>
+        </div>
 
         @if (vm.showCategoriesSkeleton) {
           <app-ui-loading-skeleton class="home__skeleton" [items]="4" />
@@ -91,9 +96,14 @@
 
       <!-- Top products section -->
       <section class="home__section" aria-labelledby="home-products-heading">
-        <h2 id="home-products-heading" class="home__pill-heading">
-          {{ 'home.topProductsLabel' | translate }}
-        </h2>
+        <div class="home__section-header">
+          <h2 id="home-products-heading" class="home__section-title">
+            {{ 'home.topProductsLabel' | translate }}
+          </h2>
+          <a [routerLink]="['/listings']" class="home__section-action">
+            {{ 'home.seeAll' | translate }}
+          </a>
+        </div>
 
         @if (vm.featuredError) {
           <div class="home__error" role="alert">
@@ -177,12 +187,17 @@
               class="home__section"
               [attr.aria-labelledby]="'home-section-' + section.key"
             >
-              <h2
-                [id]="'home-section-' + section.key"
-                class="home__pill-heading"
-              >
-                {{ section.title }}
-              </h2>
+              <div class="home__section-header">
+                <h2
+                  [id]="'home-section-' + section.key"
+                  class="home__section-title"
+                >
+                  {{ section.title }}
+                </h2>
+                <a [routerLink]="['/listings']" class="home__section-action">
+                  {{ 'home.seeAll' | translate }}
+                </a>
+              </div>
               <div class="home__carousel-wrapper">
                 <button
                   type="button"
@@ -217,6 +232,15 @@
           }
         }
       }
+
+      <!-- Trust strip -->
+      <div class="home__trust-strip">
+        <i class="pi pi-check-circle home__trust-icon" aria-hidden="true"></i>
+        <div class="home__trust-content">
+          <strong class="home__trust-title">{{ 'home.trustStrip.title' | translate }}</strong>
+          <span class="home__trust-text">{{ 'home.trustStrip.text' | translate }}</span>
+        </div>
+      </div>
 
       <!-- Process section (Renting / Lending toggle + steps) -->
       <section class="home__process" aria-labelledby="home-process-heading">

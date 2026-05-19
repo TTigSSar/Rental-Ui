@@ -40,6 +40,8 @@
 .category-tile:focus-visible .category-tile__chip {
   outline: 2px solid var(--ui-color-primary);
   outline-offset: 2px;
+  border-color: var(--ui-color-primary);
+  background: var(--ui-color-primary-soft);
 }
 
 .category-tile__icon {
@@ -52,17 +54,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 14px;
-  border-radius: 40px;
-  border: 1px solid var(--ui-color-primary);
-  background: var(--ui-color-surface-muted);
-  color: var(--ui-color-primary);
+  padding: 10px 16px;
+  border-radius: var(--ui-radius-md);
+  border: 1px solid var(--ui-color-border);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-primary);
   font-weight: 500;
   font-size: 1rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.category-tile:hover .category-tile__chip,
+.category-tile:focus-visible .category-tile__chip {
+  border-color: var(--ui-color-primary);
+  background: var(--ui-color-primary-soft);
 }
 
 @media (max-width: 600px) {
