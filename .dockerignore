@@ -1,0 +1,25 @@
+# Dependencies & build output (regenerated inside the image)
+node_modules/
+dist/
+.angular/
+
+# Version control
+.git/
+.gitignore
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+
+# Local environment files
+.env
+.env.*
+
+# CI & AI context (not needed for the build)
+.github/
+.ai-context/
+
+# Docker files themselves
+Dockerfile
+.dockerignore
