@@ -36,4 +36,7 @@ export interface ListingCategoryOption {
   id: string;
   name: string;
   slug: string;
+  imageUrl?: string | null;
+  iconName?: string | null;
+  displayOrder?: number | null;
 }

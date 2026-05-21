@@ -20,7 +20,12 @@ import type { ListingsFilter } from '../models/listings-filter.model';
 import type { PagedResult } from '../models/paged-result.model';
 
 export function normalizeListingPreview(
-  item: Partial<ListingPreview> & { id: string },
+  item: Partial<ListingPreview> & {
+    id: string;
+    primaryImageUrl?: unknown;
+    imageUrl?: unknown;
+    images?: unknown;
+  },
 ): ListingPreview {
   return {
     id: String(item.id),
@@ -30,16 +35,45 @@ export function normalizeListingPreview(
       typeof item.pricePerDay === 'number' && Number.isFinite(item.pricePerDay)
         ? item.pricePerDay
         : 0,
-    mainImageUrl:
-      typeof item.mainImageUrl === 'string' && item.mainImageUrl.length > 0
-        ? item.mainImageUrl
-        : null,
+    mainImageUrl: resolveListingPreviewImageUrl(item),
     isFavorite: item.isFavorite === true,
     ageFromMonths: normalizeFiniteNumber(item.ageFromMonths),
     ageToMonths: normalizeFiniteNumber(item.ageToMonths),
     condition: normalizeNonEmptyString(item.condition),
     hygieneNotes: normalizeNonEmptyString(item.hygieneNotes),
   };
+}
+
+/**
+ * List/featured/favorites APIs send the card image as `primaryImageUrl`; older
+ * payloads may use `imageUrl`, `mainImageUrl`, or a full `images` array. Resolve
+ * whichever the backend provides without assuming a single field name.
+ */
+function resolveListingPreviewImageUrl(item: {
+  primaryImageUrl?: unknown;
+  mainImageUrl?: unknown;
+  imageUrl?: unknown;
+  images?: unknown;
+}): string | null {
+  const direct =
+    normalizeNonEmptyString(item.primaryImageUrl) ??
+    normalizeNonEmptyString(item.imageUrl) ??
+    normalizeNonEmptyString(item.mainImageUrl);
+  if (direct !== null) {
+    return direct;
+  }
+
+  if (Array.isArray(item.images)) {
+    const candidates = item.images.filter(
+      (image): image is { url?: unknown; isPrimary?: unknown } =>
+        image !== null && typeof image === 'object',
+    );
+    const chosen =
+      candidates.find((image) => image.isPrimary === true) ?? candidates[0];
+    return normalizeNonEmptyString(chosen?.url);
+  }
+
+  return null;
 }
 
 function normalizeFiniteNumber(value: unknown): number | null {
@@ -122,6 +156,9 @@ export class ListingsApiService {
                   id: category.id,
                   name: typeof category.name === 'string' ? category.name : '',
                   slug: typeof category.slug === 'string' ? category.slug : '',
+                  imageUrl: normalizeNonEmptyString(category.imageUrl),
+                  iconName: normalizeNonEmptyString(category.iconName),
+                  displayOrder: normalizeFiniteNumber(category.displayOrder),
                 }))
             : [],
         ),

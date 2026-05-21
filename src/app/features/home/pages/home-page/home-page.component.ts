@@ -294,6 +294,8 @@ export class HomePageComponent implements OnInit {
             id: category.id,
             slug: category.slug,
             label: category.name,
+            imageUrl: category.imageUrl ?? null,
+            iconName: category.iconName ?? null,
             icon: visual.icon,
             tintA: visual.tintA,
             tintB: visual.tintB,

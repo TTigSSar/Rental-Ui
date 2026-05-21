@@ -8,11 +8,23 @@
   <div
     class="category-tile__media"
     [style.background]="
-      'linear-gradient(135deg, ' + data.tintA + ', ' + data.tintB + ')'
+      data.imageUrl
+        ? null
+        : 'linear-gradient(135deg, ' + data.tintA + ', ' + data.tintB + ')'
     "
     aria-hidden="true"
   >
-    <i class="category-tile__icon" [class]="data.icon"></i>
+    @if (data.imageUrl) {
+      <img
+        class="category-tile__image"
+        [src]="data.imageUrl"
+        alt=""
+        loading="lazy"
+        decoding="async"
+      />
+    } @else {
+      <i class="category-tile__icon" [class]="iconClass()"></i>
+    }
   </div>
   <span class="category-tile__chip">{{ data.label }}</span>
 </button>
