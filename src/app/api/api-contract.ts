@@ -21,6 +21,8 @@ export const ApiContract = {
     mine: '/api/listings/mine',
     uploadImages: (id: string): ApiPath =>
       `/api/listings/${encodeURIComponent(id)}/images`,
+    archive: (id: string): ApiPath =>
+      `/api/listings/${encodeURIComponent(id)}/archive`,
   },
   categories: {
     root: '/api/categories',

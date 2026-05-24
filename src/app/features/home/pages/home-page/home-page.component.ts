@@ -343,47 +343,16 @@ export class HomePageComponent implements OnInit {
 
   protected onSearchSubmit(): void {
     const raw = this.searchForm.controls.query.value.trim();
-    this.store.dispatch(
-      ListingsActions.updateFilters({
-        filters: {
-          query: raw === '' ? null : raw,
-          city: null,
-          categoryId: null,
-          minPrice: null,
-          maxPrice: null,
-        },
-      }),
-    );
-    void this.router.navigate(['/listings']);
+    void this.router.navigate(['/listings'], {
+      queryParams: raw ? { q: raw } : {},
+    });
   }
 
   protected onCategorySelect(category: HomeCategoryTileVm): void {
-    this.store.dispatch(
-      ListingsActions.updateFilters({
-        filters: {
-          query: null,
-          city: null,
-          categoryId: category.id,
-          minPrice: null,
-          maxPrice: null,
-        },
-      }),
-    );
-    void this.router.navigate(['/listings']);
+    void this.router.navigate(['/listings'], { queryParams: { categoryId: category.id } });
   }
 
   protected onExploreCtaClick(): void {
-    this.store.dispatch(
-      ListingsActions.updateFilters({
-        filters: {
-          query: null,
-          city: null,
-          categoryId: null,
-          minPrice: null,
-          maxPrice: null,
-        },
-      }),
-    );
     void this.router.navigate(['/listings']);
   }
 

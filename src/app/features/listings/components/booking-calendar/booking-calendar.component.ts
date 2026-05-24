@@ -102,6 +102,7 @@ export class BookingCalendarComponent {
     endDate: Date | null;
   }>();
 
+  protected readonly today = new Date();
   protected readonly rangeSelection = signal<Date[] | null>(null);
 
   readonly disabledDates = computed(() =>

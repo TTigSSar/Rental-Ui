@@ -22,6 +22,7 @@ import type { ListingPreview } from '../../../listings/models/listing.model';
 })
 export class FeaturedListingTileComponent {
   readonly listing = input.required<ListingPreview>();
+  readonly isAuthenticated = input<boolean>(false);
 
   @Output() readonly favoriteToggle = new EventEmitter<string>();
 

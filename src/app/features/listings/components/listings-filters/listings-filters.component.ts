@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
@@ -19,7 +20,7 @@ import { debounceTime } from 'rxjs';
 import type { ListingCategoryOption } from '../../models/create-listing.model';
 import type { ListingsFilter } from '../../models/listings-filter.model';
 import * as ListingsActions from '../../store/listings.actions';
-import { selectListingCategories } from '../../store/listings.selectors';
+import { selectListingCategories, selectListingsFilters } from '../../store/listings.selectors';
 
 @Component({
   selector: 'app-listings-filters',
@@ -39,6 +40,8 @@ export class ListingsFiltersComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
   private readonly store = inject(Store);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   @Output() readonly filtersChanged = new EventEmitter<ListingsFilter>();
 
@@ -59,16 +62,38 @@ export class ListingsFiltersComponent implements OnInit {
     this.filterForm.valueChanges
       .pipe(debounceTime(300), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        this.filtersChanged.emit(this.toListingsFilter());
+        const filter = this.toListingsFilter();
+        void this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: this.toQueryParams(filter),
+          queryParamsHandling: 'replace',
+        });
+        this.filtersChanged.emit(filter);
       });
   }
 
   ngOnInit(): void {
     this.store.dispatch(ListingsActions.loadListingCategories());
+
+    const currentFilters = this.store.selectSignal(selectListingsFilters)();
+    this.filterForm.patchValue(
+      {
+        query: currentFilters.query ?? '',
+        city: currentFilters.city ?? '',
+        categoryId: currentFilters.categoryId ?? '',
+        minPrice: currentFilters.minPrice,
+        maxPrice: currentFilters.maxPrice,
+      },
+      { emitEvent: false },
+    );
   }
 
   protected clearFilters(): void {
-    this.filterForm.setValue({ query: '', city: '', categoryId: '', minPrice: null, maxPrice: null });
+    this.filterForm.setValue(
+      { query: '', city: '', categoryId: '', minPrice: null, maxPrice: null },
+      { emitEvent: false },
+    );
+    void this.router.navigate([], { relativeTo: this.route, queryParams: {} });
     this.filtersChanged.emit({ query: null, city: null, categoryId: null, minPrice: null, maxPrice: null });
   }
 
@@ -83,6 +108,16 @@ export class ListingsFiltersComponent implements OnInit {
       categoryId: categoryId === '' ? null : categoryId,
       minPrice: raw.minPrice,
       maxPrice: raw.maxPrice,
+    };
+  }
+
+  private toQueryParams(filter: ListingsFilter): Record<string, string | null> {
+    return {
+      q: filter.query,
+      city: filter.city,
+      categoryId: filter.categoryId,
+      minPrice: filter.minPrice != null ? String(filter.minPrice) : null,
+      maxPrice: filter.maxPrice != null ? String(filter.maxPrice) : null,
     };
   }
 }

@@ -13,3 +13,18 @@ export const loadMyListingsFailure = createAction(
   '[My Listings] Load My Listings Failure',
   props<{ error: string }>(),
 );
+
+export const archiveListing = createAction(
+  '[My Listings] Archive Listing',
+  props<{ listingId: string }>(),
+);
+
+export const archiveListingSuccess = createAction(
+  '[My Listings] Archive Listing Success',
+  props<{ listingId: string }>(),
+);
+
+export const archiveListingFailure = createAction(
+  '[My Listings] Archive Listing Failure',
+  props<{ error: string }>(),
+);

@@ -45,6 +45,10 @@ function normalizeMyListing(item: Partial<MyListing> & { id: string }): MyListin
 export class MyListingsApiService {
   private readonly http = inject(HttpClient);
 
+  archiveListing(listingId: string): Observable<void> {
+    return this.http.post<void>(toApiUrl(ApiContract.listings.archive(listingId)), {});
+  }
+
   getMyListings(): Observable<MyListing[]> {
     return this.http.get<MyListing[]>(toApiUrl(ApiContract.listings.mine)).pipe(
       map((items) =>

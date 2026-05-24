@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { catchError, map, mergeMap, of, switchMap } from 'rxjs';
 
 import { toApiErrorMessage } from '../../../api/http-error-message.util';
 import { MyListingsApiService } from '../services/my-listings-api.service';
@@ -22,11 +22,21 @@ export class MyListingsEffects {
         this.myListingsApi.getMyListings().pipe(
           map((items) => MyListingsActions.loadMyListingsSuccess({ items })),
           catchError((error: unknown) =>
-            of(
-              MyListingsActions.loadMyListingsFailure({
-                error: toErrorMessage(error),
-              }),
-            ),
+            of(MyListingsActions.loadMyListingsFailure({ error: toErrorMessage(error) })),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  readonly archiveListing$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(MyListingsActions.archiveListing),
+      mergeMap(({ listingId }) =>
+        this.myListingsApi.archiveListing(listingId).pipe(
+          map(() => MyListingsActions.archiveListingSuccess({ listingId })),
+          catchError((error: unknown) =>
+            of(MyListingsActions.archiveListingFailure({ error: toErrorMessage(error) })),
           ),
         ),
       ),

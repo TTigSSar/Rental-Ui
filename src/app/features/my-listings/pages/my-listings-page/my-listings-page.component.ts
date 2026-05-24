@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
@@ -68,6 +68,7 @@ const selectMyListingsPageViewModel = createSelector(
 })
 export class MyListingsPageComponent implements OnInit {
   private readonly store = inject(Store);
+  private readonly router = inject(Router);
 
   // NgRx selectors emit synchronously — requireSync gives Signal<T> (no undefined).
   protected readonly viewModel = toSignal(
@@ -122,11 +123,11 @@ export class MyListingsPageComponent implements OnInit {
     this.activeFilter.set(filter);
   }
 
-  protected onEditRequested(_: string): void {
-    // Placeholder action for upcoming edit flow.
+  protected onEditRequested(listingId: string): void {
+    void this.router.navigate(['/listings', listingId]);
   }
 
-  protected onArchiveRequested(_: string): void {
-    // Placeholder action for upcoming archive flow.
+  protected onArchiveRequested(listingId: string): void {
+    this.store.dispatch(MyListingsActions.archiveListing({ listingId }));
   }
 }

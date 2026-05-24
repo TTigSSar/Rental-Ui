@@ -35,4 +35,13 @@ export const myListingsReducer = createReducer(
       error,
     }),
   ),
+  on(
+    MyListingsActions.archiveListingSuccess,
+    (state, { listingId }): MyListingsState => ({
+      ...state,
+      items: state.items.map((item) =>
+        item.id === listingId ? { ...item, status: 'Archived' as const } : item,
+      ),
+    }),
+  ),
 );

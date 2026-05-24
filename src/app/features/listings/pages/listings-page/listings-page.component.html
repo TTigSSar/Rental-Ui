@@ -57,6 +57,7 @@
         @for (listing of vm.items; track listing.id) {
           <app-listing-card
             [listing]="listing"
+            [isAuthenticated]="vm.isAuthenticated"
             (favoriteToggled)="onFavoriteToggled($event)"
           />
         }

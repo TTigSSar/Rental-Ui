@@ -5,6 +5,7 @@ import {
   OnInit,
   inject,
 } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
@@ -12,6 +13,7 @@ import { MessageModule } from 'primeng/message';
 
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { LoadingSkeletonComponent } from '../../../../shared/ui/loading-skeleton/loading-skeleton.component';
+import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 import { ListingCardComponent } from '../../components/listing-card/listing-card.component';
 import { ListingsFiltersComponent } from '../../components/listings-filters/listings-filters.component';
 import type { ListingsFilter } from '../../models/listings-filter.model';
@@ -38,6 +40,7 @@ export interface ListingsPageViewModel {
   readonly showLoadMore: boolean;
   readonly hasError: boolean;
   readonly hasActiveFilters: boolean;
+  readonly isAuthenticated: boolean;
 }
 
 const selectListingsPageViewModel = createSelector(
@@ -47,7 +50,8 @@ const selectListingsPageViewModel = createSelector(
   selectListingsHasMore,
   selectListingsPageSize,
   selectListingsFilters,
-  (items, loading, error, hasMore, pageSize, filters): ListingsPageViewModel => {
+  selectIsAuthenticated,
+  (items, loading, error, hasMore, pageSize, filters, isAuthenticated): ListingsPageViewModel => {
     const hasError = error !== null;
     const hasActiveFilters =
       filters !== null &&
@@ -64,6 +68,7 @@ const selectListingsPageViewModel = createSelector(
       showLoadMore: hasMore && !hasError && !loading,
       hasError,
       hasActiveFilters,
+      isAuthenticated,
     };
   },
 );
@@ -87,10 +92,20 @@ const selectListingsPageViewModel = createSelector(
 })
 export class ListingsPageComponent implements OnInit {
   private readonly store = inject(Store);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly viewModel$ = this.store.select(selectListingsPageViewModel);
 
   ngOnInit(): void {
+    const p = this.route.snapshot.queryParams;
+    const filters: ListingsFilter = {
+      query: typeof p['q'] === 'string' && p['q'].trim() ? p['q'].trim() : null,
+      city: typeof p['city'] === 'string' && p['city'].trim() ? p['city'].trim() : null,
+      categoryId: typeof p['categoryId'] === 'string' && p['categoryId'].trim() ? p['categoryId'].trim() : null,
+      minPrice: p['minPrice'] != null && !Number.isNaN(Number(p['minPrice'])) ? Number(p['minPrice']) : null,
+      maxPrice: p['maxPrice'] != null && !Number.isNaN(Number(p['maxPrice'])) ? Number(p['maxPrice']) : null,
+    };
+    this.store.dispatch(ListingsActions.updateFilters({ filters }));
     this.store.dispatch(ListingsActions.loadListings());
   }
 

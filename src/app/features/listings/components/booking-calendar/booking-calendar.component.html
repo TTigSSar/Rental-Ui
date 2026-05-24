@@ -4,6 +4,7 @@
     selectionMode="range"
     [inline]="true"
     [showWeek]="true"
+    [minDate]="today"
     [disabledDates]="disabledDates()"
     [ngModel]="rangeSelection()"
     (ngModelChange)="onRangeChange($event)"

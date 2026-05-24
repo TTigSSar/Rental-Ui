@@ -81,18 +81,20 @@
   </a>
 
   <!-- Favorite button: overlaid on image (outside <a> for semantic clarity) -->
-  <button
-    type="button"
-    class="listing-card__fav-btn"
-    [attr.aria-label]="'listings.card.toggleFavorite' | translate"
-    [attr.aria-pressed]="listing().isFavorite"
-    (click)="onFavoriteClick($event)"
-  >
-    <span
-      class="pi listing-card__fav-icon"
-      [class.pi-heart-fill]="listing().isFavorite"
-      [class.pi-heart]="!listing().isFavorite"
-      aria-hidden="true"
-    ></span>
-  </button>
+  @if (isAuthenticated()) {
+    <button
+      type="button"
+      class="listing-card__fav-btn"
+      [attr.aria-label]="'listings.card.toggleFavorite' | translate"
+      [attr.aria-pressed]="listing().isFavorite"
+      (click)="onFavoriteClick($event)"
+    >
+      <span
+        class="pi listing-card__fav-icon"
+        [class.pi-heart-fill]="listing().isFavorite"
+        [class.pi-heart]="!listing().isFavorite"
+        aria-hidden="true"
+      ></span>
+    </button>
+  }
 </article>

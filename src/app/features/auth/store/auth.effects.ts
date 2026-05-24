@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Actions, ROOT_EFFECTS_INIT, createEffect, ofType } from '@ngrx/effects';
@@ -162,7 +163,7 @@ export class AuthEffects {
             of(
               AuthActions.loadCurrentUserFailure({
                 error: toErrorMessage(error),
-                preserveSession: false,
+                preserveSession: !(error instanceof HttpErrorResponse && error.status === 401),
               }),
             ),
           ),

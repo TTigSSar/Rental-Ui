@@ -83,6 +83,7 @@ function resolveAgeRangeDisplay(
 })
 export class ListingCardComponent {
   readonly listing = input.required<ListingPreview>();
+  readonly isAuthenticated = input<boolean>(false);
 
   @Output() readonly favoriteToggled = new EventEmitter<string>();
 
