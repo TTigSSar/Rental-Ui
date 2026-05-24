@@ -18,7 +18,7 @@ import { combineLatest, filter, map } from 'rxjs';
 import { AuthRedirectService } from './features/auth/services/auth-redirect.service';
 import * as AuthActions from './features/auth/store/auth.actions';
 import {
-  selectAuthLoading,
+  selectAuthInitializing,
   selectAuthUser,
   selectIsAuthenticated,
 } from './features/auth/store/auth.selectors';
@@ -107,10 +107,10 @@ export class App {
 
   protected readonly vm$ = combineLatest({
     isAuthenticated: this.store.select(selectIsAuthenticated),
-    isAuthLoading: this.store.select(selectAuthLoading),
+    isAuthInitializing: this.store.select(selectAuthInitializing),
     user: this.store.select(selectAuthUser),
   }).pipe(
-    map(({ isAuthenticated, isAuthLoading, user }): AppShellViewModel => {
+    map(({ isAuthenticated, isAuthInitializing, user }): AppShellViewModel => {
       const isAdmin = user?.roles.includes('Admin') ?? false;
 
       const primaryNav: NavItem[] = [];
@@ -143,8 +143,9 @@ export class App {
         );
       }
 
-      const isAuthPending = isAuthLoading && !isAuthenticated;
-      const isGuest = !isAuthenticated && !isAuthLoading;
+      // Skeleton shows only during the one-time startup hydration, never again.
+      const isAuthPending = isAuthInitializing;
+      const isGuest = !isAuthenticated && !isAuthInitializing;
 
       return {
         primaryNav,

@@ -3,25 +3,24 @@ import { CanActivateFn, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { filter, map, take } from 'rxjs';
 
-import { selectAuthLoading, selectIsAuthenticated } from '../store/auth.selectors';
+import { selectAuthInitializing, selectIsAuthenticated } from '../store/auth.selectors';
 
 export const guestGuard: CanActivateFn = () => {
   const store = inject(Store);
   const router = inject(Router);
 
   const isAuthenticated = store.selectSignal(selectIsAuthenticated)();
-  const isAuthLoading = store.selectSignal(selectAuthLoading)();
+  const isInitializing = store.selectSignal(selectAuthInitializing)();
 
-  // Auth has settled — decide immediately.
-  if (!isAuthLoading) {
+  // Initialization done — decide immediately.
+  if (!isInitializing) {
     return isAuthenticated ? router.createUrlTree(['/listings']) : true;
   }
 
-  // Auth is still hydrating (e.g. /auth/me in flight). Wait for it to finish,
-  // then re-evaluate. This prevents a stale localStorage token from triggering
-  // a spurious redirect before the store knows the real auth state.
-  return store.select(selectAuthLoading).pipe(
-    filter((loading) => !loading),
+  // Startup hydration in progress (ROOT_EFFECTS_INIT not yet settled).
+  // Wait until isInitializing goes false, then re-evaluate.
+  return store.select(selectAuthInitializing).pipe(
+    filter((initializing) => !initializing),
     take(1),
     map(() => {
       const authed = store.selectSignal(selectIsAuthenticated)();

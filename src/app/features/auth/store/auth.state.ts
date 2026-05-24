@@ -4,6 +4,9 @@ export interface AuthState {
   user: CurrentUser | null;
   token: string | null;
   isAuthenticated: boolean;
+  /** True only during the one-time startup hydration (ROOT_EFFECTS_INIT → /auth/me or no-token). Never goes back to true. */
+  isInitializing: boolean;
+  /** True while an explicit HTTP request (login / register / /auth/me) is in flight. */
   isLoading: boolean;
   error: string | null;
 }
@@ -12,8 +15,7 @@ export const initialAuthState: AuthState = {
   user: null,
   token: null,
   isAuthenticated: false,
-  // Start as "loading" so the header never flashes guest state before
-  // ROOT_EFFECTS_INIT fires and we know whether a token exists.
-  isLoading: true,
+  isInitializing: true,
+  isLoading: false,
   error: null,
 };

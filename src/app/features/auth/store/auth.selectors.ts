@@ -30,3 +30,8 @@ export const selectAuthError = createSelector(
   selectAuthState,
   (state: AuthState | undefined): string | null => state?.error ?? null,
 );
+
+export const selectAuthInitializing = createSelector(
+  selectAuthState,
+  (state: AuthState | undefined): boolean => state?.isInitializing ?? true,
+);

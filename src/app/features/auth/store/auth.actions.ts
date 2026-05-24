@@ -65,3 +65,6 @@ export const loadCurrentUserFailure = createAction(
 );
 
 export const logout = createAction('[Auth] Logout');
+
+/** Dispatched by initAuth$ when no token exists — signals clean anonymous startup. */
+export const authInitCompleted = createAction('[Auth] Init Completed');

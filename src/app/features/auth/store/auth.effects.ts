@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Actions, ROOT_EFFECTS_INIT, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { catchError, filter, map, mergeMap, of, tap, withLatestFrom } from 'rxjs';
+import { catchError, filter, map, mergeMap, of, take, tap, withLatestFrom } from 'rxjs';
 
 import { toApiErrorMessage } from '../../../api/http-error-message.util';
 import { AuthRedirectService } from '../services/auth-redirect.service';
@@ -47,14 +47,13 @@ export class AuthEffects {
   readonly initAuth$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ROOT_EFFECTS_INIT),
+      take(1),
       map(() => {
         const token = this.tokenService.getToken();
         if (token !== null && token !== '') {
           return AuthActions.loadCurrentUser();
         }
-        // No token — settle isLoading immediately so the header shows the
-        // correct guest state instead of an infinite auth-pending spinner.
-        return AuthActions.loadCurrentUserFailure({ error: '', preserveSession: true });
+        return AuthActions.authInitCompleted();
       }),
     ),
   );
