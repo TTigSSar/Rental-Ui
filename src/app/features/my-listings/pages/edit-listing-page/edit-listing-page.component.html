@@ -1,0 +1,183 @@
+<section class="edit-listing-page page-container">
+  <header class="edit-listing-page__header">
+    <h1 class="edit-listing-page__title">{{ 'myListings.editPage.title' | translate }}</h1>
+  </header>
+
+  @if (isLoadingData()) {
+    <p class="edit-listing-page__loading">{{ 'myListings.editPage.loading' | translate }}</p>
+  } @else if (notFound()) {
+    <p-message severity="error" [text]="'myListings.editPage.notFound' | translate" />
+  } @else {
+    @if (submitError()) {
+      <p-message severity="error" [text]="submitError()!" styleClass="edit-listing-page__error" />
+    }
+
+    <form class="edit-listing-page__form" [formGroup]="form" (ngSubmit)="onSubmit()">
+
+      <!-- Title -->
+      <div class="edit-listing-page__field">
+        <label class="edit-listing-page__label" for="edit-title">
+          {{ 'myListings.editPage.fields.title' | translate }}
+        </label>
+        <input
+          id="edit-title"
+          pInputText
+          formControlName="title"
+          [class.ng-invalid]="hasError('title')"
+          [class.ng-dirty]="hasError('title')"
+        />
+        @if (hasError('title')) {
+          <small class="edit-listing-page__field-error">
+            {{ 'myListings.editPage.errors.title' | translate }}
+          </small>
+        }
+      </div>
+
+      <!-- Description -->
+      <div class="edit-listing-page__field">
+        <label class="edit-listing-page__label" for="edit-description">
+          {{ 'myListings.editPage.fields.description' | translate }}
+        </label>
+        <textarea
+          id="edit-description"
+          class="edit-listing-page__textarea"
+          formControlName="description"
+          rows="5"
+        ></textarea>
+        @if (hasError('description')) {
+          <small class="edit-listing-page__field-error">
+            {{ 'myListings.editPage.errors.description' | translate }}
+          </small>
+        }
+      </div>
+
+      <!-- Price per day -->
+      <div class="edit-listing-page__field">
+        <label class="edit-listing-page__label" for="edit-price">
+          {{ 'myListings.editPage.fields.pricePerDay' | translate }}
+        </label>
+        <p-inputNumber
+          inputId="edit-price"
+          formControlName="pricePerDay"
+          mode="currency"
+          currency="USD"
+          [min]="0.01"
+        />
+        @if (hasError('pricePerDay')) {
+          <small class="edit-listing-page__field-error">
+            {{ 'myListings.editPage.errors.pricePerDay' | translate }}
+          </small>
+        }
+      </div>
+
+      <!-- City -->
+      <div class="edit-listing-page__field">
+        <label class="edit-listing-page__label" for="edit-city">
+          {{ 'myListings.editPage.fields.city' | translate }}
+        </label>
+        <input id="edit-city" pInputText formControlName="city" />
+      </div>
+
+      <!-- Age range -->
+      <div class="edit-listing-page__field-row">
+        <div class="edit-listing-page__field">
+          <label class="edit-listing-page__label" for="edit-age-from">
+            {{ 'myListings.editPage.fields.ageFromMonths' | translate }}
+          </label>
+          <p-inputNumber
+            inputId="edit-age-from"
+            formControlName="ageFromMonths"
+            [min]="0"
+            [max]="600"
+          />
+        </div>
+        <div class="edit-listing-page__field">
+          <label class="edit-listing-page__label" for="edit-age-to">
+            {{ 'myListings.editPage.fields.ageToMonths' | translate }}
+          </label>
+          <p-inputNumber
+            inputId="edit-age-to"
+            formControlName="ageToMonths"
+            [min]="0"
+            [max]="600"
+          />
+        </div>
+      </div>
+      @if (hasAgeRangeError()) {
+        <small class="edit-listing-page__field-error">
+          {{ 'myListings.editPage.errors.ageRange' | translate }}
+        </small>
+      }
+
+      <!-- Condition -->
+      <div class="edit-listing-page__field">
+        <label class="edit-listing-page__label" for="edit-condition">
+          {{ 'myListings.editPage.fields.condition' | translate }}
+        </label>
+        <select id="edit-condition" class="edit-listing-page__select" formControlName="condition">
+          <option value="">{{ 'myListings.editPage.fields.conditionNone' | translate }}</option>
+          <option value="New">{{ 'myListings.editPage.conditions.new' | translate }}</option>
+          <option value="LikeNew">{{ 'myListings.editPage.conditions.likeNew' | translate }}</option>
+          <option value="Good">{{ 'myListings.editPage.conditions.good' | translate }}</option>
+          <option value="Fair">{{ 'myListings.editPage.conditions.fair' | translate }}</option>
+        </select>
+      </div>
+
+      <!-- Hygiene notes -->
+      <div class="edit-listing-page__field">
+        <label class="edit-listing-page__label" for="edit-hygiene">
+          {{ 'myListings.editPage.fields.hygieneNotes' | translate }}
+        </label>
+        <textarea
+          id="edit-hygiene"
+          class="edit-listing-page__textarea"
+          formControlName="hygieneNotes"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <!-- Safety notes -->
+      <div class="edit-listing-page__field">
+        <label class="edit-listing-page__label" for="edit-safety">
+          {{ 'myListings.editPage.fields.safetyNotes' | translate }}
+        </label>
+        <textarea
+          id="edit-safety"
+          class="edit-listing-page__textarea"
+          formControlName="safetyNotes"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <!-- Deposit amount -->
+      <div class="edit-listing-page__field">
+        <label class="edit-listing-page__label" for="edit-deposit">
+          {{ 'myListings.editPage.fields.depositAmount' | translate }}
+        </label>
+        <p-inputNumber
+          inputId="edit-deposit"
+          formControlName="depositAmount"
+          mode="currency"
+          currency="USD"
+          [min]="0"
+        />
+      </div>
+
+      <!-- Actions -->
+      <div class="edit-listing-page__actions">
+        <p-button
+          type="button"
+          [outlined]="true"
+          [label]="'myListings.editPage.cancel' | translate"
+          (onClick)="onCancel()"
+        />
+        <p-button
+          type="submit"
+          [label]="'myListings.editPage.save' | translate"
+          [loading]="isSubmitting()"
+          [disabled]="form.invalid && form.touched"
+        />
+      </div>
+    </form>
+  }
+</section>

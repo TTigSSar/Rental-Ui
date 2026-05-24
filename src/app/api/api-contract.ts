@@ -23,6 +23,8 @@ export const ApiContract = {
       `/api/listings/${encodeURIComponent(id)}/images`,
     archive: (id: string): ApiPath =>
       `/api/listings/${encodeURIComponent(id)}/archive`,
+    restore: (id: string): ApiPath =>
+      `/api/listings/${encodeURIComponent(id)}/restore`,
   },
   categories: {
     root: '/api/categories',

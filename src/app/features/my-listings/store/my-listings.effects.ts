@@ -42,4 +42,18 @@ export class MyListingsEffects {
       ),
     ),
   );
+
+  readonly restoreListing$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(MyListingsActions.restoreListing),
+      mergeMap(({ listingId }) =>
+        this.myListingsApi.restoreListing(listingId).pipe(
+          map(() => MyListingsActions.restoreListingSuccess({ listingId })),
+          catchError((error: unknown) =>
+            of(MyListingsActions.restoreListingFailure({ error: toErrorMessage(error) })),
+          ),
+        ),
+      ),
+    ),
+  );
 }

@@ -12,6 +12,8 @@ export const initialAuthState: AuthState = {
   user: null,
   token: null,
   isAuthenticated: false,
-  isLoading: false,
+  // Start as "loading" so the header never flashes guest state before
+  // ROOT_EFFECTS_INIT fires and we know whether a token exists.
+  isLoading: true,
   error: null,
 };

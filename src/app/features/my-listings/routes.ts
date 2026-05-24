@@ -11,4 +11,12 @@ export const myListingsRoutes: Routes = [
         (m) => m.MyListingsPageComponent,
       ),
   },
+  {
+    path: ':id/edit',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/edit-listing-page/edit-listing-page.component').then(
+        (m) => m.EditListingPageComponent,
+      ),
+  },
 ];

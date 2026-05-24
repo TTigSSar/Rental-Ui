@@ -40,6 +40,7 @@ export class MyListingCardComponent {
 
   @Output() readonly editRequested = new EventEmitter<string>();
   @Output() readonly archiveRequested = new EventEmitter<string>();
+  @Output() readonly restoreRequested = new EventEmitter<string>();
 
   protected readonly statusLabelKey = computed(() =>
     this.mapStatusLabelKey(this.listing().status),
@@ -55,6 +56,10 @@ export class MyListingCardComponent {
 
   protected requestArchive(): void {
     this.archiveRequested.emit(this.listing().id);
+  }
+
+  protected requestRestore(): void {
+    this.restoreRequested.emit(this.listing().id);
   }
 
   private mapStatusLabelKey(status: MyListingStatus): string {

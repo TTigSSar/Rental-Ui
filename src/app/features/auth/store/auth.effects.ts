@@ -47,9 +47,15 @@ export class AuthEffects {
   readonly initAuth$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ROOT_EFFECTS_INIT),
-      map(() => this.tokenService.getToken()),
-      filter((token): token is string => token !== null && token !== ''),
-      map(() => AuthActions.loadCurrentUser()),
+      map(() => {
+        const token = this.tokenService.getToken();
+        if (token !== null && token !== '') {
+          return AuthActions.loadCurrentUser();
+        }
+        // No token — settle isLoading immediately so the header shows the
+        // correct guest state instead of an infinite auth-pending spinner.
+        return AuthActions.loadCurrentUserFailure({ error: '', preserveSession: true });
+      }),
     ),
   );
 

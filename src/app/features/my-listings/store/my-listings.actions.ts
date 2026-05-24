@@ -28,3 +28,18 @@ export const archiveListingFailure = createAction(
   '[My Listings] Archive Listing Failure',
   props<{ error: string }>(),
 );
+
+export const restoreListing = createAction(
+  '[My Listings] Restore Listing',
+  props<{ listingId: string }>(),
+);
+
+export const restoreListingSuccess = createAction(
+  '[My Listings] Restore Listing Success',
+  props<{ listingId: string }>(),
+);
+
+export const restoreListingFailure = createAction(
+  '[My Listings] Restore Listing Failure',
+  props<{ error: string }>(),
+);

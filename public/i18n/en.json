@@ -510,6 +510,7 @@
       "view": "View",
       "edit": "Edit",
       "archive": "Archive",
+      "restore": "Restore",
       "listToy": "List a Toy"
     },
     "common": {
@@ -523,6 +524,38 @@
       "rejected": "Rejected",
       "archived": "Archived",
       "noResults": "No listings match this filter."
+    },
+    "editPage": {
+      "title": "Edit Toy Listing",
+      "loading": "Loading listing data…",
+      "notFound": "Listing not found or you do not have permission to edit it.",
+      "save": "Save changes",
+      "cancel": "Cancel",
+      "fields": {
+        "title": "Title",
+        "description": "Description",
+        "pricePerDay": "Price per day (USD)",
+        "city": "City",
+        "ageFromMonths": "Age from (months)",
+        "ageToMonths": "Age to (months)",
+        "condition": "Condition",
+        "conditionNone": "Not specified",
+        "hygieneNotes": "Hygiene notes",
+        "safetyNotes": "Safety notes",
+        "depositAmount": "Deposit amount (USD)"
+      },
+      "conditions": {
+        "new": "New",
+        "likeNew": "Like New",
+        "good": "Good",
+        "fair": "Fair"
+      },
+      "errors": {
+        "title": "Title must be between 3 and 200 characters.",
+        "description": "Description must be between 20 and 4000 characters.",
+        "pricePerDay": "Price per day must be greater than zero.",
+        "ageRange": "Age (to) must be greater than or equal to age (from)."
+      }
     },
     "statusNote": {
       "pending": "Under review — usually within 24–48 hours.",

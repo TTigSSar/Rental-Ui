@@ -44,4 +44,13 @@ export const myListingsReducer = createReducer(
       ),
     }),
   ),
+  on(
+    MyListingsActions.restoreListingSuccess,
+    (state, { listingId }): MyListingsState => ({
+      ...state,
+      items: state.items.map((item) =>
+        item.id === listingId ? { ...item, status: 'PendingApproval' as const } : item,
+      ),
+    }),
+  ),
 );
