@@ -161,6 +161,7 @@ export class App {
   );
 
   constructor() {
+    this.store.dispatch(AuthActions.authInitStarted());
     this.hydrateLanguage();
 
     this.router.events

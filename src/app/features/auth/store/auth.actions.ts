@@ -66,5 +66,13 @@ export const loadCurrentUserFailure = createAction(
 
 export const logout = createAction('[Auth] Logout');
 
+/**
+ * Dispatched once by App constructor after all effects are registered.
+ * Using this instead of ROOT_EFFECTS_INIT because ROOT_EFFECTS_INIT fires from
+ * the first provideEffects() call — before AuthEffects is registered — so
+ * initAuth$ would miss it on a hot actions$ Subject.
+ */
+export const authInitStarted = createAction('[Auth] Init Started');
+
 /** Dispatched by initAuth$ when no token exists — signals clean anonymous startup. */
 export const authInitCompleted = createAction('[Auth] Init Completed');
