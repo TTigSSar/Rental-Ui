@@ -2,10 +2,10 @@ import { AsyncPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  OnInit,
   inject,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
@@ -27,6 +27,7 @@ import {
   selectListingsLoading,
   selectListingsPageSize,
 } from '../../store/listings.selectors';
+import type { ParamMap } from '@angular/router';
 
 export interface ListingsPageViewModel {
   readonly items: ListingPreview[];
@@ -90,29 +91,26 @@ const selectListingsPageViewModel = createSelector(
   styleUrl: './listings-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ListingsPageComponent implements OnInit {
+export class ListingsPageComponent {
   private readonly store = inject(Store);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   protected readonly viewModel$ = this.store.select(selectListingsPageViewModel);
 
-  ngOnInit(): void {
-    const p = this.route.snapshot.queryParams;
-    const filters: ListingsFilter = {
-      query: typeof p['q'] === 'string' && p['q'].trim() ? p['q'].trim() : null,
-      city: typeof p['city'] === 'string' && p['city'].trim() ? p['city'].trim() : null,
-      categoryId: typeof p['categoryId'] === 'string' && p['categoryId'].trim() ? p['categoryId'].trim() : null,
-      minPrice: p['minPrice'] != null && !Number.isNaN(Number(p['minPrice'])) ? Number(p['minPrice']) : null,
-      maxPrice: p['maxPrice'] != null && !Number.isNaN(Number(p['maxPrice'])) ? Number(p['maxPrice']) : null,
-    };
-    this.store.dispatch(ListingsActions.updateFilters({ filters }));
-    this.store.dispatch(ListingsActions.loadListings());
+  constructor() {
+    // Reacts to direct URL loads, programmatic navigation, and browser back/forward.
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed())
+      .subscribe((params) => {
+        const filters = this.parseFiltersFromParams(params);
+        this.store.dispatch(ListingsActions.updateFilters({ filters }));
+        this.store.dispatch(ListingsActions.loadListings());
+      });
   }
 
-  protected onFiltersChanged(filters: ListingsFilter): void {
-    this.store.dispatch(ListingsActions.updateFilters({ filters }));
-    this.store.dispatch(ListingsActions.loadListings());
-  }
+  // URL is the source of truth; the queryParamMap subscription above handles all reloads.
+  protected onFiltersChanged(_filters: ListingsFilter): void {}
 
   protected onFavoriteToggled(listingId: string): void {
     this.store.dispatch(ListingsActions.toggleFavoriteOptimistic({ listingId }));
@@ -127,15 +125,31 @@ export class ListingsPageComponent implements OnInit {
   }
 
   protected clearFilters(): void {
-    this.store.dispatch(
-      ListingsActions.updateFilters({
-        filters: { query: null, city: null, categoryId: null, minPrice: null, maxPrice: null },
-      }),
-    );
-    this.store.dispatch(ListingsActions.loadListings());
+    void this.router.navigate([], { relativeTo: this.route, queryParams: {} });
   }
 
   protected skeletonCount(vm: ListingsPageViewModel): number {
     return Math.min(Math.max(vm.pageSize, 1), 12);
+  }
+
+  private parseFiltersFromParams(params: ParamMap): ListingsFilter {
+    const q = params.get('q');
+    const city = params.get('city');
+    const categoryId = params.get('categoryId');
+    const minPriceStr = params.get('minPrice');
+    const maxPriceStr = params.get('maxPrice');
+    return {
+      query: q?.trim() || null,
+      city: city?.trim() || null,
+      categoryId: categoryId?.trim() || null,
+      minPrice:
+        minPriceStr != null && !Number.isNaN(Number(minPriceStr))
+          ? Number(minPriceStr)
+          : null,
+      maxPrice:
+        maxPriceStr != null && !Number.isNaN(Number(maxPriceStr))
+          ? Number(maxPriceStr)
+          : null,
+    };
   }
 }

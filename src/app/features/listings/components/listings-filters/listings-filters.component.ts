@@ -20,7 +20,7 @@ import { debounceTime } from 'rxjs';
 import type { ListingCategoryOption } from '../../models/create-listing.model';
 import type { ListingsFilter } from '../../models/listings-filter.model';
 import * as ListingsActions from '../../store/listings.actions';
-import { selectListingCategories, selectListingsFilters } from '../../store/listings.selectors';
+import { selectListingCategories } from '../../store/listings.selectors';
 
 @Component({
   selector: 'app-listings-filters',
@@ -70,22 +70,34 @@ export class ListingsFiltersComponent implements OnInit {
         });
         this.filtersChanged.emit(filter);
       });
+
+    // Syncs the form from the URL on initial load and on browser back/forward.
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        const minPriceStr = params.get('minPrice');
+        const maxPriceStr = params.get('maxPrice');
+        this.filterForm.patchValue(
+          {
+            query: params.get('q') ?? '',
+            city: params.get('city') ?? '',
+            categoryId: params.get('categoryId') ?? '',
+            minPrice:
+              minPriceStr != null && !Number.isNaN(Number(minPriceStr))
+                ? Number(minPriceStr)
+                : null,
+            maxPrice:
+              maxPriceStr != null && !Number.isNaN(Number(maxPriceStr))
+                ? Number(maxPriceStr)
+                : null,
+          },
+          { emitEvent: false },
+        );
+      });
   }
 
   ngOnInit(): void {
     this.store.dispatch(ListingsActions.loadListingCategories());
-
-    const currentFilters = this.store.selectSignal(selectListingsFilters)();
-    this.filterForm.patchValue(
-      {
-        query: currentFilters.query ?? '',
-        city: currentFilters.city ?? '',
-        categoryId: currentFilters.categoryId ?? '',
-        minPrice: currentFilters.minPrice,
-        maxPrice: currentFilters.maxPrice,
-      },
-      { emitEvent: false },
-    );
   }
 
   protected clearFilters(): void {
