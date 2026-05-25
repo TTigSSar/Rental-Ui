@@ -185,7 +185,9 @@
       "firstName": "Имя",
       "firstNamePlaceholder": "Введите ваше имя",
       "lastName": "Фамилия",
-      "lastNamePlaceholder": "Введите вашу фамилию"
+      "lastNamePlaceholder": "Введите вашу фамилию",
+      "phoneNumber": "Номер телефона",
+      "phoneNumberPlaceholder": "например, +374 99 123 456"
     },
     "validation": {
       "emailRequired": "Эл. почта обязательна.",
@@ -193,7 +195,9 @@
       "passwordRequired": "Пароль обязателен.",
       "passwordMinLength": "Пароль должен содержать минимум 8 символов.",
       "firstNameRequired": "Имя обязательно.",
-      "lastNameRequired": "Фамилия обязательна."
+      "lastNameRequired": "Фамилия обязательна.",
+      "phoneNumberRequired": "Номер телефона обязателен.",
+      "phoneNumberInvalid": "Введите корректный номер телефона (7–20 цифр)."
     },
     "login": {
       "title": "Вход",
@@ -300,7 +304,7 @@
       "assurance": "Аренда игрушек у владельца с прозрачными ценами.",
       "descriptionHeading": "Описание",
       "hostHeading": "Владелец игрушки",
-      "contactLabel": "Контакт не указан",
+      "contactLabel": "Номер телефона будет доступен после отправки запроса на аренду.",
       "bookingHeading": "Проверьте доступность",
       "bookingSubtitle": "Выберите даты аренды и посмотрите итоговую стоимость до отправки запроса.",
       "bookingSubmitting": "Отправка запроса на аренду...",

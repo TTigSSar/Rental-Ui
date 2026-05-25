@@ -189,6 +189,8 @@ export class ListingDetailsPageComponent {
     initialValue: null as string | null,
   });
 
+  private readonly createBookingSuccessId = this.store.selectSignal(selectCreateBookingSuccessId);
+
   protected readonly viewModel$ = combineLatest({
     listingState: this.store.select(selectListingDetailsBase),
     createBookingLoading: this.store.select(selectCreateBookingLoading),
@@ -248,6 +250,15 @@ export class ListingDetailsPageComponent {
       if (id !== null && id !== '') {
         this.store.dispatch(ListingsActions.loadListingDetails({ id }));
         this.store.dispatch(BookingsActions.clearCreateBookingState());
+      }
+    });
+
+    effect(() => {
+      const successId = this.createBookingSuccessId();
+      if (successId === null) return;
+      const listingId = this.routeListingId();
+      if (listingId !== null && listingId !== '') {
+        this.store.dispatch(ListingsActions.loadListingDetails({ id: listingId }));
       }
     });
   }

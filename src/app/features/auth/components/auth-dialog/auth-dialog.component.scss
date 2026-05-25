@@ -74,8 +74,30 @@
   border-bottom-color: var(--ui-color-primary);
 }
 
-/* ── Mobile ────────────────────────────────────────────────────── */
+/* ── Mobile bottom-sheet layout + slide animation ──────────────── */
 @media (max-width: 560px) {
+  @keyframes auth-dialog-slide-up {
+    from { transform: translateY(100%); opacity: 1; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+
+  @keyframes auth-dialog-slide-down {
+    from { transform: translateY(0);    opacity: 1; }
+    to   { transform: translateY(100%); opacity: 1; }
+  }
+
+  /* Slide up from below on open — overrides PrimeNG's default scale entrance */
+  .p-dialog-enter-active.auth-dialog {
+    animation: auth-dialog-slide-up 320ms cubic-bezier(0.32, 0.72, 0, 1) both;
+    transition: none;
+  }
+
+  /* Slide down to below on close */
+  .p-dialog-leave-active.auth-dialog {
+    animation: auth-dialog-slide-down 220ms cubic-bezier(0.4, 0, 1, 1) both;
+    transition: none;
+  }
+
   .p-dialog.auth-dialog {
     width: 100vw;
     margin: 0;

@@ -49,6 +49,28 @@
   </div>
 
   <div class="auth-form__field">
+    <label class="auth-form__label" for="auth-reg-phone">{{ 'auth.form.phoneNumber' | translate }}</label>
+    <input
+      id="auth-reg-phone"
+      pInputText
+      type="tel"
+      class="auth-form__input"
+      formControlName="phoneNumber"
+      [placeholder]="'auth.form.phoneNumberPlaceholder' | translate"
+      autocomplete="tel"
+      [disabled]="(isLoading$ | async) ?? false"
+      [attr.aria-invalid]="isInvalid('phoneNumber') ? 'true' : null"
+      [attr.aria-describedby]="isInvalid('phoneNumber') ? 'auth-reg-phone-error' : null"
+    />
+    @if (hasError('phoneNumber', 'required')) {
+      <small id="auth-reg-phone-error" class="auth-form__validation">{{ 'auth.validation.phoneNumberRequired' | translate }}</small>
+    }
+    @if (hasError('phoneNumber', 'pattern')) {
+      <small id="auth-reg-phone-error" class="auth-form__validation">{{ 'auth.validation.phoneNumberInvalid' | translate }}</small>
+    }
+  </div>
+
+  <div class="auth-form__field">
     <label class="auth-form__label" for="auth-reg-email">{{ 'auth.form.email' | translate }}</label>
     <input
       id="auth-reg-email"

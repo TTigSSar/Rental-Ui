@@ -43,11 +43,14 @@ export class RegisterFormComponent {
   protected readonly isLoading$ = this.store.select(selectAuthLoading);
   protected readonly error$ = this.store.select(selectAuthError);
 
+  private static readonly PHONE_PATTERN = /^\+?[\d\s\-()\\.]{7,20}$/;
+
   protected readonly registerForm = this.fb.nonNullable.group({
     firstName: ['', [Validators.required]],
     lastName: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
+    phoneNumber: ['', [Validators.required, Validators.pattern(RegisterFormComponent.PHONE_PATTERN)]],
   });
 
   protected submit(): void {
@@ -61,14 +64,14 @@ export class RegisterFormComponent {
   }
 
   protected hasError(
-    controlName: 'firstName' | 'lastName' | 'email' | 'password',
+    controlName: 'firstName' | 'lastName' | 'email' | 'password' | 'phoneNumber',
     errorKey: string,
   ): boolean {
     const control = this.registerForm.controls[controlName];
     return control.touched && control.hasError(errorKey);
   }
 
-  protected isInvalid(controlName: 'firstName' | 'lastName' | 'email' | 'password'): boolean {
+  protected isInvalid(controlName: 'firstName' | 'lastName' | 'email' | 'password' | 'phoneNumber'): boolean {
     const control = this.registerForm.controls[controlName];
     return control.touched && control.invalid;
   }

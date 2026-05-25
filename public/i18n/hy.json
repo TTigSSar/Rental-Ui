@@ -185,7 +185,9 @@
       "firstName": "Անուն",
       "firstNamePlaceholder": "Մուտքագրեք ձեր անունը",
       "lastName": "Ազգանուն",
-      "lastNamePlaceholder": "Մուտքագրեք ձեր ազգանունը"
+      "lastNamePlaceholder": "Մուտքագրեք ձեր ազգանունը",
+      "phoneNumber": "Հեռախոսի համար",
+      "phoneNumberPlaceholder": "օր.՝ +374 99 123 456"
     },
     "validation": {
       "emailRequired": "Էլ. փոստը պարտադիր է։",
@@ -193,7 +195,9 @@
       "passwordRequired": "Գաղտնաբառը պարտադիր է։",
       "passwordMinLength": "Գաղտնաբառը պետք է լինի առնվազն 8 նիշ։",
       "firstNameRequired": "Անունը պարտադիր է։",
-      "lastNameRequired": "Ազգանունը պարտադիր է։"
+      "lastNameRequired": "Ազգանունը պարտադիր է։",
+      "phoneNumberRequired": "Հեռախոսի համարը պարտադիր է։",
+      "phoneNumberInvalid": "Մուտքագրեք վավեր հեռախոսի համար (7–20 նիշ)։"
     },
     "login": {
       "title": "Մուտք",
@@ -300,7 +304,7 @@
       "assurance": "Խաղալիքի վարձակալություն տիրոջից՝ թափանցիկ գներով։",
       "descriptionHeading": "Նկարագրություն",
       "hostHeading": "Խաղալիքի սեփականատեր",
-      "contactLabel": "Կապը նշված չէ",
+      "contactLabel": "Հեռախոսի համարը կտեսնեք վարձակալության հայտ ուղարկելուց հետո։",
       "bookingHeading": "Ստուգեք հասանելիությունը",
       "bookingSubtitle": "Ընտրեք վարձակալման ամսաթվերը և տեսեք ընդհանուր գումարը՝ նախքան հարցումը։",
       "bookingSubmitting": "Վարձակալման հարցումը ուղարկվում է...",

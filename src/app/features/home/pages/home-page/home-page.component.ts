@@ -317,7 +317,7 @@ export class HomePageComponent implements OnInit {
         showCategoriesEmpty:
           !source.categoriesLoading && mappedCategories.length === 0,
         isAuthenticated: source.isAuthenticated,
-        sections,
+        sections: sections.filter((s) => s.key !== 'popular'),
         sectionsLoading,
         sectionsError,
       };

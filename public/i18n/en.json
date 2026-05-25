@@ -185,7 +185,9 @@
       "firstName": "First name",
       "firstNamePlaceholder": "Enter your first name",
       "lastName": "Last name",
-      "lastNamePlaceholder": "Enter your last name"
+      "lastNamePlaceholder": "Enter your last name",
+      "phoneNumber": "Phone number",
+      "phoneNumberPlaceholder": "e.g. +374 99 123 456"
     },
     "validation": {
       "emailRequired": "Email is required.",
@@ -193,7 +195,9 @@
       "passwordRequired": "Password is required.",
       "passwordMinLength": "Password must be at least 8 characters.",
       "firstNameRequired": "First name is required.",
-      "lastNameRequired": "Last name is required."
+      "lastNameRequired": "Last name is required.",
+      "phoneNumberRequired": "Phone number is required.",
+      "phoneNumberInvalid": "Enter a valid phone number (7–20 digits)."
     },
     "login": {
       "title": "Sign in",
@@ -300,7 +304,7 @@
       "assurance": "Owner-managed toy rentals with transparent pricing.",
       "descriptionHeading": "Description",
       "hostHeading": "Toy owner",
-      "contactLabel": "Contact not shared",
+      "contactLabel": "Phone number will be available after you send a booking request.",
       "bookingHeading": "Check availability",
       "bookingSubtitle": "Pick your rental dates and see the total before you send a rental request.",
       "bookingSubmitting": "Submitting rental request...",
