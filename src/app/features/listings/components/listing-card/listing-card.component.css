@@ -233,6 +233,47 @@
   color: var(--ui-color-text-secondary);
 }
 
+@media (max-width: 560px) {
+  :host {
+    min-width: 0;
+  }
+
+  .listing-card__body {
+    padding: var(--ui-space-8);
+    gap: var(--ui-space-4);
+  }
+
+  .listing-card__title {
+    font-size: 0.8125rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .listing-card__city {
+    font-size: 0.6875rem;
+  }
+
+  .listing-card__price-amount {
+    font-size: 0.875rem;
+  }
+
+  .listing-card__price-suffix {
+    font-size: 0.6875rem;
+  }
+
+  .listing-card__trust-footer {
+    display: none;
+  }
+
+  .listing-card__fav-btn {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .listing-card__fav-icon {
+    font-size: 0.875rem;
+  }
+}
+
 /* ── Trust footer (hygiene + condition — Direction A bottom row) */
 .listing-card__trust-footer {
   display: flex;

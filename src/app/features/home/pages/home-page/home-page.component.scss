@@ -765,10 +765,8 @@
     display: none;
   }
 
-  /* Container: 16px side gutters, 80px bottom so the FAB (which protrudes
-     ~24px above the 64px nav bar) never covers the last card */
   .home__container {
-    padding: var(--ui-space-24) var(--ui-space-16) 80px;
+    padding: var(--ui-space-24) var(--ui-space-16) var(--ui-space-24);
     gap: var(--ui-space-32);
   }
 

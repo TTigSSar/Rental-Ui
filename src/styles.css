@@ -99,6 +99,16 @@
   --ui-focus-ring: 0 0 0 3px rgba(255, 96, 8, 0.18);
   --ui-color-button-outlined-border: #c9cedd;
   --ui-color-button-outlined-text: #34384a;
+
+  /* —— Shell layout helpers —— */
+  --app-bottom-nav-safe-space: 0px;
+}
+
+@media (max-width: 960px) {
+  :root {
+    /* 64px nav + 24px FAB overhang + 24px breathing room */
+    --app-bottom-nav-safe-space: calc(112px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 *,
