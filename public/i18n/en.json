@@ -197,7 +197,7 @@
       "firstNameRequired": "First name is required.",
       "lastNameRequired": "Last name is required.",
       "phoneNumberRequired": "Phone number is required.",
-      "phoneNumberInvalid": "Enter a valid phone number (7–20 digits)."
+      "phoneNumberInvalid": "Enter a valid phone number with 7 to 20 digits. Spaces, dashes, and parentheses are allowed."
     },
     "login": {
       "title": "Sign in",

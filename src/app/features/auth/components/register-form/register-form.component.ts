@@ -43,7 +43,7 @@ export class RegisterFormComponent {
   protected readonly isLoading$ = this.store.select(selectAuthLoading);
   protected readonly error$ = this.store.select(selectAuthError);
 
-  private static readonly PHONE_PATTERN = /^\+?[\d\s\-()\\.]{7,20}$/;
+  private static readonly PHONE_PATTERN = /^\+?(?=(?:[^\d]*\d){7,20}[^\d]*$)[\d\s\-().]+$/;
 
   protected readonly registerForm = this.fb.nonNullable.group({
     firstName: ['', [Validators.required]],
