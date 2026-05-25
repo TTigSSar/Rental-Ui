@@ -2,6 +2,8 @@
   display: block;
   background: var(--ui-color-surface-muted);
   color: var(--ui-color-text-primary);
+  /* Prevent any child element from creating horizontal page scroll */
+  overflow-x: clip;
 }
 
 .home {
@@ -395,10 +397,16 @@
   border: 1px solid rgba(255, 96, 8, 0.15);
 }
 
-.home__trust-icon {
+.home__trust-icon-wrap {
   flex-shrink: 0;
-  font-size: 1.5rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--ui-color-primary-soft);
+  display: grid;
+  place-items: center;
   color: var(--ui-color-primary);
+  font-size: 1.25rem;
 }
 
 .home__trust-content {
@@ -719,6 +727,130 @@
   }
   .home__faq-help {
     padding: 32px 20px;
+  }
+}
+
+/* ==============================
+   Mobile overrides (≤ 560px / Direction A)
+   ============================== */
+@media (max-width: 560px) {
+  /* Hero: compact left-aligned */
+  .home__hero {
+    min-height: 260px;
+    padding: 32px 20px 40px;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+
+  .home__hero-content {
+    align-items: flex-start;
+    text-align: left;
+    gap: 20px;
+    /* Don't let hero content push past the padded viewport width */
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .home__hero-title {
+    font-size: 1.625rem;
+    font-weight: 800;
+  }
+
+  .home__hero-subtitle {
+    font-size: 0.9375rem;
+  }
+
+  /* Hide the "Explore" CTA — too much vertical chrome at 375px */
+  .home__hero-cta {
+    display: none;
+  }
+
+  /* Container: 16px side gutters, 80px bottom so the FAB (which protrudes
+     ~24px above the 64px nav bar) never covers the last card */
+  .home__container {
+    padding: var(--ui-space-24) var(--ui-space-16) 80px;
+    gap: var(--ui-space-32);
+  }
+
+  .home__section {
+    gap: 20px;
+    /* Section must not overflow its parent even when children are wide */
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Allow long translated headings to truncate instead of widening the row */
+  .home__section-title {
+    font-size: 1.125rem;
+    min-width: 0;
+  }
+
+  /* "See all" must always be fully visible — already flex-shrink: 0 */
+
+  /* Categories: keep horizontal scroll with compact 68px icon tiles */
+  .home__carousel--categories {
+    /* Keep overflow-x: auto from base — do not override */
+  }
+
+  .home__carousel--categories .home__carousel-item {
+    width: 68px;
+  }
+
+  /* Products / sections: 2-col grid.
+     KEY: overflow must be hidden (not visible) so grid content that exceeds
+     its 1fr column is clipped, not propagated to the page scroll width. */
+  .home__carousel--products,
+  .home__carousel--sections {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    overflow: hidden;
+    gap: 12px;
+    padding: 0 0 8px;
+    scroll-snap-type: none;
+    scrollbar-width: none;
+  }
+
+  /* min-width: 0 is REQUIRED on grid items so they can shrink to their 1fr
+     column. Without it, `min-width: auto` lets items grow past the column,
+     overflowing the page and causing horizontal scroll. */
+  .home__carousel--products .home__carousel-item--product,
+  .home__carousel--sections .home__carousel-item--section {
+    width: 100%;
+    min-width: 0;
+    flex-shrink: unset;
+  }
+
+  /* Trust strip: white surface card on mobile */
+  .home__trust-strip {
+    background: var(--ui-color-surface);
+    border-color: var(--ui-color-border);
+    padding: var(--ui-space-16);
+  }
+
+  /* FAQ: tighter on small screens */
+  .home__faq {
+    padding: 28px 20px;
+    gap: 28px;
+  }
+
+  .home__faq-help {
+    padding: 24px 16px;
+  }
+
+  .home__faq-help-title {
+    font-size: 1.25rem;
+  }
+
+  .home__faq-help-text {
+    font-size: 1rem;
+  }
+
+  .home__faq-item-header {
+    padding: 16px;
+  }
+
+  .home__faq-item-answer {
+    padding: 0 16px 16px;
   }
 }
 

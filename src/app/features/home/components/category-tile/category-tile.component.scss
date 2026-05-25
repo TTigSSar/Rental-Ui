@@ -87,3 +87,40 @@
     font-size: 2.5rem;
   }
 }
+
+@media (max-width: 560px) {
+  .category-tile {
+    gap: 8px;
+    align-items: center;
+  }
+
+  .category-tile__media {
+    aspect-ratio: 1 / 1;
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+  }
+
+  .category-tile__icon {
+    font-size: 1.75rem;
+  }
+
+  /* Chip becomes a plain compact label on mobile */
+  .category-tile__chip {
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: 0.75rem;
+    font-weight: 500;
+    max-width: 80px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .category-tile:hover .category-tile__chip,
+  .category-tile:focus-visible .category-tile__chip {
+    background: transparent;
+    border: none;
+  }
+}

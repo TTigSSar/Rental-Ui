@@ -756,7 +756,8 @@
   }
 
   .app-shell__content--with-bottom-nav {
-    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    /* 64px nav height + 24px FAB overhang above nav top edge */
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
   }
 
   .app-bottom-nav {
@@ -907,7 +908,7 @@
   }
 
   .app-footer {
-    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
   }
 }
 

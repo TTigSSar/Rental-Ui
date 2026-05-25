@@ -166,3 +166,76 @@
 .product-card__action--active {
   color: var(--ui-color-primary);
 }
+
+@media (max-width: 560px) {
+  /* The host element is a grid item — must be constrained to its 1fr column */
+  :host {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .product-card {
+    min-width: 0;
+  }
+
+  .product-card__body {
+    padding: var(--ui-space-8) var(--ui-space-8) var(--ui-space-12);
+    gap: var(--ui-space-8);
+    min-width: 0;
+  }
+
+  .product-card__top {
+    min-width: 0;
+  }
+
+  .product-card__title {
+    font-size: 0.8125rem;
+    min-height: unset;
+    -webkit-line-clamp: 2;
+    /* Hard-clamp to prevent the box model from forcing card wider */
+    overflow: hidden;
+  }
+
+  .product-card__city {
+    font-size: 0.6875rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Meta row must clip — the category badge has white-space: nowrap */
+  .product-card__meta {
+    overflow: hidden;
+  }
+
+  .product-card__category {
+    font-size: 0.6875rem;
+    padding: 2px 8px;
+    /* Ensure the badge never widens the card past its column */
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .product-card__footer {
+    gap: var(--ui-space-8);
+  }
+
+  .product-card__price {
+    font-size: 0.875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Remove the chat icon on small cards — saves space */
+  .product-card__action--chat {
+    display: none;
+  }
+
+  .product-card__action {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+}
