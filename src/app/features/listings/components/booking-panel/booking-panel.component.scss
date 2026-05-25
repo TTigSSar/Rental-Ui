@@ -75,6 +75,10 @@
   border-radius: var(--ui-radius-md);
   padding: 12px;
   background: #fff;
+  /* Contain the PrimeNG inline calendar — prevents it from escaping the card
+     when its intrinsic width exceeds the container on narrow phones. */
+  overflow: hidden;
+  min-width: 0;
 }
 
 .booking-panel__calendar :deep(.p-datepicker),
@@ -287,13 +291,11 @@
   :host {
     // Tuned to single-row sticky inner height (~88px); must stay in sync if strip layout changes.
     --booking-panel-sticky-height: 88px;
-    // Matches .app-bottom-nav min-height (app.css).
-    --booking-panel-bottom-nav-height: 64px;
-    --booking-panel-safe-area-bottom: env(safe-area-inset-bottom, 0px);
 
+    // Use the global --app-bottom-nav-safe-space (nav 64px + FAB 32px + extra 32px +
+    // safe-area) so the strip and its host padding are always in sync with the bottom nav.
     padding-bottom: calc(
-      var(--booking-panel-sticky-height) + var(--booking-panel-bottom-nav-height) +
-        var(--booking-panel-safe-area-bottom)
+      var(--booking-panel-sticky-height) + var(--app-bottom-nav-safe-space, 128px)
     );
   }
 
@@ -307,9 +309,9 @@
     left: 0;
     right: 0;
     z-index: 98;
-    bottom: calc(
-      var(--booking-panel-bottom-nav-height) + var(--booking-panel-safe-area-bottom)
-    );
+    // Place the strip above the entire bottom nav + FAB stack.
+    // --app-bottom-nav-safe-space resolves to 128px at ≤960px (styles.css).
+    bottom: var(--app-bottom-nav-safe-space, 64px);
     padding: 0 var(--ui-space-16, 16px) 10px;
     pointer-events: none;
   }
