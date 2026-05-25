@@ -1,7 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\tigra\\\\Projects\\\\rental\\\\rental-app\\\\Rental-Ui\\\\src\\\\app\\\\features\\\\listings\\\\components\\\\booking-panel\\\\\" | Where-Object { $_.Extension -in '.scss', '.css' })"
-    ]
-  }
-}

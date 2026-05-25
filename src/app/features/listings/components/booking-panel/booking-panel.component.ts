@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { CurrencyPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -40,7 +40,6 @@ function countInclusiveRentalDays(start: Date, end: Date): number {
     BookingCalendarComponent,
     ButtonModule,
     CurrencyPipe,
-    DatePipe,
     TranslatePipe,
   ],
   templateUrl: './booking-panel.component.html',

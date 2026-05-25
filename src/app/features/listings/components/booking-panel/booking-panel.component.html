@@ -26,7 +26,7 @@
     />
   </div>
 
-  <div class="booking-panel__desktop-footer">
+  <div class="booking-panel__footer">
     <dl class="booking-panel__summary" aria-live="polite">
       <div class="booking-panel__summary-row">
         <dt>
@@ -99,75 +99,5 @@
       <i class="pi pi-check-circle" aria-hidden="true"></i>
       <span>{{ 'listings.booking.assuranceTransparency' | translate }}</span>
     </p>
-  </div>
-
-  <div
-    class="booking-panel__mobile-sticky"
-    role="region"
-    [attr.aria-label]="'listings.details.bookingHeading' | translate"
-  >
-    <div class="booking-panel__mobile-sticky-inner">
-      @if (submitError(); as stickyError) {
-        <p
-          class="booking-panel__sticky-status booking-panel__sticky-status--error"
-          role="alert"
-        >
-          <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-          <span>{{ stickyError }}</span>
-        </p>
-      }
-
-      @if (submitSuccess()) {
-        <p
-          class="booking-panel__sticky-status booking-panel__sticky-status--success"
-          role="status"
-        >
-          <i class="pi pi-check-circle" aria-hidden="true"></i>
-          <span>{{ 'listings.details.bookingSuccess' | translate }}</span>
-        </p>
-      }
-
-      <div class="booking-panel__sticky-row">
-        <div class="booking-panel__sticky-price-block">
-          <p class="booking-panel__sticky-price">
-            <span class="booking-panel__sticky-price-amount">{{
-              pricePerDay() | currency
-            }}</span>
-            <span class="booking-panel__sticky-price-suffix">{{
-              'listings.booking.priceSuffix' | translate
-            }}</span>
-          </p>
-          <p class="booking-panel__sticky-sub" aria-live="polite">
-            @if (startDate(); as sd) {
-              @if (endDate(); as ed) {
-                <span class="booking-panel__sticky-date-range">
-                  {{ sd | date: 'mediumDate' }} — {{ ed | date: 'mediumDate' }}
-                </span>
-                @if (totalPrice(); as stickyTotal) {
-                  <span class="booking-panel__sticky-total"> · {{ stickyTotal | currency }}</span>
-                }
-              }
-            } @else {
-              <span class="booking-panel__sticky-date-placeholder">{{
-                'listings.booking.disabledHint' | translate
-              }}</span>
-            }
-          </p>
-        </div>
-
-        <p-button
-          type="button"
-          styleClass="booking-panel__cta booking-panel__sticky-cta"
-          [label]="
-            submitting()
-              ? ('listings.booking.submitting' | translate)
-              : ('listings.booking.cta' | translate)
-          "
-          [disabled]="!canSubmit()"
-          [loading]="submitting()"
-          (onClick)="onSubmitClick()"
-        />
-      </div>
-    </div>
   </div>
 </section>
