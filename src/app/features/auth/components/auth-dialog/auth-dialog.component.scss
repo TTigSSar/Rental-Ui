@@ -1,0 +1,93 @@
+/* ── Auth dialog shell (ViewEncapsulation.None — targets PrimeNG) ── */
+
+.p-dialog.auth-dialog {
+  width: min(480px, calc(100vw - 2rem));
+  border-radius: var(--ui-radius-lg);
+  overflow: hidden;
+}
+
+.p-dialog.auth-dialog .p-dialog-header {
+  padding: var(--ui-space-20) var(--ui-space-24) var(--ui-space-16);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
+  background: var(--ui-color-surface);
+}
+
+.p-dialog.auth-dialog .p-dialog-content {
+  padding: 0;
+  background: var(--ui-color-surface);
+  overflow-y: auto;
+}
+
+/* ── Header ────────────────────────────────────────────────────── */
+.auth-dialog__header {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-8);
+}
+
+.auth-dialog__title {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-8);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--ui-color-text-primary);
+
+  .pi {
+    color: var(--ui-color-primary);
+  }
+}
+
+/* ── Body ──────────────────────────────────────────────────────── */
+.auth-dialog__body {
+  padding: 0 var(--ui-space-24) var(--ui-space-24);
+}
+
+/* ── Tab switcher ──────────────────────────────────────────────── */
+.auth-dialog__tabs {
+  display: flex;
+  margin: var(--ui-space-20) 0 0;
+  border-bottom: 2px solid var(--ui-color-border);
+}
+
+.auth-dialog__tab {
+  flex: 1;
+  padding: var(--ui-space-8) var(--ui-space-16);
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ui-color-text-secondary);
+  cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease;
+  text-align: center;
+
+  &:hover {
+    color: var(--ui-color-text-primary);
+  }
+}
+
+.auth-dialog__tab--active {
+  color: var(--ui-color-primary);
+  border-bottom-color: var(--ui-color-primary);
+}
+
+/* ── Mobile ────────────────────────────────────────────────────── */
+@media (max-width: 560px) {
+  .p-dialog.auth-dialog {
+    width: 100vw;
+    margin: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    max-height: 95dvh;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+  }
+
+  .auth-dialog__body {
+    padding: 0 var(--ui-space-16) var(--ui-space-20);
+  }
+}

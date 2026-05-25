@@ -1,0 +1,57 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="$event === false && closed.emit()"
+  [modal]="true"
+  [closable]="true"
+  [dismissableMask]="true"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="auth-dialog"
+  appendTo="body"
+  showTransitionOptions="200ms cubic-bezier(0.4, 0, 0.2, 1)"
+  hideTransitionOptions="120ms cubic-bezier(0.4, 0, 1, 1)"
+>
+  <ng-template pTemplate="header">
+    <div class="auth-dialog__header">
+      <span class="auth-dialog__title">
+        <i class="pi pi-lock" aria-hidden="true"></i>
+        {{ 'auth.dialog.title' | translate }}
+      </span>
+    </div>
+  </ng-template>
+
+  <div class="auth-dialog__body">
+    <div
+      class="auth-dialog__tabs"
+      role="tablist"
+      [attr.aria-label]="'auth.dialog.tabsAria' | translate"
+    >
+      <button
+        type="button"
+        class="auth-dialog__tab"
+        [class.auth-dialog__tab--active]="activeMode() === 'login'"
+        role="tab"
+        [attr.aria-selected]="activeMode() === 'login'"
+        (click)="switchToLogin()"
+      >
+        {{ 'auth.login.title' | translate }}
+      </button>
+      <button
+        type="button"
+        class="auth-dialog__tab"
+        [class.auth-dialog__tab--active]="activeMode() === 'register'"
+        role="tab"
+        [attr.aria-selected]="activeMode() === 'register'"
+        (click)="switchToRegister()"
+      >
+        {{ 'auth.register.title' | translate }}
+      </button>
+    </div>
+
+    @if (activeMode() === 'login') {
+      <app-login-form (switchMode)="switchToRegister()" />
+    } @else {
+      <app-register-form (switchMode)="switchToLogin()" />
+    }
+  </div>
+</p-dialog>

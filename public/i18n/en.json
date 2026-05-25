@@ -222,6 +222,10 @@
       "stepSuccess": "Success",
       "stepsAriaLabel": "Registration progress",
       "trustNote": "Your account is secured. We never share your personal information."
+    },
+    "dialog": {
+      "title": "Sign in to continue",
+      "tabsAria": "Choose authentication method"
     }
   },
   "listings": {

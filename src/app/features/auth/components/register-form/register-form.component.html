@@ -1,0 +1,115 @@
+@if (error$ | async; as error) {
+  <p-message severity="error" styleClass="auth-form__message--error">
+    <div class="auth-form__error-content">
+      <strong>{{ 'auth.register.errorTitle' | translate }}</strong>
+      <span>{{ error }}</span>
+    </div>
+  </p-message>
+}
+
+<form class="auth-form" [formGroup]="registerForm" (ngSubmit)="submit()">
+  <div class="auth-form__field--row">
+    <div class="auth-form__field">
+      <label class="auth-form__label" for="auth-reg-first-name">{{ 'auth.form.firstName' | translate }}</label>
+      <input
+        id="auth-reg-first-name"
+        pInputText
+        type="text"
+        class="auth-form__input"
+        formControlName="firstName"
+        [placeholder]="'auth.form.firstNamePlaceholder' | translate"
+        autocomplete="given-name"
+        [disabled]="(isLoading$ | async) ?? false"
+        [attr.aria-invalid]="isInvalid('firstName') ? 'true' : null"
+        [attr.aria-describedby]="isInvalid('firstName') ? 'auth-reg-first-name-error' : null"
+      />
+      @if (hasError('firstName', 'required')) {
+        <small id="auth-reg-first-name-error" class="auth-form__validation">{{ 'auth.validation.firstNameRequired' | translate }}</small>
+      }
+    </div>
+
+    <div class="auth-form__field">
+      <label class="auth-form__label" for="auth-reg-last-name">{{ 'auth.form.lastName' | translate }}</label>
+      <input
+        id="auth-reg-last-name"
+        pInputText
+        type="text"
+        class="auth-form__input"
+        formControlName="lastName"
+        [placeholder]="'auth.form.lastNamePlaceholder' | translate"
+        autocomplete="family-name"
+        [disabled]="(isLoading$ | async) ?? false"
+        [attr.aria-invalid]="isInvalid('lastName') ? 'true' : null"
+        [attr.aria-describedby]="isInvalid('lastName') ? 'auth-reg-last-name-error' : null"
+      />
+      @if (hasError('lastName', 'required')) {
+        <small id="auth-reg-last-name-error" class="auth-form__validation">{{ 'auth.validation.lastNameRequired' | translate }}</small>
+      }
+    </div>
+  </div>
+
+  <div class="auth-form__field">
+    <label class="auth-form__label" for="auth-reg-email">{{ 'auth.form.email' | translate }}</label>
+    <input
+      id="auth-reg-email"
+      pInputText
+      type="email"
+      class="auth-form__input"
+      formControlName="email"
+      [placeholder]="'auth.form.emailPlaceholder' | translate"
+      autocomplete="email"
+      [disabled]="(isLoading$ | async) ?? false"
+      [attr.aria-invalid]="isInvalid('email') ? 'true' : null"
+      [attr.aria-describedby]="isInvalid('email') ? 'auth-reg-email-error' : null"
+    />
+    @if (hasError('email', 'required')) {
+      <small id="auth-reg-email-error" class="auth-form__validation">{{ 'auth.validation.emailRequired' | translate }}</small>
+    }
+    @if (hasError('email', 'email')) {
+      <small id="auth-reg-email-error" class="auth-form__validation">{{ 'auth.validation.emailInvalid' | translate }}</small>
+    }
+  </div>
+
+  <div class="auth-form__field">
+    <label class="auth-form__label" for="auth-reg-password">{{ 'auth.form.password' | translate }}</label>
+    <input
+      id="auth-reg-password"
+      pInputText
+      type="password"
+      class="auth-form__input"
+      formControlName="password"
+      [placeholder]="'auth.form.passwordPlaceholder' | translate"
+      autocomplete="new-password"
+      [disabled]="(isLoading$ | async) ?? false"
+      [attr.aria-invalid]="isInvalid('password') ? 'true' : null"
+      [attr.aria-describedby]="isInvalid('password') ? 'auth-reg-password-error' : 'auth-reg-password-hint'"
+    />
+    <small id="auth-reg-password-hint" class="auth-form__hint">{{ 'auth.register.passwordHint' | translate }}</small>
+    @if (hasError('password', 'required')) {
+      <small id="auth-reg-password-error" class="auth-form__validation">{{ 'auth.validation.passwordRequired' | translate }}</small>
+    }
+    @if (hasError('password', 'minlength')) {
+      <small id="auth-reg-password-error" class="auth-form__validation">{{ 'auth.validation.passwordMinLength' | translate }}</small>
+    }
+  </div>
+
+  <p-button
+    type="submit"
+    styleClass="auth-form__submit-button"
+    [loading]="(isLoading$ | async) ?? false"
+    [disabled]="(isLoading$ | async) ?? false"
+    [label]="'auth.register.submit' | translate"
+  />
+</form>
+
+<p class="auth-form__switch">
+  {{ 'auth.register.haveAccount' | translate }}
+  <button type="button" class="auth-form__switch-btn" (click)="switchMode.emit()">
+    {{ 'auth.register.goToLogin' | translate }}
+  </button>
+</p>
+
+<div class="auth-form__trust">
+  <i class="pi pi-shield" aria-hidden="true"></i>
+  <span>{{ 'auth.register.trustNote' | translate }}</span>
+</div>

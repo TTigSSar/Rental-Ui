@@ -84,6 +84,11 @@ export const authReducer = createReducer(
     error: null,
   })),
 
+  on(AuthActions.clearAuthError, (state): AuthState => ({
+    ...state,
+    error: null,
+  })),
+
   // Logout — explicitly NOT spreading initialAuthState so isInitializing stays false.
   on(AuthActions.logout, (): AuthState => ({
     user: null,

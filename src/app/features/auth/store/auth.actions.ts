@@ -76,3 +76,7 @@ export const authInitStarted = createAction('[Auth] Init Started');
 
 /** Dispatched by initAuth$ when no token exists — signals clean anonymous startup. */
 export const authInitCompleted = createAction('[Auth] Init Completed');
+
+/** Clears a stale auth error without triggering any HTTP request (e.g., when switching
+ *  between login and register modes inside the auth dialog). */
+export const clearAuthError = createAction('[Auth] Clear Error');

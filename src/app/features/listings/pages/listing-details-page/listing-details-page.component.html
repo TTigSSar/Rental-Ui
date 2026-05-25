@@ -342,53 +342,7 @@
         </article>
       }
 
-      <!-- Auth dialog shown when a guest clicks the booking CTA -->
-      <p-dialog
-        [visible]="showAuthDialog()"
-        (visibleChange)="showAuthDialog.set($event)"
-        [modal]="true"
-        [closable]="true"
-        [dismissableMask]="true"
-        [draggable]="false"
-        [resizable]="false"
-        styleClass="detail-auth-dialog-host"
-        appendTo="body"
-        showTransitionOptions="200ms cubic-bezier(0.4, 0, 0.2, 1)"
-        hideTransitionOptions="120ms cubic-bezier(0.4, 0, 1, 1)"
-      >
-        <ng-template pTemplate="header">
-          <span class="detail-auth-dialog__title">
-            <i class="pi pi-lock" aria-hidden="true"></i>
-            {{ 'listings.details.guestRentPrompt' | translate }}
-          </span>
-        </ng-template>
-
-        <div class="detail-auth-dialog">
-          <p class="detail-auth-dialog__text">
-            {{ 'listings.details.guestRentSubtext' | translate }}
-          </p>
-          <div class="detail-auth-dialog__actions">
-            <button
-              type="button"
-              class="detail-auth-dialog__btn detail-auth-dialog__btn--primary"
-              (click)="onGuestRentAttempt('/auth/login')"
-            >
-              {{ 'listings.details.guestSignIn' | translate }}
-            </button>
-            <button
-              type="button"
-              class="detail-auth-dialog__btn detail-auth-dialog__btn--secondary"
-              (click)="onGuestRentAttempt('/auth/register')"
-            >
-              {{ 'listings.details.guestSignUp' | translate }}
-            </button>
-          </div>
-          <p class="detail-auth-dialog__privacy">
-            <i class="pi pi-shield" aria-hidden="true"></i>
-            {{ 'listings.details.guestAuthPrivacy' | translate }}
-          </p>
-        </div>
-      </p-dialog>
+      <app-auth-dialog [visible]="showAuthDialog()" (closed)="showAuthDialog.set(false)" />
     }
   </div>
 </div>

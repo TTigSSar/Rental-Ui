@@ -7,15 +7,14 @@ import {
   signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
 import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, map } from 'rxjs';
 
-import { AuthRedirectService } from '../../../auth/services/auth-redirect.service';
+import { AuthDialogComponent } from '../../../auth/components/auth-dialog/auth-dialog.component';
 import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 
 import * as BookingsActions from '../../../bookings/store/bookings.actions';
@@ -155,10 +154,10 @@ const selectListingDetailsBase = createSelector(
   selector: 'app-listing-details-page',
   standalone: true,
   imports: [
+    AuthDialogComponent,
     BookingPanelComponent,
     ButtonModule,
     CommonModule,
-    Dialog,
     ListingGalleryComponent,
     RouterLink,
     SkeletonModule,
@@ -171,8 +170,6 @@ const selectListingDetailsBase = createSelector(
 export class ListingDetailsPageComponent {
   private readonly store = inject(Store);
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-  private readonly authRedirect = inject(AuthRedirectService);
 
   protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
   protected readonly showAuthDialog = signal(false);
@@ -266,12 +263,6 @@ export class ListingDetailsPageComponent {
     if (id !== null && id !== '') {
       this.store.dispatch(ListingsActions.loadListingDetails({ id }));
     }
-  }
-
-  protected onGuestRentAttempt(authPath: '/auth/login' | '/auth/register' = '/auth/login'): void {
-    this.showAuthDialog.set(false);
-    this.authRedirect.set(this.router.url);
-    void this.router.navigateByUrl(authPath);
   }
 
   protected onBookingSubmit(payload: BookingSubmitPayload): void {
