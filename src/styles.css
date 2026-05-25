@@ -101,13 +101,20 @@
   --ui-color-button-outlined-text: #34384a;
 
   /* —— Shell layout helpers —— */
+  --app-bottom-nav-height: 64px;
+  --app-bottom-nav-fab-overhang: 32px;
+  --app-bottom-nav-extra-space: 32px;
   --app-bottom-nav-safe-space: 0px;
 }
 
 @media (max-width: 960px) {
   :root {
-    /* 64px nav + 24px FAB overhang + 24px breathing room */
-    --app-bottom-nav-safe-space: calc(112px + env(safe-area-inset-bottom, 0px));
+    --app-bottom-nav-safe-space: calc(
+      var(--app-bottom-nav-height)
+      + var(--app-bottom-nav-fab-overhang)
+      + var(--app-bottom-nav-extra-space)
+      + env(safe-area-inset-bottom, 0px)
+    );
   }
 }
 
@@ -298,5 +305,25 @@ select:focus {
 @media (max-width: 900px) {
   .page-container {
     padding-inline: var(--ui-space-16);
+  }
+}
+
+/* ── Mobile form controls — Direction A polish ───────────────
+   Prevents iOS auto-zoom (16px minimum font-size rule) and
+   enforces a 44px touch-target height on all input variants.
+   Applies from 960px down, below desktop-specific heights.
+   ────────────────────────────────────────────────────────── */
+@media (max-width: 960px) {
+  .p-inputtext,
+  .p-inputnumber-input,
+  textarea,
+  select {
+    font-size: 1rem;
+  }
+
+  .p-inputtext,
+  .p-inputnumber-input,
+  select {
+    min-height: 2.75rem;
   }
 }

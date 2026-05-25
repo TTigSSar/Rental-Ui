@@ -906,9 +906,6 @@
     pointer-events: none;
   }
 
-  .app-footer {
-    padding-bottom: var(--app-bottom-nav-safe-space, 0px);
-  }
 }
 
 @media (min-width: 961px) {
@@ -1041,5 +1038,13 @@
     gap: 32px;
     justify-content: flex-start;
     flex-direction: column;
+  }
+}
+
+/* Must come AFTER the 900px padding shorthand — otherwise padding: 32px 20px
+   overwrites this with padding-bottom: 20px, negating the safe-space fix. */
+@media (max-width: 960px) {
+  .app-footer {
+    padding-bottom: var(--app-bottom-nav-safe-space, 0px);
   }
 }

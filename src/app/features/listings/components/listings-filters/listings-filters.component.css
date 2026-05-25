@@ -127,13 +127,43 @@
 
 /* ── Mobile: stack secondary filters vertically ─────────── */
 @media (max-width: 560px) {
+  .listings-filters {
+    padding: var(--ui-space-16);
+    gap: var(--ui-space-12);
+  }
+
   .listings-filters__secondary {
     flex-direction: column;
     align-items: stretch;
+    gap: var(--ui-space-12);
+  }
+
+  .listings-filters__fields {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--ui-space-12);
   }
 
   .listings-filters__clear {
     align-self: stretch;
     width: 100%;
+  }
+
+  /* 44px touch targets on mobile */
+  .listings-filters__input--search.p-inputtext {
+    height: 2.75rem;
+  }
+
+  .listings-filters__input.p-inputtext {
+    height: 2.75rem;
+  }
+
+  .listings-filters__select {
+    height: 2.75rem;
+    font-size: 1rem;
+  }
+
+  .listings-filters__input ::ng-deep .p-inputnumber-input {
+    height: 2.75rem;
+    font-size: 1rem;
   }
 }

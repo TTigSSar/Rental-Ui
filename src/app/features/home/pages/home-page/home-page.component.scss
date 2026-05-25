@@ -765,6 +765,22 @@
     display: none;
   }
 
+  .home__hero-search {
+    padding: 6px 6px 6px 16px;
+    gap: 6px;
+  }
+
+  .home__hero-search-input {
+    font-size: 1rem;
+    width: 100%;
+  }
+
+  .home__hero-search-submit {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 1rem;
+  }
+
   .home__container {
     padding: var(--ui-space-24) var(--ui-space-16) var(--ui-space-24);
     gap: var(--ui-space-32);
