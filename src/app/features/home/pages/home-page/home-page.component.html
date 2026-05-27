@@ -96,14 +96,14 @@
 
       <!-- Top products section -->
       <section class="home__section" aria-labelledby="home-products-heading">
-        <div class="home__section-header">
-          <h2 id="home-products-heading" class="home__section-title">
-            {{ 'home.topProductsLabel' | translate }}
-          </h2>
-          <a [routerLink]="['/listings']" class="home__section-action">
+        <app-ui-section-header
+          [title]="'home.topProductsLabel' | translate"
+          headingId="home-products-heading"
+        >
+          <a actions [routerLink]="['/listings']" class="home__section-action">
             {{ 'home.seeAll' | translate }}
           </a>
-        </div>
+        </app-ui-section-header>
 
         @if (vm.featuredError) {
           <div class="home__error" role="alert">
@@ -188,17 +188,14 @@
               class="home__section"
               [attr.aria-labelledby]="'home-section-' + section.key"
             >
-              <div class="home__section-header">
-                <h2
-                  [id]="'home-section-' + section.key"
-                  class="home__section-title"
-                >
-                  {{ section.title }}
-                </h2>
-                <a [routerLink]="['/listings']" class="home__section-action">
+              <app-ui-section-header
+                [title]="section.title"
+                [headingId]="'home-section-' + section.key"
+              >
+                <a actions [routerLink]="['/listings']" class="home__section-action">
                   {{ 'home.seeAll' | translate }}
                 </a>
-              </div>
+              </app-ui-section-header>
               <div class="home__carousel-wrapper">
                 <button
                   type="button"

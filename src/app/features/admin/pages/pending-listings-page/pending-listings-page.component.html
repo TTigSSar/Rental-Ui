@@ -1,12 +1,8 @@
 <section class="pending-listings-page page-container section-stack">
-  <header class="pending-listings-page__header">
-    <h1 class="pending-listings-page__title">
-      {{ 'admin.pendingListings.page.title' | translate }}
-    </h1>
-    <p class="pending-listings-page__subtitle">
-      {{ 'admin.pendingListings.page.subtitle' | translate }}
-    </p>
-  </header>
+  <app-ui-page-header
+    [title]="'admin.pendingListings.page.title' | translate"
+    [subtitle]="'admin.pendingListings.page.subtitle' | translate"
+  />
 
   @if (viewModel$ | async; as vm) {
     @if (vm.hasError && vm.error) {

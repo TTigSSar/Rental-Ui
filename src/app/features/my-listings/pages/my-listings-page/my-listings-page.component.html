@@ -1,18 +1,16 @@
 <section class="my-listings-page page-container section-stack">
-  <header class="my-listings-page__header">
-    <div class="my-listings-page__header-text">
-      <h1 class="my-listings-page__title">{{ 'myListings.page.title' | translate }}</h1>
-      <p class="my-listings-page__subtitle">
-        {{ 'myListings.page.subtitle' | translate }}
-      </p>
-    </div>
+  <app-ui-page-header
+    [title]="'myListings.page.title' | translate"
+    [subtitle]="'myListings.page.subtitle' | translate"
+  >
     <p-button
+      actions
       type="button"
       icon="pi pi-plus"
       [label]="'myListings.actions.listToy' | translate"
       [routerLink]="['/listings/create']"
     />
-  </header>
+  </app-ui-page-header>
 
   @if (viewModel().hasError && viewModel().error) {
     <div class="my-listings-page__error" role="alert">

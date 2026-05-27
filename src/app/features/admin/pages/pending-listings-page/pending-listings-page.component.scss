@@ -6,24 +6,6 @@
   min-height: calc(100dvh - 4rem);
 }
 
-.pending-listings-page__header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-4);
-}
-
-.pending-listings-page__title {
-  margin: 0;
-  font-size: var(--ui-font-size-h1);
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.pending-listings-page__subtitle {
-  margin: 0;
-  color: var(--ui-color-text-secondary);
-}
-
 .pending-listings-page__error {
   display: flex;
   flex-direction: column;

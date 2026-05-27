@@ -8,6 +8,7 @@ import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
+import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import { MyListingCardComponent } from '../../components/my-listing-card/my-listing-card.component';
 import type { MyListing, MyListingStatus } from '../../models/my-listing.model';
 import * as MyListingsActions from '../../store/my-listings.actions';
@@ -56,6 +57,7 @@ const selectMyListingsPageViewModel = createSelector(
   imports: [
     ButtonModule,
     EmptyStateComponent,
+    PageHeaderComponent,
     MessageModule,
     MyListingCardComponent,
     RouterLink,

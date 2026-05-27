@@ -1,12 +1,8 @@
 <section class="booking-requests-page page-container section-stack">
-  <header class="booking-requests-page__header">
-    <h1 class="booking-requests-page__title">
-      {{ 'bookings.requests.title' | translate }}
-    </h1>
-    <p class="booking-requests-page__subtitle">
-      {{ 'bookings.requests.subtitle' | translate }}
-    </p>
-  </header>
+  <app-ui-page-header
+    [title]="'bookings.requests.title' | translate"
+    [subtitle]="'bookings.requests.subtitle' | translate"
+  />
 
   @if (viewModel$ | async; as vm) {
     @if (vm.hasError && vm.error) {
