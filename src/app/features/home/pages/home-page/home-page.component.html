@@ -31,7 +31,8 @@
             [attr.aria-label]="'home.search.ariaLabel' | translate"
           />
           <button type="submit" class="home__hero-search-submit">
-            {{ 'home.search.submit' | translate }}
+            <i class="pi pi-arrow-right home__hero-search-submit-icon" aria-hidden="true"></i>
+            <span class="home__hero-search-submit-label">{{ 'home.search.submit' | translate }}</span>
           </button>
         </form>
         <button
