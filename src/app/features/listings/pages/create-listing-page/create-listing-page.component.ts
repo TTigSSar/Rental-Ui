@@ -18,7 +18,7 @@ import type { CreateListingRequest } from '../../models/create-listing.model';
 import * as ListingsActions from '../../store/listings.actions';
 import {
   selectCreateListingError,
-  selectCreateListingImageUploadFailed,
+  selectCreateListingImageUploadError,
   selectCreateListingLoading,
   selectCreateListingSuccessId,
   selectListingCategories,
@@ -42,8 +42,8 @@ export class CreateListingPageComponent implements OnInit {
   private readonly createListingSuccessId = this.store.selectSignal(
     selectCreateListingSuccessId,
   );
-  private readonly createListingImageUploadFailed = this.store.selectSignal(
-    selectCreateListingImageUploadFailed,
+  private readonly createListingImageUploadError = this.store.selectSignal(
+    selectCreateListingImageUploadError,
   );
 
   protected readonly vm$ = combineLatest({
@@ -66,14 +66,14 @@ export class CreateListingPageComponent implements OnInit {
         return;
       }
 
-      const imageUploadFailed = this.createListingImageUploadFailed();
+      const imageUploadError = this.createListingImageUploadError();
 
-      if (imageUploadFailed) {
+      if (imageUploadError !== null) {
         this.messageService.add({
           severity: 'warn',
           summary: this.translate.instant('listings.createPage.imageUploadWarningTitle'),
           detail: this.translate.instant('listings.createPage.imageUploadWarning'),
-          life: 5000,
+          life: 8000,
         });
       } else {
         this.messageService.add({

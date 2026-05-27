@@ -191,22 +191,23 @@ export class ListingsEffects {
               return of(
                 ListingsActions.createListingSuccess({
                   response,
-                  imageUploadFailed: false,
+                  imageUploadError: null,
                 }),
               );
             }
 
             // Image upload failure must NOT prevent success/redirect — the
-            // listing was already created on the backend. Catch the upload
-            // error, surface it via the `imageUploadFailed` flag so the UI
-            // can show a contextual warning, then treat the overall operation
-            // as a success so the user is redirected to My Toys.
+            // listing was already created on the backend. Capture the error
+            // message so the UI can show a contextual warning with the actual
+            // reason, then treat the overall operation as a success so the
+            // user is redirected to My Toys.
             return this.listingsApi.uploadListingImages(response.id, files).pipe(
-              catchError(() => of(null)),
-              map((uploadResult) =>
+              map(() => null as string | null),
+              catchError((err: unknown) => of(toErrorMessage(err))),
+              map((imageUploadError) =>
                 ListingsActions.createListingSuccess({
                   response,
-                  imageUploadFailed: uploadResult === null,
+                  imageUploadError,
                 }),
               ),
             );

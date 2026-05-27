@@ -80,7 +80,7 @@ export const selectCreateListingSuccessId = createSelector(
   (state: ListingsState): string | null => state.createListingSuccessId,
 );
 
-export const selectCreateListingImageUploadFailed = createSelector(
+export const selectCreateListingImageUploadError = createSelector(
   selectListingsState,
-  (state: ListingsState): boolean => state.createListingImageUploadFailed,
+  (state: ListingsState): string | null => state.createListingImageUploadError,
 );

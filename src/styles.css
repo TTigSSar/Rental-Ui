@@ -381,3 +381,22 @@ select:focus {
     overflow: hidden;
   }
 }
+
+/* ── PrimeNG Toast: push below sticky header, safe on mobile ─────────
+   PrimeNG's `[breakpoints]` injects `left:0 !important` which fights
+   with the position:top-center `transform: translateX(-50%)`.
+   We handle sizing and positioning entirely via CSS instead.
+   ──────────────────────────────────────────────────────────────────── */
+.p-toast-top-center {
+  top: calc(var(--ui-header-height) + var(--ui-space-12)) !important;
+}
+
+@media (max-width: 640px) {
+  .p-toast-top-center {
+    width: calc(100vw - 2rem) !important;
+    max-width: 26rem !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
+  }
+}

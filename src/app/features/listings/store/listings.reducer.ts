@@ -181,17 +181,17 @@ export const listingsReducer = createReducer(
       createListingLoading: true,
       createListingError: null,
       createListingSuccessId: null,
-      createListingImageUploadFailed: false,
+      createListingImageUploadError: null,
     }),
   ),
   on(
     ListingsActions.createListingSuccess,
-    (state, { response, imageUploadFailed }): ListingsState => ({
+    (state, { response, imageUploadError }): ListingsState => ({
       ...state,
       createListingLoading: false,
       createListingError: null,
       createListingSuccessId: response.id,
-      createListingImageUploadFailed: imageUploadFailed,
+      createListingImageUploadError: imageUploadError,
     }),
   ),
   on(
@@ -201,7 +201,7 @@ export const listingsReducer = createReducer(
       createListingLoading: false,
       createListingError: error,
       createListingSuccessId: null,
-      createListingImageUploadFailed: false,
+      createListingImageUploadError: null,
     }),
   ),
   on(
@@ -211,7 +211,7 @@ export const listingsReducer = createReducer(
       createListingLoading: false,
       createListingError: null,
       createListingSuccessId: null,
-      createListingImageUploadFailed: false,
+      createListingImageUploadError: null,
     }),
   ),
   on(
