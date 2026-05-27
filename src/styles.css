@@ -16,6 +16,7 @@
   --ui-color-primary: #ff6008;
   --ui-color-primary-strong: #e85500;
   --ui-color-primary-soft: #ffeedc;
+  --ui-color-primary-wash: #fff2e9;
   --ui-color-primary-disabled: #f4cfb7;
   --ui-color-secondary: #2a2c41;
   --ui-color-background: #faf8f4;
@@ -52,6 +53,8 @@
   --ui-color-error-border: #f6ccd3;
   --ui-color-empty-tint: #fff3eb;
   --ui-color-placeholder-tint: #f0f4ff;
+  --ui-color-danger: #d9342b;
+  --ui-color-danger-surface: #ffe8e5;
 
   /* —— Spacing (4px base unit) —— */
   --ui-space-4: 4px;
@@ -69,6 +72,7 @@
   --ui-radius-sm: 6px;
   --ui-radius-md: 14px;
   --ui-radius-lg: 20px;
+  --ui-radius-card: 16px;
   --ui-radius-pill: 999px;
   --ui-radius-input: 40px;
   --ui-radius-auth-panel: 16px;
@@ -91,6 +95,18 @@
   --ui-font-size-body: 1rem;
   --ui-font-size-caption: 0.875rem;
 
+  /* —— Font weights —— */
+  --ui-font-weight-regular: 400;
+  --ui-font-weight-medium: 500;
+  --ui-font-weight-semibold: 600;
+  --ui-font-weight-bold: 700;
+  --ui-font-weight-extrabold: 800;
+
+  /* —— Line heights —— */
+  --ui-line-height-tight: 1.2;
+  --ui-line-height-base: 1.5;
+  --ui-line-height-relaxed: 1.6;
+
   /* —— Buttons & inputs —— */
   --ui-button-min-height: 2.35rem;
   --ui-button-min-height-lg: 3rem;
@@ -100,7 +116,23 @@
   --ui-color-button-outlined-border: #c9cedd;
   --ui-color-button-outlined-text: #34384a;
 
+  /* —— Z-index scale —— */
+  --ui-z-bottom-nav: 99;
+  --ui-z-header: 100;
+  --ui-z-dropdown: 200;
+  --ui-z-modal: 1000;
+  --ui-z-toast: 1100;
+
+  /* —— Animation —— */
+  --ui-duration-fast: 120ms;
+  --ui-duration-base: 160ms;
+  --ui-duration-slow: 300ms;
+  --ui-ease: ease;
+  --ui-ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  --ui-ease-in: cubic-bezier(0.4, 0, 1, 1);
+
   /* —— Shell layout helpers —— */
+  --ui-header-height: 3.5rem;
   --app-bottom-nav-height: 64px;
   --app-bottom-nav-fab-overhang: 32px;
   --app-bottom-nav-extra-space: 32px;

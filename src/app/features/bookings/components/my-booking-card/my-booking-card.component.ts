@@ -5,10 +5,12 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
+import {
+  mapBookingStatusLabelKey,
+  mapBookingStatusTone,
+} from '../../../../shared/utils/booking-status.utils';
 
-import type { BookingStatus, MyBooking } from '../../models/booking.model';
-
-type BadgeTone = 'approved' | 'pending' | 'rejected' | 'neutral';
+import type { MyBooking } from '../../models/booking.model';
 
 @Component({
   selector: 'app-my-booking-card',
@@ -30,45 +32,10 @@ export class MyBookingCardComponent {
   readonly booking = input.required<MyBooking>();
 
   protected readonly statusLabelKey = computed(() =>
-    this.getStatusLabelKey(this.booking().status),
+    mapBookingStatusLabelKey(this.booking().status),
   );
 
   protected readonly statusTone = computed(() =>
-    this.getStatusTone(this.booking().status),
+    mapBookingStatusTone(this.booking().status),
   );
-
-  private getStatusLabelKey(status: BookingStatus): string {
-    switch (status) {
-      case 'Pending':
-      case 'PendingApproval':
-        return 'bookings.status.pendingApproval';
-      case 'Approved':
-        return 'bookings.status.approved';
-      case 'Rejected':
-        return 'bookings.status.rejected';
-      case 'Archived':
-        return 'bookings.status.archived';
-      case 'Cancelled':
-        return 'bookings.status.cancelled';
-      default:
-        return 'bookings.status.pendingApproval';
-    }
-  }
-
-  private getStatusTone(status: BookingStatus): BadgeTone {
-    switch (status) {
-      case 'Approved':
-        return 'approved';
-      case 'Pending':
-      case 'PendingApproval':
-        return 'pending';
-      case 'Rejected':
-        return 'rejected';
-      case 'Archived':
-      case 'Cancelled':
-        return 'neutral';
-      default:
-        return 'pending';
-    }
-  }
 }

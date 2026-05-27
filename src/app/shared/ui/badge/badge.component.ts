@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-type BadgeTone = 'pending' | 'approved' | 'rejected' | 'neutral';
+export type BadgeTone = 'pending' | 'approved' | 'rejected' | 'neutral';
 
 @Component({
   selector: 'app-ui-badge',

@@ -14,9 +14,11 @@ import { CardModule } from 'primeng/card';
 
 import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
 import { ImageContainerComponent } from '../../../../shared/ui/image-container/image-container.component';
-import type { MyListing, MyListingStatus } from '../../models/my-listing.model';
-
-type BadgeTone = 'approved' | 'pending' | 'rejected' | 'neutral';
+import {
+  mapListingStatusLabelKey,
+  mapListingStatusTone,
+} from '../../../../shared/utils/listing-status.utils';
+import type { MyListing } from '../../models/my-listing.model';
 
 @Component({
   selector: 'app-my-listing-card',
@@ -43,11 +45,11 @@ export class MyListingCardComponent {
   @Output() readonly restoreRequested = new EventEmitter<string>();
 
   protected readonly statusLabelKey = computed(() =>
-    this.mapStatusLabelKey(this.listing().status),
+    mapListingStatusLabelKey(this.listing().status),
   );
 
   protected readonly statusTone = computed(() =>
-    this.mapStatusTone(this.listing().status),
+    mapListingStatusTone(this.listing().status),
   );
 
   protected requestEdit(): void {
@@ -60,37 +62,5 @@ export class MyListingCardComponent {
 
   protected requestRestore(): void {
     this.restoreRequested.emit(this.listing().id);
-  }
-
-  private mapStatusLabelKey(status: MyListingStatus): string {
-    switch (status) {
-      case 'Pending':
-      case 'PendingApproval':
-        return 'myListings.status.pendingApproval';
-      case 'Approved':
-        return 'myListings.status.approved';
-      case 'Rejected':
-        return 'myListings.status.rejected';
-      case 'Archived':
-        return 'myListings.status.archived';
-      default:
-        return 'myListings.status.pendingApproval';
-    }
-  }
-
-  private mapStatusTone(status: MyListingStatus): BadgeTone {
-    switch (status) {
-      case 'Approved':
-        return 'approved';
-      case 'Pending':
-      case 'PendingApproval':
-        return 'pending';
-      case 'Rejected':
-        return 'rejected';
-      case 'Archived':
-        return 'neutral';
-      default:
-        return 'pending';
-    }
   }
 }
