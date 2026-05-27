@@ -1,0 +1,49 @@
+:host {
+  display: block;
+}
+
+.ff {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-8);
+  position: relative;
+  /* Reserve space below the control so the absolute error text never shifts layout */
+  padding-bottom: 1.25rem;
+}
+
+.ff__label {
+  display: block;
+  font-size: 0.84rem;
+  font-weight: var(--ui-font-weight-semibold);
+  color: var(--ui-color-text-label);
+  line-height: var(--ui-line-height-tight);
+}
+
+.ff__required {
+  color: var(--ui-color-error);
+}
+
+.ff__hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--ui-color-text-hint);
+  line-height: var(--ui-line-height-relaxed);
+}
+
+.ff__error {
+  margin: 0;
+  position: absolute;
+  bottom: 0.125rem;
+  left: 0;
+  right: 0;
+  color: var(--ui-color-error);
+  font-size: 0.75rem;
+  font-weight: var(--ui-font-weight-medium);
+  line-height: 1.3;
+  animation: ff-error-in var(--ui-duration-fast) var(--ui-ease);
+}
+
+@keyframes ff-error-in {
+  from { opacity: 0; transform: translateY(-2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

@@ -48,8 +48,13 @@
     </div>
   </div>
 
-  <div class="auth-form__field">
-    <label class="auth-form__label" for="auth-reg-phone">{{ 'auth.form.phoneNumber' | translate }}</label>
+  <app-ui-form-field
+    [label]="'auth.form.phoneNumber' | translate"
+    inputId="auth-reg-phone"
+    [required]="true"
+    [errorMessage]="phoneErrorKey() | translate"
+    [showError]="isInvalid('phoneNumber')"
+  >
     <input
       id="auth-reg-phone"
       pInputText
@@ -62,13 +67,7 @@
       [attr.aria-invalid]="isInvalid('phoneNumber') ? 'true' : null"
       [attr.aria-describedby]="isInvalid('phoneNumber') ? 'auth-reg-phone-error' : null"
     />
-    @if (hasError('phoneNumber', 'required')) {
-      <small id="auth-reg-phone-error" class="auth-form__validation">{{ 'auth.validation.phoneNumberRequired' | translate }}</small>
-    }
-    @if (hasError('phoneNumber', 'pattern')) {
-      <small id="auth-reg-phone-error" class="auth-form__validation">{{ 'auth.validation.phoneNumberInvalid' | translate }}</small>
-    }
-  </div>
+  </app-ui-form-field>
 
   <div class="auth-form__field">
     <label class="auth-form__label" for="auth-reg-email">{{ 'auth.form.email' | translate }}</label>

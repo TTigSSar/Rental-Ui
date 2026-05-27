@@ -14,6 +14,7 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 
+import { FormFieldComponent } from '../../../../shared/ui/form-field/form-field.component';
 import * as AuthActions from '../../store/auth.actions';
 import { selectAuthError, selectAuthLoading } from '../../store/auth.selectors';
 
@@ -23,6 +24,7 @@ import { selectAuthError, selectAuthLoading } from '../../store/auth.selectors';
   imports: [
     AsyncPipe,
     ButtonModule,
+    FormFieldComponent,
     InputTextModule,
     MessageModule,
     ReactiveFormsModule,
@@ -74,5 +76,11 @@ export class RegisterFormComponent {
   protected isInvalid(controlName: 'firstName' | 'lastName' | 'email' | 'password' | 'phoneNumber'): boolean {
     const control = this.registerForm.controls[controlName];
     return control.touched && control.invalid;
+  }
+
+  protected phoneErrorKey(): string {
+    if (this.hasError('phoneNumber', 'required')) return 'auth.validation.phoneNumberRequired';
+    if (this.hasError('phoneNumber', 'pattern')) return 'auth.validation.phoneNumberInvalid';
+    return '';
   }
 }
