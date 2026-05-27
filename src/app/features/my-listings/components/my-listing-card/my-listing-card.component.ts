@@ -14,6 +14,7 @@ import { CardModule } from 'primeng/card';
 
 import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
 import { ImageContainerComponent } from '../../../../shared/ui/image-container/image-container.component';
+import { StatusNoteComponent } from '../../../../shared/ui/status-note/status-note.component';
 import {
   mapListingStatusLabelKey,
   mapListingStatusTone,
@@ -32,6 +33,7 @@ import type { MyListing } from '../../models/my-listing.model';
     TranslatePipe,
     BadgeComponent,
     ImageContainerComponent,
+    StatusNoteComponent,
   ],
   templateUrl: './my-listing-card.component.html',
   styleUrl: './my-listing-card.component.scss',

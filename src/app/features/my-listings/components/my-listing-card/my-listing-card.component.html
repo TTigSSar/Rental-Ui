@@ -46,25 +46,21 @@
     </p>
 
     @if (listing().status === 'PendingApproval' || listing().status === 'Pending') {
-      <p class="my-listing-card__status-note my-listing-card__status-note--pending">
-        <span class="pi pi-clock" aria-hidden="true"></span>
+      <app-ui-status-note tone="warning" icon="pi pi-clock">
         {{ 'myListings.statusNote.pending' | translate }}
-      </p>
+      </app-ui-status-note>
     } @else if (listing().status === 'Rejected') {
-      <p class="my-listing-card__status-note my-listing-card__status-note--rejected">
-        <span class="pi pi-times-circle" aria-hidden="true"></span>
+      <app-ui-status-note tone="danger" icon="pi pi-times-circle">
         {{ 'myListings.statusNote.rejected' | translate }}
-      </p>
+      </app-ui-status-note>
     } @else if (listing().status === 'Approved') {
-      <p class="my-listing-card__status-note my-listing-card__status-note--approved">
-        <span class="pi pi-check-circle" aria-hidden="true"></span>
+      <app-ui-status-note tone="success" icon="pi pi-check-circle">
         {{ 'myListings.statusNote.approved' | translate }}
-      </p>
+      </app-ui-status-note>
     } @else if (listing().status === 'Archived') {
-      <p class="my-listing-card__status-note my-listing-card__status-note--archived">
-        <span class="pi pi-eye-slash" aria-hidden="true"></span>
+      <app-ui-status-note tone="neutral" icon="pi pi-eye-slash">
         {{ 'myListings.statusNote.archived' | translate }}
-      </p>
+      </app-ui-status-note>
     }
   </div>
 

@@ -55,6 +55,8 @@
   --ui-color-placeholder-tint: #f0f4ff;
   --ui-color-danger: #d9342b;
   --ui-color-danger-surface: #ffe8e5;
+  --ui-color-info: #3d52cc;
+  --ui-color-info-surface: #eaedff;
 
   /* —— Spacing (4px base unit) —— */
   --ui-space-4: 4px;

@@ -1,0 +1,11 @@
+<div [ngClass]="containerClasses()">
+  @if (icon()) {
+    <i class="sn__icon" [ngClass]="icon()" aria-hidden="true"></i>
+  }
+  <div class="sn__body">
+    @if (title()) {
+      <strong class="sn__title">{{ title() }}</strong>
+    }
+    <ng-content />
+  </div>
+</div>

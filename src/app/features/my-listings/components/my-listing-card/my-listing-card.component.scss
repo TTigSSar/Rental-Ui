@@ -47,43 +47,6 @@
   font-size: var(--ui-font-size-caption);
 }
 
-/* ── Status context notes ────────────────────────────────── */
-.my-listing-card__status-note {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--ui-space-6);
-  margin: var(--ui-space-4) 0 0;
-  padding: var(--ui-space-6) var(--ui-space-8);
-  border-radius: var(--ui-radius-sm);
-  font-size: 0.75rem;
-  line-height: 1.4;
-
-  .pi {
-    flex-shrink: 0;
-    margin-top: 1px;
-    font-size: 0.75rem;
-  }
-}
-
-.my-listing-card__status-note--pending {
-  background: var(--ui-color-warning-surface);
-  color: var(--ui-color-warning);
-}
-
-.my-listing-card__status-note--rejected {
-  background: var(--ui-color-rejected-surface);
-  color: var(--ui-color-rejected);
-}
-
-.my-listing-card__status-note--approved {
-  background: var(--ui-color-approved-surface);
-  color: var(--ui-color-approved);
-}
-
-.my-listing-card__status-note--archived {
-  background: var(--ui-color-neutral-badge-surface);
-  color: var(--ui-color-text-secondary);
-}
 
 /* ── Actions row ─────────────────────────────────────────── */
 .my-listing-card__actions {

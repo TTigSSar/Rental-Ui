@@ -26,3 +26,13 @@
   color: var(--ui-color-text-secondary);
   background: var(--ui-color-neutral-badge-surface);
 }
+
+.ui-badge--booked {
+  color: var(--ui-color-success);
+  background: var(--ui-color-success-surface);
+}
+
+.ui-badge--completed {
+  color: var(--ui-color-text-secondary);
+  background: var(--ui-color-neutral-badge-surface);
+}
