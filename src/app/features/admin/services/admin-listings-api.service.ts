@@ -15,18 +15,22 @@ function isToyCondition(value: unknown): value is ToyCondition {
   return typeof value === 'string' && TOY_CONDITIONS.has(value as ToyCondition);
 }
 
-function normalizePendingOwner(
-  owner: Partial<PendingListingOwner> | null | undefined,
-): PendingListingOwner | null {
-  if (owner === null || owner === undefined || typeof owner.id !== 'string') {
-    return null;
-  }
+function extractOwnerFromFlat(raw: Record<string, unknown>): PendingListingOwner | null {
+  if (typeof raw['ownerId'] !== 'string') return null;
   return {
-    id: owner.id,
-    firstName: typeof owner.firstName === 'string' ? owner.firstName : '',
-    lastName: typeof owner.lastName === 'string' ? owner.lastName : '',
-    email: typeof owner.email === 'string' ? owner.email : '',
+    id: raw['ownerId'],
+    firstName: typeof raw['ownerFirstName'] === 'string' ? raw['ownerFirstName'] : '',
+    lastName: typeof raw['ownerLastName'] === 'string' ? raw['ownerLastName'] : '',
+    email: typeof raw['ownerEmail'] === 'string' ? raw['ownerEmail'] : '',
   };
+}
+
+function extractPrimaryImageUrl(images: unknown): string | null {
+  if (!Array.isArray(images) || images.length === 0) return null;
+  // Backend sorts images: isPrimary desc, sortOrder asc — first entry is always the primary.
+  const first = images[0] as Record<string, unknown> | null;
+  if (first === null || typeof first !== 'object') return null;
+  return typeof first['url'] === 'string' && first['url'].length > 0 ? first['url'] : null;
 }
 
 function toNullableNumber(value: unknown): number | null {
@@ -50,17 +54,12 @@ function normalizePendingListing(raw: Record<string, unknown> & { id: string }):
         ? raw['pricePerDay']
         : 0,
     depositAmount: toNullableNumber(raw['depositAmount']),
-    imageUrl:
-      typeof raw['imageUrl'] === 'string' && raw['imageUrl'].length > 0
-        ? raw['imageUrl']
-        : null,
+    imageUrl: extractPrimaryImageUrl(raw['images']),
     createdAt:
       typeof raw['createdAt'] === 'string' && raw['createdAt'].length > 0
         ? raw['createdAt']
         : null,
-    owner: normalizePendingOwner(
-      (raw['owner'] as Partial<PendingListingOwner> | null | undefined) ?? null,
-    ),
+    owner: extractOwnerFromFlat(raw),
     ageFromMonths: toNullableNumber(raw['ageFromMonths']),
     ageToMonths: toNullableNumber(raw['ageToMonths']),
     condition: isToyCondition(raw['condition']) ? raw['condition'] : null,
