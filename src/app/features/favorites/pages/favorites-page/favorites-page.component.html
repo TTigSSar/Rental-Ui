@@ -1,10 +1,8 @@
 <section class="favorites-page page-container section-stack">
-  <header class="favorites-page__header">
-    <h1 class="favorites-page__title">{{ 'favorites.page.title' | translate }}</h1>
-    <p class="favorites-page__subtitle">
-      {{ 'favorites.page.subtitle' | translate }}
-    </p>
-  </header>
+  <app-ui-page-header
+    [title]="'favorites.page.title' | translate"
+    [subtitle]="'favorites.page.subtitle' | translate"
+  />
 
   @if (viewModel$ | async; as vm) {
     @if (vm.hasError && vm.error) {

@@ -1,0 +1,18 @@
+<div [ngClass]="hostClasses()">
+  @if (backLink()) {
+    <a class="ph__back" [routerLink]="backLink()">
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      <span class="ph__back-label"><ng-content select="[back-label]" /></span>
+    </a>
+  }
+  @if (eyebrow()) {
+    <p class="ph__eyebrow">{{ eyebrow() }}</p>
+  }
+  <div class="ph__row">
+    <h1 class="ph__title">{{ title() }}</h1>
+    <ng-content select="[actions]" />
+  </div>
+  @if (subtitle()) {
+    <p class="ph__subtitle">{{ subtitle() }}</p>
+  }
+</div>

@@ -7,6 +7,7 @@ import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
+import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import { ListingCardComponent } from '../../../listings/components/listing-card/listing-card.component';
 import type { ListingPreview } from '../../../listings/models/listing.model';
 import * as FavoritesActions from '../../store/favorites.actions';
@@ -50,6 +51,7 @@ const selectFavoritesPageViewModel = createSelector(
     ButtonModule,
     EmptyStateComponent,
     ListingCardComponent,
+    PageHeaderComponent,
     MessageModule,
     SkeletonModule,
     TranslatePipe,

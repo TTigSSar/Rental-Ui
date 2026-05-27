@@ -6,23 +6,6 @@
   min-height: calc(100dvh - 4rem);
 }
 
-.favorites-page__header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-4);
-}
-
-.favorites-page__title {
-  margin: 0;
-  font-size: var(--ui-font-size-h1);
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.favorites-page__subtitle {
-  margin: 0;
-  color: var(--ui-color-text-secondary);
-}
 
 .favorites-page__error {
   display: flex;
