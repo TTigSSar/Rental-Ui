@@ -1,0 +1,12 @@
+<div [ngClass]="hostClasses()">
+  @if (eyebrow()) {
+    <p class="sh__eyebrow">{{ eyebrow() }}</p>
+  }
+  <div class="sh__row">
+    <h2 class="sh__title" [attr.id]="headingId() || null">{{ title() }}</h2>
+    <ng-content select="[actions]" />
+  </div>
+  @if (subtitle()) {
+    <p class="sh__subtitle">{{ subtitle() }}</p>
+  }
+</div>

@@ -37,6 +37,7 @@ import {
   type HomeCategoryTileVm,
 } from '../../components/category-tile/category-tile.component';
 import { FeaturedListingTileComponent } from '../../components/featured-listing-tile/featured-listing-tile.component';
+import { SectionHeaderComponent } from '../../../../shared/ui/section-header/section-header.component';
 
 type ProcessMode = 'renting' | 'lending';
 
@@ -258,6 +259,7 @@ const selectHomeSource = createSelector(
     LoadingSkeletonComponent,
     FeaturedListingTileComponent,
     CategoryTileComponent,
+    SectionHeaderComponent,
   ],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.scss',

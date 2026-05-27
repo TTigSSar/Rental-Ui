@@ -47,14 +47,14 @@
     <div class="home__container">
       <!-- Categories section -->
       <section class="home__section" aria-labelledby="home-categories-heading">
-        <div class="home__section-header">
-          <h2 id="home-categories-heading" class="home__section-title">
-            {{ 'home.categoriesLabel' | translate }}
-          </h2>
-          <a [routerLink]="['/listings']" class="home__section-action">
+        <app-ui-section-header
+          [title]="'home.categoriesLabel' | translate"
+          headingId="home-categories-heading"
+        >
+          <a actions [routerLink]="['/listings']" class="home__section-action">
             {{ 'home.seeAll' | translate }}
           </a>
-        </div>
+        </app-ui-section-header>
 
         @if (vm.showCategoriesSkeleton) {
           <app-ui-loading-skeleton class="home__skeleton" [items]="4" />
