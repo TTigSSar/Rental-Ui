@@ -84,6 +84,7 @@ export class App {
 
   /** Shown in the authenticated user menu (desktop dropdown + mobile drawer). */
   protected readonly accountMenuItems: readonly NavItem[] = [
+    { path: '/favorites', labelKey: 'app.shell.nav.favorites', exactMatch: false },
     { path: '/profile', labelKey: 'app.shell.nav.profile', exactMatch: false },
   ];
 
@@ -128,6 +129,11 @@ export class App {
           {
             path: '/my-listings',
             labelKey: 'app.shell.nav.myListings',
+            exactMatch: false,
+          },
+          {
+            path: '/favorites',
+            labelKey: 'app.shell.nav.favorites',
             exactMatch: false,
           },
           {
