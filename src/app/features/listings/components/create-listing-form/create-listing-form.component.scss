@@ -436,40 +436,24 @@
     padding: var(--ui-space-16);
   }
 
-  .wizard-actions {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: calc(64px + env(safe-area-inset-bottom));
-    z-index: 89;
-    background: var(--ui-color-surface);
-    border-top: 1px solid var(--ui-color-border);
-    box-shadow: 0 -4px 16px rgba(16, 18, 30, 0.08);
-    padding: var(--ui-space-12) var(--ui-space-16);
-    justify-content: stretch;
-    gap: var(--ui-space-8);
-  }
-
-  /* Back button: compact, sized to content */
-  :host ::ng-deep .wizard-actions .wizard-actions__back.p-button {
-    flex: 0 0 auto;
-    min-width: 5rem !important;
-    min-height: 2.75rem;
-  }
-
-  /* Continue / Submit: fills remaining space */
-  :host ::ng-deep .wizard-actions .wizard-actions__primary.p-button {
-    flex: 1;
-    min-width: 0 !important;
-    min-height: 2.75rem;
-  }
-
   .create-listing-form__textarea {
     max-height: 12rem;
   }
 
-  .create-listing-form {
-    /* nav 64px + safe-area + bar (~68px) + buffer */
-    padding-bottom: calc(64px + env(safe-area-inset-bottom) + 5.5rem);
+  .create-listing-form__field {
+    padding-bottom: 0;
+  }
+
+  .create-listing-form__error {
+    position: static;
+    margin-top: 0.125rem;
+  }
+
+  :host ::ng-deep .wizard-actions .wizard-actions__back.p-button {
+    min-width: 6rem;
+  }
+
+  :host ::ng-deep .wizard-actions .wizard-actions__primary.p-button {
+    min-width: 8rem;
   }
 }
