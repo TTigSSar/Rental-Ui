@@ -56,6 +56,17 @@ export const ApiContract = {
   home: {
     sections: '/api/home/sections',
   },
+  reviews: {
+    submit: '/api/reviews',
+    byListing: (listingId: string): ApiPath =>
+      `/api/reviews/listing/${encodeURIComponent(listingId)}`,
+    byUser: (userId: string): ApiPath =>
+      `/api/reviews/user/${encodeURIComponent(userId)}`,
+    listingSummary: (listingId: string): ApiPath =>
+      `/api/reviews/listing/${encodeURIComponent(listingId)}/summary`,
+    userSummary: (userId: string): ApiPath =>
+      `/api/reviews/user/${encodeURIComponent(userId)}/summary`,
+  },
   chat: {
     conversations: '/api/chat/conversations',
     conversationById: (conversationId: string): ApiPath =>

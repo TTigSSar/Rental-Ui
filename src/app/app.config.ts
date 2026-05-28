@@ -37,6 +37,8 @@ import {
 } from './features/my-listings/store/my-listings.reducer';
 import { ProfileEffects } from './features/profile/store/profile.effects';
 import { profileFeatureKey, profileReducer } from './features/profile/store/profile.reducer';
+import { ReviewsEffects } from './features/reviews/store/reviews.effects';
+import { reviewsFeatureKey, reviewsReducer } from './features/reviews/store/reviews.reducer';
 import { routes } from './app.routes';
 
 const translateHttpLoaderProviders = provideTranslateHttpLoader({
@@ -59,6 +61,7 @@ export const appConfig: ApplicationConfig = {
     provideState(listingsFeatureKey, listingsReducer),
     provideState(myListingsFeatureKey, myListingsReducer),
     provideState(profileFeatureKey, profileReducer),
+    provideState(reviewsFeatureKey, reviewsReducer),
     provideEffects(AdminModerationEffects),
     provideEffects(HomeEffects),
     provideEffects(AuthEffects),
@@ -68,6 +71,7 @@ export const appConfig: ApplicationConfig = {
     provideEffects(ListingsEffects),
     provideEffects(MyListingsEffects),
     provideEffects(ProfileEffects),
+    provideEffects(ReviewsEffects),
     translateHttpLoaderProviders[0],
     ...provideTranslateService({
       fallbackLang: 'en',
