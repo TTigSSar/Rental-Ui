@@ -502,6 +502,44 @@
   }
 }
 
+/* ── Rating summary line ──────────────────────────────── */
+.detail-page__rating-line {
+  margin-top: var(--ui-space-12);
+}
+
+/* ── Reviews section ──────────────────────────────────── */
+.detail-page__reviews-count {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--ui-color-text-secondary);
+  margin-left: 6px;
+}
+
+.detail-page__reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-page__reviews-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-page__reviews-empty {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--ui-color-text-secondary);
+  line-height: var(--ui-line-height-base);
+}
+
+.detail-page__reviews-error {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ui-color-error);
+}
+
 @media (max-width: 700px) {
   .detail-page {
     padding-block: 16px 48px;

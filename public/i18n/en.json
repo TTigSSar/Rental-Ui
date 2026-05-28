@@ -353,6 +353,11 @@
         "bullet3": "Each owner describes how the toy is cleaned between rentals",
         "bullet4": "Please follow the owner's age and safety guidance",
         "bullet5": "If an issue comes up, contact the owner first — ToyRent support is also here to help."
+      },
+      "reviews": {
+        "heading": "Reviews",
+        "empty": "No reviews yet",
+        "error": "Unable to load reviews"
       }
     },
     "createPage": {

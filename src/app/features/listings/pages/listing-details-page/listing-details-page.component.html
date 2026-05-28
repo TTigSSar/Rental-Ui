@@ -152,6 +152,15 @@
                 }
               </div>
 
+              <!-- Compact rating summary — visible only when reviews exist -->
+              @if (ratingSummary(); as summary) {
+                @if (summary.reviewCount > 0) {
+                  <div class="detail-page__rating-line">
+                    <app-rating-summary [summary]="summary" variant="compact" />
+                  </div>
+                }
+              }
+
               <div class="detail-page__sections">
                 <!-- 1. Toy trust details — moved first so parents see condition/age/hygiene before description -->
                 @if (hasAnyToyDetail(listing)) {
@@ -322,6 +331,46 @@
                       }
                     </div>
                   </div>
+                </section>
+
+                <!-- Reviews section — last in the main column -->
+                <section
+                  class="detail-page__section"
+                  aria-labelledby="detail-reviews-heading"
+                >
+                  <h2
+                    id="detail-reviews-heading"
+                    class="detail-page__section-title"
+                  >
+                    {{ 'listings.details.reviews.heading' | translate }}
+                    @if (ratingSummary(); as summary) {
+                      @if (summary.reviewCount > 0) {
+                        <span class="detail-page__reviews-count">({{ summary.reviewCount }})</span>
+                      }
+                    }
+                  </h2>
+
+                  @if (reviewsLoading()) {
+                    <div class="detail-page__reviews-skeleton">
+                      @for (i of [0, 1, 2]; track i) {
+                        <p-skeleton height="5.25rem" borderRadius="16px" />
+                      }
+                    </div>
+                  } @else if (reviewsError()) {
+                    <p class="detail-page__reviews-error" role="alert">
+                      {{ 'listings.details.reviews.error' | translate }}
+                    </p>
+                  } @else if (reviews().length === 0) {
+                    <p class="detail-page__reviews-empty">
+                      {{ 'listings.details.reviews.empty' | translate }}
+                    </p>
+                  } @else {
+                    <div class="detail-page__reviews-list">
+                      @for (review of reviews(); track review.id) {
+                        <app-review-card [review]="review" />
+                      }
+                    </div>
+                  }
                 </section>
               </div>
             </div>

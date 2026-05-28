@@ -12,11 +12,10 @@ import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';
-import { combineLatest, distinctUntilChanged, map } from 'rxjs';
+import { combineLatest, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
 import { AuthDialogComponent } from '../../../auth/components/auth-dialog/auth-dialog.component';
 import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
-
 import * as BookingsActions from '../../../bookings/store/bookings.actions';
 import {
   selectCreateBookingError,
@@ -30,6 +29,15 @@ import {
 import { ListingGalleryComponent } from '../../components/listing-gallery/listing-gallery.component';
 import type { ListingDetails } from '../../models/listing-details.model';
 import * as ListingsActions from '../../store/listings.actions';
+import { ReviewCardComponent } from '../../../reviews/components/review-card/review-card.component';
+import { RatingSummaryComponent } from '../../../reviews/components/rating-summary/rating-summary.component';
+import * as ReviewsActions from '../../../reviews/store/reviews.actions';
+import {
+  selectListingReviews,
+  selectListingReviewsLoading,
+  selectListingReviewsError,
+  selectListingSummary,
+} from '../../../reviews/store/reviews.selectors';
 import {
   selectListingDetailsLoading,
   selectListingsError,
@@ -159,6 +167,8 @@ const selectListingDetailsBase = createSelector(
     ButtonModule,
     CommonModule,
     ListingGalleryComponent,
+    RatingSummaryComponent,
+    ReviewCardComponent,
     RouterLink,
     SkeletonModule,
     TranslatePipe,
@@ -188,6 +198,42 @@ export class ListingDetailsPageComponent {
   private readonly routeListingId = toSignal(this.routeId$, {
     initialValue: null as string | null,
   });
+
+  protected readonly reviews = toSignal(
+    this.routeId$.pipe(
+      switchMap((id) =>
+        id ? this.store.select(selectListingReviews(id)) : of([]),
+      ),
+    ),
+    { initialValue: [] },
+  );
+
+  protected readonly reviewsLoading = toSignal(
+    this.routeId$.pipe(
+      switchMap((id) =>
+        id ? this.store.select(selectListingReviewsLoading(id)) : of(false),
+      ),
+    ),
+    { initialValue: false },
+  );
+
+  protected readonly reviewsError = toSignal(
+    this.routeId$.pipe(
+      switchMap((id) =>
+        id ? this.store.select(selectListingReviewsError(id)) : of(null),
+      ),
+    ),
+    { initialValue: null },
+  );
+
+  protected readonly ratingSummary = toSignal(
+    this.routeId$.pipe(
+      switchMap((id) =>
+        id ? this.store.select(selectListingSummary(id)) : of(null),
+      ),
+    ),
+    { initialValue: null },
+  );
 
   private readonly createBookingSuccessId = this.store.selectSignal(selectCreateBookingSuccessId);
 
@@ -250,6 +296,8 @@ export class ListingDetailsPageComponent {
       if (id !== null && id !== '') {
         this.store.dispatch(ListingsActions.loadListingDetails({ id }));
         this.store.dispatch(BookingsActions.clearCreateBookingState());
+        this.store.dispatch(ReviewsActions.loadListingReviews({ listingId: id }));
+        this.store.dispatch(ReviewsActions.loadListingSummary({ listingId: id }));
       }
     });
 
