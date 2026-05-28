@@ -1,0 +1,62 @@
+.rating-summary {
+  // ── Compact: inline pill for listing cards / section headers ─────────────
+
+  &--compact {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ui-space-4);
+
+    .rating-summary__average {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--ui-color-text-primary);
+    }
+
+    .rating-summary__sep {
+      font-size: 0.75rem;
+      color: var(--ui-color-text-secondary);
+    }
+
+    .rating-summary__count {
+      font-size: 0.75rem;
+      color: var(--ui-color-text-secondary);
+    }
+
+    .rating-summary__empty {
+      font-size: 0.75rem;
+      color: var(--ui-color-text-secondary);
+    }
+  }
+
+  // ── Full: stacked block for reviews section header and profile pages ──────
+
+  &--full {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ui-space-4);
+
+    .rating-summary__big-number {
+      font-size: 2.25rem;
+      font-weight: 800;
+      color: var(--ui-color-text-primary);
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .rating-summary__stars-row {
+      display: flex;
+      align-items: center;
+    }
+
+    .rating-summary__count {
+      font-size: 0.8125rem;
+      color: var(--ui-color-text-secondary);
+    }
+
+    .rating-summary__empty {
+      font-size: 0.8125rem;
+      color: var(--ui-color-text-secondary);
+    }
+  }
+}

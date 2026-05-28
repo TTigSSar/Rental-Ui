@@ -1,0 +1,45 @@
+@if (readonly()) {
+  <div
+    class="star-rating"
+    [class]="'star-rating star-rating--' + size()"
+    role="img"
+    [attr.aria-label]="ariaLabel()"
+  >
+    @for (star of stars(); track star) {
+      <svg
+        class="star-rating__star"
+        [class.star-rating__star--filled]="isFilled(star)"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path d="M12 2l3 6.5 7 1-5 5 1.5 7-6.5-3.5L5.5 21 7 14 2 9l7-1L12 2z" />
+      </svg>
+    }
+  </div>
+} @else {
+  <div
+    [class]="'star-rating star-rating--interactive star-rating--' + size()"
+    (mouseleave)="onMouseLeave()"
+  >
+    @for (star of stars(); track star) {
+      <button
+        type="button"
+        class="star-rating__btn"
+        [attr.aria-label]="starAriaLabel(star)"
+        [attr.aria-pressed]="star <= rating()"
+        (click)="onStarClick(star)"
+        (mouseenter)="onStarEnter(star)"
+        (keydown)="onKeydown($event, star)"
+      >
+        <svg
+          class="star-rating__star"
+          [class.star-rating__star--filled]="isFilled(star)"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path d="M12 2l3 6.5 7 1-5 5 1.5 7-6.5-3.5L5.5 21 7 14 2 9l7-1L12 2z" />
+        </svg>
+      </button>
+    }
+  </div>
+}

@@ -1,0 +1,24 @@
+@if (variant() === 'compact') {
+  <div class="rating-summary rating-summary--compact">
+    @if (hasRatings()) {
+      <app-ui-star-rating [rating]="roundedRating()" size="sm" [readonly]="true" />
+      <span class="rating-summary__average">{{ formattedAverage() }}</span>
+      <span class="rating-summary__sep" aria-hidden="true">·</span>
+      <span class="rating-summary__count">{{ reviewCountLabel() }}</span>
+    } @else {
+      <span class="rating-summary__empty">{{ reviewCountLabel() }}</span>
+    }
+  </div>
+} @else {
+  <div class="rating-summary rating-summary--full">
+    @if (hasRatings()) {
+      <span class="rating-summary__big-number">{{ formattedAverage() }}</span>
+      <div class="rating-summary__stars-row">
+        <app-ui-star-rating [rating]="roundedRating()" size="md" [readonly]="true" />
+      </div>
+      <span class="rating-summary__count">{{ reviewCountLabel() }}</span>
+    } @else {
+      <span class="rating-summary__empty">{{ reviewCountLabel() }}</span>
+    }
+  </div>
+}

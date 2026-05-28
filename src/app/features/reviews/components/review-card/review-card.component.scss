@@ -1,0 +1,58 @@
+.review-card {
+  padding: 14px;
+  background: var(--ui-color-surface);
+  border-radius: var(--ui-radius-card);
+  border: 1px solid var(--ui-color-border);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-8);
+    margin-bottom: 10px;
+  }
+
+  &__author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 1px;
+  }
+
+  &__name {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--ui-color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__date {
+    font-size: 0.6875rem;
+    color: var(--ui-color-text-secondary);
+  }
+
+  &__comment {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--ui-color-text-primary);
+    line-height: var(--ui-line-height-relaxed);
+  }
+}

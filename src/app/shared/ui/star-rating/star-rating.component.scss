@@ -1,0 +1,93 @@
+$star-gold: #f2a900;
+
+.star-rating {
+  display: inline-flex;
+  align-items: center;
+
+  &__star {
+    fill: none;
+    stroke: var(--ui-color-border);
+    stroke-width: 1.8;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+    transition: fill 0.1s ease, stroke 0.1s ease;
+
+    &--filled {
+      fill: $star-gold;
+      stroke: $star-gold;
+    }
+  }
+
+  &__btn {
+    display: grid;
+    place-items: center;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    border-radius: var(--ui-radius-pill);
+    color: inherit;
+    transition: transform 0.1s ease;
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--ui-focus-ring);
+    }
+
+    &:active {
+      transform: scale(0.88);
+    }
+  }
+
+  // ── Size variants ────────────────────────────────────────────────────────
+
+  &--sm {
+    gap: 1px;
+
+    .star-rating__star {
+      width: 12px;
+      height: 12px;
+    }
+
+    .star-rating__btn {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  &--md {
+    gap: 2px;
+
+    .star-rating__star {
+      width: 16px;
+      height: 16px;
+    }
+
+    .star-rating__btn {
+      width: 30px;
+      height: 30px;
+    }
+  }
+
+  &--lg {
+    gap: 6px;
+
+    .star-rating__star {
+      width: 32px;
+      height: 32px;
+    }
+
+    .star-rating__btn {
+      width: 44px;
+      height: 44px;
+    }
+  }
+
+  // ── Interactive: wider gap so buttons don't crowd ─────────────────────────
+
+  &--interactive {
+    &.star-rating--sm { gap: 2px; }
+    &.star-rating--md { gap: 4px; }
+    &.star-rating--lg { gap: 6px; }
+  }
+}
