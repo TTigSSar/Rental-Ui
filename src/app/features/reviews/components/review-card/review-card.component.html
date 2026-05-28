@@ -12,7 +12,10 @@
       }
       <div class="review-card__meta">
         <span class="review-card__name">{{ reviewerName() }}</span>
-        <span class="review-card__date" [title]="fullDate()">{{ relativeDate() }}</span>
+        @let relDate = relativeDateI18n();
+        <span class="review-card__date" [title]="fullDate()">
+          {{ relDate.key | translate: relDate.params }}
+        </span>
       </div>
     </div>
 

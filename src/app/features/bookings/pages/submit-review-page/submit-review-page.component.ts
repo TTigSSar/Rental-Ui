@@ -19,6 +19,7 @@ import {
   selectSubmissionError,
   selectSubmittedReview,
 } from '../../../reviews/store/reviews.selectors';
+import * as BookingsActions from '../../store/bookings.actions';
 import { selectMyBookingById } from '../../store/bookings.selectors';
 
 @Component({
@@ -43,6 +44,7 @@ export class SubmitReviewPageComponent implements OnInit {
 
   protected readonly booking = toSignal(
     this.store.select(selectMyBookingById(this.bookingId)),
+    { initialValue: null },
   );
   protected readonly isSubmitting = toSignal(
     this.store.select(selectIsSubmitting),
@@ -71,6 +73,10 @@ export class SubmitReviewPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.store.dispatch(ReviewsActions.resetSubmission());
+    // Populate booking context if we arrived via direct URL (store is empty)
+    if (this.booking() === null) {
+      this.store.dispatch(BookingsActions.loadMyBookings());
+    }
   }
 
   protected onRatingChange(rating: number): void {

@@ -4,9 +4,13 @@
       <app-ui-star-rating [rating]="roundedRating()" size="sm" [readonly]="true" />
       <span class="rating-summary__average">{{ formattedAverage() }}</span>
       <span class="rating-summary__sep" aria-hidden="true">·</span>
-      <span class="rating-summary__count">{{ reviewCountLabel() }}</span>
+      @if (summary().reviewCount === 1) {
+        <span class="rating-summary__count">{{ 'reviews.summary.oneReview' | translate }}</span>
+      } @else {
+        <span class="rating-summary__count">{{ 'reviews.summary.countReviews' | translate: { count: summary().reviewCount } }}</span>
+      }
     } @else {
-      <span class="rating-summary__empty">{{ reviewCountLabel() }}</span>
+      <span class="rating-summary__empty">{{ 'reviews.summary.noReviews' | translate }}</span>
     }
   </div>
 } @else {
@@ -16,9 +20,13 @@
       <div class="rating-summary__stars-row">
         <app-ui-star-rating [rating]="roundedRating()" size="md" [readonly]="true" />
       </div>
-      <span class="rating-summary__count">{{ reviewCountLabel() }}</span>
+      @if (summary().reviewCount === 1) {
+        <span class="rating-summary__count">{{ 'reviews.summary.oneReview' | translate }}</span>
+      } @else {
+        <span class="rating-summary__count">{{ 'reviews.summary.countReviews' | translate: { count: summary().reviewCount } }}</span>
+      }
     } @else {
-      <span class="rating-summary__empty">{{ reviewCountLabel() }}</span>
+      <span class="rating-summary__empty">{{ 'reviews.summary.noReviews' | translate }}</span>
     }
   </div>
 }

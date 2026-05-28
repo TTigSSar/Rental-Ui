@@ -739,7 +739,24 @@
       "successTitle": "Thanks for your review!",
       "successMessage": "Your feedback helps families pick the right toys — and rewards owners who go above and beyond.",
       "successCta": "Back to bookings",
-      "privacyHint": "Reviews are public. Both reviews go live once both parties submit."
+      "privacyHint": "Reviews are public. Both reviews go live once both parties submit.",
+      "backAriaLabel": "Back to bookings"
+    },
+    "summary": {
+      "noReviews": "No reviews yet",
+      "oneReview": "1 review",
+      "countReviews": "{{count}} reviews"
+    },
+    "relativeDate": {
+      "today": "today",
+      "yesterday": "yesterday",
+      "daysAgo": "{{count}} days ago",
+      "weekAgo": "1 week ago",
+      "weeksAgo": "{{count}} weeks ago",
+      "monthAgo": "1 month ago",
+      "monthsAgo": "{{count}} months ago",
+      "yearAgo": "1 year ago",
+      "yearsAgo": "{{count}} years ago"
     }
   },
   "info": {

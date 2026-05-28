@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { StarRatingComponent } from '../../../../shared/ui/star-rating/star-rating.component';
 import type { RatingSummary } from '../../models/review.model';
@@ -8,7 +9,7 @@ export type RatingSummaryVariant = 'compact' | 'full';
 @Component({
   selector: 'app-rating-summary',
   standalone: true,
-  imports: [StarRatingComponent],
+  imports: [StarRatingComponent, TranslatePipe],
   templateUrl: './rating-summary.component.html',
   styleUrl: './rating-summary.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,10 +28,4 @@ export class RatingSummaryComponent {
   protected readonly roundedRating = computed(() =>
     Math.round(this.summary().averageRating),
   );
-
-  protected readonly reviewCountLabel = computed(() => {
-    const count = this.summary().reviewCount;
-    if (count === 0) return 'No reviews yet';
-    return count === 1 ? '1 review' : `${count} reviews`;
-  });
 }

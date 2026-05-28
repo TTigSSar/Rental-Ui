@@ -1,7 +1,7 @@
 <div class="srp">
   <!-- Header -->
   <header class="srp__header">
-    <a class="srp__back-btn" [routerLink]="['/bookings']" aria-label="Back to bookings">
+    <a class="srp__back-btn" [routerLink]="['/bookings']" [attr.aria-label]="'reviews.submit.backAriaLabel' | translate">
       <i class="pi pi-arrow-left" aria-hidden="true"></i>
     </a>
     <h1 class="srp__title">{{ 'reviews.submit.title' | translate }}</h1>

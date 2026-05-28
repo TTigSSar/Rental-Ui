@@ -1,13 +1,19 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { StarRatingComponent } from '../../../../shared/ui/star-rating/star-rating.component';
 import type { Review } from '../../models/review.model';
 
+interface RelativeDateI18n {
+  readonly key: string;
+  readonly params: Record<string, unknown>;
+}
+
 @Component({
   selector: 'app-review-card',
   standalone: true,
-  imports: [AvatarComponent, StarRatingComponent],
+  imports: [AvatarComponent, StarRatingComponent, TranslatePipe],
   templateUrl: './review-card.component.html',
   styleUrl: './review-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -20,19 +26,23 @@ export class ReviewCardComponent {
     return `${r.reviewerFirstName} ${r.reviewerLastName}`.trim();
   });
 
-  protected readonly relativeDate = computed(() => {
+  protected readonly relativeDateI18n = computed((): RelativeDateI18n => {
     const createdAt = new Date(this.review().createdAt);
-    const now = new Date();
-    const diffDays = Math.floor((now.getTime() - createdAt.getTime()) / 86_400_000);
+    const diffDays = Math.floor(
+      (Date.now() - createdAt.getTime()) / 86_400_000,
+    );
 
-    if (diffDays < 1) return 'today';
-    if (diffDays === 1) return 'yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 14) return '1 week ago';
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-    if (diffDays < 60) return '1 month ago';
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
-    return `${Math.floor(diffDays / 365)} years ago`;
+    if (diffDays < 1) return { key: 'reviews.relativeDate.today', params: {} };
+    if (diffDays === 1) return { key: 'reviews.relativeDate.yesterday', params: {} };
+    if (diffDays < 7) return { key: 'reviews.relativeDate.daysAgo', params: { count: diffDays } };
+    if (diffDays < 14) return { key: 'reviews.relativeDate.weekAgo', params: {} };
+    if (diffDays < 30) return { key: 'reviews.relativeDate.weeksAgo', params: { count: Math.floor(diffDays / 7) } };
+    if (diffDays < 60) return { key: 'reviews.relativeDate.monthAgo', params: {} };
+    if (diffDays < 365) return { key: 'reviews.relativeDate.monthsAgo', params: { count: Math.floor(diffDays / 30) } };
+    const years = Math.floor(diffDays / 365);
+    return years === 1
+      ? { key: 'reviews.relativeDate.yearAgo', params: {} }
+      : { key: 'reviews.relativeDate.yearsAgo', params: { count: years } };
   });
 
   protected readonly fullDate = computed(() =>
