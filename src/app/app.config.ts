@@ -37,6 +37,8 @@ import {
 } from './features/my-listings/store/my-listings.reducer';
 import { ProfileEffects } from './features/profile/store/profile.effects';
 import { profileFeatureKey, profileReducer } from './features/profile/store/profile.reducer';
+import { PublicProfilesEffects } from './features/public-profiles/store/public-profiles.effects';
+import { publicProfilesFeatureKey, publicProfilesReducer } from './features/public-profiles/store/public-profiles.reducer';
 import { ReviewsEffects } from './features/reviews/store/reviews.effects';
 import { reviewsFeatureKey, reviewsReducer } from './features/reviews/store/reviews.reducer';
 import { routes } from './app.routes';
@@ -61,6 +63,7 @@ export const appConfig: ApplicationConfig = {
     provideState(listingsFeatureKey, listingsReducer),
     provideState(myListingsFeatureKey, myListingsReducer),
     provideState(profileFeatureKey, profileReducer),
+    provideState(publicProfilesFeatureKey, publicProfilesReducer),
     provideState(reviewsFeatureKey, reviewsReducer),
     provideEffects(AdminModerationEffects),
     provideEffects(HomeEffects),
@@ -71,6 +74,7 @@ export const appConfig: ApplicationConfig = {
     provideEffects(ListingsEffects),
     provideEffects(MyListingsEffects),
     provideEffects(ProfileEffects),
+    provideEffects(PublicProfilesEffects),
     provideEffects(ReviewsEffects),
     translateHttpLoaderProviders[0],
     ...provideTranslateService({

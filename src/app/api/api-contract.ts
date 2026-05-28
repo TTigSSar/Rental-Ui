@@ -56,6 +56,10 @@ export const ApiContract = {
   home: {
     sections: '/api/home/sections',
   },
+  users: {
+    publicProfile: (userId: string): ApiPath =>
+      `/api/users/${encodeURIComponent(userId)}/public-profile`,
+  },
   reviews: {
     submit: '/api/reviews',
     byListing: (listingId: string): ApiPath =>
