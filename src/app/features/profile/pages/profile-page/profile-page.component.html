@@ -33,6 +33,19 @@
 
     @if (vm.profile; as profile) {
       <div class="profile-page__content">
+
+        <!-- Rating summary — only shown when the user has received reviews -->
+        @if (ratingSummary(); as summary) {
+          @if (summary.reviewCount > 0) {
+            <p-card styleClass="profile-page__card">
+              <h2 class="profile-page__section-title">
+                {{ 'profile.rating.heading' | translate }}
+              </h2>
+              <app-rating-summary [summary]="summary" variant="full" />
+            </p-card>
+          }
+        }
+
         <p-card styleClass="profile-page__card">
           <h2 class="profile-page__section-title">
             {{ 'profile.account.heading' | translate }}
@@ -82,6 +95,41 @@
             {{ 'profile.membership.note' | translate }}
           </p>
         </p-card>
+
+        <!-- Reviews received -->
+        <p-card styleClass="profile-page__card">
+          <h2 class="profile-page__section-title">
+            {{ 'profile.reviews.heading' | translate }}
+            @if (ratingSummary(); as summary) {
+              @if (summary.reviewCount > 0) {
+                <span class="profile-page__reviews-count">({{ summary.reviewCount }})</span>
+              }
+            }
+          </h2>
+
+          @if (reviewsLoading()) {
+            <div class="profile-page__reviews-skeleton">
+              @for (i of [0, 1, 2]; track i) {
+                <p-skeleton height="5rem" borderRadius="16px" />
+              }
+            </div>
+          } @else if (reviewsError()) {
+            <p class="profile-page__reviews-error" role="alert">
+              {{ 'profile.reviews.error' | translate }}
+            </p>
+          } @else if (reviews().length === 0) {
+            <p class="profile-page__reviews-empty">
+              {{ 'profile.reviews.empty' | translate }}
+            </p>
+          } @else {
+            <div class="profile-page__reviews-list">
+              @for (review of reviews(); track review.id) {
+                <app-review-card [review]="review" />
+              }
+            </div>
+          }
+        </p-card>
+
       </div>
     }
   }

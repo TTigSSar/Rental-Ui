@@ -120,6 +120,37 @@
   }
 }
 
+.profile-page__reviews-count {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--ui-color-text-secondary);
+  margin-left: 6px;
+}
+
+.profile-page__reviews-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-8);
+}
+
+.profile-page__reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-page__reviews-empty {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--ui-color-text-secondary);
+}
+
+.profile-page__reviews-error {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ui-color-error);
+}
+
 @media (max-width: 640px) {
   .profile-page__detail-row {
     grid-template-columns: 1fr;

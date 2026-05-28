@@ -497,6 +497,14 @@
     },
     "common": {
       "notAvailable": "Not available"
+    },
+    "rating": {
+      "heading": "Your rating"
+    },
+    "reviews": {
+      "heading": "Reviews received",
+      "empty": "No reviews yet",
+      "error": "Unable to load reviews"
     }
   },
   "myListings": {
