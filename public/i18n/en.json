@@ -578,12 +578,14 @@
       "approved": "Approved",
       "rejected": "Rejected",
       "archived": "Archived",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "completed": "Completed"
     },
     "actions": {
       "viewListing": "View toy",
       "approve": "Approve",
-      "reject": "Reject"
+      "reject": "Reject",
+      "leaveReview": "Leave review"
     },
     "common": {
       "createdAt": "Created",
@@ -702,6 +704,29 @@
       "noMessages": "No messages in this conversation yet.",
       "messagePlaceholder": "Type your message",
       "send": "Send"
+    }
+  },
+  "reviews": {
+    "submit": {
+      "title": "Leave a review",
+      "contextLabel": "Your rental",
+      "ratingQuestion": "How was your rental overall?",
+      "ratingHint": "Tap a star to rate",
+      "ratingLabel_1": "Poor",
+      "ratingLabel_2": "Fair",
+      "ratingLabel_3": "Good",
+      "ratingLabel_4": "Great",
+      "ratingLabel_5": "Excellent",
+      "commentLabel": "Add a comment",
+      "commentOptional": "(optional)",
+      "commentPlaceholder": "Share your experience…",
+      "commentHint": "Reviews help other families pick safely.",
+      "submitButton": "Submit review",
+      "skipButton": "Skip",
+      "successTitle": "Thanks for your review!",
+      "successMessage": "Your feedback helps families pick the right toys — and rewards owners who go above and beyond.",
+      "successCta": "Back to bookings",
+      "privacyHint": "Reviews are public. Both reviews go live once both parties submit."
     }
   },
   "info": {

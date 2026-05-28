@@ -13,6 +13,8 @@ export function mapBookingStatusTone(status: BookingStatus): BadgeTone {
     case 'Archived':
     case 'Cancelled':
       return 'neutral';
+    case 'Completed':
+      return 'completed';
     default:
       return 'pending';
   }
@@ -31,6 +33,8 @@ export function mapBookingStatusLabelKey(status: BookingStatus): string {
       return 'bookings.status.archived';
     case 'Cancelled':
       return 'bookings.status.cancelled';
+    case 'Completed':
+      return 'bookings.status.completed';
     default:
       return 'bookings.status.pendingApproval';
   }

@@ -37,6 +37,15 @@
         [label]="'bookings.actions.viewListing' | translate"
         [routerLink]="['/listings', booking().listingId]"
       />
+      @if (booking().status === 'Completed') {
+        <p-button
+          type="button"
+          size="small"
+          icon="pi pi-star"
+          [label]="'bookings.actions.leaveReview' | translate"
+          [routerLink]="['/bookings', booking().id, 'review']"
+        />
+      }
     </div>
   </ng-template>
 </p-card>

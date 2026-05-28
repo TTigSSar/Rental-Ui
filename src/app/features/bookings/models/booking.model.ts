@@ -4,7 +4,8 @@ export type BookingStatus =
   | 'Approved'
   | 'Rejected'
   | 'Archived'
-  | 'Cancelled';
+  | 'Cancelled'
+  | 'Completed';
 
 export interface CreateBookingRequest {
   listingId: string;

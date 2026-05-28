@@ -1,6 +1,7 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 
 import type { BookingRequest, MyBooking } from '../models/booking.model';
+
 import { bookingsFeatureKey } from './bookings.reducer';
 import type { BookingsState } from './bookings.state';
 
@@ -56,3 +57,10 @@ export const selectBookingRequestActionIds = createSelector(
   selectBookingsState,
   (state: BookingsState): string[] => state.bookingRequestActionIds,
 );
+
+export const selectMyBookingById = (bookingId: string) =>
+  createSelector(
+    selectMyBookings,
+    (bookings): MyBooking | null =>
+      bookings.find((b) => b.id === bookingId) ?? null,
+  );
