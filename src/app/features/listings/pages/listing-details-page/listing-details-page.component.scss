@@ -476,6 +476,16 @@
   color: var(--ui-color-footer);
 }
 
+.detail-page__host-rating {
+  margin-top: 3px;
+}
+
+.detail-page__host-since {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  color: var(--ui-color-footer);
+}
+
 .detail-page__host-profile-link {
   display: inline-flex;
   align-items: center;

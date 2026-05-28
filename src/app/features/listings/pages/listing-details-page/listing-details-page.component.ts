@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   inject,
   signal,
@@ -37,7 +38,10 @@ import {
   selectListingReviewsLoading,
   selectListingReviewsError,
   selectListingSummary,
+  selectUserSummary,
 } from '../../../reviews/store/reviews.selectors';
+import * as PublicProfilesActions from '../../../public-profiles/store/public-profiles.actions';
+import { selectPublicProfile } from '../../../public-profiles/store/public-profiles.selectors';
 import {
   selectListingDetailsLoading,
   selectListingsError,
@@ -235,6 +239,39 @@ export class ListingDetailsPageComponent {
     { initialValue: null },
   );
 
+  // ── Owner trust signals ────────────────────────────────────────────────────
+
+  private readonly ownerId$ = this.store.select(selectSelectedListing).pipe(
+    map((listing) => listing?.owner?.id ?? null),
+    distinctUntilChanged(),
+  );
+
+  protected readonly ownerSummary = toSignal(
+    this.ownerId$.pipe(
+      switchMap((id) =>
+        id ? this.store.select(selectUserSummary(id)) : of(null),
+      ),
+    ),
+    { initialValue: null },
+  );
+
+  protected readonly ownerPublicProfile = toSignal(
+    this.ownerId$.pipe(
+      switchMap((id) =>
+        id ? this.store.select(selectPublicProfile(id)) : of(null),
+      ),
+    ),
+    { initialValue: null },
+  );
+
+  protected readonly ownerMemberYear = computed(() => {
+    const p = this.ownerPublicProfile();
+    if (!p) return null;
+    return new Date(p.memberSince).getFullYear().toString();
+  });
+
+  private readonly currentListingSignal = this.store.selectSignal(selectSelectedListing);
+
   private readonly createBookingSuccessId = this.store.selectSignal(selectCreateBookingSuccessId);
 
   protected readonly viewModel$ = combineLatest({
@@ -307,6 +344,15 @@ export class ListingDetailsPageComponent {
       const listingId = this.routeListingId();
       if (listingId !== null && listingId !== '') {
         this.store.dispatch(ListingsActions.loadListingDetails({ id: listingId }));
+      }
+    });
+
+    // Load owner rating + public profile when the listing owner is known
+    effect(() => {
+      const ownerId = this.currentListingSignal()?.owner?.id;
+      if (ownerId) {
+        this.store.dispatch(ReviewsActions.loadUserSummary({ userId: ownerId }));
+        this.store.dispatch(PublicProfilesActions.loadPublicProfile({ userId: ownerId }));
       }
     });
   }

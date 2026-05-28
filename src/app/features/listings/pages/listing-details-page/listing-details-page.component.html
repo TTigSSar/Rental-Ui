@@ -316,6 +316,19 @@
                         {{ listing.owner.firstName }}
                         {{ listing.owner.lastName }}
                       </p>
+                      <!-- Owner trust: compact rating + member since -->
+                      @if (ownerSummary(); as summary) {
+                        @if (summary.reviewCount > 0) {
+                          <div class="detail-page__host-rating">
+                            <app-rating-summary [summary]="summary" variant="compact" />
+                          </div>
+                        }
+                      }
+                      @if (ownerMemberYear(); as year) {
+                        <p class="detail-page__host-since">
+                          {{ 'listings.details.ownerMemberSince' | translate: { year: year } }}
+                        </p>
+                      }
                       @if (listing.owner.phoneNumber) {
                         <a
                           class="detail-page__host-phone"

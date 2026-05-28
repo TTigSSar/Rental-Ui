@@ -306,6 +306,7 @@
       "hostHeading": "Toy owner",
       "contactLabel": "Phone number will be available after you send a booking request.",
       "viewOwnerProfile": "View owner profile",
+      "ownerMemberSince": "Member since {{year}}",
       "bookingHeading": "Check availability",
       "bookingSubtitle": "Pick your rental dates and see the total before you send a rental request.",
       "bookingSubmitting": "Submitting rental request...",
