@@ -329,6 +329,13 @@
                           {{ 'listings.details.contactLabel' | translate }}
                         </p>
                       }
+                      <a
+                        class="detail-page__host-profile-link"
+                        [routerLink]="['/users', listing.owner.id]"
+                      >
+                        {{ 'listings.details.viewOwnerProfile' | translate }}
+                        <i class="pi pi-arrow-right" aria-hidden="true"></i>
+                      </a>
                     </div>
                   </div>
                 </section>

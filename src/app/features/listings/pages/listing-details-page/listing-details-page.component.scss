@@ -476,6 +476,40 @@
   color: var(--ui-color-footer);
 }
 
+.detail-page__host-profile-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: var(--ui-space-6);
+  padding-block: 8px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ui-color-primary);
+  text-decoration: none;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+
+  i {
+    font-size: 0.6875rem;
+    transition: transform 0.15s ease;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    color: var(--ui-color-primary-strong);
+    text-decoration: underline;
+
+    i {
+      transform: translateX(2px);
+    }
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ui-focus-ring);
+  }
+}
+
 .detail-page__sidebar {
   min-width: 0;
 }
