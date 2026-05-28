@@ -726,6 +726,18 @@
       "yearsAgo": "{{count}} տարի առաջ"
     }
   },
+  "publicProfile": {
+    "title": "Սեփականատիրոջ պրոֆիլ",
+    "backAriaLabel": "Վերադառնալ",
+    "memberSince": "Անդամ {{year}} թ.-ից",
+    "activeListings": "{{count}} ակտիվ խաղալիք(ներ)",
+    "ratingHeading": "Գնահատական",
+    "reviewsHeading": "Կարծիքներ",
+    "reviewsEmpty": "Կարծիքներ դեռ չկան",
+    "reviewsError": "Չհաջողվեց բեռնել կարծիքները",
+    "errorTitle": "Չհաջողվեց բեռնել պրոֆիլը",
+    "notFound": "Այս պրոֆիլը հասանելի չէ։"
+  },
   "info": {
     "about": {
       "pageTitle": "Մեր մասին",

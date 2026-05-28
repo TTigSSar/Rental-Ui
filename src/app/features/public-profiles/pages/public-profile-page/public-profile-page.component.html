@@ -1,0 +1,128 @@
+<div class="pub-profile">
+
+  <!-- ── Sticky top bar ──────────────────────────────────────────────────── -->
+  <header class="pub-profile__header">
+    <button
+      type="button"
+      class="pub-profile__back-btn"
+      (click)="goBack()"
+      [attr.aria-label]="'publicProfile.backAriaLabel' | translate"
+    >
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    </button>
+    <h1 class="pub-profile__title">{{ 'publicProfile.title' | translate }}</h1>
+  </header>
+
+  <!-- ── Loading skeleton ────────────────────────────────────────────────── -->
+  @if (showSkeleton()) {
+    <div class="pub-profile__skeleton-band">
+      <div class="pub-profile__skeleton-identity page-container">
+        <p-skeleton width="72px" height="72px" shape="circle" />
+        <div class="pub-profile__skeleton-info">
+          <p-skeleton width="9rem" height="1.125rem" />
+          <p-skeleton width="7rem" height="0.875rem" />
+        </div>
+      </div>
+      <div class="pub-profile__skeleton-content page-container">
+        @for (i of [0, 1, 2]; track i) {
+          <p-skeleton height="5rem" borderRadius="16px" />
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ── Error state ──────────────────────────────────────────────────────── -->
+  @if (showError()) {
+    <div class="pub-profile__error page-container" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <p>{{ profileError() ?? ('publicProfile.errorTitle' | translate) }}</p>
+      <p-button
+        type="button"
+        [label]="'listings.common.retry' | translate"
+        (onClick)="retryLoad()"
+      />
+    </div>
+  }
+
+  <!-- ── Content (profile loaded) ────────────────────────────────────────── -->
+  @if (profile(); as owner) {
+
+    <!-- Identity band: full-width white surface -->
+    <div class="pub-profile__identity">
+      <div class="pub-profile__identity-inner page-container">
+        @if (owner.avatarUrl) {
+          <img
+            class="pub-profile__avatar-img"
+            [src]="owner.avatarUrl"
+            [alt]="displayName()"
+          />
+        } @else {
+          <div class="pub-profile__avatar-fallback" aria-hidden="true">
+            {{ initials() }}
+          </div>
+        }
+        <div class="pub-profile__owner-info">
+          <h2 class="pub-profile__owner-name">{{ displayName() }}</h2>
+          <p class="pub-profile__owner-meta">
+            {{ 'publicProfile.memberSince' | translate: { year: memberYear() } }}
+            @if (owner.activeListingsCount > 0) {
+              <span aria-hidden="true"> · </span>{{ 'publicProfile.activeListings' | translate: { count: owner.activeListingsCount } }}
+            }
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page content -->
+    <div class="pub-profile__content page-container">
+
+      <!-- Rating summary — only when reviews exist -->
+      @if (ratingSummary(); as summary) {
+        @if (summary.reviewCount > 0) {
+          <section class="pub-profile__section">
+            <h3 class="pub-profile__section-title">
+              {{ 'publicProfile.ratingHeading' | translate }}
+            </h3>
+            <app-rating-summary [summary]="summary" variant="full" />
+          </section>
+        }
+      }
+
+      <!-- Reviews received -->
+      <section class="pub-profile__section">
+        <h3 class="pub-profile__section-title">
+          {{ 'publicProfile.reviewsHeading' | translate }}
+          @if (ratingSummary(); as summary) {
+            @if (summary.reviewCount > 0) {
+              <span class="pub-profile__reviews-count">({{ summary.reviewCount }})</span>
+            }
+          }
+        </h3>
+
+        @if (reviewsLoading()) {
+          <div class="pub-profile__reviews-skeleton">
+            @for (i of [0, 1, 2]; track i) {
+              <p-skeleton height="5.25rem" borderRadius="16px" />
+            }
+          </div>
+        } @else if (reviewsError()) {
+          <p class="pub-profile__reviews-error" role="alert">
+            {{ 'publicProfile.reviewsError' | translate }}
+          </p>
+        } @else if (reviews().length === 0) {
+          <p class="pub-profile__reviews-empty">
+            {{ 'publicProfile.reviewsEmpty' | translate }}
+          </p>
+        } @else {
+          <div class="pub-profile__reviews-list">
+            @for (review of reviews(); track review.id) {
+              <app-review-card [review]="review" />
+            }
+          </div>
+        }
+      </section>
+
+    </div>
+  }
+
+</div>

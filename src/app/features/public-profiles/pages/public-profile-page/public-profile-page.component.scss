@@ -1,0 +1,242 @@
+@keyframes pub-profile-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pub-profile {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--ui-color-background);
+  animation: pub-profile-fade-in 200ms ease-out both;
+
+  // ── Sticky top bar ────────────────────────────────────────────────────────
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-12);
+    padding: 0 var(--ui-space-16);
+    height: 56px;
+    background: var(--ui-color-surface);
+    border-bottom: 1px solid var(--ui-color-border);
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  &__back-btn {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--ui-radius-pill);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--ui-color-text-primary);
+    flex-shrink: 0;
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: var(--ui-color-surface-muted);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--ui-focus-ring);
+    }
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ui-color-text-primary);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // ── Loading skeleton ──────────────────────────────────────────────────────
+
+  &__skeleton-band {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-20);
+  }
+
+  &__skeleton-identity {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-16);
+    padding-top: var(--ui-space-20);
+  }
+
+  &__skeleton-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-8);
+  }
+
+  &__skeleton-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-12);
+    padding-bottom: var(--ui-space-32);
+  }
+
+  // ── Error state ───────────────────────────────────────────────────────────
+
+  &__error {
+    margin-top: var(--ui-space-32);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ui-space-16);
+    text-align: center;
+
+    i {
+      font-size: 2rem;
+      color: var(--ui-color-error);
+    }
+
+    p {
+      margin: 0;
+      color: var(--ui-color-text-primary);
+      font-size: 0.9375rem;
+      line-height: 1.5;
+    }
+  }
+
+  // ── Identity band ─────────────────────────────────────────────────────────
+
+  &__identity {
+    background: var(--ui-color-surface);
+    border-bottom: 1px solid var(--ui-color-border);
+    padding-block: var(--ui-space-16) var(--ui-space-20);
+  }
+
+  &__identity-inner {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-16);
+  }
+
+  &__avatar-img {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  &__avatar-fallback {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(
+      135deg,
+      var(--ui-color-primary) 0%,
+      var(--ui-color-secondary) 100%
+    );
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__owner-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__owner-name {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: var(--ui-color-text-primary);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__owner-meta {
+    margin: 5px 0 0;
+    font-size: 0.75rem;
+    color: var(--ui-color-text-secondary);
+    line-height: 1.5;
+  }
+
+  // ── Page content ──────────────────────────────────────────────────────────
+
+  &__content {
+    flex: 1;
+    padding-top: var(--ui-space-20);
+    padding-bottom: var(--ui-space-32);
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-24);
+  }
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-12);
+  }
+
+  &__section-title {
+    margin: 0;
+    font-size: var(--ui-font-size-h3);
+    font-weight: 700;
+    color: var(--ui-color-text-primary);
+  }
+
+  // ── Reviews ───────────────────────────────────────────────────────────────
+
+  &__reviews-count {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--ui-color-text-secondary);
+    margin-left: 6px;
+  }
+
+  &__reviews-skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__reviews-empty {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--ui-color-text-secondary);
+  }
+
+  &__reviews-error {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--ui-color-error);
+  }
+}

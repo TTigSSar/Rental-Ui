@@ -759,6 +759,18 @@
       "yearsAgo": "{{count}} years ago"
     }
   },
+  "publicProfile": {
+    "title": "Owner profile",
+    "backAriaLabel": "Go back",
+    "memberSince": "Member since {{year}}",
+    "activeListings": "{{count}} active toy(s)",
+    "ratingHeading": "Rating",
+    "reviewsHeading": "Reviews",
+    "reviewsEmpty": "No reviews yet",
+    "reviewsError": "Unable to load reviews",
+    "errorTitle": "Unable to load this profile",
+    "notFound": "This profile is not available."
+  },
   "info": {
     "about": {
       "pageTitle": "About Us",

@@ -726,6 +726,18 @@
       "yearsAgo": "{{count}} г. назад"
     }
   },
+  "publicProfile": {
+    "title": "Профиль владельца",
+    "backAriaLabel": "Назад",
+    "memberSince": "Участник с {{year}} г.",
+    "activeListings": "{{count}} активн. игрушка(-и)",
+    "ratingHeading": "Рейтинг",
+    "reviewsHeading": "Отзывы",
+    "reviewsEmpty": "Отзывов пока нет",
+    "reviewsError": "Не удалось загрузить отзывы",
+    "errorTitle": "Не удалось загрузить профиль",
+    "notFound": "Этот профиль недоступен."
+  },
   "info": {
     "about": {
       "pageTitle": "О нас",
