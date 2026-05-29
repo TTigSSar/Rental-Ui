@@ -100,6 +100,10 @@ export class EditListingPageComponent implements OnInit {
   protected readonly isLoadingData = signal(true);
   protected readonly coverImageUrl = signal<string | null>(null);
 
+  // ── Photo replacement ─────────────────────────────────────────
+  protected selectedFiles: File[] = [];
+  protected readonly imagePreviews = signal<string[]>([]);
+
   private listingId = '';
 
   // ── Wizard ────────────────────────────────────────────────────
@@ -251,6 +255,32 @@ export class EditListingPageComponent implements OnInit {
     }
   }
 
+  // ── Images ────────────────────────────────────────────────────
+  protected onImagesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files) return;
+    this.selectedFiles = Array.from(input.files).slice(0, 6);
+    const previews = new Array<string>(this.selectedFiles.length);
+    let done = 0;
+    if (this.selectedFiles.length === 0) { this.imagePreviews.set([]); return; }
+    this.selectedFiles.forEach((file, i) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        previews[i] = e.target?.result as string;
+        if (++done === this.selectedFiles.length) {
+          this.imagePreviews.set([...previews]);
+          this.cdr.markForCheck();
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  protected clearNewImages(): void {
+    this.selectedFiles = [];
+    this.imagePreviews.set([]);
+  }
+
   // ── Helpers ───────────────────────────────────────────────────
   protected getSelectedAgeName(): string {
     const chip = this.ageChips.find(c => c.key === this.selectedAgeKey());
@@ -327,7 +357,22 @@ export class EditListingPageComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          void this.router.navigate(['/my-listings']);
+          if (this.selectedFiles.length > 0) {
+            this.api
+              .replaceListingImages(this.listingId, this.selectedFiles)
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe({
+                next: () => void this.router.navigate(['/my-listings']),
+                error: (imgErr: unknown) => {
+                  // Listing text was saved; image replace failed — show error, stay on page.
+                  this.submitError.set(toApiErrorMessage(imgErr));
+                  this.isSubmitting.set(false);
+                  this.cdr.markForCheck();
+                },
+              });
+          } else {
+            void this.router.navigate(['/my-listings']);
+          }
         },
         error: (err: unknown) => {
           this.submitError.set(toApiErrorMessage(err));

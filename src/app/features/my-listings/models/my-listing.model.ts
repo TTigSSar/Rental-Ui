@@ -1,3 +1,10 @@
+export interface ListingImage {
+  id: string;
+  url: string;
+  isPrimary: boolean;
+  sortOrder: number;
+}
+
 export interface UpdateListingRequest {
   title?: string;
   description?: string;

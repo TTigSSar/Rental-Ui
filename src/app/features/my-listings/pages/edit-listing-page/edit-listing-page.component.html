@@ -65,37 +65,102 @@
     <!-- Body -->
     <div class="wizard__body">
 
-      <!-- ═══════════════ STEP 1 — Photos (read-only) ══════════ -->
+      <!-- ═══════════════ STEP 1 — Photos ════════════════════════ -->
       @if (currentStep() === 1) {
         <div class="wizard-step">
           <h1 class="wizard-step__title">{{ 'myListings.editPage.wizard.photosTitle' | translate }}</h1>
           <p class="wizard-step__subtitle">{{ 'myListings.editPage.wizard.photosSubtitle' | translate }}</p>
 
-          @if (coverImageUrl()) {
-            <div class="wizard-photo__cover wizard-photo__cover--readonly">
+          <!-- Cover zone: shows new preview, existing image, or empty placeholder -->
+          <label class="wizard-photo__cover" for="edit-images-input">
+            @if (imagePreviews()[0]) {
+              <!-- New image selected -->
+              <img class="wizard-photo__cover-img" [src]="imagePreviews()[0]" alt="New cover photo" />
+              <div class="wizard-photo__cover-overlay wizard-photo__cover-overlay--new">
+                <span class="wizard-photo__cover-badge wizard-photo__cover-badge--new">
+                  <i class="pi pi-camera" aria-hidden="true"></i>
+                  {{ 'myListings.editPage.wizard.newCoverPhoto' | translate }}
+                </span>
+              </div>
+            } @else if (coverImageUrl()) {
+              <!-- Existing image, no new selection yet -->
               <img
-                class="wizard-photo__cover-img"
+                class="wizard-photo__cover-img wizard-photo__cover-img--existing"
                 [src]="coverImageUrl()!"
                 alt="Current cover photo"
               />
               <div class="wizard-photo__cover-overlay">
                 <span class="wizard-photo__cover-badge">
-                  <i class="pi pi-check-circle" aria-hidden="true"></i>
-                  {{ 'myListings.editPage.wizard.currentPhoto' | translate }}
+                  <i class="pi pi-camera" aria-hidden="true"></i>
+                  {{ 'myListings.editPage.wizard.replacePhotos' | translate }}
                 </span>
               </div>
+            } @else {
+              <!-- No existing image -->
+              <span class="wizard-photo__cover-icon-wrap" aria-hidden="true">
+                <i class="pi pi-camera wizard-photo__cover-icon"></i>
+              </span>
+              <span class="wizard-photo__cover-label">
+                {{ 'listings.createForm.photos.addCover' | translate }}
+              </span>
+              <span class="wizard-photo__cover-hint">
+                {{ 'listings.createForm.photos.coverHint' | translate }}
+              </span>
+            }
+            <input
+              id="edit-images-input"
+              type="file"
+              class="wizard-photo__input"
+              multiple
+              accept="image/*"
+              [disabled]="isSubmitting()"
+              (change)="onImagesSelected($event)"
+            />
+          </label>
+
+          <!-- Extra slots (5) — show new previews or empty -->
+          <div class="wizard-photo__grid">
+            @for (i of [1, 2, 3, 4, 5]; track i) {
+              <div
+                class="wizard-photo__slot"
+                [class.wizard-photo__slot--filled]="imagePreviews()[i]"
+              >
+                @if (imagePreviews()[i]) {
+                  <img
+                    class="wizard-photo__slot-img"
+                    [src]="imagePreviews()[i]"
+                    [alt]="'New photo ' + (i + 1)"
+                  />
+                } @else {
+                  <i class="pi pi-plus wizard-photo__slot-plus" aria-hidden="true"></i>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Warning: new selection replaces all existing -->
+          @if (selectedFiles.length > 0) {
+            <div class="wizard-edit-note wizard-edit-note--warning">
+              <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+              <span>{{
+                'myListings.editPage.wizard.replaceWarning'
+                  | translate: { count: selectedFiles.length }
+              }}</span>
             </div>
-          } @else {
-            <div class="wizard-photo__cover wizard-photo__cover--empty">
-              <i class="pi pi-image wizard-photo__cover-icon" aria-hidden="true"></i>
-              <span class="wizard-photo__cover-label">{{ 'myListings.editPage.wizard.noPhoto' | translate }}</span>
+            <button
+              type="button"
+              class="wizard-photo__clear-btn"
+              (click)="clearNewImages()"
+            >
+              {{ 'myListings.editPage.wizard.clearNewPhotos' | translate }}
+            </button>
+          } @else if (coverImageUrl()) {
+            <!-- No new selection — keep existing note -->
+            <div class="wizard-edit-note">
+              <i class="pi pi-info-circle" aria-hidden="true"></i>
+              <span>{{ 'myListings.editPage.wizard.photoKeepNote' | translate }}</span>
             </div>
           }
-
-          <div class="wizard-edit-note">
-            <i class="pi pi-info-circle" aria-hidden="true"></i>
-            <span>{{ 'myListings.editPage.wizard.photoReadOnly' | translate }}</span>
-          </div>
         </div>
       }
 

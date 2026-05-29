@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
 import { ApiContract, toApiUrl } from '../../../api/api-contract';
-import type { MyListing, MyListingStatus, UpdateListingRequest } from '../models/my-listing.model';
+import type { ListingImage, MyListing, MyListingStatus, UpdateListingRequest } from '../models/my-listing.model';
 
 const KNOWN_MY_LISTING_STATUSES: ReadonlySet<MyListingStatus> = new Set([
   'PendingApproval',
@@ -71,6 +71,15 @@ export class MyListingsApiService {
 
   updateListing(listingId: string, request: UpdateListingRequest): Observable<void> {
     return this.http.patch<void>(toApiUrl(ApiContract.listings.byId(listingId)), request);
+  }
+
+  replaceListingImages(listingId: string, files: File[]): Observable<ListingImage[]> {
+    const formData = new FormData();
+    files.forEach(f => formData.append('files', f));
+    return this.http.put<ListingImage[]>(
+      toApiUrl(ApiContract.listings.uploadImages(listingId)),
+      formData,
+    );
   }
 
   getMyListings(): Observable<MyListing[]> {
