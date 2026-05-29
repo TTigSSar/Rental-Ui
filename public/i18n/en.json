@@ -648,12 +648,14 @@
   "admin": {
     "pendingListings": {
       "page": {
-        "title": "Pending Toy Listings",
+        "title": "Pending listings",
         "subtitle": "Review pending toy listings before they’re visible to parents.",
         "errorTitle": "Unable to load pending toy listings",
-        "emptyTitle": "All caught up",
-        "empty": "No listings are waiting for review. New submissions will appear here.",
-        "queueCount": "{{count}} listing(s) awaiting your review"
+        "emptyTitle": "No listings to review",
+        "empty": "New submitted toys will appear here.",
+        "queueCount": "{{count}} listing(s) awaiting your review",
+        "backAria": "Back",
+        "awaitingReview": "Awaiting review"
       },
       "card": {
         "noImage": "No image",
@@ -701,6 +703,40 @@
         "reasonTooLong": "Reason may not exceed 500 characters.",
         "cancel": "Cancel",
         "submit": "Reject listing"
+      },
+      "rejectSheet": {
+        "title": "Reject listing",
+        "subtitle": "Choose a reason — owner will see this so they can fix and resubmit.",
+        "noteLabel": "Add a note (optional)",
+        "notePlaceholder": "E.g. Photos are too dark — please retake in daylight.",
+        "cancel": "Cancel",
+        "confirm": "Confirm reject",
+        "reasons": {
+          "poorImages": {
+            "title": "Poor images",
+            "description": "Blurry, dark, or too few photos"
+          },
+          "missingInfo": {
+            "title": "Missing information",
+            "description": "Incomplete title or description"
+          },
+          "duplicate": {
+            "title": "Duplicate listing",
+            "description": "Same toy already exists"
+          },
+          "inappropriate": {
+            "title": "Inappropriate content",
+            "description": "Violates community guidelines"
+          },
+          "wrongCategory": {
+            "title": "Wrong category",
+            "description": "Listed under incorrect category"
+          },
+          "unsafeItem": {
+            "title": "Unsafe item",
+            "description": "Choking hazard, recalled, or broken"
+          }
+        }
       },
       "common": {
         "notAvailable": "Not available"

@@ -28,6 +28,30 @@
   opacity: 0.5;
 }
 
+/* ── Awaiting review banner ──────────────────────────────────────── */
+.pending-listing-card__awaiting {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-6);
+  padding: var(--ui-space-6) var(--ui-space-10);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-color-warning-surface);
+  color: var(--ui-color-warning);
+  font-size: 0.8125rem;
+  font-weight: 500;
+
+  .pi { font-size: 0.8125rem; flex-shrink: 0; }
+}
+
+.pending-listing-card__awaiting-sep {
+  opacity: 0.6;
+}
+
+.pending-listing-card__awaiting-date {
+  color: var(--ui-color-text-secondary);
+  font-weight: 400;
+}
+
 .pending-listing-card__content {
   display: flex;
   flex-direction: column;

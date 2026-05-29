@@ -1,4 +1,4 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, Location } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -8,16 +8,12 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Store, createSelector } from '@ngrx/store';
-import { TranslatePipe } from '@ngx-translate/core';
-import { ButtonModule } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
-import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import { PendingListingCardComponent } from '../../components/pending-listing-card/pending-listing-card.component';
 import type { PendingListing } from '../../models/pending-listing.model';
 import * as AdminModerationActions from '../../store/admin-moderation.actions';
@@ -57,18 +53,28 @@ const selectPendingListingsPageViewModel = createSelector(
   },
 );
 
+interface RejectReason {
+  readonly key: string;
+  readonly icon: string;
+}
+
+const REJECT_REASONS: readonly RejectReason[] = [
+  { key: 'poorImages', icon: 'pi pi-image' },
+  { key: 'missingInfo', icon: 'pi pi-file' },
+  { key: 'duplicate', icon: 'pi pi-copy' },
+  { key: 'inappropriate', icon: 'pi pi-ban' },
+  { key: 'wrongCategory', icon: 'pi pi-tag' },
+  { key: 'unsafeItem', icon: 'pi pi-exclamation-triangle' },
+];
+
 @Component({
   selector: 'app-pending-listings-page',
   standalone: true,
   imports: [
     AsyncPipe,
-    ButtonModule,
-    Dialog,
     EmptyStateComponent,
-    PageHeaderComponent,
     MessageModule,
     PendingListingCardComponent,
-    ReactiveFormsModule,
     SkeletonModule,
     TranslatePipe,
   ],
@@ -78,21 +84,16 @@ const selectPendingListingsPageViewModel = createSelector(
 })
 export class PendingListingsPageComponent implements OnInit {
   private readonly store = inject(Store);
+  private readonly location = inject(Location);
+  private readonly translate = inject(TranslateService);
 
   protected readonly viewModel$ = this.store.select(selectPendingListingsPageViewModel);
 
-  // --- Reject modal state ---
   protected readonly rejectingListingId = signal<string | null>(null);
-  protected readonly isDialogOpen = signal(false);
-
-  protected readonly rejectReasonControl = new FormControl('', {
-    nonNullable: true,
-    validators: [
-      Validators.required,
-      Validators.minLength(3),
-      Validators.maxLength(500),
-    ],
-  });
+  protected readonly isSheetOpen = signal(false);
+  protected readonly selectedReasonKey = signal<string | null>(null);
+  protected readonly rejectNote = signal('');
+  protected readonly rejectReasons = REJECT_REASONS;
 
   private readonly actionIds = this.store.selectSignal(selectPendingListingActionIds);
   private readonly pendingListings = this.store.selectSignal(selectPendingListings);
@@ -103,14 +104,17 @@ export class PendingListingsPageComponent implements OnInit {
     return this.actionIds().includes(id);
   });
 
+  protected readonly isConfirmDisabled = computed(
+    () => this.selectedReasonKey() === null || this.isRejectSubmitting(),
+  );
+
   constructor() {
-    // Close the modal once the rejected listing disappears from the pending list
     effect(() => {
       const id = this.rejectingListingId();
       if (id === null) return;
       const stillPending = this.pendingListings().some((item) => item.id === id);
       if (!stillPending) {
-        this.closeRejectModal();
+        this.closeRejectSheet();
       }
     });
   }
@@ -123,6 +127,10 @@ export class PendingListingsPageComponent implements OnInit {
     this.store.dispatch(AdminModerationActions.loadPendingListings());
   }
 
+  protected goBack(): void {
+    this.location.back();
+  }
+
   protected isActionLoading(listingId: string, actionIds: string[]): boolean {
     return actionIds.includes(listingId);
   }
@@ -131,29 +139,39 @@ export class PendingListingsPageComponent implements OnInit {
     this.store.dispatch(AdminModerationActions.approvePendingListing({ listingId }));
   }
 
-  protected openRejectModal(listingId: string): void {
+  protected openRejectSheet(listingId: string): void {
     this.rejectingListingId.set(listingId);
-    this.rejectReasonControl.reset('');
-    this.isDialogOpen.set(true);
+    this.selectedReasonKey.set(null);
+    this.rejectNote.set('');
+    this.isSheetOpen.set(true);
   }
 
-  protected closeRejectModal(): void {
+  protected closeRejectSheet(): void {
     this.rejectingListingId.set(null);
-    this.isDialogOpen.set(false);
-    this.rejectReasonControl.reset('');
+    this.isSheetOpen.set(false);
+    this.selectedReasonKey.set(null);
+    this.rejectNote.set('');
+  }
+
+  protected selectReason(key: string): void {
+    this.selectedReasonKey.set(key);
+  }
+
+  protected updateNote(value: string): void {
+    this.rejectNote.set(value);
   }
 
   protected submitReject(): void {
-    this.rejectReasonControl.markAsTouched();
-
-    if (this.rejectReasonControl.invalid) {
-      return;
-    }
-
     const listingId = this.rejectingListingId();
-    if (listingId === null) return;
+    const reasonKey = this.selectedReasonKey();
+    if (listingId === null || reasonKey === null) return;
 
-    const reason = this.rejectReasonControl.value.trim();
+    const reasonLabel = this.translate.instant(
+      `admin.pendingListings.rejectSheet.reasons.${reasonKey}.title`,
+    );
+    const note = this.rejectNote().trim();
+    const reason = note ? `${reasonLabel}: ${note}` : reasonLabel;
+
     this.store.dispatch(
       AdminModerationActions.rejectPendingListing({ listingId, reason }),
     );

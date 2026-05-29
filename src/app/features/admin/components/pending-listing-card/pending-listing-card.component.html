@@ -20,6 +20,16 @@
   </ng-template>
 
   <div class="pending-listing-card__content">
+    <!-- Awaiting review status banner -->
+    <div class="pending-listing-card__awaiting">
+      <i class="pi pi-clock" aria-hidden="true"></i>
+      <span>{{ 'admin.pendingListings.page.awaitingReview' | translate }}</span>
+      @if (listing().createdAt; as createdAt) {
+        <span class="pending-listing-card__awaiting-sep" aria-hidden="true">&middot;</span>
+        <span class="pending-listing-card__awaiting-date">{{ createdAt | date: 'mediumDate' }}</span>
+      }
+    </div>
+
     <!-- Title + category row -->
     <div class="pending-listing-card__top">
       <h3 class="pending-listing-card__title">{{ listing().title }}</h3>
@@ -76,16 +86,6 @@
         </dd>
       </div>
 
-      <div class="pending-listing-card__meta-row">
-        <dt>{{ 'admin.pendingListings.card.createdAt' | translate }}</dt>
-        <dd>
-          @if (listing().createdAt; as createdAt) {
-            {{ createdAt | date : 'mediumDate' }}
-          } @else {
-            {{ 'admin.pendingListings.common.notAvailable' | translate }}
-          }
-        </dd>
-      </div>
     </dl>
 
     <!-- Missing trust signals warning -->
