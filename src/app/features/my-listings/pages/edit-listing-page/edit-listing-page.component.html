@@ -1,183 +1,452 @@
-<section class="edit-listing-page page-container">
-  <header class="edit-listing-page__header">
-    <h1 class="edit-listing-page__title">{{ 'myListings.editPage.title' | translate }}</h1>
-  </header>
+<!-- ── Loading ────────────────────────────────────────────────── -->
+@if (isLoadingData()) {
+  <div class="edit-loading">
+    <i class="pi pi-spin pi-spinner edit-loading__spinner" aria-hidden="true"></i>
+    <span>{{ 'myListings.editPage.loading' | translate }}</span>
+  </div>
+}
 
-  @if (isLoadingData()) {
-    <p class="edit-listing-page__loading">{{ 'myListings.editPage.loading' | translate }}</p>
-  } @else if (notFound()) {
-    <p-message severity="error" [text]="'myListings.editPage.notFound' | translate" />
-  } @else {
+<!-- ── Not found ─────────────────────────────────────────────── -->
+@else if (notFound()) {
+  <div class="edit-not-found">
+    <i class="pi pi-exclamation-circle edit-not-found__icon" aria-hidden="true"></i>
+    <p>{{ 'myListings.editPage.notFound' | translate }}</p>
+  </div>
+}
+
+<!-- ── Wizard ────────────────────────────────────────────────── -->
+@else {
+  <form
+    class="wizard"
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    novalidate
+  >
+
+    <!-- Header -->
+    <header class="wizard__header">
+      <button
+        type="button"
+        class="wizard__back-btn"
+        (click)="goBack()"
+        [attr.aria-label]="'listings.createForm.backAria' | translate"
+      >
+        <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      </button>
+      <div class="wizard__header-center">
+        <span class="wizard__step-of">{{
+          'listings.createPage.wizard.stepOf'
+            | translate: { current: currentStep(), total: totalSteps }
+        }}</span>
+        <span class="wizard__step-name">{{ getStepNameKey() | translate }}</span>
+      </div>
+      <div class="wizard__header-end" aria-hidden="true"></div>
+    </header>
+
+    <!-- Progress bar -->
+    <div
+      class="wizard__progress"
+      role="progressbar"
+      [attr.aria-valuenow]="currentStep()"
+      aria-valuemin="1"
+      [attr.aria-valuemax]="totalSteps"
+    >
+      <div class="wizard__progress-fill" [style.width.%]="progressPct()"></div>
+    </div>
+
+    <!-- Submit error -->
     @if (submitError()) {
-      <p-message severity="error" [text]="submitError()!" styleClass="edit-listing-page__error" />
+      <div class="wizard__error-banner" role="alert">
+        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+        {{ submitError() }}
+      </div>
     }
 
-    <form class="edit-listing-page__form" [formGroup]="form" (ngSubmit)="onSubmit()">
+    <!-- Body -->
+    <div class="wizard__body">
 
-      <!-- Title -->
-      <div class="edit-listing-page__field">
-        <label class="edit-listing-page__label" for="edit-title">
-          {{ 'myListings.editPage.fields.title' | translate }}
-        </label>
-        <input
-          id="edit-title"
-          pInputText
-          formControlName="title"
-          [class.ng-invalid]="hasError('title')"
-          [class.ng-dirty]="hasError('title')"
-        />
-        @if (hasError('title')) {
-          <small class="edit-listing-page__field-error">
-            {{ 'myListings.editPage.errors.title' | translate }}
-          </small>
-        }
-      </div>
+      <!-- ═══════════════ STEP 1 — Photos (read-only) ══════════ -->
+      @if (currentStep() === 1) {
+        <div class="wizard-step">
+          <h1 class="wizard-step__title">{{ 'myListings.editPage.wizard.photosTitle' | translate }}</h1>
+          <p class="wizard-step__subtitle">{{ 'myListings.editPage.wizard.photosSubtitle' | translate }}</p>
 
-      <!-- Description -->
-      <div class="edit-listing-page__field">
-        <label class="edit-listing-page__label" for="edit-description">
-          {{ 'myListings.editPage.fields.description' | translate }}
-        </label>
-        <textarea
-          id="edit-description"
-          class="edit-listing-page__textarea"
-          formControlName="description"
-          rows="5"
-        ></textarea>
-        @if (hasError('description')) {
-          <small class="edit-listing-page__field-error">
-            {{ 'myListings.editPage.errors.description' | translate }}
-          </small>
-        }
-      </div>
+          @if (coverImageUrl()) {
+            <div class="wizard-photo__cover wizard-photo__cover--readonly">
+              <img
+                class="wizard-photo__cover-img"
+                [src]="coverImageUrl()!"
+                alt="Current cover photo"
+              />
+              <div class="wizard-photo__cover-overlay">
+                <span class="wizard-photo__cover-badge">
+                  <i class="pi pi-check-circle" aria-hidden="true"></i>
+                  {{ 'myListings.editPage.wizard.currentPhoto' | translate }}
+                </span>
+              </div>
+            </div>
+          } @else {
+            <div class="wizard-photo__cover wizard-photo__cover--empty">
+              <i class="pi pi-image wizard-photo__cover-icon" aria-hidden="true"></i>
+              <span class="wizard-photo__cover-label">{{ 'myListings.editPage.wizard.noPhoto' | translate }}</span>
+            </div>
+          }
 
-      <!-- Price per day -->
-      <div class="edit-listing-page__field">
-        <label class="edit-listing-page__label" for="edit-price">
-          {{ 'myListings.editPage.fields.pricePerDay' | translate }}
-        </label>
-        <p-inputNumber
-          inputId="edit-price"
-          formControlName="pricePerDay"
-          mode="currency"
-          currency="USD"
-          [min]="0.01"
-        />
-        @if (hasError('pricePerDay')) {
-          <small class="edit-listing-page__field-error">
-            {{ 'myListings.editPage.errors.pricePerDay' | translate }}
-          </small>
-        }
-      </div>
-
-      <!-- City -->
-      <div class="edit-listing-page__field">
-        <label class="edit-listing-page__label" for="edit-city">
-          {{ 'myListings.editPage.fields.city' | translate }}
-        </label>
-        <input id="edit-city" pInputText formControlName="city" />
-      </div>
-
-      <!-- Age range -->
-      <div class="edit-listing-page__field-row">
-        <div class="edit-listing-page__field">
-          <label class="edit-listing-page__label" for="edit-age-from">
-            {{ 'myListings.editPage.fields.ageFromMonths' | translate }}
-          </label>
-          <p-inputNumber
-            inputId="edit-age-from"
-            formControlName="ageFromMonths"
-            [min]="0"
-            [max]="600"
-          />
+          <div class="wizard-edit-note">
+            <i class="pi pi-info-circle" aria-hidden="true"></i>
+            <span>{{ 'myListings.editPage.wizard.photoReadOnly' | translate }}</span>
+          </div>
         </div>
-        <div class="edit-listing-page__field">
-          <label class="edit-listing-page__label" for="edit-age-to">
-            {{ 'myListings.editPage.fields.ageToMonths' | translate }}
-          </label>
-          <p-inputNumber
-            inputId="edit-age-to"
-            formControlName="ageToMonths"
-            [min]="0"
-            [max]="600"
-          />
-        </div>
-      </div>
-      @if (hasAgeRangeError()) {
-        <small class="edit-listing-page__field-error">
-          {{ 'myListings.editPage.errors.ageRange' | translate }}
-        </small>
       }
 
-      <!-- Condition -->
-      <div class="edit-listing-page__field">
-        <label class="edit-listing-page__label" for="edit-condition">
-          {{ 'myListings.editPage.fields.condition' | translate }}
-        </label>
-        <select id="edit-condition" class="edit-listing-page__select" formControlName="condition">
-          <option value="">{{ 'myListings.editPage.fields.conditionNone' | translate }}</option>
-          <option value="New">{{ 'myListings.editPage.conditions.new' | translate }}</option>
-          <option value="LikeNew">{{ 'myListings.editPage.conditions.likeNew' | translate }}</option>
-          <option value="Good">{{ 'myListings.editPage.conditions.good' | translate }}</option>
-          <option value="Fair">{{ 'myListings.editPage.conditions.fair' | translate }}</option>
-        </select>
-      </div>
+      <!-- ═══════════════ STEP 2 — Basics ══════════════════════ -->
+      @if (currentStep() === 2) {
+        <div class="wizard-step">
+          <h1 class="wizard-step__title">{{ 'myListings.editPage.wizard.basicsTitle' | translate }}</h1>
+          <p class="wizard-step__subtitle">{{ 'listings.createPage.wizard.step2Hint' | translate }}</p>
 
-      <!-- Hygiene notes -->
-      <div class="edit-listing-page__field">
-        <label class="edit-listing-page__label" for="edit-hygiene">
-          {{ 'myListings.editPage.fields.hygieneNotes' | translate }}
-        </label>
-        <textarea
-          id="edit-hygiene"
-          class="edit-listing-page__textarea"
-          formControlName="hygieneNotes"
-          rows="3"
-        ></textarea>
-      </div>
+          <!-- Toy name -->
+          <div class="wizard-field">
+            <label class="wizard-field__label" for="edit-title">
+              {{ 'listings.createForm.title' | translate }}
+              <span class="wizard-field__req" aria-hidden="true">*</span>
+            </label>
+            <input
+              id="edit-title"
+              pInputText
+              type="text"
+              class="wizard-field__input ui-input"
+              formControlName="title"
+              [placeholder]="'listings.createForm.titlePlaceholder' | translate"
+              [attr.aria-invalid]="hasError('title') ? 'true' : null"
+            />
+            @if (hasError('title')) {
+              <small class="wizard-field__error" role="alert">
+                @if (form.controls.title.hasError('required')) {
+                  {{ 'listings.createForm.validation.required' | translate }}
+                } @else if (form.controls.title.hasError('minlength')) {
+                  {{ 'listings.createForm.validation.titleTooShort' | translate }}
+                } @else {
+                  {{ 'listings.createForm.validation.titleTooLong' | translate }}
+                }
+              </small>
+            }
+          </div>
 
-      <!-- Safety notes -->
-      <div class="edit-listing-page__field">
-        <label class="edit-listing-page__label" for="edit-safety">
-          {{ 'myListings.editPage.fields.safetyNotes' | translate }}
-        </label>
-        <textarea
-          id="edit-safety"
-          class="edit-listing-page__textarea"
-          formControlName="safetyNotes"
-          rows="3"
-        ></textarea>
-      </div>
+          <!-- Age range chips -->
+          <div class="wizard-field">
+            <span class="wizard-field__label">{{ 'listings.createForm.ageRange' | translate }}</span>
+            <div
+              class="wizard-chips"
+              role="group"
+              [attr.aria-label]="'listings.createForm.ageRange' | translate"
+            >
+              @for (chip of ageChips; track chip.key) {
+                <button
+                  type="button"
+                  class="wizard-chip"
+                  [class.wizard-chip--active]="selectedAgeKey() === chip.key"
+                  (click)="selectAge(chip)"
+                >
+                  {{ 'listings.createForm.age.' + chip.key | translate }}
+                </button>
+              }
+            </div>
+          </div>
 
-      <!-- Deposit amount -->
-      <div class="edit-listing-page__field">
-        <label class="edit-listing-page__label" for="edit-deposit">
-          {{ 'myListings.editPage.fields.depositAmount' | translate }}
-        </label>
-        <p-inputNumber
-          inputId="edit-deposit"
-          formControlName="depositAmount"
-          mode="currency"
-          currency="USD"
-          [min]="0"
-        />
-      </div>
+          <!-- Condition chips -->
+          <div class="wizard-field">
+            <span class="wizard-field__label">{{ 'listings.createForm.condition' | translate }}</span>
+            <div
+              class="wizard-chips"
+              role="group"
+              [attr.aria-label]="'listings.createForm.condition' | translate"
+            >
+              @for (chip of conditionChips; track chip.value) {
+                <button
+                  type="button"
+                  class="wizard-chip"
+                  [class.wizard-chip--active]="selectedCond() === chip.value"
+                  (click)="selectCond(chip)"
+                >
+                  {{ chip.labelKey | translate }}
+                </button>
+              }
+            </div>
+          </div>
 
-      <!-- Actions -->
-      <div class="edit-listing-page__actions">
-        <p-button
+          <!-- Description -->
+          <div class="wizard-field">
+            <label class="wizard-field__label" for="edit-desc">
+              {{ 'listings.createForm.description' | translate }}
+              <span class="wizard-field__req" aria-hidden="true">*</span>
+            </label>
+            <textarea
+              id="edit-desc"
+              class="wizard-field__textarea ui-textarea"
+              formControlName="description"
+              rows="4"
+              [placeholder]="'listings.createForm.descriptionPlaceholder' | translate"
+              [attr.aria-invalid]="hasError('description') ? 'true' : null"
+            ></textarea>
+            @if (hasError('description')) {
+              <small class="wizard-field__error" role="alert">
+                @if (form.controls.description.hasError('required')) {
+                  {{ 'listings.createForm.validation.required' | translate }}
+                } @else if (form.controls.description.hasError('minlength')) {
+                  {{ 'listings.createForm.validation.descriptionTooShort' | translate }}
+                } @else {
+                  {{ 'listings.createForm.validation.descriptionTooLong' | translate }}
+                }
+              </small>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ═══════════════ STEP 3 — Pricing & Location ══════════ -->
+      @if (currentStep() === 3) {
+        <div class="wizard-step">
+          <h1 class="wizard-step__title">{{ 'listings.createPage.wizard.step3Heading' | translate }}</h1>
+          <p class="wizard-step__subtitle">{{ 'listings.createPage.wizard.step3Hint' | translate }}</p>
+
+          <!-- Daily price -->
+          <div class="wizard-field">
+            <label class="wizard-field__label" for="edit-price">
+              {{ 'listings.createForm.pricePerDay' | translate }}
+              <span class="wizard-field__req" aria-hidden="true">*</span>
+            </label>
+            <p-inputNumber
+              inputId="edit-price"
+              formControlName="pricePerDay"
+              mode="decimal"
+              [min]="0.01"
+              [minFractionDigits]="0"
+              [maxFractionDigits]="2"
+              [useGrouping]="true"
+              [placeholder]="'listings.createForm.pricePerDayPlaceholder' | translate"
+              styleClass="wizard-field__price-input"
+              [pt]="{ pcInputText: { root: { 'aria-invalid': hasError('pricePerDay') ? 'true' : null } } }"
+            />
+            @if (hasError('pricePerDay')) {
+              <small class="wizard-field__error" role="alert">
+                {{
+                  form.controls.pricePerDay.hasError('min')
+                    ? ('listings.createForm.validation.priceGreaterThanZero' | translate)
+                    : ('listings.createForm.validation.required' | translate)
+                }}
+              </small>
+            }
+          </div>
+
+          <!-- Minimum rental chips (UI only) -->
+          <div class="wizard-field">
+            <span class="wizard-field__label">{{ 'listings.createForm.minRental.label' | translate }}</span>
+            <div
+              class="wizard-chips"
+              role="group"
+              [attr.aria-label]="'listings.createForm.minRental.label' | translate"
+            >
+              @for (days of minRentalDays; track days) {
+                <button
+                  type="button"
+                  class="wizard-chip"
+                  [class.wizard-chip--active]="selectedMinDays() === days"
+                  (click)="selectedMinDays.set(days)"
+                >
+                  {{ 'listings.createForm.minRental.d' + days | translate }}
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- City / pickup -->
+          <div class="wizard-field">
+            <span class="wizard-field__label">{{ 'listings.createForm.pickupArea' | translate }}</span>
+            <div class="wizard-pickup">
+              <i class="pi pi-map-marker wizard-pickup__icon" aria-hidden="true"></i>
+              <span class="wizard-pickup__place">{{ form.controls.city.value || 'Yerevan' }}, Armenia</span>
+            </div>
+            <input
+              pInputText
+              type="text"
+              class="wizard-field__input wizard-field__input--sm ui-input"
+              formControlName="city"
+              [placeholder]="'listings.createForm.cityPlaceholder' | translate"
+            />
+            <p class="wizard-field__note">
+              <i class="pi pi-lock" aria-hidden="true"></i>
+              {{ 'listings.createForm.locationPrivacyNote' | translate }}
+            </p>
+          </div>
+        </div>
+      }
+
+      <!-- ═══════════════ STEP 4 — Safety & Hygiene ════════════ -->
+      @if (currentStep() === 4) {
+        <div class="wizard-step">
+          <h1 class="wizard-step__title">{{ 'listings.createPage.wizard.step4Heading' | translate }}</h1>
+          <p class="wizard-step__subtitle">{{ 'listings.createPage.wizard.step4Hint' | translate }}</p>
+
+          <!-- Hygiene notes -->
+          <div class="wizard-field">
+            <label class="wizard-field__label" for="edit-hygiene">
+              {{ 'myListings.editPage.wizard.hygieneLabel' | translate }}
+            </label>
+            <textarea
+              id="edit-hygiene"
+              class="wizard-field__textarea ui-textarea"
+              formControlName="hygieneNotes"
+              rows="3"
+              maxlength="1000"
+              [placeholder]="'listings.createForm.hygieneNotesPlaceholder' | translate"
+            ></textarea>
+            <span class="wizard-field__counter">{{ hygieneNoteLength() }} / 1000</span>
+          </div>
+
+          <!-- Safety / wear notes -->
+          <div class="wizard-field">
+            <label class="wizard-field__label" for="edit-safety">
+              {{ 'myListings.editPage.wizard.safetyLabel' | translate }}
+            </label>
+            <textarea
+              id="edit-safety"
+              class="wizard-field__textarea ui-textarea"
+              formControlName="safetyNotes"
+              rows="3"
+              maxlength="1000"
+              [placeholder]="'listings.createForm.wearNotesPlaceholder' | translate"
+            ></textarea>
+            <span class="wizard-field__counter">{{ safetyNoteLength() }} / 1000</span>
+          </div>
+
+          <!-- Confirmed note -->
+          <div class="wizard-edit-note wizard-edit-note--success">
+            <i class="pi pi-shield" aria-hidden="true"></i>
+            <span>{{ 'myListings.editPage.wizard.safetyNote' | translate }}</span>
+          </div>
+        </div>
+      }
+
+      <!-- ═══════════════ STEP 5 — Preview & Save ══════════════ -->
+      @if (currentStep() === 5) {
+        <div class="wizard-step">
+          <h1 class="wizard-step__title">{{ 'myListings.editPage.wizard.previewTitle' | translate }}</h1>
+          <p class="wizard-step__subtitle">{{ 'myListings.editPage.wizard.previewSubtitle' | translate }}</p>
+
+          <!-- Preview card -->
+          <div class="wizard-preview">
+            @if (coverImageUrl()) {
+              <div class="wizard-preview__img-wrap">
+                <img class="wizard-preview__img" [src]="coverImageUrl()!" alt="Cover" />
+                @if (selectedAgeKey()) {
+                  <div class="wizard-preview__badges">
+                    <span class="wizard-preview__badge">{{ getSelectedAgeName() }}</span>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="wizard-preview__no-img">
+                <i class="pi pi-image" aria-hidden="true"></i>
+              </div>
+            }
+            <div class="wizard-preview__body">
+              <h2 class="wizard-preview__title">{{ form.controls.title.value || '—' }}</h2>
+              <p class="wizard-preview__location">
+                <i class="pi pi-map-marker" aria-hidden="true"></i>
+                {{ form.controls.city.value || 'Yerevan' }} &middot; pickup
+              </p>
+              <p class="wizard-preview__price">
+                {{ form.controls.pricePerDay.value | currency }}<span class="wizard-preview__price-suffix"> / day</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Summary rows -->
+          <dl class="wizard-summary">
+
+            <div class="wizard-summary__row">
+              <dt class="wizard-summary__label">{{ 'listings.createForm.ageRange' | translate }}</dt>
+              <dd class="wizard-summary__value">{{ getSelectedAgeName() }}</dd>
+              <button type="button" class="wizard-summary__edit" (click)="jumpToStep(2)">
+                {{ 'listings.createPage.wizard.edit' | translate }}
+              </button>
+            </div>
+
+            <div class="wizard-summary__row">
+              <dt class="wizard-summary__label">{{ 'listings.createForm.pricePerDay' | translate }}</dt>
+              <dd class="wizard-summary__value wizard-summary__value--price">
+                {{ form.controls.pricePerDay.value | currency }}
+              </dd>
+              <button type="button" class="wizard-summary__edit" (click)="jumpToStep(3)">
+                {{ 'listings.createPage.wizard.edit' | translate }}
+              </button>
+            </div>
+
+            <div class="wizard-summary__row">
+              <dt class="wizard-summary__label">{{ 'listings.createForm.pickupArea' | translate }}</dt>
+              <dd class="wizard-summary__value">{{ form.controls.city.value || 'Yerevan' }}, Armenia</dd>
+              <button type="button" class="wizard-summary__edit" (click)="jumpToStep(3)">
+                {{ 'listings.createPage.wizard.edit' | translate }}
+              </button>
+            </div>
+
+            @if (selectedCond()) {
+              <div class="wizard-summary__row">
+                <dt class="wizard-summary__label">{{ 'listings.createForm.condition' | translate }}</dt>
+                <dd class="wizard-summary__value">{{ getConditionLabelKey() | translate }}</dd>
+                <button type="button" class="wizard-summary__edit" (click)="jumpToStep(2)">
+                  {{ 'listings.createPage.wizard.edit' | translate }}
+                </button>
+              </div>
+            }
+
+          </dl>
+
+          <p class="wizard-submit-note">
+            <i class="pi pi-shield" aria-hidden="true"></i>
+            <span>{{ 'myListings.editPage.wizard.saveNote' | translate }}</span>
+          </p>
+        </div>
+      }
+
+    </div><!-- /wizard__body -->
+
+    <!-- Footer -->
+    <div class="wizard__footer">
+      @if (currentStep() > 1) {
+        <button
           type="button"
-          [outlined]="true"
-          [label]="'myListings.editPage.cancel' | translate"
-          (onClick)="onCancel()"
-        />
-        <p-button
+          class="wizard__btn wizard__btn--back"
+          (click)="goToPrevStep()"
+          [disabled]="isSubmitting()"
+        >
+          {{ 'listings.createPage.wizard.back' | translate }}
+        </button>
+      }
+
+      @if (currentStep() < totalSteps) {
+        <button
+          type="button"
+          class="wizard__btn wizard__btn--primary"
+          [class.wizard__btn--full]="currentStep() === 1"
+          (click)="goToNextStep()"
+        >
+          {{ getContinueLabelKey() | translate }}
+        </button>
+      } @else {
+        <button
           type="submit"
-          [label]="'myListings.editPage.save' | translate"
-          [loading]="isSubmitting()"
-          [disabled]="form.invalid && form.touched"
-        />
-      </div>
-    </form>
-  }
-</section>
+          class="wizard__btn wizard__btn--primary"
+          [disabled]="form.invalid || isSubmitting()"
+        >
+          @if (isSubmitting()) {
+            <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+          }
+          {{ 'myListings.editPage.wizard.saveChanges' | translate }}
+        </button>
+      }
+    </div>
+
+  </form>
+}

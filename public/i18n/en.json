@@ -621,6 +621,21 @@
       "notFound": "Listing not found or you do not have permission to edit it.",
       "save": "Save changes",
       "cancel": "Cancel",
+      "wizard": {
+        "photosTitle": "Current photos",
+        "photosSubtitle": "Photos for this listing as they appear to renters.",
+        "currentPhoto": "Current cover photo",
+        "noPhoto": "No photo uploaded",
+        "photoReadOnly": "Photo editing is not available here. Contact support if photos need to change.",
+        "basicsTitle": "Edit basics",
+        "hygieneLabel": "Hygiene & cleaning notes",
+        "safetyLabel": "Wear & safety notes",
+        "safetyNote": "This listing was previously submitted as safe for renters.",
+        "previewTitle": "Review your changes",
+        "previewSubtitle": "Check your updates before saving.",
+        "saveChanges": "Save changes",
+        "saveNote": "Changes are saved immediately and the listing stays in its current status."
+      },
       "fields": {
         "title": "Title",
         "description": "Description",
