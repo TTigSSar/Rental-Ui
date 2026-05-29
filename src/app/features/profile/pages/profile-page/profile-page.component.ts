@@ -2,23 +2,25 @@ import { AsyncPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
+  HostListener,
   OnInit,
   effect,
   inject,
+  signal,
+  viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { TranslatePipe } from '@ngx-translate/core';
-import { CardModule } from 'primeng/card';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
 import * as AuthActions from '../../../auth/store/auth.actions';
-
-import { ReviewCardComponent } from '../../../reviews/components/review-card/review-card.component';
 import { RatingSummaryComponent } from '../../../reviews/components/rating-summary/rating-summary.component';
+import { ReviewCardComponent } from '../../../reviews/components/review-card/review-card.component';
 import * as ReviewsActions from '../../../reviews/store/reviews.actions';
 import {
   selectUserReviews,
@@ -33,12 +35,18 @@ import {
   selectProfileLoading,
 } from '../../store/profile.selectors';
 
+interface LanguageOption {
+  readonly code: 'en' | 'ru' | 'hy';
+  readonly label: string;
+}
+
+const LANGUAGE_STORAGE_KEY = 'stayfinder.lang';
+
 @Component({
   selector: 'app-profile-page',
   standalone: true,
   imports: [
     AsyncPipe,
-    CardModule,
     MessageModule,
     RatingSummaryComponent,
     ReviewCardComponent,
@@ -52,6 +60,18 @@ import {
 })
 export class ProfilePageComponent implements OnInit {
   private readonly store = inject(Store);
+  private readonly translate = inject(TranslateService);
+
+  protected readonly availableLanguages: readonly LanguageOption[] = [
+    { code: 'en', label: 'English' },
+    { code: 'ru', label: 'Русский' },
+    { code: 'hy', label: 'Հայերեն' },
+  ];
+
+  protected readonly languageMenuOpen = signal(false);
+  protected readonly currentLang = signal<LanguageOption>(this.resolveCurrentLang());
+
+  private readonly langMenuHost = viewChild<ElementRef<HTMLElement>>('langMenuHost');
 
   private readonly profileId$ = this.store.select(selectProfile).pipe(
     map((p) => p?.id ?? null),
@@ -128,5 +148,38 @@ export class ProfilePageComponent implements OnInit {
 
   protected logout(): void {
     this.store.dispatch(AuthActions.logout());
+  }
+
+  protected toggleLanguageMenu(): void {
+    this.languageMenuOpen.update((v) => !v);
+  }
+
+  protected selectLanguage(option: LanguageOption): void {
+    this.currentLang.set(option);
+    this.translate.use(option.code);
+    try {
+      localStorage.setItem(LANGUAGE_STORAGE_KEY, option.code);
+    } catch { /* ignore */ }
+    this.languageMenuOpen.set(false);
+  }
+
+  protected initials(firstName: string, lastName: string): string {
+    return ((firstName[0] ?? '') + (lastName[0] ?? '')).toUpperCase();
+  }
+
+  @HostListener('document:click', ['$event'])
+  protected onDocumentClick(event: MouseEvent): void {
+    const target = event.target as Node | null;
+    if (target === null) return;
+    const host = this.langMenuHost()?.nativeElement;
+    if (host !== undefined && !host.contains(target)) {
+      this.languageMenuOpen.set(false);
+    }
+  }
+
+  private resolveCurrentLang(): LanguageOption {
+    let stored: string | null = null;
+    try { stored = localStorage.getItem(LANGUAGE_STORAGE_KEY); } catch { /* ignore */ }
+    return this.availableLanguages.find((l) => l.code === stored) ?? this.availableLanguages[0];
   }
 }

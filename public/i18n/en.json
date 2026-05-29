@@ -471,6 +471,21 @@
       "subtitle": "Review your account information and preferred settings.",
       "empty": "Profile information is not available."
     },
+    "edit": "Edit",
+    "infoLabel": {
+      "name": "Name",
+      "phone": "Phone",
+      "email": "Email"
+    },
+    "nav": {
+      "myToys": "My toys",
+      "myRentals": "My rentals",
+      "favorites": "Favorites",
+      "language": "Language",
+      "notifications": "Notifications",
+      "helpCenter": "Help center",
+      "logout": "Log out"
+    },
     "actions": {
       "heading": "Quick actions"
     },

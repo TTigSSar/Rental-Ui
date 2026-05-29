@@ -1,12 +1,6 @@
-<section class="profile-page page-container section-stack">
-  <header class="profile-page__header">
-    <h1 class="profile-page__title">{{ 'profile.page.title' | translate }}</h1>
-    <p class="profile-page__subtitle">
-      {{ 'profile.page.subtitle' | translate }}
-    </p>
-  </header>
-
+<section class="profile-page page-container">
   @if (vm$ | async; as vm) {
+
     @if (vm.error; as error) {
       <p-message severity="error" styleClass="profile-page__message">
         <span>{{ error }}</span>
@@ -14,160 +8,198 @@
     }
 
     @if (vm.showLoading) {
-      <p-card styleClass="profile-page__card">
-        <div class="profile-page__loading">
-          <p-skeleton width="12rem" height="1.25rem" />
-          <p-skeleton width="100%" height="2.75rem" />
-          <p-skeleton width="100%" height="2.75rem" />
-          <p-skeleton width="100%" height="2.75rem" />
-          <p-skeleton width="100%" height="2.75rem" />
+      <div class="profile-page__skeleton">
+        <div class="profile-page__skeleton-identity">
+          <p-skeleton shape="circle" size="3.5rem" />
+          <div class="profile-page__skeleton-identity-text">
+            <p-skeleton width="9rem" height="1.125rem" />
+            <p-skeleton width="6rem" height="0.875rem" />
+          </div>
+          <p-skeleton width="3.5rem" height="2rem" borderRadius="999px" styleClass="profile-page__skeleton-edit" />
         </div>
-      </p-card>
+        <p-skeleton width="100%" height="7rem" borderRadius="14px" />
+        <p-skeleton width="100%" height="10rem" borderRadius="14px" />
+        <p-skeleton width="100%" height="8.5rem" borderRadius="14px" />
+        <p-skeleton width="100%" height="3.5rem" borderRadius="14px" />
+      </div>
     }
 
     @if (vm.showEmpty) {
-      <p-card styleClass="profile-page__card">
+      <div class="profile-page__menu-card">
         <p class="profile-page__empty">{{ 'profile.page.empty' | translate }}</p>
-      </p-card>
+      </div>
     }
 
     @if (vm.profile; as profile) {
-      <div class="profile-page__content">
 
-        <!-- Quick navigation actions -->
-        <p-card styleClass="profile-page__card">
-          <h2 class="profile-page__section-title">
-            {{ 'profile.actions.heading' | translate }}
-          </h2>
-          <nav class="profile-page__actions">
-            <a class="profile-page__action-item" routerLink="/my-listings">
-              <i class="pi pi-box profile-page__action-icon" aria-hidden="true"></i>
-              <span>{{ 'app.shell.nav.myListings' | translate }}</span>
-              <i class="pi pi-angle-right profile-page__action-chevron" aria-hidden="true"></i>
-            </a>
-            <a class="profile-page__action-item" routerLink="/bookings">
-              <i class="pi pi-calendar profile-page__action-icon" aria-hidden="true"></i>
-              <span>{{ 'app.shell.nav.bookings' | translate }}</span>
-              <i class="pi pi-angle-right profile-page__action-chevron" aria-hidden="true"></i>
-            </a>
-            <a class="profile-page__action-item" routerLink="/bookings/requests">
-              <i class="pi pi-inbox profile-page__action-icon" aria-hidden="true"></i>
-              <span>{{ 'app.shell.nav.bookingRequests' | translate }}</span>
-              <i class="pi pi-angle-right profile-page__action-chevron" aria-hidden="true"></i>
-            </a>
-            <a class="profile-page__action-item" routerLink="/favorites">
-              <i class="pi pi-heart profile-page__action-icon" aria-hidden="true"></i>
-              <span>{{ 'app.shell.nav.favorites' | translate }}</span>
-              <i class="pi pi-angle-right profile-page__action-chevron" aria-hidden="true"></i>
-            </a>
-            <button
-              type="button"
-              class="profile-page__action-item profile-page__action-item--danger"
-              (click)="logout()"
-            >
-              <i class="pi pi-sign-out profile-page__action-icon" aria-hidden="true"></i>
-              <span>{{ 'app.shell.nav.logout' | translate }}</span>
-            </button>
-          </nav>
-        </p-card>
+      <!-- 1 · Identity + info rows -->
+      <div class="profile-page__identity-card">
+        <div class="profile-page__identity-header">
+          <div class="profile-page__avatar" aria-hidden="true">
+            {{ initials(profile.firstName, profile.lastName) }}
+          </div>
+          <div class="profile-page__identity-info">
+            <p class="profile-page__identity-name">{{ profile.firstName }} {{ profile.lastName }}</p>
+          </div>
+          <button type="button" class="profile-page__edit-btn" disabled aria-label="Edit profile">
+            {{ 'profile.edit' | translate }}
+          </button>
+        </div>
 
-        <!-- Rating summary — only shown when the user has received reviews -->
-        @if (ratingSummary(); as summary) {
-          @if (summary.reviewCount > 0) {
-            <p-card styleClass="profile-page__card">
-              <h2 class="profile-page__section-title">
-                {{ 'profile.rating.heading' | translate }}
-              </h2>
-              <app-rating-summary [summary]="summary" variant="full" />
-            </p-card>
-          }
-        }
+        <div class="profile-page__info-rows">
+          <div class="profile-page__info-row">
+            <i class="pi pi-user profile-page__info-icon" aria-hidden="true"></i>
+            <span class="profile-page__info-label">{{ 'profile.infoLabel.name' | translate }}</span>
+            <span class="profile-page__info-value">{{ profile.firstName }} {{ profile.lastName }}</span>
+          </div>
+          <div class="profile-page__info-row">
+            <i class="pi pi-phone profile-page__info-icon" aria-hidden="true"></i>
+            <span class="profile-page__info-label">{{ 'profile.infoLabel.phone' | translate }}</span>
+            <span class="profile-page__info-value profile-page__info-value--num">
+              {{ profile.phoneNumber ?? ('profile.common.notAvailable' | translate) }}
+            </span>
+          </div>
+          <div class="profile-page__info-row">
+            <i class="pi pi-envelope profile-page__info-icon" aria-hidden="true"></i>
+            <span class="profile-page__info-label">{{ 'profile.infoLabel.email' | translate }}</span>
+            <span class="profile-page__info-value profile-page__info-value--truncate">{{ profile.email }}</span>
+          </div>
+        </div>
+      </div>
 
-        <p-card styleClass="profile-page__card">
-          <h2 class="profile-page__section-title">
-            {{ 'profile.account.heading' | translate }}
-          </h2>
-          <dl class="profile-page__details">
-            <div class="profile-page__detail-row">
-              <dt>{{ 'profile.fields.firstName' | translate }}</dt>
-              <dd>{{ profile.firstName }}</dd>
-            </div>
-            <div class="profile-page__detail-row">
-              <dt>{{ 'profile.fields.lastName' | translate }}</dt>
-              <dd>{{ profile.lastName }}</dd>
-            </div>
-            <div class="profile-page__detail-row">
-              <dt>{{ 'profile.fields.email' | translate }}</dt>
-              <dd>{{ profile.email }}</dd>
-            </div>
-            <div class="profile-page__detail-row">
-              <dt>{{ 'profile.fields.phoneNumber' | translate }}</dt>
-              <dd>{{ profile.phoneNumber ?? ('profile.common.notAvailable' | translate) }}</dd>
-            </div>
-            <div class="profile-page__detail-row">
-              <dt>{{ 'profile.fields.preferredLanguage' | translate }}</dt>
-              <dd>
-                {{
-                  profile.preferredLanguage ??
-                    ('profile.common.notAvailable' | translate)
-                }}
-              </dd>
-            </div>
-          </dl>
-        </p-card>
+      <!-- 2 · Primary actions -->
+      <div class="profile-page__menu-card profile-page__menu-card--overflow-hidden">
+        <a class="profile-page__menu-row" routerLink="/my-listings">
+          <span class="profile-page__menu-icon-wrap">
+            <i class="pi pi-box" aria-hidden="true"></i>
+          </span>
+          <span class="profile-page__menu-label">{{ 'profile.nav.myToys' | translate }}</span>
+          <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
+        </a>
+        <a class="profile-page__menu-row" routerLink="/bookings">
+          <span class="profile-page__menu-icon-wrap">
+            <i class="pi pi-calendar" aria-hidden="true"></i>
+          </span>
+          <span class="profile-page__menu-label">{{ 'profile.nav.myRentals' | translate }}</span>
+          <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
+        </a>
+        <a class="profile-page__menu-row profile-page__menu-row--last" routerLink="/favorites">
+          <span class="profile-page__menu-icon-wrap">
+            <i class="pi pi-heart" aria-hidden="true"></i>
+          </span>
+          <span class="profile-page__menu-label">{{ 'profile.nav.favorites' | translate }}</span>
+          <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
+        </a>
+      </div>
 
-        <p-card styleClass="profile-page__card">
-          <h2 class="profile-page__section-title">
-            {{ 'profile.membership.heading' | translate }}
-          </h2>
-          <div class="profile-page__roles">
-            @for (role of profile.roles; track role) {
-              <span class="profile-page__role-chip">
-                {{ ('profile.role.' + role.toLowerCase()) | translate }}
-              </span>
+      <!-- 3 · Settings (language, notifications, help) -->
+      <div class="profile-page__menu-section" #langMenuHost>
+        <div class="profile-page__menu-card profile-page__menu-card--overflow-hidden">
+          <button type="button" class="profile-page__menu-row" (click)="toggleLanguageMenu()">
+            <span class="profile-page__menu-icon-wrap">
+              <i class="pi pi-globe" aria-hidden="true"></i>
+            </span>
+            <span class="profile-page__menu-label">{{ 'profile.nav.language' | translate }}</span>
+            <span class="profile-page__menu-meta">{{ currentLang().label }}</span>
+            <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
+          </button>
+          <button type="button" class="profile-page__menu-row" disabled>
+            <span class="profile-page__menu-icon-wrap">
+              <i class="pi pi-bell" aria-hidden="true"></i>
+            </span>
+            <span class="profile-page__menu-label">{{ 'profile.nav.notifications' | translate }}</span>
+            <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
+          </button>
+          <a class="profile-page__menu-row profile-page__menu-row--last" routerLink="/faq">
+            <span class="profile-page__menu-icon-wrap">
+              <i class="pi pi-question-circle" aria-hidden="true"></i>
+            </span>
+            <span class="profile-page__menu-label">{{ 'profile.nav.helpCenter' | translate }}</span>
+            <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
+          </a>
+        </div>
+
+        @if (languageMenuOpen()) {
+          <div class="profile-page__lang-dropdown" role="menu">
+            @for (option of availableLanguages; track option.code) {
+              <button
+                type="button"
+                class="profile-page__lang-option"
+                [class.profile-page__lang-option--active]="option.code === currentLang().code"
+                role="menuitemradio"
+                [attr.aria-checked]="option.code === currentLang().code"
+                (click)="selectLanguage(option)"
+              >
+                <span>{{ option.label }}</span>
+                @if (option.code === currentLang().code) {
+                  <i class="pi pi-check" aria-hidden="true"></i>
+                }
+              </button>
             }
           </div>
-          <p class="profile-page__membership-note">
-            <i class="pi pi-shield" aria-hidden="true"></i>
-            {{ 'profile.membership.note' | translate }}
-          </p>
-        </p-card>
-
-        <!-- Reviews received -->
-        <p-card styleClass="profile-page__card">
-          <h2 class="profile-page__section-title">
-            {{ 'profile.reviews.heading' | translate }}
-            @if (ratingSummary(); as summary) {
-              @if (summary.reviewCount > 0) {
-                <span class="profile-page__reviews-count">({{ summary.reviewCount }})</span>
-              }
-            }
-          </h2>
-
-          @if (reviewsLoading()) {
-            <div class="profile-page__reviews-skeleton">
-              @for (i of [0, 1, 2]; track i) {
-                <p-skeleton height="5rem" borderRadius="16px" />
-              }
-            </div>
-          } @else if (reviewsError()) {
-            <p class="profile-page__reviews-error" role="alert">
-              {{ 'profile.reviews.error' | translate }}
-            </p>
-          } @else if (reviews().length === 0) {
-            <p class="profile-page__reviews-empty">
-              {{ 'profile.reviews.empty' | translate }}
-            </p>
-          } @else {
-            <div class="profile-page__reviews-list">
-              @for (review of reviews(); track review.id) {
-                <app-review-card [review]="review" />
-              }
-            </div>
-          }
-        </p-card>
-
+        }
       </div>
+
+      <!-- 4 · Logout -->
+      <div class="profile-page__menu-card profile-page__menu-card--overflow-hidden">
+        <button
+          type="button"
+          class="profile-page__menu-row profile-page__menu-row--last profile-page__menu-row--danger"
+          (click)="logout()"
+        >
+          <span class="profile-page__menu-icon-wrap profile-page__menu-icon-wrap--danger">
+            <i class="pi pi-sign-out" aria-hidden="true"></i>
+          </span>
+          <span class="profile-page__menu-label">{{ 'profile.nav.logout' | translate }}</span>
+        </button>
+      </div>
+
+      <p class="profile-page__version" aria-hidden="true">ToyRent</p>
+
+      <!-- 5 · Rating summary (keep existing) -->
+      @if (ratingSummary(); as summary) {
+        @if (summary.reviewCount > 0) {
+          <div class="profile-page__menu-card profile-page__section-card">
+            <h2 class="profile-page__section-title">{{ 'profile.rating.heading' | translate }}</h2>
+            <app-rating-summary [summary]="summary" variant="full" />
+          </div>
+        }
+      }
+
+      <!-- 6 · Reviews (keep existing) -->
+      <div class="profile-page__menu-card profile-page__section-card">
+        <h2 class="profile-page__section-title">
+          {{ 'profile.reviews.heading' | translate }}
+          @if (ratingSummary(); as summary) {
+            @if (summary.reviewCount > 0) {
+              <span class="profile-page__reviews-count">({{ summary.reviewCount }})</span>
+            }
+          }
+        </h2>
+
+        @if (reviewsLoading()) {
+          <div class="profile-page__reviews-skeleton">
+            @for (i of [0, 1, 2]; track i) {
+              <p-skeleton height="5rem" borderRadius="12px" />
+            }
+          </div>
+        } @else if (reviewsError()) {
+          <p class="profile-page__reviews-error" role="alert">
+            {{ 'profile.reviews.error' | translate }}
+          </p>
+        } @else if (reviews().length === 0) {
+          <p class="profile-page__reviews-empty">
+            {{ 'profile.reviews.empty' | translate }}
+          </p>
+        } @else {
+          <div class="profile-page__reviews-list">
+            @for (review of reviews(); track review.id) {
+              <app-review-card [review]="review" />
+            }
+          </div>
+        }
+      </div>
+
     }
   }
 </section>
