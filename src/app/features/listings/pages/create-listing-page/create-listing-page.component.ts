@@ -8,9 +8,8 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
-import { MessageModule } from 'primeng/message';
 import { combineLatest, map } from 'rxjs';
 
 import { CreateListingFormComponent } from '../../components/create-listing-form/create-listing-form.component';
@@ -28,16 +27,16 @@ import {
 @Component({
   selector: 'app-create-listing-page',
   standalone: true,
-  imports: [AsyncPipe, CreateListingFormComponent, MessageModule, TranslatePipe],
+  imports: [AsyncPipe, CreateListingFormComponent],
   templateUrl: './create-listing-page.component.html',
   styleUrl: './create-listing-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreateListingPageComponent implements OnInit {
-  private readonly store = inject(Store);
-  private readonly router = inject(Router);
+  private readonly store          = inject(Store);
+  private readonly router         = inject(Router);
   private readonly messageService = inject(MessageService);
-  private readonly translate = inject(TranslateService);
+  private readonly translate      = inject(TranslateService);
 
   private readonly createListingSuccessId = this.store.selectSignal(
     selectCreateListingSuccessId,
@@ -47,24 +46,16 @@ export class CreateListingPageComponent implements OnInit {
   );
 
   protected readonly vm$ = combineLatest({
-    categories: this.store.select(selectListingCategories),
-    categoriesLoading: this.store.select(selectListingCategoriesLoading),
+    categories:           this.store.select(selectListingCategories),
+    categoriesLoading:    this.store.select(selectListingCategoriesLoading),
     createListingLoading: this.store.select(selectCreateListingLoading),
-    createListingError: this.store.select(selectCreateListingError),
-  }).pipe(
-    map((vm) => ({
-      ...vm,
-      showCategoriesLoadingState:
-        vm.categoriesLoading && vm.categories.length === 0,
-    })),
-  );
+    createListingError:   this.store.select(selectCreateListingError),
+  }).pipe(map(vm => vm));
 
   constructor() {
     effect(() => {
       const createdListingId = this.createListingSuccessId();
-      if (createdListingId === null) {
-        return;
-      }
+      if (createdListingId === null) return;
 
       const imageUploadError = this.createListingImageUploadError();
 
@@ -72,15 +63,15 @@ export class CreateListingPageComponent implements OnInit {
         this.messageService.add({
           severity: 'warn',
           summary: this.translate.instant('listings.createPage.imageUploadWarningTitle'),
-          detail: this.translate.instant('listings.createPage.imageUploadWarning'),
-          life: 8000,
+          detail:  this.translate.instant('listings.createPage.imageUploadWarning'),
+          life:    8000,
         });
       } else {
         this.messageService.add({
           severity: 'success',
           summary: this.translate.instant('listings.createPage.successTitle'),
-          detail: this.translate.instant('listings.createPage.successMessage'),
-          life: 5000,
+          detail:  this.translate.instant('listings.createPage.successMessage'),
+          life:    5000,
         });
       }
 
@@ -94,16 +85,11 @@ export class CreateListingPageComponent implements OnInit {
     this.store.dispatch(ListingsActions.loadListingCategories());
   }
 
-  protected onSubmitted(event: {
-    payload: CreateListingRequest;
-    files: File[];
-  }): void {
-    this.store.dispatch(
-      ListingsActions.createListing({
-        payload: event.payload,
-        files: event.files,
-      }),
-    );
+  protected onSubmitted(event: { payload: CreateListingRequest; files: File[] }): void {
+    this.store.dispatch(ListingsActions.createListing({
+      payload: event.payload,
+      files:   event.files,
+    }));
   }
 
   protected onCancelled(): void {
