@@ -709,12 +709,16 @@
   },
   "favorites": {
     "page": {
-      "title": "Favorites",
+      "title": "Saved toys",
       "subtitle": "Browse all toys you have saved.",
       "errorTitle": "Unable to load favorites",
-      "emptyTitle": "No favorites yet",
-      "empty": "Tap the heart on any toy to save it here.",
-      "emptyCta": "Browse toys"
+      "emptyTitle": "No saved toys yet",
+      "empty": "Tap the heart on any toy to save it here for later.",
+      "emptyCta": "Browse toys",
+      "backAria": "Go back",
+      "saved": "saved",
+      "acrossCities": "across {{count}} cities",
+      "recent": "Recent"
     }
   },
   "chat": {

@@ -1,13 +1,11 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, Location } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
-import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
-import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import { ListingCardComponent } from '../../../listings/components/listing-card/listing-card.component';
 import type { ListingPreview } from '../../../listings/models/listing.model';
 import * as FavoritesActions from '../../store/favorites.actions';
@@ -24,6 +22,8 @@ interface FavoritesPageViewModel {
   readonly showInitialSkeleton: boolean;
   readonly showEmpty: boolean;
   readonly hasError: boolean;
+  readonly savedCount: number;
+  readonly uniqueCitiesCount: number;
 }
 
 const selectFavoritesPageViewModel = createSelector(
@@ -32,6 +32,11 @@ const selectFavoritesPageViewModel = createSelector(
   selectFavoritesError,
   (items, loading, error): FavoritesPageViewModel => {
     const hasError = error !== null;
+    const cities = new Set(
+      items
+        .map((i) => i.city)
+        .filter((c): c is string => typeof c === 'string' && c.trim().length > 0),
+    );
     return {
       items,
       loading,
@@ -39,6 +44,8 @@ const selectFavoritesPageViewModel = createSelector(
       showInitialSkeleton: loading && items.length === 0,
       showEmpty: !loading && items.length === 0 && !hasError,
       hasError,
+      savedCount: items.length,
+      uniqueCitiesCount: cities.size,
     };
   },
 );
@@ -48,10 +55,8 @@ const selectFavoritesPageViewModel = createSelector(
   standalone: true,
   imports: [
     AsyncPipe,
-    ButtonModule,
     EmptyStateComponent,
     ListingCardComponent,
-    PageHeaderComponent,
     MessageModule,
     SkeletonModule,
     TranslatePipe,
@@ -62,11 +67,16 @@ const selectFavoritesPageViewModel = createSelector(
 })
 export class FavoritesPageComponent implements OnInit {
   private readonly store = inject(Store);
+  private readonly location = inject(Location);
 
   protected readonly viewModel$ = this.store.select(selectFavoritesPageViewModel);
 
   ngOnInit(): void {
     this.store.dispatch(FavoritesActions.loadFavorites());
+  }
+
+  protected goBack(): void {
+    this.location.back();
   }
 
   protected retry(): void {
