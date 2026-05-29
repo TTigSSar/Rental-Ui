@@ -471,6 +471,9 @@
       "subtitle": "Review your account information and preferred settings.",
       "empty": "Profile information is not available."
     },
+    "actions": {
+      "heading": "Quick actions"
+    },
     "fields": {
       "firstName": "First name",
       "lastName": "Last name",

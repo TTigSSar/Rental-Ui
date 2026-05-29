@@ -247,7 +247,6 @@
 /* —— Language switcher —— */
 .app-shell__language {
   position: relative;
-  display: none;
 }
 
 .app-shell__language-trigger {
@@ -288,6 +287,42 @@
 
 .app-shell__language-code {
   color: var(--ui-color-text-primary);
+}
+
+/* —— Profile icon button (header, top-right) —— */
+.app-shell__profile-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 1px solid var(--ui-color-border);
+  border-radius: 12px;
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-primary);
+  text-decoration: none;
+  flex-shrink: 0;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.app-shell__profile-btn:hover {
+  background: var(--ui-color-surface-muted);
+  border-color: var(--ui-color-border-strong);
+  box-shadow: var(--ui-shadow-card);
+}
+
+.app-shell__profile-btn--active {
+  background: #fff2e9;
+  border-color: var(--ui-color-primary-soft);
+  color: var(--ui-color-primary-strong);
+}
+
+.app-shell__profile-btn .pi {
+  font-size: 1rem;
 }
 
 /* —— User menu (desktop) —— */
@@ -481,11 +516,8 @@
 .app-shell__btn:focus-visible,
 .app-shell__user-trigger:focus-visible,
 .app-shell__language-trigger:focus-visible,
-.app-shell__burger:focus-visible,
+.app-shell__profile-btn:focus-visible,
 .app-shell__dropdown-item:focus-visible,
-.app-shell__drawer-link:focus-visible,
-.app-shell__drawer-lang:focus-visible,
-.app-shell__drawer-logout:focus-visible,
 .app-bottom-nav__item:focus-visible {
   outline: none;
   box-shadow:
@@ -493,230 +525,6 @@
     0 0 0 4px rgba(255, 96, 8, 0.55);
 }
 
-/* —— Mobile burger —— */
-.app-shell__mobile-wrap {
-  position: relative;
-  display: none;
-}
-
-.app-shell__burger {
-  display: inline-flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 5px;
-  width: 2.5rem;
-  height: 2.5rem;
-  padding: 0;
-  border: 1px solid var(--ui-color-border);
-  border-radius: 12px;
-  background: var(--ui-color-surface);
-  cursor: pointer;
-  transition:
-    border-color 140ms ease,
-    background-color 140ms ease,
-    box-shadow 140ms ease;
-}
-
-.app-shell__burger:hover {
-  background: var(--ui-color-surface-muted);
-  box-shadow: var(--ui-shadow-card);
-}
-
-.app-shell__burger-line {
-  display: block;
-  height: 2px;
-  width: 1.125rem;
-  margin-inline: auto;
-  border-radius: 2px;
-  background: var(--ui-color-text-primary);
-  transition:
-    transform 160ms ease,
-    opacity 160ms ease;
-}
-
-.app-shell__burger--open .app-shell__burger-line:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
-}
-
-.app-shell__burger--open .app-shell__burger-line:nth-child(2) {
-  opacity: 0;
-}
-
-.app-shell__burger--open .app-shell__burger-line:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
-}
-
-/* —— Mobile drawer —— */
-.app-shell__drawer {
-  position: absolute;
-  top: calc(100% + var(--ui-space-8));
-  right: 0;
-  width: min(20rem, calc(100vw - var(--ui-space-24) * 2));
-  padding: var(--ui-space-12);
-  background: var(--ui-color-surface);
-  border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-md);
-  box-shadow: var(--ui-shadow-card-hover);
-  animation: app-shell-dropdown-in 160ms ease-out;
-  transform-origin: top right;
-}
-
-.app-shell__drawer-nav {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-4);
-}
-
-.app-shell__drawer-link {
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-12);
-  padding: var(--ui-space-12);
-  border-radius: var(--ui-radius-sm);
-  color: var(--ui-color-text-primary);
-  text-decoration: none;
-  font-size: 0.9375rem;
-  font-weight: 500;
-  transition: background-color 120ms ease;
-}
-
-.app-shell__drawer-link:hover {
-  background: var(--ui-color-surface-muted);
-}
-
-.app-shell__drawer-link--active {
-  color: var(--ui-color-primary-strong);
-  font-weight: 600;
-  background: #fff2e9;
-}
-
-.app-shell__drawer-link--cta {
-  color: #fff;
-  background: var(--ui-color-primary);
-  justify-content: center;
-  font-weight: 600;
-  box-shadow: 0 4px 14px rgba(255, 96, 8, 0.24);
-}
-
-.app-shell__drawer-link--cta:hover {
-  background: var(--ui-color-primary-strong);
-  color: #fff;
-}
-
-.app-shell__drawer-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-8);
-  margin-top: var(--ui-space-12);
-  padding-top: var(--ui-space-12);
-  border-top: 1px solid var(--ui-color-border);
-}
-
-.app-shell__drawer-section-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ui-color-text-secondary);
-  padding-inline: var(--ui-space-4);
-}
-
-.app-shell__drawer-langs {
-  display: inline-flex;
-  align-self: flex-start;
-  padding: 2px;
-  background: var(--ui-color-surface-muted);
-  border-radius: 999px;
-  gap: 0;
-}
-
-.app-shell__drawer-lang {
-  border: none;
-  background: transparent;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font: inherit;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--ui-color-text-secondary);
-  cursor: pointer;
-  transition:
-    background-color 140ms ease,
-    color 140ms ease;
-}
-
-.app-shell__drawer-lang:hover {
-  color: var(--ui-color-text-primary);
-}
-
-.app-shell__drawer-lang--active {
-  background: var(--ui-color-surface);
-  color: var(--ui-color-primary-strong);
-  box-shadow: 0 1px 2px rgba(16, 18, 30, 0.08);
-}
-
-.app-shell__drawer-footer {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-8);
-  margin-top: var(--ui-space-12);
-  padding-top: var(--ui-space-12);
-  border-top: 1px solid var(--ui-color-border);
-}
-
-.app-shell__drawer-footer--account {
-  gap: var(--ui-space-4);
-}
-
-.app-shell__drawer-user {
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-12);
-  padding: var(--ui-space-8) var(--ui-space-4);
-  margin-bottom: var(--ui-space-4);
-}
-
-.app-shell__drawer-user-meta {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.app-shell__drawer-user-name {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--ui-color-text-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.app-shell__drawer-user-email {
-  font-size: 0.75rem;
-  color: var(--ui-color-text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.app-shell__drawer-logout {
-  margin-top: var(--ui-space-8);
-  padding: var(--ui-space-12);
-  width: 100%;
-  border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-md);
-  background: var(--ui-color-surface);
-  color: var(--ui-color-error);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  font: inherit;
-  transition: background-color 120ms ease;
-}
-
-.app-shell__drawer-logout:hover {
-  background: rgba(212, 63, 94, 0.08);
-}
 
 .app-shell__content {
   background: var(--ui-color-background);
@@ -727,7 +535,7 @@
   display: none;
 }
 
-/* —— Responsive: hamburger + drawer; compact primary —— */
+/* —— Responsive: mobile header with icon buttons —— */
 @media (max-width: 960px) {
   .app-shell__header-row {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -738,13 +546,8 @@
   .app-shell__guest-actions,
   .app-shell__user-menu,
   .app-shell__add-listing,
-  .app-shell__language,
   .app-shell__auth-skeleton {
     display: none;
-  }
-
-  .app-shell__mobile-wrap {
-    display: block;
   }
 
   .app-shell__brand {
@@ -753,6 +556,21 @@
 
   .app-shell__trailing {
     justify-self: end;
+  }
+
+  /* Language trigger: icon-only rounded square on mobile */
+  .app-shell__language-trigger {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border-radius: 12px;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .app-shell__language-code,
+  .app-shell__language-chevron {
+    display: none;
   }
 
   .app-shell__content--with-bottom-nav {
@@ -909,17 +727,12 @@
 }
 
 @media (min-width: 961px) {
-  .app-shell__user-menu,
-  .app-shell__language {
+  .app-shell__user-menu {
     display: block;
   }
 
   .app-shell__auth-skeleton {
     display: inline-block;
-  }
-
-  .app-shell__mobile-wrap {
-    display: none;
   }
 }
 

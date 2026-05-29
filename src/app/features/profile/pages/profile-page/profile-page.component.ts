@@ -7,12 +7,15 @@ import {
   inject,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, map, of, switchMap } from 'rxjs';
+
+import * as AuthActions from '../../../auth/store/auth.actions';
 
 import { ReviewCardComponent } from '../../../reviews/components/review-card/review-card.component';
 import { RatingSummaryComponent } from '../../../reviews/components/rating-summary/rating-summary.component';
@@ -39,6 +42,7 @@ import {
     MessageModule,
     RatingSummaryComponent,
     ReviewCardComponent,
+    RouterLink,
     SkeletonModule,
     TranslatePipe,
   ],
@@ -120,5 +124,9 @@ export class ProfilePageComponent implements OnInit {
 
   ngOnInit(): void {
     this.store.dispatch(ProfileActions.loadProfile());
+  }
+
+  protected logout(): void {
+    this.store.dispatch(AuthActions.logout());
   }
 }

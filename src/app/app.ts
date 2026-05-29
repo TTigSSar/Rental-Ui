@@ -22,7 +22,6 @@ import {
   selectAuthUser,
   selectIsAuthenticated,
 } from './features/auth/store/auth.selectors';
-import { AvatarComponent } from './shared/ui/avatar/avatar.component';
 
 interface NavItem {
   readonly path: string;
@@ -39,9 +38,7 @@ interface LanguageOption {
 interface AppShellViewModel {
   readonly primaryNav: NavItem[];
   readonly isAuthenticated: boolean;
-  /** `true` only when auth state has definitively settled as unauthenticated. */
   readonly isGuest: boolean;
-  /** `true` while `/auth/me` is hydrating and we don't yet know if the user is logged in. */
   readonly isAuthPending: boolean;
   readonly isAdmin: boolean;
   readonly userDisplayName: string | null;
@@ -51,11 +48,6 @@ interface AppShellViewModel {
 const LANGUAGE_STORAGE_KEY = 'stayfinder.lang';
 const SCROLL_SHRINK_THRESHOLD = 8;
 
-/**
- * Returns `true` when the URL is a single listing details page (/listings/:id)
- * and should therefore suppress the global footer.
- * Excludes /listings/create which is a separate page that should show the footer.
- */
 function isListingDetailsUrl(url: string): boolean {
   const path = url.split('?')[0];
   return /^\/listings\/(?!create$)[^/]+$/.test(path);
@@ -69,7 +61,6 @@ function isListingDetailsUrl(url: string): boolean {
     RouterLinkActive,
     RouterOutlet,
     TranslatePipe,
-    AvatarComponent,
     Toast,
   ],
   templateUrl: './app.html',
@@ -82,28 +73,17 @@ export class App {
   private readonly translate = inject(TranslateService);
   private readonly authRedirect = inject(AuthRedirectService);
 
-  /** Shown in the authenticated user menu (desktop dropdown + mobile drawer). */
-  protected readonly accountMenuItems: readonly NavItem[] = [
-    { path: '/favorites', labelKey: 'app.shell.nav.favorites', exactMatch: false },
-    { path: '/profile', labelKey: 'app.shell.nav.profile', exactMatch: false },
-  ];
-
   protected readonly availableLanguages: readonly LanguageOption[] = [
     { code: 'en', label: 'English', shortLabel: 'EN' },
     { code: 'ru', label: 'Русский', shortLabel: 'RU' },
     { code: 'hy', label: 'Հայերեն', shortLabel: 'HY' },
   ];
 
-  protected readonly mobileNavOpen = signal(false);
-  protected readonly userMenuOpen = signal(false);
   protected readonly languageMenuOpen = signal(false);
   protected readonly scrolled = signal(false);
   protected readonly currentLang = signal<LanguageOption>(this.availableLanguages[0]);
-  /** Hides the global footer on single listing detail pages for a focused booking UX. */
   protected readonly showFooter = signal(!isListingDetailsUrl(this.router.url));
 
-  private readonly userMenuHost = viewChild<ElementRef<HTMLElement>>('userMenuHost');
-  private readonly mobileNavHost = viewChild<ElementRef<HTMLElement>>('mobileNavHost');
   private readonly languageMenuHost = viewChild<ElementRef<HTMLElement>>('languageMenuHost');
 
   protected readonly vm$ = combineLatest({
@@ -117,14 +97,12 @@ export class App {
       const primaryNav: NavItem[] = [];
 
       if (isAuthenticated && isAdmin) {
-        // Admins are moderators only — show moderation routes, not marketplace ones.
         primaryNav.push({
           path: '/admin/listings/pending',
           labelKey: 'app.shell.nav.pendingModeration',
           exactMatch: false,
         });
       } else if (isAuthenticated) {
-        // Regular authenticated users: renter/owner marketplace routes.
         primaryNav.push(
           {
             path: '/my-listings',
@@ -149,7 +127,6 @@ export class App {
         );
       }
 
-      // Skeleton shows only during the one-time startup hydration, never again.
       const isAuthPending = isAuthInitializing;
       const isGuest = !isAuthenticated && !isAuthInitializing;
 
@@ -176,8 +153,6 @@ export class App {
         takeUntilDestroyed(),
       )
       .subscribe(() => {
-        this.mobileNavOpen.set(false);
-        this.userMenuOpen.set(false);
         this.languageMenuOpen.set(false);
       });
 
@@ -191,29 +166,8 @@ export class App {
       });
   }
 
-  protected toggleMobileNav(): void {
-    this.mobileNavOpen.update((open) => !open);
-    this.userMenuOpen.set(false);
-    this.languageMenuOpen.set(false);
-  }
-
-  protected closeMobileNav(): void {
-    this.mobileNavOpen.set(false);
-  }
-
-  protected toggleUserMenu(): void {
-    this.userMenuOpen.update((open) => !open);
-    this.mobileNavOpen.set(false);
-    this.languageMenuOpen.set(false);
-  }
-
-  protected closeUserMenu(): void {
-    this.userMenuOpen.set(false);
-  }
-
   protected toggleLanguageMenu(): void {
     this.languageMenuOpen.update((open) => !open);
-    this.userMenuOpen.set(false);
   }
 
   protected selectLanguage(option: LanguageOption): void {
@@ -225,13 +179,6 @@ export class App {
       /* localStorage may be unavailable (SSR / privacy mode); safe to ignore. */
     }
     this.languageMenuOpen.set(false);
-    this.mobileNavOpen.set(false);
-  }
-
-  protected logout(): void {
-    this.store.dispatch(AuthActions.logout());
-    this.userMenuOpen.set(false);
-    this.mobileNavOpen.set(false);
   }
 
   /** Guest center FAB — preserve intended create-listing destination after auth. */
@@ -240,26 +187,10 @@ export class App {
     void this.router.navigate(['/auth/login']);
   }
 
-  protected onBottomNavMenuClick(): void {
-    this.toggleMobileNav();
-  }
-
   @HostListener('document:click', ['$event'])
   protected onDocumentClick(event: MouseEvent): void {
     const target = event.target as Node | null;
-    if (target === null) {
-      return;
-    }
-
-    const userHost = this.userMenuHost()?.nativeElement;
-    if (userHost !== undefined && !userHost.contains(target)) {
-      this.userMenuOpen.set(false);
-    }
-
-    const mobileHost = this.mobileNavHost()?.nativeElement;
-    if (mobileHost !== undefined && !mobileHost.contains(target)) {
-      this.mobileNavOpen.set(false);
-    }
+    if (target === null) return;
 
     const langHost = this.languageMenuHost()?.nativeElement;
     if (langHost !== undefined && !langHost.contains(target)) {
@@ -270,8 +201,6 @@ export class App {
   @HostListener('document:keydown', ['$event'])
   protected onDocumentKeydown(event: KeyboardEvent): void {
     if (event.key === 'Escape') {
-      this.mobileNavOpen.set(false);
-      this.userMenuOpen.set(false);
       this.languageMenuOpen.set(false);
     }
   }

@@ -24,6 +24,7 @@
             </span>
           </a>
 
+          <!-- Desktop primary nav -->
           <nav
             class="app-shell__nav app-shell__nav--primary"
             [attr.aria-label]="'app.shell.primaryNavAria' | translate"
@@ -40,7 +41,9 @@
             }
           </nav>
 
+          <!-- Trailing actions -->
           <div class="app-shell__trailing">
+            <!-- Add Listing CTA (desktop only, authenticated non-admin) -->
             @if (vm.isAuthenticated && !vm.isAdmin) {
               <a
                 class="app-shell__btn app-shell__btn--primary app-shell__add-listing"
@@ -51,6 +54,7 @@
               </a>
             }
 
+            <!-- Language selector -->
             <div class="app-shell__language" #languageMenuHost>
               <button
                 type="button"
@@ -86,10 +90,12 @@
               }
             </div>
 
+            <!-- Auth skeleton while hydrating -->
             @if (vm.isAuthPending) {
               <span class="app-shell__auth-skeleton" aria-hidden="true"></span>
             }
 
+            <!-- Guest: login / register (desktop only) -->
             @if (vm.isGuest) {
               <div class="app-shell__guest-actions">
                 <a
@@ -109,206 +115,43 @@
               </div>
             }
 
+            <!-- Authenticated: profile icon button (navigates directly to /profile) -->
             @if (vm.isAuthenticated) {
-              <div class="app-shell__user-menu" #userMenuHost>
-                <button
-                  type="button"
-                  class="app-shell__user-trigger"
-                  [attr.aria-expanded]="userMenuOpen()"
-                  [attr.aria-haspopup]="true"
-                  [attr.aria-label]="'app.shell.userMenuToggleAria' | translate"
-                  (click)="toggleUserMenu()"
-                >
-                  <app-ui-avatar [name]="vm.userDisplayName" size="md" />
-                  <i class="pi pi-angle-down app-shell__user-chevron" aria-hidden="true"></i>
-                </button>
-                @if (userMenuOpen()) {
-                  <div class="app-shell__dropdown app-shell__dropdown--user" role="menu">
-                    @if (vm.userDisplayName || vm.userEmail) {
-                      <div class="app-shell__dropdown-header">
-                        @if (vm.userDisplayName) {
-                          <span class="app-shell__dropdown-name">{{ vm.userDisplayName }}</span>
-                        }
-                        @if (vm.userEmail) {
-                          <span class="app-shell__dropdown-email">{{ vm.userEmail }}</span>
-                        }
-                      </div>
-                    }
-                    <div class="app-shell__dropdown-section">
-                      @for (item of accountMenuItems; track item.path) {
-                        <a
-                          class="app-shell__dropdown-item"
-                          role="menuitem"
-                          [routerLink]="item.path"
-                          (click)="closeUserMenu()"
-                        >
-                          {{ item.labelKey | translate }}
-                        </a>
-                      }
-                    </div>
-                    <button
-                      type="button"
-                      class="app-shell__dropdown-item app-shell__dropdown-item--danger"
-                      role="menuitem"
-                      (click)="logout()"
-                    >
-                      {{ 'app.shell.nav.logout' | translate }}
-                    </button>
-                  </div>
-                }
-              </div>
-            }
-
-            <div class="app-shell__mobile-wrap" #mobileNavHost>
-              <button
-                type="button"
-                class="app-shell__burger"
-                [class.app-shell__burger--open]="mobileNavOpen()"
-                [attr.aria-expanded]="mobileNavOpen()"
-                [attr.aria-controls]="'app-shell-mobile-panel'"
-                [attr.aria-label]="'app.shell.menuToggleAria' | translate"
-                (click)="toggleMobileNav()"
+              <a
+                class="app-shell__profile-btn"
+                routerLink="/profile"
+                routerLinkActive="app-shell__profile-btn--active"
+                [routerLinkActiveOptions]="{ exact: false }"
+                [attr.aria-label]="'app.shell.nav.profile' | translate"
               >
-                <span class="app-shell__burger-line" aria-hidden="true"></span>
-                <span class="app-shell__burger-line" aria-hidden="true"></span>
-                <span class="app-shell__burger-line" aria-hidden="true"></span>
-              </button>
-
-              @if (mobileNavOpen()) {
-                <div
-                  id="app-shell-mobile-panel"
-                  class="app-shell__drawer"
-                  role="dialog"
-                  [attr.aria-modal]="true"
-                >
-                  <nav
-                    class="app-shell__drawer-nav"
-                    [attr.aria-label]="'app.shell.primaryNavAria' | translate"
-                  >
-                    @for (item of vm.primaryNav; track item.path) {
-                      <a
-                        class="app-shell__drawer-link"
-                        [routerLink]="item.path"
-                        routerLinkActive="app-shell__drawer-link--active"
-                        [routerLinkActiveOptions]="{ exact: item.exactMatch }"
-                        (click)="closeMobileNav()"
-                      >
-                        {{ item.labelKey | translate }}
-                      </a>
-                    }
-                    @if (vm.isAuthenticated && !vm.isAdmin) {
-                      <a
-                        class="app-shell__drawer-link app-shell__drawer-link--cta"
-                        routerLink="/listings/create"
-                        (click)="closeMobileNav()"
-                      >
-                        <i class="pi pi-plus" aria-hidden="true"></i>
-                        {{ 'app.shell.nav.addListing' | translate }}
-                      </a>
-                    }
-                  </nav>
-
-                  <div class="app-shell__drawer-section">
-                    <span class="app-shell__drawer-section-label">{{
-                      'app.shell.language.switchAria' | translate
-                    }}</span>
-                    <div class="app-shell__drawer-langs">
-                      @for (option of availableLanguages; track option.code) {
-                        <button
-                          type="button"
-                          class="app-shell__drawer-lang"
-                          [class.app-shell__drawer-lang--active]="
-                            option.code === currentLang().code
-                          "
-                          (click)="selectLanguage(option)"
-                        >
-                          {{ option.shortLabel }}
-                        </button>
-                      }
-                    </div>
-                  </div>
-
-                  @if (vm.isGuest) {
-                    <div class="app-shell__drawer-footer">
-                      <a
-                        class="app-shell__btn app-shell__btn--ghost app-shell__btn--block"
-                        routerLink="/auth/login"
-                        (click)="closeMobileNav()"
-                      >
-                        {{ 'app.shell.nav.login' | translate }}
-                      </a>
-                      <a
-                        class="app-shell__btn app-shell__btn--primary app-shell__btn--block"
-                        routerLink="/auth/register"
-                        (click)="closeMobileNav()"
-                      >
-                        {{ 'app.shell.nav.register' | translate }}
-                      </a>
-                    </div>
-                  }
-
-                  @if (vm.isAuthenticated) {
-                    <div class="app-shell__drawer-footer app-shell__drawer-footer--account">
-                      @if (vm.userDisplayName) {
-                        <div class="app-shell__drawer-user">
-                          <app-ui-avatar [name]="vm.userDisplayName" size="md" />
-                          <span class="app-shell__drawer-user-meta">
-                            <span class="app-shell__drawer-user-name">{{
-                              vm.userDisplayName
-                            }}</span>
-                            @if (vm.userEmail) {
-                              <span class="app-shell__drawer-user-email">{{
-                                vm.userEmail
-                              }}</span>
-                            }
-                          </span>
-                        </div>
-                      }
-                      @for (item of accountMenuItems; track item.path) {
-                        <a
-                          class="app-shell__drawer-link"
-                          [routerLink]="item.path"
-                          (click)="closeMobileNav()"
-                        >
-                          {{ item.labelKey | translate }}
-                        </a>
-                      }
-                      <button
-                        type="button"
-                        class="app-shell__drawer-logout"
-                        (click)="logout()"
-                      >
-                        {{ 'app.shell.nav.logout' | translate }}
-                      </button>
-                    </div>
-                  }
-                </div>
-              }
-            </div>
+                <i class="pi pi-user" aria-hidden="true"></i>
+              </a>
+            }
           </div>
         </div>
       </div>
     </header>
 
-    <!-- Global toast overlay — used by features (e.g. create-listing success) -->
+    <!-- Global toast overlay -->
     <p-toast position="top-center" />
 
     <main class="app-shell__content app-shell__content--with-bottom-nav">
       <router-outlet></router-outlet>
     </main>
 
+    <!-- ── Bottom navigation ─────────────────────────────────────── -->
     <nav
       class="app-bottom-nav"
       [class.app-bottom-nav--admin]="vm.isAdmin"
       [attr.aria-label]="'app.shell.bottomNavAria' | translate"
     >
       @if (vm.isAdmin) {
+        <!-- Admin: Home | Moderate | Profile -->
         <a
           class="app-bottom-nav__item"
           routerLink="/"
           routerLinkActive="app-bottom-nav__item--active"
           [routerLinkActiveOptions]="{ exact: true }"
-          (click)="closeMobileNav()"
         >
           <i class="pi pi-home app-bottom-nav__icon" aria-hidden="true"></i>
           <span class="app-bottom-nav__label">{{ 'app.shell.nav.home' | translate }}</span>
@@ -318,60 +161,48 @@
           routerLink="/admin/listings/pending"
           routerLinkActive="app-bottom-nav__item--active"
           [routerLinkActiveOptions]="{ exact: false }"
-          (click)="closeMobileNav()"
         >
           <i class="pi pi-shield app-bottom-nav__icon" aria-hidden="true"></i>
-          <span class="app-bottom-nav__label">{{
-            'app.shell.nav.moderationShort' | translate
-          }}</span>
+          <span class="app-bottom-nav__label">{{ 'app.shell.nav.moderationShort' | translate }}</span>
         </a>
         <a
           class="app-bottom-nav__item"
           routerLink="/profile"
           routerLinkActive="app-bottom-nav__item--active"
           [routerLinkActiveOptions]="{ exact: false }"
-          (click)="closeMobileNav()"
         >
           <i class="pi pi-user app-bottom-nav__icon" aria-hidden="true"></i>
           <span class="app-bottom-nav__label">{{ 'app.shell.nav.profile' | translate }}</span>
         </a>
-        <button
-          type="button"
-          class="app-bottom-nav__item"
-          [attr.aria-label]="'app.shell.nav.menu' | translate"
-          (click)="onBottomNavMenuClick()"
-        >
-          <i class="pi pi-bars app-bottom-nav__icon" aria-hidden="true"></i>
-          <span class="app-bottom-nav__label">{{ 'app.shell.nav.menu' | translate }}</span>
-        </button>
       } @else {
+        <!-- Slot 1: Home -->
         <a
           class="app-bottom-nav__item"
           routerLink="/"
           routerLinkActive="app-bottom-nav__item--active"
           [routerLinkActiveOptions]="{ exact: true }"
-          (click)="closeMobileNav()"
         >
           <i class="pi pi-home app-bottom-nav__icon" aria-hidden="true"></i>
           <span class="app-bottom-nav__label">{{ 'app.shell.nav.home' | translate }}</span>
         </a>
+
+        <!-- Slot 2: Browse -->
         <a
           class="app-bottom-nav__item"
           routerLink="/listings"
           routerLinkActive="app-bottom-nav__item--active"
           [routerLinkActiveOptions]="{ exact: false }"
-          (click)="closeMobileNav()"
         >
           <i class="pi pi-search app-bottom-nav__icon" aria-hidden="true"></i>
           <span class="app-bottom-nav__label">{{ 'app.shell.nav.browseShort' | translate }}</span>
         </a>
 
+        <!-- Slot 3: Create Toy FAB -->
         @if (vm.isAuthenticated) {
           <a
             class="app-bottom-nav__fab"
             routerLink="/listings/create"
             [attr.aria-label]="'app.shell.nav.addListing' | translate"
-            (click)="closeMobileNav()"
           >
             <i class="pi pi-plus" aria-hidden="true"></i>
           </a>
@@ -388,47 +219,49 @@
           <span class="app-bottom-nav__fab-spacer" aria-hidden="true"></span>
         }
 
+        <!-- Slots 4 & 5: auth vs guest -->
         @if (vm.isAuthenticated) {
+          <!-- Slot 4: Favorites -->
           <a
             class="app-bottom-nav__item"
             routerLink="/favorites"
             routerLinkActive="app-bottom-nav__item--active"
             [routerLinkActiveOptions]="{ exact: false }"
-            (click)="closeMobileNav()"
           >
             <i class="pi pi-heart app-bottom-nav__icon" aria-hidden="true"></i>
             <span class="app-bottom-nav__label">{{ 'app.shell.nav.favorites' | translate }}</span>
           </a>
+          <!-- Slot 5: My Toys -->
           <a
             class="app-bottom-nav__item"
-            routerLink="/profile"
+            routerLink="/my-listings"
             routerLinkActive="app-bottom-nav__item--active"
             [routerLinkActiveOptions]="{ exact: false }"
-            (click)="closeMobileNav()"
           >
-            <i class="pi pi-user app-bottom-nav__icon" aria-hidden="true"></i>
-            <span class="app-bottom-nav__label">{{ 'app.shell.nav.profile' | translate }}</span>
+            <i class="pi pi-box app-bottom-nav__icon" aria-hidden="true"></i>
+            <span class="app-bottom-nav__label">{{ 'app.shell.nav.myListings' | translate }}</span>
           </a>
         } @else {
+          <!-- Guest slot 4: Login -->
           <a
             class="app-bottom-nav__item"
             routerLink="/auth/login"
             routerLinkActive="app-bottom-nav__item--active"
             [routerLinkActiveOptions]="{ exact: false }"
-            (click)="closeMobileNav()"
           >
             <i class="pi pi-sign-in app-bottom-nav__icon" aria-hidden="true"></i>
             <span class="app-bottom-nav__label">{{ 'app.shell.nav.login' | translate }}</span>
           </a>
-          <button
-            type="button"
+          <!-- Guest slot 5: Register -->
+          <a
             class="app-bottom-nav__item"
-            [attr.aria-label]="'app.shell.nav.menu' | translate"
-            (click)="onBottomNavMenuClick()"
+            routerLink="/auth/register"
+            routerLinkActive="app-bottom-nav__item--active"
+            [routerLinkActiveOptions]="{ exact: false }"
           >
-            <i class="pi pi-bars app-bottom-nav__icon" aria-hidden="true"></i>
-            <span class="app-bottom-nav__label">{{ 'app.shell.nav.menu' | translate }}</span>
-          </button>
+            <i class="pi pi-user-plus app-bottom-nav__icon" aria-hidden="true"></i>
+            <span class="app-bottom-nav__label">{{ 'app.shell.nav.register' | translate }}</span>
+          </a>
         }
       }
     </nav>
