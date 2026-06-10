@@ -98,23 +98,21 @@
                     <i class="pi pi-map-marker" aria-hidden="true"></i>
                     <span>{{ listing.city }}</span>
                   </span>
-                  @if (isAuthenticated()) {
-                    <button
-                      type="button"
-                      class="detail-page__favorite"
-                      [class.detail-page__favorite--active]="listing.isFavorite"
-                      [attr.aria-label]="'listings.card.toggleFavorite' | translate"
-                      [attr.aria-pressed]="listing.isFavorite"
-                      (click)="onFavoriteToggle(listing)"
-                    >
-                      <i
-                        class="pi"
-                        [class.pi-heart-fill]="listing.isFavorite"
-                        [class.pi-heart]="!listing.isFavorite"
-                        aria-hidden="true"
-                      ></i>
-                    </button>
-                  }
+                  <button
+                    type="button"
+                    class="detail-page__favorite"
+                    [class.detail-page__favorite--active]="listing.isFavorite"
+                    [attr.aria-label]="'listings.card.toggleFavorite' | translate"
+                    [attr.aria-pressed]="listing.isFavorite"
+                    (click)="onFavoriteToggle(listing)"
+                  >
+                    <i
+                      class="pi"
+                      [class.pi-heart-fill]="listing.isFavorite"
+                      [class.pi-heart]="!listing.isFavorite"
+                      aria-hidden="true"
+                    ></i>
+                  </button>
                 </div>
               </header>
 

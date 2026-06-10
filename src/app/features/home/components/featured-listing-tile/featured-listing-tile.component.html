@@ -47,20 +47,20 @@
         >
           <i class="pi pi-comment"></i>
         </span>
-        @if (isAuthenticated()) {
-          <button
-            type="button"
-            class="product-card__action product-card__action--save"
-            [class.product-card__action--active]="data.isFavorite"
-            [attr.aria-label]="'home.featured.toggleFavorite' | translate"
-            [attr.aria-pressed]="data.isFavorite"
-            (click)="onFavoriteClick($event)"
-          >
-            <i
-              [class]="data.isFavorite ? 'pi pi-bookmark-fill' : 'pi pi-bookmark'"
-            ></i>
-          </button>
-        }
+        <button
+          type="button"
+          class="product-card__action product-card__action--save"
+          [class.product-card__action--active]="data.isFavorite"
+          [attr.aria-label]="'home.featured.toggleFavorite' | translate"
+          [attr.aria-pressed]="data.isFavorite"
+          (click)="onFavoriteClick($event)"
+        >
+          <i
+            class="pi"
+            [class.pi-heart-fill]="data.isFavorite"
+            [class.pi-heart]="!data.isFavorite"
+          ></i>
+        </button>
       </div>
     </div>
   </div>

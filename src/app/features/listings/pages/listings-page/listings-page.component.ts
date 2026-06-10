@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   inject,
+  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -13,6 +14,7 @@ import { MessageModule } from 'primeng/message';
 
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { LoadingSkeletonComponent } from '../../../../shared/ui/loading-skeleton/loading-skeleton.component';
+import { AuthDialogComponent } from '../../../auth/components/auth-dialog/auth-dialog.component';
 import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 import { ListingCardComponent } from '../../components/listing-card/listing-card.component';
 import { ListingsFiltersComponent } from '../../components/listings-filters/listings-filters.component';
@@ -79,6 +81,7 @@ const selectListingsPageViewModel = createSelector(
   standalone: true,
   imports: [
     AsyncPipe,
+    AuthDialogComponent,
     ButtonModule,
     EmptyStateComponent,
     ListingCardComponent,
@@ -95,6 +98,9 @@ export class ListingsPageComponent {
   private readonly store = inject(Store);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+
+  protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
+  protected readonly showAuthDialog = signal(false);
 
   protected readonly viewModel$ = this.store.select(selectListingsPageViewModel);
 
@@ -113,6 +119,10 @@ export class ListingsPageComponent {
   protected onFiltersChanged(_filters: ListingsFilter): void {}
 
   protected onFavoriteToggled(listingId: string): void {
+    if (!this.isAuthenticated()) {
+      this.showAuthDialog.set(true);
+      return;
+    }
     this.store.dispatch(ListingsActions.toggleFavoriteOptimistic({ listingId }));
   }
 

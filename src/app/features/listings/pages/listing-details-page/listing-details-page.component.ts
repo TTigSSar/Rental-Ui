@@ -358,6 +358,10 @@ export class ListingDetailsPageComponent {
   }
 
   protected onFavoriteToggle(listing: ListingDetails): void {
+    if (!this.isAuthenticated()) {
+      this.showAuthDialog.set(true);
+      return;
+    }
     this.store.dispatch(
       ListingsActions.toggleFavoriteOptimistic({ listingId: listing.id }),
     );

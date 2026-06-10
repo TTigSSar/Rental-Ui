@@ -1,6 +1,7 @@
 import { createReducer, on } from '@ngrx/store';
 
 import type { ListingPreview } from '../../listings/models/listing.model';
+import * as ListingsActions from '../../listings/store/listings.actions';
 import * as FavoritesActions from './favorites.actions';
 import {
   initialFavoritesState,
@@ -84,6 +85,36 @@ export const favoritesReducer = createReducer(
       ...state,
       pendingRemovals: withoutPending(state.pendingRemovals, listingId),
     }),
+  ),
+  on(
+    ListingsActions.toggleFavoriteOptimistic,
+    (state, { listingId }): FavoritesState => {
+      const index = state.items.findIndex((item) => item.id === listingId);
+      if (index < 0) return state; // not in favorites → being added, nothing to remove
+      const listing = state.items[index];
+      return {
+        ...state,
+        items: state.items.filter((item) => item.id !== listingId),
+        pendingRemovals: {
+          ...state.pendingRemovals,
+          [listingId]: { listing, index },
+        },
+        error: null,
+      };
+    },
+  ),
+  on(
+    ListingsActions.toggleFavoriteRollback,
+    (state, { listingId, isFavorite }): FavoritesState => {
+      if (!isFavorite) return state; // rollback for an add → nothing to restore in favorites list
+      const pending = state.pendingRemovals[listingId];
+      if (pending === undefined) return state;
+      return {
+        ...state,
+        items: restoreRemovedItem(state.items, pending.listing, pending.index),
+        pendingRemovals: withoutPending(state.pendingRemovals, listingId),
+      };
+    },
   ),
   on(
     FavoritesActions.removeFavoriteFailure,

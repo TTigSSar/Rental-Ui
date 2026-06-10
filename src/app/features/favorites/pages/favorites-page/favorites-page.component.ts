@@ -8,6 +8,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { ListingCardComponent } from '../../../listings/components/listing-card/listing-card.component';
 import type { ListingPreview } from '../../../listings/models/listing.model';
+import * as ListingsActions from '../../../listings/store/listings.actions';
 import * as FavoritesActions from '../../store/favorites.actions';
 import {
   selectFavoriteItems,
@@ -84,6 +85,6 @@ export class FavoritesPageComponent implements OnInit {
   }
 
   protected onFavoriteToggled(listingId: string): void {
-    this.store.dispatch(FavoritesActions.removeFavoriteOptimistic({ listingId }));
+    this.store.dispatch(ListingsActions.toggleFavoriteOptimistic({ listingId }));
   }
 }

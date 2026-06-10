@@ -14,6 +14,7 @@ import { Observable, combineLatest, map } from 'rxjs';
 
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { LoadingSkeletonComponent } from '../../../../shared/ui/loading-skeleton/loading-skeleton.component';
+import { AuthDialogComponent } from '../../../auth/components/auth-dialog/auth-dialog.component';
 import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 import type { ListingCategoryOption } from '../../../listings/models/create-listing.model';
 import type { ListingPreview } from '../../../listings/models/listing.model';
@@ -255,6 +256,7 @@ const selectHomeSource = createSelector(
     ReactiveFormsModule,
     RouterLink,
     TranslatePipe,
+    AuthDialogComponent,
     EmptyStateComponent,
     LoadingSkeletonComponent,
     FeaturedListingTileComponent,
@@ -272,6 +274,9 @@ export class HomePageComponent implements OnInit {
 
   protected readonly processSteps = PROCESS_STEPS;
   protected readonly faqEntries = FAQ_ENTRIES;
+
+  protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
+  protected readonly showAuthDialog = signal(false);
 
   protected readonly processMode = signal<ProcessMode>('renting');
   protected readonly expandedFaq = signal<string | null>('q1');
@@ -359,6 +364,10 @@ export class HomePageComponent implements OnInit {
   }
 
   protected onFavoriteToggle(listingId: string): void {
+    if (!this.isAuthenticated()) {
+      this.showAuthDialog.set(true);
+      return;
+    }
     this.store.dispatch(ListingsActions.toggleFavoriteOptimistic({ listingId }));
   }
 
