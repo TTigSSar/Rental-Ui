@@ -17,6 +17,7 @@ import { combineLatest, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
 import { AuthDialogComponent } from '../../../auth/components/auth-dialog/auth-dialog.component';
 import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
+import { selectFavoriteIds } from '../../../favorites/store/favorites.selectors';
 import * as BookingsActions from '../../../bookings/store/bookings.actions';
 import {
   selectCreateBookingError,
@@ -280,6 +281,7 @@ export class ListingDetailsPageComponent {
     createBookingError: this.store.select(selectCreateBookingError),
     createBookingSuccessId: this.store.select(selectCreateBookingSuccessId),
     routeId: this.routeId$,
+    favoriteIds: this.store.select(selectFavoriteIds),
   }).pipe(
     map(
       ({
@@ -288,6 +290,7 @@ export class ListingDetailsPageComponent {
         createBookingError,
         createBookingSuccessId,
         routeId,
+        favoriteIds,
       }): ListingDetailsPageViewModel => {
         const invalidRoute = routeId === null || routeId === '';
         if (invalidRoute) {
@@ -310,11 +313,14 @@ export class ListingDetailsPageComponent {
         const err = state.error;
         const hasError = err !== null;
         const idMatches = listing !== null && listing.id === routeId;
+        const displayListing = idMatches && listing
+          ? { ...listing, isFavorite: favoriteIds.has(listing.id) }
+          : null;
 
         return {
           routeId,
           invalidRoute: false,
-          displayListing: idMatches ? listing : null,
+          displayListing,
           showSkeleton: loading && !idMatches,
           showError: hasError,
           showContent: idMatches && !loading && !hasError,

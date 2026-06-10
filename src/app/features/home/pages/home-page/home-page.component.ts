@@ -16,6 +16,7 @@ import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-sta
 import { LoadingSkeletonComponent } from '../../../../shared/ui/loading-skeleton/loading-skeleton.component';
 import { AuthDialogComponent } from '../../../auth/components/auth-dialog/auth-dialog.component';
 import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
+import { selectFavoriteIds } from '../../../favorites/store/favorites.selectors';
 import type { ListingCategoryOption } from '../../../listings/models/create-listing.model';
 import type { ListingPreview } from '../../../listings/models/listing.model';
 import * as ListingsActions from '../../../listings/store/listings.actions';
@@ -26,6 +27,7 @@ import {
   selectListingsError,
   selectListingsLoading,
 } from '../../../listings/store/listings.selectors';
+import { ListingCardComponent } from '../../../listings/components/listing-card/listing-card.component';
 import type { HomeSectionResponse } from '../../models/home-section.model';
 import { HomeSectionsActions } from '../../store/home.actions';
 import {
@@ -37,7 +39,6 @@ import {
   CategoryTileComponent,
   type HomeCategoryTileVm,
 } from '../../components/category-tile/category-tile.component';
-import { FeaturedListingTileComponent } from '../../components/featured-listing-tile/featured-listing-tile.component';
 import { SectionHeaderComponent } from '../../../../shared/ui/section-header/section-header.component';
 
 type ProcessMode = 'renting' | 'lending';
@@ -258,8 +259,8 @@ const selectHomeSource = createSelector(
     TranslatePipe,
     AuthDialogComponent,
     EmptyStateComponent,
+    ListingCardComponent,
     LoadingSkeletonComponent,
-    FeaturedListingTileComponent,
     CategoryTileComponent,
     SectionHeaderComponent,
   ],
@@ -290,9 +291,13 @@ export class HomePageComponent implements OnInit {
     this.store.select(selectHomeSections),
     this.store.select(selectHomeSectionsLoading),
     this.store.select(selectHomeSectionsError),
+    this.store.select(selectFavoriteIds),
   ]).pipe(
-    map(([source, sections, sectionsLoading, sectionsError]): HomePageViewModel => {
-      const featured = source.items.slice(0, FEATURED_LIMIT);
+    map(([source, sections, sectionsLoading, sectionsError, favoriteIds]): HomePageViewModel => {
+      const featured = source.items.slice(0, FEATURED_LIMIT).map((i) => ({
+        ...i,
+        isFavorite: favoriteIds.has(i.id),
+      }));
       const mappedCategories: HomeCategoryTileVm[] = source.categories.map(
         (category): HomeCategoryTileVm => {
           const visual =
@@ -324,7 +329,12 @@ export class HomePageComponent implements OnInit {
         showCategoriesEmpty:
           !source.categoriesLoading && mappedCategories.length === 0,
         isAuthenticated: source.isAuthenticated,
-        sections: sections.filter((s) => s.key !== 'popular'),
+        sections: sections
+          .filter((s) => s.key !== 'popular')
+          .map((s) => ({
+            ...s,
+            items: s.items.map((i) => ({ ...i, isFavorite: favoriteIds.has(i.id) })),
+          })),
         sectionsLoading,
         sectionsError,
       };

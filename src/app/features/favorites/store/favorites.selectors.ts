@@ -21,3 +21,9 @@ export const selectFavoritesError = createSelector(
   selectFavoritesState,
   (state: FavoritesState): string | null => state.error,
 );
+
+/** Memoized Set for O(1) isFavorite lookups across all views. */
+export const selectFavoriteIds = createSelector(
+  selectFavoritesState,
+  (state: FavoritesState): ReadonlySet<string> => new Set(state.favoriteIds),
+);

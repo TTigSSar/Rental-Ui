@@ -1,19 +1,20 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { Store, createSelector } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import {
   catchError,
   concatMap,
   EMPTY,
-  filter,
   map,
   of,
   switchMap,
   take,
   withLatestFrom,
+  filter,
 } from 'rxjs';
 
 import { toApiErrorMessage } from '../../../api/http-error-message.util';
+import { selectFavoriteIds } from '../../favorites/store/favorites.selectors';
 import { ListingsApiService } from '../services/listings-api.service';
 import * as ListingsActions from './listings.actions';
 import {
@@ -21,26 +22,7 @@ import {
   selectListingsHasMore,
   selectListingsPage,
   selectListingsPageSize,
-  selectListingsState,
 } from './listings.selectors';
-import type { ListingsState } from './listings.state';
-
-function selectFavoritePersistenceView(listingId: string) {
-  return createSelector(
-    selectListingsState,
-    (state: ListingsState): { tracked: boolean; isFavorite: boolean } => {
-      const selected = state.selectedListing;
-      if (selected !== null && selected.id === listingId) {
-        return { tracked: true, isFavorite: selected.isFavorite };
-      }
-      const item = state.items.find((i) => i.id === listingId);
-      if (item !== undefined) {
-        return { tracked: true, isFavorite: item.isFavorite };
-      }
-      return { tracked: false, isFavorite: false };
-    },
-  );
-}
 
 function toErrorMessage(error: unknown): string {
   return toApiErrorMessage(error);
@@ -137,11 +119,11 @@ export class ListingsEffects {
     this.actions$.pipe(
       ofType(ListingsActions.toggleFavoriteOptimistic),
       concatMap(({ listingId }) =>
-        this.store.select(selectFavoritePersistenceView(listingId)).pipe(
+        this.store.select(selectFavoriteIds).pipe(
           take(1),
-          filter(({ tracked }) => tracked),
-          switchMap(({ isFavorite }) => {
-            const request$ = isFavorite
+          switchMap((favoriteIds) => {
+            const nowFavorited = favoriteIds.has(listingId);
+            const request$ = nowFavorited
               ? this.listingsApi.addToFavorites(listingId)
               : this.listingsApi.removeFromFavorites(listingId);
             return request$.pipe(
@@ -150,7 +132,7 @@ export class ListingsEffects {
                 of(
                   ListingsActions.toggleFavoriteRollback({
                     listingId,
-                    isFavorite: !isFavorite,
+                    isFavorite: !nowFavorited,
                   }),
                 ),
               ),

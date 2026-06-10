@@ -137,11 +137,11 @@
             </button>
             <div #productCarousel class="home__carousel home__carousel--products">
               @for (item of vm.featured; track item.id) {
-                <app-featured-listing-tile
+                <app-listing-card
                   class="home__carousel-item home__carousel-item--product"
                   [listing]="item"
                   [isAuthenticated]="vm.isAuthenticated"
-                  (favoriteToggle)="onFavoriteToggle($event)"
+                  (favoriteToggled)="onFavoriteToggle($event)"
                 />
               }
             </div>
@@ -208,11 +208,11 @@
                   class="home__carousel home__carousel--sections"
                 >
                   @for (item of section.items; track item.id) {
-                    <app-featured-listing-tile
+                    <app-listing-card
                       class="home__carousel-item home__carousel-item--section"
                       [listing]="item"
                       [isAuthenticated]="vm.isAuthenticated"
-                      (favoriteToggle)="onFavoriteToggle($event)"
+                      (favoriteToggled)="onFavoriteToggle($event)"
                     />
                   }
                 </div>

@@ -16,6 +16,7 @@ import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-sta
 import { LoadingSkeletonComponent } from '../../../../shared/ui/loading-skeleton/loading-skeleton.component';
 import { AuthDialogComponent } from '../../../auth/components/auth-dialog/auth-dialog.component';
 import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
+import { selectFavoriteIds } from '../../../favorites/store/favorites.selectors';
 import { ListingCardComponent } from '../../components/listing-card/listing-card.component';
 import { ListingsFiltersComponent } from '../../components/listings-filters/listings-filters.component';
 import type { ListingsFilter } from '../../models/listings-filter.model';
@@ -54,13 +55,14 @@ const selectListingsPageViewModel = createSelector(
   selectListingsPageSize,
   selectListingsFilters,
   selectIsAuthenticated,
-  (items, loading, error, hasMore, pageSize, filters, isAuthenticated): ListingsPageViewModel => {
+  selectFavoriteIds,
+  (items, loading, error, hasMore, pageSize, filters, isAuthenticated, favoriteIds): ListingsPageViewModel => {
     const hasError = error !== null;
     const hasActiveFilters =
       filters !== null &&
       Object.values(filters).some((v) => v !== null && v !== '');
     return {
-      items,
+      items: items.map((i) => ({ ...i, isFavorite: favoriteIds.has(i.id) })),
       loading,
       error,
       hasMore,
