@@ -52,9 +52,6 @@
           [title]="'home.categoriesLabel' | translate"
           headingId="home-categories-heading"
         >
-          <a actions [routerLink]="['/listings']" class="home__section-action">
-            {{ 'home.seeAll' | translate }}
-          </a>
         </app-ui-section-header>
 
         @if (vm.showCategoriesSkeleton) {

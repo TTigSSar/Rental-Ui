@@ -82,6 +82,14 @@
                   {{ 'myListings.editPage.wizard.newCoverPhoto' | translate }}
                 </span>
               </div>
+              <button
+                type="button"
+                class="wizard-photo__cover-remove"
+                aria-label="Remove cover photo"
+                (click)="$event.preventDefault(); removePhoto(0)"
+              >
+                <i class="pi pi-times" aria-hidden="true"></i>
+              </button>
             } @else if (coverImageUrl()) {
               <!-- Existing image, no new selection yet -->
               <img
@@ -118,23 +126,48 @@
             />
           </label>
 
-          <!-- Extra slots (5) — show new previews or empty -->
+          <!-- Extra slots (5): filled = preview + remove; next empty = independent picker; far empty = dimmed -->
           <div class="wizard-photo__grid">
             @for (i of [1, 2, 3, 4, 5]; track i) {
-              <div
-                class="wizard-photo__slot"
-                [class.wizard-photo__slot--filled]="imagePreviews()[i]"
-              >
-                @if (imagePreviews()[i]) {
+              @if (imagePreviews()[i]) {
+                <!-- Filled: show preview + remove button -->
+                <div class="wizard-photo__slot wizard-photo__slot--filled">
                   <img
                     class="wizard-photo__slot-img"
                     [src]="imagePreviews()[i]"
                     [alt]="'New photo ' + (i + 1)"
                   />
-                } @else {
+                  <button
+                    type="button"
+                    class="wizard-photo__slot-remove"
+                    [attr.aria-label]="'Remove photo ' + (i + 1)"
+                    (click)="removePhoto(i)"
+                  >
+                    <i class="pi pi-times" aria-hidden="true"></i>
+                  </button>
+                </div>
+              } @else if (i === selectedFiles.length) {
+                <!-- Next available slot: independent single-file picker -->
+                <label
+                  class="wizard-photo__slot wizard-photo__slot--add"
+                  [for]="'edit-slot-' + i"
+                >
                   <i class="pi pi-plus wizard-photo__slot-plus" aria-hidden="true"></i>
-                }
-              </div>
+                  <input
+                    [id]="'edit-slot-' + i"
+                    type="file"
+                    class="wizard-photo__input"
+                    accept="image/*"
+                    [disabled]="isSubmitting()"
+                    (change)="onSlotImageAdded($event)"
+                  />
+                </label>
+              } @else {
+                <!-- Further slots: dimmed until previous is filled -->
+                <div class="wizard-photo__slot wizard-photo__slot--dim">
+                  <i class="pi pi-plus wizard-photo__slot-plus" aria-hidden="true"></i>
+                </div>
+              }
             }
           </div>
 

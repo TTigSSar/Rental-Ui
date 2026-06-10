@@ -15,7 +15,6 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Toast } from 'primeng/toast';
 import { combineLatest, filter, map } from 'rxjs';
 
-import { AuthRedirectService } from './features/auth/services/auth-redirect.service';
 import * as AuthActions from './features/auth/store/auth.actions';
 import {
   selectAuthInitializing,
@@ -71,8 +70,6 @@ export class App {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
-  private readonly authRedirect = inject(AuthRedirectService);
-
   protected readonly availableLanguages: readonly LanguageOption[] = [
     { code: 'en', label: 'English', shortLabel: 'EN' },
     { code: 'ru', label: 'Русский', shortLabel: 'RU' },
@@ -80,11 +77,14 @@ export class App {
   ];
 
   protected readonly languageMenuOpen = signal(false);
+  protected readonly notifPanelOpen = signal(false);
+  protected readonly unreadNotifCount = signal(0);
   protected readonly scrolled = signal(false);
   protected readonly currentLang = signal<LanguageOption>(this.availableLanguages[0]);
   protected readonly showFooter = signal(!isListingDetailsUrl(this.router.url));
 
   private readonly languageMenuHost = viewChild<ElementRef<HTMLElement>>('languageMenuHost');
+  private readonly notifMenuHost = viewChild<ElementRef<HTMLElement>>('notifMenuHost');
 
   protected readonly vm$ = combineLatest({
     isAuthenticated: this.store.select(selectIsAuthenticated),
@@ -154,6 +154,7 @@ export class App {
       )
       .subscribe(() => {
         this.languageMenuOpen.set(false);
+        this.notifPanelOpen.set(false);
       });
 
     this.router.events
@@ -170,6 +171,10 @@ export class App {
     this.languageMenuOpen.update((open) => !open);
   }
 
+  protected toggleNotifPanel(): void {
+    this.notifPanelOpen.update((open) => !open);
+  }
+
   protected selectLanguage(option: LanguageOption): void {
     this.currentLang.set(option);
     this.translate.use(option.code);
@@ -181,12 +186,6 @@ export class App {
     this.languageMenuOpen.set(false);
   }
 
-  /** Guest center FAB — preserve intended create-listing destination after auth. */
-  protected onGuestListToyClick(): void {
-    this.authRedirect.set('/listings/create');
-    void this.router.navigate(['/auth/login']);
-  }
-
   @HostListener('document:click', ['$event'])
   protected onDocumentClick(event: MouseEvent): void {
     const target = event.target as Node | null;
@@ -195,6 +194,11 @@ export class App {
     const langHost = this.languageMenuHost()?.nativeElement;
     if (langHost !== undefined && !langHost.contains(target)) {
       this.languageMenuOpen.set(false);
+    }
+
+    const notifHost = this.notifMenuHost()?.nativeElement;
+    if (notifHost !== undefined && !notifHost.contains(target)) {
+      this.notifPanelOpen.set(false);
     }
   }
 

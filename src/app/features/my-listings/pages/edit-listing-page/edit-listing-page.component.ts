@@ -256,6 +256,8 @@ export class EditListingPageComponent implements OnInit {
   }
 
   // ── Images ────────────────────────────────────────────────────
+
+  // Cover area: multi-select that replaces all current selections
   protected onImagesSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files) return;
@@ -274,6 +276,35 @@ export class EditListingPageComponent implements OnInit {
       };
       reader.readAsDataURL(file);
     });
+  }
+
+  // Individual slot: appends one file at the next available position
+  protected onSlotImageAdded(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    if (this.selectedFiles.length >= 6) return;
+    const file = input.files[0];
+    this.selectedFiles = [...this.selectedFiles, file];
+    const idx = this.selectedFiles.length - 1;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const prev = [...this.imagePreviews()];
+      prev[idx] = e.target?.result as string;
+      this.imagePreviews.set([...prev]);
+      this.cdr.markForCheck();
+    };
+    reader.readAsDataURL(file);
+    // Reset the input so the same file can be re-selected if needed
+    input.value = '';
+  }
+
+  // Remove one photo by index
+  protected removePhoto(index: number): void {
+    this.selectedFiles = [
+      ...this.selectedFiles.slice(0, index),
+      ...this.selectedFiles.slice(index + 1),
+    ];
+    this.imagePreviews.update(prev => prev.filter((_, i) => i !== index));
   }
 
   protected clearNewImages(): void {

@@ -412,6 +412,73 @@
   color: var(--ui-color-text-secondary);
 }
 
+/* Add-slot: interactive empty slot (cursor pointer, hover border) */
+.wizard-photo__slot--add {
+  cursor: pointer;
+  border-style: dashed;
+
+  &:hover {
+    border-color: var(--ui-color-primary);
+
+    .wizard-photo__slot-plus {
+      color: var(--ui-color-primary);
+    }
+  }
+}
+
+/* Dim-slot: not yet reachable */
+.wizard-photo__slot--dim {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* Remove button on filled slot */
+.wizard-photo__slot-remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: var(--ui-radius-pill);
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  font-size: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  z-index: 1;
+
+  &:hover { background: rgba(0,0,0,0.75); }
+  &:focus-visible { outline: 2px solid var(--ui-color-primary); outline-offset: 2px; }
+}
+
+/* Remove button on cover photo */
+.wizard-photo__cover-remove {
+  position: absolute;
+  top: var(--ui-space-8);
+  right: var(--ui-space-8);
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--ui-radius-pill);
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  z-index: 2;
+
+  &:hover { background: rgba(0,0,0,0.75); }
+  &:focus-visible { outline: 2px solid var(--ui-color-primary); outline-offset: 2px; }
+}
+
 /* Clear new images button */
 .wizard-photo__clear-btn {
   align-self: flex-start;

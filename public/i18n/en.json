@@ -12,6 +12,11 @@
       "language": {
         "switchAria": "Change language"
       },
+      "notifications": {
+        "title": "Notifications",
+        "aria": "Open notifications",
+        "empty": "You're all caught up — no notifications yet."
+      },
       "nav": {
         "home": "Home",
         "listings": "Browse Toys",

@@ -53,7 +53,7 @@
         <h1 class="wizard-step__title">{{ 'listings.createPage.wizard.step1Heading' | translate }}</h1>
         <p class="wizard-step__subtitle">{{ 'listings.createPage.wizard.step1Hint' | translate }}</p>
 
-        <!-- Cover upload zone -->
+        <!-- Cover upload zone: multi-select to set all at once OR first photo -->
         <label class="wizard-photo__cover" for="wizard-images-input">
           @if (imagePreviews()[0]) {
             <img
@@ -61,6 +61,14 @@
               [src]="imagePreviews()[0]"
               alt="Cover photo"
             />
+            <button
+              type="button"
+              class="wizard-photo__cover-remove"
+              aria-label="Remove cover photo"
+              (click)="$event.preventDefault(); removePhoto(0)"
+            >
+              <i class="pi pi-times" aria-hidden="true"></i>
+            </button>
           } @else {
             <span class="wizard-photo__cover-icon-wrap" aria-hidden="true">
               <i class="pi pi-camera wizard-photo__cover-icon"></i>
@@ -83,23 +91,48 @@
           />
         </label>
 
-        <!-- Extra slots (5) -->
+        <!-- Extra slots (5): filled = preview + remove; next empty = independent picker; far = dimmed -->
         <div class="wizard-photo__grid">
           @for (i of [1, 2, 3, 4, 5]; track i) {
-            <div
-              class="wizard-photo__slot"
-              [class.wizard-photo__slot--filled]="imagePreviews()[i]"
-            >
-              @if (imagePreviews()[i]) {
+            @if (imagePreviews()[i]) {
+              <!-- Filled: show preview + remove button -->
+              <div class="wizard-photo__slot wizard-photo__slot--filled">
                 <img
                   class="wizard-photo__slot-img"
                   [src]="imagePreviews()[i]"
                   [alt]="'Photo ' + (i + 1)"
                 />
-              } @else {
+                <button
+                  type="button"
+                  class="wizard-photo__slot-remove"
+                  [attr.aria-label]="'Remove photo ' + (i + 1)"
+                  (click)="removePhoto(i)"
+                >
+                  <i class="pi pi-times" aria-hidden="true"></i>
+                </button>
+              </div>
+            } @else if (i === selectedFiles.length) {
+              <!-- Next available slot: independent single-file picker -->
+              <label
+                class="wizard-photo__slot wizard-photo__slot--add"
+                [for]="'wizard-slot-' + i"
+              >
                 <i class="pi pi-plus wizard-photo__slot-plus" aria-hidden="true"></i>
-              }
-            </div>
+                <input
+                  [id]="'wizard-slot-' + i"
+                  type="file"
+                  class="wizard-photo__input"
+                  accept="image/*"
+                  [disabled]="isSubmitting"
+                  (change)="onSlotImageAdded($event)"
+                />
+              </label>
+            } @else {
+              <!-- Further slots: dimmed until previous is filled -->
+              <div class="wizard-photo__slot wizard-photo__slot--dim">
+                <i class="pi pi-plus wizard-photo__slot-plus" aria-hidden="true"></i>
+              </div>
+            }
           }
         </div>
       </div>
