@@ -1,17 +1,12 @@
-<div class="listings-page page-container section-stack">
-  <header class="listings-page__header">
-    <div class="listings-page__title-wrap">
-      <h1 class="listings-page__title">
-        {{ 'listings.page.title' | translate }}
-      </h1>
-      <p class="listings-page__subtitle">
-        {{ 'listings.page.subtitle' | translate }}
-      </p>
-    </div>
+<div class="listings-page page-container">
+
+  <!-- ── Sticky search / filter toolbar ── -->
+  <div class="listings-page__toolbar">
     <app-listings-filters (filtersChanged)="onFiltersChanged($event)" />
-  </header>
+  </div>
 
   @if (viewModel$ | async; as vm) {
+
     @if (vm.hasError && vm.error) {
       <div class="listings-page__error" role="alert">
         <p-message severity="error" styleClass="listings-page__message">
@@ -31,6 +26,29 @@
 
     @if (vm.showInitialSkeleton) {
       <app-ui-loading-skeleton [items]="skeletonCount(vm)" />
+    }
+
+    <!-- Results header: count + sort -->
+    @if (!vm.showInitialSkeleton && (vm.items.length > 0 || vm.hasMore)) {
+      <div class="listings-page__results-header">
+        <span class="listings-page__results-count">
+          {{ resultCountLabel() }}&nbsp;{{ 'listings.page.toysSuffix' | translate }}
+          @if (activeCategoryName()) {
+            <span aria-hidden="true"> · </span>
+            <span class="listings-page__results-cat">{{ activeCategoryName() }}</span>
+          }
+        </span>
+        <select
+          class="listings-page__sort-select"
+          [attr.aria-label]="'listings.page.sortLabel' | translate"
+          [value]="sortBy()"
+          (change)="onSortChange($event)"
+        >
+          <option value="">{{ 'listings.page.sortDefault' | translate }}</option>
+          <option value="price_asc">{{ 'listings.page.sortPriceAsc' | translate }}</option>
+          <option value="price_desc">{{ 'listings.page.sortPriceDesc' | translate }}</option>
+        </select>
+      </div>
     }
 
     @if (vm.showEmpty) {

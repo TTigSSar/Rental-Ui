@@ -261,7 +261,11 @@
       "minPrice": "Minimum price",
       "minPricePlaceholder": "Min",
       "maxPrice": "Maximum price",
-      "maxPricePlaceholder": "Max"
+      "maxPricePlaceholder": "Max",
+      "filterBtn": "Filters",
+      "filterSheet": {
+        "apply": "Apply Filters"
+      }
     },
     "gallery": {
       "mainImageAlt": "Toy image",
@@ -297,7 +301,12 @@
       "emptyFilterCta": "Clear filters",
       "loading": "Loading toys",
       "loadingMore": "Loading more toys",
-      "loadMore": "Load more toys"
+      "loadMore": "Load more toys",
+      "toysSuffix": "toys",
+      "sortLabel": "Sort by",
+      "sortDefault": "Most recent",
+      "sortPriceAsc": "Price: low to high",
+      "sortPriceDesc": "Price: high to low"
     },
     "details": {
       "back": "Back to toys",
@@ -307,9 +316,9 @@
       "cityLabel": "Location",
       "priceLabel": "{{amount}} per day",
       "assurance": "Owner-managed toy rentals with transparent pricing.",
-      "descriptionHeading": "Description",
+      "descriptionHeading": "About this toy",
       "hostHeading": "Toy owner",
-      "contactLabel": "Phone number will be available after you send a booking request.",
+      "contactLabel": "Owner phone number will be available after you send a booking request.",
       "viewOwnerProfile": "View owner profile",
       "ownerMemberSince": "Member since {{year}}",
       "bookingHeading": "Check availability",
@@ -365,7 +374,10 @@
         "heading": "Reviews",
         "empty": "No reviews yet",
         "error": "Unable to load reviews"
-      }
+      },
+      "ownerToySuffix": "toys",
+      "contactLabelPre": "Owner phone number will be available ",
+      "contactLabelBold": "after you send a booking request."
     },
     "createPage": {
       "title": "List a Toy",

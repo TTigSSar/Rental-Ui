@@ -200,21 +200,16 @@
 
         <!-- Category -->
         <div class="wizard-field">
-          <label class="wizard-field__label" for="wz-category">
+          <span class="wizard-field__label">
             {{ 'listings.createForm.category' | translate }}
             <span class="wizard-field__req" aria-hidden="true">*</span>
-          </label>
-          <select
-            id="wz-category"
-            class="wizard-field__select ui-select"
-            formControlName="categoryId"
-            [attr.aria-invalid]="hasError('categoryId') ? 'true' : null"
-          >
-            <option value="">{{ 'listings.createForm.categoryPlaceholder' | translate }}</option>
-            @for (cat of categories; track cat.id) {
-              <option [value]="cat.id">{{ cat.name }}</option>
-            }
-          </select>
+          </span>
+          <app-category-selector
+            [categories]="categories"
+            [selectedCategoryId]="createListingForm.controls.categoryId.value || null"
+            [placeholder]="'listings.createForm.categoryPlaceholder' | translate"
+            (categoryChange)="onCategoryChange($event)"
+          />
           @if (hasError('categoryId')) {
             <small class="wizard-field__error" role="alert">
               {{ 'listings.createForm.validation.required' | translate }}

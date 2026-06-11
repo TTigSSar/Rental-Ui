@@ -2,15 +2,17 @@ import { AsyncPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   signal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
+import { combineLatest, map } from 'rxjs';
 
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { LoadingSkeletonComponent } from '../../../../shared/ui/loading-skeleton/loading-skeleton.component';
@@ -23,6 +25,7 @@ import type { ListingsFilter } from '../../models/listings-filter.model';
 import type { ListingPreview } from '../../models/listing.model';
 import * as ListingsActions from '../../store/listings.actions';
 import {
+  selectListingCategories,
   selectListingItems,
   selectListingsError,
   selectListingsFilters,
@@ -78,6 +81,12 @@ const selectListingsPageViewModel = createSelector(
   },
 );
 
+function applySort(items: ListingPreview[], sortBy: string): ListingPreview[] {
+  if (sortBy === 'price_asc') return [...items].sort((a, b) => a.pricePerDay - b.pricePerDay);
+  if (sortBy === 'price_desc') return [...items].sort((a, b) => b.pricePerDay - a.pricePerDay);
+  return items;
+}
+
 @Component({
   selector: 'app-listings-page',
   standalone: true,
@@ -103,11 +112,33 @@ export class ListingsPageComponent {
 
   protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
   protected readonly showAuthDialog = signal(false);
+  protected readonly sortBy = signal<'' | 'price_asc' | 'price_desc'>('');
 
-  protected readonly viewModel$ = this.store.select(selectListingsPageViewModel);
+  private readonly itemsSignal = this.store.selectSignal(selectListingItems);
+  private readonly hasMoreSignal = this.store.selectSignal(selectListingsHasMore);
+  private readonly filtersSignal = this.store.selectSignal(selectListingsFilters);
+  private readonly categoriesSignal = this.store.selectSignal(selectListingCategories);
+
+  protected readonly activeCategoryName = computed(() => {
+    const id = this.filtersSignal().categoryId;
+    if (!id) return null;
+    return this.categoriesSignal().find((c) => c.id === id)?.name ?? null;
+  });
+
+  protected readonly resultCountLabel = computed(() => {
+    const n = this.itemsSignal().length;
+    const suffix = this.hasMoreSignal() ? '+' : '';
+    return `${n}${suffix}`;
+  });
+
+  protected readonly viewModel$ = combineLatest([
+    this.store.select(selectListingsPageViewModel),
+    toObservable(this.sortBy),
+  ]).pipe(
+    map(([vm, sort]) => ({ ...vm, items: applySort(vm.items, sort) })),
+  );
 
   constructor() {
-    // Reacts to direct URL loads, programmatic navigation, and browser back/forward.
     this.route.queryParamMap
       .pipe(takeUntilDestroyed())
       .subscribe((params) => {
@@ -138,6 +169,10 @@ export class ListingsPageComponent {
 
   protected clearFilters(): void {
     void this.router.navigate([], { relativeTo: this.route, queryParams: {} });
+  }
+
+  protected onSortChange(event: Event): void {
+    this.sortBy.set((event.target as HTMLSelectElement).value as '' | 'price_asc' | 'price_desc');
   }
 
   protected skeletonCount(vm: ListingsPageViewModel): number {

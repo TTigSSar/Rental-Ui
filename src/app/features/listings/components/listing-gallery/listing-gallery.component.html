@@ -27,34 +27,38 @@
         >
           <span class="pi pi-chevron-right" aria-hidden="true"></span>
         </button>
+
+        <!-- Dots overlaid at bottom-center of image -->
+        <div
+          class="listing-gallery__dots"
+          role="tablist"
+          [attr.aria-label]="'listings.gallery.dotNavLabel' | translate"
+        >
+          @for (
+            image of sortedImages();
+            track trackByImageId($index, image);
+            let i = $index
+          ) {
+            <button
+              type="button"
+              role="tab"
+              class="listing-gallery__dot"
+              [class.listing-gallery__dot--active]="i === activeIndex()"
+              [attr.aria-selected]="i === activeIndex()"
+              [attr.aria-label]="'listings.gallery.dotLabel' | translate: { index: i + 1 }"
+              (click)="selectIndex(i)"
+            ></button>
+          }
+        </div>
+
+        <!-- Counter badge at bottom-right -->
+        <span class="listing-gallery__counter" aria-hidden="true">
+          {{ activeIndex() + 1 }} / {{ sortedImages().length }}
+        </span>
       }
     </div>
 
     @if (hasMultipleImages()) {
-      <div
-        class="listing-gallery__dots"
-        role="tablist"
-        [attr.aria-label]="'listings.gallery.dotNavLabel' | translate"
-      >
-        @for (
-          image of sortedImages();
-          track trackByImageId($index, image);
-          let i = $index
-        ) {
-          <button
-            type="button"
-            role="tab"
-            class="listing-gallery__dot"
-            [class.listing-gallery__dot--active]="i === activeIndex()"
-            [attr.aria-selected]="i === activeIndex()"
-            [attr.aria-label]="
-              'listings.gallery.dotLabel' | translate: { index: i + 1 }
-            "
-            (click)="selectIndex(i)"
-          ></button>
-        }
-      </div>
-
       <div
         class="listing-gallery__thumbs"
         role="list"
@@ -71,9 +75,7 @@
             class="listing-gallery__thumb"
             [class.listing-gallery__thumb--active]="i === activeIndex()"
             (click)="selectIndex(i)"
-            [attr.aria-label]="
-              'listings.gallery.dotLabel' | translate: { index: i + 1 }
-            "
+            [attr.aria-label]="'listings.gallery.dotLabel' | translate: { index: i + 1 }"
           >
             <img
               class="listing-gallery__thumb-img"

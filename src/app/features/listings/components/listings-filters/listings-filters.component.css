@@ -1,100 +1,354 @@
-/* ── Filter card shell ───────────────────────────────────── */
-.listings-filters {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-16);
-  padding: var(--ui-space-20);
-  border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-md);
-  background: var(--ui-color-surface);
-}
-
-/* ── Primary search field ────────────────────────────────── */
-.listings-filters__search-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.listings-filters__search-field {
-  position: relative;
+/* ── Search bar + filter button ─────────────────────────── */
+.lf-bar {
   display: flex;
   align-items: center;
+  gap: var(--ui-space-8);
 }
 
-.listings-filters__search-icon {
+.lf-bar__search-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.lf-bar__search-icon {
   position: absolute;
-  left: 0.75rem;
-  color: var(--ui-color-text-secondary);
+  left: var(--ui-space-16);
+  color: var(--ui-color-text-hint);
   font-size: 0.875rem;
   pointer-events: none;
   z-index: 1;
 }
 
-.listings-filters__input--search.p-inputtext {
+.lf-bar__search-input {
   width: 100%;
   height: 2.75rem;
-  padding-left: 2.25rem;
-  padding-block: 0;
-}
-
-/* ── Secondary: refinement filters + clear button ────────── */
-.listings-filters__secondary {
-  display: flex;
-  align-items: flex-end;
-  gap: var(--ui-space-16);
-  flex-wrap: wrap;
-}
-
-.listings-filters__fields {
-  flex: 1 1 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-  gap: var(--ui-space-16);
-  align-items: end;
-  min-width: 0;
-}
-
-.listings-filters__clear {
-  flex-shrink: 0;
-  align-self: flex-end;
-}
-
-/* ── Individual filter field ─────────────────────────────── */
-.listings-filters__field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  min-width: 0;
-}
-
-.listings-filters__label {
-  font-size: var(--ui-font-size-caption);
-  font-weight: 600;
-  color: var(--ui-color-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* ── Shared height / width for all input types ───────────── */
-.listings-filters__input.p-inputtext {
-  width: 100%;
-  height: 2.5rem;
-  padding-block: 0;
-}
-
-/* ── Category dropdown ──────────────────────────────────── */
-.listings-filters__select {
-  width: 100%;
-  height: 2.5rem;
-  padding: 0 0.75rem;
-  border: 1px solid var(--ui-color-border);
-  border-radius: 40px;
+  padding: 0 var(--ui-space-16) 0 2.75rem;
+  border: 1.5px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-input);
   background: var(--ui-color-surface);
   color: var(--ui-color-text-primary);
   font: inherit;
-  font-size: var(--ui-font-size-caption);
+  font-size: 0.9375rem;
+  outline: none;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.lf-bar__search-input:focus {
+  border-color: var(--ui-color-primary);
+  box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.14);
+}
+
+.lf-bar__search-input::placeholder {
+  color: var(--ui-color-text-hint);
+}
+
+/* Prevent iOS auto-zoom (≥16px required) */
+@media (max-width: 960px) {
+  .lf-bar__search-input {
+    font-size: 1rem;
+  }
+}
+
+/* ── Filter icon button ─────────────────────────────────── */
+.lf-bar__filter-btn {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1.5px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-input);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-secondary);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.lf-bar__filter-btn:hover {
+  border-color: var(--ui-color-border-strong);
+  color: var(--ui-color-text-primary);
+}
+
+.lf-bar__filter-btn--active {
+  border-color: var(--ui-color-primary);
+  background: var(--ui-color-primary);
+  color: var(--ui-color-on-primary);
+}
+
+.lf-bar__filter-btn--active:hover {
+  background: var(--ui-color-primary-strong);
+  border-color: var(--ui-color-primary-strong);
+}
+
+/* ── Active filter chips ─────────────────────────────────── */
+.lf-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space-6);
+  margin-top: var(--ui-space-8);
+}
+
+.lf-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 1.5rem;
+  padding: 0 var(--ui-space-4) 0 var(--ui-space-8);
+  border: 1px solid var(--ui-color-primary);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-primary-soft);
+  color: var(--ui-color-primary-strong);
+  font-size: 0.75rem;
+  font-weight: 600;
+  max-width: 12rem;
+  min-width: 0;
+}
+
+.lf-chip__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lf-chip__remove {
+  flex-shrink: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ui-color-primary-strong);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 0.5625rem;
+  padding: 0;
+  transition: background-color 100ms ease, color 100ms ease;
+}
+
+.lf-chip__remove:hover {
+  background: var(--ui-color-primary);
+  color: var(--ui-color-on-primary);
+}
+
+/* ── Bottom sheet backdrop ──────────────────────────────── */
+.lf-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 18, 30, 0.5);
+  z-index: 400;
+  animation: lf-backdrop-in 180ms ease-out;
+}
+
+@keyframes lf-backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Bottom sheet panel ─────────────────────────────────── */
+.lf-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 401;
+  background: var(--ui-color-surface);
+  border-radius: var(--ui-radius-lg) var(--ui-radius-lg) 0 0;
+  box-shadow: 0 -8px 40px rgba(16, 18, 30, 0.16);
+  display: flex;
+  flex-direction: column;
+  max-height: 90dvh;
+  animation: lf-sheet-in 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes lf-sheet-in {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+/* Desktop: centered modal */
+@media (min-width: 640px) {
+  .lf-sheet {
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(480px, 90vw);
+    border-radius: var(--ui-radius-lg);
+    max-height: 85dvh;
+    animation: lf-modal-in 200ms ease-out;
+  }
+}
+
+@keyframes lf-modal-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 12px));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* Drag handle (mobile only) */
+.lf-sheet__handle {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--ui-color-border);
+  margin: var(--ui-space-12) auto var(--ui-space-4);
+}
+
+@media (min-width: 640px) {
+  .lf-sheet__handle {
+    display: none;
+  }
+}
+
+.lf-sheet__header {
+  flex-shrink: 0;
+  padding: var(--ui-space-12) var(--ui-space-20) var(--ui-space-16);
+  border-bottom: 1px solid var(--ui-color-border);
+}
+
+.lf-sheet__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ui-color-text-primary);
+}
+
+.lf-sheet__body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: var(--ui-space-20);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-20);
+}
+
+.lf-sheet__footer {
+  flex-shrink: 0;
+  display: flex;
+  gap: var(--ui-space-12);
+  padding: var(--ui-space-16) var(--ui-space-20);
+  padding-bottom: calc(var(--ui-space-16) + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--ui-color-border);
+  background: var(--ui-color-surface);
+}
+
+@media (min-width: 640px) {
+  .lf-sheet__footer {
+    padding-bottom: var(--ui-space-16);
+  }
+}
+
+/* ── Sheet footer buttons ─────────────────────────────────── */
+.lf-sheet__btn {
+  flex: 1;
+  height: 2.75rem;
+  border-radius: var(--ui-radius-pill);
+  border: 1.5px solid var(--ui-color-border);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.lf-sheet__btn--clear {
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-secondary);
+}
+
+.lf-sheet__btn--clear:hover {
+  background: var(--ui-color-surface-muted);
+  border-color: var(--ui-color-border-strong);
+  color: var(--ui-color-text-primary);
+}
+
+.lf-sheet__btn--apply {
+  flex: 2;
+  background: var(--ui-color-primary);
+  color: var(--ui-color-on-primary);
+  border-color: var(--ui-color-primary);
+  box-shadow: var(--ui-shadow-primary-button);
+}
+
+.lf-sheet__btn--apply:hover {
+  background: var(--ui-color-primary-strong);
+  border-color: var(--ui-color-primary-strong);
+}
+
+/* ── Sheet form fields ────────────────────────────────────── */
+.lf-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-6);
+  min-width: 0;
+}
+
+.lf-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ui-space-12);
+}
+
+.lf-field__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ui-color-text-primary);
+}
+
+/* PrimeNG InputText in sheet */
+.lf-field__input.p-inputtext {
+  width: 100%;
+  height: 2.75rem;
+  padding-block: 0;
+  font-size: 1rem;
+}
+
+/* PrimeNG InputNumber in sheet */
+.lf-field__input {
+  width: 100%;
+  display: block;
+}
+
+.lf-field__input ::ng-deep .p-inputnumber-input {
+  width: 100%;
+  height: 2.75rem;
+  padding-block: 0;
+  font-size: 1rem;
+}
+
+/* Native select in sheet */
+.lf-field__select {
+  width: 100%;
+  height: 2.75rem;
+  padding: 0 var(--ui-space-12);
+  border: 1px solid var(--ui-color-border-input);
+  border-radius: var(--ui-radius-input);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-primary);
+  font: inherit;
+  font-size: 1rem;
   cursor: pointer;
   appearance: auto;
   transition:
@@ -102,68 +356,8 @@
     box-shadow 120ms ease;
 }
 
-.listings-filters__select:focus {
+.lf-field__select:focus {
   border-color: var(--ui-color-primary);
-  box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.18);
+  box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.14);
   outline: none;
-}
-
-.listings-filters__select:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* ── PrimeNG InputNumber inner input ────────────────────── */
-.listings-filters__input {
-  width: 100%;
-  display: block;
-}
-
-.listings-filters__input ::ng-deep .p-inputnumber-input {
-  width: 100%;
-  height: 2.5rem;
-  padding-block: 0;
-}
-
-/* ── Mobile: stack secondary filters vertically ─────────── */
-@media (max-width: 560px) {
-  .listings-filters {
-    padding: var(--ui-space-16);
-    gap: var(--ui-space-12);
-  }
-
-  .listings-filters__secondary {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--ui-space-12);
-  }
-
-  .listings-filters__fields {
-    grid-template-columns: 1fr 1fr;
-    gap: var(--ui-space-12);
-  }
-
-  .listings-filters__clear {
-    align-self: stretch;
-    width: 100%;
-  }
-
-  /* 44px touch targets on mobile */
-  .listings-filters__input--search.p-inputtext {
-    height: 2.75rem;
-  }
-
-  .listings-filters__input.p-inputtext {
-    height: 2.75rem;
-  }
-
-  .listings-filters__select {
-    height: 2.75rem;
-    font-size: 1rem;
-  }
-
-  .listings-filters__input ::ng-deep .p-inputnumber-input {
-    height: 2.75rem;
-    font-size: 1rem;
-  }
 }

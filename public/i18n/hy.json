@@ -261,7 +261,11 @@
       "minPrice": "Նվազագույն գին",
       "minPricePlaceholder": "Նվ.",
       "maxPrice": "Առավելագույն գին",
-      "maxPricePlaceholder": "Առավ."
+      "maxPricePlaceholder": "Առավ.",
+      "filterBtn": "Ֆիլտրներ",
+      "filterSheet": {
+        "apply": "Կիրառել ֆիլտրները"
+      }
     },
     "gallery": {
       "mainImageAlt": "Խաղալիքի լուսանկար",
@@ -297,7 +301,12 @@
       "emptyFilterCta": "Մաքրել ֆիլտրերը",
       "loading": "Խաղալիքները բեռնվում են",
       "loadingMore": "Բեռնվում են նոր խաղալիքներ",
-      "loadMore": "Բեռնել ավելին"
+      "loadMore": "Բեռնել ավելին",
+      "toysSuffix": "խաղալիք",
+      "sortLabel": "Դասավորել",
+      "sortDefault": "Ըստ ամսաթվի",
+      "sortPriceAsc": "Գին: ցածրից բարձր",
+      "sortPriceDesc": "Գին: բարձրից ցածր"
     },
     "details": {
       "back": "Վերադառնալ խաղալիքների ցանկ",
@@ -307,9 +316,9 @@
       "cityLabel": "Տեղադրություն",
       "priceLabel": "{{amount}} օրական",
       "assurance": "Խաղալիքի վարձակալություն տիրոջից՝ թափանցիկ գներով։",
-      "descriptionHeading": "Նկարագրություն",
+      "descriptionHeading": "Այս խաղալիքի մասին",
       "hostHeading": "Խաղալիքի սեփականատեր",
-      "contactLabel": "Հեռախոսի համարը կտեսնեք վարձակալության հայտ ուղարկելուց հետո։",
+      "contactLabel": "Սեփականատիրոջ հեռախոսահամարը հասանելի կլինի ամրագրման հարցումից հետո։",
       "viewOwnerProfile": "Տեսնել սեփականատիրոջ պրոֆիլը",
       "ownerMemberSince": "Անդամ {{year}} թ.-ից",
       "bookingHeading": "Ստուգեք հասանելիությունը",
@@ -365,7 +374,10 @@
         "heading": "Կարծիքներ",
         "empty": "Կարծիքներ դեռ չկան",
         "error": "Չհաջողվեց բեռնել կարծիքները"
-      }
+      },
+      "ownerToySuffix": "խաղ.",
+      "contactLabelPre": "Սեփականատիրոջ հեռախոսահամարը հասանելի կլինի ",
+      "contactLabelBold": "ամրագրման հարցումից հետո։"
     },
     "createPage": {
       "title": "Տրամադրել խաղալիք",

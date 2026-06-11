@@ -466,6 +466,7 @@
   top: calc(100% + var(--ui-space-8));
   right: 0;
   min-width: 16rem;
+  max-width: calc(100vw - var(--ui-space-32));
   padding: var(--ui-space-8);
   background: var(--ui-color-surface);
   border: 1px solid var(--ui-color-border);

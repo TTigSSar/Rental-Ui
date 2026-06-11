@@ -32,7 +32,6 @@ import { ListingGalleryComponent } from '../../components/listing-gallery/listin
 import type { ListingDetails } from '../../models/listing-details.model';
 import * as ListingsActions from '../../store/listings.actions';
 import { ReviewCardComponent } from '../../../reviews/components/review-card/review-card.component';
-import { RatingSummaryComponent } from '../../../reviews/components/rating-summary/rating-summary.component';
 import * as ReviewsActions from '../../../reviews/store/reviews.actions';
 import {
   selectListingReviews,
@@ -172,7 +171,6 @@ const selectListingDetailsBase = createSelector(
     ButtonModule,
     CommonModule,
     ListingGalleryComponent,
-    RatingSummaryComponent,
     ReviewCardComponent,
     RouterLink,
     SkeletonModule,

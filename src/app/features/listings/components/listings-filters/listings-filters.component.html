@@ -1,97 +1,148 @@
-<form class="listings-filters" [formGroup]="filterForm">
-  <!-- Primary search field -->
-  <div class="listings-filters__search-wrap">
-    <label class="listings-filters__label" for="listings-filter-query">
-      {{ 'listings.filters.query' | translate }}
-    </label>
-    <div class="listings-filters__search-field">
-      <span class="pi pi-search listings-filters__search-icon" aria-hidden="true"></span>
-      <input
-        pInputText
-        class="listings-filters__input listings-filters__input--search"
-        id="listings-filter-query"
-        type="search"
-        formControlName="query"
-        [placeholder]="'listings.filters.queryPlaceholder' | translate"
-        autocomplete="off"
-      />
-    </div>
+<!-- ── Search + filter button row ── -->
+<div class="lf-bar">
+  <div class="lf-bar__search-wrap">
+    <i class="pi pi-search lf-bar__search-icon" aria-hidden="true"></i>
+    <input
+      type="text"
+      class="lf-bar__search-input"
+      [formControl]="filterForm.controls.query"
+      [placeholder]="'listings.filters.queryPlaceholder' | translate"
+      autocomplete="off"
+    />
   </div>
+  <button
+    type="button"
+    class="lf-bar__filter-btn"
+    [class.lf-bar__filter-btn--active]="hasSheetFilters()"
+    [attr.aria-label]="'listings.filters.filterBtn' | translate"
+    [attr.aria-expanded]="sheetOpen()"
+    (click)="openSheet()"
+  >
+    <i class="pi pi-sliders-h" aria-hidden="true"></i>
+  </button>
+</div>
 
-  <!-- Secondary refinement filters -->
-  <div class="listings-filters__secondary">
-    <div class="listings-filters__fields">
-      <div class="listings-filters__field">
-        <label class="listings-filters__label" for="listings-filter-city">
+<!-- ── Active filter chips ── -->
+@if (activeChips().length > 0) {
+  <div class="lf-chips" role="list">
+    @for (chip of activeChips(); track chip.key) {
+      <div class="lf-chip" role="listitem">
+        <span class="lf-chip__label">{{ chip.label }}</span>
+        <button
+          type="button"
+          class="lf-chip__remove"
+          [attr.aria-label]="chip.label"
+          (click)="removeChip(chip.key)"
+        >
+          <i class="pi pi-times" aria-hidden="true"></i>
+        </button>
+      </div>
+    }
+  </div>
+}
+
+<!-- ── Filter bottom sheet ── -->
+@if (sheetOpen()) {
+  <div
+    class="lf-backdrop"
+    aria-hidden="true"
+    (click)="closeSheet()"
+  ></div>
+
+  <div
+    class="lf-sheet"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="'listings.filters.filterBtn' | translate"
+  >
+    <div class="lf-sheet__handle" aria-hidden="true"></div>
+
+    <div class="lf-sheet__header">
+      <h2 class="lf-sheet__title">{{ 'listings.filters.filterBtn' | translate }}</h2>
+    </div>
+
+    <div class="lf-sheet__body" [formGroup]="draftForm">
+
+      <!-- City -->
+      <div class="lf-field">
+        <label class="lf-field__label" for="lf-city">
           {{ 'listings.filters.city' | translate }}
         </label>
         <input
           pInputText
-          class="listings-filters__input"
-          id="listings-filter-city"
+          id="lf-city"
           type="text"
+          class="lf-field__input"
           formControlName="city"
           [placeholder]="'listings.filters.cityPlaceholder' | translate"
           autocomplete="address-level2"
         />
       </div>
 
-      <div class="listings-filters__field">
-        <label class="listings-filters__label" for="listings-filter-category">
+      <!-- Category -->
+      <div class="lf-field">
+        <span class="lf-field__label">
           {{ 'listings.filters.categoryId' | translate }}
-        </label>
-        <select
-          class="listings-filters__select"
-          id="listings-filter-category"
-          formControlName="categoryId"
-        >
-          <option value="">{{ 'listings.filters.categoryPlaceholder' | translate }}</option>
-          @for (cat of categories(); track cat.id) {
-            <option [value]="cat.id">{{ cat.name }}</option>
-          }
-        </select>
-      </div>
-
-      <div class="listings-filters__field">
-        <label class="listings-filters__label" for="listings-filter-min-price">
-          {{ 'listings.filters.minPrice' | translate }}
-        </label>
-        <p-inputNumber
-          inputId="listings-filter-min-price"
-          formControlName="minPrice"
-          mode="decimal"
-          [minFractionDigits]="0"
-          [maxFractionDigits]="2"
-          [useGrouping]="true"
-          [placeholder]="'listings.filters.minPricePlaceholder' | translate"
-          styleClass="listings-filters__input"
+        </span>
+        <app-category-selector
+          [categories]="categoryOptions()"
+          [selectedCategoryId]="draftForm.controls.categoryId.value || null"
+          [placeholder]="'listings.filters.categoryPlaceholder' | translate"
+          (categoryChange)="draftForm.controls.categoryId.setValue($event ?? '')"
         />
       </div>
 
-      <div class="listings-filters__field">
-        <label class="listings-filters__label" for="listings-filter-max-price">
-          {{ 'listings.filters.maxPrice' | translate }}
-        </label>
-        <p-inputNumber
-          inputId="listings-filter-max-price"
-          formControlName="maxPrice"
-          mode="decimal"
-          [minFractionDigits]="0"
-          [maxFractionDigits]="2"
-          [useGrouping]="true"
-          [placeholder]="'listings.filters.maxPricePlaceholder' | translate"
-          styleClass="listings-filters__input"
-        />
+      <!-- Price range -->
+      <div class="lf-field-row">
+        <div class="lf-field">
+          <label class="lf-field__label" for="lf-min-price">
+            {{ 'listings.filters.minPrice' | translate }}
+          </label>
+          <p-inputNumber
+            inputId="lf-min-price"
+            formControlName="minPrice"
+            mode="decimal"
+            [minFractionDigits]="0"
+            [maxFractionDigits]="2"
+            [useGrouping]="true"
+            [placeholder]="'listings.filters.minPricePlaceholder' | translate"
+            styleClass="lf-field__input"
+          />
+        </div>
+        <div class="lf-field">
+          <label class="lf-field__label" for="lf-max-price">
+            {{ 'listings.filters.maxPrice' | translate }}
+          </label>
+          <p-inputNumber
+            inputId="lf-max-price"
+            formControlName="maxPrice"
+            mode="decimal"
+            [minFractionDigits]="0"
+            [maxFractionDigits]="2"
+            [useGrouping]="true"
+            [placeholder]="'listings.filters.maxPricePlaceholder' | translate"
+            styleClass="lf-field__input"
+          />
+        </div>
       </div>
+
     </div>
 
-    <p-button
-      type="button"
-      class="listings-filters__clear"
-      [text]="true"
-      icon="pi pi-filter-slash"
-      [label]="'listings.filters.clear' | translate"
-      (onClick)="clearFilters()"
-    />
+    <div class="lf-sheet__footer">
+      <button
+        type="button"
+        class="lf-sheet__btn lf-sheet__btn--clear"
+        (click)="clearSheet()"
+      >
+        {{ 'listings.filters.clear' | translate }}
+      </button>
+      <button
+        type="button"
+        class="lf-sheet__btn lf-sheet__btn--apply"
+        (click)="applySheet()"
+      >
+        {{ 'listings.filters.filterSheet.apply' | translate }}
+      </button>
+    </div>
   </div>
-</form>
+}

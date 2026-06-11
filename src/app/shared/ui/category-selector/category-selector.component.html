@@ -1,0 +1,62 @@
+<button
+  #triggerRef
+  type="button"
+  class="cs-trigger"
+  [class.cs-trigger--open]="isOpen()"
+  [class.cs-trigger--has-value]="selectedCategoryId()"
+  role="combobox"
+  aria-haspopup="listbox"
+  [attr.aria-controls]="panelId"
+  [attr.aria-expanded]="isOpen()"
+  [attr.aria-label]="placeholder()"
+  (click)="toggle()"
+>
+  <i class="pi pi-th-large cs-trigger__icon" aria-hidden="true"></i>
+  <span
+    class="cs-trigger__text"
+    [class.cs-trigger__text--placeholder]="!selectedCategory()"
+  >
+    {{ selectedCategory()?.name ?? placeholder() }}
+  </span>
+  <i class="pi pi-chevron-down cs-trigger__chevron" aria-hidden="true"></i>
+</button>
+
+@if (isOpen()) {
+  <div
+    class="cs-backdrop"
+    aria-hidden="true"
+    (click)="close()"
+  ></div>
+
+  <div
+    [id]="panelId"
+    class="cs-panel"
+    role="listbox"
+    [style.top]="panelStyle()?.top"
+    [style.left]="panelStyle()?.left"
+    [style.width]="panelStyle()?.width"
+  >
+    @for (cat of categories(); track cat.id; let i = $index) {
+      <button
+        type="button"
+        class="cs-option"
+        [class.cs-option--selected]="cat.id === selectedCategoryId()"
+        [class.cs-option--focused]="i === focusedIndex()"
+        role="option"
+        [attr.aria-selected]="cat.id === selectedCategoryId()"
+        (click)="select(cat.id)"
+        (mouseenter)="focusedIndex.set(i)"
+      >
+        @if (cat.id === selectedCategoryId()) {
+          <i class="pi pi-check cs-option__check" aria-hidden="true"></i>
+        } @else {
+          <span class="cs-option__spacer" aria-hidden="true"></span>
+        }
+        <span class="cs-option__name">{{ cat.name }}</span>
+        @if (cat.listingCount != null) {
+          <span class="cs-option__count">{{ cat.listingCount }}</span>
+        }
+      </button>
+    }
+  </div>
+}

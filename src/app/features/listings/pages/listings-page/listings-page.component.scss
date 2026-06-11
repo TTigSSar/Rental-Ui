@@ -9,47 +9,85 @@
   }
 }
 
-/* ── Page shell ──────────────────────────────────────────── */
+/* ── Page shell ─────────────────────────────────────────────── */
 .listings-page {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-32);
-  padding-top: var(--ui-space-32);
+  gap: var(--ui-space-16);
+  padding-top: 0;
   padding-bottom: var(--ui-space-64);
-  /* prevent the page from collapsing to just the header while loading */
   min-height: calc(100dvh - 4rem);
   animation: page-fade-in 200ms ease-out both;
 }
 
-/* ── Page header (title + filters) ───────────────────────── */
-.listings-page__header {
+/* ── Sticky search/filter toolbar ──────────────────────────── */
+.listings-page__toolbar {
+  position: sticky;
+  top: var(--ui-header-height);
+  z-index: 10;
+  background: var(--ui-color-background);
+  padding-top: var(--ui-space-12);
+  padding-bottom: var(--ui-space-4);
+  /* Negative side margins + matching padding to allow full-bleed bg */
+  margin-inline: calc(-1 * var(--ui-space-24));
+  padding-inline: var(--ui-space-24);
+}
+
+@media (max-width: 900px) {
+  .listings-page__toolbar {
+    margin-inline: calc(-1 * var(--ui-space-16));
+    padding-inline: var(--ui-space-16);
+  }
+}
+
+/* ── Results header: count + sort ──────────────────────────── */
+.listings-page__results-header {
   display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-24);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-12);
+  min-height: 2rem;
 }
 
-.listings-page__title-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-8);
-}
-
-.listings-page__title {
-  font-size: var(--ui-font-size-h1);
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  color: var(--ui-color-text-primary);
-  max-width: 32ch;
-}
-
-.listings-page__subtitle {
+.listings-page__results-count {
+  font-size: 0.875rem;
+  font-weight: 600;
   color: var(--ui-color-text-secondary);
-  font-size: 0.98rem;
-  max-width: 52ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
-/* ── Error state ──────────────────────────────────────────── */
+.listings-page__results-cat {
+  color: var(--ui-color-primary-strong);
+  font-weight: 700;
+}
+
+.listings-page__sort-select {
+  flex-shrink: 0;
+  height: 2rem;
+  padding: 0 var(--ui-space-10);
+  border: 1.5px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-primary);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 120ms ease;
+  max-width: 11rem;
+}
+
+.listings-page__sort-select:focus {
+  outline: none;
+  border-color: var(--ui-color-primary);
+  box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.14);
+}
+
+/* ── Error state ────────────────────────────────────────────── */
 .listings-page__error {
   display: flex;
   flex-direction: column;
@@ -67,19 +105,9 @@
   gap: var(--ui-space-4);
 }
 
-/* ── Card grid ─────────────────────────────────────────────
-   Override global .cards-grid (auto-fit) with explicit
-   breakpoint columns to prevent last-row cards from
-   stretching across the full container width.
-   ────────────────────────────────────────────────────────── */
-@media (max-width: 960px) {
-  .listings-page {
-    padding-bottom: var(--ui-space-16);
-  }
-}
-
+/* ── Card grid ──────────────────────────────────────────────── */
 .listings-page__grid {
-  gap: var(--ui-space-24);
+  gap: var(--ui-space-16);
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: stretch;
 
@@ -93,14 +121,16 @@
   }
 }
 
-/* ── Append loading (load-more skeleton) ─────────────────── */
-.listings-page__append-loading {
-  /* parent flex gap already provides vertical separation */
-}
-
-/* ── Load more button ─────────────────────────────────────── */
+/* ── Load more button ───────────────────────────────────────── */
 .listings-page__load-more {
   display: flex;
   justify-content: center;
   padding-block: var(--ui-space-16);
+}
+
+/* ── Mobile adjustments ─────────────────────────────────────── */
+@media (max-width: 960px) {
+  .listings-page {
+    padding-bottom: var(--ui-space-16);
+  }
 }

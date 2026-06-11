@@ -15,6 +15,9 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 
+import {
+  CategorySelectorComponent,
+} from '../../../../shared/ui/category-selector/category-selector.component';
 import type {
   CreateListingRequest,
   ListingCategoryOption,
@@ -68,6 +71,7 @@ function ageRangeValidator(control: AbstractControl): ValidationErrors | null {
   selector: 'app-create-listing-form',
   standalone: true,
   imports: [
+    CategorySelectorComponent,
     CurrencyPipe,
     InputNumberModule,
     InputTextModule,
@@ -174,6 +178,11 @@ export class CreateListingFormComponent {
       this.selectedAgeKey.set(chip.key);
       this.createListingForm.patchValue({ ageFromMonths: chip.fromMonths, ageToMonths: chip.toMonths });
     }
+  }
+
+  protected onCategoryChange(id: string | null): void {
+    this.createListingForm.controls.categoryId.setValue(id ?? '');
+    this.createListingForm.controls.categoryId.markAsTouched();
   }
 
   selectCond(chip: ConditionChip): void {

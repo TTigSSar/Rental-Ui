@@ -261,7 +261,11 @@
       "minPrice": "Минимальная цена",
       "minPricePlaceholder": "Мин.",
       "maxPrice": "Максимальная цена",
-      "maxPricePlaceholder": "Макс."
+      "maxPricePlaceholder": "Макс.",
+      "filterBtn": "Фильтры",
+      "filterSheet": {
+        "apply": "Применить фильтры"
+      }
     },
     "gallery": {
       "mainImageAlt": "Фото игрушки",
@@ -297,7 +301,12 @@
       "emptyFilterCta": "Сбросить фильтры",
       "loading": "Загрузка игрушек",
       "loadingMore": "Загружаем больше игрушек",
-      "loadMore": "Загрузить ещё"
+      "loadMore": "Загрузить ещё",
+      "toysSuffix": "игрушек",
+      "sortLabel": "Сортировка",
+      "sortDefault": "Сначала новые",
+      "sortPriceAsc": "Цена: по возрастанию",
+      "sortPriceDesc": "Цена: по убыванию"
     },
     "details": {
       "back": "Назад к каталогу",
@@ -307,9 +316,9 @@
       "cityLabel": "Местоположение",
       "priceLabel": "{{amount}} в день",
       "assurance": "Аренда игрушек у владельца с прозрачными ценами.",
-      "descriptionHeading": "Описание",
+      "descriptionHeading": "Об этой игрушке",
       "hostHeading": "Владелец игрушки",
-      "contactLabel": "Номер телефона будет доступен после отправки запроса на аренду.",
+      "contactLabel": "Номер телефона владельца станет доступен после отправки запроса на аренду.",
       "viewOwnerProfile": "Посмотреть профиль владельца",
       "ownerMemberSince": "Участник с {{year}} г.",
       "bookingHeading": "Проверьте доступность",
@@ -365,7 +374,10 @@
         "heading": "Отзывы",
         "empty": "Отзывов пока нет",
         "error": "Не удалось загрузить отзывы"
-      }
+      },
+      "ownerToySuffix": "игруш.",
+      "contactLabelPre": "Номер телефона владельца станет доступен ",
+      "contactLabelBold": "после отправки запроса на аренду."
     },
     "createPage": {
       "title": "Сдать игрушку",
