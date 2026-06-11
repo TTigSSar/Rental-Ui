@@ -6,11 +6,11 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, filter, map } from 'rxjs';
 
+import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import type { ChatConversationDetails } from '../../models/chat.model';
 import * as ChatActions from '../../store/chat.actions';
 import {
@@ -55,12 +55,12 @@ const selectConversationDetailsRouteState = createSelector(
     AsyncPipe,
     ButtonModule,
     DatePipe,
-    InputTextModule,
     MessageModule,
     ReactiveFormsModule,
     RouterLink,
     SkeletonModule,
     TranslatePipe,
+    UiInputComponent,
   ],
   templateUrl: './conversation-details-page.component.html',
   styleUrl: './conversation-details-page.component.scss',

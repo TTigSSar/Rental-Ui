@@ -1,15 +1,10 @@
 <!-- ── Search + filter button row ── -->
 <div class="lf-bar">
-  <div class="lf-bar__search-wrap">
-    <i class="pi pi-search lf-bar__search-icon" aria-hidden="true"></i>
-    <input
-      type="text"
-      class="lf-bar__search-input"
-      [formControl]="filterForm.controls.query"
-      [placeholder]="'listings.filters.queryPlaceholder' | translate"
-      autocomplete="off"
-    />
-  </div>
+  <app-ui-input
+    type="search"
+    [formControl]="filterForm.controls.query"
+    [placeholder]="'listings.filters.queryPlaceholder' | translate"
+  />
   <button
     type="button"
     class="lf-bar__filter-btn"
@@ -65,15 +60,10 @@
 
       <!-- City -->
       <div class="lf-field">
-        <label class="lf-field__label" for="lf-city">
-          {{ 'listings.filters.city' | translate }}
-        </label>
-        <input
-          pInputText
-          id="lf-city"
+        <app-ui-input
           type="text"
-          class="lf-field__input"
           formControlName="city"
+          [label]="'listings.filters.city' | translate"
           [placeholder]="'listings.filters.cityPlaceholder' | translate"
           autocomplete="address-level2"
         />

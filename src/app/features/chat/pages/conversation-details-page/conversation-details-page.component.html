@@ -83,8 +83,7 @@
           [formGroup]="messageForm"
           (ngSubmit)="sendMessage(conversation.id)"
         >
-          <input
-            pInputText
+          <app-ui-input
             type="text"
             formControlName="content"
             [placeholder]="'chat.details.messagePlaceholder' | translate"

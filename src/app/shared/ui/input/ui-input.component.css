@@ -1,0 +1,169 @@
+:host {
+  display: block;
+}
+
+/* ── Label ────────────────────────────────────────────────────── */
+.uii-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ui-color-text-primary);
+  margin-bottom: var(--ui-space-6);
+}
+
+.uii-req {
+  margin-left: 2px;
+  color: var(--ui-color-error);
+}
+
+/* ── Field container ──────────────────────────────────────────── */
+.uii-field {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-8);
+  height: 2.75rem;
+  padding: 0 var(--ui-space-16);
+  background: var(--ui-color-surface);
+  border: 1.5px solid var(--ui-color-border-input);
+  border-radius: var(--ui-radius-input);
+  cursor: text;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease;
+}
+
+/* ── Hover: neutral border deepens ───────────────────────────── */
+.uii-field:hover:not(.uii-field--disabled):not(.uii-field--focus):not(.uii-field--error):not(.uii-field--success) {
+  border-color: var(--ui-color-border-strong);
+}
+
+/* ── Focus: orange ring ───────────────────────────────────────── */
+.uii-field--focus:not(.uii-field--error):not(.uii-field--success) {
+  border-color: var(--ui-color-primary);
+  box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.14);
+}
+
+/* ── Error: red ring ──────────────────────────────────────────── */
+.uii-field--error {
+  border-color: var(--ui-color-error);
+  box-shadow: 0 0 0 3px rgba(212, 63, 94, 0.12);
+}
+
+/* ── Success: green ring ──────────────────────────────────────── */
+.uii-field--success {
+  border-color: var(--ui-color-success);
+  box-shadow: 0 0 0 3px rgba(31, 138, 76, 0.12);
+}
+
+/* ── Disabled: muted bg ───────────────────────────────────────── */
+.uii-field--disabled {
+  background: var(--ui-color-surface-muted);
+  border-color: var(--ui-color-border);
+  cursor: not-allowed;
+}
+
+/* ── Icons ────────────────────────────────────────────────────── */
+.uii-icon {
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  color: var(--ui-color-text-hint);
+  pointer-events: none;
+  transition: color 120ms ease;
+}
+
+/* Left icon reacts to state */
+.uii-field--focus .uii-icon--left {
+  color: var(--ui-color-primary);
+}
+
+.uii-field--error .uii-icon--left {
+  color: var(--ui-color-error);
+}
+
+.uii-field--success .uii-icon--left {
+  color: var(--ui-color-success);
+}
+
+.uii-field--disabled .uii-icon {
+  color: var(--ui-color-text-muted);
+}
+
+/* ── Native <input> ───────────────────────────────────────────── */
+.uii-native {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: var(--ui-color-text-primary);
+  font: inherit;
+  font-size: 0.9375rem;
+  outline: none;
+  padding: 0;
+}
+
+.uii-native::placeholder {
+  color: var(--ui-color-text-hint);
+}
+
+.uii-native:disabled {
+  color: var(--ui-color-text-secondary);
+  cursor: not-allowed;
+}
+
+/* Prevent iOS auto-zoom on mobile (≥ 16px required) */
+@media (max-width: 960px) {
+  .uii-native {
+    font-size: 1rem;
+  }
+}
+
+/* ── Clear (×) button ─────────────────────────────────────────── */
+.uii-clear {
+  flex-shrink: 0;
+  width: 1.375rem;
+  height: 1.375rem;
+  border: none;
+  border-radius: 50%;
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-secondary);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 0.5625rem;
+  padding: 0;
+  transition:
+    background-color 100ms ease,
+    color 100ms ease;
+}
+
+.uii-clear:hover {
+  background: var(--ui-color-border-strong);
+  color: var(--ui-color-surface);
+}
+
+/* ── Helper / error / success text ───────────────────────────── */
+.uii-helper {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-4);
+  margin: var(--ui-space-4) 0 0;
+  padding: 0 var(--ui-space-4);
+  font-size: 0.8125rem;
+  color: var(--ui-color-text-secondary);
+  line-height: var(--ui-line-height-base);
+}
+
+.uii-helper .pi {
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.uii-helper--error {
+  color: var(--ui-color-error);
+}
+
+.uii-helper--success {
+  color: var(--ui-color-success);
+}

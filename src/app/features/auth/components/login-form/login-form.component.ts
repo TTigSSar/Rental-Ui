@@ -11,9 +11,9 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 
+import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import * as AuthActions from '../../store/auth.actions';
 import { selectAuthError, selectAuthLoading } from '../../store/auth.selectors';
 
@@ -23,10 +23,10 @@ import { selectAuthError, selectAuthLoading } from '../../store/auth.selectors';
   imports: [
     AsyncPipe,
     ButtonModule,
-    InputTextModule,
     MessageModule,
     ReactiveFormsModule,
     TranslatePipe,
+    UiInputComponent,
   ],
   templateUrl: './login-form.component.html',
   styleUrl: './login-form.component.scss',

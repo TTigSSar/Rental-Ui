@@ -5,53 +5,10 @@
   gap: var(--ui-space-8);
 }
 
-.lf-bar__search-wrap {
-  position: relative;
+/* app-ui-input fills the bar's remaining flex space */
+.lf-bar app-ui-input {
   flex: 1;
-  display: flex;
-  align-items: center;
   min-width: 0;
-}
-
-.lf-bar__search-icon {
-  position: absolute;
-  left: var(--ui-space-16);
-  color: var(--ui-color-text-hint);
-  font-size: 0.875rem;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.lf-bar__search-input {
-  width: 100%;
-  height: 2.75rem;
-  padding: 0 var(--ui-space-16) 0 2.75rem;
-  border: 1.5px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-input);
-  background: var(--ui-color-surface);
-  color: var(--ui-color-text-primary);
-  font: inherit;
-  font-size: 0.9375rem;
-  outline: none;
-  transition:
-    border-color 120ms ease,
-    box-shadow 120ms ease;
-}
-
-.lf-bar__search-input:focus {
-  border-color: var(--ui-color-primary);
-  box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.14);
-}
-
-.lf-bar__search-input::placeholder {
-  color: var(--ui-color-text-hint);
-}
-
-/* Prevent iOS auto-zoom (≥16px required) */
-@media (max-width: 960px) {
-  .lf-bar__search-input {
-    font-size: 1rem;
-  }
 }
 
 /* ── Filter icon button ─────────────────────────────────── */

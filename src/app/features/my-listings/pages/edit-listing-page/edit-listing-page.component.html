@@ -205,30 +205,14 @@
 
           <!-- Toy name -->
           <div class="wizard-field">
-            <label class="wizard-field__label" for="edit-title">
-              {{ 'listings.createForm.title' | translate }}
-              <span class="wizard-field__req" aria-hidden="true">*</span>
-            </label>
-            <input
-              id="edit-title"
-              pInputText
+            <app-ui-input
               type="text"
-              class="wizard-field__input ui-input"
               formControlName="title"
+              [label]="'listings.createForm.title' | translate"
+              [required]="true"
               [placeholder]="'listings.createForm.titlePlaceholder' | translate"
-              [attr.aria-invalid]="hasError('title') ? 'true' : null"
+              [errorMessage]="hasError('title') ? (titleErrorKey() | translate) : null"
             />
-            @if (hasError('title')) {
-              <small class="wizard-field__error" role="alert">
-                @if (form.controls.title.hasError('required')) {
-                  {{ 'listings.createForm.validation.required' | translate }}
-                } @else if (form.controls.title.hasError('minlength')) {
-                  {{ 'listings.createForm.validation.titleTooShort' | translate }}
-                } @else {
-                  {{ 'listings.createForm.validation.titleTooLong' | translate }}
-                }
-              </small>
-            }
           </div>
 
           <!-- Age range chips -->
@@ -365,10 +349,8 @@
               <i class="pi pi-map-marker wizard-pickup__icon" aria-hidden="true"></i>
               <span class="wizard-pickup__place">{{ form.controls.city.value || 'Yerevan' }}, Armenia</span>
             </div>
-            <input
-              pInputText
+            <app-ui-input
               type="text"
-              class="wizard-field__input wizard-field__input--sm ui-input"
               formControlName="city"
               [placeholder]="'listings.createForm.cityPlaceholder' | translate"
             />

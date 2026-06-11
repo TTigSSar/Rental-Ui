@@ -8,49 +8,25 @@
 }
 
 <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="submit()">
-  <div class="auth-form__field">
-    <label class="auth-form__label" for="auth-login-email">{{ 'auth.form.email' | translate }}</label>
-    <input
-      id="auth-login-email"
-      pInputText
-      type="email"
-      class="auth-form__input"
-      formControlName="email"
-      [placeholder]="'auth.form.emailPlaceholder' | translate"
-      autocomplete="email"
-      [disabled]="(isLoading$ | async) ?? false"
-      [attr.aria-invalid]="isInvalid('email') ? 'true' : null"
-      [attr.aria-describedby]="isInvalid('email') ? 'auth-login-email-error' : null"
-    />
-    @if (hasError('email', 'required')) {
-      <small id="auth-login-email-error" class="auth-form__validation">{{ 'auth.validation.emailRequired' | translate }}</small>
-    }
-    @if (hasError('email', 'email')) {
-      <small id="auth-login-email-error" class="auth-form__validation">{{ 'auth.validation.emailInvalid' | translate }}</small>
-    }
-  </div>
+  <app-ui-input
+    type="email"
+    formControlName="email"
+    [label]="'auth.form.email' | translate"
+    [placeholder]="'auth.form.emailPlaceholder' | translate"
+    autocomplete="email"
+    [disabled]="(isLoading$ | async) ?? false"
+    [errorMessage]="hasError('email', 'required') ? ('auth.validation.emailRequired' | translate) : hasError('email', 'email') ? ('auth.validation.emailInvalid' | translate) : null"
+  />
 
-  <div class="auth-form__field">
-    <label class="auth-form__label" for="auth-login-password">{{ 'auth.form.password' | translate }}</label>
-    <input
-      id="auth-login-password"
-      pInputText
-      type="password"
-      class="auth-form__input"
-      formControlName="password"
-      [placeholder]="'auth.form.passwordPlaceholder' | translate"
-      autocomplete="current-password"
-      [disabled]="(isLoading$ | async) ?? false"
-      [attr.aria-invalid]="isInvalid('password') ? 'true' : null"
-      [attr.aria-describedby]="isInvalid('password') ? 'auth-login-password-error' : null"
-    />
-    @if (hasError('password', 'required')) {
-      <small id="auth-login-password-error" class="auth-form__validation">{{ 'auth.validation.passwordRequired' | translate }}</small>
-    }
-    @if (hasError('password', 'minlength')) {
-      <small id="auth-login-password-error" class="auth-form__validation">{{ 'auth.validation.passwordMinLength' | translate }}</small>
-    }
-  </div>
+  <app-ui-input
+    type="password"
+    formControlName="password"
+    [label]="'auth.form.password' | translate"
+    [placeholder]="'auth.form.passwordPlaceholder' | translate"
+    autocomplete="current-password"
+    [disabled]="(isLoading$ | async) ?? false"
+    [errorMessage]="hasError('password', 'required') ? ('auth.validation.passwordRequired' | translate) : hasError('password', 'minlength') ? ('auth.validation.passwordMinLength' | translate) : null"
+  />
 
   <p-button
     type="submit"

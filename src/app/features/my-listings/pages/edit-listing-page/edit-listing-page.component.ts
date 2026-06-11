@@ -16,8 +16,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
 import { filter, take } from 'rxjs';
+
+import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 
 import { toApiErrorMessage } from '../../../../api/http-error-message.util';
 import type { MyListing, UpdateListingRequest } from '../../models/my-listing.model';
@@ -75,9 +76,9 @@ function ageRangeValidator(control: AbstractControl): ValidationErrors | null {
   imports: [
     CurrencyPipe,
     InputNumberModule,
-    InputTextModule,
     ReactiveFormsModule,
     TranslatePipe,
+    UiInputComponent,
   ],
   templateUrl: './edit-listing-page.component.html',
   styleUrl: './edit-listing-page.component.scss',
@@ -348,6 +349,13 @@ export class EditListingPageComponent implements OnInit {
   protected hasError(controlName: keyof typeof this.form.controls): boolean {
     const ctrl = this.form.controls[controlName];
     return ctrl.invalid && (ctrl.dirty || ctrl.touched);
+  }
+
+  protected titleErrorKey(): string {
+    const ctrl = this.form.controls.title;
+    if (ctrl.hasError('required')) return 'listings.createForm.validation.required';
+    if (ctrl.hasError('minlength')) return 'listings.createForm.validation.titleTooShort';
+    return 'listings.createForm.validation.titleTooLong';
   }
 
   protected safetyNoteLength(): number {

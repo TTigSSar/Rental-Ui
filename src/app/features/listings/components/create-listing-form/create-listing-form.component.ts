@@ -18,6 +18,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import {
   CategorySelectorComponent,
 } from '../../../../shared/ui/category-selector/category-selector.component';
+import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import type {
   CreateListingRequest,
   ListingCategoryOption,
@@ -74,9 +75,9 @@ function ageRangeValidator(control: AbstractControl): ValidationErrors | null {
     CategorySelectorComponent,
     CurrencyPipe,
     InputNumberModule,
-    InputTextModule,
     ReactiveFormsModule,
     TranslatePipe,
+    UiInputComponent,
   ],
   templateUrl: './create-listing-form.component.html',
   styleUrl: './create-listing-form.component.scss',
@@ -289,6 +290,13 @@ export class CreateListingFormComponent {
   protected hasError(controlName: keyof typeof this.createListingForm.controls): boolean {
     const ctrl = this.createListingForm.controls[controlName];
     return ctrl.invalid && (ctrl.dirty || ctrl.touched);
+  }
+
+  protected titleErrorKey(): string {
+    const ctrl = this.createListingForm.controls.title;
+    if (ctrl.hasError('required')) return 'listings.createForm.validation.required';
+    if (ctrl.hasError('minlength')) return 'listings.createForm.validation.titleTooShort';
+    return 'listings.createForm.validation.titleTooLong';
   }
 
   // ── Submit ────────────────────────────────────────────────────

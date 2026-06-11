@@ -17,13 +17,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
 import { map, debounceTime } from 'rxjs';
 
 import {
   CategorySelectorComponent,
   type CategoryOption,
 } from '../../../../shared/ui/category-selector/category-selector.component';
+import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import type { ListingCategoryOption } from '../../models/create-listing.model';
 import type { ListingsFilter } from '../../models/listings-filter.model';
 import * as ListingsActions from '../../store/listings.actions';
@@ -37,7 +37,7 @@ interface ActiveChip {
 @Component({
   selector: 'app-listings-filters',
   standalone: true,
-  imports: [CategorySelectorComponent, InputNumberModule, InputTextModule, ReactiveFormsModule, TranslatePipe],
+  imports: [CategorySelectorComponent, InputNumberModule, ReactiveFormsModule, TranslatePipe, UiInputComponent],
   templateUrl: './listings-filters.component.html',
   styleUrl: './listings-filters.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

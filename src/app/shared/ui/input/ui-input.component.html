@@ -1,0 +1,77 @@
+@if (label()) {
+  <label [for]="inputId" class="uii-label">
+    {{ label() }}
+    @if (required()) {
+      <span class="uii-req" aria-hidden="true">*</span>
+    }
+  </label>
+}
+
+<div
+  class="uii-field"
+  [class.uii-field--focus]="isFocused()"
+  [class.uii-field--error]="hasError()"
+  [class.uii-field--success]="hasSuccess()"
+  [class.uii-field--disabled]="isDisabledComp()"
+>
+
+  @if (resolvedLeftIcon()) {
+    <i
+      [class]="resolvedLeftIcon()"
+      class="uii-icon uii-icon--left"
+      aria-hidden="true"
+    ></i>
+  }
+
+  <input
+    #inputRef
+    [id]="inputId"
+    class="uii-native"
+    [type]="nativeType()"
+    [placeholder]="placeholder()"
+    [value]="internalValue()"
+    [disabled]="isDisabledComp()"
+    [attr.readonly]="readonly() || null"
+    [required]="required()"
+    [attr.autocomplete]="autocomplete()"
+    [attr.aria-invalid]="hasError() ? 'true' : null"
+    [attr.aria-describedby]="hasHelper() ? helperId : null"
+    (input)="handleInput($event)"
+    (focus)="handleFocus($event)"
+    (blur)="handleBlur($event)"
+  />
+
+  @if (showClear()) {
+    <button
+      type="button"
+      class="uii-clear"
+      aria-label="Clear"
+      tabindex="-1"
+      (mousedown)="$event.preventDefault()"
+      (click)="handleClear()"
+    >
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  } @else if (rightIcon()) {
+    <i
+      [class]="rightIcon()"
+      class="uii-icon uii-icon--right"
+      aria-hidden="true"
+    ></i>
+  }
+
+</div>
+
+@if (hasError() && errorMessage()) {
+  <p [id]="helperId" class="uii-helper uii-helper--error" role="alert">
+    <i class="pi pi-times-circle" aria-hidden="true"></i>
+    <span>{{ errorMessage() }}</span>
+  </p>
+} @else if (hasSuccess() && successMessage()) {
+  <p [id]="helperId" class="uii-helper uii-helper--success">
+    <i class="pi pi-check-circle" aria-hidden="true"></i>
+    <span>{{ successMessage() }}</span>
+  </p>
+} @else if (hint()) {
+  <p [id]="helperId" class="uii-helper">{{ hint() }}</p>
+}
