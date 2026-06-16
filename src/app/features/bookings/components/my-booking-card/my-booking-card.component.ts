@@ -1,10 +1,10 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
+import { BookingProgressComponent } from '../../../../shared/ui/booking-progress/booking-progress.component';
 import {
   mapBookingStatusLabelKey,
   mapBookingStatusTone,
@@ -16,12 +16,11 @@ import type { MyBooking } from '../../models/booking.model';
   selector: 'app-my-booking-card',
   standalone: true,
   imports: [
-    ButtonModule,
     CardModule,
     CurrencyPipe,
     DatePipe,
-    RouterLink,
     BadgeComponent,
+    BookingProgressComponent,
     TranslatePipe,
   ],
   templateUrl: './my-booking-card.component.html',
@@ -29,6 +28,8 @@ import type { MyBooking } from '../../models/booking.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MyBookingCardComponent {
+  private readonly router = inject(Router);
+
   readonly booking = input.required<MyBooking>();
 
   protected readonly statusLabelKey = computed(() =>
@@ -38,4 +39,13 @@ export class MyBookingCardComponent {
   protected readonly statusTone = computed(() =>
     mapBookingStatusTone(this.booking().status),
   );
+
+  // Completion unlocks reviews; the badge points the user to the details page to act.
+  protected readonly reviewAvailable = computed(
+    () => this.booking().status === 'Completed',
+  );
+
+  protected openDetails(): void {
+    void this.router.navigate(['/bookings', this.booking().id]);
+  }
 }

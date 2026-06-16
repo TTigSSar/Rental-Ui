@@ -4,8 +4,11 @@ import { Observable, map } from 'rxjs';
 
 import { ApiContract, toApiUrl } from '../../../api/api-contract';
 import type {
+  BookingDetail,
+  BookingParty,
   BookingRequest,
   BookingStatus,
+  CompletionMethod,
   CreateBookingRequest,
   CreateBookingResponse,
   MyBooking,
@@ -15,9 +18,11 @@ const KNOWN_BOOKING_STATUSES: ReadonlySet<BookingStatus> = new Set<BookingStatus
   'PendingApproval',
   'Pending',
   'Approved',
+  'ReturnMarked',
   'Rejected',
   'Archived',
   'Cancelled',
+  'Completed',
 ]);
 
 function coerceBookingStatus(value: unknown): BookingStatus {
@@ -63,6 +68,52 @@ function normalizeMyBooking(item: Partial<MyBooking> & { id: string }): MyBookin
     totalPrice: toFiniteNumber(item.totalPrice),
     status: coerceBookingStatus(item.status),
     createdAt: toNullableStr(item.createdAt),
+  };
+}
+
+function coerceParty(value: unknown): BookingParty | null {
+  return value === 'Renter' || value === 'Owner' ? value : null;
+}
+
+function coerceCompletionMethod(value: unknown): CompletionMethod | null {
+  return value === 'Mutual' || value === 'Auto' ? value : null;
+}
+
+function toNullableNumber(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function normalizeBookingDetail(item: Partial<BookingDetail> & { id: string }): BookingDetail {
+  return {
+    id: String(item.id),
+    status: coerceBookingStatus(item.status),
+    role: item.role === 'owner' ? 'owner' : 'renter',
+    listingId: toStr(item.listingId),
+    listingTitle: toStr(item.listingTitle),
+    listingPrimaryImageUrl: toNullableStr(item.listingPrimaryImageUrl),
+    categoryName: toNullableStr(item.categoryName),
+    condition: toNullableStr(item.condition),
+    city: toStr(item.city),
+    country: toStr(item.country),
+    addressLine: toNullableStr(item.addressLine),
+    currency: toStr(item.currency),
+    pricePerDay: toFiniteNumber(item.pricePerDay),
+    depositAmount: toNullableNumber(item.depositAmount),
+    totalPrice: toFiniteNumber(item.totalPrice),
+    startDate: toStr(item.startDate),
+    endDate: toStr(item.endDate),
+    createdAt: toNullableStr(item.createdAt),
+    approvedAt: toNullableStr(item.approvedAt),
+    returnMarkedAt: toNullableStr(item.returnMarkedAt),
+    completedAt: toNullableStr(item.completedAt),
+    expiresAt: toNullableStr(item.expiresAt),
+    returnInitiatedBy: coerceParty(item.returnInitiatedBy),
+    completedVia: coerceCompletionMethod(item.completedVia),
+    counterpartyId: toStr(item.counterpartyId),
+    counterpartyFirstName: toStr(item.counterpartyFirstName),
+    counterpartyLastName: toStr(item.counterpartyLastName),
+    counterpartyAvatarUrl: toNullableStr(item.counterpartyAvatarUrl),
+    counterpartyPhoneNumber: toNullableStr(item.counterpartyPhoneNumber),
   };
 }
 
@@ -137,5 +188,29 @@ export class BookingsApiService {
 
   rejectBookingRequest(bookingId: string): Observable<void> {
     return this.http.post<void>(toApiUrl(ApiContract.bookings.reject(bookingId)), {});
+  }
+
+  getBookingById(bookingId: string): Observable<BookingDetail> {
+    return this.http
+      .get<BookingDetail>(toApiUrl(ApiContract.bookings.byId(bookingId)))
+      .pipe(map((detail) => normalizeBookingDetail(detail)));
+  }
+
+  markReturned(bookingId: string): Observable<BookingDetail> {
+    return this.http
+      .post<BookingDetail>(toApiUrl(ApiContract.bookings.returnMark(bookingId)), {})
+      .pipe(map((detail) => normalizeBookingDetail(detail)));
+  }
+
+  confirmReturn(bookingId: string): Observable<BookingDetail> {
+    return this.http
+      .post<BookingDetail>(toApiUrl(ApiContract.bookings.returnConfirm(bookingId)), {})
+      .pipe(map((detail) => normalizeBookingDetail(detail)));
+  }
+
+  undoReturn(bookingId: string): Observable<BookingDetail> {
+    return this.http
+      .post<BookingDetail>(toApiUrl(ApiContract.bookings.returnUndo(bookingId)), {})
+      .pipe(map((detail) => normalizeBookingDetail(detail)));
   }
 }

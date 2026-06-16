@@ -1,70 +1,75 @@
-<p-card styleClass="booking-request-card">
-  <div class="booking-request-card__top">
-    <h3 class="booking-request-card__title">{{ request().listingTitle }}</h3>
-    <app-ui-badge [label]="statusLabelKey() | translate" [tone]="statusTone()" />
-  </div>
-
-  <p class="booking-request-card__line">
-    {{ 'bookings.requests.renter' | translate }}:
-    {{ request().renterFirstName }} {{ request().renterLastName }}
-  </p>
-  <p class="booking-request-card__renter-email">{{ request().renterEmail }}</p>
-  <p class="booking-request-card__line">
-    {{ 'bookings.requests.dateRange' | translate }}:
-    {{ request().startDate | date: 'mediumDate' }} -
-    {{ request().endDate | date: 'mediumDate' }}
-  </p>
-  <p class="booking-request-card__line">
-    {{
-      'bookings.requests.totalPrice'
-        | translate
-          : {
-              amount: (request().totalPrice | currency),
-            }
-    }}
-  </p>
-  <p class="booking-request-card__line">
-    {{ 'bookings.common.createdAt' | translate }}:
-    @if (request().createdAt; as createdAt) {
-      {{ createdAt | date: 'mediumDate' }}
-    } @else {
-      {{ 'bookings.common.notAvailable' | translate }}
-    }
-  </p>
-
-  <ng-template pTemplate="footer">
-    <div class="booking-request-card__actions">
-      <p-button
-        type="button"
-        size="small"
-        [outlined]="true"
-        icon="pi pi-eye"
-        [label]="'bookings.actions.viewListing' | translate"
-        [routerLink]="['/listings', request().listingId]"
-      />
-      @if (canDecide()) {
-        <p-button
-          type="button"
-          size="small"
-          severity="success"
-          icon="pi pi-check"
-          [label]="'bookings.actions.approve' | translate"
-          [loading]="actionLoading()"
-          [disabled]="actionLoading()"
-          (onClick)="approve()"
-        />
-        <p-button
-          type="button"
-          size="small"
-          severity="danger"
-          [outlined]="true"
-          icon="pi pi-times"
-          [label]="'bookings.actions.reject' | translate"
-          [loading]="actionLoading()"
-          [disabled]="actionLoading()"
-          (onClick)="reject()"
-        />
-      }
+<div
+  class="booking-request-card-link"
+  role="link"
+  tabindex="0"
+  [attr.aria-label]="request().listingTitle"
+  (click)="openDetails()"
+  (keydown.enter)="openDetails()"
+  (keydown.space)="openDetails(); $event.preventDefault()"
+>
+  <p-card styleClass="booking-request-card">
+    <div class="booking-request-card__top">
+      <h3 class="booking-request-card__title">{{ request().listingTitle }}</h3>
+      <app-ui-badge [label]="statusLabelKey() | translate" [tone]="statusTone()" />
     </div>
-  </ng-template>
-</p-card>
+
+    <p class="booking-request-card__line">
+      {{ 'bookings.requests.renter' | translate }}:
+      {{ request().renterFirstName }} {{ request().renterLastName }}
+    </p>
+    <p class="booking-request-card__renter-email">{{ request().renterEmail }}</p>
+    <p class="booking-request-card__line">
+      {{ 'bookings.requests.dateRange' | translate }}:
+      {{ request().startDate | date: 'mediumDate' }} -
+      {{ request().endDate | date: 'mediumDate' }}
+    </p>
+    <p class="booking-request-card__line">
+      {{
+        'bookings.requests.totalPrice'
+          | translate
+            : {
+                amount: (request().totalPrice | currency),
+              }
+      }}
+    </p>
+
+    <app-booking-progress
+      class="booking-request-card__progress"
+      [status]="request().status"
+      [startDate]="request().startDate"
+      density="compact"
+    />
+
+    <ng-template pTemplate="footer">
+      <div class="booking-request-card__actions">
+        @if (canDecide()) {
+          <p-button
+            type="button"
+            size="small"
+            severity="success"
+            icon="pi pi-check"
+            [label]="'bookings.actions.approve' | translate"
+            [loading]="actionLoading()"
+            [disabled]="actionLoading()"
+            (onClick)="approve($event)"
+          />
+          <p-button
+            type="button"
+            size="small"
+            severity="danger"
+            [outlined]="true"
+            icon="pi pi-times"
+            [label]="'bookings.actions.reject' | translate"
+            [loading]="actionLoading()"
+            [disabled]="actionLoading()"
+            (onClick)="reject($event)"
+          />
+        } @else {
+          <span class="booking-request-card__hint">{{
+            'bookings.actions.viewDetails' | translate
+          }}</span>
+        }
+      </div>
+    </ng-template>
+  </p-card>
+</div>

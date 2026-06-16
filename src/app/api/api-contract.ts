@@ -38,10 +38,18 @@ export const ApiContract = {
     create: '/api/bookings',
     mine: '/api/bookings/mine',
     requests: '/api/bookings/requests',
+    byId: (bookingId: string): ApiPath =>
+      `/api/bookings/${encodeURIComponent(bookingId)}`,
     approve: (bookingId: string): ApiPath =>
       `/api/bookings/${encodeURIComponent(bookingId)}/approve`,
     reject: (bookingId: string): ApiPath =>
       `/api/bookings/${encodeURIComponent(bookingId)}/reject`,
+    returnMark: (bookingId: string): ApiPath =>
+      `/api/bookings/${encodeURIComponent(bookingId)}/return/mark`,
+    returnConfirm: (bookingId: string): ApiPath =>
+      `/api/bookings/${encodeURIComponent(bookingId)}/return/confirm`,
+    returnUndo: (bookingId: string): ApiPath =>
+      `/api/bookings/${encodeURIComponent(bookingId)}/return/undo`,
   },
   adminListings: {
     pending: '/api/admin/listings/pending',

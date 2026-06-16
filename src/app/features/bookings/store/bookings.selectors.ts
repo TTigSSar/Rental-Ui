@@ -1,6 +1,6 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 
-import type { BookingRequest, MyBooking } from '../models/booking.model';
+import type { BookingDetail, BookingRequest, MyBooking } from '../models/booking.model';
 
 import { bookingsFeatureKey } from './bookings.reducer';
 import type { BookingsState } from './bookings.state';
@@ -64,3 +64,28 @@ export const selectMyBookingById = (bookingId: string) =>
     (bookings): MyBooking | null =>
       bookings.find((b) => b.id === bookingId) ?? null,
   );
+
+export const selectBookingDetail = createSelector(
+  selectBookingsState,
+  (state: BookingsState): BookingDetail | null => state.bookingDetail,
+);
+
+export const selectBookingDetailLoading = createSelector(
+  selectBookingsState,
+  (state: BookingsState): boolean => state.bookingDetailLoading,
+);
+
+export const selectBookingDetailError = createSelector(
+  selectBookingsState,
+  (state: BookingsState): string | null => state.bookingDetailError,
+);
+
+export const selectBookingActionPending = createSelector(
+  selectBookingsState,
+  (state: BookingsState): boolean => state.bookingActionPending,
+);
+
+export const selectBookingActionError = createSelector(
+  selectBookingsState,
+  (state: BookingsState): string | null => state.bookingActionError,
+);

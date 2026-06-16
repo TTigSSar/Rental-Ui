@@ -1,0 +1,189 @@
+<section class="booking-details">
+  <header class="booking-details__header">
+    <button
+      type="button"
+      class="booking-details__back"
+      (click)="back()"
+      [attr.aria-label]="'common.back' | translate"
+    >
+      <i class="pi pi-arrow-left"></i>
+    </button>
+    <h1 class="booking-details__heading">{{ 'bookings.details.title' | translate }}</h1>
+  </header>
+
+  @if (showSkeleton()) {
+    <div class="booking-details__skeleton">
+      <p-skeleton height="2rem" styleClass="mb-2" />
+      <p-skeleton height="8rem" styleClass="mb-2" />
+      <p-skeleton height="6rem" />
+    </div>
+  } @else if (loadError(); as err) {
+    <p-message severity="error" [text]="err" />
+    <button type="button" class="booking-details__retry" (click)="retry()">
+      {{ 'common.retry' | translate }}
+    </button>
+  } @else if (detail(); as d) {
+    <!-- Status + booking id -->
+    <div class="booking-details__status-row">
+      <app-ui-badge [label]="statusLabelKey() | translate" [tone]="statusTone()" />
+      <span class="booking-details__id">#{{ d.id.slice(0, 8) }}</span>
+    </div>
+
+    <!-- Progress -->
+    <div class="booking-details__card">
+      <app-booking-progress [status]="d.status" [startDate]="d.startDate" density="expanded" />
+    </div>
+
+    <!-- Toy summary -->
+    <div class="booking-details__card booking-details__toy">
+      @if (d.listingPrimaryImageUrl) {
+        <img class="booking-details__toy-img" [src]="d.listingPrimaryImageUrl" [alt]="d.listingTitle" />
+      } @else {
+        <div class="booking-details__toy-img booking-details__toy-img--placeholder">
+          <i class="pi pi-image"></i>
+        </div>
+      }
+      <div class="booking-details__toy-info">
+        <a class="booking-details__toy-title" [routerLink]="['/listings', d.listingId]">{{ d.listingTitle }}</a>
+        @if (d.categoryName) {
+          <span class="booking-details__muted">{{ d.categoryName }}</span>
+        }
+        @if (d.condition) {
+          <span class="booking-details__muted">{{ 'bookings.details.condition' | translate }}: {{ d.condition }}</span>
+        }
+        <a class="booking-details__counterparty" [routerLink]="['/users', d.counterpartyId]">
+          <i class="pi pi-user"></i>
+          {{ (d.role === 'owner' ? 'bookings.details.renter' : 'bookings.details.owner') | translate }}:
+          {{ d.counterpartyFirstName }} {{ d.counterpartyLastName }}
+        </a>
+      </div>
+    </div>
+
+    <!-- Rental details -->
+    <div class="booking-details__card">
+      <h2 class="booking-details__section-title">{{ 'bookings.details.rentalDetails' | translate }}</h2>
+      <dl class="booking-details__facts">
+        <div><dt>{{ 'bookings.details.startDate' | translate }}</dt><dd>{{ d.startDate | date: 'mediumDate' }}</dd></div>
+        <div><dt>{{ 'bookings.details.endDate' | translate }}</dt><dd>{{ d.endDate | date: 'mediumDate' }}</dd></div>
+        <div><dt>{{ 'bookings.details.duration' | translate }}</dt><dd>{{ 'bookings.details.days' | translate: { count: rentalDays() } }}</dd></div>
+        <div><dt>{{ 'bookings.details.total' | translate }}</dt><dd>{{ d.totalPrice | currency: d.currency }}</dd></div>
+        @if (d.depositAmount) {
+          <div><dt>{{ 'bookings.details.deposit' | translate }}</dt><dd>{{ d.depositAmount | currency: d.currency }}</dd></div>
+        }
+      </dl>
+    </div>
+
+    <!-- Pickup / return -->
+    <div class="booking-details__card">
+      <h2 class="booking-details__section-title">{{ 'bookings.details.pickupReturn' | translate }}</h2>
+      <p class="booking-details__line">
+        <i class="pi pi-map-marker"></i>
+        {{ d.city }}@if (d.addressLine) {, {{ d.addressLine }}}
+      </p>
+      @if (d.counterpartyPhoneNumber) {
+        <p class="booking-details__line">
+          <i class="pi pi-phone"></i>
+          {{ d.counterpartyFirstName }}: {{ d.counterpartyPhoneNumber }}
+        </p>
+      } @else {
+        <p class="booking-details__muted">{{ 'bookings.details.contactAfterApproval' | translate }}</p>
+      }
+    </div>
+
+    <!-- Timeline -->
+    <div class="booking-details__card">
+      <h2 class="booking-details__section-title">{{ 'bookings.details.timeline' | translate }}</h2>
+      <ol class="booking-timeline">
+        @for (item of timeline(); track item.labelKey) {
+          <li class="booking-timeline__item" [class.booking-timeline__item--done]="item.done">
+            <span class="booking-timeline__dot" aria-hidden="true"></span>
+            <span class="booking-timeline__label">{{ item.labelKey | translate }}</span>
+            <span class="booking-timeline__date">
+              @if (item.date) {
+                {{ item.date | date: 'medium' }}
+              } @else {
+                —
+              }
+            </span>
+          </li>
+        }
+      </ol>
+    </div>
+
+    <!-- Completion handshake context -->
+    @if (completion(); as c) {
+      @if (c.kind === 'confirm' || c.kind === 'awaiting') {
+        <div class="booking-details__card booking-details__completion">
+          <h2 class="booking-details__section-title">{{ 'bookings.completion.title' | translate }}</h2>
+          @if (c.titleKey) {
+            <p class="booking-details__completion-msg">
+              {{ c.titleKey | translate: { name: d.counterpartyFirstName } }}
+            </p>
+          }
+          @if (c.showAutoNote) {
+            <p class="booking-details__muted">{{ 'bookings.completion.autoNote' | translate }}</p>
+          }
+          @if (c.kind === 'awaiting') {
+            <button
+              type="button"
+              class="booking-details__undo"
+              [disabled]="actionPending()"
+              (click)="undo()"
+            >
+              {{ 'bookings.completion.undo' | translate }}
+            </button>
+          }
+        </div>
+      }
+    }
+
+    <!-- Review section -->
+    @if (action() === 'review') {
+      <div class="booking-details__card booking-details__review">
+        <h2 class="booking-details__section-title">{{ 'bookings.review.title' | translate }}</h2>
+        @if (reviewSubmitted()) {
+          <p class="booking-details__muted">
+            <i class="pi pi-check-circle"></i> {{ 'bookings.review.submitted' | translate }}
+          </p>
+        } @else if (canLeaveReview()) {
+          <p class="booking-details__line">{{ 'bookings.review.prompt' | translate }}</p>
+        }
+      </div>
+    }
+
+    @if (actionError(); as aerr) {
+      <p-message severity="error" [text]="aerr" />
+    }
+
+    <!-- Sticky action footer -->
+    @if (completion(); as c) {
+      @if (c.kind === 'mark' || c.kind === 'confirm' || (c.kind === 'review' && canLeaveReview() && !reviewSubmitted())) {
+        <div class="booking-details__footer">
+          @if (c.kind === 'mark') {
+            <button
+              type="button"
+              class="booking-details__primary"
+              [disabled]="actionPending()"
+              (click)="mark()"
+            >
+              {{ c.ctaKey! | translate }}
+            </button>
+          } @else if (c.kind === 'confirm') {
+            <button
+              type="button"
+              class="booking-details__primary"
+              [disabled]="actionPending()"
+              (click)="confirm()"
+            >
+              {{ c.ctaKey! | translate }}
+            </button>
+          } @else {
+            <button type="button" class="booking-details__primary" (click)="leaveReview()">
+              {{ 'bookings.review.leave' | translate }}
+            </button>
+          }
+        </div>
+      }
+    }
+  }
+</section>

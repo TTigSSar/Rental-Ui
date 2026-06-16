@@ -1,6 +1,6 @@
 import { createReducer, on } from '@ngrx/store';
 
-import type { BookingRequest, BookingStatus } from '../models/booking.model';
+import type { BookingDetail, BookingRequest, BookingStatus } from '../models/booking.model';
 import * as BookingsActions from './bookings.actions';
 import { initialBookingsState, type BookingsState } from './bookings.state';
 
@@ -25,6 +25,15 @@ function patchRequestStatus(
   return requests.map((request) =>
     request.id === bookingId ? { ...request, status } : request,
   );
+}
+
+// Optimistically apply a handshake transition to the in-view detail so the UI
+// reacts instantly; the server response (or a failure-triggered refetch) reconciles.
+function optimisticDetail(
+  detail: BookingDetail | null,
+  patch: Partial<BookingDetail>,
+): BookingDetail | null {
+  return detail ? { ...detail, ...patch } : detail;
 }
 
 export const bookingsReducer = createReducer(
@@ -140,6 +149,109 @@ export const bookingsReducer = createReducer(
       ...state,
       bookingRequestActionIds: removeActionId(state.bookingRequestActionIds, bookingId),
       bookingRequestsError: error,
+    }),
+  ),
+
+  // --- Booking Details ---
+  on(
+    BookingsActions.loadBookingDetail,
+    (state, { bookingId }): BookingsState => ({
+      ...state,
+      bookingDetailLoading: true,
+      bookingDetailError: null,
+      // Drop a stale detail when navigating to a different booking so the skeleton shows.
+      bookingDetail:
+        state.bookingDetail && state.bookingDetail.id === bookingId
+          ? state.bookingDetail
+          : null,
+      bookingActionError: null,
+    }),
+  ),
+  on(
+    BookingsActions.loadBookingDetailSuccess,
+    (state, { detail }): BookingsState => ({
+      ...state,
+      bookingDetail: detail,
+      bookingDetailLoading: false,
+      bookingDetailError: null,
+    }),
+  ),
+  on(
+    BookingsActions.loadBookingDetailFailure,
+    (state, { error }): BookingsState => ({
+      ...state,
+      bookingDetailLoading: false,
+      bookingDetailError: error,
+    }),
+  ),
+  on(
+    BookingsActions.clearBookingDetail,
+    (state): BookingsState => ({
+      ...state,
+      bookingDetail: null,
+      bookingDetailLoading: false,
+      bookingDetailError: null,
+      bookingActionPending: false,
+      bookingActionError: null,
+    }),
+  ),
+
+  // --- Completion handshake (optimistic) ---
+  on(
+    BookingsActions.markReturned,
+    (state): BookingsState => ({
+      ...state,
+      bookingActionPending: true,
+      bookingActionError: null,
+      bookingDetail: optimisticDetail(state.bookingDetail, {
+        status: 'ReturnMarked',
+        returnInitiatedBy:
+          state.bookingDetail?.role === 'owner' ? 'Owner' : 'Renter',
+        returnMarkedAt: new Date().toISOString(),
+      }),
+    }),
+  ),
+  on(
+    BookingsActions.confirmReturn,
+    (state): BookingsState => ({
+      ...state,
+      bookingActionPending: true,
+      bookingActionError: null,
+      bookingDetail: optimisticDetail(state.bookingDetail, {
+        status: 'Completed',
+        completedVia: 'Mutual',
+        completedAt: new Date().toISOString(),
+      }),
+    }),
+  ),
+  on(
+    BookingsActions.undoReturn,
+    (state): BookingsState => ({
+      ...state,
+      bookingActionPending: true,
+      bookingActionError: null,
+      bookingDetail: optimisticDetail(state.bookingDetail, {
+        status: 'Approved',
+        returnInitiatedBy: null,
+        returnMarkedAt: null,
+      }),
+    }),
+  ),
+  on(
+    BookingsActions.bookingHandshakeSuccess,
+    (state, { detail }): BookingsState => ({
+      ...state,
+      bookingDetail: detail,
+      bookingActionPending: false,
+      bookingActionError: null,
+    }),
+  ),
+  on(
+    BookingsActions.bookingHandshakeFailure,
+    (state, { error }): BookingsState => ({
+      ...state,
+      bookingActionPending: false,
+      bookingActionError: error,
     }),
   ),
 );

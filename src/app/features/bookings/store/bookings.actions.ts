@@ -1,6 +1,7 @@
 import { createAction, props } from '@ngrx/store';
 
 import type {
+  BookingDetail,
   BookingRequest,
   BookingStatus,
   CreateBookingRequest,
@@ -78,5 +79,51 @@ export const rejectBookingRequestSuccess = createAction(
 
 export const rejectBookingRequestFailure = createAction(
   '[Bookings] Reject Booking Request Failure',
+  props<{ bookingId: string; error: string }>(),
+);
+
+// --- Booking Details page ---
+
+export const loadBookingDetail = createAction(
+  '[Bookings] Load Booking Detail',
+  props<{ bookingId: string }>(),
+);
+
+export const loadBookingDetailSuccess = createAction(
+  '[Bookings] Load Booking Detail Success',
+  props<{ detail: BookingDetail }>(),
+);
+
+export const loadBookingDetailFailure = createAction(
+  '[Bookings] Load Booking Detail Failure',
+  props<{ error: string }>(),
+);
+
+export const clearBookingDetail = createAction('[Bookings] Clear Booking Detail');
+
+// --- Completion handshake (mark / confirm / undo) ---
+
+export const markReturned = createAction(
+  '[Bookings] Mark Returned',
+  props<{ bookingId: string }>(),
+);
+
+export const confirmReturn = createAction(
+  '[Bookings] Confirm Return',
+  props<{ bookingId: string }>(),
+);
+
+export const undoReturn = createAction(
+  '[Bookings] Undo Return',
+  props<{ bookingId: string }>(),
+);
+
+export const bookingHandshakeSuccess = createAction(
+  '[Bookings] Booking Handshake Success',
+  props<{ detail: BookingDetail }>(),
+);
+
+export const bookingHandshakeFailure = createAction(
+  '[Bookings] Booking Handshake Failure',
   props<{ bookingId: string; error: string }>(),
 );

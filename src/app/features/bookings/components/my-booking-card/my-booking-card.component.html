@@ -1,51 +1,48 @@
-<p-card styleClass="my-booking-card">
-  <div class="my-booking-card__top">
-    <h3 class="my-booking-card__title">{{ booking().listingTitle }}</h3>
-    <app-ui-badge [label]="statusLabelKey() | translate" [tone]="statusTone()" />
-  </div>
-
-  <p class="my-booking-card__line">
-    {{ 'bookings.myBookings.dateRange' | translate }}:
-    {{ booking().startDate | date: 'mediumDate' }} -
-    {{ booking().endDate | date: 'mediumDate' }}
-  </p>
-  <p class="my-booking-card__line">
-    {{
-      'bookings.myBookings.totalPrice'
-        | translate
-          : {
-              amount: (booking().totalPrice | currency),
-            }
-    }}
-  </p>
-  <p class="my-booking-card__line">
-    {{ 'bookings.common.createdAt' | translate }}:
-    @if (booking().createdAt; as createdAt) {
-      {{ createdAt | date: 'mediumDate' }}
-    } @else {
-      {{ 'bookings.common.notAvailable' | translate }}
-    }
-  </p>
-
-  <ng-template pTemplate="footer">
-    <div class="my-booking-card__actions">
-      <p-button
-        type="button"
-        size="small"
-        [outlined]="true"
-        icon="pi pi-eye"
-        [label]="'bookings.actions.viewListing' | translate"
-        [routerLink]="['/listings', booking().listingId]"
-      />
-      @if (booking().status === 'Completed') {
-        <p-button
-          type="button"
-          size="small"
-          icon="pi pi-star"
-          [label]="'bookings.actions.leaveReview' | translate"
-          [routerLink]="['/bookings', booking().id, 'review']"
-        />
-      }
+<div
+  class="my-booking-card-link"
+  role="link"
+  tabindex="0"
+  [attr.aria-label]="booking().listingTitle"
+  (click)="openDetails()"
+  (keydown.enter)="openDetails()"
+  (keydown.space)="openDetails(); $event.preventDefault()"
+>
+  <p-card styleClass="my-booking-card">
+    <div class="my-booking-card__top">
+      <h3 class="my-booking-card__title">{{ booking().listingTitle }}</h3>
+      <app-ui-badge [label]="statusLabelKey() | translate" [tone]="statusTone()" />
     </div>
-  </ng-template>
-</p-card>
+
+    @if (reviewAvailable()) {
+      <app-ui-badge
+        class="my-booking-card__review-badge"
+        [label]="'bookings.review.available' | translate"
+        tone="completed"
+      />
+    }
+
+    <p class="my-booking-card__line">
+      {{ 'bookings.myBookings.dateRange' | translate }}:
+      {{ booking().startDate | date: 'mediumDate' }} -
+      {{ booking().endDate | date: 'mediumDate' }}
+    </p>
+    <p class="my-booking-card__line">
+      {{
+        'bookings.myBookings.totalPrice'
+          | translate
+            : {
+                amount: (booking().totalPrice | currency),
+              }
+      }}
+    </p>
+
+    <app-booking-progress
+      class="my-booking-card__progress"
+      [status]="booking().status"
+      [startDate]="booking().startDate"
+      density="compact"
+    />
+
+    <p class="my-booking-card__hint">{{ 'bookings.actions.viewDetails' | translate }}</p>
+  </p-card>
+</div>

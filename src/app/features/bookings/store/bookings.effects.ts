@@ -125,4 +125,87 @@ export class BookingsEffects {
       ),
     ),
   );
+
+  readonly loadBookingDetail$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BookingsActions.loadBookingDetail),
+      switchMap(({ bookingId }) =>
+        this.bookingsApi.getBookingById(bookingId).pipe(
+          map((detail) => BookingsActions.loadBookingDetailSuccess({ detail })),
+          catchError((error: unknown) =>
+            of(
+              BookingsActions.loadBookingDetailFailure({
+                error: toErrorMessage(error),
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  readonly markReturned$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BookingsActions.markReturned),
+      concatMap(({ bookingId }) =>
+        this.bookingsApi.markReturned(bookingId).pipe(
+          map((detail) => BookingsActions.bookingHandshakeSuccess({ detail })),
+          catchError((error: unknown) =>
+            of(
+              BookingsActions.bookingHandshakeFailure({
+                bookingId,
+                error: toErrorMessage(error),
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  readonly confirmReturn$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BookingsActions.confirmReturn),
+      concatMap(({ bookingId }) =>
+        this.bookingsApi.confirmReturn(bookingId).pipe(
+          map((detail) => BookingsActions.bookingHandshakeSuccess({ detail })),
+          catchError((error: unknown) =>
+            of(
+              BookingsActions.bookingHandshakeFailure({
+                bookingId,
+                error: toErrorMessage(error),
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  readonly undoReturn$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BookingsActions.undoReturn),
+      concatMap(({ bookingId }) =>
+        this.bookingsApi.undoReturn(bookingId).pipe(
+          map((detail) => BookingsActions.bookingHandshakeSuccess({ detail })),
+          catchError((error: unknown) =>
+            of(
+              BookingsActions.bookingHandshakeFailure({
+                bookingId,
+                error: toErrorMessage(error),
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  // A failed handshake reverts the optimistic patch by reloading authoritative state.
+  readonly reloadAfterHandshakeFailure$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BookingsActions.bookingHandshakeFailure),
+      map(({ bookingId }) => BookingsActions.loadBookingDetail({ bookingId })),
+    ),
+  );
 }

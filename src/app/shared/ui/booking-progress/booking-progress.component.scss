@@ -1,0 +1,114 @@
+:host {
+  display: block;
+}
+
+.booking-progress {
+  display: flex;
+  align-items: flex-start;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.booking-progress__step {
+  position: relative;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  text-align: center;
+
+  // Connector line into this node (from the previous node), drawn behind the dot.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 11px;
+    right: 50%;
+    width: 100%;
+    height: 2px;
+    background: var(--ui-color-border);
+    z-index: 0;
+  }
+
+  &--first::before {
+    display: none;
+  }
+}
+
+.booking-progress__node {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--ui-color-border);
+  background: var(--ui-color-surface);
+  color: #fff;
+  font-size: 0.7rem;
+}
+
+.booking-progress__label {
+  font-size: 0.75rem;
+  line-height: 1.2;
+  color: var(--ui-color-text-secondary);
+  word-break: break-word;
+}
+
+// Reached steps (done + current) colour their incoming connector and node.
+.booking-progress__step--done,
+.booking-progress__step--current {
+  &::before {
+    background: var(--ui-color-primary);
+  }
+
+  .booking-progress__label {
+    color: var(--ui-color-text-primary);
+    font-weight: 600;
+  }
+}
+
+.booking-progress__step--done .booking-progress__node {
+  border-color: var(--ui-color-primary);
+  background: var(--ui-color-primary);
+}
+
+.booking-progress__step--current .booking-progress__node {
+  border-color: var(--ui-color-primary);
+  background: var(--ui-color-primary-soft);
+  box-shadow: 0 0 0 3px var(--ui-color-primary-soft);
+}
+
+// Compact variant for cards: hide labels, shrink nodes.
+.booking-progress--compact {
+  .booking-progress__node {
+    width: 18px;
+    height: 18px;
+    font-size: 0.6rem;
+  }
+
+  .booking-progress__step::before {
+    top: 8px;
+  }
+
+  .booking-progress__label {
+    display: none;
+  }
+}
+
+// Off-path terminal (rejected / cancelled / archived).
+.booking-progress--off-path {
+  display: block;
+}
+
+.booking-progress__terminal {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ui-color-text-secondary);
+}

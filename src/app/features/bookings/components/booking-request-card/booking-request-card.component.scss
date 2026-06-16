@@ -30,3 +30,30 @@
   justify-content: flex-end;
   gap: var(--ui-space-8);
 }
+
+.booking-request-card-link {
+  display: block;
+  cursor: pointer;
+  border-radius: var(--ui-radius-lg, 12px);
+  transition: transform 0.12s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary);
+    outline-offset: 2px;
+  }
+}
+
+.booking-request-card__progress {
+  display: block;
+  margin-top: var(--ui-space-12, 12px);
+}
+
+.booking-request-card__hint {
+  color: var(--ui-color-primary);
+  font-size: var(--ui-font-size-caption);
+  font-weight: 600;
+}

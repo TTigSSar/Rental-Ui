@@ -24,3 +24,36 @@
   gap: var(--ui-space-8);
   flex-wrap: wrap;
 }
+
+.my-booking-card-link {
+  display: block;
+  cursor: pointer;
+  border-radius: var(--ui-radius-lg, 12px);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary);
+    outline-offset: 2px;
+  }
+}
+
+.my-booking-card__review-badge {
+  display: inline-flex;
+  margin-top: var(--ui-space-8);
+}
+
+.my-booking-card__progress {
+  display: block;
+  margin-top: var(--ui-space-12, 12px);
+}
+
+.my-booking-card__hint {
+  margin: var(--ui-space-8) 0 0;
+  color: var(--ui-color-primary);
+  font-size: var(--ui-font-size-caption);
+  font-weight: 600;
+}

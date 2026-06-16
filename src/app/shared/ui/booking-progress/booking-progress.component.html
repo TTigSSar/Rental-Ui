@@ -1,0 +1,27 @@
+@let p = progress();
+
+@if (p.isOffPath) {
+  <div class="booking-progress booking-progress--off-path booking-progress--{{ density() }}">
+    <span class="booking-progress__terminal">{{ p.terminalLabelKey! | translate }}</span>
+  </div>
+} @else {
+  <ol
+    class="booking-progress booking-progress--{{ density() }}"
+    [attr.aria-label]="'bookings.progress.aria' | translate"
+  >
+    @for (step of p.steps; track step.labelKey; let first = $first) {
+      <li
+        class="booking-progress__step booking-progress__step--{{ step.state }}"
+        [class.booking-progress__step--first]="first"
+        [attr.aria-current]="step.state === 'current' ? 'step' : null"
+      >
+        <span class="booking-progress__node" aria-hidden="true">
+          @if (step.state === 'done') {
+            <i class="pi pi-check"></i>
+          }
+        </span>
+        <span class="booking-progress__label">{{ step.labelKey | translate }}</span>
+      </li>
+    }
+  </ol>
+}

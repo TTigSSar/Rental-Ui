@@ -8,6 +8,8 @@ export function mapBookingStatusTone(status: BookingStatus): BadgeTone {
     case 'Pending':
     case 'PendingApproval':
       return 'pending';
+    case 'ReturnMarked':
+      return 'booked';
     case 'Rejected':
       return 'rejected';
     case 'Archived':
@@ -27,6 +29,8 @@ export function mapBookingStatusLabelKey(status: BookingStatus): string {
       return 'bookings.status.pendingApproval';
     case 'Approved':
       return 'bookings.status.approved';
+    case 'ReturnMarked':
+      return 'bookings.status.returnMarked';
     case 'Rejected':
       return 'bookings.status.rejected';
     case 'Archived':

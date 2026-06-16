@@ -1,6 +1,7 @@
 {
   "common": {
-    "back": "Back"
+    "back": "Back",
+    "retry": "Try again"
   },
   "app": {
     "shell": {
@@ -722,13 +723,15 @@
       "rejected": "Rejected",
       "archived": "Archived",
       "cancelled": "Cancelled",
-      "completed": "Completed"
+      "completed": "Completed",
+      "returnMarked": "Awaiting confirmation"
     },
     "actions": {
       "viewListing": "View toy",
       "approve": "Approve",
       "reject": "Reject",
-      "leaveReview": "Rate toy & owner"
+      "leaveReview": "Rate toy & owner",
+      "viewDetails": "View details"
     },
     "common": {
       "createdAt": "Created",
@@ -753,6 +756,57 @@
       "renter": "Renter",
       "dateRange": "Date range",
       "totalPrice": "Total: {{amount}}"
+    },
+    "review": {
+      "available": "Review available",
+      "title": "Review",
+      "submitted": "Review submitted",
+      "prompt": "This rental is complete — share your experience.",
+      "leave": "Leave a review"
+    },
+    "progress": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "active": "Active",
+      "completed": "Completed",
+      "completion": "Completion",
+      "aria": "Booking progress"
+    },
+    "details": {
+      "title": "Booking details",
+      "condition": "Condition",
+      "rentalDetails": "Rental details",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "duration": "Duration",
+      "days": "{{count}} days",
+      "total": "Total price",
+      "deposit": "Deposit",
+      "pickupReturn": "Pickup & return",
+      "contactAfterApproval": "Contact details become available once the booking is approved.",
+      "timeline": "Timeline",
+      "owner": "Owner",
+      "renter": "Renter"
+    },
+    "timeline": {
+      "requested": "Booking requested",
+      "approved": "Approved",
+      "started": "Rental started",
+      "completionRequested": "Completion requested",
+      "completed": "Completed"
+    },
+    "completion": {
+      "title": "Completion",
+      "markCompleted": "Mark as completed",
+      "iReturned": "I returned the toy",
+      "renterMarked": "{{name}} says they returned the toy. Please confirm you received it.",
+      "ownerMarked": "{{name}} marked this rental as completed. Please confirm.",
+      "confirmReceipt": "Confirm receipt",
+      "confirmCompletion": "Confirm completion",
+      "awaitingRenter": "Waiting for the renter to confirm.",
+      "awaitingOwner": "Waiting for the owner to confirm.",
+      "autoNote": "If they don't confirm, this completes automatically 48 hours after you marked it.",
+      "undo": "Undo"
     }
   },
   "admin": {

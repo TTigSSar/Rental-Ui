@@ -22,6 +22,13 @@ export const bookingsRoutes: Routes = [
           ).then((m) => m.BookingRequestsPageComponent),
       },
       {
+        path: ':bookingId',
+        loadComponent: () =>
+          import('./pages/booking-details-page/booking-details-page.component').then(
+            (m) => m.BookingDetailsPageComponent,
+          ),
+      },
+      {
         path: ':bookingId/review',
         loadComponent: () =>
           import(

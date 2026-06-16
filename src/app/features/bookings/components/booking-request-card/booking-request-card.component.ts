@@ -5,13 +5,15 @@ import {
   EventEmitter,
   Output,
   computed,
+  inject,
   input,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
+import { BookingProgressComponent } from '../../../../shared/ui/booking-progress/booking-progress.component';
 import {
   mapBookingStatusLabelKey,
   mapBookingStatusTone,
@@ -27,8 +29,8 @@ import type { BookingRequest } from '../../models/booking.model';
     CardModule,
     CurrencyPipe,
     DatePipe,
-    RouterLink,
     BadgeComponent,
+    BookingProgressComponent,
     TranslatePipe,
   ],
   templateUrl: './booking-request-card.component.html',
@@ -36,6 +38,8 @@ import type { BookingRequest } from '../../models/booking.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookingRequestCardComponent {
+  private readonly router = inject(Router);
+
   readonly request = input.required<BookingRequest>();
   readonly actionLoading = input<boolean>(false);
 
@@ -54,11 +58,17 @@ export class BookingRequestCardComponent {
     () => this.request().status === 'PendingApproval' || this.request().status === 'Pending',
   );
 
-  protected approve(): void {
+  protected openDetails(): void {
+    void this.router.navigate(['/bookings', this.request().id]);
+  }
+
+  protected approve(event: Event): void {
+    event.stopPropagation();
     this.approved.emit(this.request().id);
   }
 
-  protected reject(): void {
+  protected reject(event: Event): void {
+    event.stopPropagation();
     this.rejected.emit(this.request().id);
   }
 }
