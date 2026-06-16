@@ -29,9 +29,12 @@
         "profile": "Profile",
         "login": "Log in",
         "register": "Sign up",
+        "signIn": "Sign in",
         "logout": "Log out",
         "addListing": "List a Toy",
         "browseShort": "Browse",
+        "savedShort": "Saved",
+        "language": "Language",
         "menu": "Menu",
         "moderationShort": "Moderate"
       }
@@ -39,15 +42,16 @@
   },
   "home": {
     "hero": {
-      "title": "Rent quality toys for your child.",
-      "subtitle": "Less clutter at home, more variety for kids. Discover toys shared by trusted families.",
+      "title": "Find a toy your child will love",
+      "subtitle": "Rent from families nearby in Yerevan.",
       "cta": "Browse all toys",
       "imageAlt": "Children playing with shared toys"
     },
     "search": {
-      "placeholder": "Search toys by name…",
+      "placeholder": "Search toys, brands…",
       "ariaLabel": "Search toys",
-      "submit": "Search"
+      "submit": "Search",
+      "filterAria": "Filter toys"
     },
     "categoriesLabel": "Toy Categories",
     "topProductsLabel": "Popular Toys",
@@ -288,7 +292,14 @@
       "night": "{{count}} day",
       "nights": "{{count}} days",
       "assurance": "The owner reviews and approves your request before the rental begins.",
-      "assuranceTransparency": "Pricing is shown upfront — no hidden fees or surprises."
+      "assuranceTransparency": "Pricing is shown upfront — no hidden fees or surprises.",
+      "pickup": "Pickup",
+      "return": "Return",
+      "quickBook": "Quick Book",
+      "days": "days",
+      "discount": "discount",
+      "serviceFee": "Service fee",
+      "deposit": "Refundable deposit"
     },
     "page": {
       "title": "Browse Toys",
@@ -303,10 +314,21 @@
       "loadingMore": "Loading more toys",
       "loadMore": "Load more toys",
       "toysSuffix": "toys",
-      "sortLabel": "Sort by",
+      "categoryAll": "All",
+      "backAria": "Go back",
+      "activeFiltersAria": "Active filters",
+      "sortLabel": "Sort",
+      "sortPrefix": "Sort: ",
       "sortDefault": "Most recent",
       "sortPriceAsc": "Price: low to high",
-      "sortPriceDesc": "Price: high to low"
+      "sortPriceDesc": "Price: high to low",
+      "sortByPrice": "Sort by Price",
+      "sortPriceAscLabel": "First lowest",
+      "sortPriceDescLabel": "First highest",
+      "sortLowestPrice": "Lowest price",
+      "sortHighestPrice": "Highest price",
+      "sortHighestRated": "Highest rated",
+      "sortNewest": "Newest"
     },
     "details": {
       "back": "Back to toys",
@@ -338,7 +360,7 @@
         "listings": "Browse Toys"
       },
       "toyDetails": {
-        "heading": "Toy details",
+        "heading": "Details",
         "ageRange": "Recommended age",
         "ageRangeFromTo": "{{from}}–{{to}} months",
         "ageRangeFromOnly": "From {{from}} months",
@@ -354,10 +376,6 @@
         "likeNew": "Like new",
         "good": "Good",
         "fair": "Fair"
-      },
-      "cancellation": {
-        "title": "Cancellation Terms",
-        "body": "Cancel a pending rental request at any time. Once the owner approves your booking, cancellation depends on the owner’s policy."
       },
       "protection": {
         "title": "Rental Deposit & Coverage",
@@ -376,6 +394,8 @@
         "error": "Unable to load reviews"
       },
       "ownerToySuffix": "toys",
+      "ownerCardTitle": "Owner / contact card",
+      "ownerCardSubtitle": "Locked phone before booking, revealed after.",
       "contactLabelPre": "Owner phone number will be available ",
       "contactLabelBold": "after you send a booking request."
     },
@@ -497,7 +517,9 @@
       "delivery": {
         "label": "How can renters get the toy?",
         "pickup": "Pickup from me",
-        "pickupHint": "Free · Meet at agreed spot"
+        "pickupHint": "Free · Meet at agreed spot",
+        "deliver": "Deliver to renter",
+        "deliverHint": "Paid · Drop off at renter's location"
       },
       "photos": {
         "addCover": "Add cover photo",

@@ -55,7 +55,7 @@ const STEP_CONTROLS: readonly string[][] = [
   [],                                      // 1 Photos
   ['title', 'categoryId', 'description'],  // 2 Basics
   ['pricePerDay'],                         // 3 Pricing
-  [],                                      // 4 Safety (signal-gated)
+  [],                                      // 4 Safety
   [],                                      // 5 Preview
 ];
 
@@ -105,15 +105,15 @@ export class CreateListingFormComponent {
   readonly minRentalDays  = MIN_RENTAL_DAYS;
 
   // ── Chip state ────────────────────────────────────────────────
-  readonly selectedAgeKey  = signal<string | null>(null);
-  readonly selectedCond    = signal<ConditionChip['value'] | null>(null);
-  readonly selectedMinDays = signal<number>(1);
+  readonly selectedAgeKeys     = signal<ReadonlySet<string>>(new Set());
+  readonly selectedDeliveryTypes = signal<ReadonlySet<'pickup' | 'deliver'>>(new Set(['pickup']));
+  readonly selectedCond        = signal<ConditionChip['value'] | null>(null);
+  readonly selectedMinDays     = signal<number>(1);
 
   // ── Safety state ──────────────────────────────────────────────
   readonly cleanWashed      = signal(false);
   readonly cleanDisinfected = signal(false);
   readonly cleanUV          = signal(false);
-  readonly safetyConfirmed  = signal(false);
 
   // ── Images ────────────────────────────────────────────────────
   selectedFiles: File[] = [];
@@ -149,8 +149,7 @@ export class CreateListingFormComponent {
     const names = STEP_CONTROLS[step - 1] ?? [];
     names.forEach(n => this.createListingForm.get(n)?.markAsTouched());
     const valid = names.every(n => this.createListingForm.get(n)?.valid !== false);
-    if (step === 4 && !this.safetyConfirmed()) return;
-    if (valid) {
+if (valid) {
       this.currentStep.update(s => Math.min(s + 1, this.totalSteps));
       this.scrollToTop();
     }
@@ -172,13 +171,34 @@ export class CreateListingFormComponent {
 
   // ── Chip handlers ─────────────────────────────────────────────
   selectAge(chip: AgeChip): void {
-    if (this.selectedAgeKey() === chip.key) {
-      this.selectedAgeKey.set(null);
+    const current = this.selectedAgeKeys();
+    const next = new Set(current);
+    if (next.has(chip.key)) {
+      next.delete(chip.key);
+    } else {
+      next.add(chip.key);
+    }
+    this.selectedAgeKeys.set(next);
+    const selected = this.ageChips.filter(c => next.has(c.key));
+    if (selected.length === 0) {
       this.createListingForm.patchValue({ ageFromMonths: null, ageToMonths: null });
     } else {
-      this.selectedAgeKey.set(chip.key);
-      this.createListingForm.patchValue({ ageFromMonths: chip.fromMonths, ageToMonths: chip.toMonths });
+      this.createListingForm.patchValue({
+        ageFromMonths: Math.min(...selected.map(c => c.fromMonths)),
+        ageToMonths:   Math.max(...selected.map(c => c.toMonths)),
+      });
     }
+  }
+
+  toggleDelivery(type: 'pickup' | 'deliver'): void {
+    const current = this.selectedDeliveryTypes();
+    const next = new Set(current);
+    if (next.has(type) && next.size > 1) {
+      next.delete(type);
+    } else {
+      next.add(type);
+    }
+    this.selectedDeliveryTypes.set(next);
   }
 
   protected onCategoryChange(id: string | null): void {
@@ -216,6 +236,28 @@ export class CreateListingFormComponent {
     });
   }
 
+  // Strip add button: appends one or more files without replacing existing ones
+  protected onStripImagesAdded(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const remaining = 6 - this.selectedFiles.length;
+    if (remaining <= 0) return;
+    const newFiles = Array.from(input.files).slice(0, remaining);
+    const startIdx = this.selectedFiles.length;
+    this.selectedFiles = [...this.selectedFiles, ...newFiles];
+    const previews = [...this.imagePreviews()];
+    let done = 0;
+    newFiles.forEach((file, i) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        previews[startIdx + i] = e.target?.result as string;
+        if (++done === newFiles.length) this.imagePreviews.set([...previews]);
+      };
+      reader.readAsDataURL(file);
+    });
+    input.value = '';
+  }
+
   // Individual slot: appends one file at the next available position
   protected onSlotImageAdded(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -250,10 +292,12 @@ export class CreateListingFormComponent {
   }
 
   protected getSelectedAgeName(): string {
-    const key  = this.selectedAgeKey();
-    const chip = this.ageChips.find(c => c.key === key);
-    if (!chip) return '—';
-    return `${Math.round(chip.fromMonths / 12)}–${Math.round(chip.toMonths / 12)} yr`;
+    const keys = this.selectedAgeKeys();
+    const selected = this.ageChips.filter(c => keys.has(c.key));
+    if (selected.length === 0) return '—';
+    const from = Math.min(...selected.map(c => c.fromMonths));
+    const to   = Math.max(...selected.map(c => c.toMonths));
+    return `${Math.round(from / 12)}–${Math.round(to / 12)} yr`;
   }
 
   protected getConditionLabelKey(): string {

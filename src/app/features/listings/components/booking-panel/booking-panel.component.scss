@@ -14,7 +14,6 @@
   background: var(--ui-color-surface);
   border-radius: var(--ui-radius-lg);
   box-shadow: var(--ui-shadow-booking-panel);
-  border: 1px solid var(--ui-color-border);
 }
 
 .booking-panel__header {
@@ -64,6 +63,80 @@
   background: var(--ui-color-border);
   margin-top: 14px;
   border-radius: 1px;
+}
+
+// -----------------------------------------------------------------------------
+// Quick book section
+// -----------------------------------------------------------------------------
+
+.booking-panel__quick-book {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.booking-panel__quick-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ui-color-text-muted);
+}
+
+.booking-panel__quick-chips {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.booking-panel__quick-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border-radius: 12px;
+  border: 1.5px solid var(--ui-color-border);
+  background: var(--ui-color-surface);
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+
+  &:hover:not(.booking-panel__quick-chip--active) {
+    border-color: var(--ui-color-primary);
+
+    .booking-panel__quick-chip-label,
+    .booking-panel__quick-chip-discount {
+      color: var(--ui-color-primary);
+    }
+  }
+
+  &--active {
+    background: var(--ui-color-primary);
+    border-color: var(--ui-color-primary);
+
+    .booking-panel__quick-chip-label,
+    .booking-panel__quick-chip-discount {
+      color: #fff;
+    }
+  }
+}
+
+.booking-panel__quick-chip-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ui-color-text-secondary);
+}
+
+.booking-panel__quick-chip-discount {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--ui-color-text-muted);
+  line-height: 1.2;
 }
 
 // -----------------------------------------------------------------------------
@@ -125,6 +198,13 @@
 .booking-panel__summary-row dd {
   margin: 0;
   font-weight: 500;
+}
+
+.booking-panel__summary-row--discount {
+  dt,
+  dd {
+    color: var(--ui-color-success);
+  }
 }
 
 .booking-panel__summary-row--total {

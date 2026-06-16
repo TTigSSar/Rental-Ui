@@ -1,4 +1,4 @@
-<div class="app-shell">
+<div class="app-shell" [class.app-shell--browse]="isBrowsePage()" [class.app-shell--details]="isDetailsPage()">
   @if (vm$ | async; as vm) {
     <header
       class="app-shell__header-wrap"
@@ -24,27 +24,36 @@
             </span>
           </a>
 
-          <!-- Desktop primary nav -->
-          <nav
-            class="app-shell__nav app-shell__nav--primary"
-            [attr.aria-label]="'app.shell.primaryNavAria' | translate"
-          >
-            @for (item of vm.primaryNav; track item.path) {
-              <a
-                class="app-shell__nav-link"
-                [routerLink]="item.path"
-                routerLinkActive="app-shell__nav-link--active"
-                [routerLinkActiveOptions]="{ exact: item.exactMatch }"
-              >
-                {{ item.labelKey | translate }}
-              </a>
-            }
-          </nav>
+          <!-- Desktop center: browse search on browse page, nav links elsewhere -->
+          @if (isBrowsePage()) {
+            <div class="app-shell__browse-search">
+              <app-listings-filters
+                [showChips]="false"
+                (filtersChanged)="onBrowseFiltersChanged($event)"
+              />
+            </div>
+          } @else {
+            <nav
+              class="app-shell__nav app-shell__nav--primary"
+              [attr.aria-label]="'app.shell.primaryNavAria' | translate"
+            >
+              @for (item of vm.primaryNav; track item.path) {
+                <a
+                  class="app-shell__nav-link"
+                  [routerLink]="item.path"
+                  routerLinkActive="app-shell__nav-link--active"
+                  [routerLinkActiveOptions]="{ exact: item.exactMatch }"
+                >
+                  {{ item.labelKey | translate }}
+                </a>
+              }
+            </nav>
+          }
 
           <!-- Trailing actions -->
-          <div class="app-shell__trailing">
+          <!-- <div class="app-shell__trailing"> -->
             <!-- Add Listing CTA (desktop only, authenticated non-admin) -->
-            @if (vm.isAuthenticated && !vm.isAdmin) {
+            <!-- @if (vm.isAuthenticated && !vm.isAdmin) {
               <a
                 class="app-shell__btn app-shell__btn--primary app-shell__add-listing"
                 routerLink="/listings/create"
@@ -52,66 +61,55 @@
                 <i class="pi pi-plus" aria-hidden="true"></i>
                 <span>{{ 'app.shell.nav.addListing' | translate }}</span>
               </a>
-            }
-
-            <!-- Language selector -->
-            <div class="app-shell__language" #languageMenuHost>
-              <button
-                type="button"
-                class="app-shell__language-trigger"
-                [attr.aria-expanded]="languageMenuOpen()"
-                [attr.aria-haspopup]="true"
-                [attr.aria-label]="'app.shell.language.switchAria' | translate"
-                (click)="toggleLanguageMenu()"
-              >
-                <i class="pi pi-globe" aria-hidden="true"></i>
-                <span class="app-shell__language-code">{{ currentLang().shortLabel }}</span>
-                <i class="pi pi-angle-down app-shell__language-chevron" aria-hidden="true"></i>
-              </button>
-              @if (languageMenuOpen()) {
-                <div class="app-shell__dropdown app-shell__dropdown--compact" role="menu">
-                  @for (option of availableLanguages; track option.code) {
-                    <button
-                      type="button"
-                      class="app-shell__dropdown-item"
-                      [class.app-shell__dropdown-item--selected]="option.code === currentLang().code"
-                      role="menuitemradio"
-                      [attr.aria-checked]="option.code === currentLang().code"
-                      (click)="selectLanguage(option)"
-                    >
-                      <span class="app-shell__language-option-code">{{ option.shortLabel }}</span>
-                      <span class="app-shell__language-option-label">{{ option.label }}</span>
-                      @if (option.code === currentLang().code) {
-                        <i class="pi pi-check" aria-hidden="true"></i>
-                      }
-                    </button>
-                  }
-                </div>
-              }
-            </div>
+            } -->
 
             <!-- Auth skeleton while hydrating -->
             @if (vm.isAuthPending) {
               <span class="app-shell__auth-skeleton" aria-hidden="true"></span>
             }
 
-            <!-- Guest: login / register (desktop only) -->
+            <!-- Guest: language selector + sign in -->
             @if (vm.isGuest) {
               <div class="app-shell__guest-actions">
-                <a
-                  class="app-shell__btn app-shell__btn--ghost"
-                  routerLink="/auth/login"
-                  routerLinkActive="app-shell__btn--active"
-                >
-                  {{ 'app.shell.nav.login' | translate }}
-                </a>
-                <a
+                <div class="app-shell__lang-wrap" #langMenuHost>
+                  <button
+                    type="button"
+                    class="app-shell__language-trigger"
+                    [attr.aria-label]="'app.shell.language.switchAria' | translate"
+                    [attr.aria-expanded]="langMenuOpen()"
+                    (click)="toggleLangMenu()"
+                  >
+                    <i class="pi pi-globe" aria-hidden="true"></i>
+                    <span class="app-shell__language-code">{{ currentLang().code.toUpperCase() }}</span>
+                    <i class="pi pi-chevron-down app-shell__language-chevron" aria-hidden="true"></i>
+                  </button>
+                  @if (langMenuOpen()) {
+                    <div class="app-shell__dropdown app-shell__dropdown--compact" role="menu">
+                      @for (lang of languages; track lang.code) {
+                        <button
+                          type="button"
+                          class="app-shell__dropdown-item"
+                          [class.app-shell__dropdown-item--selected]="currentLang().code === lang.code"
+                          role="menuitem"
+                          (click)="selectLanguage(lang)"
+                        >
+                          <span class="app-shell__language-option-code">{{ lang.code.toUpperCase() }}</span>
+                          <span class="app-shell__language-option-label">{{ lang.label }}</span>
+                          @if (currentLang().code === lang.code) {
+                            <i class="pi pi-check" aria-hidden="true"></i>
+                          }
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+                <button
+                  type="button"
                   class="app-shell__btn app-shell__btn--primary"
-                  routerLink="/auth/register"
-                  routerLinkActive="app-shell__btn--active"
+                  (click)="openAuthDialog('login')"
                 >
-                  {{ 'app.shell.nav.register' | translate }}
-                </a>
+                  {{ 'app.shell.nav.signIn' | translate }}
+                </button>
               </div>
             }
 
@@ -147,7 +145,7 @@
                 }
               </div>
             }
-          </div>
+          <!-- </div> -->
         </div>
       </div>
     </header>
@@ -163,6 +161,7 @@
     <nav
       class="app-bottom-nav"
       [class.app-bottom-nav--admin]="vm.isAdmin"
+      [class.app-bottom-nav--guest]="vm.isGuest"
       [attr.aria-label]="'app.shell.bottomNavAria' | translate"
     >
       @if (vm.isAdmin) {
@@ -194,8 +193,8 @@
           <i class="pi pi-user app-bottom-nav__icon" aria-hidden="true"></i>
           <span class="app-bottom-nav__label">{{ 'app.shell.nav.profile' | translate }}</span>
         </a>
-      } @else {
-        <!-- Home -->
+      } @else if (vm.isGuest) {
+        <!-- Guest: Home | Browse | Saved | Language | Sign In -->
         <a
           class="app-bottom-nav__item"
           routerLink="/"
@@ -205,8 +204,6 @@
           <i class="pi pi-home app-bottom-nav__icon" aria-hidden="true"></i>
           <span class="app-bottom-nav__label">{{ 'app.shell.nav.home' | translate }}</span>
         </a>
-
-        <!-- Browse -->
         <a
           class="app-bottom-nav__item"
           routerLink="/listings"
@@ -216,8 +213,34 @@
           <i class="pi pi-search app-bottom-nav__icon" aria-hidden="true"></i>
           <span class="app-bottom-nav__label">{{ 'app.shell.nav.browseShort' | translate }}</span>
         </a>
-
-        <!-- Favorites -->
+        <button
+          type="button"
+          class="app-bottom-nav__item"
+          (click)="openAuthDialog('login')"
+        >
+          <i class="pi pi-user app-bottom-nav__icon" aria-hidden="true"></i>
+          <span class="app-bottom-nav__label">{{ 'app.shell.nav.signIn' | translate }}</span>
+        </button>
+      } @else {
+        <!-- Authenticated: Home | Browse | Saved | Profile -->
+        <a
+          class="app-bottom-nav__item"
+          routerLink="/"
+          routerLinkActive="app-bottom-nav__item--active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          <i class="pi pi-home app-bottom-nav__icon" aria-hidden="true"></i>
+          <span class="app-bottom-nav__label">{{ 'app.shell.nav.home' | translate }}</span>
+        </a>
+        <a
+          class="app-bottom-nav__item"
+          routerLink="/listings"
+          routerLinkActive="app-bottom-nav__item--active"
+          [routerLinkActiveOptions]="{ exact: false }"
+        >
+          <i class="pi pi-search app-bottom-nav__icon" aria-hidden="true"></i>
+          <span class="app-bottom-nav__label">{{ 'app.shell.nav.browseShort' | translate }}</span>
+        </a>
         <a
           class="app-bottom-nav__item"
           routerLink="/favorites"
@@ -225,10 +248,8 @@
           [routerLinkActiveOptions]="{ exact: false }"
         >
           <i class="pi pi-heart app-bottom-nav__icon" aria-hidden="true"></i>
-          <span class="app-bottom-nav__label">{{ 'app.shell.nav.favorites' | translate }}</span>
+          <span class="app-bottom-nav__label">{{ 'app.shell.nav.savedShort' | translate }}</span>
         </a>
-
-        <!-- Profile -->
         <a
           class="app-bottom-nav__item"
           routerLink="/profile"
@@ -241,6 +262,12 @@
       }
     </nav>
   }
+
+  <app-auth-dialog
+    [visible]="showAuthDialog()"
+    [mode]="authDialogMode()"
+    (closed)="showAuthDialog.set(false)"
+  />
 
   @if (showFooter()) {
     <footer class="app-footer" [attr.aria-label]="'home.footer.aboutUs' | translate">

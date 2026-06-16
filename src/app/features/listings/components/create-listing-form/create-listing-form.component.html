@@ -163,7 +163,7 @@
                   multiple
                   accept="image/*"
                   [disabled]="isSubmitting"
-                  (change)="onImagesSelected($event)"
+                  (change)="onStripImagesAdded($event)"
                 />
               </label>
             </div>
@@ -213,7 +213,7 @@
               <button
                 type="button"
                 class="wizard-chip"
-                [class.wizard-chip--active]="selectedAgeKey() === chip.key"
+                [class.wizard-chip--active]="selectedAgeKeys().has(chip.key)"
                 (click)="selectAge(chip)"
               >
                 {{ 'listings.createForm.age.' + chip.key | translate }}
@@ -349,12 +349,31 @@
         <!-- Delivery option -->
         <div class="wizard-field">
           <span class="wizard-field__label">{{ 'listings.createForm.delivery.label' | translate }}</span>
-          <div class="wizard-delivery wizard-delivery--selected">
-            <span class="wizard-delivery__radio"></span>
-            <div class="wizard-delivery__text">
-              <span class="wizard-delivery__title">{{ 'listings.createForm.delivery.pickup' | translate }}</span>
-              <span class="wizard-delivery__hint">{{ 'listings.createForm.delivery.pickupHint' | translate }}</span>
-            </div>
+          <div class="wizard-delivery-list">
+            <button
+              type="button"
+              class="wizard-delivery"
+              [class.wizard-delivery--selected]="selectedDeliveryTypes().has('pickup')"
+              (click)="toggleDelivery('pickup')"
+            >
+              <span class="wizard-delivery__radio"></span>
+              <div class="wizard-delivery__text">
+                <span class="wizard-delivery__title">{{ 'listings.createForm.delivery.pickup' | translate }}</span>
+                <span class="wizard-delivery__hint">{{ 'listings.createForm.delivery.pickupHint' | translate }}</span>
+              </div>
+            </button>
+            <button
+              type="button"
+              class="wizard-delivery"
+              [class.wizard-delivery--selected]="selectedDeliveryTypes().has('deliver')"
+              (click)="toggleDelivery('deliver')"
+            >
+              <span class="wizard-delivery__radio"></span>
+              <div class="wizard-delivery__text">
+                <span class="wizard-delivery__title">{{ 'listings.createForm.delivery.deliver' | translate }}</span>
+                <span class="wizard-delivery__hint">{{ 'listings.createForm.delivery.deliverHint' | translate }}</span>
+              </div>
+            </button>
           </div>
         </div>
       </div>
@@ -445,31 +464,6 @@
           </span>
         </div>
 
-        <!-- Safety confirmation toggle -->
-        <div class="wizard-safety-confirm" [class.wizard-safety-confirm--checked]="safetyConfirmed()">
-          <div class="wizard-safety-confirm__left">
-            <i class="pi pi-shield wizard-safety-confirm__icon" aria-hidden="true"></i>
-            <div class="wizard-safety-confirm__text">
-              <span class="wizard-safety-confirm__title">{{ 'listings.createForm.safetyConfirm' | translate }}</span>
-              <span class="wizard-safety-confirm__hint">{{ 'listings.createForm.safetyConfirmHint' | translate }}</span>
-            </div>
-          </div>
-          <button
-            type="button"
-            class="wizard-safety-confirm__toggle"
-            [class.wizard-safety-confirm__toggle--on]="safetyConfirmed()"
-            role="switch"
-            [attr.aria-checked]="safetyConfirmed()"
-            (click)="safetyConfirmed.set(!safetyConfirmed())"
-          >
-            <span class="wizard-safety-confirm__knob"></span>
-          </button>
-        </div>
-        @if (!safetyConfirmed()) {
-          <p class="wizard-field__hint-warn" role="note">
-            {{ 'listings.createForm.safetyConfirmRequired' | translate }}
-          </p>
-        }
       </div>
     }
 
@@ -484,7 +478,7 @@
           @if (imagePreviews()[0]) {
             <div class="wizard-preview__img-wrap">
               <img class="wizard-preview__img" [src]="imagePreviews()[0]" alt="Cover" />
-              @if (selectedAgeKey()) {
+              @if (selectedAgeKeys().size > 0) {
                 <div class="wizard-preview__badges">
                   <span class="wizard-preview__badge">{{ getSelectedAgeName() }}</span>
                 </div>

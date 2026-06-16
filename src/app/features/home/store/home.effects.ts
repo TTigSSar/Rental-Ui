@@ -14,7 +14,7 @@ export class HomeEffects {
     this.actions$.pipe(
       ofType(HomeSectionsActions.load),
       switchMap(() =>
-        this.homeApi.getHomeSections().pipe(
+        this.homeApi.getHomeSections(4).pipe(
           map((sections) => HomeSectionsActions.loadSuccess({ sections })),
           catchError((error: unknown) =>
             of(

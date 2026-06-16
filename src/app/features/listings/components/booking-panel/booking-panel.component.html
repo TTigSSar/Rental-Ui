@@ -18,46 +18,65 @@
     <div class="booking-panel__divider" aria-hidden="true"></div>
   </header>
 
+  <div class="booking-panel__quick-book">
+    <span class="booking-panel__quick-label">
+      {{ 'listings.booking.quickBook' | translate }}
+    </span>
+    <div class="booking-panel__quick-chips">
+      @for (opt of quickBookOptions; track opt.key) {
+        <button
+          type="button"
+          class="booking-panel__quick-chip"
+          [class.booking-panel__quick-chip--active]="selectedQuickBook()?.key === opt.key"
+          (click)="applyQuickBook(opt)"
+        >
+          <span class="booking-panel__quick-chip-label">{{ opt.label }}</span>
+          @if (opt.discountPct > 0) {
+            <span class="booking-panel__quick-chip-discount">−{{ opt.discountPct }}%</span>
+          }
+        </button>
+      }
+    </div>
+  </div>
+
   <div class="booking-panel__calendar">
     <app-booking-calendar
       [bookedDates]="bookedDates()"
       [pricePerDay]="pricePerDay()"
+      [value]="controlledRange()"
       (dateRangeSelected)="onRangeChange($event)"
     />
   </div>
 
   <div class="booking-panel__footer">
     <dl class="booking-panel__summary" aria-live="polite">
-      <div class="booking-panel__summary-row">
-        <dt>
-          {{
-            (rentalDays() === 1
-              ? 'listings.booking.night'
-              : 'listings.booking.nights')
-              | translate: { count: rentalDays() }
-          }}
-        </dt>
-        <dd>
-          @if (rentalDays() > 0) {
-            {{ (pricePerDay() * rentalDays()) | currency }}
-          } @else {
-            <span class="booking-panel__summary-empty">
-              {{ 'listings.booking.disabledHint' | translate }}
-            </span>
-          }
-        </dd>
-      </div>
+      @if (rentalDays() > 0) {
+        <div class="booking-panel__summary-row">
+          <dt>{{ pricePerDay() | currency }} × {{ rentalDays() }} {{ 'listings.booking.days' | translate }}</dt>
+          <dd>{{ basePrice() | currency }}</dd>
+        </div>
 
-      <div class="booking-panel__summary-row booking-panel__summary-row--total">
-        <dt>{{ 'listings.booking.totalLabel' | translate }}</dt>
-        <dd>
-          @if (totalPrice(); as total) {
-            {{ total | currency }}
-          } @else {
+        @if (discountAmount() > 0) {
+          <div class="booking-panel__summary-row booking-panel__summary-row--discount">
+            <dt>{{ selectedQuickBook()?.label }} {{ 'listings.booking.discount' | translate }} −{{ discountPct() }}%</dt>
+            <dd>−{{ discountAmount() | currency }}</dd>
+          </div>
+        }
+
+        <div class="booking-panel__summary-row booking-panel__summary-row--total">
+          <dt>{{ 'listings.booking.totalLabel' | translate }}</dt>
+          <dd>{{ totalPrice() | currency }}</dd>
+        </div>
+      } @else {
+        <div class="booking-panel__summary-row">
+          <dt>
+            {{ 'listings.booking.disabledHint' | translate }}
+          </dt>
+          <dd>
             <span class="booking-panel__summary-empty">—</span>
-          }
-        </dd>
-      </div>
+          </dd>
+        </div>
+      }
     </dl>
 
     <p-button

@@ -21,8 +21,6 @@
   display: flex;
   align-items: center;
   gap: var(--ui-space-8);
-  height: 2.75rem;
-  padding: 0 var(--ui-space-16);
   background: var(--ui-color-surface);
   border: 1.5px solid var(--ui-color-border-input);
   border-radius: var(--ui-radius-input);
@@ -33,30 +31,68 @@
     background-color 120ms ease;
 }
 
-/* ── Hover: neutral border deepens ───────────────────────────── */
+/* ── Sizes ────────────────────────────────────────────────────── */
+.uii-field--sm {
+  height: 2.25rem; /* 36px */
+  padding-inline: var(--ui-space-12);
+}
+
+.uii-field--md {
+  height: 44px; /* 48px */
+  padding-inline: var(--ui-space-16);
+}
+
+.uii-field--lg {
+  height: 3.5rem; /* 56px */
+  padding-inline: var(--ui-space-20);
+}
+
+/* ── Hover ────────────────────────────────────────────────────── */
 .uii-field:hover:not(.uii-field--disabled):not(.uii-field--focus):not(.uii-field--error):not(.uii-field--success) {
   border-color: var(--ui-color-border-strong);
 }
 
-/* ── Focus: orange ring ───────────────────────────────────────── */
+/* ── Focus ────────────────────────────────────────────────────── */
 .uii-field--focus:not(.uii-field--error):not(.uii-field--success) {
   border-color: var(--ui-color-primary);
   box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.14);
 }
 
-/* ── Error: red ring ──────────────────────────────────────────── */
+/* ── Error ────────────────────────────────────────────────────── */
 .uii-field--error {
   border-color: var(--ui-color-error);
   box-shadow: 0 0 0 3px rgba(212, 63, 94, 0.12);
 }
 
-/* ── Success: green ring ──────────────────────────────────────── */
+/* ── Success ──────────────────────────────────────────────────── */
 .uii-field--success {
   border-color: var(--ui-color-success);
   box-shadow: 0 0 0 3px rgba(31, 138, 76, 0.12);
 }
 
-/* ── Disabled: muted bg ───────────────────────────────────────── */
+/* ── Filled variant (muted bg, no border) ─────────────────────── */
+/* Also applies to legacy 'ghost' — handled in component via isFilledVariant() */
+.uii-field--filled {
+  background: var(--ui-color-surface-muted);
+  border-color: transparent;
+}
+
+.uii-field--filled:hover:not(.uii-field--disabled):not(.uii-field--focus) {
+  border-color: transparent;
+}
+
+.uii-field--filled.uii-field--focus:not(.uii-field--error):not(.uii-field--success) {
+  background: var(--ui-color-surface);
+  border-color: var(--ui-color-primary);
+  box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.14);
+}
+
+/* ── Pill variant (fully rounded, hero search) ────────────────── */
+.uii-field--pill {
+  border-radius: var(--ui-radius-pill);
+}
+
+/* ── Disabled ─────────────────────────────────────────────────── */
 .uii-field--disabled {
   background: var(--ui-color-surface-muted);
   border-color: var(--ui-color-border);
@@ -72,22 +108,14 @@
   transition: color 120ms ease;
 }
 
-/* Left icon reacts to state */
-.uii-field--focus .uii-icon--left {
-  color: var(--ui-color-primary);
-}
+.uii-field--sm .uii-icon { font-size: 0.8125rem; }
+.uii-field--lg .uii-icon { font-size: 1.0625rem; }
 
-.uii-field--error .uii-icon--left {
-  color: var(--ui-color-error);
-}
-
-.uii-field--success .uii-icon--left {
-  color: var(--ui-color-success);
-}
-
-.uii-field--disabled .uii-icon {
-  color: var(--ui-color-text-muted);
-}
+/* Left icon color reacts to state */
+.uii-field--focus   .uii-icon--left { color: var(--ui-color-primary); }
+.uii-field--error   .uii-icon--left { color: var(--ui-color-error); }
+.uii-field--success .uii-icon--left { color: var(--ui-color-success); }
+.uii-field--disabled .uii-icon      { color: var(--ui-color-text-muted); }
 
 /* ── Native <input> ───────────────────────────────────────────── */
 .uii-native {
@@ -103,6 +131,9 @@
   padding: 0;
 }
 
+.uii-field--sm .uii-native { font-size: 0.875rem; }
+.uii-field--lg .uii-native { font-size: 1rem; }
+
 .uii-native::placeholder {
   color: var(--ui-color-text-hint);
 }
@@ -112,11 +143,33 @@
   cursor: not-allowed;
 }
 
-/* Prevent iOS auto-zoom on mobile (≥ 16px required) */
+/* iOS anti-zoom: browser zooms when font-size < 16px on focus */
 @media (max-width: 960px) {
-  .uii-native {
+  .uii-native,
+  .uii-field--sm .uii-native {
     font-size: 1rem;
   }
+}
+
+/* ── Password visibility toggle ───────────────────────────────── */
+.uii-pwd-toggle {
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ui-color-text-hint);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  padding: 0;
+  transition: color 100ms ease;
+}
+
+.uii-pwd-toggle:hover {
+  color: var(--ui-color-text-primary);
 }
 
 /* ── Clear (×) button ─────────────────────────────────────────── */
@@ -143,7 +196,29 @@
   color: var(--ui-color-surface);
 }
 
-/* ── Helper / error / success text ───────────────────────────── */
+/* ── Pill CTA button ──────────────────────────────────────────── */
+.uii-cta {
+  flex-shrink: 0;
+  align-self: center;
+  height: calc(100% - 0.5rem);
+  padding: 0 var(--ui-space-20);
+  border: none;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-primary);
+  color: var(--ui-color-on-primary);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 120ms ease;
+}
+
+.uii-cta:hover {
+  background: var(--ui-color-primary-strong);
+}
+
+/* ── Helper / hint / error / success text ─────────────────────── */
 .uii-helper {
   display: flex;
   align-items: center;
@@ -160,10 +235,5 @@
   flex-shrink: 0;
 }
 
-.uii-helper--error {
-  color: var(--ui-color-error);
-}
-
-.uii-helper--success {
-  color: var(--ui-color-success);
-}
+.uii-helper--error   { color: var(--ui-color-error); }
+.uii-helper--success { color: var(--ui-color-success); }

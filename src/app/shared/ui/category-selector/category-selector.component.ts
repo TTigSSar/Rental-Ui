@@ -88,6 +88,15 @@ export class CategorySelectorComponent {
     this.close();
   }
 
+  protected clearSelection(): void {
+    this.categoryChange.emit(null);
+  }
+
+  protected clearSelectionInline(event: Event): void {
+    event.stopPropagation();
+    this.categoryChange.emit(null);
+  }
+
   @HostListener('keydown', ['$event'])
   protected handleKeydown(event: KeyboardEvent): void {
     const cats = this.categories();

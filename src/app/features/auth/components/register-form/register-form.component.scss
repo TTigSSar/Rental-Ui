@@ -19,12 +19,6 @@
   gap: var(--ui-space-4);
 }
 
-.auth-form__field--row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--ui-space-16);
-}
-
 .auth-form__submit-button.p-button {
   width: 100%;
   margin-top: var(--ui-space-16);
@@ -89,8 +83,3 @@
   }
 }
 
-@media (max-width: 560px) {
-  .auth-form__field--row {
-    grid-template-columns: 1fr;
-  }
-}

@@ -13,7 +13,6 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--ui-color-surface);
   border-bottom: 1px solid var(--ui-color-border);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.6) inset,
@@ -22,9 +21,19 @@
     box-shadow 180ms ease,
     border-color 180ms ease,
     background-color 180ms ease;
+  background: rgba(255, 255, 255, 0.94);
+}
+
+/* backdrop-filter on ::before so position:fixed children (filter sheet) are
+   not trapped inside a new containing block */
+.app-shell__header-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   backdrop-filter: saturate(140%) blur(6px);
   -webkit-backdrop-filter: saturate(140%) blur(6px);
-  background: rgba(255, 255, 255, 0.94);
+  z-index: -1;
+  pointer-events: none;
 }
 
 .app-shell__header-wrap--scrolled {
@@ -178,6 +187,10 @@
   gap: var(--ui-space-8);
 }
 
+.app-shell__lang-wrap {
+  position: relative;
+}
+
 .app-shell__btn {
   display: inline-flex;
   align-items: center;
@@ -253,11 +266,11 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 2.375rem;
+  height: 2.125rem;
   padding: 0 0.75rem;
   border: 1px solid var(--ui-color-border);
   border-radius: 999px;
-  background: var(--ui-color-surface);
+  background: var(--ui-color-surface-muted);
   color: var(--ui-color-text-primary);
   font: inherit;
   font-size: 0.8125rem;
@@ -271,7 +284,7 @@
 }
 
 .app-shell__language-trigger:hover {
-  background: var(--ui-color-surface-muted);
+  background: var(--ui-color-border);
   border-color: var(--ui-color-border-strong);
 }
 
@@ -604,6 +617,35 @@
   background: var(--ui-color-background);
 }
 
+/* ── Browse page: search bar in header center slot ── */
+.app-shell__browse-search {
+  min-width: 0;
+  max-width: 38rem;
+  width: 100%;
+  justify-self: center;
+  align-self: center;
+}
+
+@media (max-width: 960px) {
+  /* On mobile browse: 3-column header so brand | search | trailing all fit */
+  .app-shell--browse .app-shell__header-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--ui-space-10);
+  }
+
+  /* Hide brand text on mobile browse — icon alone saves space for the search */
+  .app-shell--browse .app-shell__brand-text {
+    display: none;
+  }
+}
+
+/* ── Details page: hide global header on mobile only ─── */
+@media (max-width: 960px) {
+  .app-shell--details .app-shell__header-wrap {
+    display: none;
+  }
+}
+
 /* —— Mobile bottom navigation (hidden on desktop) —— */
 .app-bottom-nav {
   display: none;
@@ -617,11 +659,22 @@
   }
 
   .app-shell__nav--primary,
-  .app-shell__guest-actions,
   .app-shell__user-menu,
   .app-shell__add-listing,
   .app-shell__auth-skeleton {
     display: none;
+  }
+
+  /* Hide auth buttons and notification on browse — header is already full with the search bar */
+  .app-shell--browse .app-shell__guest-actions,
+  .app-shell--browse .app-shell__notif {
+    display: none;
+  }
+
+  /* Compact auth buttons on mobile */
+  .app-shell__guest-actions .app-shell__btn {
+    padding: 0.4375rem 0.75rem;
+    font-size: 0.8125rem;
   }
 
   .app-shell__brand {
@@ -630,25 +683,6 @@
 
   .app-shell__trailing {
     justify-self: end;
-  }
-
-  /* Language trigger: icon-only rounded square on mobile */
-  .app-shell__language-trigger {
-    width: 2.5rem;
-    height: 2.5rem;
-    padding: 0;
-    border-radius: 12px;
-    justify-content: center;
-    gap: 0;
-  }
-
-  .app-shell__language-code,
-  .app-shell__language-chevron {
-    display: none;
-  }
-
-  .app-shell__content--with-bottom-nav {
-    padding-bottom: var(--app-bottom-nav-safe-space, 0px);
   }
 
   .app-bottom-nav {
@@ -666,12 +700,17 @@
     box-shadow: 0 -4px 16px rgba(16, 18, 30, 0.06);
   }
 
-  .app-bottom-nav:not(.app-bottom-nav--admin) {
+  .app-bottom-nav:not(.app-bottom-nav--admin):not(.app-bottom-nav--guest) {
     grid-template-columns: repeat(4, 1fr);
     align-items: center;
   }
 
   .app-bottom-nav--admin {
+    grid-template-columns: repeat(3, 1fr);
+    align-items: center;
+  }
+
+  .app-bottom-nav--guest {
     grid-template-columns: repeat(3, 1fr);
     align-items: center;
   }

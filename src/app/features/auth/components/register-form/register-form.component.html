@@ -8,26 +8,24 @@
 }
 
 <form class="auth-form" [formGroup]="registerForm" (ngSubmit)="submit()">
-  <div class="auth-form__field--row">
-    <app-ui-input
-      type="text"
-      formControlName="firstName"
-      [label]="'auth.form.firstName' | translate"
-      [placeholder]="'auth.form.firstNamePlaceholder' | translate"
-      autocomplete="given-name"
-      [disabled]="(isLoading$ | async) ?? false"
-      [errorMessage]="hasError('firstName', 'required') ? ('auth.validation.firstNameRequired' | translate) : null"
-    />
-    <app-ui-input
-      type="text"
-      formControlName="lastName"
-      [label]="'auth.form.lastName' | translate"
-      [placeholder]="'auth.form.lastNamePlaceholder' | translate"
-      autocomplete="family-name"
-      [disabled]="(isLoading$ | async) ?? false"
-      [errorMessage]="hasError('lastName', 'required') ? ('auth.validation.lastNameRequired' | translate) : null"
-    />
-  </div>
+  <app-ui-input
+    type="text"
+    formControlName="firstName"
+    [label]="'auth.form.firstName' | translate"
+    [placeholder]="'auth.form.firstNamePlaceholder' | translate"
+    autocomplete="given-name"
+    [disabled]="(isLoading$ | async) ?? false"
+    [errorMessage]="hasError('firstName', 'required') ? ('auth.validation.firstNameRequired' | translate) : null"
+  />
+  <app-ui-input
+    type="text"
+    formControlName="lastName"
+    [label]="'auth.form.lastName' | translate"
+    [placeholder]="'auth.form.lastNamePlaceholder' | translate"
+    autocomplete="family-name"
+    [disabled]="(isLoading$ | async) ?? false"
+    [errorMessage]="hasError('lastName', 'required') ? ('auth.validation.lastNameRequired' | translate) : null"
+  />
 
   <app-ui-input
     type="tel"

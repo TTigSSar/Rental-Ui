@@ -1,87 +1,283 @@
 .booking-calendar {
   display: flex;
   flex-direction: column;
-  gap: var(--ui-space-16);
-  /* stretch instead of flex-start so the datepicker is forced to the
-     container width rather than rendering at its own intrinsic size. */
   align-items: stretch;
   min-width: 0;
   width: 100%;
 }
 
-.booking-calendar__summary {
-  min-height: 1.5rem;
+/* ── Card wrapper ─────────────────────────────────────────────────── */
+.booking-calendar__card {
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: 16px;
+  overflow: hidden;
 }
 
-.booking-calendar__total {
-  font-weight: 700;
-  color: var(--ui-color-primary-strong);
-}
-
-.booking-calendar__hint {
-  font-size: var(--ui-font-size-caption);
-  color: var(--ui-color-text-secondary);
-}
-
-/* ── Root datepicker wrapper ────────────────────────────────────────────────
-   PrimeNG v21 sets display:inline-flex on .p-datepicker, which sizes the
-   element to its content rather than filling the parent flex container.
-   Switching to block + width:100% makes it a proper full-width element.      */
+/* ── Force full-width datepicker ─────────────────────────────────── */
 :host ::ng-deep .p-datepicker {
   display: block;
   width: 100%;
   min-width: 0;
 }
 
-/* ── Inline panel (the root cause of right-side blank space) ────────────────
-   When [inline]="true", PrimeNG adds .p-datepicker-panel-inline which sets
-   display:inline-block and width:auto. The panel then renders at its
-   intrinsic calendar width (~280–320px) even when the card is wider,
-   creating a blank gutter on the right side.
-   Forcing block + width:100% makes the panel fill the datepicker wrapper.    */
 :host ::ng-deep .p-datepicker-panel-inline {
   display: block !important;
   width: 100% !important;
-  overflow-x: hidden;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 16px 16px 12px;
 }
 
-/* ── Calendar container and month column ────────────────────────────────────
-   .p-datepicker-calendar-container is display:flex — it fills a block parent
-   automatically, but an explicit width:100% guards against edge cases.
-   .p-datepicker-calendar already has flex:1 1 auto so it fills the container. */
 :host ::ng-deep .p-datepicker-calendar-container {
   width: 100%;
 }
 
-/* ── Day view table ─────────────────────────────────────────────────────────
-   table-layout:fixed distributes the 8 columns (7 days + week number)
-   evenly across the full available width instead of sizing by content.        */
 :host ::ng-deep .p-datepicker-day-view {
   width: 100%;
   table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0 2px;
 }
 
-/* ── Narrow phones (≤600px): shrink date cells ──────────────────────────────
-   Uses PrimeNG v21 Aura design tokens first, then targets rendered elements
-   directly as a fallback for builds where tokens are not applied.             */
+/* ── Header ──────────────────────────────────────────────────────── */
+:host ::ng-deep .p-datepicker-header {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0 14px !important;
+  background: transparent !important;
+  border-bottom: none !important;
+}
+
+:host ::ng-deep .p-datepicker-title {
+  flex: 1;
+  display: flex !important;
+  align-items: center;
+  justify-content: center !important;
+  gap: 6px;
+  text-align: center;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--ui-color-text-primary);
+  letter-spacing: -0.01em;
+}
+
+:host ::ng-deep .p-datepicker-select-month,
+:host ::ng-deep .p-datepicker-select-year {
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
+  color: var(--ui-color-text-primary) !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  cursor: default;
+  pointer-events: none;
+}
+
+:host ::ng-deep .p-datepicker-prev-button,
+:host ::ng-deep .p-datepicker-next-button {
+  flex-shrink: 0;
+  min-width: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  border: 1px solid var(--ui-color-border) !important;
+  background: var(--ui-color-surface) !important;
+  color: var(--ui-color-text-secondary) !important;
+  cursor: pointer;
+  box-shadow: none !important;
+  transition: background 140ms ease;
+  padding: 0 !important;
+}
+
+:host ::ng-deep .p-datepicker-prev-button:hover,
+:host ::ng-deep .p-datepicker-next-button:hover {
+  background: var(--ui-color-surface-muted) !important;
+}
+
+/* ── Weekday header cells ─────────────────────────────────────────── */
+:host ::ng-deep .p-datepicker-weekday-cell {
+  text-align: center;
+  padding: 4px 0 8px;
+}
+
+:host ::ng-deep .p-datepicker-weekday {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--ui-color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── Day cells ────────────────────────────────────────────────────── */
+:host ::ng-deep .p-datepicker-day-cell {
+  padding: 2px 0;
+  text-align: center;
+}
+
+:host ::ng-deep .p-datepicker-day {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 36px;
+  height: 36px;
+  border-radius: 50% !important;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--ui-color-text-primary);
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+  border: none !important;
+  background: transparent;
+  position: relative;
+  z-index: 1;
+}
+
+:host ::ng-deep .p-datepicker-day:hover:not(.p-datepicker-day-selected):not(.p-datepicker-day-selected-range) {
+  background: var(--ui-color-surface-muted) !important;
+}
+
+/* Disabled days */
+:host ::ng-deep .p-disabled {
+  color: var(--ui-color-text-muted) !important;
+  cursor: default !important;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* Today – subtle dot indicator */
+:host ::ng-deep .p-datepicker-day-today {
+  font-weight: 700;
+}
+
+/* ── Selected (range start / end) – solid orange circle ──────────── */
+:host ::ng-deep .p-datepicker-day.p-datepicker-day-selected {
+  background: var(--ui-color-primary) !important;
+  color: #fff !important;
+  border-radius: 50% !important;
+  font-weight: 600;
+}
+
+/* ── Range middle – transparent span, orange text ────────────────── */
+:host ::ng-deep .p-datepicker-day.p-datepicker-day-selected-range {
+  background: transparent !important;
+  color: var(--ui-color-primary) !important;
+  border-radius: 0 !important;
+  font-weight: 500;
+}
+
+/* ── Continuous band via td::before (rounded ends) ───────────────── */
+
+/* Enable absolute positioning for pseudo-elements */
+:host ::ng-deep td.p-datepicker-day-cell:has(.p-datepicker-day-selected-range),
+:host ::ng-deep td.p-datepicker-day-cell:has(.p-datepicker-day-selected):has(+ td .p-datepicker-day-selected-range),
+:host ::ng-deep td.p-datepicker-day-cell:has(.p-datepicker-day-selected-range) + td.p-datepicker-day-cell:has(.p-datepicker-day-selected) {
+  position: relative;
+}
+
+/* stylelint-disable */
+
+/* Middle cells – full-width peach band, no rounding */
+:host ::ng-deep td.p-datepicker-day-cell:has(.p-datepicker-day-selected-range)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgb(255 96 8 / 12%);
+  border-radius: 0;
+  z-index: 0;
+}
+
+/* :host ::ng-deep td.p-datepicker-day-cell:has(.p-datepicker-day-selected) + td.p-datepicker-day-cell:has(.p-datepicker-day-selected-range)::before {
+  border-radius: 20px 0 0 20px;
+}
+
+:host ::ng-deep td.p-datepicker-day-cell:has(.p-datepicker-day-selected-range):has(+ td .p-datepicker-day-selected)::before {
+  border-radius: 0 20px 20px 0;
+} */
+
+:host ::ng-deep td.p-datepicker-day-cell:has(.p-datepicker-day-selected) + td.p-datepicker-day-cell:has(.p-datepicker-day-selected-range):has(+ td .p-datepicker-day-selected)::before {
+  border-radius: 20px;
+}
+
+:host ::ng-deep td.p-datepicker-day-cell:has(.p-datepicker-day-selected):has(+ td .p-datepicker-day-selected-range)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  right: 0;
+  background: rgb(255 96 8 / 12%);
+  z-index: 0;
+}
+
+:host ::ng-deep td.p-datepicker-day-cell:has(.p-datepicker-day-selected-range) + td.p-datepicker-day-cell:has(.p-datepicker-day-selected)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 50%;
+  background: rgb(255 96 8 / 12%);
+  z-index: 0;
+}
+
+/* stylelint-enable */
+
+/* ── PICKUP / RETURN date summary boxes ──────────────────────────── */
+.booking-calendar__dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 12px;
+  border-top: 1px solid var(--ui-color-border);
+}
+
+.booking-calendar__date-box {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--ui-color-border);
+  border-radius: 10px;
+}
+
+.booking-calendar__date-box--active {
+  border-color: var(--ui-color-primary);
+  background: rgba(255, 96, 8, 0.03);
+}
+
+.booking-calendar__date-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ui-color-text-muted);
+}
+
+.booking-calendar__date-value {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--ui-color-text-primary);
+}
+
+/* ── Narrow phones ────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   :host {
     --p-datepicker-date-width: 2rem;
     --p-datepicker-date-height: 2rem;
-    --p-datepicker-date-padding: 0;
   }
 
-  :host ::ng-deep .p-datepicker-day-cell,
-  :host ::ng-deep .p-datepicker-weeknumber {
-    padding: 1px !important;
+  :host ::ng-deep .p-datepicker-day-cell {
+    padding: 0 !important;
   }
 
-  :host ::ng-deep .p-datepicker-day-cell > span,
-  :host ::ng-deep .p-datepicker-day > span,
-  :host ::ng-deep .p-datepicker-weeknumber > span {
+  :host ::ng-deep .p-datepicker-day {
     width: 2rem !important;
     height: 2rem !important;
-    min-width: unset !important;
-    font-size: 0.78rem;
+    font-size: 0.78rem !important;
   }
 }

@@ -21,6 +21,9 @@ import {
   selectAuthUser,
   selectIsAuthenticated,
 } from './features/auth/store/auth.selectors';
+import { AuthDialogComponent } from './features/auth/components/auth-dialog/auth-dialog.component';
+import { ListingsFiltersComponent } from './features/listings/components/listings-filters/listings-filters.component';
+import type { ListingsFilter } from './features/listings/models/listings-filter.model';
 
 interface NavItem {
   readonly path: string;
@@ -29,10 +32,15 @@ interface NavItem {
 }
 
 interface LanguageOption {
-  readonly code: 'en' | 'ru' | 'hy';
+  readonly code: 'en' | 'hy' | 'ru';
   readonly label: string;
-  readonly shortLabel: string;
 }
+
+const LANGUAGES: readonly LanguageOption[] = [
+  { code: 'en', label: 'English' },
+  { code: 'hy', label: 'Հայերեն' },
+  { code: 'ru', label: 'Русский' },
+];
 
 interface AppShellViewModel {
   readonly primaryNav: NavItem[];
@@ -52,10 +60,16 @@ function isListingDetailsUrl(url: string): boolean {
   return /^\/listings\/(?!create$)[^/]+$/.test(path);
 }
 
+function isListingsBrowseUrl(url: string): boolean {
+  return url.split('?')[0] === '/listings';
+}
+
 @Component({
   selector: 'app-root',
   imports: [
     AsyncPipe,
+    AuthDialogComponent,
+    ListingsFiltersComponent,
     RouterLink,
     RouterLinkActive,
     RouterOutlet,
@@ -70,21 +84,20 @@ export class App {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
-  protected readonly availableLanguages: readonly LanguageOption[] = [
-    { code: 'en', label: 'English', shortLabel: 'EN' },
-    { code: 'ru', label: 'Русский', shortLabel: 'RU' },
-    { code: 'hy', label: 'Հայերեն', shortLabel: 'HY' },
-  ];
+  protected readonly notifPanelOpen   = signal(false);
+  protected readonly unreadNotifCount  = signal(0);
+  protected readonly scrolled          = signal(false);
+  protected readonly showFooter        = signal(!isListingDetailsUrl(this.router.url));
+  protected readonly isBrowsePage      = signal(isListingsBrowseUrl(this.router.url));
+  protected readonly isDetailsPage     = signal(isListingDetailsUrl(this.router.url));
+  protected readonly showAuthDialog    = signal(false);
+  protected readonly authDialogMode    = signal<'login' | 'register'>('login');
+  protected readonly langMenuOpen      = signal(false);
+  protected readonly languages         = LANGUAGES;
+  protected readonly currentLang       = signal<LanguageOption>(this.resolveCurrentLang());
 
-  protected readonly languageMenuOpen = signal(false);
-  protected readonly notifPanelOpen = signal(false);
-  protected readonly unreadNotifCount = signal(0);
-  protected readonly scrolled = signal(false);
-  protected readonly currentLang = signal<LanguageOption>(this.availableLanguages[0]);
-  protected readonly showFooter = signal(!isListingDetailsUrl(this.router.url));
-
-  private readonly languageMenuHost = viewChild<ElementRef<HTMLElement>>('languageMenuHost');
-  private readonly notifMenuHost = viewChild<ElementRef<HTMLElement>>('notifMenuHost');
+  private readonly notifMenuHost  = viewChild<ElementRef<HTMLElement>>('notifMenuHost');
+  private readonly langMenuHost   = viewChild<ElementRef<HTMLElement>>('langMenuHost');
 
   protected readonly vm$ = combineLatest({
     isAuthenticated: this.store.select(selectIsAuthenticated),
@@ -153,7 +166,6 @@ export class App {
         takeUntilDestroyed(),
       )
       .subscribe(() => {
-        this.languageMenuOpen.set(false);
         this.notifPanelOpen.set(false);
       });
 
@@ -163,27 +175,44 @@ export class App {
         takeUntilDestroyed(),
       )
       .subscribe((event) => {
-        this.showFooter.set(!isListingDetailsUrl(event.urlAfterRedirects));
+        const url = event.urlAfterRedirects;
+        this.showFooter.set(!isListingDetailsUrl(url));
+        this.isBrowsePage.set(isListingsBrowseUrl(url));
+        this.isDetailsPage.set(isListingDetailsUrl(url));
       });
   }
 
-  protected toggleLanguageMenu(): void {
-    this.languageMenuOpen.update((open) => !open);
+  protected openAuthDialog(mode: 'login' | 'register'): void {
+    this.authDialogMode.set(mode);
+    this.showAuthDialog.set(true);
+  }
+
+  protected onBrowseFiltersChanged(filters: ListingsFilter): void {
+    void this.router.navigate(['/listings'], {
+      queryParams: {
+        q: filters.query || null,
+        city: filters.city || null,
+        categoryId: filters.categoryId || null,
+        minPrice: filters.minPrice ?? null,
+        maxPrice: filters.maxPrice ?? null,
+      },
+      queryParamsHandling: 'merge',
+    });
   }
 
   protected toggleNotifPanel(): void {
     this.notifPanelOpen.update((open) => !open);
   }
 
+  protected toggleLangMenu(): void {
+    this.langMenuOpen.update((open) => !open);
+  }
+
   protected selectLanguage(option: LanguageOption): void {
     this.currentLang.set(option);
     this.translate.use(option.code);
-    try {
-      localStorage.setItem(LANGUAGE_STORAGE_KEY, option.code);
-    } catch {
-      /* localStorage may be unavailable (SSR / privacy mode); safe to ignore. */
-    }
-    this.languageMenuOpen.set(false);
+    try { localStorage.setItem(LANGUAGE_STORAGE_KEY, option.code); } catch { /* ignore */ }
+    this.langMenuOpen.set(false);
   }
 
   @HostListener('document:click', ['$event'])
@@ -191,21 +220,14 @@ export class App {
     const target = event.target as Node | null;
     if (target === null) return;
 
-    const langHost = this.languageMenuHost()?.nativeElement;
-    if (langHost !== undefined && !langHost.contains(target)) {
-      this.languageMenuOpen.set(false);
-    }
-
     const notifHost = this.notifMenuHost()?.nativeElement;
     if (notifHost !== undefined && !notifHost.contains(target)) {
       this.notifPanelOpen.set(false);
     }
-  }
 
-  @HostListener('document:keydown', ['$event'])
-  protected onDocumentKeydown(event: KeyboardEvent): void {
-    if (event.key === 'Escape') {
-      this.languageMenuOpen.set(false);
+    const langHost = this.langMenuHost()?.nativeElement;
+    if (langHost !== undefined && !langHost.contains(target)) {
+      this.langMenuOpen.set(false);
     }
   }
 
@@ -217,21 +239,14 @@ export class App {
     }
   }
 
-  private hydrateLanguage(): void {
+  private resolveCurrentLang(): LanguageOption {
     let stored: string | null = null;
-    try {
-      stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-    } catch {
-      stored = null;
-    }
+    try { stored = localStorage.getItem(LANGUAGE_STORAGE_KEY); } catch { /* ignore */ }
+    return LANGUAGES.find((l) => l.code === stored) ?? LANGUAGES[0];
+  }
 
-    const match =
-      this.availableLanguages.find((lang) => lang.code === stored) ??
-      this.availableLanguages[0];
-
-    this.currentLang.set(match);
-    if (stored !== null && stored === match.code) {
-      this.translate.use(match.code);
-    }
+  private hydrateLanguage(): void {
+    const lang = this.resolveCurrentLang();
+    this.translate.use(lang.code);
   }
 }

@@ -1,4 +1,4 @@
-import { AsyncPipe } from '@angular/common';
+import { Location } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,7 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -81,8 +81,23 @@ const selectListingsPageViewModel = createSelector(
   },
 );
 
+type SortBy = '' | 'price_asc' | 'price_desc' | 'rating_desc' | 'newest';
+
+interface SortOption {
+  readonly value: SortBy;
+  readonly labelKey: string;
+  readonly icon: string;
+}
+
+const SORT_OPTIONS: readonly SortOption[] = [
+  { value: 'price_asc',   labelKey: 'listings.page.sortLowestPrice',   icon: 'pi pi-tag' },
+  { value: 'price_desc',  labelKey: 'listings.page.sortHighestPrice',  icon: 'pi pi-tag' },
+  { value: 'rating_desc', labelKey: 'listings.page.sortHighestRated',  icon: 'pi pi-star' },
+  { value: 'newest',      labelKey: 'listings.page.sortNewest',        icon: 'pi pi-clock' },
+];
+
 function applySort(items: ListingPreview[], sortBy: string): ListingPreview[] {
-  if (sortBy === 'price_asc') return [...items].sort((a, b) => a.pricePerDay - b.pricePerDay);
+  if (sortBy === 'price_asc')  return [...items].sort((a, b) => a.pricePerDay - b.pricePerDay);
   if (sortBy === 'price_desc') return [...items].sort((a, b) => b.pricePerDay - a.pricePerDay);
   return items;
 }
@@ -91,7 +106,6 @@ function applySort(items: ListingPreview[], sortBy: string): ListingPreview[] {
   selector: 'app-listings-page',
   standalone: true,
   imports: [
-    AsyncPipe,
     AuthDialogComponent,
     ButtonModule,
     EmptyStateComponent,
@@ -109,20 +123,45 @@ export class ListingsPageComponent {
   private readonly store = inject(Store);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
 
   protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
   protected readonly showAuthDialog = signal(false);
-  protected readonly sortBy = signal<'' | 'price_asc' | 'price_desc'>('');
+  protected readonly sortBy = signal<SortBy>('');
+  protected readonly sortMenuOpen = signal(false);
+  protected readonly sortOptions = SORT_OPTIONS;
+
+  protected readonly activeSortOption = computed(() =>
+    SORT_OPTIONS.find(o => o.value === this.sortBy()) ?? null
+  );
 
   private readonly itemsSignal = this.store.selectSignal(selectListingItems);
   private readonly hasMoreSignal = this.store.selectSignal(selectListingsHasMore);
   private readonly filtersSignal = this.store.selectSignal(selectListingsFilters);
-  private readonly categoriesSignal = this.store.selectSignal(selectListingCategories);
+  protected readonly categoriesSignal = this.store.selectSignal(selectListingCategories);
+
+  protected readonly activeCategoryId = computed(() => this.filtersSignal().categoryId);
 
   protected readonly activeCategoryName = computed(() => {
     const id = this.filtersSignal().categoryId;
     if (!id) return null;
     return this.categoriesSignal().find((c) => c.id === id)?.name ?? null;
+  });
+
+  protected readonly activeFilterChips = computed(() => {
+    const f = this.filtersSignal();
+    const chips: { key: string; label: string }[] = [];
+    // categoryId is shown via the category chips row — not duplicated here
+    if (f.city?.trim()) {
+      chips.push({ key: 'city', label: f.city.trim() });
+    }
+    if (f.minPrice != null) {
+      chips.push({ key: 'minPrice', label: `$${f.minPrice}+` });
+    }
+    if (f.maxPrice != null) {
+      chips.push({ key: 'maxPrice', label: `≤ $${f.maxPrice}` });
+    }
+    return chips;
   });
 
   protected readonly resultCountLabel = computed(() => {
@@ -137,6 +176,8 @@ export class ListingsPageComponent {
   ]).pipe(
     map(([vm, sort]) => ({ ...vm, items: applySort(vm.items, sort) })),
   );
+
+  protected readonly vm = toSignal(this.viewModel$);
 
   constructor() {
     this.route.queryParamMap
@@ -171,12 +212,47 @@ export class ListingsPageComponent {
     void this.router.navigate([], { relativeTo: this.route, queryParams: {} });
   }
 
-  protected onSortChange(event: Event): void {
-    this.sortBy.set((event.target as HTMLSelectElement).value as '' | 'price_asc' | 'price_desc');
+  protected toggleSortMenu(): void {
+    this.sortMenuOpen.update(v => !v);
+  }
+
+  protected selectSort(value: SortBy): void {
+    this.sortBy.set(this.sortBy() === value ? '' : value);
+    this.sortMenuOpen.set(false);
   }
 
   protected skeletonCount(vm: ListingsPageViewModel): number {
     return Math.min(Math.max(vm.pageSize, 1), 12);
+  }
+
+  protected goBack(): void {
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      void this.router.navigate(['/']);
+    }
+  }
+
+  protected selectCategory(id: string | null): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { categoryId: id },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  protected removeFilterChip(key: string): void {
+    const paramKey = key === 'categoryId' ? 'categoryId'
+      : key === 'city' ? 'city'
+      : key === 'minPrice' ? 'minPrice'
+      : key === 'maxPrice' ? 'maxPrice'
+      : null;
+    if (!paramKey) return;
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { [paramKey]: null },
+      queryParamsHandling: 'merge',
+    });
   }
 
   private parseFiltersFromParams(params: ParamMap): ListingsFilter {

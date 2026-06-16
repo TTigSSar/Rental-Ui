@@ -139,9 +139,9 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(AuthActions.loadCurrentUserSuccess),
         tap(() => {
-          if (this.router.url.startsWith('/auth/')) {
-            const returnUrl = this.authRedirect.consume();
-            void this.router.navigateByUrl(returnUrl ?? '/listings');
+          const returnUrl = this.authRedirect.consume();
+          if (returnUrl !== null) {
+            void this.router.navigateByUrl(returnUrl);
           }
         }),
       ),

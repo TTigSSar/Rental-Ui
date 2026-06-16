@@ -33,6 +33,7 @@
   border-color: var(--ui-color-primary);
 }
 
+
 .cs-trigger--open {
   box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.14);
   outline: none;
@@ -76,6 +77,26 @@
 
 .cs-trigger--open .cs-trigger__chevron {
   transform: rotate(180deg);
+}
+
+/* ── Clear (×) inline span — sits between text and chevron ── */
+.cs-clear-btn {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-secondary);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 0.5rem;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.cs-clear-btn:hover {
+  background: var(--ui-color-border-strong);
+  color: var(--ui-color-text-primary);
 }
 
 /* ── Backdrop (closes panel on outside click) ─────────────── */

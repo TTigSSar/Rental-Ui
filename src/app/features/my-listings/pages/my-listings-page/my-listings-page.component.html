@@ -3,13 +3,16 @@
     [title]="'myListings.page.title' | translate"
     [subtitle]="'myListings.page.subtitle' | translate"
   >
-    <p-button
-      actions
-      type="button"
-      icon="pi pi-plus"
-      [label]="'myListings.actions.listToy' | translate"
-      [routerLink]="['/listings/create']"
-    />
+    @if (viewModel().items.length > 0) {
+      <p-button
+        actions
+        type="button"
+        icon="pi pi-plus"
+        [label]="'myListings.actions.listToy' | translate"
+        [routerLink]="['/listings/create']"
+        styleClass="my-listings-page__add-btn"
+      />
+    }
   </app-ui-page-header>
 
   @if (viewModel().hasError && viewModel().error) {

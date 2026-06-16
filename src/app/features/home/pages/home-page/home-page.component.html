@@ -1,20 +1,11 @@
 @if (viewModel$ | async; as vm) {
   <div class="home">
-    <!-- Hero banner -->
+    <!-- Hero -->
     <section class="home__hero">
-      <img
-        class="home__hero-image"
-        src="/assets/home/hero-banner.jpg"
-        [alt]="'home.hero.imageAlt' | translate"
-        fetchpriority="high"
-      />
-      <div class="home__hero-overlay" aria-hidden="true"></div>
       <div class="home__hero-content">
         <div class="home__hero-text">
           <h1 class="home__hero-title">{{ 'home.hero.title' | translate }}</h1>
-          <p class="home__hero-subtitle">
-            {{ 'home.hero.subtitle' | translate }}
-          </p>
+          <p class="home__hero-subtitle">{{ 'home.hero.subtitle' | translate }}</p>
         </div>
         <form
           class="home__hero-search"
@@ -30,18 +21,14 @@
             [placeholder]="'home.search.placeholder' | translate"
             [attr.aria-label]="'home.search.ariaLabel' | translate"
           />
-          <button type="submit" class="home__hero-search-submit">
-            <i class="pi pi-arrow-right home__hero-search-submit-icon" aria-hidden="true"></i>
-            <span class="home__hero-search-submit-label">{{ 'home.search.submit' | translate }}</span>
+          <button
+            type="submit"
+            class="home__hero-search-filter"
+            [attr.aria-label]="'home.search.filterAria' | translate"
+          >
+            <i class="pi pi-chevron-right" aria-hidden="true"></i>
           </button>
         </form>
-        <button
-          type="button"
-          class="home__hero-cta"
-          (click)="onExploreCtaClick()"
-        >
-          {{ 'home.hero.cta' | translate }}
-        </button>
       </div>
     </section>
 
@@ -92,72 +79,7 @@
         }
       </section>
 
-      <!-- Top products section -->
-      <section class="home__section" aria-labelledby="home-products-heading">
-        <app-ui-section-header
-          [title]="'home.topProductsLabel' | translate"
-          headingId="home-products-heading"
-        >
-          <a actions [routerLink]="['/listings']" class="home__section-action">
-            {{ 'home.seeAll' | translate }}
-          </a>
-        </app-ui-section-header>
-
-        @if (vm.featuredError) {
-          <div class="home__error" role="alert">
-            <app-ui-empty-state
-              icon="pi pi-exclamation-triangle"
-              [title]="'home.featured.errorTitle' | translate"
-              [description]="vm.featuredError"
-            />
-            <button
-              type="button"
-              class="home__error-retry"
-              (click)="retryFeatured()"
-            >
-              {{ 'listings.common.retry' | translate }}
-            </button>
-          </div>
-        } @else if (vm.showFeaturedSkeleton) {
-          <app-ui-loading-skeleton class="home__skeleton" [items]="4" />
-        } @else if (vm.showFeaturedEmpty) {
-          <app-ui-empty-state
-            [title]="'home.featured.emptyTitle' | translate"
-            [description]="'home.featured.empty' | translate"
-          />
-        } @else {
-          <div class="home__carousel-wrapper">
-            <button
-              type="button"
-              class="home__carousel-nav home__carousel-nav--prev"
-              [attr.aria-label]="'home.featured.prevLabel' | translate"
-              (click)="scrollCarousel(productCarousel, -1)"
-            >
-              <i class="pi pi-chevron-left" aria-hidden="true"></i>
-            </button>
-            <div #productCarousel class="home__carousel home__carousel--products">
-              @for (item of vm.featured; track item.id) {
-                <app-listing-card
-                  class="home__carousel-item home__carousel-item--product"
-                  [listing]="item"
-                  [isAuthenticated]="vm.isAuthenticated"
-                  (favoriteToggled)="onFavoriteToggle($event)"
-                />
-              }
-            </div>
-            <button
-              type="button"
-              class="home__carousel-nav home__carousel-nav--next"
-              [attr.aria-label]="'home.featured.nextLabel' | translate"
-              (click)="scrollCarousel(productCarousel, 1)"
-            >
-              <i class="pi pi-chevron-right" aria-hidden="true"></i>
-            </button>
-          </div>
-        }
-      </section>
-
-      <!-- Toy sections from backend (Popular Toys, Most Recent, etc.) -->
+      <!-- Toy sections from backend (Most Recent, Popular, etc.) -->
       @if (vm.sectionsLoading) {
         <section class="home__section">
           <app-ui-loading-skeleton class="home__skeleton" [items]="4" />

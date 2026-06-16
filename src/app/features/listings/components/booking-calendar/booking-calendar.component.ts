@@ -1,12 +1,13 @@
-import { CurrencyPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   EventEmitter,
   input,
   Output,
   signal,
+  untracked,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -88,7 +89,7 @@ function countInclusiveRentalDays(start: Date, end: Date): number {
 @Component({
   selector: 'app-booking-calendar',
   standalone: true,
-  imports: [CurrencyPipe, DatePickerModule, FormsModule, TranslatePipe],
+  imports: [DatePickerModule, FormsModule, TranslatePipe],
   templateUrl: './booking-calendar.component.html',
   styleUrl: './booking-calendar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -96,6 +97,7 @@ function countInclusiveRentalDays(start: Date, end: Date): number {
 export class BookingCalendarComponent {
   readonly bookedDates = input.required<BookedDateRange[]>();
   readonly pricePerDay = input.required<number>();
+  readonly value = input<Date[] | null>(null);
 
   @Output() readonly dateRangeSelected = new EventEmitter<{
     startDate: Date | null;
@@ -109,9 +111,26 @@ export class BookingCalendarComponent {
   );
   protected readonly rangeSelection = signal<Date[] | null>(null);
 
+  constructor() {
+    effect(() => {
+      const v = this.value();
+      if (v !== null) {
+        // empty array = clear signal; non-empty = set range
+        untracked(() => this.rangeSelection.set(v.length === 0 ? null : v));
+      }
+    });
+  }
+
   readonly disabledDates = computed(() =>
     expandBookedDateRangesToDisabledDates(this.bookedDates()),
   );
+
+  protected readonly startDate = computed(() => this.rangeSelection()?.[0] ?? null);
+  protected readonly endDate = computed(() => this.rangeSelection()?.[1] ?? null);
+  protected readonly hasStartDate = computed(() => !!this.startDate());
+  protected readonly hasEndDate = computed(() => !!this.endDate());
+  protected readonly formattedStartDate = computed(() => this.formatDate(this.startDate()));
+  protected readonly formattedEndDate = computed(() => this.formatDate(this.endDate()));
 
   readonly totalPrice = computed(() => {
     const range = this.rangeSelection();
@@ -130,6 +149,13 @@ export class BookingCalendarComponent {
     }
     return rentalDays * rate;
   });
+
+  private formatDate(date: Date | null): string {
+    if (!date) return '—';
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+  }
 
   protected onRangeChange(value: Date | Date[] | null | undefined): void {
     const normalized = normalizeRangeSelection(value);

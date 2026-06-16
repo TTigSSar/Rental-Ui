@@ -2,6 +2,7 @@
 <div class="lf-bar">
   <app-ui-input
     type="search"
+    variant="filled"
     [formControl]="filterForm.controls.query"
     [placeholder]="'listings.filters.queryPlaceholder' | translate"
   />
@@ -14,11 +15,14 @@
     (click)="openSheet()"
   >
     <i class="pi pi-sliders-h" aria-hidden="true"></i>
+    @if (activeChips().length > 0) {
+      <span class="lf-bar__filter-badge" aria-hidden="true">{{ activeChips().length }}</span>
+    }
   </button>
 </div>
 
-<!-- ── Active filter chips ── -->
-@if (activeChips().length > 0) {
+<!-- ── Active filter chips (hidden when parent manages chip display) ── -->
+@if (showChips() && activeChips().length > 0) {
   <div class="lf-chips" role="list">
     @for (chip of activeChips(); track chip.key) {
       <div class="lf-chip" role="listitem">
@@ -57,17 +61,6 @@
     </div>
 
     <div class="lf-sheet__body" [formGroup]="draftForm">
-
-      <!-- City -->
-      <div class="lf-field">
-        <app-ui-input
-          type="text"
-          formControlName="city"
-          [label]="'listings.filters.city' | translate"
-          [placeholder]="'listings.filters.cityPlaceholder' | translate"
-          autocomplete="address-level2"
-        />
-      </div>
 
       <!-- Category -->
       <div class="lf-field">

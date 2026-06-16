@@ -7,73 +7,10 @@
 .fav-page {
   display: flex;
   flex-direction: column;
-  min-height: 100%;
-  background: var(--ui-color-background);
-  animation: fav-fade-in 180ms ease-out both;
-}
-
-/* ── Compact header ── */
-.fav-page__header {
-  display: flex;
-  align-items: center;
-  height: 56px;
-  padding: 0 var(--ui-space-16);
-  background: var(--ui-color-surface);
-  border-bottom: 1px solid var(--ui-color-border);
-  flex-shrink: 0;
-}
-
-.fav-page__back-btn {
-  display: grid;
-  place-items: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: var(--ui-radius-pill);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  color: var(--ui-color-text-primary);
-  flex-shrink: 0;
-  transition: background-color 140ms ease;
-
-  &:hover {
-    background: var(--ui-color-surface-muted);
-  }
-
-  &:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.45);
-  }
-
-  .pi {
-    font-size: 1rem;
-  }
-}
-
-.fav-page__title {
-  flex: 1;
-  margin: 0;
-  text-align: center;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--ui-color-text-primary);
-  letter-spacing: -0.01em;
-}
-
-/* Spacer balances the back-button width so title stays truly centred */
-.fav-page__header-spacer {
-  width: 2.5rem;
-  flex-shrink: 0;
-}
-
-/* ── Body ── */
-.fav-page__body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-16);
-  padding-top: var(--ui-space-16);
+  gap: var(--ui-space-24);
   padding-bottom: var(--ui-space-32);
-  flex: 1;
+  min-height: calc(100dvh - 4rem);
+  animation: fav-fade-in 180ms ease-out both;
 }
 
 /* ── Meta line ── */
@@ -137,7 +74,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-top: var(--ui-space-32);
 }
 
 /* ── Error ── */

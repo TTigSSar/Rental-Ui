@@ -6,6 +6,7 @@ import {
   DestroyRef,
   EventEmitter,
   inject,
+  input,
   OnDestroy,
   OnInit,
   Output,
@@ -17,7 +18,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { map, debounceTime } from 'rxjs';
+import { debounceTime } from 'rxjs';
 
 import {
   CategorySelectorComponent,
@@ -52,6 +53,9 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
 
   @Output() readonly filtersChanged = new EventEmitter<ListingsFilter>();
 
+  /** When false, the active-filter chip row is suppressed (parent renders chips instead). */
+  readonly showChips = input(true);
+
   protected readonly categories = toSignal(
     this.store.select(selectListingCategories),
     { initialValue: [] as ListingCategoryOption[] },
@@ -76,17 +80,11 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     maxPrice: this.fb.control<number | null>(null),
   });
 
-  private readonly formValues = toSignal(
-    this.filterForm.valueChanges.pipe(map(() => this.filterForm.getRawValue())),
-    { initialValue: this.filterForm.getRawValue() },
-  );
+  private readonly formValues = signal(this.filterForm.getRawValue());
 
   protected readonly activeChips = computed((): readonly ActiveChip[] => {
     const v = this.formValues();
     const chips: ActiveChip[] = [];
-    if (v.city.trim()) {
-      chips.push({ key: 'city', label: v.city.trim() });
-    }
     if (v.categoryId) {
       const cat = this.categories().find((c) => c.id === v.categoryId);
       chips.push({ key: 'categoryId', label: cat?.name ?? v.categoryId });
@@ -111,6 +109,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     this.filterForm.valueChanges
       .pipe(debounceTime(300), takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
+        this.formValues.set(this.filterForm.getRawValue());
         const filter = this.toListingsFilter();
         void this.router.navigate([], {
           relativeTo: this.route,
@@ -141,6 +140,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
           },
           { emitEvent: false },
         );
+        this.formValues.set(this.filterForm.getRawValue());
       });
   }
 

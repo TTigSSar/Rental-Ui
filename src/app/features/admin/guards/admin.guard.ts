@@ -1,4 +1,4 @@
-import { inject } from '@angular/core';
+﻿import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { filter, map, take } from 'rxjs';
@@ -23,7 +23,7 @@ export const adminGuard: CanActivateFn = () => {
   const user = store.selectSignal(selectAuthUser)();
 
   if (!isAuthenticated && !hasToken) {
-    return router.createUrlTree(['/auth/login']);
+    return router.createUrlTree(['/']);
   }
 
   if (user !== null) {
@@ -48,7 +48,7 @@ export const adminGuard: CanActivateFn = () => {
         }
 
         if (authError !== null) {
-          return router.createUrlTree(['/auth/login']);
+          return router.createUrlTree(['/']);
         }
 
         return router.createUrlTree(['/listings']);
@@ -56,5 +56,5 @@ export const adminGuard: CanActivateFn = () => {
     );
   }
 
-  return router.createUrlTree(['/auth/login']);
+  return router.createUrlTree(['/']);
 };

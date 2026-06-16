@@ -40,6 +40,7 @@ export class AuthDialogComponent {
   @Output() readonly closed = new EventEmitter<void>();
 
   readonly visible = input.required<boolean>();
+  readonly mode = input<AuthMode>('login');
 
   private readonly store = inject(Store);
   private readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
@@ -47,10 +48,10 @@ export class AuthDialogComponent {
   protected readonly activeMode = signal<AuthMode>('login');
 
   constructor() {
-    // Reset to login mode and clear stale errors whenever the dialog opens.
+    // Reset to requested mode and clear stale errors whenever the dialog opens.
     effect(() => {
       if (this.visible()) {
-        this.activeMode.set('login');
+        this.activeMode.set(this.mode());
         this.store.dispatch(AuthActions.clearAuthError());
       }
     });

@@ -13,37 +13,54 @@
 
 /* ── Filter icon button ─────────────────────────────────── */
 .lf-bar__filter-btn {
+  position: relative;
   flex-shrink: 0;
   width: 2.75rem;
   height: 2.75rem;
-  border: 1.5px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-input);
-  background: var(--ui-color-surface);
+  border: none;
+  border-radius: 14px;
+  background: var(--ui-color-surface-muted);
   color: var(--ui-color-text-secondary);
   cursor: pointer;
   display: grid;
   place-items: center;
   font-size: 1rem;
   transition:
-    border-color 120ms ease,
     background-color 120ms ease,
     color 120ms ease;
 }
 
+.lf-bar__filter-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 3px;
+  border-radius: 50%;
+  background: var(--color-text-secondary);
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1.125rem;
+  text-align: center;
+  border: 2px solid var(--ui-color-surface);
+  pointer-events: none;
+  z-index: 1;
+}
+
 .lf-bar__filter-btn:hover {
-  border-color: var(--ui-color-border-strong);
+  background: var(--ui-color-border);
   color: var(--ui-color-text-primary);
 }
 
 .lf-bar__filter-btn--active {
-  border-color: var(--ui-color-primary);
   background: var(--ui-color-primary);
   color: var(--ui-color-on-primary);
 }
 
 .lf-bar__filter-btn--active:hover {
   background: var(--ui-color-primary-strong);
-  border-color: var(--ui-color-primary-strong);
 }
 
 /* ── Active filter chips ─────────────────────────────────── */
@@ -142,6 +159,7 @@
     transform: translate(-50%, -50%);
     width: min(480px, 90vw);
     border-radius: var(--ui-radius-lg);
+    overflow: hidden;
     max-height: 85dvh;
     animation: lf-modal-in 200ms ease-out;
   }

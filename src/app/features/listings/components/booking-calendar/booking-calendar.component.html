@@ -1,31 +1,31 @@
 <div class="booking-calendar">
-  <p-datepicker
-    inputId="booking-calendar-range"
-    selectionMode="range"
-    [inline]="true"
-    [showWeek]="true"
-    [minDate]="today"
-    [disabledDates]="disabledDates()"
-    [ngModel]="rangeSelection()"
-    (ngModelChange)="onRangeChange($event)"
-    [attr.aria-label]="'listings.booking.calendarLabel' | translate"
-  />
+  <div class="booking-calendar__card">
+    <p-datepicker
+      inputId="booking-calendar-range"
+      selectionMode="range"
+      [inline]="true"
+      [minDate]="today"
+      [disabledDates]="disabledDates()"
+      [ngModel]="rangeSelection()"
+      (ngModelChange)="onRangeChange($event)"
+      [attr.aria-label]="'listings.booking.calendarLabel' | translate"
+    />
 
-  <div class="booking-calendar__summary" aria-live="polite">
-    @if (totalPrice() !== null) {
-      <p class="booking-calendar__total">
-        {{
-          'listings.booking.totalPrice'
-            | translate
-              : {
-                  amount: (totalPrice()! | currency),
-                }
-        }}
-      </p>
-    } @else {
-      <p class="booking-calendar__hint">
-        {{ 'listings.booking.selectRangeHint' | translate }}
-      </p>
-    }
+    <div class="booking-calendar__dates" aria-live="polite">
+      <div
+        class="booking-calendar__date-box"
+        [class.booking-calendar__date-box--active]="hasStartDate()"
+      >
+        <span class="booking-calendar__date-label">{{ 'listings.booking.pickup' | translate }}</span>
+        <span class="booking-calendar__date-value">{{ formattedStartDate() }}</span>
+      </div>
+      <div
+        class="booking-calendar__date-box"
+        [class.booking-calendar__date-box--active]="hasEndDate()"
+      >
+        <span class="booking-calendar__date-label">{{ 'listings.booking.return' | translate }}</span>
+        <span class="booking-calendar__date-value">{{ formattedEndDate() }}</span>
+      </div>
+    </div>
   </div>
 </div>

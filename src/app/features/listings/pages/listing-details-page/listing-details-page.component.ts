@@ -17,6 +17,7 @@ import { combineLatest, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
 import { AuthDialogComponent } from '../../../auth/components/auth-dialog/auth-dialog.component';
 import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
+import * as FavoritesActions from '../../../favorites/store/favorites.actions';
 import { selectFavoriteIds } from '../../../favorites/store/favorites.selectors';
 import * as BookingsActions from '../../../bookings/store/bookings.actions';
 import {
@@ -339,6 +340,13 @@ export class ListingDetailsPageComponent {
         this.store.dispatch(BookingsActions.clearCreateBookingState());
         this.store.dispatch(ReviewsActions.loadListingReviews({ listingId: id }));
         this.store.dispatch(ReviewsActions.loadListingSummary({ listingId: id }));
+      }
+    });
+
+    effect(() => {
+      const id = this.routeListingId();
+      if (id !== null && id !== '' && this.isAuthenticated()) {
+        this.store.dispatch(FavoritesActions.loadFavorites());
       }
     });
 

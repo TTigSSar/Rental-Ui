@@ -18,14 +18,10 @@ import { AuthDialogComponent } from '../../../auth/components/auth-dialog/auth-d
 import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 import { selectFavoriteIds } from '../../../favorites/store/favorites.selectors';
 import type { ListingCategoryOption } from '../../../listings/models/create-listing.model';
-import type { ListingPreview } from '../../../listings/models/listing.model';
 import * as ListingsActions from '../../../listings/store/listings.actions';
 import {
   selectListingCategories,
   selectListingCategoriesLoading,
-  selectListingItems,
-  selectListingsError,
-  selectListingsLoading,
 } from '../../../listings/store/listings.selectors';
 import { ListingCardComponent } from '../../../listings/components/listing-card/listing-card.component';
 import type { HomeSectionResponse } from '../../models/home-section.model';
@@ -65,10 +61,6 @@ interface HomeProcessStep {
 }
 
 interface HomePageViewModel {
-  readonly featured: ListingPreview[];
-  readonly showFeaturedSkeleton: boolean;
-  readonly featuredError: string | null;
-  readonly showFeaturedEmpty: boolean;
   readonly categories: HomeCategoryTileVm[];
   readonly showCategoriesSkeleton: boolean;
   readonly showCategoriesEmpty: boolean;
@@ -77,8 +69,6 @@ interface HomePageViewModel {
   readonly sectionsLoading: boolean;
   readonly sectionsError: string | null;
 }
-
-const FEATURED_LIMIT = 12;
 
 const DEFAULT_VISUAL: CategoryVisual = {
   icon: 'pi pi-tag',
@@ -217,32 +207,16 @@ const FAQ_ENTRIES: readonly HomeFaqEntry[] = [
 ];
 
 interface HomeSource {
-  readonly items: ListingPreview[];
-  readonly listingsLoading: boolean;
-  readonly listingsError: string | null;
   readonly categories: ListingCategoryOption[];
   readonly categoriesLoading: boolean;
   readonly isAuthenticated: boolean;
 }
 
 const selectHomeSource = createSelector(
-  selectListingItems,
-  selectListingsLoading,
-  selectListingsError,
   selectListingCategories,
   selectListingCategoriesLoading,
   selectIsAuthenticated,
-  (
-    items,
-    listingsLoading,
-    listingsError,
-    categories,
-    categoriesLoading,
-    isAuthenticated,
-  ): HomeSource => ({
-    items,
-    listingsLoading,
-    listingsError,
+  (categories, categoriesLoading, isAuthenticated): HomeSource => ({
     categories,
     categoriesLoading,
     isAuthenticated,
@@ -294,10 +268,6 @@ export class HomePageComponent implements OnInit {
     this.store.select(selectFavoriteIds),
   ]).pipe(
     map(([source, sections, sectionsLoading, sectionsError, favoriteIds]): HomePageViewModel => {
-      const featured = source.items.slice(0, FEATURED_LIMIT).map((i) => ({
-        ...i,
-        isFavorite: favoriteIds.has(i.id),
-      }));
       const mappedCategories: HomeCategoryTileVm[] = source.categories.map(
         (category): HomeCategoryTileVm => {
           const visual =
@@ -316,25 +286,16 @@ export class HomePageComponent implements OnInit {
       );
 
       return {
-        featured,
-        featuredError: source.listingsError,
-        showFeaturedSkeleton: source.listingsLoading && featured.length === 0,
-        showFeaturedEmpty:
-          !source.listingsLoading &&
-          featured.length === 0 &&
-          source.listingsError === null,
         categories: mappedCategories,
         showCategoriesSkeleton:
           source.categoriesLoading && mappedCategories.length === 0,
         showCategoriesEmpty:
           !source.categoriesLoading && mappedCategories.length === 0,
         isAuthenticated: source.isAuthenticated,
-        sections: sections
-          .filter((s) => s.key !== 'popular')
-          .map((s) => ({
-            ...s,
-            items: s.items.map((i) => ({ ...i, isFavorite: favoriteIds.has(i.id) })),
-          })),
+        sections: sections.map((s) => ({
+          ...s,
+          items: s.items.map((i) => ({ ...i, isFavorite: favoriteIds.has(i.id) })),
+        })),
         sectionsLoading,
         sectionsError,
       };
@@ -342,18 +303,6 @@ export class HomePageComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    this.store.dispatch(
-      ListingsActions.updateFilters({
-        filters: {
-          query: null,
-          city: null,
-          categoryId: null,
-          minPrice: null,
-          maxPrice: null,
-        },
-      }),
-    );
-    this.store.dispatch(ListingsActions.loadListings());
     this.store.dispatch(ListingsActions.loadListingCategories());
     this.store.dispatch(HomeSectionsActions.load());
   }
@@ -387,10 +336,6 @@ export class HomePageComponent implements OnInit {
 
   protected toggleFaq(id: string): void {
     this.expandedFaq.update((current) => (current === id ? null : id));
-  }
-
-  protected retryFeatured(): void {
-    this.store.dispatch(ListingsActions.loadListings());
   }
 
   protected retryHomeSections(): void {

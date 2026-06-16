@@ -18,6 +18,16 @@
   animation: page-fade-in 200ms ease-out both;
 }
 
+/* ── Header add button ───────────────────────────────────── */
+.my-listings-page__add-btn {
+  margin-top: var(--ui-space-8);
+  @media (min-width: 600px) {
+  .p-button-label{
+      font-size: 12px;
+     }
+  }
+}
+
 /* ── Error state ─────────────────────────────────────────── */
 .my-listings-page__error {
   display: flex;

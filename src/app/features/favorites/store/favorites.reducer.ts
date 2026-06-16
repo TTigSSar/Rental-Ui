@@ -185,12 +185,8 @@ export const favoritesReducer = createReducer(
   on(
     ListingsActions.loadListingDetailsSuccess,
     (state, { listing }): FavoritesState => {
-      const hasId = state.favoriteIds.includes(listing.id);
-      if (listing.isFavorite && !hasId) {
+      if (listing.isFavorite && !state.favoriteIds.includes(listing.id)) {
         return { ...state, favoriteIds: addId(state.favoriteIds, listing.id) };
-      }
-      if (!listing.isFavorite && hasId) {
-        return { ...state, favoriteIds: removeId(state.favoriteIds, listing.id) };
       }
       return state;
     },

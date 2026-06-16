@@ -1,95 +1,81 @@
-<div class="fav-page">
+<section class="fav-page page-container section-stack">
+  <app-ui-page-header
+    [title]="'favorites.page.title' | translate"
+    [subtitle]="'favorites.page.subtitle' | translate"
+  />
 
-  <!-- ── Compact mobile header ── -->
-  <header class="fav-page__header">
-    <button
-      type="button"
-      class="fav-page__back-btn"
-      (click)="goBack()"
-      [attr.aria-label]="'favorites.page.backAria' | translate"
-    >
-      <i class="pi pi-arrow-left" aria-hidden="true"></i>
-    </button>
-    <h1 class="fav-page__title">{{ 'favorites.page.title' | translate }}</h1>
-    <div class="fav-page__header-spacer" aria-hidden="true"></div>
-  </header>
+  @if (viewModel$ | async; as vm) {
 
-  <!-- ── Page body ── -->
-  <div class="fav-page__body page-container">
-    @if (viewModel$ | async; as vm) {
-
-      <!-- Error -->
-      @if (vm.hasError && vm.error) {
-        <div class="fav-page__error" role="alert">
-          <p-message severity="error" styleClass="fav-page__message">
-            <div class="fav-page__error-content">
-              <strong>{{ 'favorites.page.errorTitle' | translate }}</strong>
-              <span>{{ vm.error }}</span>
-            </div>
-          </p-message>
-          <button
-            type="button"
-            class="fav-page__retry-btn"
-            (click)="retry()"
-          >
-            {{ 'listings.common.retry' | translate }}
-          </button>
-        </div>
-      }
-
-      <!-- Loading skeleton -->
-      @if (vm.showInitialSkeleton) {
-        <div class="fav-page__skeleton">
-          @for (i of [0, 1, 2, 3]; track i) {
-            <div class="fav-page__skeleton-card">
-              <p-skeleton width="100%" height="100%" styleClass="fav-page__skeleton-image" />
-              <div class="fav-page__skeleton-body">
-                <p-skeleton width="80%" height="0.875rem" />
-                <p-skeleton width="55%" height="0.75rem" />
-                <p-skeleton width="45%" height="0.875rem" />
-              </div>
-            </div>
-          }
-        </div>
-      }
-
-      <!-- Empty state -->
-      @if (vm.showEmpty) {
-        <div class="fav-page__empty-wrap">
-          <app-ui-empty-state
-            icon="pi pi-heart"
-            tone="primary"
-            [title]="'favorites.page.emptyTitle' | translate"
-            [description]="'favorites.page.empty' | translate"
-            [ctaLabel]="'favorites.page.emptyCta' | translate"
-            [ctaRouterLink]="['/listings']"
-          />
-        </div>
-      }
-
-      <!-- Saved toys grid -->
-      @if (vm.items.length > 0) {
-        <div class="fav-page__meta">
-          <span class="fav-page__meta-count">
-            {{ vm.savedCount }}&nbsp;{{ 'favorites.page.saved' | translate }}
-            @if (vm.uniqueCitiesCount > 1) {
-              &middot; {{ 'favorites.page.acrossCities' | translate: { count: vm.uniqueCitiesCount } }}
-            }
-          </span>
-          <span class="fav-page__meta-sort">{{ 'favorites.page.recent' | translate }}</span>
-        </div>
-
-        <div class="fav-page__grid">
-          @for (listing of vm.items; track listing.id) {
-            <app-listing-card
-              [listing]="listing"
-              [isAuthenticated]="true"
-              (favoriteToggled)="onFavoriteToggled($event)"
-            />
-          }
-        </div>
-      }
+    <!-- Error -->
+    @if (vm.hasError && vm.error) {
+      <div class="fav-page__error" role="alert">
+        <p-message severity="error" styleClass="fav-page__message">
+          <div class="fav-page__error-content">
+            <strong>{{ 'favorites.page.errorTitle' | translate }}</strong>
+            <span>{{ vm.error }}</span>
+          </div>
+        </p-message>
+        <button
+          type="button"
+          class="fav-page__retry-btn"
+          (click)="retry()"
+        >
+          {{ 'listings.common.retry' | translate }}
+        </button>
+      </div>
     }
-  </div>
 
-</div>
+    <!-- Loading skeleton -->
+    @if (vm.showInitialSkeleton) {
+      <div class="fav-page__skeleton">
+        @for (i of [0, 1, 2, 3]; track i) {
+          <div class="fav-page__skeleton-card">
+            <p-skeleton width="100%" height="100%" styleClass="fav-page__skeleton-image" />
+            <div class="fav-page__skeleton-body">
+              <p-skeleton width="80%" height="0.875rem" />
+              <p-skeleton width="55%" height="0.75rem" />
+              <p-skeleton width="45%" height="0.875rem" />
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Empty state -->
+    @if (vm.showEmpty) {
+      <div class="fav-page__empty-wrap">
+        <app-ui-empty-state
+          icon="pi pi-heart"
+          tone="primary"
+          [title]="'favorites.page.emptyTitle' | translate"
+          [description]="'favorites.page.empty' | translate"
+          [ctaLabel]="'favorites.page.emptyCta' | translate"
+          [ctaRouterLink]="['/listings']"
+        />
+      </div>
+    }
+
+    <!-- Saved toys grid -->
+    @if (vm.items.length > 0) {
+      <div class="fav-page__meta">
+        <span class="fav-page__meta-count">
+          {{ vm.savedCount }}&nbsp;{{ 'favorites.page.saved' | translate }}
+          @if (vm.uniqueCitiesCount > 1) {
+            &middot; {{ 'favorites.page.acrossCities' | translate: { count: vm.uniqueCitiesCount } }}
+          }
+        </span>
+        <span class="fav-page__meta-sort">{{ 'favorites.page.recent' | translate }}</span>
+      </div>
+
+      <div class="fav-page__grid">
+        @for (listing of vm.items; track listing.id) {
+          <app-listing-card
+            [listing]="listing"
+            [isAuthenticated]="true"
+            (favoriteToggled)="onFavoriteToggled($event)"
+          />
+        }
+      </div>
+    }
+  }
+</section>

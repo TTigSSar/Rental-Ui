@@ -255,6 +255,7 @@ Use these consistently. Avoid introducing new arbitrary breakpoints.
 | ----- | ----- |
 | `--ui-space-4` | 4px |
 | `--ui-space-8` | 8px |
+| `--ui-space-10` | 10px |
 | `--ui-space-12` | 12px |
 | `--ui-space-16` | 16px |
 | `--ui-space-24` | 24px |

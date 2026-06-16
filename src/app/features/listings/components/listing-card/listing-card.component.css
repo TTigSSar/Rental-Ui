@@ -128,8 +128,8 @@
   display: grid;
   place-items: center;
   /* 44×44 touch target per DESIGN_RULES §18 */
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 2rem;
+  height: 2rem;
   border: none;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.88);
@@ -265,8 +265,8 @@
   }
 
   .listing-card__fav-btn {
-    width: 2rem;
-    height: 2rem;
+    width: 26px;
+    height: 26px;
   }
 
   .listing-card__fav-icon {

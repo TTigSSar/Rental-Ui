@@ -156,7 +156,7 @@
 .detail-page__body {
   display: grid;
   gap: 32px;
-  padding-top: var(--ui-space-20);
+  padding-top: var(--ui-space-16);
 
   @media (min-width: 1100px) {
     grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr);
@@ -322,7 +322,7 @@
   display: flex;
   align-items: baseline;
   gap: 2px;
-  margin: var(--ui-space-8) 0 0;
+  margin: var(--ui-space-12) 0 0;
 
   @media (min-width: 1100px) {
     display: none;
@@ -343,23 +343,47 @@
   color: var(--ui-color-text-secondary);
 }
 
-/* ── Owner card ───────────────────────────────────────── */
+/* ── Owner / contact section ──────────────────────────── */
+.detail-page__section--owner {
+  gap: 14px;
+}
+
+.detail-page__owner-section-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-page__owner-section-subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ui-color-text-secondary);
+  line-height: 1.4;
+}
+
+/* Card wraps owner row + phone notice */
 .detail-page__owner-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-card);
+  box-shadow: var(--ui-shadow-card);
+  overflow: hidden;
+}
+
+/* Horizontal owner row inside the card */
+.detail-page__owner-row {
   display: flex;
   align-items: center;
   gap: var(--ui-space-12);
-  padding: var(--ui-space-12) var(--ui-space-16);
-  background: var(--ui-color-surface);
-  border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-md);
-  box-shadow: var(--ui-shadow-card);
-  margin-top: var(--ui-space-16);
+  padding: 16px var(--ui-space-16);
 }
 
 .detail-page__owner-avatar-wrap {
   flex-shrink: 0;
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   overflow: hidden;
 }
@@ -440,12 +464,13 @@
   height: 36px;
   border-radius: 50%;
   border: 1.5px solid var(--ui-color-border);
+  background: var(--ui-color-surface-muted);
   color: var(--ui-color-text-secondary);
   text-decoration: none;
   transition: border-color 120ms ease, color 120ms ease, background-color 120ms ease;
 
   i {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
 
   &:hover {
@@ -460,21 +485,32 @@
   }
 }
 
-/* ── Phone notice ─────────────────────────────────────── */
+/* ── Phone notice (inside owner card) ────────────────── */
+.detail-page__phone-notice-wrap {
+  padding: 12px 14px;
+
+  &::before {
+    content: '';
+    display: block;
+    height: 1px;
+    background: var(--ui-color-border);
+    border-radius: 2px;
+    margin-bottom: 12px;
+  }
+}
+
 .detail-page__phone-notice {
   display: flex;
   align-items: flex-start;
-  gap: var(--ui-space-10);
-  padding: var(--ui-space-12) var(--ui-space-16);
+  gap: 12px;
+  padding: 12px 14px;
   background: var(--ui-color-surface-muted);
-  border: 1px solid var(--ui-color-border-subtle);
-  border-radius: var(--ui-radius-md);
-  margin-top: var(--ui-space-12);
+  border-radius: 10px;
 
   > i {
     flex-shrink: 0;
-    font-size: 0.9375rem;
-    color: var(--ui-color-text-secondary);
+    font-size: 1.0625rem;
+    color: var(--ui-color-text-muted);
     margin-top: 1px;
   }
 
@@ -485,7 +521,7 @@
     line-height: 1.5;
 
     strong {
-      font-weight: 600;
+      font-weight: 700;
       color: var(--ui-color-text-primary);
     }
   }
@@ -502,7 +538,7 @@
 .detail-page__section {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
 }
 
 .detail-page__section-title {
@@ -596,7 +632,6 @@
 
 .detail-page__section--toydetails {
   background: var(--ui-color-surface);
-  border: 1px solid var(--ui-color-border);
   border-radius: var(--ui-radius-md);
   padding: var(--ui-space-20);
   box-shadow: var(--ui-shadow-card);

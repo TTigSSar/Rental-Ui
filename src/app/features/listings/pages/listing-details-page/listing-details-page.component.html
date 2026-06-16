@@ -85,11 +85,6 @@
                     <span>{{ 'listings.card.hygieneProvided' | translate }}</span>
                   </span>
                 }
-                @if (resolveAgeRangeDisplay(listing.ageFromMonths, listing.ageToMonths); as ageRange) {
-                  <span class="detail-page__trust-chip detail-page__trust-chip--neutral">
-                    <span>{{ ageRange.key | translate: ageRange.params }}</span>
-                  </span>
-                }
               </div>
 
               <!-- Title + favorite -->
@@ -136,79 +131,9 @@
                 <span class="detail-page__price-suffix">&thinsp;/ {{ 'listings.booking.priceSuffix' | translate }}</span>
               </p>
 
-              <!-- Owner card -->
-              <div class="detail-page__owner-card">
-                <div class="detail-page__owner-avatar-wrap" aria-hidden="true">
-                  @if (ownerPublicProfile()?.avatarUrl; as avatarUrl) {
-                    <img
-                      class="detail-page__owner-img"
-                      [src]="avatarUrl"
-                      [alt]="listing.owner.firstName"
-                      loading="lazy"
-                    />
-                  } @else {
-                    <div class="detail-page__owner-initials">
-                      {{ listing.owner.firstName.charAt(0) }}{{ listing.owner.lastName.charAt(0) }}
-                    </div>
-                  }
-                </div>
-                <div class="detail-page__owner-info">
-                  <p class="detail-page__owner-name">
-                    {{ listing.owner.firstName }} {{ listing.owner.lastName }}
-                    <span class="detail-page__owner-verified-badge" aria-label="verified">
-                      <i class="pi pi-check" aria-hidden="true"></i>
-                    </span>
-                  </p>
-                  <p class="detail-page__owner-meta">
-                    @if (ownerPublicProfile()?.activeListingsCount; as count) {
-                      <span>{{ count }}&nbsp;{{ 'listings.details.ownerToySuffix' | translate }}</span>
-                    }
-                    @if (ownerSummary(); as summary) {
-                      @if (summary.reviewCount > 0) {
-                        <span aria-hidden="true">&ensp;·&ensp;</span>
-                        <span>
-                          <i class="pi pi-star-fill" aria-hidden="true"></i>&nbsp;{{ summary.averageRating | number:'1.1-1' }}
-                        </span>
-                      }
-                    }
-                  </p>
-                </div>
-                <a
-                  class="detail-page__owner-profile-btn"
-                  [routerLink]="['/users', listing.owner.id]"
-                  [attr.aria-label]="'listings.details.viewOwnerProfile' | translate"
-                >
-                  <i class="pi pi-arrow-right" aria-hidden="true"></i>
-                </a>
-              </div>
-
-              <!-- Phone notice -->
-              <div class="detail-page__phone-notice">
-                <i class="pi pi-lock" aria-hidden="true"></i>
-                <p>
-                  {{ 'listings.details.contactLabelPre' | translate }}<strong>{{ 'listings.details.contactLabelBold' | translate }}</strong>
-                </p>
-              </div>
-
               <div class="detail-page__sections">
 
-                <!-- 1. Description -->
-                <section
-                  class="detail-page__section"
-                  aria-labelledby="detail-description-heading"
-                >
-                  <h2
-                    id="detail-description-heading"
-                    class="detail-page__section-title"
-                  >
-                    {{ 'listings.details.descriptionHeading' | translate }}
-                  </h2>
-                  <p class="detail-page__section-body">
-                    {{ listing.description }}
-                  </p>
-                </section>
-
-                <!-- 2. Toy trust details -->
+                <!-- 1. Toy trust details -->
                 @if (hasAnyToyDetail(listing)) {
                   <section
                     class="detail-page__section detail-page__section--toydetails"
@@ -282,20 +207,81 @@
                   </section>
                 }
 
-                <!-- 3. Cancellation -->
+                <!-- 2. Description -->
                 <section
                   class="detail-page__section"
-                  aria-labelledby="detail-cancellation-heading"
+                  aria-labelledby="detail-description-heading"
                 >
-                  <h2
-                    id="detail-cancellation-heading"
-                    class="detail-page__section-title"
-                  >
-                    {{ 'listings.details.cancellation.title' | translate }}
-                  </h2>
                   <p class="detail-page__section-body">
-                    {{ 'listings.details.cancellation.body' | translate }}
+                    {{ listing.description }}
                   </p>
+                </section>
+
+                <!-- 3. Owner / contact card -->
+                <section class="detail-page__section detail-page__section--owner" aria-labelledby="detail-owner-heading">
+                  <div class="detail-page__owner-section-head">
+                    <h2 id="detail-owner-heading" class="detail-page__section-title">
+                      {{ 'listings.details.ownerCardTitle' | translate }}
+                    </h2>
+                  </div>
+
+                  <div class="detail-page__owner-card">
+                    <!-- Owner row -->
+                    <div class="detail-page__owner-row">
+                      <div class="detail-page__owner-avatar-wrap" aria-hidden="true">
+                        @if (ownerPublicProfile()?.avatarUrl; as avatarUrl) {
+                          <img
+                            class="detail-page__owner-img"
+                            [src]="avatarUrl"
+                            [alt]="listing.owner.firstName"
+                            loading="lazy"
+                          />
+                        } @else {
+                          <div class="detail-page__owner-initials">
+                            {{ listing.owner.firstName.charAt(0) }}{{ listing.owner.lastName.charAt(0) }}
+                          </div>
+                        }
+                      </div>
+                      <div class="detail-page__owner-info">
+                        <p class="detail-page__owner-name">
+                          {{ listing.owner.firstName }} {{ listing.owner.lastName }}
+                          <span class="detail-page__owner-verified-badge" aria-label="verified">
+                            <i class="pi pi-check" aria-hidden="true"></i>
+                          </span>
+                        </p>
+                        <p class="detail-page__owner-meta">
+                          @if (ownerPublicProfile()?.activeListingsCount; as count) {
+                            <span>{{ count }}&nbsp;{{ 'listings.details.ownerToySuffix' | translate }}</span>
+                          }
+                          @if (ownerSummary(); as summary) {
+                            @if (summary.reviewCount > 0) {
+                              <span aria-hidden="true">&ensp;·&ensp;</span>
+                              <span>
+                                <i class="pi pi-star-fill" aria-hidden="true"></i>&nbsp;{{ summary.averageRating | number:'1.1-1' }}
+                              </span>
+                            }
+                          }
+                        </p>
+                      </div>
+                      <a
+                        class="detail-page__owner-profile-btn"
+                        [routerLink]="['/users', listing.owner.id]"
+                        [attr.aria-label]="'listings.details.viewOwnerProfile' | translate"
+                      >
+                        <i class="pi pi-chevron-right" aria-hidden="true"></i>
+                      </a>
+                    </div>
+
+                    <!-- Phone notice (inside card) -->
+                    <div class="detail-page__phone-notice-wrap">
+                      <div class="detail-page__phone-notice">
+                        <i class="pi pi-lock" aria-hidden="true"></i>
+                        <p>
+                          {{ 'listings.details.contactLabelPre' | translate }}<strong>{{ 'listings.details.contactLabelBold' | translate }}</strong>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </section>
 
                 <!-- 4. Reviews -->

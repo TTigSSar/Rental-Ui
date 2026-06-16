@@ -9,6 +9,11 @@
 
 <div
   class="uii-field"
+  [class.uii-field--sm]="size() === 'sm'"
+  [class.uii-field--md]="size() === 'md'"
+  [class.uii-field--lg]="size() === 'lg'"
+  [class.uii-field--filled]="isFilledVariant()"
+  [class.uii-field--pill]="variant() === 'pill'"
   [class.uii-field--focus]="isFocused()"
   [class.uii-field--error]="hasError()"
   [class.uii-field--success]="hasSuccess()"
@@ -41,7 +46,21 @@
     (blur)="handleBlur($event)"
   />
 
-  @if (showClear()) {
+  @if (showPasswordToggle()) {
+    <button
+      type="button"
+      class="uii-pwd-toggle"
+      [attr.aria-label]="passwordVisible() ? 'Hide password' : 'Show password'"
+      tabindex="-1"
+      (mousedown)="$event.preventDefault()"
+      (click)="handlePasswordToggle()"
+    >
+      <i
+        [class]="passwordVisible() ? 'pi pi-eye-slash' : 'pi pi-eye'"
+        aria-hidden="true"
+      ></i>
+    </button>
+  } @else if (showClear()) {
     <button
       type="button"
       class="uii-clear"
@@ -58,6 +77,16 @@
       class="uii-icon uii-icon--right"
       aria-hidden="true"
     ></i>
+  }
+
+  @if (variant() === 'pill' && ctaLabel()) {
+    <button
+      type="button"
+      class="uii-cta"
+      (click)="ctaClicked.emit()"
+    >
+      {{ ctaLabel() }}
+    </button>
   }
 
 </div>

@@ -46,12 +46,23 @@ export class UiInputComponent implements ControlValueAccessor {
   readonly type           = input<'text' | 'email' | 'password' | 'number' | 'search' | 'tel'>('text');
   readonly hint           = input<string>('');
   readonly autocomplete   = input<string>('off');
+  readonly size           = input<'sm' | 'md' | 'lg'>('md');
+  /**
+   * outlined  — default: white bg, visible border (forms, settings)
+   * filled    — muted fill, no border (toolbars, dense lists)
+   * ghost     — alias for filled (backward compat)
+   * pill      — fully rounded, brand hero search
+   */
+  readonly variant        = input<'outlined' | 'filled' | 'ghost' | 'pill'>('outlined');
+  /** Orange CTA button rendered inside pill variant */
+  readonly ctaLabel       = input<string>('');
 
   // ── Outputs ─────────────────────────────────────────────────────────
   readonly valueChange = output<string>();
   readonly focus       = output<FocusEvent>();
   readonly blur        = output<FocusEvent>();
   readonly clear       = output<void>();
+  readonly ctaClicked  = output<void>();
 
   // ── A11y IDs ────────────────────────────────────────────────────────
   protected readonly inputId  = `uii-${++_idSeed}`;
@@ -60,6 +71,7 @@ export class UiInputComponent implements ControlValueAccessor {
   // ── Internal state ───────────────────────────────────────────────────
   protected readonly internalValue   = signal('');
   protected readonly isFocused       = signal(false);
+  protected readonly passwordVisible = signal(false);
   private   readonly cvaDisabled     = signal(false);
 
   // True once the form infrastructure calls writeValue — means CVA owns the value
@@ -74,20 +86,39 @@ export class UiInputComponent implements ControlValueAccessor {
     () => this.hasError() || this.hasSuccess() || !!this.hint(),
   );
 
+  protected readonly showPasswordToggle = computed(() => this.type() === 'password');
+
   protected readonly showClear = computed(
-    () => this.isFilled() && !this.isDisabledComp() && !this.readonly(),
+    () =>
+      this.isFilled() &&
+      !this.isDisabledComp() &&
+      !this.readonly() &&
+      !this.showPasswordToggle(),
   );
 
+  /** True for filled/ghost variants — muted background, no border */
+  protected readonly isFilledVariant = computed(
+    () => this.variant() === 'filled' || this.variant() === 'ghost',
+  );
+
+  /** Auto-infers icon from type when leftIcon is not explicitly passed */
   protected readonly resolvedLeftIcon = computed(() => {
     const li = this.leftIcon();
     if (li) return li;
-    return this.type() === 'search' ? 'pi pi-search' : '';
+    switch (this.type()) {
+      case 'search':   return 'pi pi-search';
+      case 'password': return 'pi pi-lock';
+      case 'email':    return 'pi pi-envelope';
+      case 'tel':      return 'pi pi-phone';
+      default:         return '';
+    }
   });
 
-  // Use `text` as the native type for search — we handle clear ourselves
   protected readonly nativeType = computed(() => {
     const t = this.type();
-    return t === 'search' ? 'text' : t;
+    if (t === 'search') return 'text';
+    if (t === 'password') return this.passwordVisible() ? 'text' : 'password';
+    return t;
   });
 
   constructor() {
@@ -147,6 +178,10 @@ export class UiInputComponent implements ControlValueAccessor {
     this.valueChange.emit('');
     this.clear.emit();
     this.inputRef.nativeElement.focus();
+  }
+
+  protected handlePasswordToggle(): void {
+    this.passwordVisible.update((v) => !v);
   }
 
   // ── Public API ───────────────────────────────────────────────────────
