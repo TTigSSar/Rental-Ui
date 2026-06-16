@@ -6,79 +6,89 @@ import { toApiErrorMessage } from '../../../api/http-error-message.util';
 import { ReviewsApiService } from '../services/reviews-api.service';
 import * as ReviewsActions from './reviews.actions';
 
-function toErrorMessage(error: unknown): string {
-  return toApiErrorMessage(error);
-}
-
 @Injectable()
 export class ReviewsEffects {
   private readonly actions$ = inject(Actions);
   private readonly reviewsApi = inject(ReviewsApiService);
 
-  readonly loadListingReviews$ = createEffect(() =>
+  readonly loadListingToyReviews$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(ReviewsActions.loadListingReviews),
+      ofType(ReviewsActions.loadListingToyReviews),
       mergeMap(({ listingId }) =>
-        this.reviewsApi.getByListing(listingId).pipe(
-          map((items) => ReviewsActions.loadListingReviewsSuccess({ listingId, items })),
+        this.reviewsApi.getListingToyReviews(listingId).pipe(
+          map((summary) => ReviewsActions.loadListingToyReviewsSuccess({ listingId, summary })),
           catchError((error: unknown) =>
-            of(ReviewsActions.loadListingReviewsFailure({ listingId, error: toErrorMessage(error) })),
+            of(ReviewsActions.loadListingToyReviewsFailure({ listingId, error: toApiErrorMessage(error) })),
           ),
         ),
       ),
     ),
   );
 
-  readonly loadUserReviews$ = createEffect(() =>
+  readonly loadOwnerReviews$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(ReviewsActions.loadUserReviews),
+      ofType(ReviewsActions.loadOwnerReviews),
       mergeMap(({ userId }) =>
-        this.reviewsApi.getByUser(userId).pipe(
-          map((items) => ReviewsActions.loadUserReviewsSuccess({ userId, items })),
+        this.reviewsApi.getOwnerReviews(userId).pipe(
+          map((summary) => ReviewsActions.loadOwnerReviewsSuccess({ userId, summary })),
           catchError((error: unknown) =>
-            of(ReviewsActions.loadUserReviewsFailure({ userId, error: toErrorMessage(error) })),
+            of(ReviewsActions.loadOwnerReviewsFailure({ userId, error: toApiErrorMessage(error) })),
           ),
         ),
       ),
     ),
   );
 
-  readonly loadListingSummary$ = createEffect(() =>
+  readonly loadBookingStatus$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(ReviewsActions.loadListingSummary),
-      mergeMap(({ listingId }) =>
-        this.reviewsApi.getListingSummary(listingId).pipe(
-          map((summary) => ReviewsActions.loadListingSummarySuccess({ listingId, summary })),
+      ofType(ReviewsActions.loadBookingStatus),
+      mergeMap(({ bookingId }) =>
+        this.reviewsApi.getBookingStatus(bookingId).pipe(
+          map((status) => ReviewsActions.loadBookingStatusSuccess({ bookingId, status })),
           catchError((error: unknown) =>
-            of(ReviewsActions.loadListingSummaryFailure({ listingId, error: toErrorMessage(error) })),
+            of(ReviewsActions.loadBookingStatusFailure({ bookingId, error: toApiErrorMessage(error) })),
           ),
         ),
       ),
     ),
   );
 
-  readonly loadUserSummary$ = createEffect(() =>
+  readonly submitToyReview$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(ReviewsActions.loadUserSummary),
-      mergeMap(({ userId }) =>
-        this.reviewsApi.getUserSummary(userId).pipe(
-          map((summary) => ReviewsActions.loadUserSummarySuccess({ userId, summary })),
-          catchError((error: unknown) =>
-            of(ReviewsActions.loadUserSummaryFailure({ userId, error: toErrorMessage(error) })),
-          ),
-        ),
-      ),
-    ),
-  );
-
-  readonly submitReview$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(ReviewsActions.submitReview),
+      ofType(ReviewsActions.submitToyReview),
       concatMap(({ request }) =>
-        this.reviewsApi.submit(request).pipe(
-          map((review) => ReviewsActions.submitReviewSuccess({ review })),
+        this.reviewsApi.submitToy(request).pipe(
+          map((status) => ReviewsActions.submitReviewSuccess({ status })),
           catchError((error: unknown) =>
-            of(ReviewsActions.submitReviewFailure({ error: toErrorMessage(error) })),
+            of(ReviewsActions.submitReviewFailure({ error: toApiErrorMessage(error) })),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  readonly submitOwnerReview$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ReviewsActions.submitOwnerReview),
+      concatMap(({ request }) =>
+        this.reviewsApi.submitOwner(request).pipe(
+          map((status) => ReviewsActions.submitReviewSuccess({ status })),
+          catchError((error: unknown) =>
+            of(ReviewsActions.submitReviewFailure({ error: toApiErrorMessage(error) })),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  readonly submitRenterReview$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ReviewsActions.submitRenterReview),
+      concatMap(({ request }) =>
+        this.reviewsApi.submitRenter(request).pipe(
+          map((status) => ReviewsActions.submitReviewSuccess({ status })),
+          catchError((error: unknown) =>
+            of(ReviewsActions.submitReviewFailure({ error: toApiErrorMessage(error) })),
           ),
         ),
       ),

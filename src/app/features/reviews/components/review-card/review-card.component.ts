@@ -2,24 +2,24 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
-import { StarRatingComponent } from '../../../../shared/ui/star-rating/star-rating.component';
-import type { Review } from '../../models/review.model';
+import type { ReviewComment } from '../../models/review.model';
 
 interface RelativeDateI18n {
   readonly key: string;
   readonly params: Record<string, unknown>;
 }
 
+// Public comment card. Carries no per-review score — scores are private.
 @Component({
   selector: 'app-review-card',
   standalone: true,
-  imports: [AvatarComponent, StarRatingComponent, TranslatePipe],
+  imports: [AvatarComponent, TranslatePipe],
   templateUrl: './review-card.component.html',
   styleUrl: './review-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReviewCardComponent {
-  readonly review = input.required<Review>();
+  readonly review = input.required<ReviewComment>();
 
   protected readonly reviewerName = computed(() => {
     const r = this.review();

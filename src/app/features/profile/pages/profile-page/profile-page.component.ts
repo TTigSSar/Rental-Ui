@@ -5,6 +5,7 @@ import {
   ElementRef,
   HostListener,
   OnInit,
+  computed,
   effect,
   inject,
   signal,
@@ -21,12 +22,12 @@ import { combineLatest, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 import * as AuthActions from '../../../auth/store/auth.actions';
 import { RatingSummaryComponent } from '../../../reviews/components/rating-summary/rating-summary.component';
 import { ReviewCardComponent } from '../../../reviews/components/review-card/review-card.component';
+import type { RatingSummaryView } from '../../../reviews/components/rating-summary/rating-summary.component';
 import * as ReviewsActions from '../../../reviews/store/reviews.actions';
 import {
-  selectUserReviews,
-  selectUserReviewsError,
-  selectUserReviewsLoading,
-  selectUserSummary,
+  selectOwnerReviews,
+  selectOwnerReviewsError,
+  selectOwnerReviewsLoading,
 } from '../../../reviews/store/reviews.selectors';
 import * as ProfileActions from '../../store/profile.actions';
 import {
@@ -82,19 +83,21 @@ export class ProfilePageComponent implements OnInit {
     initialValue: null,
   });
 
-  protected readonly reviews = toSignal(
+  private readonly ownerSummary = toSignal(
     this.profileId$.pipe(
       switchMap((id) =>
-        id ? this.store.select(selectUserReviews(id)) : of([]),
+        id ? this.store.select(selectOwnerReviews(id)) : of(null),
       ),
     ),
-    { initialValue: [] },
+    { initialValue: null },
   );
+
+  protected readonly reviews = computed(() => this.ownerSummary()?.comments ?? []);
 
   protected readonly reviewsLoading = toSignal(
     this.profileId$.pipe(
       switchMap((id) =>
-        id ? this.store.select(selectUserReviewsLoading(id)) : of(false),
+        id ? this.store.select(selectOwnerReviewsLoading(id)) : of(false),
       ),
     ),
     { initialValue: false },
@@ -103,20 +106,16 @@ export class ProfilePageComponent implements OnInit {
   protected readonly reviewsError = toSignal(
     this.profileId$.pipe(
       switchMap((id) =>
-        id ? this.store.select(selectUserReviewsError(id)) : of(null),
+        id ? this.store.select(selectOwnerReviewsError(id)) : of(null),
       ),
     ),
     { initialValue: null },
   );
 
-  protected readonly ratingSummary = toSignal(
-    this.profileId$.pipe(
-      switchMap((id) =>
-        id ? this.store.select(selectUserSummary(id)) : of(null),
-      ),
-    ),
-    { initialValue: null },
-  );
+  protected readonly ratingSummary = computed((): RatingSummaryView | null => {
+    const s = this.ownerSummary();
+    return s ? { average: s.overallAverage, reviewCount: s.reviewCount, hasAggregate: s.hasAggregate } : null;
+  });
 
   protected readonly vm$ = combineLatest({
     profile: this.store.select(selectProfile),
@@ -136,8 +135,7 @@ export class ProfilePageComponent implements OnInit {
     effect(() => {
       const id = this.profileIdSignal();
       if (id !== null) {
-        this.store.dispatch(ReviewsActions.loadUserReviews({ userId: id }));
-        this.store.dispatch(ReviewsActions.loadUserSummary({ userId: id }));
+        this.store.dispatch(ReviewsActions.loadOwnerReviews({ userId: id }));
       }
     });
   }

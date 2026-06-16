@@ -41,6 +41,11 @@ export function normalizeListingPreview(
     ageToMonths: normalizeFiniteNumber(item.ageToMonths),
     condition: normalizeNonEmptyString(item.condition),
     hygieneNotes: normalizeNonEmptyString(item.hygieneNotes),
+    rating: normalizeFiniteNumber(item.rating),
+    reviewCount:
+      typeof item.reviewCount === 'number' && Number.isFinite(item.reviewCount)
+        ? item.reviewCount
+        : 0,
   };
 }
 

@@ -1,4 +1,7 @@
 {
+  "common": {
+    "back": "Back"
+  },
   "app": {
     "shell": {
       "brand": "ToyRent",
@@ -725,7 +728,7 @@
       "viewListing": "View toy",
       "approve": "Approve",
       "reject": "Reject",
-      "leaveReview": "Leave review"
+      "leaveReview": "Rate toy & owner"
     },
     "common": {
       "createdAt": "Created",
@@ -887,32 +890,87 @@
     }
   },
   "reviews": {
-    "submit": {
-      "title": "Leave a review",
-      "contextLabel": "Your rental",
-      "ratingQuestion": "How was your rental overall?",
-      "ratingHint": "Tap a star to rate",
-      "ratingLabel_1": "Poor",
-      "ratingLabel_2": "Fair",
-      "ratingLabel_3": "Good",
-      "ratingLabel_4": "Great",
-      "ratingLabel_5": "Excellent",
-      "commentLabel": "Add a comment",
-      "commentOptional": "(optional)",
-      "commentPlaceholder": "Share your experience…",
-      "commentHint": "Reviews help other families pick safely.",
-      "submitButton": "Submit review",
-      "skipButton": "Skip",
-      "successTitle": "Thanks for your review!",
-      "successMessage": "Your feedback helps families pick the right toys — and rewards owners who go above and beyond.",
-      "successCta": "Back to bookings",
-      "privacyHint": "Reviews are public. Both reviews go live once both parties submit.",
-      "backAriaLabel": "Back to bookings"
+    "flow": {
+      "stepOf": "Step {{current}} of {{total}}",
+      "rateToyTitle": "Rate the toy",
+      "rateOwnerTitle": "Rate the owner",
+      "reviewingToy": "Reviewing toy",
+      "reviewingOwner": "Reviewing owner",
+      "addComment": "Add a comment",
+      "optional": "(optional)",
+      "privacyNote": "Your comments are public, but no one ever sees who gave which score.",
+      "privacyNoteLocked": "Your comment is public; your scores stay private. Reviews can't be edited once submitted.",
+      "skipToy": "Don't rate the toy",
+      "nextRateOwner": "Next: Rate owner",
+      "skipOwner": "Skip owner & submit",
+      "submit": "Submit reviews",
+      "skip": "Skip",
+      "submitReview": "Submit review"
+    },
+    "toy": {
+      "overallQuestion": "How was the toy overall?",
+      "condition": "Condition",
+      "conditionHint": "Matched the listing description",
+      "cleanliness": "Cleanliness & hygiene",
+      "cleanlinessHint": "Arrived clean and sanitized",
+      "value": "Value for money",
+      "valueHint": "Worth the daily price",
+      "fun": "Fun / play value",
+      "funHint": "Did your child enjoy it?",
+      "description": "Description accuracy",
+      "descriptionHint": "Matched the photos and details",
+      "commentPlaceholder": "Share how the toy was…"
+    },
+    "owner": {
+      "communication": "Communication",
+      "communicationHint": "Replies, clarity, helpfulness",
+      "pickup": "Pickup & handover",
+      "pickupHint": "Smooth, on time, easy to find",
+      "friendliness": "Friendliness",
+      "friendlinessHint": "Warm and welcoming",
+      "commentPlaceholder": "Share how the owner was…"
+    },
+    "renter": {
+      "kicker": "Rating renter",
+      "title": "Rate the renter",
+      "communication": "Communication",
+      "communicationHint": "Replies & coordination around pickup",
+      "returnedOnTime": "Returned on time",
+      "returnedOnTimeHint": "At the agreed return time",
+      "careOfToy": "Care of toy",
+      "careOfToyHint": "Returned in the same condition",
+      "wouldRentAgain": "Would rent to again",
+      "wouldRentAgainHint": "Trust this renter for the future",
+      "commentPlaceholder": "Share how the rental went…",
+      "successTitle": "Review submitted",
+      "successText": "Thanks for rating your renter. Your feedback keeps the community trustworthy.",
+      "backToRequests": "Back to requests"
+    },
+    "ratingLabel": {
+      "poor": "Poor",
+      "fair": "Fair",
+      "good": "Good",
+      "great": "Great",
+      "excellent": "Excellent"
+    },
+    "success": {
+      "title": "Thanks for your reviews!",
+      "text": "Your feedback helps families rent with confidence. Your comments are public — your scores stay private.",
+      "toyReview": "Toy review",
+      "ownerReview": "Owner review",
+      "submitted": "Submitted",
+      "skipped": "Skipped",
+      "browseMore": "Browse more toys",
+      "backToBookings": "Back to my rentals"
+    },
+    "card": {
+      "rentedDays": "Rented {{count}} days"
     },
     "summary": {
       "noReviews": "No reviews yet",
       "oneReview": "1 review",
-      "countReviews": "{{count}} reviews"
+      "countReviews": "{{count}} reviews",
+      "ariaRating": "Rated {{rating}} out of 5"
     },
     "relativeDate": {
       "today": "today",

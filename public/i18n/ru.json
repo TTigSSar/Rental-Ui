@@ -1,4 +1,7 @@
 {
+  "common": {
+    "back": "Назад"
+  },
   "app": {
     "shell": {
       "brand": "ToyRent",
@@ -724,7 +727,7 @@
       "viewListing": "Открыть игрушку",
       "approve": "Одобрить",
       "reject": "Отклонить",
-      "leaveReview": "Оставить отзыв"
+      "leaveReview": "Оценить игрушку и владельца"
     },
     "common": {
       "createdAt": "Создано",
@@ -886,32 +889,87 @@
     }
   },
   "reviews": {
-    "submit": {
-      "title": "Оставить отзыв",
-      "contextLabel": "Ваша аренда",
-      "ratingQuestion": "Как прошла аренда в целом?",
-      "ratingHint": "Нажмите на звезду, чтобы оценить",
-      "ratingLabel_1": "Плохо",
-      "ratingLabel_2": "Удовлетворительно",
-      "ratingLabel_3": "Хорошо",
-      "ratingLabel_4": "Отлично",
-      "ratingLabel_5": "Превосходно",
-      "commentLabel": "Добавить комментарий",
-      "commentOptional": "(необязательно)",
-      "commentPlaceholder": "Расскажите о своём опыте…",
-      "commentHint": "Отзывы помогают семьям выбирать игрушки безопасно.",
-      "submitButton": "Отправить отзыв",
-      "skipButton": "Пропустить",
-      "successTitle": "Спасибо за отзыв!",
-      "successMessage": "Ваш отзыв помогает семьям выбирать правильные игрушки и поощряет ответственных владельцев.",
-      "successCta": "Вернуться к бронированиям",
-      "privacyHint": "Отзывы публичны. Оба отзыва появятся после того, как обе стороны отправят свои.",
-      "backAriaLabel": "Вернуться к бронированиям"
+    "flow": {
+      "stepOf": "Шаг {{current}} из {{total}}",
+      "rateToyTitle": "Оцените игрушку",
+      "rateOwnerTitle": "Оцените владельца",
+      "reviewingToy": "Оценка игрушки",
+      "reviewingOwner": "Оценка владельца",
+      "addComment": "Добавить комментарий",
+      "optional": "(необязательно)",
+      "privacyNote": "Ваши комментарии публичны, но никто не видит, кто какую оценку поставил.",
+      "privacyNoteLocked": "Ваш комментарий публичен; оценки остаются приватными. Отзыв нельзя изменить после отправки.",
+      "skipToy": "Не оценивать игрушку",
+      "nextRateOwner": "Далее: оценить владельца",
+      "skipOwner": "Пропустить владельца и отправить",
+      "submit": "Отправить отзывы",
+      "skip": "Пропустить",
+      "submitReview": "Отправить отзыв"
+    },
+    "toy": {
+      "overallQuestion": "Как игрушка в целом?",
+      "condition": "Состояние",
+      "conditionHint": "Соответствует описанию",
+      "cleanliness": "Чистота и гигиена",
+      "cleanlinessHint": "Пришла чистой и продезинфицированной",
+      "value": "Цена/качество",
+      "valueHint": "Стоит дневной цены",
+      "fun": "Интересность игры",
+      "funHint": "Понравилось ли вашему ребёнку?",
+      "description": "Точность описания",
+      "descriptionHint": "Соответствует фото и деталям",
+      "commentPlaceholder": "Расскажите, какой была игрушка…"
+    },
+    "owner": {
+      "communication": "Общение",
+      "communicationHint": "Ответы, ясность, готовность помочь",
+      "pickup": "Передача и получение",
+      "pickupHint": "Гладко, вовремя, легко найти",
+      "friendliness": "Доброжелательность",
+      "friendlinessHint": "Тепло и приветливо",
+      "commentPlaceholder": "Расскажите о владельце…"
+    },
+    "renter": {
+      "kicker": "Оценка арендатора",
+      "title": "Оцените арендатора",
+      "communication": "Общение",
+      "communicationHint": "Ответы и согласование передачи",
+      "returnedOnTime": "Вернул вовремя",
+      "returnedOnTimeHint": "В оговорённое время",
+      "careOfToy": "Бережность",
+      "careOfToyHint": "Вернул в том же состоянии",
+      "wouldRentAgain": "Сдал бы снова",
+      "wouldRentAgainHint": "Доверяю этому арендатору в будущем",
+      "commentPlaceholder": "Расскажите, как прошла аренда…",
+      "successTitle": "Отзыв отправлен",
+      "successText": "Спасибо за оценку арендатора. Ваш отзыв укрепляет доверие в сообществе.",
+      "backToRequests": "К заявкам"
+    },
+    "ratingLabel": {
+      "poor": "Плохо",
+      "fair": "Удовлетворительно",
+      "good": "Хорошо",
+      "great": "Отлично",
+      "excellent": "Превосходно"
+    },
+    "success": {
+      "title": "Спасибо за ваши отзывы!",
+      "text": "Ваш отзыв помогает семьям арендовать с уверенностью. Комментарии публичны — оценки остаются приватными.",
+      "toyReview": "Отзыв об игрушке",
+      "ownerReview": "Отзыв о владельце",
+      "submitted": "Отправлено",
+      "skipped": "Пропущено",
+      "browseMore": "Смотреть ещё игрушки",
+      "backToBookings": "К моим арендам"
+    },
+    "card": {
+      "rentedDays": "Аренда {{count}} дн."
     },
     "summary": {
       "noReviews": "Отзывов пока нет",
       "oneReview": "1 отзыв",
-      "countReviews": "{{count}} отзыва(-ов)"
+      "countReviews": "{{count}} отзыва(-ов)",
+      "ariaRating": "Оценка {{rating}} из 5"
     },
     "relativeDate": {
       "today": "сегодня",

@@ -1,4 +1,4 @@
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DecimalPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -73,6 +73,7 @@ function resolveAgeRangeDisplay(
   standalone: true,
   imports: [
     CurrencyPipe,
+    DecimalPipe,
     ImageContainerComponent,
     RouterLink,
     TranslatePipe,

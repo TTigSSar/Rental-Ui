@@ -35,11 +35,10 @@ import * as ListingsActions from '../../store/listings.actions';
 import { ReviewCardComponent } from '../../../reviews/components/review-card/review-card.component';
 import * as ReviewsActions from '../../../reviews/store/reviews.actions';
 import {
-  selectListingReviews,
-  selectListingReviewsLoading,
-  selectListingReviewsError,
-  selectListingSummary,
-  selectUserSummary,
+  selectListingToyReviews,
+  selectListingToyReviewsLoading,
+  selectListingToyReviewsError,
+  selectOwnerReviews,
 } from '../../../reviews/store/reviews.selectors';
 import * as PublicProfilesActions from '../../../public-profiles/store/public-profiles.actions';
 import { selectPublicProfile } from '../../../public-profiles/store/public-profiles.selectors';
@@ -203,19 +202,21 @@ export class ListingDetailsPageComponent {
     initialValue: null as string | null,
   });
 
-  protected readonly reviews = toSignal(
+  private readonly toySummary = toSignal(
     this.routeId$.pipe(
       switchMap((id) =>
-        id ? this.store.select(selectListingReviews(id)) : of([]),
+        id ? this.store.select(selectListingToyReviews(id)) : of(null),
       ),
     ),
-    { initialValue: [] },
+    { initialValue: null },
   );
+
+  protected readonly reviews = computed(() => this.toySummary()?.comments ?? []);
 
   protected readonly reviewsLoading = toSignal(
     this.routeId$.pipe(
       switchMap((id) =>
-        id ? this.store.select(selectListingReviewsLoading(id)) : of(false),
+        id ? this.store.select(selectListingToyReviewsLoading(id)) : of(false),
       ),
     ),
     { initialValue: false },
@@ -224,20 +225,19 @@ export class ListingDetailsPageComponent {
   protected readonly reviewsError = toSignal(
     this.routeId$.pipe(
       switchMap((id) =>
-        id ? this.store.select(selectListingReviewsError(id)) : of(null),
+        id ? this.store.select(selectListingToyReviewsError(id)) : of(null),
       ),
     ),
     { initialValue: null },
   );
 
-  protected readonly ratingSummary = toSignal(
-    this.routeId$.pipe(
-      switchMap((id) =>
-        id ? this.store.select(selectListingSummary(id)) : of(null),
-      ),
-    ),
-    { initialValue: null },
-  );
+  // Header rating: shown only once the aggregate threshold is met (overall toy rating).
+  protected readonly ratingSummary = computed(() => {
+    const s = this.toySummary();
+    return s && s.hasAggregate
+      ? { averageRating: s.overallAverage, reviewCount: s.reviewCount }
+      : null;
+  });
 
   // ── Owner trust signals ────────────────────────────────────────────────────
 
@@ -246,14 +246,21 @@ export class ListingDetailsPageComponent {
     distinctUntilChanged(),
   );
 
-  protected readonly ownerSummary = toSignal(
+  private readonly ownerReviewsSummary = toSignal(
     this.ownerId$.pipe(
       switchMap((id) =>
-        id ? this.store.select(selectUserSummary(id)) : of(null),
+        id ? this.store.select(selectOwnerReviews(id)) : of(null),
       ),
     ),
     { initialValue: null },
   );
+
+  protected readonly ownerSummary = computed(() => {
+    const s = this.ownerReviewsSummary();
+    return s && s.hasAggregate
+      ? { averageRating: s.overallAverage, reviewCount: s.reviewCount }
+      : null;
+  });
 
   protected readonly ownerPublicProfile = toSignal(
     this.ownerId$.pipe(
@@ -338,8 +345,7 @@ export class ListingDetailsPageComponent {
       if (id !== null && id !== '') {
         this.store.dispatch(ListingsActions.loadListingDetails({ id }));
         this.store.dispatch(BookingsActions.clearCreateBookingState());
-        this.store.dispatch(ReviewsActions.loadListingReviews({ listingId: id }));
-        this.store.dispatch(ReviewsActions.loadListingSummary({ listingId: id }));
+        this.store.dispatch(ReviewsActions.loadListingToyReviews({ listingId: id }));
       }
     });
 
@@ -363,7 +369,7 @@ export class ListingDetailsPageComponent {
     effect(() => {
       const ownerId = this.currentListingSignal()?.owner?.id;
       if (ownerId) {
-        this.store.dispatch(ReviewsActions.loadUserSummary({ userId: ownerId }));
+        this.store.dispatch(ReviewsActions.loadOwnerReviews({ userId: ownerId }));
         this.store.dispatch(PublicProfilesActions.loadPublicProfile({ userId: ownerId }));
       }
     });

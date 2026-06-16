@@ -1,37 +1,33 @@
-import type { RatingSummary, Review } from '../models/review.model';
+import type {
+  BookingReviewStatus,
+  OwnerReviewSummary,
+  ToyReviewSummary,
+} from '../models/review.model';
 
-export interface ReviewCollection {
-  readonly items: Review[];
-  readonly isLoading: boolean;
-  readonly error: string | null;
-}
-
-export interface SummaryEntry {
-  readonly data: RatingSummary | null;
+export interface AsyncEntry<T> {
+  readonly data: T | null;
   readonly isLoading: boolean;
   readonly error: string | null;
 }
 
 export interface ReviewsState {
-  readonly byListing: Readonly<Record<string, ReviewCollection>>;
-  readonly byUser: Readonly<Record<string, ReviewCollection>>;
-  readonly listingSummaries: Readonly<Record<string, SummaryEntry>>;
-  readonly userSummaries: Readonly<Record<string, SummaryEntry>>;
+  readonly listingToyReviews: Readonly<Record<string, AsyncEntry<ToyReviewSummary>>>;
+  readonly ownerReviews: Readonly<Record<string, AsyncEntry<OwnerReviewSummary>>>;
+  readonly bookingStatus: Readonly<Record<string, AsyncEntry<BookingReviewStatus>>>;
   readonly submission: {
     readonly isSubmitting: boolean;
-    readonly submittedReview: Review | null;
     readonly error: string | null;
+    readonly lastStatus: BookingReviewStatus | null;
   };
 }
 
 export const initialReviewsState: ReviewsState = {
-  byListing: {},
-  byUser: {},
-  listingSummaries: {},
-  userSummaries: {},
+  listingToyReviews: {},
+  ownerReviews: {},
+  bookingStatus: {},
   submission: {
     isSubmitting: false,
-    submittedReview: null,
     error: null,
+    lastStatus: null,
   },
 };

@@ -1,91 +1,72 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 
-import type { RatingSummary, Review } from '../models/review.model';
+import type {
+  BookingReviewStatus,
+  OwnerReviewSummary,
+  ToyReviewSummary,
+} from '../models/review.model';
 import { reviewsFeatureKey } from './reviews.reducer';
-import type { ReviewCollection, ReviewsState, SummaryEntry } from './reviews.state';
+import type { AsyncEntry, ReviewsState } from './reviews.state';
 
 export const selectReviewsState = createFeatureSelector<ReviewsState>(reviewsFeatureKey);
 
-// ── Listing reviews ───────────────────────────────────────────────────────────
+function emptyEntry<T>(): AsyncEntry<T> {
+  return { data: null, isLoading: false, error: null };
+}
 
-export const selectListingReviewCollection = (listingId: string) =>
+// ── Listing toy reviews ────────────────────────────────────────────────────────
+const selectListingToyEntry = (listingId: string) =>
   createSelector(
     selectReviewsState,
-    (state): ReviewCollection => state.byListing[listingId] ?? { items: [], isLoading: false, error: null },
+    (s): AsyncEntry<ToyReviewSummary> => s.listingToyReviews[listingId] ?? emptyEntry(),
   );
 
-export const selectListingReviews = (listingId: string) =>
-  createSelector(selectListingReviewCollection(listingId), (c): Review[] => c.items);
+export const selectListingToyReviews = (listingId: string) =>
+  createSelector(selectListingToyEntry(listingId), (e): ToyReviewSummary | null => e.data);
 
-export const selectListingReviewsLoading = (listingId: string) =>
-  createSelector(selectListingReviewCollection(listingId), (c): boolean => c.isLoading);
+export const selectListingToyReviewsLoading = (listingId: string) =>
+  createSelector(selectListingToyEntry(listingId), (e): boolean => e.isLoading);
 
-export const selectListingReviewsError = (listingId: string) =>
-  createSelector(selectListingReviewCollection(listingId), (c): string | null => c.error);
+export const selectListingToyReviewsError = (listingId: string) =>
+  createSelector(selectListingToyEntry(listingId), (e): string | null => e.error);
 
-// ── User reviews ──────────────────────────────────────────────────────────────
-
-export const selectUserReviewCollection = (userId: string) =>
+// ── Owner reviews ───────────────────────────────────────────────────────────────
+const selectOwnerEntry = (userId: string) =>
   createSelector(
     selectReviewsState,
-    (state): ReviewCollection => state.byUser[userId] ?? { items: [], isLoading: false, error: null },
+    (s): AsyncEntry<OwnerReviewSummary> => s.ownerReviews[userId] ?? emptyEntry(),
   );
 
-export const selectUserReviews = (userId: string) =>
-  createSelector(selectUserReviewCollection(userId), (c): Review[] => c.items);
+export const selectOwnerReviews = (userId: string) =>
+  createSelector(selectOwnerEntry(userId), (e): OwnerReviewSummary | null => e.data);
 
-export const selectUserReviewsLoading = (userId: string) =>
-  createSelector(selectUserReviewCollection(userId), (c): boolean => c.isLoading);
+export const selectOwnerReviewsLoading = (userId: string) =>
+  createSelector(selectOwnerEntry(userId), (e): boolean => e.isLoading);
 
-export const selectUserReviewsError = (userId: string) =>
-  createSelector(selectUserReviewCollection(userId), (c): string | null => c.error);
+export const selectOwnerReviewsError = (userId: string) =>
+  createSelector(selectOwnerEntry(userId), (e): string | null => e.error);
 
-// ── Listing rating summary ────────────────────────────────────────────────────
-
-export const selectListingSummaryEntry = (listingId: string) =>
+// ── Booking status ──────────────────────────────────────────────────────────────
+const selectBookingStatusEntry = (bookingId: string) =>
   createSelector(
     selectReviewsState,
-    (state): SummaryEntry => state.listingSummaries[listingId] ?? { data: null, isLoading: false, error: null },
+    (s): AsyncEntry<BookingReviewStatus> => s.bookingStatus[bookingId] ?? emptyEntry(),
   );
 
-export const selectListingSummary = (listingId: string) =>
-  createSelector(selectListingSummaryEntry(listingId), (e): RatingSummary | null => e.data);
+export const selectBookingStatus = (bookingId: string) =>
+  createSelector(selectBookingStatusEntry(bookingId), (e): BookingReviewStatus | null => e.data);
 
-export const selectListingSummaryLoading = (listingId: string) =>
-  createSelector(selectListingSummaryEntry(listingId), (e): boolean => e.isLoading);
+export const selectBookingStatusLoading = (bookingId: string) =>
+  createSelector(selectBookingStatusEntry(bookingId), (e): boolean => e.isLoading);
 
-// ── User rating summary ───────────────────────────────────────────────────────
+// ── Submission ───────────────────────────────────────────────────────────────────
+export const selectSubmission = createSelector(selectReviewsState, (s) => s.submission);
 
-export const selectUserSummaryEntry = (userId: string) =>
-  createSelector(
-    selectReviewsState,
-    (state): SummaryEntry => state.userSummaries[userId] ?? { data: null, isLoading: false, error: null },
-  );
+export const selectIsSubmitting = createSelector(selectSubmission, (s): boolean => s.isSubmitting);
 
-export const selectUserSummary = (userId: string) =>
-  createSelector(selectUserSummaryEntry(userId), (e): RatingSummary | null => e.data);
+export const selectSubmissionError = createSelector(selectSubmission, (s): string | null => s.error);
 
-export const selectUserSummaryLoading = (userId: string) =>
-  createSelector(selectUserSummaryEntry(userId), (e): boolean => e.isLoading);
-
-// ── Submission ────────────────────────────────────────────────────────────────
-
-export const selectSubmission = createSelector(
-  selectReviewsState,
-  (state) => state.submission,
-);
-
-export const selectIsSubmitting = createSelector(
+export const selectLastSubmittedStatus = createSelector(
   selectSubmission,
-  (s): boolean => s.isSubmitting,
-);
-
-export const selectSubmittedReview = createSelector(
-  selectSubmission,
-  (s): Review | null => s.submittedReview,
-);
-
-export const selectSubmissionError = createSelector(
-  selectSubmission,
-  (s): string | null => s.error,
+  (s): BookingReviewStatus | null => s.lastStatus,
 );

@@ -31,6 +31,13 @@
       <span class="product-card__category">
         {{ 'home.featured.placeholderCategory' | translate }}
       </span>
+      @if (data.rating != null) {
+        <span class="product-card__rating">
+          <i class="pi pi-star-fill" aria-hidden="true"></i>
+          {{ data.rating | number: '1.1-1' }}
+          <span class="product-card__rating-count">({{ data.reviewCount }})</span>
+        </span>
+      }
     </div>
 
     <div class="product-card__footer">

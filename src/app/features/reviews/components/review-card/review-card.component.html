@@ -15,11 +15,13 @@
         @let relDate = relativeDateI18n();
         <span class="review-card__date" [title]="fullDate()">
           {{ relDate.key | translate: relDate.params }}
+          @if (review().rentedDays > 0) {
+            <span class="review-card__sep" aria-hidden="true">·</span>
+            <span class="review-card__rented">{{ 'reviews.card.rentedDays' | translate: { count: review().rentedDays } }}</span>
+          }
         </span>
       </div>
     </div>
-
-    <app-ui-star-rating [rating]="review().rating" size="sm" [readonly]="true" />
   </div>
 
   @if (review().comment) {

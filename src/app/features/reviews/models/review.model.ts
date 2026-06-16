@@ -1,27 +1,78 @@
-export type ReviewerRole = 'Renter' | 'Owner';
+// Three-table review model. Scores are private — only aggregates are exposed and
+// comment cards never carry a per-review score.
 
-export interface Review {
+export interface ReviewComment {
   readonly id: string;
-  readonly bookingId: string;
-  readonly listingId: string;
-  readonly reviewerId: string;
-  readonly revieweeId: string;
-  readonly reviewerRole: ReviewerRole;
-  readonly rating: number;
-  readonly comment: string | null;
-  readonly createdAt: string;
   readonly reviewerFirstName: string;
   readonly reviewerLastName: string;
   readonly reviewerAvatarUrl: string | null;
+  readonly comment: string;
+  readonly rentedDays: number;
+  readonly createdAt: string;
 }
 
-export interface RatingSummary {
-  readonly averageRating: number;
+export interface ToyReviewSummary {
   readonly reviewCount: number;
+  readonly hasAggregate: boolean;
+  readonly overallAverage: number;
+  readonly conditionAverage: number;
+  readonly cleanlinessAverage: number;
+  readonly valueForMoneyAverage: number;
+  readonly funPlayValueAverage: number;
+  readonly descriptionAccuracyAverage: number;
+  readonly distribution: readonly number[];
+  readonly comments: readonly ReviewComment[];
 }
 
-export interface CreateReviewRequest {
+export interface OwnerReviewSummary {
+  readonly reviewCount: number;
+  readonly hasAggregate: boolean;
+  readonly overallAverage: number;
+  readonly communicationAverage: number;
+  readonly pickupHandoverAverage: number;
+  readonly friendlinessAverage: number;
+  readonly distribution: readonly number[];
+  readonly comments: readonly ReviewComment[];
+}
+
+export type ReviewerSide = 'renter' | 'owner' | 'none';
+
+export interface BookingReviewStatus {
   readonly bookingId: string;
-  readonly rating: number;
+  readonly role: ReviewerSide;
+  readonly isCompleted: boolean;
+  readonly canReviewToy: boolean;
+  readonly canReviewOwner: boolean;
+  readonly canReviewRenter: boolean;
+  readonly hasToyReview: boolean;
+  readonly hasOwnerReview: boolean;
+  readonly hasRenterReview: boolean;
+}
+
+export interface CreateToyReviewRequest {
+  readonly bookingId: string;
+  readonly overallRating: number;
+  readonly conditionRating: number;
+  readonly cleanlinessRating: number;
+  readonly valueForMoneyRating: number;
+  readonly funPlayValueRating: number;
+  readonly descriptionAccuracyRating: number;
+  readonly comment?: string | null;
+}
+
+export interface CreateOwnerReviewRequest {
+  readonly bookingId: string;
+  readonly communicationRating: number;
+  readonly pickupHandoverRating: number;
+  readonly friendlinessRating: number;
+  readonly comment?: string | null;
+}
+
+export interface CreateRenterReviewRequest {
+  readonly bookingId: string;
+  readonly communicationRating: number;
+  readonly returnedOnTimeRating: number;
+  readonly careOfToyRating: number;
+  readonly wouldRentAgainRating: number;
   readonly comment?: string | null;
 }

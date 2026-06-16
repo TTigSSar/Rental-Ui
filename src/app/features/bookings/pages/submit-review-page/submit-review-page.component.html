@@ -1,114 +1,209 @@
-<div class="srp">
-  <!-- Header -->
-  <header class="srp__header">
-    <a class="srp__back-btn" [routerLink]="['/bookings']" [attr.aria-label]="'reviews.submit.backAriaLabel' | translate">
-      <i class="pi pi-arrow-left" aria-hidden="true"></i>
-    </a>
-    <h1 class="srp__title">{{ 'reviews.submit.title' | translate }}</h1>
-  </header>
-
-  @if (isSuccess()) {
-    <!-- ── Success state ────────────────────────────────── -->
-    <div class="srp__success">
-      <div class="srp__success-icon-wrap">
-        <svg class="srp__success-star" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 2l3 6.5 7 1-5 5 1.5 7-6.5-3.5L5.5 21 7 14 2 9l7-1L12 2z" />
-        </svg>
+<div class="review-flow">
+  @if (step() !== 'success') {
+    <header class="review-flow__top">
+      <a routerLink="/bookings" class="review-flow__back" [attr.aria-label]="'common.back' | translate">
+        <i class="pi pi-chevron-left" aria-hidden="true"></i>
+      </a>
+      <div class="review-flow__progress-meta">
+        <span class="review-flow__step-label">
+          {{ 'reviews.flow.stepOf' | translate: { current: step(), total: 2 } }}
+        </span>
+        <h1 class="review-flow__title">
+          {{ (step() === 1 ? 'reviews.flow.rateToyTitle' : 'reviews.flow.rateOwnerTitle') | translate }}
+        </h1>
       </div>
-      <h2 class="srp__success-title">{{ 'reviews.submit.successTitle' | translate }}</h2>
-      <p class="srp__success-message">{{ 'reviews.submit.successMessage' | translate }}</p>
-      <button type="button" class="srp__success-cta" (click)="onGoToBookings()">
-        {{ 'reviews.submit.successCta' | translate }}
-      </button>
-    </div>
-  } @else {
-    <!-- ── Form ────────────────────────────────────────── -->
-    <div class="srp__body">
+    </header>
 
-      <!-- Booking context card -->
-      @if (booking()) {
-        <div class="srp__context-card">
-          <p class="srp__context-eyebrow">{{ 'reviews.submit.contextLabel' | translate }}</p>
-          <p class="srp__context-title">{{ booking()!.listingTitle }}</p>
-          <p class="srp__context-dates">
-            {{ booking()!.startDate | date:'mediumDate' }} – {{ booking()!.endDate | date:'mediumDate' }}
-          </p>
+    <div class="review-flow__progress" role="progressbar" [attr.aria-valuenow]="step()" aria-valuemin="1" aria-valuemax="2">
+      <span class="review-flow__progress-bar" [style.width.%]="step() === 1 ? 50 : 100"></span>
+    </div>
+
+    @if (error()) {
+      <p class="review-flow__error" role="alert">{{ error() }}</p>
+    }
+  }
+
+  <!-- ───────────────────────── Step 1 · Rate the toy ───────────────────────── -->
+  @if (step() === 1) {
+    <section class="review-flow__body">
+      @if (booking(); as b) {
+        <div class="review-flow__subject">
+          <span class="review-flow__subject-kicker">{{ 'reviews.flow.reviewingToy' | translate }}</span>
+          <span class="review-flow__subject-name">{{ b.listingTitle }}</span>
         </div>
       }
 
-      <!-- Rating card -->
-      <div class="srp__rating-card">
-        <p class="srp__rating-question">{{ 'reviews.submit.ratingQuestion' | translate }}</p>
-        <p class="srp__rating-hint">{{ 'reviews.submit.ratingHint' | translate }}</p>
+      <div class="review-flow__card review-flow__card--overall">
+        <h2 class="review-flow__q">{{ 'reviews.toy.overallQuestion' | translate }}</h2>
         <app-ui-star-rating
-          [rating]="selectedRating()"
+          [rating]="toyOverall()"
           size="lg"
           [readonly]="false"
-          (ratingChange)="onRatingChange($event)"
+          (ratingChange)="setToyOverall($event)"
         />
-        @if (ratingLabel()) {
-          <p class="srp__rating-value-label">{{ ratingLabel() }}</p>
+        @if (overallLabel()) {
+          <span class="review-flow__rating-word">{{ overallLabel() | translate }}</span>
         }
       </div>
 
-      <!-- Comment -->
-      <div class="srp__comment-section">
-        <label class="srp__comment-label" for="review-comment">
-          {{ 'reviews.submit.commentLabel' | translate }}
-          <span class="srp__comment-optional">{{ 'reviews.submit.commentOptional' | translate }}</span>
+      <div class="review-flow__card">
+        @for (s of toySubScores; track s.key) {
+          <div class="review-flow__row">
+            <div class="review-flow__row-text">
+              <span class="review-flow__row-label">{{ s.key | translate }}</span>
+              <span class="review-flow__row-hint">{{ s.hintKey | translate }}</span>
+            </div>
+            <app-ui-star-rating
+              [rating]="s.value()"
+              size="md"
+              [readonly]="false"
+              (ratingChange)="setSub(s, $event)"
+            />
+          </div>
+        }
+      </div>
+
+      <div class="review-flow__card">
+        <label class="review-flow__comment-label" for="toy-comment">
+          {{ 'reviews.flow.addComment' | translate }}
+          <span class="review-flow__optional">{{ 'reviews.flow.optional' | translate }}</span>
         </label>
         <textarea
-          id="review-comment"
-          class="srp__comment-textarea"
-          [value]="comment()"
-          (input)="onCommentInput($event)"
-          rows="4"
+          id="toy-comment"
+          class="review-flow__textarea"
           maxlength="400"
-          [placeholder]="'reviews.submit.commentPlaceholder' | translate"
+          rows="3"
+          [value]="toyComment()"
+          (input)="onToyCommentInput($event)"
+          [placeholder]="'reviews.toy.commentPlaceholder' | translate"
         ></textarea>
-        <div class="srp__comment-meta">
-          <span>{{ 'reviews.submit.commentHint' | translate }}</span>
-          <span class="srp__comment-count">{{ charCount() }} / 400</span>
-        </div>
+        <span class="review-flow__count">{{ toyCommentCount() }} / 400</span>
       </div>
 
-      <!-- Submission error -->
-      @if (submissionError()) {
-        <div class="srp__error" role="alert">
-          <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
-          <span>{{ submissionError() }}</span>
-        </div>
-      }
+      <p class="review-flow__privacy">
+        <i class="pi pi-lock" aria-hidden="true"></i>
+        {{ 'reviews.flow.privacyNote' | translate }}
+      </p>
+    </section>
 
-      <!-- Privacy hint -->
-      <div class="srp__privacy">
-        <i class="pi pi-shield" aria-hidden="true"></i>
-        <span>{{ 'reviews.submit.privacyHint' | translate }}</span>
-      </div>
-    </div>
-
-    <!-- ── Sticky footer ───────────────────────────────── -->
-    <div class="srp__footer">
-      <button
-        type="button"
-        class="srp__skip-btn"
-        [disabled]="isSubmitting()"
-        (click)="onSkip()"
-      >
-        {{ 'reviews.submit.skipButton' | translate }}
+    <footer class="review-flow__footer">
+      <button type="button" class="review-flow__btn review-flow__btn--ghost" (click)="skipToy()">
+        {{ 'reviews.flow.skipToy' | translate }}
       </button>
       <button
         type="button"
-        class="srp__submit-btn"
-        [disabled]="!canSubmit()"
-        (click)="onSubmit()"
+        class="review-flow__btn review-flow__btn--primary"
+        [disabled]="!toyValid() || submitting()"
+        (click)="submitToyAndContinue()"
       >
-        @if (isSubmitting()) {
-          <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
-        } @else {
-          {{ 'reviews.submit.submitButton' | translate }}
+        {{ 'reviews.flow.nextRateOwner' | translate }}
+      </button>
+    </footer>
+  }
+
+  <!-- ──────────────────────── Step 2 · Rate the owner ──────────────────────── -->
+  @if (step() === 2) {
+    <section class="review-flow__body">
+      <div class="review-flow__subject">
+        <span class="review-flow__subject-kicker">{{ 'reviews.flow.reviewingOwner' | translate }}</span>
+        @if (booking(); as b) {
+          <span class="review-flow__subject-name">{{ b.listingTitle }}</span>
         }
+      </div>
+
+      <div class="review-flow__card">
+        @for (s of ownerSubScores; track s.key) {
+          <div class="review-flow__row">
+            <div class="review-flow__row-text">
+              <span class="review-flow__row-label">{{ s.key | translate }}</span>
+              <span class="review-flow__row-hint">{{ s.hintKey | translate }}</span>
+            </div>
+            <app-ui-star-rating
+              [rating]="s.value()"
+              size="md"
+              [readonly]="false"
+              (ratingChange)="setSub(s, $event)"
+            />
+          </div>
+        }
+      </div>
+
+      <div class="review-flow__card">
+        <label class="review-flow__comment-label" for="owner-comment">
+          {{ 'reviews.flow.addComment' | translate }}
+          <span class="review-flow__optional">{{ 'reviews.flow.optional' | translate }}</span>
+        </label>
+        <textarea
+          id="owner-comment"
+          class="review-flow__textarea"
+          maxlength="400"
+          rows="3"
+          [value]="ownerComment()"
+          (input)="onOwnerCommentInput($event)"
+          [placeholder]="'reviews.owner.commentPlaceholder' | translate"
+        ></textarea>
+        <span class="review-flow__count">{{ ownerCommentCount() }} / 400</span>
+      </div>
+
+      <p class="review-flow__privacy">
+        <i class="pi pi-lock" aria-hidden="true"></i>
+        {{ 'reviews.flow.privacyNoteLocked' | translate }}
+      </p>
+    </section>
+
+    <footer class="review-flow__footer">
+      <button type="button" class="review-flow__btn review-flow__btn--ghost" (click)="skipOwnerAndFinish()">
+        {{ 'reviews.flow.skipOwner' | translate }}
       </button>
-    </div>
+      <button
+        type="button"
+        class="review-flow__btn review-flow__btn--primary"
+        [disabled]="!ownerValid() || submitting()"
+        (click)="submitOwnerAndFinish()"
+      >
+        {{ 'reviews.flow.submit' | translate }}
+      </button>
+    </footer>
+  }
+
+  <!-- ───────────────────────────── Success ───────────────────────────── -->
+  @if (step() === 'success') {
+    <section class="review-flow__success">
+      <div class="review-flow__success-icon" aria-hidden="true">
+        <i class="pi pi-star-fill"></i>
+      </div>
+      <h1 class="review-flow__success-title">{{ 'reviews.success.title' | translate }}</h1>
+      <p class="review-flow__success-text">{{ 'reviews.success.text' | translate }}</p>
+
+      <ul class="review-flow__success-list">
+        <li class="review-flow__success-item">
+          <span>{{ 'reviews.success.toyReview' | translate }}</span>
+          @if (toySubmitted()) {
+            <span class="review-flow__badge review-flow__badge--done">
+              <i class="pi pi-check" aria-hidden="true"></i>{{ 'reviews.success.submitted' | translate }}
+            </span>
+          } @else {
+            <span class="review-flow__badge review-flow__badge--skipped">{{ 'reviews.success.skipped' | translate }}</span>
+          }
+        </li>
+        <li class="review-flow__success-item">
+          <span>{{ 'reviews.success.ownerReview' | translate }}</span>
+          @if (ownerSubmitted()) {
+            <span class="review-flow__badge review-flow__badge--done">
+              <i class="pi pi-check" aria-hidden="true"></i>{{ 'reviews.success.submitted' | translate }}
+            </span>
+          } @else {
+            <span class="review-flow__badge review-flow__badge--skipped">{{ 'reviews.success.skipped' | translate }}</span>
+          }
+        </li>
+      </ul>
+
+      <button type="button" class="review-flow__btn review-flow__btn--primary review-flow__btn--block" (click)="browseToys()">
+        {{ 'reviews.success.browseMore' | translate }}
+      </button>
+      <button type="button" class="review-flow__btn review-flow__btn--link" (click)="goToBookings()">
+        {{ 'reviews.success.backToBookings' | translate }}
+      </button>
+    </section>
   }
 </div>

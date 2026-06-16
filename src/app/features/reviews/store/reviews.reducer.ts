@@ -1,174 +1,87 @@
 import { createReducer, on } from '@ngrx/store';
 
-import type { RatingSummary, Review } from '../models/review.model';
 import * as ReviewsActions from './reviews.actions';
-import {
-  initialReviewsState,
-  type ReviewCollection,
-  type ReviewsState,
-  type SummaryEntry,
-} from './reviews.state';
+import { initialReviewsState, type AsyncEntry, type ReviewsState } from './reviews.state';
 
 export const reviewsFeatureKey = 'reviews' as const;
 
-function emptyCollection(): ReviewCollection {
-  return { items: [], isLoading: false, error: null };
+function loading<T>(current: AsyncEntry<T> | undefined): AsyncEntry<T> {
+  return { data: current?.data ?? null, isLoading: true, error: null };
 }
-
-function emptySummary(): SummaryEntry {
-  return { data: null, isLoading: false, error: null };
-}
-
-function collectionLoading(current: ReviewCollection | undefined): ReviewCollection {
-  return { ...(current ?? emptyCollection()), isLoading: true, error: null };
-}
-
-function collectionLoaded(items: Review[]): ReviewCollection {
-  return { items, isLoading: false, error: null };
-}
-
-function collectionFailed(current: ReviewCollection | undefined, error: string): ReviewCollection {
-  return { ...(current ?? emptyCollection()), isLoading: false, error };
-}
-
-function summaryLoading(current: SummaryEntry | undefined): SummaryEntry {
-  return { ...(current ?? emptySummary()), isLoading: true, error: null };
-}
-
-function summaryLoaded(data: RatingSummary): SummaryEntry {
+function loaded<T>(data: T): AsyncEntry<T> {
   return { data, isLoading: false, error: null };
 }
-
-function summaryFailed(current: SummaryEntry | undefined, error: string): SummaryEntry {
-  return { ...(current ?? emptySummary()), isLoading: false, error };
+function failed<T>(current: AsyncEntry<T> | undefined, error: string): AsyncEntry<T> {
+  return { data: current?.data ?? null, isLoading: false, error };
 }
 
 export const reviewsReducer = createReducer(
   initialReviewsState,
 
-  // ── Listing reviews ───────────────────────────────────────────────────────
-
-  on(ReviewsActions.loadListingReviews, (state, { listingId }): ReviewsState => ({
+  // ── Listing toy reviews ─────────────────────────────────────────────────────
+  on(ReviewsActions.loadListingToyReviews, (state, { listingId }): ReviewsState => ({
     ...state,
-    byListing: {
-      ...state.byListing,
-      [listingId]: collectionLoading(state.byListing[listingId]),
-    },
+    listingToyReviews: { ...state.listingToyReviews, [listingId]: loading(state.listingToyReviews[listingId]) },
+  })),
+  on(ReviewsActions.loadListingToyReviewsSuccess, (state, { listingId, summary }): ReviewsState => ({
+    ...state,
+    listingToyReviews: { ...state.listingToyReviews, [listingId]: loaded(summary) },
+  })),
+  on(ReviewsActions.loadListingToyReviewsFailure, (state, { listingId, error }): ReviewsState => ({
+    ...state,
+    listingToyReviews: { ...state.listingToyReviews, [listingId]: failed(state.listingToyReviews[listingId], error) },
   })),
 
-  on(ReviewsActions.loadListingReviewsSuccess, (state, { listingId, items }): ReviewsState => ({
+  // ── Owner reviews ───────────────────────────────────────────────────────────
+  on(ReviewsActions.loadOwnerReviews, (state, { userId }): ReviewsState => ({
     ...state,
-    byListing: {
-      ...state.byListing,
-      [listingId]: collectionLoaded(items),
-    },
+    ownerReviews: { ...state.ownerReviews, [userId]: loading(state.ownerReviews[userId]) },
+  })),
+  on(ReviewsActions.loadOwnerReviewsSuccess, (state, { userId, summary }): ReviewsState => ({
+    ...state,
+    ownerReviews: { ...state.ownerReviews, [userId]: loaded(summary) },
+  })),
+  on(ReviewsActions.loadOwnerReviewsFailure, (state, { userId, error }): ReviewsState => ({
+    ...state,
+    ownerReviews: { ...state.ownerReviews, [userId]: failed(state.ownerReviews[userId], error) },
   })),
 
-  on(ReviewsActions.loadListingReviewsFailure, (state, { listingId, error }): ReviewsState => ({
+  // ── Booking status ──────────────────────────────────────────────────────────
+  on(ReviewsActions.loadBookingStatus, (state, { bookingId }): ReviewsState => ({
     ...state,
-    byListing: {
-      ...state.byListing,
-      [listingId]: collectionFailed(state.byListing[listingId], error),
-    },
+    bookingStatus: { ...state.bookingStatus, [bookingId]: loading(state.bookingStatus[bookingId]) },
+  })),
+  on(ReviewsActions.loadBookingStatusSuccess, (state, { bookingId, status }): ReviewsState => ({
+    ...state,
+    bookingStatus: { ...state.bookingStatus, [bookingId]: loaded(status) },
+  })),
+  on(ReviewsActions.loadBookingStatusFailure, (state, { bookingId, error }): ReviewsState => ({
+    ...state,
+    bookingStatus: { ...state.bookingStatus, [bookingId]: failed(state.bookingStatus[bookingId], error) },
   })),
 
-  // ── User reviews ──────────────────────────────────────────────────────────
-
-  on(ReviewsActions.loadUserReviews, (state, { userId }): ReviewsState => ({
+  // ── Submissions ─────────────────────────────────────────────────────────────
+  on(
+    ReviewsActions.submitToyReview,
+    ReviewsActions.submitOwnerReview,
+    ReviewsActions.submitRenterReview,
+    (state): ReviewsState => ({
+      ...state,
+      submission: { ...state.submission, isSubmitting: true, error: null },
+    }),
+  ),
+  on(ReviewsActions.submitReviewSuccess, (state, { status }): ReviewsState => ({
     ...state,
-    byUser: {
-      ...state.byUser,
-      [userId]: collectionLoading(state.byUser[userId]),
-    },
+    submission: { isSubmitting: false, error: null, lastStatus: status },
+    // Keep the cached booking status in sync so prompts update without a refetch.
+    bookingStatus: { ...state.bookingStatus, [status.bookingId]: loaded(status) },
   })),
-
-  on(ReviewsActions.loadUserReviewsSuccess, (state, { userId, items }): ReviewsState => ({
-    ...state,
-    byUser: {
-      ...state.byUser,
-      [userId]: collectionLoaded(items),
-    },
-  })),
-
-  on(ReviewsActions.loadUserReviewsFailure, (state, { userId, error }): ReviewsState => ({
-    ...state,
-    byUser: {
-      ...state.byUser,
-      [userId]: collectionFailed(state.byUser[userId], error),
-    },
-  })),
-
-  // ── Listing rating summary ────────────────────────────────────────────────
-
-  on(ReviewsActions.loadListingSummary, (state, { listingId }): ReviewsState => ({
-    ...state,
-    listingSummaries: {
-      ...state.listingSummaries,
-      [listingId]: summaryLoading(state.listingSummaries[listingId]),
-    },
-  })),
-
-  on(ReviewsActions.loadListingSummarySuccess, (state, { listingId, summary }): ReviewsState => ({
-    ...state,
-    listingSummaries: {
-      ...state.listingSummaries,
-      [listingId]: summaryLoaded(summary),
-    },
-  })),
-
-  on(ReviewsActions.loadListingSummaryFailure, (state, { listingId, error }): ReviewsState => ({
-    ...state,
-    listingSummaries: {
-      ...state.listingSummaries,
-      [listingId]: summaryFailed(state.listingSummaries[listingId], error),
-    },
-  })),
-
-  // ── User rating summary ───────────────────────────────────────────────────
-
-  on(ReviewsActions.loadUserSummary, (state, { userId }): ReviewsState => ({
-    ...state,
-    userSummaries: {
-      ...state.userSummaries,
-      [userId]: summaryLoading(state.userSummaries[userId]),
-    },
-  })),
-
-  on(ReviewsActions.loadUserSummarySuccess, (state, { userId, summary }): ReviewsState => ({
-    ...state,
-    userSummaries: {
-      ...state.userSummaries,
-      [userId]: summaryLoaded(summary),
-    },
-  })),
-
-  on(ReviewsActions.loadUserSummaryFailure, (state, { userId, error }): ReviewsState => ({
-    ...state,
-    userSummaries: {
-      ...state.userSummaries,
-      [userId]: summaryFailed(state.userSummaries[userId], error),
-    },
-  })),
-
-  // ── Submit review ─────────────────────────────────────────────────────────
-
-  on(ReviewsActions.submitReview, (state): ReviewsState => ({
-    ...state,
-    submission: { isSubmitting: true, submittedReview: null, error: null },
-  })),
-
-  on(ReviewsActions.submitReviewSuccess, (state, { review }): ReviewsState => ({
-    ...state,
-    submission: { isSubmitting: false, submittedReview: review, error: null },
-  })),
-
   on(ReviewsActions.submitReviewFailure, (state, { error }): ReviewsState => ({
     ...state,
-    submission: { isSubmitting: false, submittedReview: null, error },
+    submission: { ...state.submission, isSubmitting: false, error },
   })),
-
   on(ReviewsActions.resetSubmission, (state): ReviewsState => ({
     ...state,
-    submission: { isSubmitting: false, submittedReview: null, error: null },
+    submission: { isSubmitting: false, error: null, lastStatus: null },
   })),
 );

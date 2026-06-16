@@ -45,6 +45,14 @@
         </p>
       }
 
+      @if (listing().rating != null) {
+        <p class="listing-card__rating" [attr.aria-label]="'reviews.summary.ariaRating' | translate: { rating: listing().rating }">
+          <span class="pi pi-star-fill listing-card__rating-star" aria-hidden="true"></span>
+          <span class="listing-card__rating-value">{{ listing().rating | number: '1.1-1' }}</span>
+          <span class="listing-card__rating-count">({{ listing().reviewCount }})</span>
+        </p>
+      }
+
       <p class="listing-card__price">
         <span class="listing-card__price-amount">{{
           listing().pricePerDay | currency

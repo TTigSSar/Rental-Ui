@@ -1,0 +1,83 @@
+<div class="review-flow">
+  @if (!done()) {
+    <header class="review-flow__top">
+      <a routerLink="/bookings/requests" class="review-flow__back" [attr.aria-label]="'common.back' | translate">
+        <i class="pi pi-chevron-left" aria-hidden="true"></i>
+      </a>
+      <div class="review-flow__progress-meta">
+        <span class="review-flow__step-label">{{ 'reviews.renter.kicker' | translate }}</span>
+        <h1 class="review-flow__title">{{ 'reviews.renter.title' | translate }}</h1>
+      </div>
+    </header>
+
+    @if (error()) {
+      <p class="review-flow__error" role="alert">{{ error() }}</p>
+    }
+
+    <section class="review-flow__body">
+      <div class="review-flow__card">
+        @for (s of subScores; track s.key) {
+          <div class="review-flow__row">
+            <div class="review-flow__row-text">
+              <span class="review-flow__row-label">{{ s.key | translate }}</span>
+              <span class="review-flow__row-hint">{{ s.hintKey | translate }}</span>
+            </div>
+            <app-ui-star-rating
+              [rating]="s.value()"
+              size="md"
+              [readonly]="false"
+              (ratingChange)="setSub(s, $event)"
+            />
+          </div>
+        }
+      </div>
+
+      <div class="review-flow__card">
+        <label class="review-flow__comment-label" for="renter-comment">
+          {{ 'reviews.flow.addComment' | translate }}
+          <span class="review-flow__optional">{{ 'reviews.flow.optional' | translate }}</span>
+        </label>
+        <textarea
+          id="renter-comment"
+          class="review-flow__textarea"
+          maxlength="400"
+          rows="3"
+          [value]="comment()"
+          (input)="onCommentInput($event)"
+          [placeholder]="'reviews.renter.commentPlaceholder' | translate"
+        ></textarea>
+        <span class="review-flow__count">{{ commentCount() }} / 400</span>
+      </div>
+
+      <p class="review-flow__privacy">
+        <i class="pi pi-lock" aria-hidden="true"></i>
+        {{ 'reviews.flow.privacyNote' | translate }}
+      </p>
+    </section>
+
+    <footer class="review-flow__footer">
+      <button type="button" class="review-flow__btn review-flow__btn--ghost" (click)="back()">
+        {{ 'reviews.flow.skip' | translate }}
+      </button>
+      <button
+        type="button"
+        class="review-flow__btn review-flow__btn--primary"
+        [disabled]="!valid() || submitting()"
+        (click)="submit()"
+      >
+        {{ 'reviews.flow.submitReview' | translate }}
+      </button>
+    </footer>
+  } @else {
+    <section class="review-flow__success">
+      <div class="review-flow__success-icon" aria-hidden="true">
+        <i class="pi pi-check"></i>
+      </div>
+      <h1 class="review-flow__success-title">{{ 'reviews.renter.successTitle' | translate }}</h1>
+      <p class="review-flow__success-text">{{ 'reviews.renter.successText' | translate }}</p>
+      <button type="button" class="review-flow__btn review-flow__btn--primary review-flow__btn--block" (click)="back()">
+        {{ 'reviews.renter.backToRequests' | translate }}
+      </button>
+    </section>
+  }
+</div>

@@ -3,29 +3,40 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ApiContract, toApiUrl } from '../../../api/api-contract';
-import type { CreateReviewRequest, RatingSummary, Review } from '../models/review.model';
+import type {
+  BookingReviewStatus,
+  CreateOwnerReviewRequest,
+  CreateRenterReviewRequest,
+  CreateToyReviewRequest,
+  OwnerReviewSummary,
+  ToyReviewSummary,
+} from '../models/review.model';
 
 @Injectable({ providedIn: 'root' })
 export class ReviewsApiService {
   private readonly http = inject(HttpClient);
 
-  submit(request: CreateReviewRequest): Observable<Review> {
-    return this.http.post<Review>(toApiUrl(ApiContract.reviews.submit), request);
+  submitToy(request: CreateToyReviewRequest): Observable<BookingReviewStatus> {
+    return this.http.post<BookingReviewStatus>(toApiUrl(ApiContract.reviews.submitToy), request);
   }
 
-  getByListing(listingId: string): Observable<Review[]> {
-    return this.http.get<Review[]>(toApiUrl(ApiContract.reviews.byListing(listingId)));
+  submitOwner(request: CreateOwnerReviewRequest): Observable<BookingReviewStatus> {
+    return this.http.post<BookingReviewStatus>(toApiUrl(ApiContract.reviews.submitOwner), request);
   }
 
-  getByUser(userId: string): Observable<Review[]> {
-    return this.http.get<Review[]>(toApiUrl(ApiContract.reviews.byUser(userId)));
+  submitRenter(request: CreateRenterReviewRequest): Observable<BookingReviewStatus> {
+    return this.http.post<BookingReviewStatus>(toApiUrl(ApiContract.reviews.submitRenter), request);
   }
 
-  getListingSummary(listingId: string): Observable<RatingSummary> {
-    return this.http.get<RatingSummary>(toApiUrl(ApiContract.reviews.listingSummary(listingId)));
+  getBookingStatus(bookingId: string): Observable<BookingReviewStatus> {
+    return this.http.get<BookingReviewStatus>(toApiUrl(ApiContract.reviews.bookingStatus(bookingId)));
   }
 
-  getUserSummary(userId: string): Observable<RatingSummary> {
-    return this.http.get<RatingSummary>(toApiUrl(ApiContract.reviews.userSummary(userId)));
+  getListingToyReviews(listingId: string): Observable<ToyReviewSummary> {
+    return this.http.get<ToyReviewSummary>(toApiUrl(ApiContract.reviews.listingToyReviews(listingId)));
+  }
+
+  getOwnerReviews(userId: string): Observable<OwnerReviewSummary> {
+    return this.http.get<OwnerReviewSummary>(toApiUrl(ApiContract.reviews.ownerReviews(userId)));
   }
 }

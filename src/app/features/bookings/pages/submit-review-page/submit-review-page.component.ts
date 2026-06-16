@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -10,22 +9,34 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { StarRatingComponent } from '../../../../shared/ui/star-rating/star-rating.component';
+import { toApiErrorMessage } from '../../../../api/http-error-message.util';
 import * as ReviewsActions from '../../../reviews/store/reviews.actions';
-import {
-  selectIsSubmitting,
-  selectSubmissionError,
-  selectSubmittedReview,
-} from '../../../reviews/store/reviews.selectors';
+import { ReviewsApiService } from '../../../reviews/services/reviews-api.service';
 import * as BookingsActions from '../../store/bookings.actions';
 import { selectMyBookingById } from '../../store/bookings.selectors';
 
+type FlowStep = 1 | 2 | 'success';
+
+interface SubScore {
+  readonly key: string;       // i18n label key
+  readonly hintKey: string;   // i18n hint key
+  readonly value: ReturnType<typeof signal<number>>;
+}
+
+const RATING_LABELS = ['', 'poor', 'fair', 'good', 'great', 'excellent'] as const;
+
+/**
+ * Renter review flow: Step 1 rates the toy, Step 2 rates the owner. Each step is
+ * submitted independently — the renter can rate just the toy, just the owner, or
+ * both. The success screen is partial-aware.
+ */
 @Component({
   selector: 'app-submit-review-page',
   standalone: true,
-  imports: [DatePipe, RouterLink, StarRatingComponent, TranslatePipe],
+  imports: [RouterLink, StarRatingComponent, TranslatePipe],
   templateUrl: './submit-review-page.component.html',
   styleUrl: './submit-review-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,79 +45,150 @@ export class SubmitReviewPageComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
-  private readonly translate = inject(TranslateService);
+  private readonly api = inject(ReviewsApiService);
 
-  protected readonly bookingId =
-    this.route.snapshot.paramMap.get('bookingId') ?? '';
+  protected readonly bookingId = this.route.snapshot.paramMap.get('bookingId') ?? '';
 
-  protected readonly selectedRating = signal<number>(0);
-  protected readonly comment = signal<string>('');
+  protected readonly step = signal<FlowStep>(1);
+  protected readonly submitting = signal(false);
+  protected readonly error = signal<string | null>(null);
+  protected readonly toySubmitted = signal(false);
+  protected readonly ownerSubmitted = signal(false);
+
+  // Step 1 — toy
+  protected readonly toyOverall = signal(0);
+  protected readonly toyComment = signal('');
+  protected readonly toySubScores: readonly SubScore[] = [
+    { key: 'reviews.toy.condition', hintKey: 'reviews.toy.conditionHint', value: signal(0) },
+    { key: 'reviews.toy.cleanliness', hintKey: 'reviews.toy.cleanlinessHint', value: signal(0) },
+    { key: 'reviews.toy.value', hintKey: 'reviews.toy.valueHint', value: signal(0) },
+    { key: 'reviews.toy.fun', hintKey: 'reviews.toy.funHint', value: signal(0) },
+    { key: 'reviews.toy.description', hintKey: 'reviews.toy.descriptionHint', value: signal(0) },
+  ];
+
+  // Step 2 — owner
+  protected readonly ownerComment = signal('');
+  protected readonly ownerSubScores: readonly SubScore[] = [
+    { key: 'reviews.owner.communication', hintKey: 'reviews.owner.communicationHint', value: signal(0) },
+    { key: 'reviews.owner.pickup', hintKey: 'reviews.owner.pickupHint', value: signal(0) },
+    { key: 'reviews.owner.friendliness', hintKey: 'reviews.owner.friendlinessHint', value: signal(0) },
+  ];
 
   protected readonly booking = toSignal(
     this.store.select(selectMyBookingById(this.bookingId)),
     { initialValue: null },
   );
-  protected readonly isSubmitting = toSignal(
-    this.store.select(selectIsSubmitting),
-    { initialValue: false },
+
+  protected readonly toyValid = computed(
+    () => this.toyOverall() > 0 && this.toySubScores.every((s) => s.value() > 0),
   );
-  protected readonly submittedReview = toSignal(
-    this.store.select(selectSubmittedReview),
-    { initialValue: null },
-  );
-  protected readonly submissionError = toSignal(
-    this.store.select(selectSubmissionError),
-    { initialValue: null },
+  protected readonly ownerValid = computed(
+    () => this.ownerSubScores.every((s) => s.value() > 0),
   );
 
-  protected readonly isSuccess = computed(() => this.submittedReview() !== null);
-  protected readonly canSubmit = computed(
-    () => this.selectedRating() > 0 && !this.isSubmitting(),
-  );
-  protected readonly charCount = computed(() => this.comment().length);
+  protected readonly toyCommentCount = computed(() => this.toyComment().length);
+  protected readonly ownerCommentCount = computed(() => this.ownerComment().length);
 
-  protected readonly ratingLabel = computed(() => {
-    const r = this.selectedRating();
-    if (r === 0) return '';
-    return this.translate.instant(`reviews.submit.ratingLabel_${r}`) as string;
+  protected readonly overallLabel = computed(() => {
+    const r = this.toyOverall();
+    return r > 0 ? `reviews.ratingLabel.${RATING_LABELS[r]}` : '';
   });
 
   ngOnInit(): void {
     this.store.dispatch(ReviewsActions.resetSubmission());
-    // Populate booking context if we arrived via direct URL (store is empty)
     if (this.booking() === null) {
       this.store.dispatch(BookingsActions.loadMyBookings());
     }
   }
 
-  protected onRatingChange(rating: number): void {
-    this.selectedRating.set(rating);
+  protected setToyOverall(v: number): void { this.toyOverall.set(v); }
+  protected setSub(score: SubScore, v: number): void { score.value.set(v); }
+
+  protected onToyCommentInput(e: Event): void {
+    this.toyComment.set((e.target as HTMLTextAreaElement).value);
+  }
+  protected onOwnerCommentInput(e: Event): void {
+    this.ownerComment.set((e.target as HTMLTextAreaElement).value);
   }
 
-  protected onCommentInput(event: Event): void {
-    this.comment.set((event.target as HTMLTextAreaElement).value);
-  }
-
-  protected onSubmit(): void {
-    const rating = this.selectedRating();
-    if (!rating || !this.bookingId) return;
-    this.store.dispatch(
-      ReviewsActions.submitReview({
-        request: {
-          bookingId: this.bookingId,
-          rating,
-          comment: this.comment().trim() || null,
+  /** Step 1 primary action: submit the toy review, then advance to the owner step. */
+  protected submitToyAndContinue(): void {
+    if (!this.toyValid() || this.submitting()) return;
+    this.submitting.set(true);
+    this.error.set(null);
+    this.api
+      .submitToy({
+        bookingId: this.bookingId,
+        overallRating: this.toyOverall(),
+        conditionRating: this.toySubScores[0].value(),
+        cleanlinessRating: this.toySubScores[1].value(),
+        valueForMoneyRating: this.toySubScores[2].value(),
+        funPlayValueRating: this.toySubScores[3].value(),
+        descriptionAccuracyRating: this.toySubScores[4].value(),
+        comment: this.toyComment().trim() || null,
+      })
+      .subscribe({
+        next: () => {
+          this.toySubmitted.set(true);
+          this.submitting.set(false);
+          this.refreshStatus();
+          this.step.set(2);
         },
-      }),
-    );
+        error: (e: unknown) => {
+          this.submitting.set(false);
+          this.error.set(toApiErrorMessage(e));
+        },
+      });
   }
 
-  protected onSkip(): void {
+  /** Step 1 skip: go to the owner step without saving a toy review. */
+  protected skipToy(): void {
+    this.error.set(null);
+    this.step.set(2);
+  }
+
+  /** Step 2 primary action: submit the owner review, then show success. */
+  protected submitOwnerAndFinish(): void {
+    if (!this.ownerValid() || this.submitting()) return;
+    this.submitting.set(true);
+    this.error.set(null);
+    this.api
+      .submitOwner({
+        bookingId: this.bookingId,
+        communicationRating: this.ownerSubScores[0].value(),
+        pickupHandoverRating: this.ownerSubScores[1].value(),
+        friendlinessRating: this.ownerSubScores[2].value(),
+        comment: this.ownerComment().trim() || null,
+      })
+      .subscribe({
+        next: () => {
+          this.ownerSubmitted.set(true);
+          this.submitting.set(false);
+          this.refreshStatus();
+          this.step.set('success');
+        },
+        error: (e: unknown) => {
+          this.submitting.set(false);
+          this.error.set(toApiErrorMessage(e));
+        },
+      });
+  }
+
+  /** Step 2 skip: finish without an owner review (toy review, if any, is kept). */
+  protected skipOwnerAndFinish(): void {
+    this.error.set(null);
+    this.step.set('success');
+  }
+
+  protected goToBookings(): void {
     void this.router.navigate(['/bookings']);
   }
 
-  protected onGoToBookings(): void {
-    this.store.dispatch(ReviewsActions.resetSubmission());
-    void this.router.navigate(['/bookings']);
+  protected browseToys(): void {
+    void this.router.navigate(['/listings']);
+  }
+
+  private refreshStatus(): void {
+    this.store.dispatch(ReviewsActions.loadBookingStatus({ bookingId: this.bookingId }));
   }
 }

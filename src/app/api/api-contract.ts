@@ -61,15 +61,17 @@ export const ApiContract = {
       `/api/users/${encodeURIComponent(userId)}/public-profile`,
   },
   reviews: {
-    submit: '/api/reviews',
-    byListing: (listingId: string): ApiPath =>
+    submitToy: '/api/reviews/toy',
+    submitOwner: '/api/reviews/owner',
+    submitRenter: '/api/reviews/renter',
+    bookingStatus: (bookingId: string): ApiPath =>
+      `/api/reviews/booking/${encodeURIComponent(bookingId)}/status`,
+    listingToyReviews: (listingId: string): ApiPath =>
       `/api/reviews/listing/${encodeURIComponent(listingId)}`,
-    byUser: (userId: string): ApiPath =>
-      `/api/reviews/user/${encodeURIComponent(userId)}`,
-    listingSummary: (listingId: string): ApiPath =>
-      `/api/reviews/listing/${encodeURIComponent(listingId)}/summary`,
-    userSummary: (userId: string): ApiPath =>
-      `/api/reviews/user/${encodeURIComponent(userId)}/summary`,
+    ownerReviews: (userId: string): ApiPath =>
+      `/api/reviews/owner/${encodeURIComponent(userId)}`,
+    renterReviews: (userId: string): ApiPath =>
+      `/api/reviews/renter/${encodeURIComponent(userId)}`,
   },
   chat: {
     conversations: '/api/chat/conversations',

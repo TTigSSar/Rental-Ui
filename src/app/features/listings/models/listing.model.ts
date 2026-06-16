@@ -10,6 +10,9 @@ export interface ListingPreview {
   ageToMonths?: number | null;
   condition?: string | null;
   hygieneNotes?: string | null;
+  /** Average toy rating, or null when below the aggregate threshold. */
+  rating?: number | null;
+  reviewCount?: number;
 }
 
 export interface ListingImage {

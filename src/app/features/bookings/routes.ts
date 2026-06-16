@@ -28,6 +28,13 @@ export const bookingsRoutes: Routes = [
             './pages/submit-review-page/submit-review-page.component'
           ).then((m) => m.SubmitReviewPageComponent),
       },
+      {
+        path: ':bookingId/review/renter',
+        loadComponent: () =>
+          import(
+            './pages/rate-renter-page/rate-renter-page.component'
+          ).then((m) => m.RateRenterPageComponent),
+      },
     ],
   },
 ];
