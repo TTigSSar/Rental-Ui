@@ -34,6 +34,23 @@
       <app-booking-progress [status]="d.status" [startDate]="d.startDate" density="expanded" />
     </div>
 
+    <!-- Rejection reason -->
+    @if (rejectionReason(); as rr) {
+      <div class="booking-details__card booking-details__rejection">
+        <h2 class="booking-details__section-title">
+          {{ 'bookings.details.rejectionReason' | translate }}
+        </h2>
+        <p class="booking-details__line">
+          <i class="pi pi-times-circle"></i>
+          @if (rr.key) {
+            {{ rr.key | translate }}
+          } @else {
+            {{ rr.raw }}
+          }
+        </p>
+      </div>
+    }
+
     <!-- Toy summary -->
     <div class="booking-details__card booking-details__toy">
       @if (d.listingPrimaryImageUrl) {

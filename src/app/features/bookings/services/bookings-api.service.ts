@@ -63,6 +63,7 @@ function normalizeMyBooking(item: Partial<MyBooking> & { id: string }): MyBookin
     id: String(item.id),
     listingId: toStr(item.listingId),
     listingTitle: toStr(item.listingTitle),
+    listingPrimaryImageUrl: toNullableStr(item.listingPrimaryImageUrl),
     startDate: toStr(item.startDate),
     endDate: toStr(item.endDate),
     totalPrice: toFiniteNumber(item.totalPrice),
@@ -107,6 +108,7 @@ function normalizeBookingDetail(item: Partial<BookingDetail> & { id: string }): 
     returnMarkedAt: toNullableStr(item.returnMarkedAt),
     completedAt: toNullableStr(item.completedAt),
     expiresAt: toNullableStr(item.expiresAt),
+    rejectionReason: toNullableStr(item.rejectionReason),
     returnInitiatedBy: coerceParty(item.returnInitiatedBy),
     completedVia: coerceCompletionMethod(item.completedVia),
     counterpartyId: toStr(item.counterpartyId),
@@ -186,8 +188,10 @@ export class BookingsApiService {
     return this.http.post<void>(toApiUrl(ApiContract.bookings.approve(bookingId)), {});
   }
 
-  rejectBookingRequest(bookingId: string): Observable<void> {
-    return this.http.post<void>(toApiUrl(ApiContract.bookings.reject(bookingId)), {});
+  rejectBookingRequest(bookingId: string, reason?: string | null): Observable<void> {
+    return this.http.post<void>(toApiUrl(ApiContract.bookings.reject(bookingId)), {
+      reason: reason ?? null,
+    });
   }
 
   getBookingById(bookingId: string): Observable<BookingDetail> {

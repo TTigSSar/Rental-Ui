@@ -8,9 +8,18 @@
   (keydown.space)="openDetails(); $event.preventDefault()"
 >
   <p-card styleClass="my-booking-card">
-    <div class="my-booking-card__top">
-      <h3 class="my-booking-card__title">{{ booking().listingTitle }}</h3>
-      <app-ui-badge [label]="statusLabelKey() | translate" [tone]="statusTone()" />
+    <div class="my-booking-card__header">
+      @if (booking().listingPrimaryImageUrl; as imageUrl) {
+        <img class="my-booking-card__thumb" [src]="imageUrl" [alt]="booking().listingTitle" />
+      } @else {
+        <div class="my-booking-card__thumb my-booking-card__thumb--placeholder">
+          <i class="pi pi-image"></i>
+        </div>
+      }
+      <div class="my-booking-card__top">
+        <h3 class="my-booking-card__title">{{ booking().listingTitle }}</h3>
+        <app-ui-badge [label]="statusLabelKey() | translate" [tone]="statusTone()" />
+      </div>
     </div>
 
     @if (reviewAvailable()) {

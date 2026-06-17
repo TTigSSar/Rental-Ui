@@ -183,6 +183,18 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
     ];
   });
 
+  // Rejection reason: known codes map to a localized label, free text shows as-is.
+  private static readonly KNOWN_REJECT_REASONS = ['dates_unavailable', 'item_unavailable', 'not_a_fit'];
+
+  protected readonly rejectionReason = computed<{ key: string | null; raw: string | null } | null>(() => {
+    const d = this.detail();
+    if (!d || d.status !== 'Rejected' || !d.rejectionReason) return null;
+    const code = d.rejectionReason;
+    return BookingDetailsPageComponent.KNOWN_REJECT_REASONS.includes(code)
+      ? { key: 'bookings.rejectReason.' + code, raw: null }
+      : { key: null, raw: code };
+  });
+
   protected readonly canLeaveReview = computed(() => {
     const rs = this.reviewStatus();
     if (!rs) return false;

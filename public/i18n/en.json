@@ -786,7 +786,8 @@
       "contactAfterApproval": "Contact details become available once the booking is approved.",
       "timeline": "Timeline",
       "owner": "Owner",
-      "renter": "Renter"
+      "renter": "Renter",
+      "rejectionReason": "Reason for decline"
     },
     "timeline": {
       "requested": "Booking requested",
@@ -807,6 +808,19 @@
       "awaitingOwner": "Waiting for the owner to confirm.",
       "autoNote": "If they don't confirm, this completes automatically 48 hours after you marked it.",
       "undo": "Undo"
+    },
+    "reject": {
+      "title": "Decline this request",
+      "description": "Let the renter know why so they can plan their next steps.",
+      "otherPlaceholder": "Add a short note…",
+      "confirm": "Decline request",
+      "cancel": "Cancel"
+    },
+    "rejectReason": {
+      "dates_unavailable": "Dates are no longer available",
+      "item_unavailable": "The toy is currently unavailable",
+      "not_a_fit": "This booking isn't a good fit",
+      "other": "Other"
     }
   },
   "admin": {

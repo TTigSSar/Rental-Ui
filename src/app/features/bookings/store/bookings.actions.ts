@@ -69,7 +69,7 @@ export const approveBookingRequestFailure = createAction(
 
 export const rejectBookingRequest = createAction(
   '[Bookings] Reject Booking Request',
-  props<{ bookingId: string }>(),
+  props<{ bookingId: string; reason: string | null }>(),
 );
 
 export const rejectBookingRequestSuccess = createAction(

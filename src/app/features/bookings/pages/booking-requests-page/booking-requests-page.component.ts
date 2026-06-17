@@ -87,7 +87,7 @@ export class BookingRequestsPageComponent implements OnInit {
     this.store.dispatch(BookingsActions.approveBookingRequest({ bookingId }));
   }
 
-  protected reject(bookingId: string): void {
-    this.store.dispatch(BookingsActions.rejectBookingRequest({ bookingId }));
+  protected reject(event: { bookingId: string; reason: string | null }): void {
+    this.store.dispatch(BookingsActions.rejectBookingRequest(event));
   }
 }

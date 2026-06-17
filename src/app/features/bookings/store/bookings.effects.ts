@@ -105,8 +105,8 @@ export class BookingsEffects {
   readonly rejectBookingRequest$ = createEffect(() =>
     this.actions$.pipe(
       ofType(BookingsActions.rejectBookingRequest),
-      concatMap(({ bookingId }) =>
-        this.bookingsApi.rejectBookingRequest(bookingId).pipe(
+      concatMap(({ bookingId, reason }) =>
+        this.bookingsApi.rejectBookingRequest(bookingId, reason).pipe(
           map(() =>
             BookingsActions.rejectBookingRequestSuccess({
               bookingId,

@@ -32,6 +32,7 @@ export interface MyBooking {
   id: string;
   listingId: string;
   listingTitle: string;
+  listingPrimaryImageUrl: string | null;
   startDate: string;
   endDate: string;
   totalPrice: number;
@@ -65,6 +66,7 @@ export interface BookingDetail {
   returnMarkedAt: string | null;
   completedAt: string | null;
   expiresAt: string | null;
+  rejectionReason: string | null;
   returnInitiatedBy: BookingParty | null;
   completedVia: CompletionMethod | null;
   counterpartyId: string;

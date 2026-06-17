@@ -57,3 +57,37 @@
   font-size: var(--ui-font-size-caption);
   font-weight: 600;
 }
+
+.booking-reject__desc {
+  margin: 0 0 var(--ui-space-12, 12px);
+  color: var(--ui-color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.booking-reject__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-8, 8px);
+}
+
+.booking-reject__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.9375rem;
+
+  input {
+    accent-color: var(--ui-color-primary);
+  }
+}
+
+.booking-reject__note {
+  margin-top: var(--ui-space-12, 12px);
+  width: 100%;
+  resize: vertical;
+  padding: 8px 10px;
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md, 8px);
+  font: inherit;
+}

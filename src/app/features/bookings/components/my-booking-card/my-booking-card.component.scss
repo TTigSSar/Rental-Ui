@@ -1,4 +1,29 @@
+.my-booking-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-12, 12px);
+}
+
+.my-booking-card__thumb {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border-radius: var(--ui-radius-md, 8px);
+  object-fit: cover;
+
+  &--placeholder {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ui-color-surface-muted);
+    color: var(--ui-color-text-secondary);
+    font-size: 1.25rem;
+  }
+}
+
 .my-booking-card__top {
+  flex: 1;
+  min-width: 0;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;

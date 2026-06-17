@@ -215,6 +215,15 @@
   white-space: nowrap;
 }
 
+// --- Rejection ---
+.booking-details__rejection {
+  border-color: var(--ui-color-rejected, #dc2626);
+
+  .booking-details__line i {
+    color: var(--ui-color-rejected, #dc2626);
+  }
+}
+
 // --- Completion + review ---
 .booking-details__completion-msg {
   margin: 0 0 8px;

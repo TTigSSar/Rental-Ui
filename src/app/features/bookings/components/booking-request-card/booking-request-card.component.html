@@ -62,7 +62,7 @@
             [label]="'bookings.actions.reject' | translate"
             [loading]="actionLoading()"
             [disabled]="actionLoading()"
-            (onClick)="reject($event)"
+            (onClick)="openRejectDialog($event)"
           />
         } @else {
           <span class="booking-request-card__hint">{{
@@ -73,3 +73,58 @@
     </ng-template>
   </p-card>
 </div>
+
+<p-dialog
+  [header]="'bookings.reject.title' | translate"
+  [visible]="rejectDialogVisible()"
+  (visibleChange)="$event ? null : cancelReject()"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  appendTo="body"
+  [style]="{ width: '92vw', maxWidth: '420px' }"
+>
+  <p class="booking-reject__desc">{{ 'bookings.reject.description' | translate }}</p>
+
+  <div class="booking-reject__options">
+    @for (code of reasonCodes; track code) {
+      <label class="booking-reject__option">
+        <input
+          type="radio"
+          name="rejectReason"
+          [value]="code"
+          [checked]="selectedReason() === code"
+          (change)="onReasonChange(code)"
+        />
+        <span>{{ 'bookings.rejectReason.' + code | translate }}</span>
+      </label>
+    }
+  </div>
+
+  @if (selectedReason() === 'other') {
+    <textarea
+      class="booking-reject__note"
+      rows="3"
+      maxlength="500"
+      [value]="otherText()"
+      (input)="onOtherInput($event)"
+      [placeholder]="'bookings.reject.otherPlaceholder' | translate"
+    ></textarea>
+  }
+
+  <ng-template pTemplate="footer">
+    <p-button
+      type="button"
+      [text]="true"
+      [label]="'bookings.reject.cancel' | translate"
+      (onClick)="cancelReject()"
+    />
+    <p-button
+      type="button"
+      severity="danger"
+      [label]="'bookings.reject.confirm' | translate"
+      [disabled]="selectedReason() === 'other' && otherText().trim().length === 0"
+      (onClick)="confirmReject()"
+    />
+  </ng-template>
+</p-dialog>
