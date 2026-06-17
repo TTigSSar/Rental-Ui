@@ -22,6 +22,7 @@ const KNOWN_BOOKING_STATUSES: ReadonlySet<BookingStatus> = new Set<BookingStatus
   'Rejected',
   'Archived',
   'Cancelled',
+  'Expired',
   'Completed',
 ]);
 

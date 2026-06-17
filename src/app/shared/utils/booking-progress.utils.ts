@@ -50,6 +50,7 @@ export function computeBookingProgress(
     case 'Rejected':
     case 'Cancelled':
     case 'Archived':
+    case 'Expired':
       return offPath(status);
     default:
       break;

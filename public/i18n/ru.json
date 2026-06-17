@@ -723,7 +723,8 @@
       "archived": "В архиве",
       "cancelled": "Отменено",
       "completed": "Завершено",
-      "returnMarked": "Ожидает подтверждения"
+      "returnMarked": "Ожидает подтверждения",
+      "expired": "Истекло"
     },
     "actions": {
       "viewListing": "Открыть игрушку",

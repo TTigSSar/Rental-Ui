@@ -723,7 +723,8 @@
       "archived": "Արխիվացված",
       "cancelled": "Չեղարկված",
       "completed": "Ավարտված",
-      "returnMarked": "Սպասում է հաստատման"
+      "returnMarked": "Սպասում է հաստատման",
+      "expired": "Ժամկետանց"
     },
     "actions": {
       "viewListing": "Դիտել խաղալիքը",

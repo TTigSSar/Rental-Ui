@@ -724,7 +724,8 @@
       "archived": "Archived",
       "cancelled": "Cancelled",
       "completed": "Completed",
-      "returnMarked": "Awaiting confirmation"
+      "returnMarked": "Awaiting confirmation",
+      "expired": "Expired"
     },
     "actions": {
       "viewListing": "View toy",

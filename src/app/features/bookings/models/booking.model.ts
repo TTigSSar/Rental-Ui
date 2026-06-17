@@ -6,6 +6,7 @@ export type BookingStatus =
   | 'Rejected'
   | 'Archived'
   | 'Cancelled'
+  | 'Expired'
   | 'Completed';
 
 export type BookingParty = 'Renter' | 'Owner';
