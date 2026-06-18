@@ -1,9 +1,20 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 
-import type { BookingDetail, BookingRequest, MyBooking } from '../models/booking.model';
+import type { BookingDetail, BookingRequest, BookingStatus, MyBooking } from '../models/booking.model';
 
 import { bookingsFeatureKey } from './bookings.reducer';
 import type { BookingsState } from './bookings.state';
+
+const STATUS_DISPLAY_PRIORITY: Partial<Record<BookingStatus, number>> = {
+  Active: 6,
+  Approved: 5,
+  PendingApproval: 4,
+  Pending: 3,
+  ReturnMarked: 2,
+  Completed: 1,
+  Rejected: 0,
+  Cancelled: 0,
+};
 
 export const selectBookingsState =
   createFeatureSelector<BookingsState>(bookingsFeatureKey);
@@ -89,3 +100,52 @@ export const selectBookingActionError = createSelector(
   selectBookingsState,
   (state: BookingsState): string | null => state.bookingActionError,
 );
+
+export const selectCancelBookingPending = createSelector(
+  selectBookingsState,
+  (state: BookingsState): boolean => state.cancelBookingPending,
+);
+
+export const selectCancelBookingError = createSelector(
+  selectBookingsState,
+  (state: BookingsState): string | null => state.cancelBookingError,
+);
+
+export const selectCancelBookingSuccessId = createSelector(
+  selectBookingsState,
+  (state: BookingsState): string | null => state.cancelBookingSuccessId,
+);
+
+export const selectMyBookingForListing = (listingId: string) =>
+  createSelector(
+    selectMyBookings,
+    (bookings): MyBooking | null => {
+      let best: MyBooking | null = null;
+      for (const b of bookings) {
+        if (b.listingId !== listingId) continue;
+        const priority = STATUS_DISPLAY_PRIORITY[b.status] ?? -1;
+        if (priority < 0) continue;
+        if (best === null || priority > (STATUS_DISPLAY_PRIORITY[best.status] ?? -1)) {
+          best = b;
+        }
+      }
+      return best;
+    },
+  );
+
+export const selectBookingStatusForListing = (listingId: string) =>
+  createSelector(
+    selectMyBookings,
+    (bookings): BookingStatus | null => {
+      let best: MyBooking | null = null;
+      for (const b of bookings) {
+        if (b.listingId !== listingId) continue;
+        const priority = STATUS_DISPLAY_PRIORITY[b.status] ?? -1;
+        if (priority < 0) continue;
+        if (best === null || priority > (STATUS_DISPLAY_PRIORITY[best.status] ?? -1)) {
+          best = b;
+        }
+      }
+      return best?.status ?? null;
+    },
+  );
