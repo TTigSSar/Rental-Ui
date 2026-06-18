@@ -102,6 +102,7 @@
           <app-listing-card
             [listing]="listing"
             [isAuthenticated]="v.isAuthenticated"
+            [bookingStatus]="bookingStatusMap().get(listing.id)"
             (favoriteToggled)="onFavoriteToggled($event)"
           />
         }

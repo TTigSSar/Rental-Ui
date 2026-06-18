@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
@@ -18,12 +19,16 @@ import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-sta
 import { LoadingSkeletonComponent } from '../../../../shared/ui/loading-skeleton/loading-skeleton.component';
 import { AuthDialogComponent } from '../../../auth/components/auth-dialog/auth-dialog.component';
 import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
+import * as BookingsActions from '../../../bookings/store/bookings.actions';
+import type { BookingStatus } from '../../../bookings/models/booking.model';
+import { selectMyBookings } from '../../../bookings/store/bookings.selectors';
 import { selectFavoriteIds } from '../../../favorites/store/favorites.selectors';
 import { ListingCardComponent } from '../../components/listing-card/listing-card.component';
 import { ListingsFiltersComponent } from '../../components/listings-filters/listings-filters.component';
 import type { ListingsFilter } from '../../models/listings-filter.model';
 import type { ListingPreview } from '../../models/listing.model';
 import * as ListingsActions from '../../store/listings.actions';
+
 import {
   selectListingCategories,
   selectListingItems,
@@ -34,6 +39,17 @@ import {
   selectListingsPageSize,
 } from '../../store/listings.selectors';
 import type { ParamMap } from '@angular/router';
+
+const BOOKING_STATUS_PRIORITY: Partial<Record<BookingStatus, number>> = {
+  Active: 6,
+  Approved: 5,
+  PendingApproval: 4,
+  Pending: 3,
+  ReturnMarked: 2,
+  Completed: 1,
+  Rejected: 0,
+  Cancelled: 0,
+};
 
 export interface ListingsPageViewModel {
   readonly items: ListingPreview[];
@@ -127,6 +143,21 @@ export class ListingsPageComponent {
 
   protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
   protected readonly showAuthDialog = signal(false);
+
+  private readonly myBookingsSignal = this.store.selectSignal(selectMyBookings);
+
+  protected readonly bookingStatusMap = computed(() => {
+    const map = new Map<string, BookingStatus>();
+    for (const b of this.myBookingsSignal()) {
+      const incoming = BOOKING_STATUS_PRIORITY[b.status] ?? -1;
+      if (incoming < 0) continue;
+      const existing = map.get(b.listingId);
+      if (existing === undefined || incoming > (BOOKING_STATUS_PRIORITY[existing] ?? -1)) {
+        map.set(b.listingId, b.status);
+      }
+    }
+    return map;
+  });
   protected readonly sortBy = signal<SortBy>('');
   protected readonly sortMenuOpen = signal(false);
   protected readonly sortOptions = SORT_OPTIONS;
@@ -187,6 +218,12 @@ export class ListingsPageComponent {
         this.store.dispatch(ListingsActions.updateFilters({ filters }));
         this.store.dispatch(ListingsActions.loadListings());
       });
+
+    effect(() => {
+      if (this.isAuthenticated()) {
+        this.store.dispatch(BookingsActions.loadMyBookings());
+      }
+    });
   }
 
   // URL is the source of truth; the queryParamMap subscription above handles all reloads.
