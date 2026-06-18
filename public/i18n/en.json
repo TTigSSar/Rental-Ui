@@ -255,7 +255,16 @@
       "pricePerDay": "{{amount}} per day",
       "toggleFavorite": "Save to favorites",
       "trustAria": "Toy trust details",
-      "hygieneProvided": "Hygiene notes"
+      "hygieneProvided": "Hygiene notes",
+      "bookingBadge": {
+        "rentalRequested": "Rental requested",
+        "approved": "Approved",
+        "currentlyRenting": "Currently renting",
+        "awaitingCompletion": "Awaiting completion",
+        "previouslyRented": "Previously rented",
+        "requestDeclined": "Request declined",
+        "cancelled": "Cancelled"
+      }
     },
     "filters": {
       "intro": "Filter to find the right toy quickly.",
@@ -295,6 +304,9 @@
       "disabledHint": "Select dates",
       "night": "{{count}} day",
       "nights": "{{count}} days",
+      "pendingHint": "You have a pending rental request for this toy.",
+      "cancelRequest": "Cancel request",
+      "cancelling": "Cancelling...",
       "assurance": "The owner reviews and approves your request before the rental begins.",
       "assuranceTransparency": "Pricing is shown upfront — no hidden fees or surprises.",
       "pickup": "Pickup",
@@ -344,7 +356,7 @@
       "assurance": "Owner-managed toy rentals with transparent pricing.",
       "descriptionHeading": "About this toy",
       "hostHeading": "Toy owner",
-      "contactLabel": "Owner phone number will be available after you send a booking request.",
+      "contactLabel": "Contact details become available once the booking is approved.",
       "viewOwnerProfile": "View owner profile",
       "ownerMemberSince": "Member since {{year}}",
       "bookingHeading": "Check availability",
@@ -400,8 +412,21 @@
       "ownerToySuffix": "toys",
       "ownerCardTitle": "Owner / contact card",
       "ownerCardSubtitle": "Locked phone before booking, revealed after.",
-      "contactLabelPre": "Owner phone number will be available ",
-      "contactLabelBold": "after you send a booking request."
+      "contactLabelPre": "Contact details become available ",
+      "contactLabelBold": "once the booking is approved.",
+      "relationship": {
+        "rentalRequested": "Rental requested",
+        "approved": "Booking approved",
+        "currentlyRenting": "Currently renting",
+        "awaitingCompletion": "Awaiting completion",
+        "previouslyRented": "You rented this toy before",
+        "requestDeclined": "Request declined",
+        "cancelled": "Booking cancelled",
+        "viewBooking": "View booking",
+        "completedOn": "Completed on",
+        "endsOn": "Rental ends",
+        "startsOn": "Rental starts"
+      }
     },
     "createPage": {
       "title": "List a Toy",
@@ -720,6 +745,7 @@
     "status": {
       "pendingApproval": "Pending approval",
       "approved": "Approved",
+      "active": "Active",
       "rejected": "Rejected",
       "archived": "Archived",
       "cancelled": "Cancelled",
@@ -793,22 +819,13 @@
     "timeline": {
       "requested": "Booking requested",
       "approved": "Approved",
-      "started": "Rental started",
-      "completionRequested": "Completion requested",
+      "active": "Toy handed over",
       "completed": "Completed"
     },
     "completion": {
       "title": "Completion",
-      "markCompleted": "Mark as completed",
-      "iReturned": "I returned the toy",
-      "renterMarked": "{{name}} says they returned the toy. Please confirm you received it.",
-      "ownerMarked": "{{name}} marked this rental as completed. Please confirm.",
-      "confirmReceipt": "Confirm receipt",
-      "confirmCompletion": "Confirm completion",
-      "awaitingRenter": "Waiting for the renter to confirm.",
-      "awaitingOwner": "Waiting for the owner to confirm.",
-      "autoNote": "If they don't confirm, this completes automatically 48 hours after you marked it.",
-      "undo": "Undo"
+      "markActive": "Mark as handed over",
+      "markCompleted": "Mark as completed"
     },
     "reject": {
       "title": "Decline this request",

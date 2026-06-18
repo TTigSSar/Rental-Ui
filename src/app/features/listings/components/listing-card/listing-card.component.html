@@ -53,6 +53,14 @@
         </p>
       }
 
+      @if (bookingBadge(); as badge) {
+        <span
+          class="listing-card__booking-badge"
+          [class]="'listing-card__booking-badge--' + badge.modifier"
+          aria-live="polite"
+        >{{ badge.labelKey | translate }}</span>
+      }
+
       <p class="listing-card__price">
         <span class="listing-card__price-amount">{{
           listing().pricePerDay | currency

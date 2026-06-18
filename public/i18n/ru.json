@@ -255,7 +255,16 @@
       "pricePerDay": "{{amount}} в день",
       "toggleFavorite": "Добавить в избранное",
       "trustAria": "Сведения о доверии к игрушке",
-      "hygieneProvided": "Гигиена"
+      "hygieneProvided": "Гигиена",
+      "bookingBadge": {
+        "rentalRequested": "Запрос отправлен",
+        "approved": "Одобрено",
+        "currentlyRenting": "Сейчас в аренде",
+        "awaitingCompletion": "Ожидание завершения",
+        "previouslyRented": "Ранее арендовали",
+        "requestDeclined": "Запрос отклонён",
+        "cancelled": "Отменено"
+      }
     },
     "filters": {
       "intro": "Настройте фильтры, чтобы быстрее найти подходящую игрушку.",
@@ -295,6 +304,9 @@
       "disabledHint": "Выберите даты",
       "night": "{{count}} дн.",
       "nights": "{{count}} дн.",
+      "pendingHint": "У вас есть активный запрос на аренду этой игрушки.",
+      "cancelRequest": "Отменить запрос",
+      "cancelling": "Отмена...",
       "assurance": "Владелец рассматривает и одобряет ваш запрос до начала аренды.",
       "assuranceTransparency": "Цена рассчитывается заранее — никаких скрытых платежей.",
       "pickup": "Получение",
@@ -344,7 +356,7 @@
       "assurance": "Аренда игрушек у владельца с прозрачными ценами.",
       "descriptionHeading": "Об этой игрушке",
       "hostHeading": "Владелец игрушки",
-      "contactLabel": "Номер телефона владельца станет доступен после отправки запроса на аренду.",
+      "contactLabel": "Контактные данные станут доступны после подтверждения бронирования.",
       "viewOwnerProfile": "Посмотреть профиль владельца",
       "ownerMemberSince": "Участник с {{year}} г.",
       "bookingHeading": "Проверьте доступность",
@@ -400,8 +412,21 @@
       "ownerToySuffix": "игруш.",
       "ownerCardTitle": "Владелец / контакты",
       "ownerCardSubtitle": "Телефон скрыт до бронирования, будет доступен после.",
-      "contactLabelPre": "Номер телефона владельца станет доступен ",
-      "contactLabelBold": "после отправки запроса на аренду."
+      "contactLabelPre": "Контактные данные станут доступны ",
+      "contactLabelBold": "после подтверждения бронирования.",
+      "relationship": {
+        "rentalRequested": "Запрос отправлен",
+        "approved": "Бронирование одобрено",
+        "currentlyRenting": "Сейчас в аренде",
+        "awaitingCompletion": "Ожидание завершения",
+        "previouslyRented": "Вы уже арендовали эту игрушку",
+        "requestDeclined": "Запрос отклонён",
+        "cancelled": "Бронирование отменено",
+        "viewBooking": "Смотреть бронирование",
+        "completedOn": "Завершено",
+        "endsOn": "Аренда заканчивается",
+        "startsOn": "Аренда начинается"
+      }
     },
     "createPage": {
       "title": "Сдать игрушку",
@@ -719,6 +744,7 @@
     "status": {
       "pendingApproval": "Ожидает проверки",
       "approved": "Одобрено",
+      "active": "Активна",
       "rejected": "Отклонено",
       "archived": "В архиве",
       "cancelled": "Отменено",
@@ -792,22 +818,13 @@
     "timeline": {
       "requested": "Запрос отправлен",
       "approved": "Одобрено",
-      "started": "Аренда началась",
-      "completionRequested": "Запрошено завершение",
+      "active": "Игрушка передана",
       "completed": "Завершено"
     },
     "completion": {
       "title": "Завершение",
-      "markCompleted": "Отметить как завершённое",
-      "iReturned": "Я вернул(а) игрушку",
-      "renterMarked": "{{name}} сообщает, что вернул(а) игрушку. Подтвердите получение.",
-      "ownerMarked": "{{name}} отметил(а) аренду как завершённую. Пожалуйста, подтвердите.",
-      "confirmReceipt": "Подтвердить получение",
-      "confirmCompletion": "Подтвердить завершение",
-      "awaitingRenter": "Ожидаем подтверждения от арендатора.",
-      "awaitingOwner": "Ожидаем подтверждения от владельца.",
-      "autoNote": "Если подтверждения не будет, аренда завершится автоматически через 48 часов после отметки.",
-      "undo": "Отменить"
+      "markActive": "Отметить как переданное",
+      "markCompleted": "Отметить как завершённое"
     },
     "reject": {
       "title": "Отклонить запрос",

@@ -255,7 +255,16 @@
       "pricePerDay": "{{amount}} օրական",
       "toggleFavorite": "Նշել որպես ընտրյալ",
       "trustAria": "Խաղալիքի վստահության մանրամասներ",
-      "hygieneProvided": "Հիգիենա"
+      "hygieneProvided": "Հիգիենա",
+      "bookingBadge": {
+        "rentalRequested": "Հայտ ուղարկված",
+        "approved": "Հաստատված",
+        "currentlyRenting": "Վարձույթի մեջ",
+        "awaitingCompletion": "Ավարտի սպասում",
+        "previouslyRented": "Նախկինում վարձույթ",
+        "requestDeclined": "Հայտը մերժված",
+        "cancelled": "Չեղարկված"
+      }
     },
     "filters": {
       "intro": "Կարգավորե՛ք ֆիլտրերը՝ ճիշտ խաղալիք արագ գտնելու համար։",
@@ -295,6 +304,9 @@
       "disabledHint": "Ընտրեք ամսաթվերը",
       "night": "{{count}} օր",
       "nights": "{{count}} օր",
+      "pendingHint": "Դուք ունեք ընթացիկ վարձակալման հարցում այս խաղալիքի համար։",
+      "cancelRequest": "Չեղարկել հարցումը",
+      "cancelling": "Չեղարկվում է...",
       "assurance": "Տերը քննարկում և հաստատում է ձեր հարցումը նախքան վարձակալության սկիզբը։",
       "assuranceTransparency": "Գինը ցուցադրվում է կանխավ — թաքնված վճարներ չկան։",
       "pickup": "Ստացում",
@@ -344,7 +356,7 @@
       "assurance": "Խաղալիքի վարձակալություն տիրոջից՝ թափանցիկ գներով։",
       "descriptionHeading": "Այս խաղալիքի մասին",
       "hostHeading": "Խաղալիքի սեփականատեր",
-      "contactLabel": "Սեփականատիրոջ հեռախոսահամարը հասանելի կլինի ամրագրման հարցումից հետո։",
+      "contactLabel": "Կոնտակտային տվյալները հասանելի կդառնան ամրագրումը հաստատվելուց հետո։",
       "viewOwnerProfile": "Տեսնել սեփականատիրոջ պրոֆիլը",
       "ownerMemberSince": "Անդամ {{year}} թ.-ից",
       "bookingHeading": "Ստուգեք հասանելիությունը",
@@ -400,8 +412,21 @@
       "ownerToySuffix": "խաղ.",
       "ownerCardTitle": "Սեփ. / կոնտակտային քարտ",
       "ownerCardSubtitle": "Հեռախոսը կողպված է մինչ ամրագրումը, հասանելի կդառնա հետո:",
-      "contactLabelPre": "Սեփականատիրոջ հեռախոսահամարը հասանելի կլինի ",
-      "contactLabelBold": "ամրագրման հարցումից հետո։"
+      "contactLabelPre": "Կոնտակտային տվյալները հասանելի կդառնան ",
+      "contactLabelBold": "ամրագրումը հաստատվելուց հետո։",
+      "relationship": {
+        "rentalRequested": "Հայտ ուղարկված",
+        "approved": "Ամրագրումը հաստատված",
+        "currentlyRenting": "Վարձույթի մեջ",
+        "awaitingCompletion": "Ավարտի սպասում",
+        "previouslyRented": "Նախկինում վարձույթ",
+        "requestDeclined": "Հայտը մերժված",
+        "cancelled": "Ամրագրումը չեղարկված",
+        "viewBooking": "Տեսնել ամրագրումը",
+        "completedOn": "Ավարտվել է",
+        "endsOn": "Ավարտի ամսաթիվ",
+        "startsOn": "Մեկնարկի ամսաթիվ"
+      }
     },
     "createPage": {
       "title": "Տրամադրել խաղալիք",
@@ -719,6 +744,7 @@
     "status": {
       "pendingApproval": "Սպասում է հաստատման",
       "approved": "Հաստատված",
+      "active": "Ակտիվ",
       "rejected": "Մերժված",
       "archived": "Արխիվացված",
       "cancelled": "Չեղարկված",
@@ -792,22 +818,13 @@
     "timeline": {
       "requested": "Ամրագրումը հարցված է",
       "approved": "Հաստատված",
-      "started": "Վարձույթը սկսվեց",
-      "completionRequested": "Ավարտը հարցված է",
+      "active": "Խաղալիքը հանձնված է",
       "completed": "Ավարտված"
     },
     "completion": {
       "title": "Ավարտում",
-      "markCompleted": "Նշել որպես ավարտված",
-      "iReturned": "Ես վերադարձրի խաղալիքը",
-      "renterMarked": "{{name}}-ն ասում է, որ վերադարձրել է խաղալիքը։ Հաստատեք ստացումը։",
-      "ownerMarked": "{{name}}-ն այս վարձույթը նշել է որպես ավարտված։ Խնդրում ենք հաստատել։",
-      "confirmReceipt": "Հաստատել ստացումը",
-      "confirmCompletion": "Հաստատել ավարտը",
-      "awaitingRenter": "Սպասում ենք վարձակալի հաստատմանը։",
-      "awaitingOwner": "Սպասում ենք տիրոջ հաստատմանը։",
-      "autoNote": "Եթե չհաստատվի, վարձույթն ավտոմատ կավարտվի նշումից 48 ժամ հետո։",
-      "undo": "Չեղարկել"
+      "markActive": "Նշել որպես հանձնված",
+      "markCompleted": "Նշել որպես ավարտված"
     },
     "reject": {
       "title": "Մերժել հարցումը",

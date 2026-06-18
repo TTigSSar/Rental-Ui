@@ -11,7 +11,35 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { ImageContainerComponent } from '../../../../shared/ui/image-container/image-container.component';
+import type { BookingStatus } from '../../../bookings/models/booking.model';
 import type { ListingPreview } from '../../models/listing.model';
+
+interface BookingBadgeConfig {
+  readonly labelKey: string;
+  readonly modifier: 'pending' | 'approved' | 'active' | 'completed' | 'declined';
+}
+
+function resolveBookingBadge(status: BookingStatus | null | undefined): BookingBadgeConfig | null {
+  switch (status) {
+    case 'PendingApproval':
+    case 'Pending':
+      return { labelKey: 'listings.card.bookingBadge.rentalRequested', modifier: 'pending' };
+    case 'Approved':
+      return { labelKey: 'listings.card.bookingBadge.approved', modifier: 'approved' };
+    case 'Active':
+      return { labelKey: 'listings.card.bookingBadge.currentlyRenting', modifier: 'active' };
+    case 'ReturnMarked':
+      return { labelKey: 'listings.card.bookingBadge.awaitingCompletion', modifier: 'pending' };
+    case 'Completed':
+      return { labelKey: 'listings.card.bookingBadge.previouslyRented', modifier: 'completed' };
+    case 'Rejected':
+      return { labelKey: 'listings.card.bookingBadge.requestDeclined', modifier: 'declined' };
+    case 'Cancelled':
+      return { labelKey: 'listings.card.bookingBadge.cancelled', modifier: 'declined' };
+    default:
+      return null;
+  }
+}
 
 interface AgeRangeDisplay {
   readonly key:
@@ -85,8 +113,13 @@ function resolveAgeRangeDisplay(
 export class ListingCardComponent {
   readonly listing = input.required<ListingPreview>();
   readonly isAuthenticated = input<boolean>(false);
+  readonly bookingStatus = input<BookingStatus | null | undefined>(undefined);
 
   @Output() readonly favoriteToggled = new EventEmitter<string>();
+
+  protected readonly bookingBadge = computed(() =>
+    this.isAuthenticated() ? resolveBookingBadge(this.bookingStatus()) : null,
+  );
 
   protected readonly ageRange = computed(() => {
     const listing = this.listing();
