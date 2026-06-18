@@ -213,6 +213,70 @@
   background: var(--ui-color-success-surface);
 }
 
+/* ── User booking relationship panel ─────────────────── */
+.detail-page__relationship {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-12);
+  margin-top: var(--ui-space-12);
+  padding: var(--ui-space-10) var(--ui-space-14);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-muted);
+  border: 1px solid var(--ui-color-border-subtle);
+  font-size: 0.8125rem;
+}
+
+.detail-page__relationship--active,
+.detail-page__relationship--approved {
+  background: color-mix(in srgb, var(--ui-color-success) 8%, transparent);
+  border-color: color-mix(in srgb, var(--ui-color-success) 25%, transparent);
+}
+
+.detail-page__relationship--pendingapproval,
+.detail-page__relationship--pending,
+.detail-page__relationship--returnmarked {
+  background: color-mix(in srgb, #f59e0b 8%, transparent);
+  border-color: color-mix(in srgb, #f59e0b 25%, transparent);
+}
+
+.detail-page__relationship-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.detail-page__relationship-label {
+  font-weight: 600;
+  color: var(--ui-color-text-primary);
+}
+
+.detail-page__relationship-date {
+  font-size: 0.75rem;
+  color: var(--ui-color-text-secondary);
+}
+
+.detail-page__relationship-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-4);
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ui-color-primary);
+  text-decoration: none;
+
+  .pi {
+    font-size: 0.65rem;
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 /* ── Heading row: title + favorite ───────────────────── */
 .detail-page__heading {
   display: flex;

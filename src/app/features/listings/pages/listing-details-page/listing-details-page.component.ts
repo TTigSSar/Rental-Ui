@@ -20,11 +20,27 @@ import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 import * as FavoritesActions from '../../../favorites/store/favorites.actions';
 import { selectFavoriteIds } from '../../../favorites/store/favorites.selectors';
 import * as BookingsActions from '../../../bookings/store/bookings.actions';
+import type { MyBooking } from '../../../bookings/models/booking.model';
 import {
+  selectCancelBookingError,
+  selectCancelBookingPending,
+  selectCancelBookingSuccessId,
   selectCreateBookingError,
   selectCreateBookingLoading,
   selectCreateBookingSuccessId,
+  selectMyBookings,
 } from '../../../bookings/store/bookings.selectors';
+
+const BOOKING_DISPLAY_PRIORITY: Partial<Record<MyBooking['status'], number>> = {
+  Active: 6,
+  Approved: 5,
+  PendingApproval: 4,
+  Pending: 3,
+  ReturnMarked: 2,
+  Completed: 1,
+  Rejected: 0,
+  Cancelled: 0,
+};
 import {
   BookingPanelComponent,
   type BookingSubmitPayload,
@@ -187,6 +203,11 @@ export class ListingDetailsPageComponent {
   protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
   protected readonly showAuthDialog = signal(false);
 
+  private readonly myBookingsSignal = this.store.selectSignal(selectMyBookings);
+  private readonly cancelBookingSuccessId = this.store.selectSignal(selectCancelBookingSuccessId);
+  protected readonly cancelBookingPending = this.store.selectSignal(selectCancelBookingPending);
+  protected readonly cancelBookingError = this.store.selectSignal(selectCancelBookingError);
+
   protected readonly protectionBullets = PROTECTION_BULLET_KEYS;
 
   protected readonly resolveConditionLabelKey = resolveConditionLabelKey;
@@ -281,6 +302,41 @@ export class ListingDetailsPageComponent {
 
   private readonly createBookingSuccessId = this.store.selectSignal(selectCreateBookingSuccessId);
 
+  protected readonly existingBookingId = computed<string | null>(() => {
+    const listingId = this.routeListingId();
+    if (!listingId) return null;
+    const booking = this.myBookingsSignal().find(
+      (b) =>
+        b.listingId === listingId &&
+        (b.status === 'PendingApproval' || b.status === 'Approved' || b.status === 'Active'),
+    );
+    return booking?.id ?? null;
+  });
+
+  protected readonly cancellableBookingId = computed<string | null>(() => {
+    const listingId = this.routeListingId();
+    if (!listingId) return null;
+    const booking = this.myBookingsSignal().find(
+      (b) => b.listingId === listingId && b.status === 'PendingApproval',
+    );
+    return booking?.id ?? null;
+  });
+
+  protected readonly userBooking = computed<MyBooking | null>(() => {
+    const listingId = this.routeListingId();
+    if (!listingId) return null;
+    let best: MyBooking | null = null;
+    for (const b of this.myBookingsSignal()) {
+      if (b.listingId !== listingId) continue;
+      const priority = BOOKING_DISPLAY_PRIORITY[b.status] ?? -1;
+      if (priority < 0) continue;
+      if (best === null || priority > (BOOKING_DISPLAY_PRIORITY[best.status] ?? -1)) {
+        best = b;
+      }
+    }
+    return best;
+  });
+
   protected readonly viewModel$ = combineLatest({
     listingState: this.store.select(selectListingDetailsBase),
     createBookingLoading: this.store.select(selectCreateBookingLoading),
@@ -345,6 +401,7 @@ export class ListingDetailsPageComponent {
       if (id !== null && id !== '') {
         this.store.dispatch(ListingsActions.loadListingDetails({ id }));
         this.store.dispatch(BookingsActions.clearCreateBookingState());
+        this.store.dispatch(BookingsActions.clearCancelBookingState());
         this.store.dispatch(ReviewsActions.loadListingToyReviews({ listingId: id }));
       }
     });
@@ -353,12 +410,22 @@ export class ListingDetailsPageComponent {
       const id = this.routeListingId();
       if (id !== null && id !== '' && this.isAuthenticated()) {
         this.store.dispatch(FavoritesActions.loadFavorites());
+        this.store.dispatch(BookingsActions.loadMyBookings());
       }
     });
 
     effect(() => {
       const successId = this.createBookingSuccessId();
       if (successId === null) return;
+      const listingId = this.routeListingId();
+      if (listingId !== null && listingId !== '') {
+        this.store.dispatch(ListingsActions.loadListingDetails({ id: listingId }));
+      }
+    });
+
+    effect(() => {
+      const cancelledId = this.cancelBookingSuccessId();
+      if (cancelledId === null) return;
       const listingId = this.routeListingId();
       if (listingId !== null && listingId !== '') {
         this.store.dispatch(ListingsActions.loadListingDetails({ id: listingId }));
@@ -390,6 +457,10 @@ export class ListingDetailsPageComponent {
     if (id !== null && id !== '') {
       this.store.dispatch(ListingsActions.loadListingDetails({ id }));
     }
+  }
+
+  protected onCancelRequest(bookingId: string): void {
+    this.store.dispatch(BookingsActions.cancelBooking({ bookingId }));
   }
 
   protected onBookingSubmit(payload: BookingSubmitPayload): void {

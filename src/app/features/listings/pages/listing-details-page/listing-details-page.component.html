@@ -87,6 +87,54 @@
                 }
               </div>
 
+              <!-- User booking relationship panel -->
+              @if (isAuthenticated() && userBooking(); as booking) {
+                <div
+                  class="detail-page__relationship"
+                  [class]="'detail-page__relationship--' + booking.status.toLowerCase()"
+                  role="status"
+                >
+                  <div class="detail-page__relationship-body">
+                    <span class="detail-page__relationship-label">
+                      @switch (booking.status) {
+                        @case ('PendingApproval') { {{ 'listings.details.relationship.rentalRequested' | translate }} }
+                        @case ('Pending') { {{ 'listings.details.relationship.rentalRequested' | translate }} }
+                        @case ('Approved') { {{ 'listings.details.relationship.approved' | translate }} }
+                        @case ('Active') { {{ 'listings.details.relationship.currentlyRenting' | translate }} }
+                        @case ('ReturnMarked') { {{ 'listings.details.relationship.awaitingCompletion' | translate }} }
+                        @case ('Completed') { {{ 'listings.details.relationship.previouslyRented' | translate }} }
+                        @case ('Rejected') { {{ 'listings.details.relationship.requestDeclined' | translate }} }
+                        @case ('Cancelled') { {{ 'listings.details.relationship.cancelled' | translate }} }
+                      }
+                    </span>
+
+                    @if (booking.status === 'Completed' && booking.endDate) {
+                      <span class="detail-page__relationship-date">
+                        {{ 'listings.details.relationship.completedOn' | translate }}: {{ booking.endDate }}
+                      </span>
+                    }
+                    @if ((booking.status === 'Approved' || booking.status === 'Active') && booking.endDate) {
+                      <span class="detail-page__relationship-date">
+                        {{ 'listings.details.relationship.endsOn' | translate }}: {{ booking.endDate }}
+                      </span>
+                    }
+                    @if ((booking.status === 'PendingApproval' || booking.status === 'Pending') && booking.startDate) {
+                      <span class="detail-page__relationship-date">
+                        {{ 'listings.details.relationship.startsOn' | translate }}: {{ booking.startDate }}
+                      </span>
+                    }
+                  </div>
+
+                  <a
+                    class="detail-page__relationship-cta"
+                    [routerLink]="['/bookings', booking.id]"
+                  >
+                    {{ 'listings.details.relationship.viewBooking' | translate }}
+                    <i class="pi pi-arrow-right" aria-hidden="true"></i>
+                  </a>
+                </div>
+              }
+
               <!-- Title + favorite -->
               <div class="detail-page__heading">
                 <h1 class="detail-page__title">{{ listing.title }}</h1>
@@ -335,7 +383,12 @@
                   [submitting]="vm.createBookingLoading"
                   [submitError]="vm.createBookingError"
                   [submitSuccess]="vm.createBookingSuccess"
+                  [existingBookingId]="existingBookingId()"
+                  [cancellableBookingId]="cancellableBookingId()"
+                  [cancelPending]="cancelBookingPending()"
+                  [cancelError]="cancelBookingError()"
                   (bookingSubmit)="onBookingSubmit($event)"
+                  (cancelRequest)="onCancelRequest($event)"
                 />
               </div>
             </aside>
