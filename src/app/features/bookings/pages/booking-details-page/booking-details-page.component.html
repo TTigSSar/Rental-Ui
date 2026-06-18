@@ -127,32 +127,6 @@
       </ol>
     </div>
 
-    <!-- Completion handshake context -->
-    @if (completion(); as c) {
-      @if (c.kind === 'confirm' || c.kind === 'awaiting') {
-        <div class="booking-details__card booking-details__completion">
-          <h2 class="booking-details__section-title">{{ 'bookings.completion.title' | translate }}</h2>
-          @if (c.titleKey) {
-            <p class="booking-details__completion-msg">
-              {{ c.titleKey | translate: { name: d.counterpartyFirstName } }}
-            </p>
-          }
-          @if (c.showAutoNote) {
-            <p class="booking-details__muted">{{ 'bookings.completion.autoNote' | translate }}</p>
-          }
-          @if (c.kind === 'awaiting') {
-            <button
-              type="button"
-              class="booking-details__undo"
-              [disabled]="actionPending()"
-              (click)="undo()"
-            >
-              {{ 'bookings.completion.undo' | translate }}
-            </button>
-          }
-        </div>
-      }
-    }
 
     <!-- Review section -->
     @if (action() === 'review') {
@@ -172,25 +146,29 @@
       <p-message severity="error" [text]="aerr" />
     }
 
-    <!-- Sticky action footer -->
+    @if (cancelError(); as cerr) {
+      <p-message severity="error" [text]="cerr" />
+    }
+
+    <!-- Sticky action footer: owner lifecycle actions -->
     @if (completion(); as c) {
-      @if (c.kind === 'mark' || c.kind === 'confirm' || (c.kind === 'review' && canLeaveReview() && !reviewSubmitted())) {
+      @if (c.kind === 'markActive' || c.kind === 'complete' || (c.kind === 'review' && canLeaveReview() && !reviewSubmitted())) {
         <div class="booking-details__footer">
-          @if (c.kind === 'mark') {
+          @if (c.kind === 'markActive') {
             <button
               type="button"
               class="booking-details__primary"
               [disabled]="actionPending()"
-              (click)="mark()"
+              (click)="activateBooking()"
             >
               {{ c.ctaKey! | translate }}
             </button>
-          } @else if (c.kind === 'confirm') {
+          } @else if (c.kind === 'complete') {
             <button
               type="button"
               class="booking-details__primary"
               [disabled]="actionPending()"
-              (click)="confirm()"
+              (click)="completeBooking()"
             >
               {{ c.ctaKey! | translate }}
             </button>
@@ -201,6 +179,20 @@
           }
         </div>
       }
+    }
+
+    <!-- Sticky action footer: renter cancel -->
+    @if (canCancel()) {
+      <div class="booking-details__footer">
+        <button
+          type="button"
+          class="booking-details__cancel"
+          [disabled]="cancelPending()"
+          (click)="cancelBooking()"
+        >
+          {{ (cancelPending() ? 'bookings.details.cancelling' : 'bookings.details.cancelRequest') | translate }}
+        </button>
+      </div>
     }
   }
 </section>

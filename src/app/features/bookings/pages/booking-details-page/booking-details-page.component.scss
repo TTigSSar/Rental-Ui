@@ -255,6 +255,31 @@
   z-index: 10;
 }
 
+.booking-details__cancel {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 14px 16px;
+  border: 1.5px solid var(--ui-color-error, #dc2626);
+  border-radius: var(--ui-radius-pill, 999px);
+  background: transparent;
+  color: var(--ui-color-error, #dc2626);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-error, #dc2626);
+    outline-offset: 2px;
+  }
+}
+
 .booking-details__primary {
   display: block;
   width: 100%;

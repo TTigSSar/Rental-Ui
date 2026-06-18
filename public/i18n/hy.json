@@ -813,7 +813,9 @@
       "timeline": "Ժամանակագրություն",
       "owner": "Տերը",
       "renter": "Վարձակալը",
-      "rejectionReason": "Մերժման պատճառը"
+      "rejectionReason": "Մերժման պատճառը",
+      "cancelRequest": "Հրաժարվել հարցումից",
+      "cancelling": "Հրաժարվում..."
     },
     "timeline": {
       "requested": "Ամրագրումը հարցված է",

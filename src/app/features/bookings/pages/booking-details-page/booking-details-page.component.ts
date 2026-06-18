@@ -32,25 +32,22 @@ import {
   selectBookingDetail,
   selectBookingDetailError,
   selectBookingDetailLoading,
+  selectCancelBookingError,
+  selectCancelBookingPending,
+  selectCancelBookingSuccessId,
 } from '../../store/bookings.selectors';
 
-type PrimaryAction = 'none' | 'mark' | 'confirm' | 'awaiting' | 'review';
+type PrimaryAction = 'none' | 'markActive' | 'complete' | 'review';
 
 interface CompletionView {
   readonly kind: PrimaryAction;
   readonly ctaKey?: string;
-  readonly titleKey?: string;
-  readonly showAutoNote?: boolean;
 }
 
 interface TimelineItem {
   readonly labelKey: string;
   readonly date: string | null;
   readonly done: boolean;
-}
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
 }
 
 @Component({
@@ -84,6 +81,9 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
   protected readonly loadError = this.store.selectSignal(selectBookingDetailError);
   protected readonly actionPending = this.store.selectSignal(selectBookingActionPending);
   protected readonly actionError = this.store.selectSignal(selectBookingActionError);
+  protected readonly cancelPending = this.store.selectSignal(selectCancelBookingPending);
+  protected readonly cancelError = this.store.selectSignal(selectCancelBookingError);
+  private readonly cancelSuccessId = this.store.selectSignal(selectCancelBookingSuccessId);
 
   protected readonly reviewStatus = signal<BookingReviewStatus | null>(null);
 
@@ -111,13 +111,12 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
   protected readonly action = computed<PrimaryAction>(() => {
     const d = this.detail();
     if (!d) return 'none';
+    const isOwner = d.role === 'owner';
     switch (d.status) {
       case 'Approved':
-        return 'mark';
-      case 'ReturnMarked': {
-        const me = d.role === 'owner' ? 'Owner' : 'Renter';
-        return d.returnInitiatedBy === me ? 'awaiting' : 'confirm';
-      }
+        return isOwner ? 'markActive' : 'none';
+      case 'Active':
+        return isOwner ? 'complete' : 'none';
       case 'Completed':
         return 'review';
       default:
@@ -128,34 +127,11 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
   protected readonly completion = computed<CompletionView | null>(() => {
     const d = this.detail();
     if (!d) return null;
-    const owner = d.role === 'owner';
     switch (this.action()) {
-      case 'mark':
-        return {
-          kind: 'mark',
-          ctaKey: owner
-            ? 'bookings.completion.markCompleted'
-            : 'bookings.completion.iReturned',
-        };
-      case 'confirm':
-        return {
-          kind: 'confirm',
-          titleKey: owner
-            ? 'bookings.completion.renterMarked'
-            : 'bookings.completion.ownerMarked',
-          ctaKey: owner
-            ? 'bookings.completion.confirmReceipt'
-            : 'bookings.completion.confirmCompletion',
-        };
-      case 'awaiting':
-        return {
-          kind: 'awaiting',
-          titleKey: owner
-            ? 'bookings.completion.awaitingRenter'
-            : 'bookings.completion.awaitingOwner',
-          // Only owner-initiated returns auto-complete after 48h.
-          showAutoNote: owner,
-        };
+      case 'markActive':
+        return { kind: 'markActive', ctaKey: 'bookings.completion.markActive' };
+      case 'complete':
+        return { kind: 'complete', ctaKey: 'bookings.completion.markCompleted' };
       default:
         return { kind: this.action() };
     }
@@ -165,20 +141,19 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
     const d = this.detail();
     if (!d) return [];
     const completed = d.status === 'Completed';
-    const marked = d.returnMarkedAt !== null || completed;
+    const active = d.status === 'Active' || d.status === 'Completed';
     return [
       { labelKey: 'bookings.timeline.requested', date: d.createdAt, done: true },
       {
         labelKey: 'bookings.timeline.approved',
         date: d.approvedAt,
-        done: d.approvedAt !== null || d.status !== 'Pending',
+        done: d.approvedAt !== null,
       },
       {
-        labelKey: 'bookings.timeline.started',
-        date: d.startDate,
-        done: !!d.startDate && d.startDate <= todayIso(),
+        labelKey: 'bookings.timeline.active',
+        date: d.activeAt,
+        done: active,
       },
-      { labelKey: 'bookings.timeline.completionRequested', date: d.returnMarkedAt, done: marked },
       { labelKey: 'bookings.timeline.completed', date: d.completedAt, done: completed },
     ];
   });
@@ -193,6 +168,12 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
     return BookingDetailsPageComponent.KNOWN_REJECT_REASONS.includes(code)
       ? { key: 'bookings.rejectReason.' + code, raw: null }
       : { key: null, raw: code };
+  });
+
+  protected readonly canCancel = computed(() => {
+    const d = this.detail();
+    return d !== null && d.role === 'renter' &&
+      (d.status === 'Pending' || d.status === 'Approved');
   });
 
   protected readonly canLeaveReview = computed(() => {
@@ -220,6 +201,13 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
   });
 
   constructor() {
+    // Redirect to bookings list after a successful cancel.
+    effect(() => {
+      if (this.cancelSuccessId() !== null) {
+        void this.router.navigate(['/bookings']);
+      }
+    });
+
     // Once a booking is completed, load the review eligibility for this caller.
     effect(() => {
       const d = this.detail();
@@ -236,11 +224,13 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     if (this.bookingId) {
       this.store.dispatch(BookingsActions.loadBookingDetail({ bookingId: this.bookingId }));
+      this.store.dispatch(BookingsActions.clearCancelBookingState());
     }
   }
 
   ngOnDestroy(): void {
     this.store.dispatch(BookingsActions.clearBookingDetail());
+    this.store.dispatch(BookingsActions.clearCancelBookingState());
   }
 
   protected back(): void {
@@ -253,19 +243,21 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  protected mark(): void {
-    this.store.dispatch(BookingsActions.markReturned({ bookingId: this.bookingId }));
+  protected activateBooking(): void {
+    this.store.dispatch(BookingsActions.markActive({ bookingId: this.bookingId }));
   }
 
-  protected confirm(): void {
-    this.store.dispatch(BookingsActions.confirmReturn({ bookingId: this.bookingId }));
-  }
-
-  protected undo(): void {
-    this.store.dispatch(BookingsActions.undoReturn({ bookingId: this.bookingId }));
+  protected completeBooking(): void {
+    this.store.dispatch(BookingsActions.completeBooking({ bookingId: this.bookingId }));
   }
 
   protected leaveReview(): void {
     void this.router.navigate(this.reviewLink());
+  }
+
+  protected cancelBooking(): void {
+    if (this.bookingId && !this.cancelPending()) {
+      this.store.dispatch(BookingsActions.cancelBooking({ bookingId: this.bookingId }));
+    }
   }
 }

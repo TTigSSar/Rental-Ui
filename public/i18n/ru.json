@@ -813,7 +813,9 @@
       "timeline": "Хронология",
       "owner": "Владелец",
       "renter": "Арендатор",
-      "rejectionReason": "Причина отклонения"
+      "rejectionReason": "Причина отклонения",
+      "cancelRequest": "Отменить заявку",
+      "cancelling": "Отмена..."
     },
     "timeline": {
       "requested": "Запрос отправлен",

@@ -814,7 +814,9 @@
       "timeline": "Timeline",
       "owner": "Owner",
       "renter": "Renter",
-      "rejectionReason": "Reason for decline"
+      "rejectionReason": "Reason for decline",
+      "cancelRequest": "Cancel request",
+      "cancelling": "Cancelling..."
     },
     "timeline": {
       "requested": "Booking requested",

@@ -308,7 +308,7 @@ export class ListingDetailsPageComponent {
     const booking = this.myBookingsSignal().find(
       (b) =>
         b.listingId === listingId &&
-        (b.status === 'PendingApproval' || b.status === 'Approved' || b.status === 'Active'),
+        (b.status === 'Pending' || b.status === 'Approved' || b.status === 'Active'),
     );
     return booking?.id ?? null;
   });
@@ -317,7 +317,7 @@ export class ListingDetailsPageComponent {
     const listingId = this.routeListingId();
     if (!listingId) return null;
     const booking = this.myBookingsSignal().find(
-      (b) => b.listingId === listingId && b.status === 'PendingApproval',
+      (b) => b.listingId === listingId && (b.status === 'Pending' || b.status === 'Approved'),
     );
     return booking?.id ?? null;
   });
