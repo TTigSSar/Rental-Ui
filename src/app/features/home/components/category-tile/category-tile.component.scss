@@ -66,6 +66,7 @@
   border: 1px solid var(--ui-color-border);
   background: var(--ui-color-surface);
   color: var(--ui-color-text-primary);
+  border-radius: 2ch;
   font-weight: 500;
   font-size: 1rem;
   white-space: nowrap;
@@ -84,6 +85,10 @@
 @media (max-width: 600px) {
   .category-tile__icon {
     font-size: 2.5rem;
+  }
+  
+  .category-tile__chip {
+    border-radius: 0m;
   }
 }
 

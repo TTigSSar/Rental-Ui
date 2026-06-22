@@ -1,63 +1,168 @@
-.booking-request-card__top {
+.brc {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  gap: var(--ui-space-8);
-}
-
-.booking-request-card__title {
-  margin: 0;
-  font-size: var(--ui-font-size-h3);
-  font-weight: 600;
-  line-height: 1.35;
-}
-
-.booking-request-card__line {
-  margin: var(--ui-space-6) 0 0;
-  color: var(--ui-color-text-secondary);
-  font-size: var(--ui-font-size-caption);
-}
-
-.booking-request-card__renter-email {
-  margin: var(--ui-space-4) 0 0;
-  color: var(--ui-color-text-hint);
-  font-size: 0.6875rem;
-}
-
-.booking-request-card__actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--ui-space-8);
-}
-
-.booking-request-card-link {
-  display: block;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--ui-color-border-subtle);
   cursor: pointer;
-  border-radius: var(--ui-radius-lg, 12px);
-  transition: transform 0.12s ease;
 
-  &:hover {
-    transform: translateY(-2px);
+  &:last-child {
+    border-bottom: none;
   }
 
-  &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
-    outline-offset: 2px;
+  &:hover .brc__title {
+    color: var(--ui-color-primary);
   }
 }
 
-.booking-request-card__progress {
-  display: block;
-  margin-top: var(--ui-space-12, 12px);
+/* Renter avatar column */
+.brc__renter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  width: 56px;
+  text-align: center;
 }
 
-.booking-request-card__hint {
+.brc__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--ui-color-primary-soft) 0%, var(--ui-color-primary) 100%);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.03em;
+  user-select: none;
+}
+
+.brc__renter-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ui-color-text-secondary);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 56px;
+}
+
+/* Main content */
+.brc__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.brc__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.brc__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ui-color-text-primary);
+  transition: color 0.12s;
+}
+
+.brc__time {
+  font-size: 12px;
+  color: var(--ui-color-text-hint);
+  flex-shrink: 0;
+}
+
+.brc__meta {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--ui-color-text-secondary);
+
+  .pi {
+    font-size: 12px;
+  }
+}
+
+.brc__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.brc__btn {
+  padding: 7px 14px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.12s, opacity 0.12s;
+
+  &[disabled] {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  &--message {
+    background: var(--ui-color-surface);
+    border-color: var(--ui-color-border);
+    color: var(--ui-color-text-primary);
+
+    &:hover:not([disabled]) {
+      background: var(--ui-color-surface-muted);
+    }
+  }
+
+  &--decline {
+    background: transparent;
+    color: var(--ui-color-danger);
+    border-color: transparent;
+
+    &:hover:not([disabled]) {
+      background: var(--ui-color-danger-surface);
+    }
+  }
+
+  &--approve {
+    background: #0E8A5F;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    .pi {
+      font-size: 11px;
+    }
+
+    &:hover:not([disabled]) {
+      background: #0a7350;
+    }
+  }
+}
+
+.brc__hint {
+  margin: 4px 0 0;
+  font-size: 13px;
   color: var(--ui-color-primary);
-  font-size: var(--ui-font-size-caption);
   font-weight: 600;
 }
 
+/* Reject dialog */
 .booking-reject__desc {
   margin: 0 0 var(--ui-space-12, 12px);
   color: var(--ui-color-text-secondary);

@@ -1,0 +1,155 @@
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ui-color-text-primary);
+  margin: 0;
+}
+
+.page-sub {
+  font-size: 14px;
+  color: var(--ui-color-text-secondary);
+  margin: 4px 0 0;
+}
+
+.rentals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.rental-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: var(--ui-color-surface);
+  border-radius: var(--ui-radius-card);
+  border: 1px solid var(--ui-color-border);
+  box-shadow: var(--ui-shadow-card);
+  padding: 20px;
+  transition: box-shadow 0.15s;
+
+  &--active {
+    border-color: var(--dash-active-border);
+    box-shadow: var(--dash-active-shadow);
+  }
+
+  &__thumb {
+    width: 88px;
+    height: 66px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+
+  &__toy {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--ui-color-text-primary);
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--ui-color-text-secondary);
+  }
+
+  &__owner-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  &__sep {
+    color: var(--ui-color-border);
+  }
+
+  &__right {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  &__total {
+    display: block;
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--ui-color-text-primary);
+  }
+
+  &__timelabel {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--dash-success);
+    margin-top: 3px;
+
+    &--warn {
+      color: var(--ui-color-danger);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-shrink: 0;
+    margin-left: 8px;
+  }
+}
+
+.btn {
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+  font-family: inherit;
+
+  &--dark {
+    background: var(--ui-color-text-primary);
+    color: #fff;
+  }
+
+  &--primary {
+    background: var(--ui-color-primary);
+    color: #fff;
+  }
+
+  &--ghost {
+    background: transparent;
+    color: var(--ui-color-text-primary);
+    border: 1px solid var(--ui-color-border);
+  }
+
+  &--ghost-danger {
+    background: transparent;
+    color: var(--ui-color-danger);
+    border: 1px solid var(--ui-color-border);
+  }
+}

@@ -17,12 +17,8 @@ import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 
-import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
 import { BookingProgressComponent } from '../../../../shared/ui/booking-progress/booking-progress.component';
-import {
-  mapBookingStatusLabelKey,
-  mapBookingStatusTone,
-} from '../../../../shared/utils/booking-status.utils';
+import { BookingStatusBadgeComponent } from '../../../../shared/ui/booking-status-badge/booking-status-badge.component';
 import type { BookingReviewStatus } from '../../../reviews/models/review.model';
 import { ReviewsApiService } from '../../../reviews/services/reviews-api.service';
 import * as BookingsActions from '../../store/bookings.actions';
@@ -61,8 +57,8 @@ interface TimelineItem {
     ButtonModule,
     MessageModule,
     SkeletonModule,
-    BadgeComponent,
     BookingProgressComponent,
+    BookingStatusBadgeComponent,
   ],
   templateUrl: './booking-details-page.component.html',
   styleUrl: './booking-details-page.component.scss',
@@ -88,16 +84,6 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
   protected readonly reviewStatus = signal<BookingReviewStatus | null>(null);
 
   protected readonly showSkeleton = computed(() => this.loading() && this.detail() === null);
-
-  protected readonly statusLabelKey = computed(() => {
-    const d = this.detail();
-    return d ? mapBookingStatusLabelKey(d.status) : '';
-  });
-
-  protected readonly statusTone = computed(() => {
-    const d = this.detail();
-    return d ? mapBookingStatusTone(d.status) : 'neutral';
-  });
 
   protected readonly rentalDays = computed(() => {
     const d = this.detail();

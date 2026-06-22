@@ -218,19 +218,6 @@
                           </dd>
                         </div>
                       }
-                      @if (listing.depositAmount !== null && listing.depositAmount !== undefined) {
-                        <div class="detail-page__spec">
-                          <dt class="detail-page__spec-label">
-                            {{ 'listings.details.toyDetails.deposit' | translate }}
-                          </dt>
-                          <dd class="detail-page__spec-value">
-                            {{
-                              'listings.details.toyDetails.depositValue'
-                                | translate: { amount: (listing.depositAmount | currency) }
-                            }}
-                          </dd>
-                        </div>
-                      }
                       @if (listing.hygieneNotes; as hygieneNotes) {
                         <div class="detail-page__spec detail-page__spec--block">
                           <dt class="detail-page__spec-label">

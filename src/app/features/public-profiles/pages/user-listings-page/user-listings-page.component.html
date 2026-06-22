@@ -1,0 +1,177 @@
+<div class="user-listings">
+
+  <!-- ── Sticky top bar ────────────────────────────────────────────────────── -->
+  <header class="user-listings__header">
+    <button
+      type="button"
+      class="user-listings__back-btn"
+      (click)="goBack()"
+      [attr.aria-label]="'publicProfile.backAriaLabel' | translate"
+    >
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      <span class="user-listings__back-text">{{ 'common.back' | translate }}</span>
+    </button>
+
+    @if (profile(); as p) {
+      <div class="user-listings__header-profile">
+        @if (p.avatarUrl) {
+          <img class="user-listings__header-avatar" [src]="p.avatarUrl" [alt]="displayName()" />
+        } @else {
+          <div class="user-listings__header-avatar-fallback">{{ initials() }}</div>
+        }
+        <div class="user-listings__header-info">
+          <h1 class="user-listings__header-name">
+            {{ 'userListings.pageTitle' | translate: { name: firstName() } }}
+            @if (p.isVerified) {
+              <i class="pi pi-check-circle user-listings__verified" aria-hidden="true"></i>
+            }
+          </h1>
+          <p class="user-listings__header-meta">
+            {{ allCount() }} {{ 'userListings.listings' | translate }}
+            @if (ownerRating(); as rating) {
+              <span class="user-listings__header-sep" aria-hidden="true">·</span>
+              <i class="pi pi-star-fill user-listings__header-star" aria-hidden="true"></i>
+              <span>{{ rating | number:'1.1-1' }} {{ 'userListings.ownerRating' | translate }}</span>
+            }
+            @if (location$()) {
+              <span class="user-listings__header-sep" aria-hidden="true">·</span>
+              <i class="pi pi-map-marker" aria-hidden="true"></i>
+              <span>{{ location$() }}</span>
+            }
+          </p>
+        </div>
+      </div>
+    } @else {
+      <div class="user-listings__header-skeleton">
+        <p-skeleton width="2.5rem" height="2.5rem" shape="circle" />
+        <div>
+          <p-skeleton width="8rem" height="1rem" />
+          <p-skeleton width="6rem" height="0.75rem" styleClass="mt-1" />
+        </div>
+      </div>
+    }
+
+    <a
+      class="user-listings__header-search"
+      [routerLink]="['/listings']"
+      [attr.aria-label]="'listings.common.search' | translate"
+    >
+      <i class="pi pi-search" aria-hidden="true"></i>
+    </a>
+  </header>
+
+  @if (showSkeleton()) {
+    <!-- Skeleton grid -->
+    <div class="user-listings__skeleton-grid page-container">
+      @for (i of [0,1,2,3,4,5,6,7]; track i) {
+        <p-skeleton height="14rem" borderRadius="14px" />
+      }
+    </div>
+  } @else if (listingsError() && (allListings()?.length ?? 0) === 0) {
+    <div class="user-listings__error page-container" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <p>{{ 'userListings.errorMessage' | translate }}</p>
+      <p-button type="button" [label]="'listings.common.retry' | translate" (onClick)="retry()" />
+    </div>
+  } @else {
+    <!-- ── Filter tabs + count/sort row ──────────────────────────────────── -->
+    <div class="user-listings__controls page-container">
+      <div class="user-listings__filters" role="tablist" [attr.aria-label]="'userListings.filterAria' | translate">
+        <button
+          type="button"
+          role="tab"
+          class="user-listings__filter"
+          [class.user-listings__filter--active]="activeFilter() === 'all'"
+          [attr.aria-selected]="activeFilter() === 'all'"
+          (click)="setFilter('all')"
+        >
+          {{ 'userListings.filterAll' | translate }}
+          <span class="user-listings__filter-count">{{ allCount() }}</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="user-listings__filter"
+          [class.user-listings__filter--active]="activeFilter() === 'available'"
+          [attr.aria-selected]="activeFilter() === 'available'"
+          (click)="setFilter('available')"
+        >
+          {{ 'userListings.filterAvailable' | translate }}
+          <span class="user-listings__filter-count">{{ availableCount() }}</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="user-listings__filter"
+          [class.user-listings__filter--active]="activeFilter() === 'rented'"
+          [attr.aria-selected]="activeFilter() === 'rented'"
+          (click)="setFilter('rented')"
+        >
+          {{ 'userListings.filterRented' | translate }}
+          <span class="user-listings__filter-count">{{ rentedCount() }}</span>
+        </button>
+      </div>
+
+      <div class="user-listings__count-row">
+        <span class="user-listings__count">
+          {{ filteredListings().length }} {{ 'userListings.toys' | translate }}
+        </span>
+        <div class="user-listings__sort-wrapper">
+          @if (sortMenuOpen()) {
+            <div class="user-listings__sort-backdrop" aria-hidden="true" (click)="sortMenuOpen.set(false)"></div>
+          }
+          <button
+            type="button"
+            class="user-listings__sort-btn"
+            [attr.aria-label]="'listings.page.sortLabel' | translate"
+            [attr.aria-expanded]="sortMenuOpen()"
+            (click)="toggleSortMenu()"
+          >
+            <i class="pi pi-sort-amount-down-alt" aria-hidden="true"></i>
+            @if (activeSortOption(); as opt) {
+              {{ 'listings.page.sortPrefix' | translate }}{{ opt.labelKey | translate }}
+            } @else {
+              {{ 'listings.page.sortLabel' | translate }}
+            }
+            <i class="pi pi-chevron-down" aria-hidden="true"></i>
+          </button>
+          @if (sortMenuOpen()) {
+            <div class="user-listings__sort-menu" role="listbox" [attr.aria-label]="'listings.page.sortLabel' | translate">
+              @for (opt of sortOptions; track opt.value) {
+                <button
+                  type="button"
+                  class="user-listings__sort-menu-item"
+                  [class.user-listings__sort-menu-item--active]="sortBy() === opt.value"
+                  role="option"
+                  [attr.aria-selected]="sortBy() === opt.value"
+                  (click)="selectSort(opt.value)"
+                >
+                  <i [class]="opt.icon" aria-hidden="true"></i>
+                  <span>{{ opt.labelKey | translate }}</span>
+                  @if (sortBy() === opt.value) {
+                    <i class="pi pi-check user-listings__sort-menu-check" aria-hidden="true"></i>
+                  }
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Listings grid ─────────────────────────────────────────────────── -->
+    <div class="user-listings__grid page-container">
+      @if (filteredListings().length > 0) {
+        @for (listing of filteredListings(); track listing.id) {
+          <app-listing-card [listing]="listing" />
+        }
+      } @else {
+        <div class="user-listings__empty">
+          <i class="pi pi-inbox user-listings__empty-icon" aria-hidden="true"></i>
+          <p>{{ 'userListings.emptyMessage' | translate }}</p>
+        </div>
+      }
+    </div>
+  }
+
+</div>

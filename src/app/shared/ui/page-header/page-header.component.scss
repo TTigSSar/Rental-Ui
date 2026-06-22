@@ -27,22 +27,24 @@
 }
 
 .ph__back {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: var(--ui-space-6);
-  margin-bottom: var(--ui-space-4);
-  color: var(--ui-color-text-secondary);
-  font-size: 0.875rem;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  color: var(--ui-color-text-primary);
   text-decoration: none;
-  transition: color 150ms ease;
+  flex-shrink: 0;
+  transition: background 120ms ease;
+
+  .pi {
+    font-size: 1.125rem;
+  }
 
   &:hover {
-    color: var(--ui-color-text-primary);
+    background: var(--ui-color-surface-muted);
   }
-}
-
-.ph__back-label:empty {
-  display: none;
 }
 
 .ph__eyebrow {

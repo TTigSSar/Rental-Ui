@@ -22,9 +22,37 @@
         </span>
       </div>
     </div>
+
+    @if (review().overallRating) {
+      <div class="review-card__stars" [attr.aria-label]="'reviews.summary.ariaRating' | translate: { rating: review().overallRating }">
+        @for (star of stars; track star) {
+          <span
+            class="review-card__star"
+            [class.review-card__star--filled]="star <= (review().overallRating ?? 0)"
+            aria-hidden="true"
+          >★</span>
+        }
+      </div>
+    }
   </div>
 
   @if (review().comment) {
     <p class="review-card__comment">{{ review().comment }}</p>
+  }
+
+  @if (review().rentedItemTitle || review().highlight) {
+    <div class="review-card__footer">
+      @if (review().rentedItemTitle) {
+        <span class="review-card__rented-item">
+          {{ 'reviews.card.rented' | translate }} · {{ review().rentedItemTitle }}
+        </span>
+      }
+      @if (review().highlight) {
+        <span class="review-card__highlight">
+          <span class="review-card__highlight-check" aria-hidden="true">✓</span>
+          {{ review().highlight }}
+        </span>
+      }
+    </div>
   }
 </div>

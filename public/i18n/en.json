@@ -256,6 +256,8 @@
       "toggleFavorite": "Save to favorites",
       "trustAria": "Toy trust details",
       "hygieneProvided": "Hygiene notes",
+      "statusAvailable": "Available",
+      "statusRented": "Rented",
       "bookingBadge": {
         "rentalRequested": "Rental requested",
         "approved": "Approved",
@@ -589,6 +591,7 @@
       "empty": "Profile information is not available."
     },
     "edit": "Edit",
+    "viewPublicProfile": "View public profile",
     "infoLabel": {
       "name": "Name",
       "phone": "Phone",
@@ -597,11 +600,14 @@
     "nav": {
       "myToys": "My toys",
       "myRentals": "My rentals",
-      "favorites": "Favorites",
+      "incomingRequests": "Incoming requests",
+      "favorites": "Saved toys",
+      "earningsPayouts": "Earnings & payouts",
+      "verificationId": "Verification & ID",
       "language": "Language",
       "notifications": "Notifications",
       "helpCenter": "Help center",
-      "logout": "Log out"
+      "logout": "Sign out"
     },
     "actions": {
       "heading": "Quick actions"
@@ -642,6 +648,11 @@
       "heading": "Reviews received",
       "empty": "No reviews yet",
       "error": "Unable to load reviews"
+    },
+    "stats": {
+      "listings": "Listings",
+      "rentals": "Rentals",
+      "reviews": "Reviews"
     }
   },
   "myListings": {
@@ -656,7 +667,8 @@
       "noImage": "No image available",
       "city": "City",
       "pricePerDay": "{{amount}} per day",
-      "createdAt": "Created"
+      "createdAt": "Created",
+      "day": "day"
     },
     "status": {
       "pendingApproval": "Pending approval",
@@ -756,9 +768,11 @@
     "actions": {
       "viewListing": "View toy",
       "approve": "Approve",
-      "reject": "Reject",
+      "reject": "Decline",
       "leaveReview": "Rate toy & owner",
-      "viewDetails": "View details"
+      "viewDetails": "View details",
+      "manage": "Manage rental",
+      "message": "Message"
     },
     "common": {
       "createdAt": "Created",
@@ -772,7 +786,13 @@
       "empty": "Once you rent a toy, your bookings will appear here.",
       "emptyCta": "Browse toys",
       "dateRange": "Date range",
-      "totalPrice": "Total: {{amount}}"
+      "totalPrice": "Total: {{amount}}",
+      "tab": {
+        "active": "Active",
+        "upcoming": "Upcoming",
+        "past": "Past"
+      },
+      "tabEmpty": "No bookings in this category."
     },
     "requests": {
       "title": "Rental Requests",
@@ -782,7 +802,13 @@
       "empty": "When a parent requests one of your toys, it will appear here.",
       "renter": "Renter",
       "dateRange": "Date range",
-      "totalPrice": "Total: {{amount}}"
+      "totalPrice": "Total: {{amount}}",
+      "tab": {
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "declined": "Declined"
+      },
+      "tabEmpty": "No requests in this category."
     },
     "review": {
       "available": "Review available",
@@ -1052,7 +1078,8 @@
       "backToBookings": "Back to my rentals"
     },
     "card": {
-      "rentedDays": "Rented {{count}} days"
+      "rentedDays": "Rented {{count}} days",
+      "rented": "Rented"
     },
     "summary": {
       "noReviews": "No reviews yet",
@@ -1073,16 +1100,87 @@
     }
   },
   "publicProfile": {
-    "title": "Owner profile",
+    "title": "Profile",
     "backAriaLabel": "Go back",
     "memberSince": "Member since {{year}}",
+    "since": "Since",
     "activeListings": "{{count}} active toy(s)",
-    "ratingHeading": "Rating",
-    "reviewsHeading": "Reviews",
+    "overallTrust": "Overall trust",
+    "reviews": "reviews",
+    "verifiedUser": "Verified user",
+    "idConfirmed": "ID confirmed",
+    "emailPhone": "Email & phone",
+    "verifiedBadgeAria": "Verified user",
+    "viewAllToys": "View all toys",
+    "viewAllToysAria": "View all toys from this owner",
+    "asOwner": "As Owner",
+    "asRenter": "As Renter",
+    "rentingFrom": "Renting from {{name}}",
+    "lendingTo": "Lending to {{name}}",
+    "trustOwner": "Can I trust renting from this person?",
+    "trustRenter": "Can I trust this person with my toys?",
+    "ownerRating": "Owner rating",
+    "renterRating": "Renter rating",
+    "ratingBasedOn": "Based on {{count}} reviews from verified renters.",
+    "completedRentals": "Completed rentals",
+    "responseRate": "Response rate",
+    "hygieneScore": "Hygiene score",
+    "onTimeReturn": "On-time return",
+    "damageClaims": "Damage claims",
+    "hygieneTitle": "Hygiene & safety standards",
+    "reliabilityTitle": "Reliability summary",
+    "reviewsFromRenters": "Reviews from renters",
+    "reviewsFromOwners": "Reviews from owners",
+    "seeAll": "See all {{count}}",
     "reviewsEmpty": "No reviews yet",
     "reviewsError": "Unable to load reviews",
+    "postedItems": "Posted items",
+    "viewAll": "View all",
+    "viewAllCount": "View all {{count}} items",
+    "noListings": "No toys listed yet.",
+    "ratingHeading": "Rating",
+    "reviewsHeading": "Reviews",
     "errorTitle": "Unable to load this profile",
     "notFound": "This profile is not available."
+  },
+  "userListings": {
+    "pageTitle": "{{name}}'s toys",
+    "listings": "listings",
+    "ownerRating": "owner rating",
+    "filterAria": "Filter listings",
+    "filterAll": "All",
+    "filterAvailable": "Available",
+    "filterRented": "Rented",
+    "toys": "toys",
+    "sortNewest": "Newest",
+    "errorMessage": "Unable to load listings. Please try again.",
+    "emptyMessage": "No toys in this category."
+  },
+  "allReviews": {
+    "backToProfile": "Back to profile",
+    "subtitleOwner": "What renters say about {{name}} as an owner",
+    "subtitleRenter": "What owners say about lending to {{name}}",
+    "tabOwner": "As owner",
+    "tabRenter": "As renter",
+    "oneReview": "review",
+    "reviews": "reviews",
+    "showingCount": "{{count}} reviews",
+    "sortRecent": "Most recent",
+    "sortHighest": "Highest rated",
+    "breakdown": "Rating breakdown",
+    "breakdownCommunication": "Communication",
+    "breakdownPickup": "Pickup & handover",
+    "breakdownFriendliness": "Friendliness",
+    "breakdownReturnedOnTime": "Returned on time",
+    "breakdownCareOfToy": "Care of toy",
+    "noOwnerReviews": "{{name}} hasn't received any reviews as an owner yet.",
+    "noRenterReviews": "{{name}} hasn't received any reviews as a renter yet.",
+    "noReviewsYet": "No reviews yet",
+    "distributionAria": "Rating distribution",
+    "reviewsAria": "Reviews list",
+    "sortAria": "Sort reviews by",
+    "errorTitle": "Unable to load reviews",
+    "retry": "Try again"
   },
   "info": {
     "about": {

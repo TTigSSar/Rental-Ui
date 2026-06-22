@@ -39,6 +39,20 @@ export class ReviewsEffects {
     ),
   );
 
+  readonly loadRenterReviews$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ReviewsActions.loadRenterReviews),
+      mergeMap(({ userId }) =>
+        this.reviewsApi.getRenterReviews(userId).pipe(
+          map((summary) => ReviewsActions.loadRenterReviewsSuccess({ userId, summary })),
+          catchError((error: unknown) =>
+            of(ReviewsActions.loadRenterReviewsFailure({ userId, error: toApiErrorMessage(error) })),
+          ),
+        ),
+      ),
+    ),
+  );
+
   readonly loadBookingStatus$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ReviewsActions.loadBookingStatus),

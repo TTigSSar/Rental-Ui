@@ -1,4 +1,4 @@
-.booking-requests-page {
+.req-page {
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-24);
@@ -6,68 +6,121 @@
   min-height: calc(100dvh - 4rem);
 }
 
-.booking-requests-page__error {
+.req-page__error {
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-12);
   align-items: flex-start;
 }
 
-.booking-requests-page__message {
+.req-page__message {
   width: 100%;
 }
 
-.booking-requests-page__error-content {
+.req-page__error-content {
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-4);
 }
 
-.booking-requests-page__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
-  gap: var(--ui-space-16);
+/* ── Tabs ───────────────────────────────────────────────── */
+.req-page__tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
-.booking-requests-page__skeleton-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--ui-space-8);
-  border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-md);
-  padding: var(--ui-space-16);
-  background: var(--ui-color-surface);
-}
-
-.booking-requests-page__skeleton-actions {
-  margin-top: var(--ui-space-4);
-  display: flex;
-  gap: var(--ui-space-8);
-}
-
-.booking-requests-page__empty {
-  display: flex;
-  flex-direction: column;
+.req-page__tab {
+  display: inline-flex;
   align-items: center;
-  gap: var(--ui-space-8);
-  border: 1px dashed var(--ui-color-border);
-  border-radius: var(--ui-radius-md);
-  padding: var(--ui-space-48) var(--ui-space-24);
-  text-align: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--ui-color-border);
   background: var(--ui-color-surface);
-}
-
-.booking-requests-page__empty-icon {
-  font-size: 1.4rem;
   color: var(--ui-color-text-secondary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 140ms ease, color 140ms ease, background 140ms ease;
+
+  &:hover {
+    border-color: var(--ui-color-primary);
+    color: var(--ui-color-primary);
+  }
+
+  &:active {
+    transform: scale(0.96);
+    transition-duration: 80ms;
+  }
+
+  &--active {
+    border-color: var(--ui-color-primary);
+    background: color-mix(in srgb, var(--ui-color-primary) 10%, var(--ui-color-surface));
+    color: var(--ui-color-primary);
+
+    .req-page__tab-count {
+      background: var(--ui-color-primary);
+      color: #fff;
+    }
+  }
 }
 
-.booking-requests-page__empty-title {
-  margin: 0;
-  font-size: 1.1rem;
-}
-
-.booking-requests-page__empty-text {
-  margin: 0;
+.req-page__tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--ui-color-surface-muted);
   color: var(--ui-color-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  transition: background 120ms, color 120ms;
+}
+
+/* ── List ───────────────────────────────────────────────── */
+.req-page__list {
+  display: flex;
+  flex-direction: column;
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: 16px;
+  padding: 0 16px;
+}
+
+/* ── Skeleton ───────────────────────────────────────────── */
+.req-page__skeleton-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--ui-color-border-subtle);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.req-page__skeleton-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.req-page__skeleton-actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* ── Tab empty ──────────────────────────────────────────── */
+.req-page__tab-empty {
+  padding: var(--ui-space-32) var(--ui-space-16);
+  text-align: center;
+  color: var(--ui-color-text-secondary);
+  font-size: var(--ui-font-size-caption);
 }

@@ -1,0 +1,45 @@
+<div class="rcl">
+
+  <!-- Header: avatar + name/date | stars -->
+  <div class="rcl__header">
+    <div class="rcl__author">
+      @if (review().reviewerAvatarUrl) {
+        <img
+          class="rcl__avatar"
+          [src]="review().reviewerAvatarUrl"
+          [alt]="reviewerName()"
+        />
+      } @else {
+        <app-ui-avatar [name]="reviewerName()" size="lg" />
+      }
+      <div class="rcl__meta">
+        <span class="rcl__name">{{ reviewerName() }}</span>
+        <span class="rcl__date" [title]="fullDate()">
+          @let d = relativeDateI18n();
+          {{ d.key | translate: d.params }}
+        </span>
+      </div>
+    </div>
+
+    @if (review().overallRating) {
+      <div
+        class="rcl__stars"
+        [attr.aria-label]="'reviews.summary.ariaRating' | translate: { rating: review().overallRating }"
+      >
+        @for (star of stars; track star) {
+          <span
+            class="rcl__star"
+            [class.rcl__star--filled]="star <= (review().overallRating ?? 0)"
+            aria-hidden="true"
+          >★</span>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Comment body -->
+  @if (review().comment) {
+    <p class="rcl__comment">{{ review().comment }}</p>
+  }
+
+</div>

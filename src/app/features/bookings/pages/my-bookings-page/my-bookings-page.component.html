@@ -2,54 +2,78 @@
   <app-ui-page-header
     [title]="'bookings.myBookings.title' | translate"
     [subtitle]="'bookings.myBookings.subtitle' | translate"
+    backLink="/profile"
   />
 
-  @if (viewModel$ | async; as vm) {
-    @if (vm.hasError && vm.error) {
-      <div class="bookings-page__error" role="alert">
-        <p-message severity="error" styleClass="bookings-page__message">
-          <div class="bookings-page__error-content">
-            <strong>{{ 'bookings.myBookings.errorTitle' | translate }}</strong>
-            <span>{{ vm.error }}</span>
+  @if (vm().hasError && vm().error) {
+    <div class="bookings-page__error" role="alert">
+      <p-message severity="error" styleClass="bookings-page__message">
+        <div class="bookings-page__error-content">
+          <strong>{{ 'bookings.myBookings.errorTitle' | translate }}</strong>
+          <span>{{ vm().error }}</span>
+        </div>
+      </p-message>
+      <p-button type="button" [label]="'listings.common.retry' | translate" (onClick)="retry()" />
+    </div>
+  }
+
+  @if (vm().showInitialSkeleton) {
+    <div class="bookings-page__list">
+      @for (i of [0, 1, 2]; track i) {
+        <div class="bookings-page__skeleton-card">
+          <p-skeleton width="80px" height="80px" borderRadius="12px" />
+          <div class="bookings-page__skeleton-body">
+            <p-skeleton width="60%" height="1.1rem" />
+            <p-skeleton width="40%" height="0.9rem" />
           </div>
-        </p-message>
-        <p-button
+          <div class="bookings-page__skeleton-actions">
+            <p-skeleton width="7rem" height="2.2rem" borderRadius="10px" />
+            <p-skeleton width="5rem" height="2.2rem" borderRadius="10px" />
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (vm().showEmpty) {
+    <app-ui-empty-state
+      icon="pi pi-calendar-times"
+      [title]="'bookings.myBookings.emptyTitle' | translate"
+      [description]="'bookings.myBookings.empty' | translate"
+      [ctaLabel]="'bookings.myBookings.emptyCta' | translate"
+      [ctaRouterLink]="['/listings']"
+    />
+  }
+
+  @if (vm().bookings.length > 0) {
+    <!-- Tabs -->
+    <div class="bookings-page__tabs" role="tablist">
+      @for (tab of TABS; track tab) {
+        <button
           type="button"
-          [label]="'listings.common.retry' | translate"
-          (onClick)="retry()"
-        />
-      </div>
-    }
+          class="bookings-page__tab"
+          [class.bookings-page__tab--active]="activeTab() === tab"
+          role="tab"
+          [attr.aria-selected]="activeTab() === tab"
+          (click)="setTab(tab)"
+        >
+          {{ ('bookings.myBookings.tab.' + tab) | translate }}
+          <span class="bookings-page__tab-count">{{ tabCounts()[tab] }}</span>
+        </button>
+      }
+    </div>
 
-    @if (vm.showInitialSkeleton) {
-      <div class="bookings-page__grid">
-        @for (i of [0, 1, 2, 3]; track i) {
-          <div class="bookings-page__skeleton-card">
-            <p-skeleton width="70%" height="1.2rem" />
-            <p-skeleton width="60%" height="1rem" />
-            <p-skeleton width="45%" height="1rem" />
-            <p-skeleton width="55%" height="1rem" />
-          </div>
-        }
-      </div>
-    }
-
-    @if (vm.showEmpty) {
-      <app-ui-empty-state
-        icon="pi pi-calendar-times"
-        [title]="'bookings.myBookings.emptyTitle' | translate"
-        [description]="'bookings.myBookings.empty' | translate"
-        [ctaLabel]="'bookings.myBookings.emptyCta' | translate"
-        [ctaRouterLink]="['/listings']"
-      />
-    }
-
-    @if (vm.bookings.length > 0) {
-      <div class="bookings-page__grid">
-        @for (booking of vm.bookings; track booking.id) {
+    <!-- Booking list -->
+    @if (filteredBookings().length > 0) {
+      <div class="bookings-page__list">
+        @for (booking of filteredBookings(); track booking.id) {
           <app-my-booking-card [booking]="booking" />
         }
       </div>
+    } @else {
+      <p class="bookings-page__tab-empty">
+        {{ 'bookings.myBookings.tabEmpty' | translate }}
+      </p>
     }
   }
 </section>

@@ -9,6 +9,7 @@
       [ngModel]="rangeSelection()"
       (ngModelChange)="onRangeChange($event)"
       [attr.aria-label]="'listings.booking.calendarLabel' | translate"
+      [disabled]="disabled()"
     />
 
     <div class="booking-calendar__dates" aria-live="polite">

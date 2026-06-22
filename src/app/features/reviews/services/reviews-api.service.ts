@@ -39,4 +39,8 @@ export class ReviewsApiService {
   getOwnerReviews(userId: string): Observable<OwnerReviewSummary> {
     return this.http.get<OwnerReviewSummary>(toApiUrl(ApiContract.reviews.ownerReviews(userId)));
   }
+
+  getRenterReviews(userId: string): Observable<OwnerReviewSummary> {
+    return this.http.get<OwnerReviewSummary>(toApiUrl(ApiContract.reviews.renterReviews(userId)));
+  }
 }

@@ -113,39 +113,48 @@
               </div>
             }
 
-            <!-- Authenticated: notification bell -->
+            <!-- Authenticated: notification bell + avatar -->
             @if (vm.isAuthenticated) {
-              <div class="app-shell__notif" #notifMenuHost>
-                <button
-                  type="button"
-                  class="app-shell__notif-btn"
-                  [class.app-shell__notif-btn--active]="notifPanelOpen()"
-                  [attr.aria-expanded]="notifPanelOpen()"
-                  [attr.aria-haspopup]="true"
-                  [attr.aria-label]="'app.shell.notifications.aria' | translate"
-                  (click)="toggleNotifPanel()"
-                >
-                  <i class="pi pi-bell" aria-hidden="true"></i>
-                  @if (unreadNotifCount() > 0) {
-                    <span class="app-shell__notif-badge" aria-hidden="true">
-                      {{ unreadNotifCount() > 99 ? '99+' : unreadNotifCount() }}
-                    </span>
+              <div class="app-shell__user-area">
+                <div class="app-shell__notif" #notifMenuHost>
+                  <button
+                    type="button"
+                    class="app-shell__notif-btn"
+                    [class.app-shell__notif-btn--active]="notifPanelOpen()"
+                    [attr.aria-expanded]="notifPanelOpen()"
+                    [attr.aria-haspopup]="true"
+                    [attr.aria-label]="'app.shell.notifications.aria' | translate"
+                    (click)="toggleNotifPanel()"
+                  >
+                    <i class="pi pi-bell" aria-hidden="true"></i>
+                    @if (unreadNotifCount() > 0) {
+                      <span class="app-shell__notif-badge" aria-hidden="true">
+                        {{ unreadNotifCount() > 99 ? '99+' : unreadNotifCount() }}
+                      </span>
+                    }
+                  </button>
+                  @if (notifPanelOpen()) {
+                    <div class="app-shell__notif-panel" role="dialog" [attr.aria-label]="'app.shell.notifications.title' | translate">
+                      <div class="app-shell__notif-panel-header">
+                        <span class="app-shell__notif-panel-title">{{ 'app.shell.notifications.title' | translate }}</span>
+                      </div>
+                      <div class="app-shell__notif-panel-empty">
+                        <i class="pi pi-bell-slash" aria-hidden="true"></i>
+                        <p>{{ 'app.shell.notifications.empty' | translate }}</p>
+                      </div>
+                    </div>
                   }
-                </button>
-                @if (notifPanelOpen()) {
-                  <div class="app-shell__notif-panel" role="dialog" [attr.aria-label]="'app.shell.notifications.title' | translate">
-                    <div class="app-shell__notif-panel-header">
-                      <span class="app-shell__notif-panel-title">{{ 'app.shell.notifications.title' | translate }}</span>
-                    </div>
-                    <div class="app-shell__notif-panel-empty">
-                      <i class="pi pi-bell-slash" aria-hidden="true"></i>
-                      <p>{{ 'app.shell.notifications.empty' | translate }}</p>
-                    </div>
-                  </div>
-                }
+                </div>
+
+                <a
+                  class="app-shell__header-avatar"
+                  routerLink="/profile"
+                  [attr.aria-label]="'app.shell.nav.profile' | translate"
+                >
+                  {{ vm.userInitials }}
+                </a>
               </div>
             }
-          <!-- </div> -->
         </div>
       </div>
     </header>

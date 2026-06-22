@@ -50,6 +50,7 @@ interface AppShellViewModel {
   readonly isAdmin: boolean;
   readonly userDisplayName: string | null;
   readonly userEmail: string | null;
+  readonly userInitials: string | null;
 }
 
 const LANGUAGE_STORAGE_KEY = 'stayfinder.lang';
@@ -152,6 +153,8 @@ export class App {
         userDisplayName:
           user === null ? null : `${user.firstName} ${user.lastName}`.trim(),
         userEmail: user?.email ?? null,
+        userInitials:
+          user === null ? null : ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || null,
       };
     }),
   );

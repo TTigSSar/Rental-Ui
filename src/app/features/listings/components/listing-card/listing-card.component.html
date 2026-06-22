@@ -27,11 +27,23 @@
         }
       </app-ui-image-container>
 
-      <!-- Age range pill: Direction A image overlay (bottom-left) -->
-      @if (ageRange(); as range) {
-        <div class="listing-card__age-pill" aria-hidden="true">
-          {{ range.key | translate: range.params }}
-        </div>
+      @if (listing().listingStatus) {
+        <span
+          class="listing-card__status-badge"
+          [class.listing-card__status-badge--available]="listing().listingStatus === 'available'"
+          [class.listing-card__status-badge--rented]="listing().listingStatus === 'rented'"
+        >
+          @if (listing().listingStatus === 'available') {
+            <span class="listing-card__status-dot" aria-hidden="true"></span>
+          }
+          {{ listing().listingStatus === 'available' ? ('listings.card.statusAvailable' | translate) : ('listings.card.statusRented' | translate) }}
+        </span>
+      }
+
+      @if (ageRange(); as age) {
+        <span class="listing-card__age-badge">
+          {{ age.key | translate: age.params }}
+        </span>
       }
     </div>
 

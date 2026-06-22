@@ -307,6 +307,12 @@
   position: relative;
 }
 
+.app-shell__user-area {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-8);
+}
+
 .app-shell__notif-btn {
   position: relative;
   display: inline-flex;
@@ -316,7 +322,7 @@
   height: 2.5rem;
   padding: 0;
   border: 1px solid var(--ui-color-border);
-  border-radius: 12px;
+  border-radius: 50%;
   background: var(--ui-color-surface);
   color: var(--ui-color-text-primary);
   flex-shrink: 0;
@@ -409,6 +415,37 @@
   margin: 0;
   font-size: 0.875rem;
   line-height: 1.5;
+}
+
+/* —— Header user avatar (circular, links to /profile) —— */
+.app-shell__header-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--ui-color-primary) 0%,
+    var(--ui-color-secondary) 100%
+  );
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-decoration: none;
+  flex-shrink: 0;
+  border: 2px solid var(--ui-color-surface);
+  box-shadow: 0 0 0 1.5px var(--ui-color-border);
+  transition:
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.app-shell__header-avatar:hover {
+  box-shadow: 0 0 0 1.5px var(--ui-color-primary);
+  transform: translateY(-1px);
 }
 
 /* —— User menu (desktop) —— */

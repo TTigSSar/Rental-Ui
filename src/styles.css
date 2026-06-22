@@ -64,7 +64,9 @@
   --ui-space-8: 8px;
   --ui-space-10: 10px;
   --ui-space-12: 12px;
+  --ui-space-14: 14px;
   --ui-space-16: 16px;
+  --ui-space-18: 18px;
   --ui-space-20: 20px;
   --ui-space-24: 24px;
   --ui-space-32: 32px;
@@ -140,6 +142,21 @@
   --app-bottom-nav-fab-overhang: 32px;
   --app-bottom-nav-extra-space: 32px;
   --app-bottom-nav-safe-space: 0px;
+
+  /* —— Dashboard page tokens —— */
+  --dash-warn: #D97706;
+  --dash-warn-surface: #FEF3C7;
+  --dash-warn-text: #92400E;
+  --dash-blue: #4A5FE3;
+  --dash-blue-surface: #E0E7FF;
+  --dash-blue-text: #3730A3;
+  --dash-success: #0E8A5F;
+  --dash-success-surface: #D1FAE5;
+  --dash-success-text: #065F46;
+  --dash-mute-surface: #F3F4F6;
+  --dash-mute-text: #6B7280;
+  --dash-active-border: rgba(255,96,8,.25);
+  --dash-active-shadow: 0 0 0 3px rgba(255,96,8,.06), 0 10px 24px rgba(16,18,30,.07);
 }
 
 @media (max-width: 960px) {

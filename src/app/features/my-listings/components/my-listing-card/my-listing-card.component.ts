@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { CurrencyPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,12 +9,8 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 
 import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
-import { ImageContainerComponent } from '../../../../shared/ui/image-container/image-container.component';
-import { StatusNoteComponent } from '../../../../shared/ui/status-note/status-note.component';
 import {
   mapListingStatusLabelKey,
   mapListingStatusTone,
@@ -24,17 +20,7 @@ import type { MyListing } from '../../models/my-listing.model';
 @Component({
   selector: 'app-my-listing-card',
   standalone: true,
-  imports: [
-    ButtonModule,
-    CardModule,
-    CurrencyPipe,
-    DatePipe,
-    RouterLink,
-    TranslatePipe,
-    BadgeComponent,
-    ImageContainerComponent,
-    StatusNoteComponent,
-  ],
+  imports: [CurrencyPipe, RouterLink, TranslatePipe, BadgeComponent],
   templateUrl: './my-listing-card.component.html',
   styleUrl: './my-listing-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

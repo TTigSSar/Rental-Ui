@@ -256,6 +256,8 @@
       "toggleFavorite": "Добавить в избранное",
       "trustAria": "Сведения о доверии к игрушке",
       "hygieneProvided": "Гигиена",
+      "statusAvailable": "Доступна",
+      "statusRented": "Сдана в аренду",
       "bookingBadge": {
         "rentalRequested": "Запрос отправлен",
         "approved": "Одобрено",
@@ -589,6 +591,7 @@
       "empty": "Информация профиля недоступна."
     },
     "edit": "Изменить",
+    "viewPublicProfile": "Открыть публичный профиль",
     "infoLabel": {
       "name": "Имя",
       "phone": "Телефон",
@@ -597,7 +600,10 @@
     "nav": {
       "myToys": "Мои игрушки",
       "myRentals": "Мои аренды",
-      "favorites": "Избранное",
+      "incomingRequests": "Входящие запросы",
+      "favorites": "Сохранённые игрушки",
+      "earningsPayouts": "Доходы и выплаты",
+      "verificationId": "Верификация и ID",
       "language": "Язык",
       "notifications": "Уведомления",
       "helpCenter": "Справка",
@@ -642,6 +648,11 @@
       "heading": "Полученные отзывы",
       "empty": "Отзывов пока нет",
       "error": "Не удалось загрузить отзывы"
+    },
+    "stats": {
+      "listings": "Объявления",
+      "rentals": "Аренды",
+      "reviews": "Отзывы"
     }
   },
   "myListings": {
@@ -656,7 +667,8 @@
       "noImage": "Изображение отсутствует",
       "city": "Город",
       "pricePerDay": "{{amount}} в день",
-      "createdAt": "Создано"
+      "createdAt": "Создано",
+      "day": "день"
     },
     "status": {
       "pendingApproval": "Ожидает проверки",
@@ -757,7 +769,9 @@
       "approve": "Одобрить",
       "reject": "Отклонить",
       "leaveReview": "Оценить игрушку и владельца",
-      "viewDetails": "Подробнее"
+      "viewDetails": "Подробнее",
+      "manage": "Управлять",
+      "message": "Сообщение"
     },
     "common": {
       "createdAt": "Создано",
@@ -771,7 +785,13 @@
       "empty": "Когда вы арендуете игрушку, бронирование появится здесь.",
       "emptyCta": "Смотреть игрушки",
       "dateRange": "Даты аренды",
-      "totalPrice": "Итого: {{amount}}"
+      "totalPrice": "Итого: {{amount}}",
+      "tab": {
+        "active": "Активные",
+        "upcoming": "Предстоящие",
+        "past": "Прошедшие"
+      },
+      "tabEmpty": "В этой категории бронирований нет."
     },
     "requests": {
       "title": "Запросы на аренду",
@@ -781,7 +801,13 @@
       "empty": "Когда родитель запросит вашу игрушку, это появится здесь.",
       "renter": "Арендатор",
       "dateRange": "Даты аренды",
-      "totalPrice": "Итого: {{amount}}"
+      "totalPrice": "Итого: {{amount}}",
+      "tab": {
+        "pending": "На рассмотрении",
+        "accepted": "Принятые",
+        "declined": "Отклонённые"
+      },
+      "tabEmpty": "В этой категории запросов нет."
     },
     "review": {
       "available": "Доступен отзыв",
@@ -1051,7 +1077,8 @@
       "backToBookings": "К моим арендам"
     },
     "card": {
-      "rentedDays": "Аренда {{count}} дн."
+      "rentedDays": "Аренда {{count}} дн.",
+      "rented": "Арендовано"
     },
     "summary": {
       "noReviews": "Отзывов пока нет",
@@ -1072,16 +1099,87 @@
     }
   },
   "publicProfile": {
-    "title": "Профиль владельца",
+    "title": "Профиль",
     "backAriaLabel": "Назад",
     "memberSince": "Участник с {{year}} г.",
+    "since": "С",
     "activeListings": "{{count}} активн. игрушка(-и)",
-    "ratingHeading": "Рейтинг",
-    "reviewsHeading": "Отзывы",
+    "overallTrust": "Общий рейтинг доверия",
+    "reviews": "отзывов",
+    "verifiedUser": "Верифицирован",
+    "idConfirmed": "Удостоверение подтверждено",
+    "emailPhone": "Email & телефон",
+    "verifiedBadgeAria": "Верифицированный пользователь",
+    "viewAllToys": "Все игрушки",
+    "viewAllToysAria": "Посмотреть все игрушки",
+    "asOwner": "Как владелец",
+    "asRenter": "Как арендатор",
+    "rentingFrom": "Аренда у {{name}}",
+    "lendingTo": "Аренда {{name}}",
+    "trustOwner": "Можно ли доверять этому человеку?",
+    "trustRenter": "Можно ли доверить ему игрушки?",
+    "ownerRating": "Рейтинг владельца",
+    "renterRating": "Рейтинг арендатора",
+    "ratingBasedOn": "На основе {{count}} отзывов.",
+    "completedRentals": "Завершённых аренд",
+    "responseRate": "Отклик",
+    "hygieneScore": "Оценка гигиены",
+    "onTimeReturn": "Возврат вовремя",
+    "damageClaims": "Претензии",
+    "hygieneTitle": "Гигиена и безопасность",
+    "reliabilityTitle": "Надёжность",
+    "reviewsFromRenters": "Отзывы арендаторов",
+    "reviewsFromOwners": "Отзывы владельцев",
+    "seeAll": "Смотреть все {{count}}",
     "reviewsEmpty": "Отзывов пока нет",
     "reviewsError": "Не удалось загрузить отзывы",
+    "postedItems": "Объявления",
+    "viewAll": "Все",
+    "viewAllCount": "Смотреть все {{count}} игрушки",
+    "noListings": "Игрушек пока нет.",
+    "ratingHeading": "Рейтинг",
+    "reviewsHeading": "Отзывы",
     "errorTitle": "Не удалось загрузить профиль",
     "notFound": "Этот профиль недоступен."
+  },
+  "userListings": {
+    "pageTitle": "Игрушки {{name}}",
+    "listings": "объявлений",
+    "ownerRating": "рейт. влад.",
+    "filterAria": "Фильтр объявлений",
+    "filterAll": "Все",
+    "filterAvailable": "Доступные",
+    "filterRented": "В аренде",
+    "toys": "игрушек",
+    "sortNewest": "Сначала новые",
+    "errorMessage": "Не удалось загрузить объявления.",
+    "emptyMessage": "В этой категории ничего нет."
+  },
+  "allReviews": {
+    "backToProfile": "Назад к профилю",
+    "subtitleOwner": "Что арендаторы говорят о {{name}} как о владельце",
+    "subtitleRenter": "Что владельцы говорят об аренде {{name}}",
+    "tabOwner": "Как владелец",
+    "tabRenter": "Как арендатор",
+    "oneReview": "отзыв",
+    "reviews": "отзывов",
+    "showingCount": "{{count}} отзывов",
+    "sortRecent": "Сначала новые",
+    "sortHighest": "Высокий рейтинг",
+    "breakdown": "Детальная оценка",
+    "breakdownCommunication": "Общение",
+    "breakdownPickup": "Получение/передача",
+    "breakdownFriendliness": "Дружелюбие",
+    "breakdownReturnedOnTime": "Возврат вовремя",
+    "breakdownCareOfToy": "Уход за игрушкой",
+    "noOwnerReviews": "{{name}} пока не получил отзывов как владелец.",
+    "noRenterReviews": "{{name}} пока не получил отзывов как арендатор.",
+    "noReviewsYet": "Отзывов пока нет",
+    "distributionAria": "Распределение оценок",
+    "reviewsAria": "Список отзывов",
+    "sortAria": "Сортировка отзывов",
+    "errorTitle": "Не удалось загрузить отзывы",
+    "retry": "Попробовать снова"
   },
   "info": {
     "about": {

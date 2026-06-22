@@ -1,5 +1,6 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
@@ -17,6 +18,18 @@ import {
   selectBookingRequestsError,
   selectBookingRequestsLoading,
 } from '../../store/bookings.selectors';
+
+type RequestTab = 'pending' | 'accepted' | 'declined';
+
+const PENDING_STATUSES = new Set(['PendingApproval', 'Pending']);
+const ACCEPTED_STATUSES = new Set(['Approved', 'Active', 'ReturnMarked', 'Completed']);
+const DECLINED_STATUSES = new Set(['Rejected', 'Cancelled', 'Expired', 'Archived']);
+
+function tabFor(status: string): RequestTab {
+  if (PENDING_STATUSES.has(status)) return 'pending';
+  if (ACCEPTED_STATUSES.has(status)) return 'accepted';
+  return 'declined';
+}
 
 interface BookingRequestsPageViewModel {
   readonly requests: BookingRequest[];
@@ -67,12 +80,35 @@ const selectBookingRequestsPageViewModel = createSelector(
 export class BookingRequestsPageComponent implements OnInit {
   private readonly store = inject(Store);
 
-  protected readonly viewModel$ = this.store.select(
-    selectBookingRequestsPageViewModel,
+  protected readonly vm = toSignal(
+    this.store.select(selectBookingRequestsPageViewModel),
+    { requireSync: true },
   );
+
+  protected readonly activeTab = signal<RequestTab>('pending');
+
+  protected readonly tabCounts = computed(() => {
+    const all = this.vm().requests;
+    return {
+      pending: all.filter(r => PENDING_STATUSES.has(r.status)).length,
+      accepted: all.filter(r => ACCEPTED_STATUSES.has(r.status)).length,
+      declined: all.filter(r => DECLINED_STATUSES.has(r.status)).length,
+    };
+  });
+
+  protected readonly filteredRequests = computed(() => {
+    const tab = this.activeTab();
+    return this.vm().requests.filter(r => tabFor(r.status) === tab);
+  });
+
+  protected readonly TABS: ReadonlyArray<RequestTab> = ['pending', 'accepted', 'declined'];
 
   ngOnInit(): void {
     this.store.dispatch(BookingsActions.loadBookingRequests());
+  }
+
+  protected setTab(tab: RequestTab): void {
+    this.activeTab.set(tab);
   }
 
   protected retry(): void {

@@ -101,29 +101,41 @@ export const loadBookingDetailFailure = createAction(
 
 export const clearBookingDetail = createAction('[Bookings] Clear Booking Detail');
 
-// --- Completion handshake (mark / confirm / undo) ---
+// --- Booking status transitions ---
 
-export const markReturned = createAction(
-  '[Bookings] Mark Returned',
+export const cancelBooking = createAction(
+  '[Bookings] Cancel Booking',
   props<{ bookingId: string }>(),
 );
 
-export const confirmReturn = createAction(
-  '[Bookings] Confirm Return',
+export const cancelBookingSuccess = createAction(
+  '[Bookings] Cancel Booking Success',
   props<{ bookingId: string }>(),
 );
 
-export const undoReturn = createAction(
-  '[Bookings] Undo Return',
+export const cancelBookingFailure = createAction(
+  '[Bookings] Cancel Booking Failure',
+  props<{ error: string }>(),
+);
+
+export const clearCancelBookingState = createAction('[Bookings] Clear Cancel Booking State');
+
+export const markActive = createAction(
+  '[Bookings] Mark Active',
   props<{ bookingId: string }>(),
 );
 
-export const bookingHandshakeSuccess = createAction(
-  '[Bookings] Booking Handshake Success',
+export const completeBooking = createAction(
+  '[Bookings] Complete Booking',
+  props<{ bookingId: string }>(),
+);
+
+export const bookingActionSuccess = createAction(
+  '[Bookings] Booking Action Success',
   props<{ detail: BookingDetail }>(),
 );
 
-export const bookingHandshakeFailure = createAction(
-  '[Bookings] Booking Handshake Failure',
+export const bookingActionFailure = createAction(
+  '[Bookings] Booking Action Failure',
   props<{ bookingId: string; error: string }>(),
 );

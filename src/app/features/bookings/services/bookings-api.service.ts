@@ -5,10 +5,8 @@ import { Observable, map } from 'rxjs';
 import { ApiContract, toApiUrl } from '../../../api/api-contract';
 import type {
   BookingDetail,
-  BookingParty,
   BookingRequest,
   BookingStatus,
-  CompletionMethod,
   CreateBookingRequest,
   CreateBookingResponse,
   MyBooking,
@@ -18,6 +16,7 @@ const KNOWN_BOOKING_STATUSES: ReadonlySet<BookingStatus> = new Set<BookingStatus
   'PendingApproval',
   'Pending',
   'Approved',
+  'Active',
   'ReturnMarked',
   'Rejected',
   'Archived',
@@ -65,20 +64,14 @@ function normalizeMyBooking(item: Partial<MyBooking> & { id: string }): MyBookin
     listingId: toStr(item.listingId),
     listingTitle: toStr(item.listingTitle),
     listingPrimaryImageUrl: toNullableStr(item.listingPrimaryImageUrl),
+    ownerFirstName: toStr(item.ownerFirstName),
+    ownerLastName: toStr(item.ownerLastName),
     startDate: toStr(item.startDate),
     endDate: toStr(item.endDate),
     totalPrice: toFiniteNumber(item.totalPrice),
     status: coerceBookingStatus(item.status),
     createdAt: toNullableStr(item.createdAt),
   };
-}
-
-function coerceParty(value: unknown): BookingParty | null {
-  return value === 'Renter' || value === 'Owner' ? value : null;
-}
-
-function coerceCompletionMethod(value: unknown): CompletionMethod | null {
-  return value === 'Mutual' || value === 'Auto' ? value : null;
 }
 
 function toNullableNumber(value: unknown): number | null {
@@ -106,12 +99,10 @@ function normalizeBookingDetail(item: Partial<BookingDetail> & { id: string }): 
     endDate: toStr(item.endDate),
     createdAt: toNullableStr(item.createdAt),
     approvedAt: toNullableStr(item.approvedAt),
-    returnMarkedAt: toNullableStr(item.returnMarkedAt),
+    activeAt: toNullableStr(item.activeAt),
     completedAt: toNullableStr(item.completedAt),
     expiresAt: toNullableStr(item.expiresAt),
     rejectionReason: toNullableStr(item.rejectionReason),
-    returnInitiatedBy: coerceParty(item.returnInitiatedBy),
-    completedVia: coerceCompletionMethod(item.completedVia),
     counterpartyId: toStr(item.counterpartyId),
     counterpartyFirstName: toStr(item.counterpartyFirstName),
     counterpartyLastName: toStr(item.counterpartyLastName),
@@ -201,21 +192,21 @@ export class BookingsApiService {
       .pipe(map((detail) => normalizeBookingDetail(detail)));
   }
 
-  markReturned(bookingId: string): Observable<BookingDetail> {
+  cancelBooking(bookingId: string): Observable<MyBooking> {
     return this.http
-      .post<BookingDetail>(toApiUrl(ApiContract.bookings.returnMark(bookingId)), {})
+      .post<MyBooking>(toApiUrl(ApiContract.bookings.cancel(bookingId)), {})
+      .pipe(map((item) => normalizeMyBooking(item as Partial<MyBooking> & { id: string })));
+  }
+
+  markActive(bookingId: string): Observable<BookingDetail> {
+    return this.http
+      .post<BookingDetail>(toApiUrl(ApiContract.bookings.activate(bookingId)), {})
       .pipe(map((detail) => normalizeBookingDetail(detail)));
   }
 
-  confirmReturn(bookingId: string): Observable<BookingDetail> {
+  complete(bookingId: string): Observable<BookingDetail> {
     return this.http
-      .post<BookingDetail>(toApiUrl(ApiContract.bookings.returnConfirm(bookingId)), {})
-      .pipe(map((detail) => normalizeBookingDetail(detail)));
-  }
-
-  undoReturn(bookingId: string): Observable<BookingDetail> {
-    return this.http
-      .post<BookingDetail>(toApiUrl(ApiContract.bookings.returnUndo(bookingId)), {})
+      .post<BookingDetail>(toApiUrl(ApiContract.bookings.complete(bookingId)), {})
       .pipe(map((detail) => normalizeBookingDetail(detail)));
   }
 }

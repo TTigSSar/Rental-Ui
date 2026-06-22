@@ -144,15 +144,15 @@ export class BookingsEffects {
     ),
   );
 
-  readonly markReturned$ = createEffect(() =>
+  readonly markActive$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(BookingsActions.markReturned),
+      ofType(BookingsActions.markActive),
       concatMap(({ bookingId }) =>
-        this.bookingsApi.markReturned(bookingId).pipe(
-          map((detail) => BookingsActions.bookingHandshakeSuccess({ detail })),
+        this.bookingsApi.markActive(bookingId).pipe(
+          map((detail) => BookingsActions.bookingActionSuccess({ detail })),
           catchError((error: unknown) =>
             of(
-              BookingsActions.bookingHandshakeFailure({
+              BookingsActions.bookingActionFailure({
                 bookingId,
                 error: toErrorMessage(error),
               }),
@@ -163,15 +163,15 @@ export class BookingsEffects {
     ),
   );
 
-  readonly confirmReturn$ = createEffect(() =>
+  readonly completeBooking$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(BookingsActions.confirmReturn),
+      ofType(BookingsActions.completeBooking),
       concatMap(({ bookingId }) =>
-        this.bookingsApi.confirmReturn(bookingId).pipe(
-          map((detail) => BookingsActions.bookingHandshakeSuccess({ detail })),
+        this.bookingsApi.complete(bookingId).pipe(
+          map((detail) => BookingsActions.bookingActionSuccess({ detail })),
           catchError((error: unknown) =>
             of(
-              BookingsActions.bookingHandshakeFailure({
+              BookingsActions.bookingActionFailure({
                 bookingId,
                 error: toErrorMessage(error),
               }),
@@ -182,30 +182,36 @@ export class BookingsEffects {
     ),
   );
 
-  readonly undoReturn$ = createEffect(() =>
+  // A failed action reloads authoritative state from the server.
+  readonly reloadAfterActionFailure$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(BookingsActions.undoReturn),
-      concatMap(({ bookingId }) =>
-        this.bookingsApi.undoReturn(bookingId).pipe(
-          map((detail) => BookingsActions.bookingHandshakeSuccess({ detail })),
-          catchError((error: unknown) =>
-            of(
-              BookingsActions.bookingHandshakeFailure({
-                bookingId,
-                error: toErrorMessage(error),
-              }),
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
-
-  // A failed handshake reverts the optimistic patch by reloading authoritative state.
-  readonly reloadAfterHandshakeFailure$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(BookingsActions.bookingHandshakeFailure),
+      ofType(BookingsActions.bookingActionFailure),
       map(({ bookingId }) => BookingsActions.loadBookingDetail({ bookingId })),
+    ),
+  );
+
+  readonly cancelBooking$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BookingsActions.cancelBooking),
+      concatMap(({ bookingId }) =>
+        this.bookingsApi.cancelBooking(bookingId).pipe(
+          map(() => BookingsActions.cancelBookingSuccess({ bookingId })),
+          catchError((error: unknown) =>
+            of(
+              BookingsActions.cancelBookingFailure({
+                error: toErrorMessage(error),
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  readonly refreshAfterCancelBooking$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BookingsActions.cancelBookingSuccess),
+      map(() => BookingsActions.loadMyBookings()),
     ),
   );
 }

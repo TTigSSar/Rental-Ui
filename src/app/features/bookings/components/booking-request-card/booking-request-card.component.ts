@@ -12,30 +12,14 @@ import {
 import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
-import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
-import { BookingProgressComponent } from '../../../../shared/ui/booking-progress/booking-progress.component';
-import {
-  mapBookingStatusLabelKey,
-  mapBookingStatusTone,
-} from '../../../../shared/utils/booking-status.utils';
 
 import type { BookingRequest } from '../../models/booking.model';
 
 @Component({
   selector: 'app-booking-request-card',
   standalone: true,
-  imports: [
-    ButtonModule,
-    CardModule,
-    DialogModule,
-    CurrencyPipe,
-    DatePipe,
-    BadgeComponent,
-    BookingProgressComponent,
-    TranslatePipe,
-  ],
+  imports: [ButtonModule, DialogModule, CurrencyPipe, DatePipe, TranslatePipe],
   templateUrl: './booking-request-card.component.html',
   styleUrl: './booking-request-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -49,28 +33,37 @@ export class BookingRequestCardComponent {
   @Output() readonly approved = new EventEmitter<string>();
   @Output() readonly rejected = new EventEmitter<{ bookingId: string; reason: string | null }>();
 
-  // Predefined rejection reason codes (the last one, 'other', reveals a free-text note).
   protected readonly reasonCodes = ['dates_unavailable', 'item_unavailable', 'not_a_fit', 'other'] as const;
 
   protected readonly rejectDialogVisible = signal(false);
   protected readonly selectedReason = signal<string>('dates_unavailable');
   protected readonly otherText = signal('');
 
-  protected readonly statusLabelKey = computed(() =>
-    mapBookingStatusLabelKey(this.request().status),
-  );
-
-  protected readonly statusTone = computed(() =>
-    mapBookingStatusTone(this.request().status),
-  );
-
   protected readonly canDecide = computed(
     () => this.request().status === 'PendingApproval' || this.request().status === 'Pending',
   );
 
-  protected openDetails(): void {
-    void this.router.navigate(['/bookings', this.request().id]);
-  }
+  protected readonly initials = computed(() => {
+    const r = this.request();
+    return ((r.renterFirstName[0] ?? '') + (r.renterLastName[0] ?? '')).toUpperCase();
+  });
+
+  protected readonly renterShortName = computed(() => {
+    const r = this.request();
+    const lastInitial = r.renterLastName[0]?.toUpperCase() ?? '';
+    return `${r.renterFirstName} ${lastInitial}.`;
+  });
+
+  protected readonly timeAgo = computed((): string => {
+    const created = this.request().createdAt;
+    if (!created) return '';
+    const diffMs = Date.now() - new Date(created).getTime();
+    const diffMin = Math.floor(diffMs / 60_000);
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffH = Math.floor(diffMin / 60);
+    if (diffH < 24) return `${diffH}h ago`;
+    return `${Math.floor(diffH / 24)}d ago`;
+  });
 
   protected approve(event: Event): void {
     event.stopPropagation();
@@ -101,5 +94,9 @@ export class BookingRequestCardComponent {
 
   protected onOtherInput(event: Event): void {
     this.otherText.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  protected openDetails(): void {
+    void this.router.navigate(['/bookings', this.request().id]);
   }
 }

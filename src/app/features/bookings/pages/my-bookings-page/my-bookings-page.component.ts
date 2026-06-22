@@ -1,5 +1,6 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
@@ -16,6 +17,18 @@ import {
   selectMyBookingsError,
   selectMyBookingsLoading,
 } from '../../store/bookings.selectors';
+
+type BookingTab = 'active' | 'upcoming' | 'past';
+
+const ACTIVE_STATUSES = new Set(['Active', 'ReturnMarked']);
+const UPCOMING_STATUSES = new Set(['Approved', 'PendingApproval', 'Pending']);
+const PAST_STATUSES = new Set(['Completed', 'Rejected', 'Cancelled', 'Expired', 'Archived']);
+
+function tabFor(status: string): BookingTab {
+  if (ACTIVE_STATUSES.has(status)) return 'active';
+  if (UPCOMING_STATUSES.has(status)) return 'upcoming';
+  return 'past';
+}
 
 interface MyBookingsPageViewModel {
   readonly bookings: MyBooking[];
@@ -63,10 +76,35 @@ const selectMyBookingsPageViewModel = createSelector(
 export class MyBookingsPageComponent implements OnInit {
   private readonly store = inject(Store);
 
-  protected readonly viewModel$ = this.store.select(selectMyBookingsPageViewModel);
+  protected readonly vm = toSignal(
+    this.store.select(selectMyBookingsPageViewModel),
+    { requireSync: true },
+  );
+
+  protected readonly activeTab = signal<BookingTab>('active');
+
+  protected readonly tabCounts = computed(() => {
+    const all = this.vm().bookings;
+    return {
+      active: all.filter(b => ACTIVE_STATUSES.has(b.status)).length,
+      upcoming: all.filter(b => UPCOMING_STATUSES.has(b.status)).length,
+      past: all.filter(b => PAST_STATUSES.has(b.status)).length,
+    };
+  });
+
+  protected readonly filteredBookings = computed(() => {
+    const tab = this.activeTab();
+    return this.vm().bookings.filter(b => tabFor(b.status) === tab);
+  });
+
+  protected readonly TABS: ReadonlyArray<BookingTab> = ['active', 'upcoming', 'past'];
 
   ngOnInit(): void {
     this.store.dispatch(BookingsActions.loadMyBookings());
+  }
+
+  protected setTab(tab: BookingTab): void {
+    this.activeTab.set(tab);
   }
 
   protected retry(): void {

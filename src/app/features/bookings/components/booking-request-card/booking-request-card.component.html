@@ -1,79 +1,55 @@
-<div
-  class="booking-request-card-link"
-  role="link"
-  tabindex="0"
-  [attr.aria-label]="request().listingTitle"
-  (click)="openDetails()"
-  (keydown.enter)="openDetails()"
-  (keydown.space)="openDetails(); $event.preventDefault()"
->
-  <p-card styleClass="booking-request-card">
-    <div class="booking-request-card__top">
-      <h3 class="booking-request-card__title">{{ request().listingTitle }}</h3>
-      <app-ui-badge [label]="statusLabelKey() | translate" [tone]="statusTone()" />
+<div class="brc" (click)="openDetails()">
+
+  <!-- Renter avatar column -->
+  <div class="brc__renter">
+    <div class="brc__avatar">{{ initials() }}</div>
+    <span class="brc__renter-name">{{ renterShortName() }}</span>
+  </div>
+
+  <!-- Main content -->
+  <div class="brc__body">
+    <div class="brc__header">
+      <h3 class="brc__title">{{ request().listingTitle }}</h3>
+      <span class="brc__time">{{ timeAgo() }}</span>
     </div>
-
-    <p class="booking-request-card__line">
-      {{ 'bookings.requests.renter' | translate }}:
-      {{ request().renterFirstName }} {{ request().renterLastName }}
-    </p>
-    <p class="booking-request-card__renter-email">{{ request().renterEmail }}</p>
-    <p class="booking-request-card__line">
-      {{ 'bookings.requests.dateRange' | translate }}:
-      {{ request().startDate | date: 'mediumDate' }} -
-      {{ request().endDate | date: 'mediumDate' }}
-    </p>
-    <p class="booking-request-card__line">
-      {{
-        'bookings.requests.totalPrice'
-          | translate
-            : {
-                amount: (request().totalPrice | currency),
-              }
-      }}
+    <p class="brc__meta">
+      <i class="pi pi-calendar"></i>
+      {{ request().startDate | date: 'MMM d' }} – {{ request().endDate | date: 'MMM d' }}
+      &middot;
+      {{ request().totalPrice | currency: 'USD' : 'symbol' : '1.0-0' }}
     </p>
 
-    <app-booking-progress
-      class="booking-request-card__progress"
-      [status]="request().status"
-      [startDate]="request().startDate"
-      density="compact"
-    />
-
-    <ng-template pTemplate="footer">
-      <div class="booking-request-card__actions">
-        @if (canDecide()) {
-          <p-button
-            type="button"
-            size="small"
-            severity="success"
-            icon="pi pi-check"
-            [label]="'bookings.actions.approve' | translate"
-            [loading]="actionLoading()"
-            [disabled]="actionLoading()"
-            (onClick)="approve($event)"
-          />
-          <p-button
-            type="button"
-            size="small"
-            severity="danger"
-            [outlined]="true"
-            icon="pi pi-times"
-            [label]="'bookings.actions.reject' | translate"
-            [loading]="actionLoading()"
-            [disabled]="actionLoading()"
-            (onClick)="openRejectDialog($event)"
-          />
-        } @else {
-          <span class="booking-request-card__hint">{{
-            'bookings.actions.viewDetails' | translate
-          }}</span>
-        }
+    @if (canDecide()) {
+      <div class="brc__actions" (click)="$event.stopPropagation()">
+        <button type="button" class="brc__btn brc__btn--message" disabled>
+          {{ 'bookings.actions.message' | translate }}
+        </button>
+        <button
+          type="button"
+          class="brc__btn brc__btn--decline"
+          [disabled]="actionLoading()"
+          (click)="openRejectDialog($event)"
+        >
+          {{ 'bookings.actions.reject' | translate }}
+        </button>
+        <button
+          type="button"
+          class="brc__btn brc__btn--approve"
+          [disabled]="actionLoading()"
+          (click)="approve($event)"
+        >
+          <i class="pi pi-check"></i>
+          {{ 'bookings.actions.approve' | translate }}
+        </button>
       </div>
-    </ng-template>
-  </p-card>
+    } @else {
+      <p class="brc__hint">{{ 'bookings.actions.viewDetails' | translate }}</p>
+    }
+  </div>
+
 </div>
 
+<!-- Reject dialog (unchanged) -->
 <p-dialog
   [header]="'bookings.reject.title' | translate"
   [visible]="rejectDialogVisible()"

@@ -35,4 +35,25 @@ export class PublicProfilesEffects {
       ),
     ),
   );
+
+  readonly loadUserListings$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(PublicProfilesActions.loadUserListings),
+      mergeMap(({ userId }) =>
+        this.api.getUserListings(userId).pipe(
+          map((listings) =>
+            PublicProfilesActions.loadUserListingsSuccess({ userId, listings }),
+          ),
+          catchError((error: unknown) =>
+            of(
+              PublicProfilesActions.loadUserListingsFailure({
+                userId,
+                error: toErrorMessage(error),
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }

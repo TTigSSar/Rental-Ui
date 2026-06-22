@@ -18,6 +18,10 @@ export interface BookingsState {
   // Completion handshake action (mark / confirm / undo) in flight.
   bookingActionPending: boolean;
   bookingActionError: string | null;
+  // Cancel booking (renter cancels before owner confirms).
+  cancelBookingPending: boolean;
+  cancelBookingError: string | null;
+  cancelBookingSuccessId: string | null;
 }
 
 export const initialBookingsState: BookingsState = {
@@ -36,4 +40,7 @@ export const initialBookingsState: BookingsState = {
   bookingDetailError: null,
   bookingActionPending: false,
   bookingActionError: null,
+  cancelBookingPending: false,
+  cancelBookingError: null,
+  cancelBookingSuccessId: null,
 };

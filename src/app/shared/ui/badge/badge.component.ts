@@ -5,7 +5,7 @@ export type BadgeTone = 'pending' | 'approved' | 'rejected' | 'neutral' | 'booke
 @Component({
   selector: 'app-ui-badge',
   standalone: true,
-  template: `<span class="ui-badge" [class]="'ui-badge ui-badge--' + tone()">{{ label() }}</span>`,
+  template: `<span class="ui-badge" [class]="'ui-badge ui-badge--' + tone()"><span class="ui-badge__dot" aria-hidden="true"></span>{{ label() }}</span>`,
   styleUrl: './badge.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

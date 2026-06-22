@@ -256,6 +256,8 @@
       "toggleFavorite": "Նշել որպես ընտրյալ",
       "trustAria": "Խաղալիքի վստահության մանրամասներ",
       "hygieneProvided": "Հիգիենա",
+      "statusAvailable": "Հասանելի",
+      "statusRented": "Վարձված",
       "bookingBadge": {
         "rentalRequested": "Հայտ ուղարկված",
         "approved": "Հաստատված",
@@ -589,6 +591,7 @@
       "empty": "Հաշվի տվյալները հասանելի չեն։"
     },
     "edit": "Խմբագրել",
+    "viewPublicProfile": "Դիտել հանրային էջը",
     "infoLabel": {
       "name": "Անուն",
       "phone": "Հեռախոս",
@@ -597,7 +600,10 @@
     "nav": {
       "myToys": "Իմ խաղալիքները",
       "myRentals": "Իմ վարձույթները",
-      "favorites": "Ընտրյալներ",
+      "incomingRequests": "Մուտքային հայտեր",
+      "favorites": "Պահված խաղալիքներ",
+      "earningsPayouts": "Եկամուտ և վճարումներ",
+      "verificationId": "Հաստատում և ID",
       "language": "Լեզու",
       "notifications": "Ծանուցումներ",
       "helpCenter": "Օգնություն",
@@ -642,6 +648,11 @@
       "heading": "Ստացված կարծիքներ",
       "empty": "Կարծիքներ դեռ չկան",
       "error": "Չհաջողվեց բեռնել կարծիքները"
+    },
+    "stats": {
+      "listings": "Ապրանքներ",
+      "rentals": "Վարձույթներ",
+      "reviews": "Կարծիքներ"
     }
   },
   "myListings": {
@@ -656,7 +667,8 @@
       "noImage": "Պատկեր չկա",
       "city": "Քաղաք",
       "pricePerDay": "{{amount}} օրական",
-      "createdAt": "Ստեղծվել է"
+      "createdAt": "Ստեղծվել է",
+      "day": "օր"
     },
     "status": {
       "pendingApproval": "Սպասում է հաստատման",
@@ -757,7 +769,9 @@
       "approve": "Հաստատել",
       "reject": "Մերժել",
       "leaveReview": "Գնահատել խաղալիքն ու սեփականատիրոջը",
-      "viewDetails": "Մանրամասներ"
+      "viewDetails": "Մանրամասներ",
+      "manage": "Կառավարել",
+      "message": "Հաղորդագրություն"
     },
     "common": {
       "createdAt": "Ստեղծվել է",
@@ -771,7 +785,13 @@
       "empty": "Խաղալիք վարձակալելուց հետո ձեր ամրագրումները կհայտնվեն այստեղ։",
       "emptyCta": "Դիտել խաղալիքները",
       "dateRange": "Ամսաթվերի միջակայք",
-      "totalPrice": "Ընդամենը՝ {{amount}}"
+      "totalPrice": "Ընդամենը՝ {{amount}}",
+      "tab": {
+        "active": "Ակտիվ",
+        "upcoming": "Առաջիկա",
+        "past": "Անցած"
+      },
+      "tabEmpty": "Այս կատեգորիայում ամրագրումներ չկան:"
     },
     "requests": {
       "title": "Վարձակալման հարցումներ",
@@ -781,7 +801,13 @@
       "empty": "Երբ ծնողը հարցում ուղարկի ձեր խաղալիքի համար, այն կհայտնվի այստեղ։",
       "renter": "Վարձակալ",
       "dateRange": "Ամսաթվերի միջակայք",
-      "totalPrice": "Ընդամենը՝ {{amount}}"
+      "totalPrice": "Ընդամենը՝ {{amount}}",
+      "tab": {
+        "pending": "Սպասման մեջ",
+        "accepted": "Ընդունված",
+        "declined": "Մերժված"
+      },
+      "tabEmpty": "Այս կատեգորիայում հայտեր չկան:"
     },
     "review": {
       "available": "Հասանելի է գնահատական",
@@ -1051,7 +1077,8 @@
       "backToBookings": "Դեպի իմ վարձույթները"
     },
     "card": {
-      "rentedDays": "Վարձակալվել է {{count}} օր"
+      "rentedDays": "Վարձակալվել է {{count}} օր",
+      "rented": "Վարձ."
     },
     "summary": {
       "noReviews": "Կարծիքներ դեռ չկան",
@@ -1072,16 +1099,87 @@
     }
   },
   "publicProfile": {
-    "title": "Սեփականատիրոջ պրոֆիլ",
+    "title": "Պրոֆիլ",
     "backAriaLabel": "Վերադառնալ",
     "memberSince": "Անդամ {{year}} թ.-ից",
+    "since": "Անդամ",
     "activeListings": "{{count}} ակտիվ խաղալիք(ներ)",
-    "ratingHeading": "Գնահատական",
-    "reviewsHeading": "Կարծիքներ",
+    "overallTrust": "Ընդհանուր վստահություն",
+    "reviews": "կարծիք",
+    "verifiedUser": "Հաստատված օգտատեր",
+    "idConfirmed": "ID հաստատված",
+    "emailPhone": "Էլ. փոստ & հեռ.",
+    "verifiedBadgeAria": "Հաստատված օգտատեր",
+    "viewAllToys": "Տեսնել բոլոր խաղալիքները",
+    "viewAllToysAria": "Տեսնել բոլոր խաղալիքները",
+    "asOwner": "Որպես սեփ. տեր",
+    "asRenter": "Որպես վարձակալ",
+    "rentingFrom": "Վարձել {{name}}-ից",
+    "lendingTo": "Փոխառել {{name}}-ին",
+    "trustOwner": "Կարո՞ղ եմ վստահել այս անձին",
+    "trustRenter": "Կարո՞ղ եմ վստահել իմ խաղալիքները",
+    "ownerRating": "Սեփ. տիրոջ գնահատական",
+    "renterRating": "Վարձակալի գնահատական",
+    "ratingBasedOn": "Հիմնված {{count}} կարծիքի վրա։",
+    "completedRentals": "Ավարտված վարձույթ",
+    "responseRate": "Արձ. կայ. տոկոս",
+    "hygieneScore": "Հիգ. գնահատական",
+    "onTimeReturn": "Ժամկ. վերադարձ",
+    "damageClaims": "Վնասի հայցեր",
+    "hygieneTitle": "Հիգիենա և անվտանգություն",
+    "reliabilityTitle": "Հուսալիության ամփոփում",
+    "reviewsFromRenters": "Վարձ. կարծիքները",
+    "reviewsFromOwners": "Սեփ. տերերի կարծ.",
+    "seeAll": "Տեսնել բոլոր {{count}}",
     "reviewsEmpty": "Կարծիքներ դեռ չկան",
     "reviewsError": "Չհաջողվեց բեռնել կարծիքները",
+    "postedItems": "Հրապ. ապրանքներ",
+    "viewAll": "Տեսնել բոլոր",
+    "viewAllCount": "Տեսնել բոլոր {{count}} ապրանքը",
+    "noListings": "Խաղ. դեռ չկան։",
+    "ratingHeading": "Գնահատական",
+    "reviewsHeading": "Կարծիքներ",
     "errorTitle": "Չհաջողվեց բեռնել պրոֆիլը",
     "notFound": "Այս պրոֆիլը հասանելի չէ։"
+  },
+  "userListings": {
+    "pageTitle": "{{name}}-ի խաղ.",
+    "listings": "ցուցակ",
+    "ownerRating": "սեփ. գնահ.",
+    "filterAria": "Զտել ցուցակները",
+    "filterAll": "Բոլոր",
+    "filterAvailable": "Հասանելի",
+    "filterRented": "Վարձված",
+    "toys": "խաղ.",
+    "sortNewest": "Վերջիններ",
+    "errorMessage": "Չհաջողվեց բեռնել ցուցակները։",
+    "emptyMessage": "Այս կատ.-ում ոչինչ չկա։"
+  },
+  "allReviews": {
+    "backToProfile": "Վերադառնալ պրոֆիլ",
+    "subtitleOwner": "Ինչ են ասում վարձակողները {{name}}-ի մասին",
+    "subtitleRenter": "Ինչ են ասում սեփականատերերն {{name}}-ին վարձ տալուց հետո",
+    "tabOwner": "Որպես սեփականատեր",
+    "tabRenter": "Որպես վարձակող",
+    "oneReview": "կարծիք",
+    "reviews": "կարծիք",
+    "showingCount": "{{count}} կարծիք",
+    "sortRecent": "Ամենաթարմ",
+    "sortHighest": "Ամենաբարձր",
+    "breakdown": "Վարկանիշի մանրամասն",
+    "breakdownCommunication": "Հաղ-ություն",
+    "breakdownPickup": "Ստացում/հանձն.",
+    "breakdownFriendliness": "Բարեկամ-ություն",
+    "breakdownReturnedOnTime": "Ժամ-ին վերադ.",
+    "breakdownCareOfToy": "Խաղ. խնամք",
+    "noOwnerReviews": "{{name}}-ն դեռ չի ստացել կարծիքներ որպես սեփականատեր։",
+    "noRenterReviews": "{{name}}-ն դեռ չի ստացել կարծիքներ որպես վարձակող։",
+    "noReviewsYet": "Կարծիքներ դեռ չկան",
+    "distributionAria": "Վարկ. բաշխում",
+    "reviewsAria": "Կարծիքների ցանկ",
+    "sortAria": "Դասավ. ըստ",
+    "errorTitle": "Չհաջողվեց բեռնել կարծիքները",
+    "retry": "Կրկին փորձել"
   },
   "info": {
     "about": {

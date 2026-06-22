@@ -196,49 +196,33 @@ export const bookingsReducer = createReducer(
     }),
   ),
 
-  // --- Completion handshake (optimistic) ---
+  // --- Booking status transitions (optimistic) ---
   on(
-    BookingsActions.markReturned,
+    BookingsActions.markActive,
     (state): BookingsState => ({
       ...state,
       bookingActionPending: true,
       bookingActionError: null,
       bookingDetail: optimisticDetail(state.bookingDetail, {
-        status: 'ReturnMarked',
-        returnInitiatedBy:
-          state.bookingDetail?.role === 'owner' ? 'Owner' : 'Renter',
-        returnMarkedAt: new Date().toISOString(),
+        status: 'Active',
+        activeAt: new Date().toISOString(),
       }),
     }),
   ),
   on(
-    BookingsActions.confirmReturn,
+    BookingsActions.completeBooking,
     (state): BookingsState => ({
       ...state,
       bookingActionPending: true,
       bookingActionError: null,
       bookingDetail: optimisticDetail(state.bookingDetail, {
         status: 'Completed',
-        completedVia: 'Mutual',
         completedAt: new Date().toISOString(),
       }),
     }),
   ),
   on(
-    BookingsActions.undoReturn,
-    (state): BookingsState => ({
-      ...state,
-      bookingActionPending: true,
-      bookingActionError: null,
-      bookingDetail: optimisticDetail(state.bookingDetail, {
-        status: 'Approved',
-        returnInitiatedBy: null,
-        returnMarkedAt: null,
-      }),
-    }),
-  ),
-  on(
-    BookingsActions.bookingHandshakeSuccess,
+    BookingsActions.bookingActionSuccess,
     (state, { detail }): BookingsState => ({
       ...state,
       bookingDetail: detail,
@@ -247,11 +231,51 @@ export const bookingsReducer = createReducer(
     }),
   ),
   on(
-    BookingsActions.bookingHandshakeFailure,
+    BookingsActions.bookingActionFailure,
     (state, { error }): BookingsState => ({
       ...state,
       bookingActionPending: false,
       bookingActionError: error,
+    }),
+  ),
+
+  // --- Cancel booking (renter) ---
+  on(
+    BookingsActions.cancelBooking,
+    (state): BookingsState => ({
+      ...state,
+      cancelBookingPending: true,
+      cancelBookingError: null,
+      cancelBookingSuccessId: null,
+    }),
+  ),
+  on(
+    BookingsActions.cancelBookingSuccess,
+    (state, { bookingId }): BookingsState => ({
+      ...state,
+      cancelBookingPending: false,
+      cancelBookingError: null,
+      cancelBookingSuccessId: bookingId,
+      myBookings: state.myBookings.map((b) =>
+        b.id === bookingId ? { ...b, status: 'Cancelled' } : b,
+      ),
+    }),
+  ),
+  on(
+    BookingsActions.cancelBookingFailure,
+    (state, { error }): BookingsState => ({
+      ...state,
+      cancelBookingPending: false,
+      cancelBookingError: error,
+    }),
+  ),
+  on(
+    BookingsActions.clearCancelBookingState,
+    (state): BookingsState => ({
+      ...state,
+      cancelBookingPending: false,
+      cancelBookingError: null,
+      cancelBookingSuccessId: null,
     }),
   ),
 );

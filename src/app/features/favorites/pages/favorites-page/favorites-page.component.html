@@ -2,6 +2,7 @@
   <app-ui-page-header
     [title]="'favorites.page.title' | translate"
     [subtitle]="'favorites.page.subtitle' | translate"
+    backLink="/profile"
   />
 
   @if (viewModel$ | async; as vm) {

@@ -1,5 +1,5 @@
 <div
-  class="my-booking-card-link"
+  class="mbc"
   role="link"
   tabindex="0"
   [attr.aria-label]="booking().listingTitle"
@@ -7,51 +7,55 @@
   (keydown.enter)="openDetails()"
   (keydown.space)="openDetails(); $event.preventDefault()"
 >
-  <p-card styleClass="my-booking-card">
-    <div class="my-booking-card__header">
-      @if (booking().listingPrimaryImageUrl; as imageUrl) {
-        <img class="my-booking-card__thumb" [src]="imageUrl" [alt]="booking().listingTitle" />
-      } @else {
-        <div class="my-booking-card__thumb my-booking-card__thumb--placeholder">
-          <i class="pi pi-image"></i>
-        </div>
-      }
-      <div class="my-booking-card__top">
-        <h3 class="my-booking-card__title">{{ booking().listingTitle }}</h3>
-        <app-ui-badge [label]="statusLabelKey() | translate" [tone]="statusTone()" />
-      </div>
-    </div>
-
-    @if (reviewAvailable()) {
-      <app-ui-badge
-        class="my-booking-card__review-badge"
-        [label]="'bookings.review.available' | translate"
-        tone="completed"
-      />
-    }
-
-    <p class="my-booking-card__line">
-      {{ 'bookings.myBookings.dateRange' | translate }}:
-      {{ booking().startDate | date: 'mediumDate' }} -
-      {{ booking().endDate | date: 'mediumDate' }}
-    </p>
-    <p class="my-booking-card__line">
-      {{
-        'bookings.myBookings.totalPrice'
-          | translate
-            : {
-                amount: (booking().totalPrice | currency),
-              }
-      }}
-    </p>
-
-    <app-booking-progress
-      class="my-booking-card__progress"
-      [status]="booking().status"
-      [startDate]="booking().startDate"
-      density="compact"
+  <!-- Thumbnail -->
+  @if (booking().listingPrimaryImageUrl && !imgFailed()) {
+    <img
+      class="mbc__img"
+      [src]="booking().listingPrimaryImageUrl"
+      [alt]="booking().listingTitle"
+      (error)="imgFailed.set(true)"
     />
+  } @else {
+    <div class="mbc__img mbc__img--placeholder">
+      <i class="pi pi-image"></i>
+    </div>
+  }
 
-    <p class="my-booking-card__hint">{{ 'bookings.actions.viewDetails' | translate }}</p>
-  </p-card>
+  <!-- Content -->
+  <div class="mbc__body">
+    <div class="mbc__title-row">
+      <h3 class="mbc__title">{{ booking().listingTitle }}</h3>
+      <app-booking-status-badge [status]="booking().status" />
+    </div>
+    <p class="mbc__dates">
+      <i class="pi pi-calendar"></i>
+      {{ booking().startDate | date: 'MMM d' }} – {{ booking().endDate | date: 'MMM d' }}
+    </p>
+    @if (ownerShortName(); as name) {
+      <p class="mbc__owner">
+        <i class="pi pi-user"></i>
+        {{ name }}
+      </p>
+    }
+  </div>
+
+  <!-- Pricing + urgency -->
+  <div class="mbc__pricing">
+    <span class="mbc__price">{{ booking().totalPrice | currency: 'USD' : 'symbol' : '1.0-0' }}</span>
+    @if (urgency(); as u) {
+      <span class="mbc__urgency" [class.mbc__urgency--danger]="u.level === 'danger'">
+        {{ u.text }}
+      </span>
+    }
+  </div>
+
+  <!-- Actions (stop propagation so card click doesn't fire) -->
+  <div class="mbc__actions" (click)="$event.stopPropagation()">
+    <button type="button" class="mbc__btn-manage" (click)="openDetails()">
+      {{ 'bookings.actions.manage' | translate }}
+    </button>
+    <button type="button" class="mbc__btn-message" disabled>
+      {{ 'bookings.actions.message' | translate }}
+    </button>
+  </div>
 </div>

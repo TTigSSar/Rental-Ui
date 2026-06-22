@@ -1,108 +1,55 @@
-<p-card styleClass="my-listing-card">
-  <ng-template pTemplate="header">
-    <app-ui-image-container class="my-listing-card__media" aspectRatio="16 / 10">
-      @if (listing().imageUrl; as imageUrl) {
-        <img
-          class="my-listing-card__image"
-          [src]="imageUrl"
-          [alt]="listing().title"
-          width="360"
-          height="220"
-          loading="lazy"
-        />
-      } @else {
-        <div class="my-listing-card__placeholder">
-          {{ 'myListings.card.noImage' | translate }}
-        </div>
-      }
-    </app-ui-image-container>
-  </ng-template>
+<div class="mlc">
+  <!-- Thumbnail -->
+  @if (listing().imageUrl; as url) {
+    <img class="mlc__img" [src]="url" [alt]="listing().title" loading="lazy" />
+  } @else {
+    <div class="mlc__img mlc__img--placeholder">
+      <i class="pi pi-gift"></i>
+    </div>
+  }
 
-  <div class="my-listing-card__content">
-    <div class="my-listing-card__top">
-      <h3 class="my-listing-card__title">{{ listing().title }}</h3>
+  <!-- Content -->
+  <div class="mlc__body">
+    <div class="mlc__title-row">
+      <h3 class="mlc__title">{{ listing().title }}</h3>
       <app-ui-badge [label]="statusLabelKey() | translate" [tone]="statusTone()" />
     </div>
-
-    <p class="my-listing-card__meta">
-      {{ 'myListings.card.city' | translate }}: {{ listing().city }}
-    </p>
-    <p class="my-listing-card__meta">
-      {{
-        'myListings.card.pricePerDay'
-          | translate
-            : {
-                amount: (listing().pricePerDay | currency),
-              }
-      }}
-    </p>
-    <p class="my-listing-card__meta">
-      {{ 'myListings.card.createdAt' | translate }}:
-      @if (listing().createdAt; as createdAt) {
-        {{ createdAt | date: 'mediumDate' }}
-      } @else {
-        {{ 'myListings.common.notAvailable' | translate }}
-      }
+    <p class="mlc__meta">
+      <i class="pi pi-map-marker"></i>
+      {{ listing().city }}
+      &middot;
+      {{ listing().pricePerDay | currency: 'USD' : 'symbol' : '1.0-0' }}/{{ 'myListings.card.day' | translate }}
     </p>
 
     @if (listing().status === 'PendingApproval' || listing().status === 'Pending') {
-      <app-ui-status-note tone="warning" icon="pi pi-clock">
+      <p class="mlc__status-note mlc__status-note--warning">
+        <i class="pi pi-clock"></i>
         {{ 'myListings.statusNote.pending' | translate }}
-      </app-ui-status-note>
+      </p>
     } @else if (listing().status === 'Rejected') {
-      <app-ui-status-note tone="danger" icon="pi pi-times-circle">
+      <p class="mlc__status-note mlc__status-note--danger">
+        <i class="pi pi-times-circle"></i>
         {{ 'myListings.statusNote.rejected' | translate }}
-      </app-ui-status-note>
-    } @else if (listing().status === 'Approved') {
-      <app-ui-status-note tone="success" icon="pi pi-check-circle">
-        {{ 'myListings.statusNote.approved' | translate }}
-      </app-ui-status-note>
-    } @else if (listing().status === 'Archived') {
-      <app-ui-status-note tone="neutral" icon="pi pi-eye-slash">
-        {{ 'myListings.statusNote.archived' | translate }}
-      </app-ui-status-note>
+      </p>
     }
   </div>
 
-  <ng-template pTemplate="footer">
-    <div class="my-listing-card__actions">
-      <p-button
-        type="button"
-        size="small"
-        [outlined]="true"
-        icon="pi pi-eye"
-        [label]="'myListings.actions.view' | translate"
-        [routerLink]="['/listings', listing().id]"
-      />
-      @if (listing().status !== 'Archived') {
-        <p-button
-          type="button"
-          size="small"
-          [outlined]="true"
-          icon="pi pi-pencil"
-          [label]="'myListings.actions.edit' | translate"
-          (onClick)="requestEdit()"
-        />
-        <p-button
-          type="button"
-          size="small"
-          severity="secondary"
-          [text]="true"
-          icon="pi pi-box"
-          [label]="'myListings.actions.archive' | translate"
-          (onClick)="requestArchive()"
-        />
-      } @else {
-        <p-button
-          type="button"
-          size="small"
-          severity="secondary"
-          [text]="true"
-          icon="pi pi-refresh"
-          [label]="'myListings.actions.restore' | translate"
-          (onClick)="requestRestore()"
-        />
-      }
-    </div>
-  </ng-template>
-</p-card>
+  <!-- Actions -->
+  <div class="mlc__actions" (click)="$event.stopPropagation()">
+    <a class="mlc__btn mlc__btn--outline" [routerLink]="['/listings', listing().id]">
+      {{ 'myListings.actions.view' | translate }}
+    </a>
+    @if (listing().status !== 'Archived') {
+      <button type="button" class="mlc__btn mlc__btn--outline" (click)="requestEdit()">
+        {{ 'myListings.actions.edit' | translate }}
+      </button>
+      <button type="button" class="mlc__btn mlc__btn--ghost" (click)="requestArchive()">
+        {{ 'myListings.actions.archive' | translate }}
+      </button>
+    } @else {
+      <button type="button" class="mlc__btn mlc__btn--ghost" (click)="requestRestore()">
+        {{ 'myListings.actions.restore' | translate }}
+      </button>
+    }
+  </div>
+</div>

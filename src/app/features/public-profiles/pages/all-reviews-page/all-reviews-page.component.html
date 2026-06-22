@@ -1,0 +1,263 @@
+<div class="ar">
+
+  <!-- ── Mobile sticky header ────────────────────────────────────────────────── -->
+  <header class="ar__mobile-header">
+    <button
+      type="button"
+      class="ar__mobile-back"
+      (click)="goBack()"
+      [attr.aria-label]="'allReviews.backToProfile' | translate"
+    >
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    </button>
+    <span class="ar__mobile-title">
+      @if (activeTab() === 'owner') {
+        {{ 'publicProfile.reviewsFromRenters' | translate }}
+      } @else {
+        {{ 'publicProfile.reviewsFromOwners' | translate }}
+      }
+    </span>
+    <span class="ar__mobile-spacer" aria-hidden="true"></span>
+  </header>
+
+  <!-- ── Page content ────────────────────────────────────────────────────────── -->
+  <div class="ar__page page-container">
+
+    <!-- ── Desktop back button ──────────────────────────────────────────────── -->
+    <button type="button" class="ar__desktop-back" (click)="goBack()">
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      {{ 'allReviews.backToProfile' | translate }}
+    </button>
+
+    <!-- ── Identity strip (avatar + title) ─────────────────────────────────── -->
+    <div class="ar__identity">
+      @if (profile(); as p) {
+        @if (p.avatarUrl) {
+          <img class="ar__avatar" [src]="p.avatarUrl" [alt]="displayName()" />
+        } @else {
+          <div class="ar__avatar-fallback" aria-hidden="true">{{ initials() }}</div>
+        }
+        <div class="ar__identity-info">
+          <h1 class="ar__title">
+            @if (activeTab() === 'owner') {
+              {{ 'publicProfile.reviewsFromRenters' | translate }}
+            } @else {
+              {{ 'publicProfile.reviewsFromOwners' | translate }}
+            }
+          </h1>
+          <p class="ar__subtitle">
+            @if (activeTab() === 'owner') {
+              {{ 'allReviews.subtitleOwner' | translate: { name: firstName() } }}
+            } @else {
+              {{ 'allReviews.subtitleRenter' | translate: { name: firstName() } }}
+            }
+          </p>
+        </div>
+      } @else if (profileLoading()) {
+        <p-skeleton width="64px" height="64px" shape="circle" />
+        <div class="ar__identity-info">
+          <p-skeleton width="14rem" height="1.75rem" />
+          <p-skeleton width="10rem" height="1rem" styleClass="mt-2" />
+        </div>
+      }
+    </div>
+
+    <!-- ── Tab switcher ──────────────────────────────────────────────────────── -->
+    <div class="ar__tabs-wrap">
+      <div class="ar__tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          class="ar__tab"
+          [class.ar__tab--active]="activeTab() === 'owner'"
+          [attr.aria-selected]="activeTab() === 'owner'"
+          (click)="setTab('owner')"
+        >
+          {{ 'allReviews.tabOwner' | translate }}
+          @if ((ownerSummary()?.reviewCount ?? 0) > 0) {
+            <span class="ar__tab-count">{{ ownerSummary()!.reviewCount }}</span>
+          }
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="ar__tab"
+          [class.ar__tab--active]="activeTab() === 'renter'"
+          [attr.aria-selected]="activeTab() === 'renter'"
+          (click)="setTab('renter')"
+        >
+          {{ 'allReviews.tabRenter' | translate }}
+          @if ((renterSummary()?.reviewCount ?? 0) > 0) {
+            <span class="ar__tab-count">{{ renterSummary()!.reviewCount }}</span>
+          }
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Two-column body ───────────────────────────────────────────────────── -->
+    <div class="ar__body">
+
+      <!-- ── LEFT: Rating summary sidebar ─────────────────────────────────────── -->
+      <aside class="ar__sidebar">
+
+        @if (showReviewsSkeleton()) {
+          <div class="ar__sidebar-skeleton">
+            <p-skeleton width="5rem" height="3.5rem" />
+            <p-skeleton width="9rem" height="0.875rem" styleClass="mt-1" />
+            <p-skeleton height="7rem" borderRadius="12px" styleClass="mt-5" />
+            <p-skeleton height="5rem" borderRadius="12px" styleClass="mt-4" />
+          </div>
+
+        } @else if (activeSummary()?.hasAggregate) {
+
+          <!-- Overall score card -->
+          <div class="ar__score-card">
+            <div class="ar__score-big">
+              {{ activeSummary()!.overallAverage | number:'1.1-1' }}
+            </div>
+            <div class="ar__score-right">
+              <div class="ar__score-stars" aria-hidden="true">
+                @for (star of [1,2,3,4,5]; track star) {
+                  <span
+                    class="ar__score-star"
+                    [class.ar__score-star--filled]="star <= activeSummary()!.overallAverage"
+                  >★</span>
+                }
+              </div>
+              <div class="ar__score-count">
+                {{ activeSummary()!.reviewCount }}
+                {{ (activeSummary()!.reviewCount === 1 ? 'allReviews.oneReview' : 'allReviews.reviews') | translate }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Star distribution -->
+          <div class="ar__dist" aria-label="{{ 'allReviews.distributionAria' | translate }}">
+            @for (star of starsForDisplay; track star) {
+              <div class="ar__dist-row">
+                <span class="ar__dist-label" aria-hidden="true">{{ star }}</span>
+                <span class="ar__dist-star" aria-hidden="true">★</span>
+                <div class="ar__dist-bar">
+                  <div
+                    class="ar__dist-fill"
+                    [style.width.%]="distributionPercent(star)"
+                    [attr.aria-label]="star + ' stars: ' + distributionCount(star)"
+                  ></div>
+                </div>
+                <span class="ar__dist-count">{{ distributionCount(star) }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- Dimension breakdown -->
+          @if (activeBreakdown().length > 0) {
+            <div class="ar__breakdown">
+              <h3 class="ar__breakdown-title">{{ 'allReviews.breakdown' | translate }}</h3>
+              <div class="ar__breakdown-list">
+                @for (item of activeBreakdown(); track item.key) {
+                  <div class="ar__breakdown-item">
+                    <span class="ar__breakdown-label">{{ item.key | translate }}</span>
+                    <div class="ar__breakdown-bar">
+                      <div
+                        class="ar__breakdown-fill"
+                        [style.width.%]="(item.value / 5) * 100"
+                      ></div>
+                    </div>
+                    <span class="ar__breakdown-value">{{ item.value | number:'1.1-1' }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+        } @else if (!activeLoading()) {
+          <div class="ar__sidebar-empty">
+            <i class="pi pi-star" aria-hidden="true"></i>
+            <p>{{ 'allReviews.noReviewsYet' | translate }}</p>
+          </div>
+        }
+      </aside>
+
+      <!-- ── RIGHT: Review cards ──────────────────────────────────────────────── -->
+      <section class="ar__reviews" [attr.aria-label]="'allReviews.reviewsAria' | translate">
+
+        <!-- Toolbar: count + sort -->
+        <div class="ar__toolbar">
+          <span class="ar__toolbar-count">
+            @if (activeSummary()?.reviewCount) {
+              {{ 'allReviews.showingCount' | translate: { count: activeSummary()!.reviewCount } }}
+            }
+          </span>
+          <div
+            class="ar__sort-group"
+            role="group"
+            [attr.aria-label]="'allReviews.sortAria' | translate"
+          >
+            <button
+              type="button"
+              class="ar__sort-btn"
+              [class.ar__sort-btn--active]="sortOrder() === 'recent'"
+              (click)="setSortOrder('recent')"
+            >
+              {{ 'allReviews.sortRecent' | translate }}
+            </button>
+            <button
+              type="button"
+              class="ar__sort-btn"
+              [class.ar__sort-btn--active]="sortOrder() === 'highest'"
+              (click)="setSortOrder('highest')"
+            >
+              {{ 'allReviews.sortHighest' | translate }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Skeleton -->
+        @if (showReviewsSkeleton()) {
+          <div class="ar__grid">
+            @for (i of [0,1,2,3,4,5]; track i) {
+              <p-skeleton height="10rem" borderRadius="16px" />
+            }
+          </div>
+        }
+
+        <!-- Error -->
+        @else if (activeError() && displayedReviews().length === 0) {
+          <div class="ar__error" role="alert">
+            <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+            <p>{{ 'allReviews.errorTitle' | translate }}</p>
+            <button type="button" class="ar__retry-btn" (click)="retry()">
+              {{ 'allReviews.retry' | translate }}
+            </button>
+          </div>
+        }
+
+        <!-- Reviews grid -->
+        @else if (displayedReviews().length > 0) {
+          <div class="ar__grid">
+            @for (review of displayedReviews(); track review.id) {
+              <app-review-card-large [review]="review" />
+            }
+          </div>
+        }
+
+        <!-- Empty state -->
+        @else if (!activeLoading()) {
+          <div class="ar__empty">
+            <div class="ar__empty-icon-wrap" aria-hidden="true">
+              <i class="pi pi-star ar__empty-icon"></i>
+            </div>
+            <h3 class="ar__empty-heading">{{ 'allReviews.noReviewsYet' | translate }}</h3>
+            <p class="ar__empty-text">
+              @if (activeTab() === 'owner') {
+                {{ 'allReviews.noOwnerReviews' | translate: { name: firstName() } }}
+              } @else {
+                {{ 'allReviews.noRenterReviews' | translate: { name: firstName() } }}
+              }
+            </p>
+          </div>
+        }
+      </section>
+    </div>
+  </div>
+</div>

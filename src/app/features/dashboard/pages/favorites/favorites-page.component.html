@@ -1,0 +1,14 @@
+<app-dashboard-shell activeNav="saved-toys">
+  <div class="page-head">
+    <h1 class="page-title">Saved toys</h1>
+    <p class="page-sub">Your wishlist — toys you've bookmarked to rent later.</p>
+  </div>
+
+  <app-filter-tabs [tabs]="tabs" [active]="activeTab()" (tabChange)="activeTab.set($event)" />
+
+  <div class="favorites-grid">
+    @for (toy of toys(); track toy.id) {
+      <app-toy-card [toy]="toy" />
+    }
+  </div>
+</app-dashboard-shell>

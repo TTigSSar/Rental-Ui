@@ -46,6 +46,20 @@ export const reviewsReducer = createReducer(
     ownerReviews: { ...state.ownerReviews, [userId]: failed(state.ownerReviews[userId], error) },
   })),
 
+  // ── Renter reviews ───────────────────────────────────────────────────────────
+  on(ReviewsActions.loadRenterReviews, (state, { userId }): ReviewsState => ({
+    ...state,
+    renterReviews: { ...state.renterReviews, [userId]: loading(state.renterReviews[userId]) },
+  })),
+  on(ReviewsActions.loadRenterReviewsSuccess, (state, { userId, summary }): ReviewsState => ({
+    ...state,
+    renterReviews: { ...state.renterReviews, [userId]: loaded(summary) },
+  })),
+  on(ReviewsActions.loadRenterReviewsFailure, (state, { userId, error }): ReviewsState => ({
+    ...state,
+    renterReviews: { ...state.renterReviews, [userId]: failed(state.renterReviews[userId], error) },
+  })),
+
   // ── Booking status ──────────────────────────────────────────────────────────
   on(ReviewsActions.loadBookingStatus, (state, { bookingId }): ReviewsState => ({
     ...state,

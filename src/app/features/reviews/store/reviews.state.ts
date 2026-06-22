@@ -13,6 +13,7 @@ export interface AsyncEntry<T> {
 export interface ReviewsState {
   readonly listingToyReviews: Readonly<Record<string, AsyncEntry<ToyReviewSummary>>>;
   readonly ownerReviews: Readonly<Record<string, AsyncEntry<OwnerReviewSummary>>>;
+  readonly renterReviews: Readonly<Record<string, AsyncEntry<OwnerReviewSummary>>>;
   readonly bookingStatus: Readonly<Record<string, AsyncEntry<BookingReviewStatus>>>;
   readonly submission: {
     readonly isSubmitting: boolean;
@@ -24,6 +25,7 @@ export interface ReviewsState {
 export const initialReviewsState: ReviewsState = {
   listingToyReviews: {},
   ownerReviews: {},
+  renterReviews: {},
   bookingStatus: {},
   submission: {
     isSubmitting: false,

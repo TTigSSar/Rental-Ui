@@ -13,6 +13,8 @@ export interface ListingPreview {
   /** Average toy rating, or null when below the aggregate threshold. */
   rating?: number | null;
   reviewCount?: number;
+  /** Availability status returned by user-listings and my-listings APIs. */
+  listingStatus?: 'available' | 'rented' | null;
 }
 
 export interface ListingImage {

@@ -25,8 +25,8 @@
   } @else if (detail(); as d) {
     <!-- Status + booking id -->
     <div class="booking-details__status-row">
-      <app-ui-badge [label]="statusLabelKey() | translate" [tone]="statusTone()" />
-      <span class="booking-details__id">#{{ d.id.slice(0, 8) }}</span>
+      <app-booking-status-badge [status]="d.status" />
+      <span class="booking-details__id">ID - {{ d.id.slice(0, 8) }}</span>
     </div>
 
     <!-- Progress -->
@@ -84,9 +84,6 @@
         <div><dt>{{ 'bookings.details.endDate' | translate }}</dt><dd>{{ d.endDate | date: 'mediumDate' }}</dd></div>
         <div><dt>{{ 'bookings.details.duration' | translate }}</dt><dd>{{ 'bookings.details.days' | translate: { count: rentalDays() } }}</dd></div>
         <div><dt>{{ 'bookings.details.total' | translate }}</dt><dd>{{ d.totalPrice | currency: d.currency }}</dd></div>
-        @if (d.depositAmount) {
-          <div><dt>{{ 'bookings.details.deposit' | translate }}</dt><dd>{{ d.depositAmount | currency: d.currency }}</dd></div>
-        }
       </dl>
     </div>
 

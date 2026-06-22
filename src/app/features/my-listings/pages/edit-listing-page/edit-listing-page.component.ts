@@ -134,7 +134,6 @@ export class EditListingPageComponent implements OnInit {
       condition:     this.fb.nonNullable.control(''),
       hygieneNotes:  this.fb.nonNullable.control('', [Validators.maxLength(1000)]),
       safetyNotes:   this.fb.nonNullable.control('', [Validators.maxLength(1000)]),
-      depositAmount: this.fb.control<number | null>(null, [Validators.min(0)]),
     },
     { validators: ageRangeValidator },
   );
@@ -191,7 +190,6 @@ export class EditListingPageComponent implements OnInit {
       condition:     listing.condition ?? '',
       hygieneNotes:  listing.hygieneNotes ?? '',
       safetyNotes:   listing.safetyNotes ?? '',
-      depositAmount: listing.depositAmount,
     });
 
     const ageMatch = AGE_CHIPS.find(
@@ -385,7 +383,6 @@ export class EditListingPageComponent implements OnInit {
       condition:     raw.condition || null,
       hygieneNotes:  raw.hygieneNotes.trim() || null,
       safetyNotes:   raw.safetyNotes.trim() || null,
-      depositAmount: raw.depositAmount,
     };
 
     this.isSubmitting.set(true);

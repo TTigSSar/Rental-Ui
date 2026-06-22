@@ -1,0 +1,10 @@
+.shell {
+  display: flex;
+  min-height: calc(100dvh - 4rem);
+}
+
+.shell__content {
+  flex: 1;
+  min-width: 0;
+  padding: 32px 40px;
+}

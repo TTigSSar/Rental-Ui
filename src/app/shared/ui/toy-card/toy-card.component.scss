@@ -1,0 +1,113 @@
+.toy-card {
+  background: var(--ui-color-surface);
+  border-radius: var(--ui-radius-card);
+  border: 1px solid var(--ui-color-border);
+  box-shadow: var(--ui-shadow-card);
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+
+  &:hover {
+    box-shadow: var(--ui-shadow-card-hover);
+  }
+
+  &__img-wrap {
+    position: relative;
+  }
+
+  &__img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    display: block;
+  }
+
+  &__chip {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(14, 138, 95, 0.9);
+    color: #fff;
+    border-radius: var(--ui-radius-pill);
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+
+    &--rented {
+      background: rgba(100, 100, 120, 0.85);
+    }
+  }
+
+  &__heart {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #fff;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
+    color: var(--ui-color-primary);
+  }
+
+  &__body {
+    padding: 14px 16px 16px;
+  }
+
+  &__title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--ui-color-text-primary);
+    margin: 0 0 4px;
+  }
+
+  &__meta {
+    font-size: 12px;
+    color: var(--ui-color-text-secondary);
+    margin: 0 0 12px;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__price {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ui-color-primary);
+
+    &--muted {
+      color: var(--ui-color-text-secondary);
+    }
+  }
+
+  &__per {
+    font-size: 12px;
+    font-weight: 400;
+  }
+
+  &__cta {
+    background: var(--ui-color-primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--ui-radius-md);
+    padding: 7px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+
+    &--disabled {
+      background: var(--ui-color-surface-muted);
+      color: var(--ui-color-text-secondary);
+      cursor: default;
+    }
+  }
+}

@@ -4,14 +4,14 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
   selector: 'app-ui-avatar',
   standalone: true,
   template:
-    '<span class="ui-avatar" [class.ui-avatar--md]="size() === \'md\'" [attr.aria-label]="label()">{{ initials() }}</span>',
+    '<span class="ui-avatar" [class.ui-avatar--md]="size() === \'md\'" [class.ui-avatar--lg]="size() === \'lg\'" [attr.aria-label]="label()">{{ initials() }}</span>',
   styleUrl: './avatar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AvatarComponent {
   readonly name = input<string | null>(null);
   /** `md` matches header / account triggers; `sm` is default for dense UI. */
-  readonly size = input<'sm' | 'md'>('sm');
+  readonly size = input<'sm' | 'md' | 'lg'>('sm');
 
   protected readonly initials = computed(() => {
     const value = this.name()?.trim() ?? '';

@@ -32,172 +32,492 @@
 
     @if (vm.profile; as profile) {
 
-      <!-- 1 · Identity + info rows -->
-      <div class="profile-page__identity-card">
-        <div class="profile-page__identity-header">
-          <div class="profile-page__avatar" aria-hidden="true">
-            {{ initials(profile.firstName, profile.lastName) }}
-          </div>
-          <div class="profile-page__identity-info">
-            <p class="profile-page__identity-name">{{ profile.firstName }} {{ profile.lastName }}</p>
-          </div>
-          <button type="button" class="profile-page__edit-btn" disabled aria-label="Edit profile">
-            {{ 'profile.edit' | translate }}
-          </button>
-        </div>
+      <div class="profile-page__layout">
 
-        <div class="profile-page__info-rows">
-          <div class="profile-page__info-row">
-            <i class="pi pi-user profile-page__info-icon" aria-hidden="true"></i>
-            <span class="profile-page__info-label">{{ 'profile.infoLabel.name' | translate }}</span>
-            <span class="profile-page__info-value">{{ profile.firstName }} {{ profile.lastName }}</span>
-          </div>
-          <div class="profile-page__info-row">
-            <i class="pi pi-phone profile-page__info-icon" aria-hidden="true"></i>
-            <span class="profile-page__info-label">{{ 'profile.infoLabel.phone' | translate }}</span>
-            <span class="profile-page__info-value profile-page__info-value--num">
-              {{ profile.phoneNumber ?? ('profile.common.notAvailable' | translate) }}
-            </span>
-          </div>
-          <div class="profile-page__info-row">
-            <i class="pi pi-envelope profile-page__info-icon" aria-hidden="true"></i>
-            <span class="profile-page__info-label">{{ 'profile.infoLabel.email' | translate }}</span>
-            <span class="profile-page__info-value profile-page__info-value--truncate">{{ profile.email }}</span>
-          </div>
-        </div>
-      </div>
+        <!-- ── DESKTOP SIDEBAR ────────────────────────────────────── -->
+        <aside class="profile-page__sidebar">
 
-      <!-- 2 · Primary actions -->
-      <div class="profile-page__menu-card profile-page__menu-card--overflow-hidden">
-        <a class="profile-page__menu-row" routerLink="/my-listings">
-          <span class="profile-page__menu-icon-wrap">
-            <i class="pi pi-box" aria-hidden="true"></i>
-          </span>
-          <span class="profile-page__menu-label">{{ 'profile.nav.myToys' | translate }}</span>
-          <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
-        </a>
-        <a class="profile-page__menu-row" routerLink="/bookings">
-          <span class="profile-page__menu-icon-wrap">
-            <i class="pi pi-calendar" aria-hidden="true"></i>
-          </span>
-          <span class="profile-page__menu-label">{{ 'profile.nav.myRentals' | translate }}</span>
-          <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
-        </a>
-        <a class="profile-page__menu-row profile-page__menu-row--last" routerLink="/favorites">
-          <span class="profile-page__menu-icon-wrap">
-            <i class="pi pi-heart" aria-hidden="true"></i>
-          </span>
-          <span class="profile-page__menu-label">{{ 'profile.nav.favorites' | translate }}</span>
-          <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
-        </a>
-      </div>
+          <!-- Identity card -->
+          <div class="profile-page__sidebar-identity">
+            <div class="profile-page__sidebar-avatar-wrap" aria-hidden="true">
+              <div class="profile-page__sidebar-avatar">
+                {{ initials(profile.firstName, profile.lastName) }}
+              </div>
+              <span class="profile-page__sidebar-camera-badge">
+                <app-icon name="camera" [size]="11" />
+              </span>
+            </div>
+            <div class="profile-page__sidebar-name-row">
+              <span class="profile-page__sidebar-name">{{ profile.firstName }} {{ profile.lastName }}</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" class="profile-page__sidebar-verified">
+                <circle cx="12" cy="12" r="10" fill="#0E8A5F"/>
+                <polyline points="9 12 11 14 15 10" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="profile-page__sidebar-stars">
+              @for (i of [1,2,3,4,5]; track i) {
+                @if (ratingSummary(); as summary) {
+                  <svg viewBox="0 0 24 24" width="13" height="13"
+                       [attr.fill]="i <= summary.average ? '#F59E0B' : '#E5E7EB'" stroke="none">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="#E5E7EB" stroke="none">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                }
+              }
+              @if (ratingSummary(); as summary) {
+                <span class="profile-page__sidebar-rating">{{ summary.average.toFixed(1) }}</span>
+                <span class="profile-page__sidebar-rating-count">({{ summary.reviewCount }})</span>
+              }
+            </div>
 
-      <!-- 3 · Settings (language, notifications, help) -->
-      <div class="profile-page__menu-section" #langMenuHost>
-        <div class="profile-page__menu-card profile-page__menu-card--overflow-hidden">
-          <button type="button" class="profile-page__menu-row" (click)="toggleLanguageMenu()">
-            <span class="profile-page__menu-icon-wrap">
-              <i class="pi pi-globe" aria-hidden="true"></i>
-            </span>
-            <span class="profile-page__menu-label">{{ 'profile.nav.language' | translate }}</span>
-            <span class="profile-page__menu-meta">{{ currentLang().label }}</span>
-            <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
-          </button>
-          <button type="button" class="profile-page__menu-row" disabled>
-            <span class="profile-page__menu-icon-wrap">
-              <i class="pi pi-bell" aria-hidden="true"></i>
-            </span>
-            <span class="profile-page__menu-label">{{ 'profile.nav.notifications' | translate }}</span>
-            <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
-          </button>
-          <a class="profile-page__menu-row profile-page__menu-row--last" routerLink="/faq">
-            <span class="profile-page__menu-icon-wrap">
-              <i class="pi pi-question-circle" aria-hidden="true"></i>
-            </span>
-            <span class="profile-page__menu-label">{{ 'profile.nav.helpCenter' | translate }}</span>
-            <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
-          </a>
-        </div>
+            <!-- Stats grid -->
+            <div class="profile-page__sidebar-stats">
+              <div class="profile-page__sidebar-stat">
+                <span class="profile-page__sidebar-stat-value">{{ listingsCount() }}</span>
+                <span class="profile-page__sidebar-stat-label">{{ 'profile.stats.listings' | translate }}</span>
+              </div>
+              <div class="profile-page__sidebar-stat">
+                <span class="profile-page__sidebar-stat-value">{{ rentalsCount() }}</span>
+                <span class="profile-page__sidebar-stat-label">{{ 'profile.stats.rentals' | translate }}</span>
+              </div>
+              <div class="profile-page__sidebar-stat">
+                <span class="profile-page__sidebar-stat-value">{{ ratingSummary()?.reviewCount ?? 0 }}</span>
+                <span class="profile-page__sidebar-stat-label">{{ 'profile.stats.reviews' | translate }}</span>
+              </div>
+            </div>
+          </div>
 
-        @if (languageMenuOpen()) {
-          <div class="profile-page__lang-dropdown" role="menu">
-            @for (option of availableLanguages; track option.code) {
+          <!-- Main nav -->
+          <nav class="profile-page__sidebar-nav" aria-label="Profile navigation">
+            <a class="profile-page__sidebar-nav-item"
+               routerLink="/profile/toys"
+               routerLinkActive="profile-page__sidebar-nav-item--active"
+               [routerLinkActiveOptions]="{ exact: false }"
+               #rl1="routerLinkActive">
+              <span class="profile-page__sidebar-nav-icon"
+                    [class.profile-page__sidebar-nav-icon--active]="rl1.isActive">
+                <app-icon name="grid" [size]="15" />
+              </span>
+              <span class="profile-page__sidebar-nav-label">{{ 'profile.nav.myToys' | translate }}</span>
+              @if (listingsCount() > 0) {
+                <span class="profile-page__sidebar-nav-badge">{{ listingsCount() }}</span>
+              }
+            </a>
+
+            <a class="profile-page__sidebar-nav-item"
+               routerLink="/profile/rentals"
+               routerLinkActive="profile-page__sidebar-nav-item--active"
+               [routerLinkActiveOptions]="{ exact: false }"
+               #rl2="routerLinkActive">
+              <span class="profile-page__sidebar-nav-icon"
+                    [class.profile-page__sidebar-nav-icon--active]="rl2.isActive">
+                <app-icon name="calendar" [size]="15" />
+              </span>
+              <span class="profile-page__sidebar-nav-label">{{ 'profile.nav.myRentals' | translate }}</span>
+              @if (upcomingBookingsCount() > 0) {
+                <span class="profile-page__sidebar-nav-suffix">{{ upcomingBookingsCount() }} upcoming</span>
+              }
+            </a>
+
+            <a class="profile-page__sidebar-nav-item"
+               routerLink="/profile/requests"
+               routerLinkActive="profile-page__sidebar-nav-item--active"
+               [routerLinkActiveOptions]="{ exact: false }"
+               #rl3="routerLinkActive">
+              <span class="profile-page__sidebar-nav-icon"
+                    [class.profile-page__sidebar-nav-icon--active]="rl3.isActive">
+                <app-icon name="message" [size]="15" />
+              </span>
+              <span class="profile-page__sidebar-nav-label">{{ 'profile.nav.incomingRequests' | translate }}</span>
+              @if (pendingRequestsCount() > 0) {
+                <span class="profile-page__sidebar-nav-badge profile-page__sidebar-nav-badge--alert">
+                  {{ pendingRequestsCount() }}
+                </span>
+              }
+            </a>
+
+            <a class="profile-page__sidebar-nav-item"
+               routerLink="/profile/saved"
+               routerLinkActive="profile-page__sidebar-nav-item--active"
+               [routerLinkActiveOptions]="{ exact: false }"
+               #rl4="routerLinkActive">
+              <span class="profile-page__sidebar-nav-icon"
+                    [class.profile-page__sidebar-nav-icon--active]="rl4.isActive">
+                <app-icon name="bookmark" [size]="15" />
+              </span>
+              <span class="profile-page__sidebar-nav-label">{{ 'profile.nav.favorites' | translate }}</span>
+              @if (favoritesCount() > 0) {
+                <span class="profile-page__sidebar-nav-badge">{{ favoritesCount() }}</span>
+              }
+            </a>
+          </nav>
+
+          <div class="profile-page__sidebar-divider"></div>
+
+          <!-- Settings -->
+          <div class="profile-page__sidebar-settings">
+            <button type="button" class="profile-page__sidebar-settings-item" disabled>
+              <app-icon name="dollar" [size]="15" />
+              <span class="profile-page__sidebar-settings-label">{{ 'profile.nav.earningsPayouts' | translate }}</span>
+              <app-icon name="chevron-right" [size]="14" />
+            </button>
+            <button type="button" class="profile-page__sidebar-settings-item" disabled>
+              <app-icon name="shield" [size]="15" />
+              <span class="profile-page__sidebar-settings-label">{{ 'profile.nav.verificationId' | translate }}</span>
+              <app-icon name="chevron-right" [size]="14" />
+            </button>
+            <button type="button" class="profile-page__sidebar-settings-item" disabled>
+              <app-icon name="bell" [size]="15" />
+              <span class="profile-page__sidebar-settings-label">{{ 'profile.nav.notifications' | translate }}</span>
+              <app-icon name="chevron-right" [size]="14" />
+            </button>
+            <button type="button" class="profile-page__sidebar-signout" (click)="logout()">
+              <app-icon name="log-out" [size]="15" />
+              {{ 'profile.nav.logout' | translate }}
+            </button>
+          </div>
+
+        </aside>
+
+        <!-- ── MAIN CONTENT ──────────────────────────────────────── -->
+        <div class="profile-page__main">
+
+          <router-outlet />
+
+          @if (!isChildRouteActive()) {
+
+            <!-- ── MOBILE LAYOUT ──────────────────────────────────── -->
+            <div class="profile-page__mobile-only">
+
+              <!-- Profile card -->
+              <div class="profile-page__m-card">
+                <div class="profile-page__m-card-header">
+                  <div class="profile-page__m-avatar-wrap" aria-hidden="true">
+                    <div class="profile-page__avatar">
+                      {{ initials(profile.firstName, profile.lastName) }}
+                    </div>
+                    <span class="profile-page__m-camera-badge">
+                      <app-icon name="camera" [size]="11" />
+                    </span>
+                  </div>
+
+                  <div class="profile-page__m-card-info">
+                    <div class="profile-page__m-name-row">
+                      <span class="profile-page__m-name">{{ profile.firstName }} {{ profile.lastName }}</span>
+                      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10" fill="#0E8A5F"/>
+                        <polyline points="9 12 11 14 15 10" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </div>
+                    @if (ratingSummary(); as summary) {
+                      <div class="profile-page__m-rating">
+                        @for (i of [1,2,3,4,5]; track i) {
+                          <svg viewBox="0 0 24 24" width="13" height="13"
+                               [attr.fill]="i <= summary.average ? '#F59E0B' : '#E5E7EB'" stroke="none">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                          </svg>
+                        }
+                        <span class="profile-page__m-rating-score">{{ summary.average.toFixed(1) }}</span>
+                        <span class="profile-page__m-rating-count">({{ summary.reviewCount }})</span>
+                      </div>
+                    }
+                  </div>
+
+                  <button type="button" class="profile-page__m-edit-btn" disabled>
+                    {{ 'profile.edit' | translate }}
+                  </button>
+                </div>
+
+                <div class="profile-page__m-stats">
+                  <div class="profile-page__m-stat">
+                    <span class="profile-page__m-stat-val">{{ listingsCount() }}</span>
+                    <span class="profile-page__m-stat-lbl">{{ 'profile.stats.listings' | translate }}</span>
+                  </div>
+                  <div class="profile-page__m-stat-divider"></div>
+                  <div class="profile-page__m-stat">
+                    <span class="profile-page__m-stat-val">{{ rentalsCount() }}</span>
+                    <span class="profile-page__m-stat-lbl">{{ 'profile.stats.rentals' | translate }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Navigation menu -->
+              <div class="profile-page__m-menu">
+                <a class="profile-page__m-item" routerLink="/profile/toys">
+                  <span class="profile-page__m-icon">
+                    <app-icon name="grid" [size]="17" />
+                  </span>
+                  <div class="profile-page__m-item-body">
+                    <span class="profile-page__m-item-label">{{ 'profile.nav.myToys' | translate }}</span>
+                    <span class="profile-page__m-item-sub">{{ listingsCount() }} listings · {{ liveListingsCount() }} live</span>
+                  </div>
+                  <app-icon name="chevron-right" [size]="16" class="profile-page__m-chevron" />
+                </a>
+
+                <a class="profile-page__m-item" routerLink="/profile/rentals">
+                  <span class="profile-page__m-icon">
+                    <app-icon name="calendar" [size]="17" />
+                  </span>
+                  <div class="profile-page__m-item-body">
+                    <span class="profile-page__m-item-label">{{ 'profile.nav.myRentals' | translate }}</span>
+                    <span class="profile-page__m-item-sub">{{ upcomingOnlyCount() }} upcoming · {{ activeBookingsCount() }} active</span>
+                  </div>
+                  <app-icon name="chevron-right" [size]="16" class="profile-page__m-chevron" />
+                </a>
+
+                <a class="profile-page__m-item" routerLink="/profile/requests">
+                  <span class="profile-page__m-icon">
+                    <app-icon name="refresh-cw" [size]="17" />
+                  </span>
+                  <div class="profile-page__m-item-body">
+                    <span class="profile-page__m-item-label">{{ 'profile.nav.incomingRequests' | translate }}</span>
+                    <span class="profile-page__m-item-sub">{{ pendingRequestsCount() }} awaiting your reply</span>
+                  </div>
+                  @if (pendingRequestsCount() > 0) {
+                    <span class="profile-page__m-badge">{{ pendingRequestsCount() }}</span>
+                  }
+                  <app-icon name="chevron-right" [size]="16" class="profile-page__m-chevron" />
+                </a>
+
+                <a class="profile-page__m-item profile-page__m-item--last" routerLink="/profile/saved">
+                  <span class="profile-page__m-icon">
+                    <app-icon name="heart" [size]="17" />
+                  </span>
+                  <div class="profile-page__m-item-body">
+                    <span class="profile-page__m-item-label">{{ 'profile.nav.favorites' | translate }}</span>
+                    <span class="profile-page__m-item-sub">{{ favoritesCount() }} toys on your wishlist</span>
+                  </div>
+                  <app-icon name="chevron-right" [size]="16" class="profile-page__m-chevron" />
+                </a>
+              </div>
+
+              <!-- Settings section -->
+              <div class="profile-page__m-settings">
+                <p class="profile-page__m-section-hdr">SETTINGS</p>
+                <div class="profile-page__m-menu" data-lang-section>
+                  <button type="button" class="profile-page__m-item" disabled>
+                    <span class="profile-page__m-icon profile-page__m-icon--gray">
+                      <app-icon name="dollar" [size]="17" />
+                    </span>
+                    <div class="profile-page__m-item-body">
+                      <span class="profile-page__m-item-label">{{ 'profile.nav.earningsPayouts' | translate }}</span>
+                    </div>
+                    <app-icon name="chevron-right" [size]="16" class="profile-page__m-chevron" />
+                  </button>
+
+                  <button type="button" class="profile-page__m-item" (click)="toggleLanguageMenu()">
+                    <span class="profile-page__m-icon profile-page__m-icon--gray">
+                      <i class="pi pi-globe" style="font-size: 1rem;"></i>
+                    </span>
+                    <div class="profile-page__m-item-body">
+                      <span class="profile-page__m-item-label">{{ 'profile.nav.language' | translate }}</span>
+                    </div>
+                    <span class="profile-page__m-item-meta">{{ currentLang().label }}</span>
+                    <app-icon name="chevron-right" [size]="16" class="profile-page__m-chevron" />
+                  </button>
+
+                  @if (languageMenuOpen()) {
+                    <div class="profile-page__lang-dropdown" role="menu">
+                      @for (option of availableLanguages; track option.code) {
+                        <button
+                          type="button"
+                          class="profile-page__lang-option"
+                          [class.profile-page__lang-option--active]="option.code === currentLang().code"
+                          role="menuitemradio"
+                          [attr.aria-checked]="option.code === currentLang().code"
+                          (click)="selectLanguage(option)"
+                        >
+                          <span>{{ option.label }}</span>
+                          @if (option.code === currentLang().code) {
+                            <i class="pi pi-check" aria-hidden="true"></i>
+                          }
+                        </button>
+                      }
+                    </div>
+                  }
+
+                  <button type="button" class="profile-page__m-item profile-page__m-item--last" disabled>
+                    <span class="profile-page__m-icon profile-page__m-icon--gray">
+                      <app-icon name="bell" [size]="17" />
+                    </span>
+                    <div class="profile-page__m-item-body">
+                      <span class="profile-page__m-item-label">{{ 'profile.nav.notifications' | translate }}</span>
+                    </div>
+                    <app-icon name="chevron-right" [size]="16" class="profile-page__m-chevron" />
+                  </button>
+                </div>
+              </div>
+
+              <!-- Logout -->
+              <div class="profile-page__m-menu">
+                <button
+                  type="button"
+                  class="profile-page__m-item profile-page__m-item--last profile-page__m-item--danger"
+                  (click)="logout()"
+                >
+                  <span class="profile-page__m-icon profile-page__m-icon--danger">
+                    <app-icon name="log-out" [size]="17" />
+                  </span>
+                  <div class="profile-page__m-item-body">
+                    <span class="profile-page__m-item-label">{{ 'profile.nav.logout' | translate }}</span>
+                  </div>
+                </button>
+              </div>
+
+              <p class="profile-page__version" aria-hidden="true">ToyRent</p>
+            </div>
+
+            <!-- ── DESKTOP LAYOUT ─────────────────────────────────── -->
+
+            <!-- Identity card -->
+            <div class="profile-page__identity-card profile-page__desktop-only">
+              <div class="profile-page__identity-header">
+                <div class="profile-page__avatar" aria-hidden="true">
+                  {{ initials(profile.firstName, profile.lastName) }}
+                </div>
+                <div class="profile-page__identity-info">
+                  <p class="profile-page__identity-name">{{ profile.firstName }} {{ profile.lastName }}</p>
+                </div>
+                <button type="button" class="profile-page__edit-btn" disabled aria-label="Edit profile">
+                  {{ 'profile.edit' | translate }}
+                </button>
+              </div>
+
+              <div class="profile-page__info-rows">
+                <div class="profile-page__info-row">
+                  <i class="pi pi-user profile-page__info-icon" aria-hidden="true"></i>
+                  <span class="profile-page__info-label">{{ 'profile.infoLabel.name' | translate }}</span>
+                  <span class="profile-page__info-value">{{ profile.firstName }} {{ profile.lastName }}</span>
+                </div>
+                <div class="profile-page__info-row">
+                  <i class="pi pi-phone profile-page__info-icon" aria-hidden="true"></i>
+                  <span class="profile-page__info-label">{{ 'profile.infoLabel.phone' | translate }}</span>
+                  <span class="profile-page__info-value profile-page__info-value--num">
+                    {{ profile.phoneNumber ?? ('profile.common.notAvailable' | translate) }}
+                  </span>
+                </div>
+                <div class="profile-page__info-row">
+                  <i class="pi pi-envelope profile-page__info-icon" aria-hidden="true"></i>
+                  <span class="profile-page__info-label">{{ 'profile.infoLabel.email' | translate }}</span>
+                  <span class="profile-page__info-value profile-page__info-value--truncate">{{ profile.email }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Settings (language, notifications, help) — desktop only -->
+            <div class="profile-page__menu-section profile-page__desktop-only" data-lang-section>
+              <div class="profile-page__menu-card profile-page__menu-card--overflow-hidden">
+                <button type="button" class="profile-page__menu-row" (click)="toggleLanguageMenu()">
+                  <span class="profile-page__menu-icon-wrap">
+                    <i class="pi pi-globe" aria-hidden="true"></i>
+                  </span>
+                  <span class="profile-page__menu-label">{{ 'profile.nav.language' | translate }}</span>
+                  <span class="profile-page__menu-meta">{{ currentLang().label }}</span>
+                  <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="profile-page__menu-row" disabled>
+                  <span class="profile-page__menu-icon-wrap">
+                    <i class="pi pi-bell" aria-hidden="true"></i>
+                  </span>
+                  <span class="profile-page__menu-label">{{ 'profile.nav.notifications' | translate }}</span>
+                  <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
+                </button>
+                <a class="profile-page__menu-row profile-page__menu-row--last" routerLink="/faq">
+                  <span class="profile-page__menu-icon-wrap">
+                    <i class="pi pi-question-circle" aria-hidden="true"></i>
+                  </span>
+                  <span class="profile-page__menu-label">{{ 'profile.nav.helpCenter' | translate }}</span>
+                  <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
+                </a>
+              </div>
+
+              @if (languageMenuOpen()) {
+                <div class="profile-page__lang-dropdown" role="menu">
+                  @for (option of availableLanguages; track option.code) {
+                    <button
+                      type="button"
+                      class="profile-page__lang-option"
+                      [class.profile-page__lang-option--active]="option.code === currentLang().code"
+                      role="menuitemradio"
+                      [attr.aria-checked]="option.code === currentLang().code"
+                      (click)="selectLanguage(option)"
+                    >
+                      <span>{{ option.label }}</span>
+                      @if (option.code === currentLang().code) {
+                        <i class="pi pi-check" aria-hidden="true"></i>
+                      }
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Logout — desktop only -->
+            <div class="profile-page__menu-card profile-page__menu-card--overflow-hidden profile-page__desktop-only">
               <button
                 type="button"
-                class="profile-page__lang-option"
-                [class.profile-page__lang-option--active]="option.code === currentLang().code"
-                role="menuitemradio"
-                [attr.aria-checked]="option.code === currentLang().code"
-                (click)="selectLanguage(option)"
+                class="profile-page__menu-row profile-page__menu-row--last profile-page__menu-row--danger"
+                (click)="logout()"
               >
-                <span>{{ option.label }}</span>
-                @if (option.code === currentLang().code) {
-                  <i class="pi pi-check" aria-hidden="true"></i>
-                }
+                <span class="profile-page__menu-icon-wrap profile-page__menu-icon-wrap--danger">
+                  <i class="pi pi-sign-out" aria-hidden="true"></i>
+                </span>
+                <span class="profile-page__menu-label">{{ 'profile.nav.logout' | translate }}</span>
               </button>
+            </div>
+
+            <p class="profile-page__version profile-page__desktop-only" aria-hidden="true">ToyRent</p>
+
+            <!-- Rating summary -->
+            @if (ratingSummary(); as summary) {
+              @if (summary.reviewCount > 0) {
+                <div class="profile-page__menu-card profile-page__section-card">
+                  <h2 class="profile-page__section-title">{{ 'profile.rating.heading' | translate }}</h2>
+                  <app-rating-summary [summary]="summary" variant="full" />
+                </div>
+              }
             }
-          </div>
-        }
-      </div>
 
-      <!-- 4 · Logout -->
-      <div class="profile-page__menu-card profile-page__menu-card--overflow-hidden">
-        <button
-          type="button"
-          class="profile-page__menu-row profile-page__menu-row--last profile-page__menu-row--danger"
-          (click)="logout()"
-        >
-          <span class="profile-page__menu-icon-wrap profile-page__menu-icon-wrap--danger">
-            <i class="pi pi-sign-out" aria-hidden="true"></i>
-          </span>
-          <span class="profile-page__menu-label">{{ 'profile.nav.logout' | translate }}</span>
-        </button>
-      </div>
+            <!-- Reviews -->
+            <div class="profile-page__menu-card profile-page__section-card">
+              <h2 class="profile-page__section-title">
+                {{ 'profile.reviews.heading' | translate }}
+                @if (ratingSummary(); as summary) {
+                  @if (summary.reviewCount > 0) {
+                    <span class="profile-page__reviews-count">({{ summary.reviewCount }})</span>
+                  }
+                }
+              </h2>
 
-      <p class="profile-page__version" aria-hidden="true">ToyRent</p>
+              @if (reviewsLoading()) {
+                <div class="profile-page__reviews-skeleton">
+                  @for (i of [0, 1, 2]; track i) {
+                    <p-skeleton height="5rem" borderRadius="12px" />
+                  }
+                </div>
+              } @else if (reviewsError()) {
+                <p class="profile-page__reviews-error" role="alert">
+                  {{ 'profile.reviews.error' | translate }}
+                </p>
+              } @else if (reviews().length === 0) {
+                <p class="profile-page__reviews-empty">
+                  {{ 'profile.reviews.empty' | translate }}
+                </p>
+              } @else {
+                <div class="profile-page__reviews-list">
+                  @for (review of reviews(); track review.id) {
+                    <app-review-card [review]="review" />
+                  }
+                </div>
+              }
+            </div>
 
-      <!-- 5 · Rating summary (keep existing) -->
-      @if (ratingSummary(); as summary) {
-        @if (summary.reviewCount > 0) {
-          <div class="profile-page__menu-card profile-page__section-card">
-            <h2 class="profile-page__section-title">{{ 'profile.rating.heading' | translate }}</h2>
-            <app-rating-summary [summary]="summary" variant="full" />
-          </div>
-        }
-      }
+          } <!-- end @if (!isChildRouteActive()) -->
 
-      <!-- 6 · Reviews (keep existing) -->
-      <div class="profile-page__menu-card profile-page__section-card">
-        <h2 class="profile-page__section-title">
-          {{ 'profile.reviews.heading' | translate }}
-          @if (ratingSummary(); as summary) {
-            @if (summary.reviewCount > 0) {
-              <span class="profile-page__reviews-count">({{ summary.reviewCount }})</span>
-            }
-          }
-        </h2>
-
-        @if (reviewsLoading()) {
-          <div class="profile-page__reviews-skeleton">
-            @for (i of [0, 1, 2]; track i) {
-              <p-skeleton height="5rem" borderRadius="12px" />
-            }
-          </div>
-        } @else if (reviewsError()) {
-          <p class="profile-page__reviews-error" role="alert">
-            {{ 'profile.reviews.error' | translate }}
-          </p>
-        } @else if (reviews().length === 0) {
-          <p class="profile-page__reviews-empty">
-            {{ 'profile.reviews.empty' | translate }}
-          </p>
-        } @else {
-          <div class="profile-page__reviews-list">
-            @for (review of reviews(); track review.id) {
-              <app-review-card [review]="review" />
-            }
-          </div>
-        }
+        </div>
       </div>
 
     }

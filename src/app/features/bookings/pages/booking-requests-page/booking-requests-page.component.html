@@ -1,62 +1,83 @@
-<section class="booking-requests-page page-container section-stack">
+<section class="req-page page-container section-stack">
   <app-ui-page-header
     [title]="'bookings.requests.title' | translate"
     [subtitle]="'bookings.requests.subtitle' | translate"
+    backLink="/profile"
   />
 
-  @if (viewModel$ | async; as vm) {
-    @if (vm.hasError && vm.error) {
-      <div class="booking-requests-page__error" role="alert">
-        <p-message severity="error" styleClass="booking-requests-page__message">
-          <div class="booking-requests-page__error-content">
-            <strong>{{ 'bookings.requests.errorTitle' | translate }}</strong>
-            <span>{{ vm.error }}</span>
-          </div>
-        </p-message>
-        <p-button
-          type="button"
-          [label]="'listings.common.retry' | translate"
-          (onClick)="retry()"
-        />
-      </div>
-    }
+  @if (vm().hasError && vm().error) {
+    <div class="req-page__error" role="alert">
+      <p-message severity="error" styleClass="req-page__message">
+        <div class="req-page__error-content">
+          <strong>{{ 'bookings.requests.errorTitle' | translate }}</strong>
+          <span>{{ vm().error }}</span>
+        </div>
+      </p-message>
+      <p-button type="button" [label]="'listings.common.retry' | translate" (onClick)="retry()" />
+    </div>
+  }
 
-    @if (vm.showInitialSkeleton) {
-      <div class="booking-requests-page__grid">
-        @for (i of [0, 1, 2]; track i) {
-          <div class="booking-requests-page__skeleton-card">
-            <p-skeleton width="70%" height="1.2rem" />
-            <p-skeleton width="75%" height="1rem" />
-            <p-skeleton width="60%" height="1rem" />
+  @if (vm().showInitialSkeleton) {
+    <div class="req-page__list">
+      @for (i of [0, 1, 2]; track i) {
+        <div class="req-page__skeleton-card">
+          <p-skeleton width="48px" height="48px" borderRadius="50%" />
+          <div class="req-page__skeleton-body">
             <p-skeleton width="55%" height="1rem" />
-            <div class="booking-requests-page__skeleton-actions">
-              <p-skeleton width="5rem" height="2rem" />
-              <p-skeleton width="5rem" height="2rem" />
+            <p-skeleton width="40%" height="0.85rem" />
+            <div class="req-page__skeleton-actions">
+              <p-skeleton width="5rem" height="2rem" borderRadius="10px" />
+              <p-skeleton width="5rem" height="2rem" borderRadius="10px" />
+              <p-skeleton width="6rem" height="2rem" borderRadius="10px" />
             </div>
           </div>
-        }
-      </div>
-    }
+        </div>
+      }
+    </div>
+  }
 
-    @if (vm.showEmpty) {
-      <app-ui-empty-state
-        icon="pi pi-inbox"
-        [title]="'bookings.requests.emptyTitle' | translate"
-        [description]="'bookings.requests.empty' | translate"
-      />
-    }
+  @if (vm().showEmpty) {
+    <app-ui-empty-state
+      icon="pi pi-inbox"
+      [title]="'bookings.requests.emptyTitle' | translate"
+      [description]="'bookings.requests.empty' | translate"
+    />
+  }
 
-    @if (vm.requests.length > 0) {
-      <div class="booking-requests-page__grid">
-        @for (request of vm.requests; track request.id) {
+  @if (vm().requests.length > 0) {
+    <!-- Tabs -->
+    <div class="req-page__tabs" role="tablist">
+      @for (tab of TABS; track tab) {
+        <button
+          type="button"
+          class="req-page__tab"
+          [class.req-page__tab--active]="activeTab() === tab"
+          role="tab"
+          [attr.aria-selected]="activeTab() === tab"
+          (click)="setTab(tab)"
+        >
+          {{ ('bookings.requests.tab.' + tab) | translate }}
+          <span class="req-page__tab-count">{{ tabCounts()[tab] }}</span>
+        </button>
+      }
+    </div>
+
+    <!-- Request list -->
+    @if (filteredRequests().length > 0) {
+      <div class="req-page__list">
+        @for (request of filteredRequests(); track request.id) {
           <app-booking-request-card
             [request]="request"
-            [actionLoading]="isActionLoading(request.id, vm.actionIds)"
+            [actionLoading]="isActionLoading(request.id, vm().actionIds)"
             (approved)="approve($event)"
             (rejected)="reject($event)"
           />
         }
       </div>
+    } @else {
+      <p class="req-page__tab-empty">
+        {{ 'bookings.requests.tabEmpty' | translate }}
+      </p>
     }
   }
 </section>

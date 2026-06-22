@@ -141,8 +141,7 @@ export function hasAnyToyDetail(listing: ListingDetails): boolean {
     resolveAgeRangeDisplay(listing.ageFromMonths, listing.ageToMonths) !== null ||
     (typeof listing.condition === 'string' && listing.condition.trim().length > 0) ||
     (typeof listing.hygieneNotes === 'string' && listing.hygieneNotes.trim().length > 0) ||
-    (typeof listing.safetyNotes === 'string' && listing.safetyNotes.trim().length > 0) ||
-    (typeof listing.depositAmount === 'number' && Number.isFinite(listing.depositAmount))
+    (typeof listing.safetyNotes === 'string' && listing.safetyNotes.trim().length > 0)
   );
 }
 

@@ -23,14 +23,13 @@ export interface QuickBookOption {
   readonly key: string;
   readonly label: string;
   readonly days: number;
-  readonly discountPct: number;
 }
 
 const QUICK_BOOK_OPTIONS: readonly QuickBookOption[] = [
-  { key: 'day', label: '1 day', days: 1, discountPct: 0 },
-  { key: 'week', label: '1 week', days: 7, discountPct: 10 },
-  { key: 'month', label: '1 month', days: 30, discountPct: 25 },
-  { key: 'year', label: '1 year', days: 365, discountPct: 40 },
+  { key: 'day', label: '1 day', days: 1 },
+  { key: 'week', label: '1 week', days: 7 },
+  { key: 'month', label: '1 month', days: 30 },
+  { key: 'year', label: '1 year', days: 365 },
 ];
 
 
@@ -67,8 +66,15 @@ export class BookingPanelComponent {
   readonly submitting = input<boolean>(false);
   readonly submitError = input<string | null>(null);
   readonly submitSuccess = input<boolean>(false);
+  /** ID of an existing PendingApproval booking for this listing — disables the panel. */
+  readonly existingBookingId = input<string | null>(null);
+  /** ID of the PendingApproval booking the renter can still cancel. */
+  readonly cancellableBookingId = input<string | null>(null);
+  readonly cancelPending = input<boolean>(false);
+  readonly cancelError = input<string | null>(null);
 
   @Output() readonly bookingSubmit = new EventEmitter<BookingSubmitPayload>();
+  @Output() readonly cancelRequest = new EventEmitter<string>();
 
   protected readonly quickBookOptions = QUICK_BOOK_OPTIONS;
 
@@ -89,28 +95,17 @@ export class BookingPanelComponent {
     return days > 0 ? days * this.pricePerDay() : 0;
   });
 
-  protected readonly discountPct = computed(
-    () => this.selectedQuickBook()?.discountPct ?? 0,
-  );
-
-  protected readonly discountAmount = computed(() => {
-    const base = this.basePrice();
-    const pct = this.discountPct();
-    return pct > 0 ? Math.round((base * pct) / 100) : 0;
-  });
-
-  protected readonly netPrice = computed(
-    () => this.basePrice() - this.discountAmount(),
-  );
-
   protected readonly totalPrice = computed(() => {
     const days = this.rentalDays();
     if (days <= 0) return null;
-    return this.netPrice();
+    return this.basePrice();
   });
+
+  protected readonly isPanelDisabled = computed(() => this.existingBookingId() !== null);
 
   protected readonly canSubmit = computed(
     () =>
+      !this.isPanelDisabled() &&
       this.startDate() !== null &&
       this.endDate() !== null &&
       this.rentalDays() > 0 &&
@@ -150,5 +145,12 @@ export class BookingPanelComponent {
     const end = this.endDate();
     if (start === null || end === null || this.rentalDays() <= 0) return;
     this.bookingSubmit.emit({ startDate: start, endDate: end });
+  }
+
+  protected onCancelClick(): void {
+    const id = this.cancellableBookingId();
+    if (id !== null && !this.cancelPending()) {
+      this.cancelRequest.emit(id);
+    }
   }
 }

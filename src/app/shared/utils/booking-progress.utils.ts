@@ -26,10 +26,6 @@ const STEP_LABEL_KEYS = [
   'bookings.progress.completed',
 ] as const;
 
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function offPath(status: BookingStatus): BookingProgress {
   return {
     steps: STEP_LABEL_KEYS.map((labelKey) => ({ labelKey, state: 'upcoming' as const })),
@@ -39,8 +35,8 @@ function offPath(status: BookingStatus): BookingProgress {
 }
 
 /**
- * Maps a booking's stored status (+ start date, since "Active" is derived from dates,
- * not stored) onto the four-node progress bar shared by cards and the details page.
+ * Maps a booking's stored status onto the four-node progress bar.
+ * Active is now a real stored status (not date-derived).
  */
 export function computeBookingProgress(
   status: BookingStatus,
@@ -58,7 +54,6 @@ export function computeBookingProgress(
 
   let currentIndex = 0;
   let allDone = false;
-  let returnInProgress = false;
 
   switch (status) {
     case 'Pending':
@@ -66,11 +61,11 @@ export function computeBookingProgress(
       currentIndex = 0;
       break;
     case 'Approved':
-      currentIndex = startDate && startDate <= todayIso() ? 2 : 1;
+      currentIndex = 1;
       break;
+    case 'Active':
     case 'ReturnMarked':
-      currentIndex = 3;
-      returnInProgress = true;
+      currentIndex = 2;
       break;
     case 'Completed':
       currentIndex = 3;
@@ -81,9 +76,6 @@ export function computeBookingProgress(
   }
 
   const steps: ProgressStep[] = STEP_LABEL_KEYS.map((labelKey, index) => {
-    const isLast = index === 3;
-    const resolvedLabel = isLast && returnInProgress ? 'bookings.progress.completion' : labelKey;
-
     let state: ProgressStepState;
     if (allDone) {
       state = 'done';
@@ -95,7 +87,7 @@ export function computeBookingProgress(
       state = 'upcoming';
     }
 
-    return { labelKey: resolvedLabel, state };
+    return { labelKey, state };
   });
 
   return { steps, isOffPath: false, terminalLabelKey: null };

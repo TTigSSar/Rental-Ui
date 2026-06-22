@@ -39,6 +39,21 @@ export const loadOwnerReviewsFailure = createAction(
   props<{ userId: string; error: string }>(),
 );
 
+// ── Renter reviews (aggregate + comments) ─────────────────────────────────────
+
+export const loadRenterReviews = createAction(
+  '[Reviews] Load Renter Reviews',
+  props<{ userId: string }>(),
+);
+export const loadRenterReviewsSuccess = createAction(
+  '[Reviews] Load Renter Reviews Success',
+  props<{ userId: string; summary: OwnerReviewSummary }>(),
+);
+export const loadRenterReviewsFailure = createAction(
+  '[Reviews] Load Renter Reviews Failure',
+  props<{ userId: string; error: string }>(),
+);
+
 // ── Booking review status ────────────────────────────────────────────────────
 
 export const loadBookingStatus = createAction(

@@ -1,0 +1,66 @@
+<app-dashboard-shell activeNav="my-toys">
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">My toys</h1>
+      <p class="page-sub">5 listings · 3 live, 1 pending review, 1 archived</p>
+    </div>
+    <button class="btn-list" type="button">
+      <app-icon name="plus" [size]="16" />
+      List new toy
+    </button>
+  </div>
+
+  <app-filter-tabs [tabs]="tabs" [active]="activeTab()" (tabChange)="activeTab.set($event)" />
+
+  <div class="toys-table">
+    <div class="toys-table__header">
+      <span class="col col--toy">Toy</span>
+      <span class="col col--status">Status</span>
+      <span class="col col--price">Price / day</span>
+      <span class="col col--views">Views</span>
+      <span class="col col--bookings">Bookings</span>
+      <span class="col col--actions">Actions</span>
+    </div>
+
+    @for (toy of toys(); track toy.id) {
+      <div class="toys-table__row" [class.toys-table__row--archived]="toy.status === 'Archived'">
+        <div class="col col--toy toy-cell">
+          <img [src]="toy.imageUrl" [alt]="toy.title" class="toy-cell__thumb" loading="lazy" />
+          <div>
+            <div class="toy-cell__title">{{ toy.title }}</div>
+            <div class="toy-cell__meta">
+              {{ toy.age }}
+              @if (toy.rating) {
+                · ★ {{ toy.rating }}
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="col col--status">
+          <app-status-badge [status]="toy.status" />
+        </div>
+
+        <div class="col col--price price-col">₽{{ toy.pricePerDay.toLocaleString() }}</div>
+
+        <div class="col col--views views-col">{{ toy.views }}</div>
+
+        <div class="col col--bookings" [class.bookings-col--has]="toy.bookings > 0">
+          {{ toy.bookings }}
+        </div>
+
+        <div class="col col--actions actions-col">
+          <button class="action-btn action-btn--edit" type="button">Edit</button>
+          <button
+            class="action-btn"
+            [class.action-btn--restore]="toy.status === 'Archived'"
+            [class.action-btn--archive]="toy.status !== 'Archived'"
+            type="button"
+          >
+            {{ toy.status === 'Archived' ? 'Restore' : 'Archive' }}
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</app-dashboard-shell>

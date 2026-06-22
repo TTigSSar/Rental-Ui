@@ -44,12 +44,12 @@ export const ApiContract = {
       `/api/bookings/${encodeURIComponent(bookingId)}/approve`,
     reject: (bookingId: string): ApiPath =>
       `/api/bookings/${encodeURIComponent(bookingId)}/reject`,
-    returnMark: (bookingId: string): ApiPath =>
-      `/api/bookings/${encodeURIComponent(bookingId)}/return/mark`,
-    returnConfirm: (bookingId: string): ApiPath =>
-      `/api/bookings/${encodeURIComponent(bookingId)}/return/confirm`,
-    returnUndo: (bookingId: string): ApiPath =>
-      `/api/bookings/${encodeURIComponent(bookingId)}/return/undo`,
+    cancel: (bookingId: string): ApiPath =>
+      `/api/bookings/${encodeURIComponent(bookingId)}/cancel`,
+    activate: (bookingId: string): ApiPath =>
+      `/api/bookings/${encodeURIComponent(bookingId)}/activate`,
+    complete: (bookingId: string): ApiPath =>
+      `/api/bookings/${encodeURIComponent(bookingId)}/complete`,
   },
   adminListings: {
     pending: '/api/admin/listings/pending',
@@ -67,6 +67,8 @@ export const ApiContract = {
   users: {
     publicProfile: (userId: string): ApiPath =>
       `/api/users/${encodeURIComponent(userId)}/public-profile`,
+    listings: (userId: string): ApiPath =>
+      `/api/users/${encodeURIComponent(userId)}/listings`,
   },
   reviews: {
     submitToy: '/api/reviews/toy',

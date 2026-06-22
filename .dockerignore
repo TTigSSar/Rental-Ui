@@ -19,6 +19,7 @@ dist/
 # CI & AI context (not needed for the build)
 .github/
 .ai-context/
+.claude/
 
 # Docker files themselves
 Dockerfile

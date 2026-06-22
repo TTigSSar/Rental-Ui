@@ -101,22 +101,58 @@
   opacity: 0.3;
 }
 
-/* ── Age range pill overlay (Direction A — image bottom-left) */
-.listing-card__age-pill {
+/* ── Availability status badge (image top-left) ─────────── */
+.listing-card__status-badge {
+  position: absolute;
+  top: var(--ui-space-8);
+  left: var(--ui-space-8);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: var(--ui-radius-pill);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.listing-card__status-badge--available {
+  background: rgba(31, 138, 76, 0.9);
+  color: #fff;
+}
+
+.listing-card__status-badge--rented {
+  background: rgba(24, 26, 36, 0.8);
+  color: #fff;
+}
+
+.listing-card__status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+/* ── Age range badge (image bottom-left) ─────────────────── */
+.listing-card__age-badge {
   position: absolute;
   bottom: var(--ui-space-8);
   left: var(--ui-space-8);
-  padding: 3px 8px;
+  z-index: 1;
+  padding: 3px 9px;
   border-radius: var(--ui-radius-pill);
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   font-size: 0.6875rem;
   font-weight: 600;
-  line-height: 1.3;
-  color: var(--ui-color-text-primary);
-  pointer-events: none;
-  box-shadow: 0 1px 4px rgba(16, 18, 30, 0.1);
+  background: rgba(24, 26, 36, 0.55);
+  color: #fff;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  line-height: 1.4;
 }
 
 /* ── Favorite button overlay (Direction A — image top-right) */

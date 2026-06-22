@@ -9,6 +9,12 @@ export interface ReviewComment {
   readonly comment: string;
   readonly rentedDays: number;
   readonly createdAt: string;
+  /** 1–5 star score — included when visible to the reader (e.g. profile pages) */
+  readonly overallRating?: number | null;
+  /** Title of the toy that was rented */
+  readonly rentedItemTitle?: string | null;
+  /** Short behavioural tag, e.g. "On time", "Returned clean", "Great comms" */
+  readonly highlight?: string | null;
 }
 
 export interface ToyReviewSummary {

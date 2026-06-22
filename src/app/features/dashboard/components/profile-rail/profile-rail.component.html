@@ -1,0 +1,94 @@
+<aside class="rail">
+  <!-- Identity card -->
+  <div class="rail__identity">
+    <div class="rail__avatar-wrap">
+      <img
+        src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120&h=120&fit=crop&crop=face"
+        alt="Anna Sargsyan"
+        class="rail__avatar"
+      />
+      <span class="rail__camera-badge">
+        <app-icon name="camera" [size]="11" />
+      </span>
+    </div>
+    <div class="rail__name-row">
+      <span class="rail__name">Anna Sargsyan</span>
+      <svg class="rail__verified" viewBox="0 0 24 24" width="16" height="16">
+        <circle cx="12" cy="12" r="10" fill="#0E8A5F"/>
+        <polyline points="9 12 11 14 15 10" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <p class="rail__location">Yerevan · Member since 2024</p>
+    <div class="rail__stars">
+      @for (i of [1,2,3,4,5]; track i) {
+        <svg viewBox="0 0 24 24" width="13" height="13" [attr.fill]="i <= 5 ? '#F59E0B' : '#E5E7EB'" stroke="none">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+      }
+      <span class="rail__rating">4.9</span>
+      <span class="rail__rating-count">(24)</span>
+    </div>
+    <div class="rail__stats">
+      <div class="rail__stat">
+        <span class="rail__stat-value">5</span>
+        <span class="rail__stat-label">Listings</span>
+      </div>
+      <div class="rail__stat">
+        <span class="rail__stat-value">11</span>
+        <span class="rail__stat-label">Rentals</span>
+      </div>
+      <div class="rail__stat">
+        <span class="rail__stat-value">₽38k</span>
+        <span class="rail__stat-label">Earned</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <nav class="rail__nav">
+    @for (item of navItems; track item.key) {
+      <a
+        class="rail__nav-item"
+        [class.rail__nav-item--active]="active() === item.key"
+        [routerLink]="item.route"
+      >
+        <span class="rail__nav-icon" [class.rail__nav-icon--active]="active() === item.key">
+          <app-icon [name]="item.icon" [size]="15" />
+        </span>
+        <span class="rail__nav-label">{{ item.label }}</span>
+        @if (item.count) {
+          <span class="rail__nav-badge" [class.rail__nav-badge--alert]="item.key === 'incoming-requests'">{{ item.count }}</span>
+        }
+        @if (item.suffix) {
+          <span class="rail__nav-suffix">{{ item.suffix }}</span>
+        }
+      </a>
+    }
+  </nav>
+
+  <div class="rail__divider"></div>
+
+  <!-- Settings -->
+  <nav class="rail__settings">
+    <a class="rail__settings-item" href="#">
+      <app-icon name="dollar" [size]="15" />
+      <span>Earnings &amp; payouts</span>
+      <app-icon name="chevron-right" [size]="14" />
+    </a>
+    <a class="rail__settings-item" href="#">
+      <app-icon name="shield" [size]="15" />
+      <span class="rail__settings-item-label">Verification &amp; ID</span>
+      <span class="rail__verified-badge">Verified</span>
+      <app-icon name="chevron-right" [size]="14" />
+    </a>
+    <a class="rail__settings-item" href="#">
+      <app-icon name="bell" [size]="15" />
+      <span>Notifications</span>
+      <app-icon name="chevron-right" [size]="14" />
+    </a>
+    <button class="rail__signout" type="button">
+      <app-icon name="log-out" [size]="15" />
+      Sign out
+    </button>
+  </nav>
+</aside>

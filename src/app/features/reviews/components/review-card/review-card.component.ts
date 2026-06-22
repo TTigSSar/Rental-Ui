@@ -9,7 +9,7 @@ interface RelativeDateI18n {
   readonly params: Record<string, unknown>;
 }
 
-// Public comment card. Carries no per-review score — scores are private.
+// Public comment card. overallRating is optional — shown when the API provides it.
 @Component({
   selector: 'app-review-card',
   standalone: true,
@@ -20,6 +20,7 @@ interface RelativeDateI18n {
 })
 export class ReviewCardComponent {
   readonly review = input.required<ReviewComment>();
+  protected readonly stars = [1, 2, 3, 4, 5];
 
   protected readonly reviewerName = computed(() => {
     const r = this.review();

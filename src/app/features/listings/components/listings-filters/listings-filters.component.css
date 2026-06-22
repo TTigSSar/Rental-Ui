@@ -38,7 +38,7 @@
   height: 1.125rem;
   padding: 0 3px;
   border-radius: 50%;
-  background: var(--color-text-secondary);
+  background: var(--ui-color-text-secondary);
   color: #fff;
   font-size: 0.625rem;
   font-weight: 700;

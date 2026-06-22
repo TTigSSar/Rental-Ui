@@ -1,6 +1,6 @@
 <div class="pub-profile">
 
-  <!-- ── Sticky top bar ──────────────────────────────────────────────────── -->
+  <!-- ── Sticky top bar (mobile) ────────────────────────────────────────────── -->
   <header class="pub-profile__header">
     <button
       type="button"
@@ -10,28 +10,29 @@
     >
       <i class="pi pi-arrow-left" aria-hidden="true"></i>
     </button>
-    <h1 class="pub-profile__title">{{ 'publicProfile.title' | translate }}</h1>
+    <h1 class="pub-profile__header-title">{{ 'publicProfile.title' | translate }}</h1>
   </header>
 
-  <!-- ── Loading skeleton ────────────────────────────────────────────────── -->
+  <!-- ── Loading skeleton ────────────────────────────────────────────────────── -->
   @if (showSkeleton()) {
     <div class="pub-profile__skeleton-band">
       <div class="pub-profile__skeleton-identity page-container">
-        <p-skeleton width="72px" height="72px" shape="circle" />
+        <p-skeleton width="88px" height="88px" shape="circle" />
         <div class="pub-profile__skeleton-info">
-          <p-skeleton width="9rem" height="1.125rem" />
+          <p-skeleton width="10rem" height="1.25rem" />
           <p-skeleton width="7rem" height="0.875rem" />
+          <p-skeleton width="9rem" height="0.875rem" />
         </div>
       </div>
       <div class="pub-profile__skeleton-content page-container">
-        @for (i of [0, 1, 2]; track i) {
-          <p-skeleton height="5rem" borderRadius="16px" />
+        @for (i of [0, 1, 2, 3]; track i) {
+          <p-skeleton height="4rem" borderRadius="14px" />
         }
       </div>
     </div>
   }
 
-  <!-- ── Error state ──────────────────────────────────────────────────────── -->
+  <!-- ── Error state ──────────────────────────────────────────────────────────── -->
   @if (showError()) {
     <div class="pub-profile__error page-container" role="alert">
       <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
@@ -44,84 +45,349 @@
     </div>
   }
 
-  <!-- ── Content (profile loaded) ────────────────────────────────────────── -->
+  <!-- ── Content (profile loaded) ────────────────────────────────────────────── -->
   @if (profile(); as owner) {
 
-    <!-- Identity band: full-width white surface -->
+    <!-- ── Identity band ──────────────────────────────────────────────────────── -->
     <div class="pub-profile__identity">
       <div class="pub-profile__identity-inner page-container">
-        @if (owner.avatarUrl) {
-          <img
-            class="pub-profile__avatar-img"
-            [src]="owner.avatarUrl"
-            [alt]="displayName()"
-          />
-        } @else {
-          <div class="pub-profile__avatar-fallback" aria-hidden="true">
-            {{ initials() }}
-          </div>
-        }
+
+        <!-- Avatar with verified checkmark -->
+        <div class="pub-profile__avatar-wrap">
+          @if (owner.avatarUrl) {
+            <img class="pub-profile__avatar-img" [src]="owner.avatarUrl" [alt]="displayName()" />
+          } @else {
+            <div class="pub-profile__avatar-fallback" aria-hidden="true">{{ initials() }}</div>
+          }
+          @if (owner.isVerified) {
+            <span class="pub-profile__avatar-check" aria-hidden="true">
+              <i class="pi pi-check"></i>
+            </span>
+          }
+        </div>
+
+        <!-- Name + meta -->
         <div class="pub-profile__owner-info">
-          <h2 class="pub-profile__owner-name">{{ displayName() }}</h2>
-          <p class="pub-profile__owner-meta">
-            {{ 'publicProfile.memberSince' | translate: { year: memberYear() } }}
-            @if (owner.activeListingsCount > 0) {
-              <span aria-hidden="true"> · </span>{{ 'publicProfile.activeListings' | translate: { count: owner.activeListingsCount } }}
+          <div class="pub-profile__name-row">
+            <h2 class="pub-profile__owner-name">{{ displayName() }}</h2>
+            @if (owner.isVerified) {
+              <span class="pub-profile__verified-badge" aria-label="{{ 'publicProfile.verifiedBadgeAria' | translate }}">
+                <i class="pi pi-check-circle"></i>
+              </span>
             }
-          </p>
+          </div>
+
+          <div class="pub-profile__meta-row">
+            @if (owner.location) {
+              <span class="pub-profile__meta-item">
+                <i class="pi pi-map-marker" aria-hidden="true"></i>
+                {{ owner.location }}
+              </span>
+            }
+            <span class="pub-profile__meta-item pub-profile__meta-sep" aria-hidden="true">·</span>
+            <span class="pub-profile__meta-item">{{ 'publicProfile.since' | translate }} {{ memberYear() }}</span>
+          </div>
+
+          @if (owner.averageRating > 0) {
+            <div class="pub-profile__trust-row">
+              <i class="pi pi-star-fill pub-profile__trust-star" aria-hidden="true"></i>
+              <span class="pub-profile__trust-score">{{ owner.averageRating | number:'1.1-1' }}</span>
+              <span class="pub-profile__trust-label">{{ 'publicProfile.overallTrust' | translate }}</span>
+              <span class="pub-profile__trust-sep" aria-hidden="true">·</span>
+              <span class="pub-profile__trust-reviews">{{ owner.reviewCount }} {{ 'publicProfile.reviews' | translate }}</span>
+            </div>
+          }
+
+          <div class="pub-profile__badges-row">
+            @if (owner.isVerified) {
+              <span class="pub-profile__badge pub-profile__badge--verified">
+                <i class="pi pi-check-circle" aria-hidden="true"></i>
+                {{ 'publicProfile.verifiedUser' | translate }}
+              </span>
+            }
+            @if (owner.isIdConfirmed) {
+              <span class="pub-profile__badge pub-profile__badge--id">
+                <i class="pi pi-id-card" aria-hidden="true"></i>
+                {{ 'publicProfile.idConfirmed' | translate }}
+              </span>
+            }
+            @if (owner.isEmailPhoneConfirmed) {
+              <span class="pub-profile__badge pub-profile__badge--contact">
+                <i class="pi pi-envelope" aria-hidden="true"></i>
+                {{ 'publicProfile.emailPhone' | translate }}
+              </span>
+            }
+          </div>
+        </div>
+
+        <!-- Desktop CTA (hidden on mobile) -->
+        @if (userIdSignal(); as uid) {
+          <a
+            class="pub-profile__desktop-cta"
+            [routerLink]="['/users', uid, 'listings']"
+          >
+            <i class="pi pi-th-large" aria-hidden="true"></i>
+            {{ 'publicProfile.viewAllToys' | translate }}
+          </a>
+        }
+      </div>
+    </div>
+
+    <!-- ── Mobile CTA ──────────────────────────────────────────────────────────── -->
+    @if (userIdSignal(); as uid) {
+      <div class="pub-profile__mobile-cta">
+        <a class="pub-profile__mobile-cta-btn" [routerLink]="['/users', uid, 'listings']">
+          <i class="pi pi-th-large" aria-hidden="true"></i>
+          {{ 'publicProfile.viewAllToys' | translate }}
+        </a>
+      </div>
+    }
+
+    <!-- ── Tab switcher ────────────────────────────────────────────────────────── -->
+    <div class="pub-profile__tabs-wrap">
+      <div class="pub-profile__tabs page-container">
+        <div class="pub-profile__tabs-track" role="tablist">
+          <button
+            type="button"
+            class="pub-profile__tab"
+            [class.pub-profile__tab--active]="activeTab() === 'owner'"
+            (click)="setTab('owner')"
+            [attr.aria-selected]="activeTab() === 'owner'"
+            role="tab"
+          >
+            <span class="pub-profile__tab-main">{{ 'publicProfile.asOwner' | translate }}</span>
+            <span class="pub-profile__tab-sub">{{ 'publicProfile.rentingFrom' | translate: { name: firstName() } }}</span>
+          </button>
+          <button
+            type="button"
+            class="pub-profile__tab"
+            [class.pub-profile__tab--active]="activeTab() === 'renter'"
+            (click)="setTab('renter')"
+            [attr.aria-selected]="activeTab() === 'renter'"
+            role="tab"
+          >
+            <span class="pub-profile__tab-main">{{ 'publicProfile.asRenter' | translate }}</span>
+            <span class="pub-profile__tab-sub">{{ 'publicProfile.lendingTo' | translate: { name: firstName() } }}</span>
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Page content -->
-    <div class="pub-profile__content page-container">
+    <!-- ── Main body: left + right columns ────────────────────────────────────── -->
+    <div class="pub-profile__body page-container">
 
-      <!-- Rating summary — only when reviews exist -->
-      @if (ratingSummary(); as summary) {
-        @if (summary.reviewCount > 0) {
-          <section class="pub-profile__section">
-            <h3 class="pub-profile__section-title">
-              {{ 'publicProfile.ratingHeading' | translate }}
-            </h3>
-            <app-rating-summary [summary]="summary" variant="full" />
-          </section>
-        }
-      }
+      <!-- LEFT COLUMN -->
+      <div class="pub-profile__left">
 
-      <!-- Reviews received -->
-      <section class="pub-profile__section">
-        <h3 class="pub-profile__section-title">
-          {{ 'publicProfile.reviewsHeading' | translate }}
-          @if (ratingSummary(); as summary) {
-            @if (summary.reviewCount > 0) {
-              <span class="pub-profile__reviews-count">({{ summary.reviewCount }})</span>
+        @if (activeTab() === 'owner') {
+
+          <!-- Owner rating card -->
+          <div class="pub-profile__rating-card">
+            <div class="pub-profile__rating-score">
+              {{ (owner.ownerRating ?? owner.averageRating) | number:'1.1-1' }}
+            </div>
+            <div class="pub-profile__rating-info">
+              <strong class="pub-profile__rating-title">{{ 'publicProfile.ownerRating' | translate }}</strong>
+              <p class="pub-profile__rating-sub">
+                {{ 'publicProfile.ratingBasedOn' | translate: { count: ownerReviewCount() } }}
+              </p>
+              <div class="pub-profile__rating-stars" aria-hidden="true">
+                @for (star of [1,2,3,4,5]; track star) {
+                  <span class="pub-profile__rating-star" [class.pub-profile__rating-star--filled]="star <= (owner.ownerRating ?? owner.averageRating)">★</span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Owner stats row -->
+          <div class="pub-profile__stats-row">
+            <div class="pub-profile__stat">
+              <span class="pub-profile__stat-value">{{ owner.completedRentalsAsOwner }}</span>
+              <span class="pub-profile__stat-label">{{ 'publicProfile.completedRentals' | translate }}</span>
+            </div>
+            @if (owner.responseRate !== null) {
+              <div class="pub-profile__stat pub-profile__stat--accent">
+                <span class="pub-profile__stat-value">{{ owner.responseRate }}%</span>
+                <span class="pub-profile__stat-label">{{ 'publicProfile.responseRate' | translate }}</span>
+              </div>
             }
+            @if (owner.hygieneScore !== null) {
+              <div class="pub-profile__stat">
+                <span class="pub-profile__stat-value">{{ owner.hygieneScore | number:'1.1-1' }}</span>
+                <span class="pub-profile__stat-label">{{ 'publicProfile.hygieneScore' | translate }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- Hygiene & safety standards -->
+          @if (owner.hygieneStandards.length > 0) {
+            <section class="pub-profile__section">
+              <h3 class="pub-profile__section-title">{{ 'publicProfile.hygieneTitle' | translate }}</h3>
+              <div class="pub-profile__standards-list">
+                @for (std of owner.hygieneStandards; track std.id) {
+                  <div class="pub-profile__standard-item">
+                    <span class="pub-profile__standard-icon-wrap pub-profile__standard-icon-wrap--{{ std.iconKey }}">
+                      <i [class]="getHygieneIcon(std.iconKey)" aria-hidden="true"></i>
+                    </span>
+                    <span class="pub-profile__standard-label">{{ std.label }}</span>
+                    @if (std.met) {
+                      <i class="pi pi-check pub-profile__standard-check" aria-hidden="true"></i>
+                    }
+                  </div>
+                }
+              </div>
+            </section>
           }
-        </h3>
 
-        @if (reviewsLoading()) {
-          <div class="pub-profile__reviews-skeleton">
-            @for (i of [0, 1, 2]; track i) {
-              <p-skeleton height="5.25rem" borderRadius="16px" />
-            }
-          </div>
-        } @else if (reviewsError()) {
-          <p class="pub-profile__reviews-error" role="alert">
-            {{ 'publicProfile.reviewsError' | translate }}
-          </p>
-        } @else if (reviews().length === 0) {
-          <p class="pub-profile__reviews-empty">
-            {{ 'publicProfile.reviewsEmpty' | translate }}
-          </p>
         } @else {
-          <div class="pub-profile__reviews-list">
-            @for (review of reviews(); track review.id) {
-              <app-review-card [review]="review" />
-            }
+          
+          <!-- Renter rating card -->
+          <div class="pub-profile__rating-card">
+            <div class="pub-profile__rating-score">
+              {{ (owner.renterRating ?? owner.averageRating) | number:'1.1-1' }}
+            </div>
+            <div class="pub-profile__rating-info">
+              <strong class="pub-profile__rating-title">{{ 'publicProfile.renterRating' | translate }}</strong>
+              <p class="pub-profile__rating-sub">
+                {{ 'publicProfile.ratingBasedOn' | translate: { count: renterReviewCount() } }}
+              </p>
+              <div class="pub-profile__rating-stars" aria-hidden="true">
+                @for (star of [1,2,3,4,5]; track star) {
+                  <span class="pub-profile__rating-star" [class.pub-profile__rating-star--filled]="star <= (owner.renterRating ?? owner.averageRating)">★</span>
+                }
+              </div>
+            </div>
           </div>
-        }
-      </section>
 
+          <!-- Renter stats row -->
+          <div class="pub-profile__stats-row">
+            <div class="pub-profile__stat">
+              <span class="pub-profile__stat-value">{{ owner.completedRentalsAsRenter }}</span>
+              <span class="pub-profile__stat-label">{{ 'publicProfile.completedRentals' | translate }}</span>
+            </div>
+            @if (owner.onTimeReturnRate !== null) {
+              <div class="pub-profile__stat pub-profile__stat--accent">
+                <span class="pub-profile__stat-value">{{ owner.onTimeReturnRate }}%</span>
+                <span class="pub-profile__stat-label">{{ 'publicProfile.onTimeReturn' | translate }}</span>
+              </div>
+            }
+            <div class="pub-profile__stat">
+              <span class="pub-profile__stat-value">{{ owner.damageClaims }}</span>
+              <span class="pub-profile__stat-label">{{ 'publicProfile.damageClaims' | translate }}</span>
+            </div>
+          </div>
+
+          <!-- Reliability summary -->
+          @if (owner.reliabilityMetrics.length > 0) {
+            <section class="pub-profile__section">
+              <h3 class="pub-profile__section-title">{{ 'publicProfile.reliabilityTitle' | translate }}</h3>
+              <div class="pub-profile__metrics-list">
+                @for (metric of owner.reliabilityMetrics; track metric.id) {
+                  <div class="pub-profile__metric">
+                    <div class="pub-profile__metric-header">
+                      <span class="pub-profile__metric-label">{{ metric.label }}</span>
+                      <span class="pub-profile__metric-value">{{ metric.value }}%</span>
+                    </div>
+                    <div class="pub-profile__metric-bar">
+                      <div
+                        class="pub-profile__metric-fill"
+                        [style.width.%]="metric.value"
+                      ></div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+        }
+      </div>
+
+      <!-- RIGHT COLUMN: Reviews -->
+      <div class="pub-profile__right">
+        <div class="pub-profile__reviews-header">
+          <h3 class="pub-profile__section-title">
+            {{ activeTab() === 'owner'
+                ? ('publicProfile.reviewsFromRenters' | translate)
+                : ('publicProfile.reviewsFromOwners' | translate) }}
+          </h3>
+          @if (activeReviewCount() > 0) {
+            <a
+              class="pub-profile__see-all"
+              [routerLink]="['/users', userIdSignal(), 'reviews']"
+              [queryParams]="{ tab: activeTab() }"
+            >
+              {{ 'publicProfile.seeAll' | translate: { count: activeReviewCount() } }}
+            </a>
+          }
+        </div>
+
+        @if (activeTab() === 'owner') {
+          @if (ownerReviewsLoading()) {
+            <div class="pub-profile__reviews-skeleton">
+              @for (i of [0, 1]; track i) {
+                <p-skeleton height="7rem" borderRadius="16px" />
+              }
+            </div>
+          } @else if (ownerReviews().length > 0) {
+            <div class="pub-profile__reviews-grid">
+              @for (review of ownerReviews() | slice:0:4; track review.id) {
+                <app-review-card [review]="review" />
+              }
+            </div>
+          } @else {
+            <p class="pub-profile__reviews-empty">{{ 'publicProfile.reviewsEmpty' | translate }}</p>
+          }
+        } @else {
+          @if (renterReviewsLoading()) {
+            <div class="pub-profile__reviews-skeleton">
+              @for (i of [0, 1]; track i) {
+                <p-skeleton height="7rem" borderRadius="16px" />
+              }
+            </div>
+          } @else if (renterReviews().length > 0) {
+            <div class="pub-profile__reviews-grid">
+              @for (review of renterReviews() | slice:0:4; track review.id) {
+                <app-review-card [review]="review" />
+              }
+            </div>
+          } @else {
+            <p class="pub-profile__reviews-empty">{{ 'publicProfile.reviewsEmpty' | translate }}</p>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- ── Posted items ─────────────────────────────────────────────────────────── -->
+    <div class="pub-profile__listings-section page-container">
+      <div class="pub-profile__listings-header">
+        <h3 class="pub-profile__section-title">{{ 'publicProfile.postedItems' | translate }}</h3>
+        @if (userIdSignal(); as uid) {
+          <a class="pub-profile__see-all" [routerLink]="['/users', uid, 'listings']">
+            {{ 'publicProfile.viewAll' | translate }}
+          </a>
+        }
+      </div>
+
+      @if (userListingsLoading()) {
+        <div class="pub-profile__listings-skeleton">
+          @for (i of [0, 1, 2, 3]; track i) {
+            <p-skeleton height="11rem" borderRadius="14px" />
+          }
+        </div>
+      } @else if ((userListings()?.length ?? 0) > 0) {
+        <div class="pub-profile__listings-grid">
+          @for (listing of (userListings() ?? []) | slice:0:4; track listing.id) {
+            <app-listing-card [listing]="listing" />
+          }
+        </div>
+        @if (listingCount() > 4 && userIdSignal(); as uid) {
+          <a class="pub-profile__view-all-btn" [routerLink]="['/users', uid, 'listings']">
+            {{ 'publicProfile.viewAllCount' | translate: { count: listingCount() } }}
+          </a>
+        }
+      } @else {
+        <p class="pub-profile__reviews-empty">{{ 'publicProfile.noListings' | translate }}</p>
+      }
     </div>
   }
 

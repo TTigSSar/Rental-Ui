@@ -2,6 +2,7 @@ export type BookingStatus =
   | 'PendingApproval'
   | 'Pending'
   | 'Approved'
+  | 'Active'
   | 'ReturnMarked'
   | 'Rejected'
   | 'Archived'
@@ -34,6 +35,8 @@ export interface MyBooking {
   listingId: string;
   listingTitle: string;
   listingPrimaryImageUrl: string | null;
+  ownerFirstName: string;
+  ownerLastName: string;
   startDate: string;
   endDate: string;
   totalPrice: number;
@@ -64,12 +67,10 @@ export interface BookingDetail {
   endDate: string;
   createdAt: string | null;
   approvedAt: string | null;
-  returnMarkedAt: string | null;
+  activeAt: string | null;
   completedAt: string | null;
   expiresAt: string | null;
   rejectionReason: string | null;
-  returnInitiatedBy: BookingParty | null;
-  completedVia: CompletionMethod | null;
   counterpartyId: string;
   counterpartyFirstName: string;
   counterpartyLastName: string;

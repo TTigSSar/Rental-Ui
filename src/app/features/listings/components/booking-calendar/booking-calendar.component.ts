@@ -98,6 +98,7 @@ export class BookingCalendarComponent {
   readonly bookedDates = input.required<BookedDateRange[]>();
   readonly pricePerDay = input.required<number>();
   readonly value = input<Date[] | null>(null);
+  readonly disabled = input<boolean>(false);
 
   @Output() readonly dateRangeSelected = new EventEmitter<{
     startDate: Date | null;

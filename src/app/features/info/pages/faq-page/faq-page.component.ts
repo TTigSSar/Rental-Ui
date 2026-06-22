@@ -31,12 +31,6 @@ const FAQ_GROUPS: readonly FaqGroup[] = [
           'Use the search bar on the homepage to find toys by name. On the Browse Toys page you can also filter by category, price range, and age suitability. Browse curated sections like "Popular Toys" and "Most Recent" on the home page.',
       },
       {
-        id: 'r3',
-        question: 'Is there a deposit?',
-        answer:
-          'Some owners choose to set an optional deposit to cover potential damage or loss. If a deposit is required, it will be clearly shown on the toy listing page. Deposits are agreed between the two parties directly.',
-      },
-      {
         id: 'r4',
         question: 'How does pickup and return work?',
         answer:
@@ -64,7 +58,7 @@ const FAQ_GROUPS: readonly FaqGroup[] = [
         id: 'l3',
         question: 'Can I set my own price?',
         answer:
-          'Yes. You choose the daily rental price. You can also optionally set a deposit amount. We recommend pricing that reflects the toy\'s value and condition.',
+          'Yes. You choose the daily rental price. We recommend pricing that reflects the toy\'s value and condition.',
       },
       {
         id: 'l4',
@@ -100,19 +94,13 @@ const FAQ_GROUPS: readonly FaqGroup[] = [
   },
   {
     id: 'payments',
-    heading: 'Payments & Deposits',
+    heading: 'Payments',
     items: [
       {
         id: 'p1',
         question: 'How do payments work?',
         answer:
-          'At this stage of the platform, payments and deposits are handled directly between the renting family and the listing owner. The platform does not process any financial transactions. Always agree on the amount and method before pickup.',
-      },
-      {
-        id: 'p2',
-        question: 'What is the deposit for?',
-        answer:
-          'An optional deposit set by the owner acts as security against damage or non-return of the toy. It is returned to the renter after the toy comes back in agreed condition. The terms of the deposit are between the two parties.',
+          'At this stage of the platform, payments are handled directly between the renting family and the listing owner. The platform does not process any financial transactions. Always agree on the amount and method before pickup.',
       },
     ],
   },

@@ -76,13 +76,6 @@
             'admin.pendingListings.card.pricePerDay'
               | translate : { amount: listing().pricePerDay | currency }
           }}
-          @if (listing().depositAmount !== null) {
-            &nbsp;·&nbsp;
-            {{
-              'admin.pendingListings.card.depositAmount'
-                | translate : { amount: listing().depositAmount | currency }
-            }}
-          }
         </dd>
       </div>
 

@@ -1,63 +1,16 @@
-.my-booking-card__header {
+.mbc {
   display: flex;
-  align-items: flex-start;
-  gap: var(--ui-space-12, 12px);
-}
-
-.my-booking-card__thumb {
-  width: 64px;
-  height: 64px;
-  flex-shrink: 0;
-  border-radius: var(--ui-radius-md, 8px);
-  object-fit: cover;
-
-  &--placeholder {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--ui-color-surface-muted);
-    color: var(--ui-color-text-secondary);
-    font-size: 1.25rem;
-  }
-}
-
-.my-booking-card__top {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--ui-space-8);
-}
-
-.my-booking-card__title {
-  margin: 0;
-  font-size: var(--ui-font-size-h3);
-  font-weight: 600;
-  line-height: 1.35;
-}
-
-.my-booking-card__line {
-  margin: var(--ui-space-6) 0 0;
-  color: var(--ui-color-text-secondary);
-  font-size: var(--ui-font-size-caption);
-}
-
-.my-booking-card__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--ui-space-8);
-  flex-wrap: wrap;
-}
-
-.my-booking-card-link {
-  display: block;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: 16px;
   cursor: pointer;
-  border-radius: var(--ui-radius-lg, 12px);
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  transition: background 0.12s, box-shadow 0.12s;
 
   &:hover {
-    transform: translateY(-2px);
+    background: var(--ui-color-surface-muted);
   }
 
   &:focus-visible {
@@ -66,19 +19,165 @@
   }
 }
 
-.my-booking-card__review-badge {
-  display: inline-flex;
-  margin-top: var(--ui-space-8);
+.mbc__img {
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  border-radius: 12px;
+  object-fit: cover;
+
+  &--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ui-color-surface-muted);
+    color: var(--ui-color-text-hint);
+    font-size: 1.5rem;
+  }
 }
 
-.my-booking-card__progress {
-  display: block;
-  margin-top: var(--ui-space-12, 12px);
+.mbc__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.my-booking-card__hint {
-  margin: var(--ui-space-8) 0 0;
-  color: var(--ui-color-primary);
-  font-size: var(--ui-font-size-caption);
+.mbc__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mbc__title {
+  margin: 0;
+  font-size: 15px;
   font-weight: 600;
+  color: var(--ui-color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mbc__dates {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--ui-color-text-secondary);
+
+  .pi {
+    font-size: 12px;
+  }
+}
+
+.mbc__owner {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--ui-color-text-hint);
+
+  .pi {
+    font-size: 11px;
+  }
+}
+
+.mbc__pricing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 80px;
+  text-align: right;
+}
+
+.mbc__price {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ui-color-text-primary);
+}
+
+.mbc__urgency {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ui-color-primary);
+
+  &--danger {
+    color: var(--ui-color-danger);
+  }
+}
+
+.mbc__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.mbc__btn-manage {
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: var(--ui-color-text-primary);
+  color: #fff;
+  border: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.12s;
+
+  &:hover {
+    opacity: 0.82;
+  }
+}
+
+.mbc__btn-message {
+  padding: 7px 14px;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ui-color-text-secondary);
+  border: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.12s;
+
+  &:hover:not([disabled]) {
+    background: var(--ui-color-surface-muted);
+  }
+
+  &[disabled] {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+/* Compact on small screens */
+@media (max-width: 560px) {
+  .mbc {
+    flex-wrap: wrap;
+  }
+
+  .mbc__pricing {
+    order: 3;
+    min-width: auto;
+    flex: 1;
+    align-items: flex-start;
+  }
+
+  .mbc__actions {
+    order: 4;
+    flex-direction: row;
+    width: 100%;
+    justify-content: flex-end;
+  }
 }

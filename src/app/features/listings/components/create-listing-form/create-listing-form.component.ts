@@ -134,7 +134,6 @@ export class CreateListingFormComponent {
       condition:     this.fb.nonNullable.control<'' | ConditionChip['value']>(''),
       hygieneNotes:  this.fb.nonNullable.control(''),
       safetyNotes:   this.fb.nonNullable.control(''),
-      depositAmount: this.fb.control<number | null>(null, [Validators.min(0)]),
     },
     { validators: ageRangeValidator },
   );
@@ -376,7 +375,6 @@ if (valid) {
       condition:     raw.condition === '' ? null : raw.condition,
       hygieneNotes,
       safetyNotes:   this.toNullStr(raw.safetyNotes),
-      depositAmount: raw.depositAmount,
     };
 
     this.submitted.emit({ payload, files: this.selectedFiles });

@@ -46,6 +46,22 @@ export const selectOwnerReviewsLoading = (userId: string) =>
 export const selectOwnerReviewsError = (userId: string) =>
   createSelector(selectOwnerEntry(userId), (e): string | null => e.error);
 
+// ── Renter reviews ──────────────────────────────────────────────────────────────
+const selectRenterEntry = (userId: string) =>
+  createSelector(
+    selectReviewsState,
+    (s): AsyncEntry<OwnerReviewSummary> => s.renterReviews[userId] ?? emptyEntry(),
+  );
+
+export const selectRenterReviews = (userId: string) =>
+  createSelector(selectRenterEntry(userId), (e): OwnerReviewSummary | null => e.data);
+
+export const selectRenterReviewsLoading = (userId: string) =>
+  createSelector(selectRenterEntry(userId), (e): boolean => e.isLoading);
+
+export const selectRenterReviewsError = (userId: string) =>
+  createSelector(selectRenterEntry(userId), (e): string | null => e.error);
+
 // ── Booking status ──────────────────────────────────────────────────────────────
 const selectBookingStatusEntry = (bookingId: string) =>
   createSelector(
