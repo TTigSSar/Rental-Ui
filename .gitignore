@@ -45,3 +45,6 @@ Thumbs.db
 
 # Claude Code local settings (machine-specific, not for version control)
 .claude/settings.local.json
+
+# Claude Code agent worktrees (transient, must never be committed to the main repo)
+.claude/worktrees/
