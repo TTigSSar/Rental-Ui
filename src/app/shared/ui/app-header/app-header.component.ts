@@ -1,0 +1,111 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  HostListener,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
+
+@Component({
+  selector: 'app-header',
+  standalone: true,
+  imports: [RouterLink, RouterLinkActive, TranslatePipe],
+  templateUrl: './app-header.component.html',
+  styleUrl: './app-header.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    role: 'banner',
+    '[class.nh--scrolled]': 'scrolled()',
+  },
+})
+export class AppHeaderComponent {
+  private readonly router = inject(Router);
+
+  readonly scrolled        = input(false);
+  readonly isAuthenticated = input(false);
+  readonly isAuthPending   = input(false);
+  readonly userDisplayName = input<string | null>(null);
+  readonly userInitials    = input<string | null>(null);
+  readonly unreadNotifCount = input(0);
+  readonly myToysCount     = input(0);
+  readonly myRentalsCount  = input(0);
+  readonly requestsCount   = input(0);
+  readonly savedCount      = input(0);
+
+  readonly signOutClick  = output<void>();
+  readonly openAuthClick = output<'login' | 'register'>();
+
+  protected readonly profileOpen  = signal(false);
+  protected readonly notifOpen    = signal(false);
+  protected readonly searchQuery  = signal('');
+
+  protected readonly userFirstName = computed(
+    () => (this.userDisplayName() ?? '').split(' ')[0] || ''
+  );
+
+  private profileCloseTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly notifMenuHost = viewChild<ElementRef<HTMLElement>>('notifMenuHost');
+
+  protected openProfileMenu(): void {
+    if (this.profileCloseTimer !== null) {
+      clearTimeout(this.profileCloseTimer);
+      this.profileCloseTimer = null;
+    }
+    this.notifOpen.set(false);
+    this.profileOpen.set(true);
+  }
+
+  protected scheduleCloseProfileMenu(): void {
+    this.profileCloseTimer = setTimeout(() => {
+      this.profileOpen.set(false);
+      this.profileCloseTimer = null;
+    }, 150);
+  }
+
+  protected toggleNotif(): void {
+    this.profileOpen.set(false);
+    this.notifOpen.update((open) => !open);
+  }
+
+  protected onSearchInput(event: Event): void {
+    this.searchQuery.set((event.target as HTMLInputElement).value);
+  }
+
+  protected onSearchSubmit(): void {
+    const q = this.searchQuery().trim();
+    void this.router.navigate(['/listings'], {
+      queryParams: { q: q || null },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  protected onSignOut(): void {
+    this.profileOpen.set(false);
+    this.signOutClick.emit();
+  }
+
+  protected onOpenAuth(mode: 'login' | 'register'): void {
+    this.openAuthClick.emit(mode);
+  }
+
+  protected closeProfile(): void {
+    this.profileOpen.set(false);
+  }
+
+  @HostListener('document:click', ['$event'])
+  protected onDocumentClick(event: MouseEvent): void {
+    const target = event.target as Node | null;
+    if (target === null) return;
+    const notifHost = this.notifMenuHost()?.nativeElement;
+    if (notifHost !== undefined && !notifHost.contains(target)) {
+      this.notifOpen.set(false);
+    }
+  }
+}

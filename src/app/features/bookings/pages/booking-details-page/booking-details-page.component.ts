@@ -19,6 +19,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 
 import { BookingProgressComponent } from '../../../../shared/ui/booking-progress/booking-progress.component';
 import { BookingStatusBadgeComponent } from '../../../../shared/ui/booking-status-badge/booking-status-badge.component';
+import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import type { BookingReviewStatus } from '../../../reviews/models/review.model';
 import { ReviewsApiService } from '../../../reviews/services/reviews-api.service';
 import * as BookingsActions from '../../store/bookings.actions';
@@ -59,6 +60,7 @@ interface TimelineItem {
     SkeletonModule,
     BookingProgressComponent,
     BookingStatusBadgeComponent,
+    PageHeaderComponent,
   ],
   templateUrl: './booking-details-page.component.html',
   styleUrl: './booking-details-page.component.scss',
@@ -217,10 +219,6 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.store.dispatch(BookingsActions.clearBookingDetail());
     this.store.dispatch(BookingsActions.clearCancelBookingState());
-  }
-
-  protected back(): void {
-    void this.router.navigate(['/bookings']);
   }
 
   protected retry(): void {

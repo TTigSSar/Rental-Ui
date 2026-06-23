@@ -166,7 +166,7 @@ export class AllReviewsPageComponent {
 
   protected readonly ownerBreakdown = computed(() => {
     const s = this.ownerSummary();
-    if (!s?.hasAggregate) return [];
+    if (!s) return [];
     return [
       { key: 'allReviews.breakdownCommunication', value: s.communicationAverage },
       { key: 'allReviews.breakdownPickup',        value: s.pickupHandoverAverage },
@@ -180,7 +180,7 @@ export class AllReviewsPageComponent {
   // friendlinessAverage → Care of toy
   protected readonly renterBreakdown = computed(() => {
     const s = this.renterSummary();
-    if (!s?.hasAggregate) return [];
+    if (!s) return [];
     return [
       { key: 'allReviews.breakdownCommunication',  value: s.communicationAverage },
       { key: 'allReviews.breakdownReturnedOnTime', value: s.pickupHandoverAverage },

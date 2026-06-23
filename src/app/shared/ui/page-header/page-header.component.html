@@ -3,13 +3,17 @@
     <p class="ph__eyebrow">{{ eyebrow() }}</p>
   }
   <div class="ph__row">
-    @if (backLink()) {
-      <a class="ph__back" [routerLink]="backLink()" aria-label="Go back">
-        <i class="pi pi-chevron-left" aria-hidden="true"></i>
-      </a>
-    }
+    <div class="ph__row-start">
+      @if (backLink()) {
+        <a class="ph__back" [routerLink]="backLink()" aria-label="Go back">
+          <i class="pi pi-chevron-left" aria-hidden="true"></i>
+        </a>
+      }
+    </div>
     <h1 class="ph__title">{{ title() }}</h1>
-    <ng-content select="[actions]" />
+    <div class="ph__row-end">
+      <ng-content select="[actions]" />
+    </div>
   </div>
   @if (subtitle()) {
     <p class="ph__subtitle">{{ subtitle() }}</p>

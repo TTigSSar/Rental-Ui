@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 
 export type PageHeaderAlign = 'start' | 'center';
 export type PageHeaderSpacing = 'compact' | 'comfortable';
+export type PageHeaderMobileTitleAlign = 'center' | 'start';
 
 @Component({
   selector: 'app-ui-page-header',
@@ -12,6 +13,9 @@ export type PageHeaderSpacing = 'compact' | 'comfortable';
   templateUrl: './page-header.component.html',
   styleUrl: './page-header.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[class.ph-back-host]': '!!backLink()',
+  },
 })
 export class PageHeaderComponent {
   readonly title = input.required<string>();
@@ -20,10 +24,15 @@ export class PageHeaderComponent {
   readonly backLink = input<string>('');
   readonly align = input<PageHeaderAlign>('start');
   readonly spacing = input<PageHeaderSpacing>('comfortable');
+  readonly mobileTitleAlign = input<PageHeaderMobileTitleAlign>('center');
+  readonly hideTitleOnDesktop = input<boolean>(false);
 
   protected readonly hostClasses = computed(() => ({
     'ph': true,
     [`ph--${this.align()}`]: true,
     [`ph--${this.spacing()}`]: true,
+    'ph--has-back': !!this.backLink(),
+    'ph--mobile-title-start': this.mobileTitleAlign() === 'start',
+    'ph--hide-desktop-title': this.hideTitleOnDesktop(),
   }));
 }

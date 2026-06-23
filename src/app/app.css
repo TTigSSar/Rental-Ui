@@ -678,7 +678,8 @@
 
 /* ── Details page: hide global header on mobile only ─── */
 @media (max-width: 960px) {
-  .app-shell--details .app-shell__header-wrap {
+  .app-shell--details .app-shell__header-wrap,
+  .app-shell--profile-child .app-shell__header-wrap {
     display: none;
   }
 }

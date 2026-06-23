@@ -16,7 +16,9 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
 import { ListingCardComponent } from '../../../listings/components/listing-card/listing-card.component';
+import * as ListingsActions from '../../../listings/store/listings.actions';
 import type { ListingPreview } from '../../../listings/models/listing.model';
+import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 import * as PublicProfilesActions from '../../store/public-profiles.actions';
 import {
   selectPublicProfile,
@@ -166,6 +168,8 @@ export class UserListingsPageComponent {
     return applySort(filtered, this.sortBy());
   });
 
+  protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
+
   protected readonly showSkeleton = computed(
     () => (this.profileLoading() || this.listingsLoading()) && this.allListings() === null,
   );
@@ -208,5 +212,9 @@ export class UserListingsPageComponent {
       this.store.dispatch(PublicProfilesActions.loadPublicProfile({ userId: id }));
       this.store.dispatch(PublicProfilesActions.loadUserListings({ userId: id }));
     }
+  }
+
+  protected onFavoriteToggled(listingId: string): void {
+    this.store.dispatch(ListingsActions.toggleFavoriteOptimistic({ listingId }));
   }
 }

@@ -1,4 +1,4 @@
-<section class="profile-page page-container">
+<section class="profile-page page-container" [class.profile-page--child-active]="isChildRouteActive()">
   @if (vm$ | async; as vm) {
 
     @if (vm.error; as error) {

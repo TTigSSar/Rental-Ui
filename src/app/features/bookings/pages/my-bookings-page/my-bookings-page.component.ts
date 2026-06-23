@@ -1,5 +1,12 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -18,18 +25,19 @@ import {
   selectMyBookingsLoading,
 } from '../../store/bookings.selectors';
 
-type BookingTab = 'active' | 'upcoming' | 'past';
+// ── Filter tabs (mirrors My Toys pattern) ─────────────────
+type BookingFilter = 'all' | 'active' | 'upcoming' | 'past';
 
-const ACTIVE_STATUSES = new Set(['Active', 'ReturnMarked']);
-const UPCOMING_STATUSES = new Set(['Approved', 'PendingApproval', 'Pending']);
-const PAST_STATUSES = new Set(['Completed', 'Rejected', 'Cancelled', 'Expired', 'Archived']);
-
-function tabFor(status: string): BookingTab {
-  if (ACTIVE_STATUSES.has(status)) return 'active';
-  if (UPCOMING_STATUSES.has(status)) return 'upcoming';
-  return 'past';
+interface FilterTab {
+  readonly key: BookingFilter;
+  readonly labelKey: string;
 }
 
+const ACTIVE_STATUSES   = new Set(['Active', 'ReturnMarked']);
+const UPCOMING_STATUSES = new Set(['Approved', 'PendingApproval', 'Pending']);
+const PAST_STATUSES     = new Set(['Completed', 'Rejected', 'Cancelled', 'Expired', 'Archived']);
+
+// ── View model ────────────────────────────────────────────
 interface MyBookingsPageViewModel {
   readonly bookings: MyBooking[];
   readonly loading: boolean;
@@ -81,30 +89,40 @@ export class MyBookingsPageComponent implements OnInit {
     { requireSync: true },
   );
 
-  protected readonly activeTab = signal<BookingTab>('active');
+  protected readonly activeFilter = signal<BookingFilter>('all');
+
+  protected readonly FILTER_TABS: ReadonlyArray<FilterTab> = [
+    { key: 'all',      labelKey: 'bookings.myBookings.tab.all' },
+    { key: 'active',   labelKey: 'bookings.myBookings.tab.active' },
+    { key: 'upcoming', labelKey: 'bookings.myBookings.tab.upcoming' },
+    { key: 'past',     labelKey: 'bookings.myBookings.tab.past' },
+  ];
 
   protected readonly tabCounts = computed(() => {
     const all = this.vm().bookings;
-    return {
-      active: all.filter(b => ACTIVE_STATUSES.has(b.status)).length,
-      upcoming: all.filter(b => UPCOMING_STATUSES.has(b.status)).length,
-      past: all.filter(b => PAST_STATUSES.has(b.status)).length,
-    };
+    return new Map<BookingFilter, number>([
+      ['all',      all.length],
+      ['active',   all.filter(b => ACTIVE_STATUSES.has(b.status)).length],
+      ['upcoming', all.filter(b => UPCOMING_STATUSES.has(b.status)).length],
+      ['past',     all.filter(b => PAST_STATUSES.has(b.status)).length],
+    ]);
   });
 
-  protected readonly filteredBookings = computed(() => {
-    const tab = this.activeTab();
-    return this.vm().bookings.filter(b => tabFor(b.status) === tab);
+  protected readonly filteredBookings = computed((): MyBooking[] => {
+    const filter = this.activeFilter();
+    const all = this.vm().bookings;
+    if (filter === 'all')      return all;
+    if (filter === 'active')   return all.filter(b => ACTIVE_STATUSES.has(b.status));
+    if (filter === 'upcoming') return all.filter(b => UPCOMING_STATUSES.has(b.status));
+    return all.filter(b => PAST_STATUSES.has(b.status));
   });
-
-  protected readonly TABS: ReadonlyArray<BookingTab> = ['active', 'upcoming', 'past'];
 
   ngOnInit(): void {
     this.store.dispatch(BookingsActions.loadMyBookings());
   }
 
-  protected setTab(tab: BookingTab): void {
-    this.activeTab.set(tab);
+  protected setFilter(filter: BookingFilter): void {
+    this.activeFilter.set(filter);
   }
 
   protected retry(): void {

@@ -30,6 +30,8 @@ export const initialListingsState: ListingsState = {
     categoryId: null,
     minPrice: null,
     maxPrice: null,
+    ageGroup: null,
+    maxDistance: null,
   },
   page: 1,
   pageSize: 20,

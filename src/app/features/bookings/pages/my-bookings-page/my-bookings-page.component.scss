@@ -12,6 +12,7 @@
   animation: page-fade-in 200ms ease-out both;
 }
 
+/* ── Error ──────────────────────────────────────────────── */
 .bookings-page__error {
   display: flex;
   flex-direction: column;
@@ -19,9 +20,7 @@
   align-items: flex-start;
 }
 
-.bookings-page__message {
-  width: 100%;
-}
+.bookings-page__message { width: 100%; }
 
 .bookings-page__error-content {
   display: flex;
@@ -29,26 +28,55 @@
   gap: var(--ui-space-4);
 }
 
-/* ── Tabs ───────────────────────────────────────────────── */
-.bookings-page__tabs {
+/* ── Skeleton ───────────────────────────────────────────── */
+.bookings-page__skeleton-list {
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.bookings-page__tab {
+.bookings-page__skeleton-card {
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-card);
+  overflow: hidden;
+  background: var(--ui-color-surface);
+}
+
+.bookings-page__skeleton-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+}
+
+.bookings-page__skeleton-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Filter tabs (identical pattern to My Toys) ─────────── */
+.bookings-page__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space-8);
+}
+
+.bookings-page__filter-tab {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
+  gap: var(--ui-space-6);
+  padding: var(--ui-space-6) var(--ui-space-12);
   border-radius: 999px;
   border: 1px solid var(--ui-color-border);
   background: var(--ui-color-surface);
   color: var(--ui-color-text-secondary);
-  font: inherit;
-  font-size: 13px;
+  font-size: var(--ui-font-size-caption);
   font-weight: 600;
+  font-family: inherit;
   cursor: pointer;
+  min-height: 2.25rem;
   transition: border-color 140ms ease, color 140ms ease, background 140ms ease;
 
   &:hover {
@@ -61,66 +89,54 @@
     transition-duration: 80ms;
   }
 
-  &--active {
-    border-color: var(--ui-color-primary);
-    background: color-mix(in srgb, var(--ui-color-primary) 10%, var(--ui-color-surface));
-    color: var(--ui-color-primary);
-
-    .bookings-page__tab-count {
-      background: var(--ui-color-primary);
-      color: #fff;
-    }
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary);
+    outline-offset: 2px;
   }
 }
 
-.bookings-page__tab-count {
+.bookings-page__filter-tab--active {
+  border-color: var(--ui-color-primary);
+  background: color-mix(in srgb, var(--ui-color-primary) 10%, var(--ui-color-surface));
+  color: var(--ui-color-primary);
+
+  .bookings-page__filter-count {
+    background: var(--ui-color-primary);
+    color: #fff;
+  }
+}
+
+.bookings-page__filter-count {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 5px;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 var(--ui-space-4);
   border-radius: 999px;
   background: var(--ui-color-surface-muted);
   color: var(--ui-color-text-secondary);
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 700;
-  transition: background 120ms, color 120ms;
+  line-height: 1;
+  transition: background 140ms ease, color 140ms ease;
 }
 
-/* ── List ───────────────────────────────────────────────── */
-.bookings-page__list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+/* ── Card grid ──────────────────────────────────────────── */
+.bookings-page__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--ui-space-14);
 }
 
-/* ── Skeleton ───────────────────────────────────────────── */
-.bookings-page__skeleton-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px;
-  border: 1px solid var(--ui-color-border);
-  border-radius: 16px;
-  background: var(--ui-color-surface);
+@media (max-width: 899px) {
+  .bookings-page__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-.bookings-page__skeleton-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.bookings-page__skeleton-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-/* ── Tab empty ──────────────────────────────────────────── */
-.bookings-page__tab-empty {
+/* ── Filter empty ───────────────────────────────────────── */
+.bookings-page__filter-empty {
   padding: var(--ui-space-32) var(--ui-space-16);
   text-align: center;
   color: var(--ui-color-text-secondary);

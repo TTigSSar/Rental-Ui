@@ -48,9 +48,11 @@
         <app-ui-empty-state
           icon="pi pi-heart"
           tone="primary"
+          [showPlusBadge]="true"
           [title]="'favorites.page.emptyTitle' | translate"
           [description]="'favorites.page.empty' | translate"
           [ctaLabel]="'favorites.page.emptyCta' | translate"
+          ctaIcon="pi pi-th-large"
           [ctaRouterLink]="['/listings']"
         />
       </div>

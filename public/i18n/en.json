@@ -258,6 +258,8 @@
       "hygieneProvided": "Hygiene notes",
       "statusAvailable": "Available",
       "statusRented": "Rented",
+      "verified": "Verified",
+      "viewBtn": "View",
       "bookingBadge": {
         "rentalRequested": "Rental requested",
         "approved": "Approved",
@@ -282,7 +284,16 @@
       "maxPrice": "Maximum price",
       "maxPricePlaceholder": "Max",
       "filterBtn": "Filters",
+      "sidebar": {
+        "title": "Filters",
+        "clearAll": "Clear all",
+        "category": "CATEGORY",
+        "age": "AGE",
+        "pricePerDay": "PRICE PER DAY",
+        "distance": "DISTANCE"
+      },
       "filterSheet": {
+        "cancel": "Cancel",
         "apply": "Apply Filters"
       }
     },
@@ -326,8 +337,12 @@
       "emptyTitle": "No toys listed yet",
       "empty": "Be the first to list a toy — families in your area are looking!",
       "emptyFilterTitle": "No toys match your filters",
+      "emptySearchTitle": "No toys match",
       "emptyFilter": "Try a different keyword or remove some filters.",
       "emptyFilterCta": "Clear filters",
+      "emptySearchDescription": "Try broader filters, or let us notify you when one is listed nearby.",
+      "notifyMe": "Notify me",
+      "tryInstead": "Try instead",
       "loading": "Loading toys",
       "loadingMore": "Loading more toys",
       "loadMore": "Load more toys",
@@ -346,7 +361,10 @@
       "sortLowestPrice": "Lowest price",
       "sortHighestPrice": "Highest price",
       "sortHighestRated": "Highest rated",
-      "sortNewest": "Newest"
+      "sortNewest": "Newest",
+      "sortNearest": "Nearest first",
+      "sortBy": "Sort by",
+      "inYerevan": "in Yerevan"
     },
     "details": {
       "back": "Back to toys",
@@ -599,7 +617,7 @@
     },
     "nav": {
       "myToys": "My toys",
-      "myRentals": "My rentals",
+      "myRentals": "My bookings",
       "incomingRequests": "Incoming requests",
       "favorites": "Saved toys",
       "earningsPayouts": "Earnings & payouts",
@@ -660,8 +678,13 @@
       "title": "My Toys",
       "subtitle": "Manage the toys you’ve listed and watch their status.",
       "errorTitle": "Unable to load your toys",
-      "emptyTitle": "No toys listed yet",
-      "empty": "List your first toy and start earning from toys gathering dust."
+      "emptyTitle": "You haven't listed any toys yet",
+      "empty": "List a toy in 2 minutes and start earning from things your kids have outgrown.",
+      "emptyBullet1": "Add 3+ photos and a short description",
+      "emptyBullet2": "Set a daily price — earn ~85% per rental",
+      "emptyBullet3": "We verify every listing before it goes live",
+      "emptyCtaLabel": "List your first toy",
+      "emptyCtaNote": "Takes about 2 minutes"
     },
     "card": {
       "noImage": "No image available",
@@ -671,8 +694,8 @@
       "day": "day"
     },
     "status": {
-      "pendingApproval": "Pending approval",
-      "approved": "Approved",
+      "pendingApproval": "Pending review",
+      "approved": "Live",
       "rejected": "Rejected",
       "archived": "Archived"
     },
@@ -681,7 +704,7 @@
       "edit": "Edit",
       "archive": "Archive",
       "restore": "Restore",
-      "listToy": "List a Toy"
+      "listToy": "List new toy"
     },
     "common": {
       "notAvailable": "Not available"
@@ -690,10 +713,18 @@
       "label": "Filter by status",
       "all": "All",
       "pending": "Pending",
-      "approved": "Approved",
+      "approved": "Live",
       "rejected": "Rejected",
       "archived": "Archived",
       "noResults": "No listings match this filter."
+    },
+    "table": {
+      "toy": "Toy",
+      "status": "Status",
+      "price": "Price / Day",
+      "views": "Views",
+      "bookings": "Bookings",
+      "actions": "Actions"
     },
     "editPage": {
       "title": "Edit Toy Listing",
@@ -787,9 +818,34 @@
       "emptyCta": "Browse toys",
       "dateRange": "Date range",
       "totalPrice": "Total: {{amount}}",
+      "rentalDates": "Rental dates",
+      "total": "Total",
+      "bookingsCount": "{{count}} bookings",
+      "sortBy": {
+        "status": "Status",
+        "owner": "Owner",
+        "category": "Toy category"
+      },
       "tab": {
+        "all": "All",
         "active": "Active",
         "upcoming": "Upcoming",
+        "past": "Completed"
+      },
+      "cardHeader": {
+        "active": "Active rental",
+        "returnMarked": "Awaiting confirmation",
+        "approved": "Approved",
+        "pending": "Pending approval",
+        "completed": "Completed",
+        "past": "Ended"
+      },
+      "group": {
+        "active": "Active",
+        "returnMarked": "Awaiting confirmation",
+        "approved": "Approved",
+        "pending": "Pending approval",
+        "completed": "Completed",
         "past": "Past"
       },
       "tabEmpty": "No bookings in this category."
@@ -818,10 +874,10 @@
       "leave": "Leave a review"
     },
     "progress": {
-      "pending": "Pending",
+      "pending": "Requested",
       "approved": "Approved",
-      "active": "Active",
-      "completed": "Completed",
+      "active": "Picked up",
+      "completed": "Returned",
       "completion": "Completion",
       "aria": "Booking progress"
     },

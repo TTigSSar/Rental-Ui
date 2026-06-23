@@ -1,5 +1,13 @@
 <div class="detail-page">
   <div class="detail-page__container page-container">
+
+    <app-ui-page-header
+      [title]="listingTitle()"
+      backLink="/listings"
+      mobileTitleAlign="start"
+      [hideTitleOnDesktop]="true"
+    />
+
     @if (viewModel$ | async; as vm) {
 
       @if (vm.showError) {
@@ -247,6 +255,9 @@
                   class="detail-page__section"
                   aria-labelledby="detail-description-heading"
                 >
+                  <h2 id="detail-description-heading" class="detail-page__section-title">
+                    {{ 'listings.details.descriptionHeading' | translate }}
+                  </h2>
                   <p class="detail-page__section-body">
                     {{ listing.description }}
                   </p>
@@ -262,7 +273,7 @@
 
                   <div class="detail-page__owner-card">
                     <!-- Owner row -->
-                    <div class="detail-page__owner-row">
+                    <a class="detail-page__owner-row" [routerLink]="['/users', listing.owner.id]">
                       <div class="detail-page__owner-avatar-wrap" aria-hidden="true">
                         @if (ownerPublicProfile()?.avatarUrl; as avatarUrl) {
                           <img
@@ -298,14 +309,10 @@
                           }
                         </p>
                       </div>
-                      <a
-                        class="detail-page__owner-profile-btn"
-                        [routerLink]="['/users', listing.owner.id]"
-                        [attr.aria-label]="'listings.details.viewOwnerProfile' | translate"
-                      >
-                        <i class="pi pi-chevron-right" aria-hidden="true"></i>
-                      </a>
-                    </div>
+                      <span class="detail-page__owner-profile-btn" aria-hidden="true">
+                        <i class="pi pi-chevron-right"></i>
+                      </span>
+                    </a>
 
                     <!-- Phone notice (inside card) -->
                     <div class="detail-page__phone-notice-wrap">

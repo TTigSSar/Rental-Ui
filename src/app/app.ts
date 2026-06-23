@@ -2,14 +2,12 @@ import { AsyncPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  ElementRef,
   HostListener,
   inject,
   signal,
-  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NavigationEnd, NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Toast } from 'primeng/toast';
@@ -22,8 +20,7 @@ import {
   selectIsAuthenticated,
 } from './features/auth/store/auth.selectors';
 import { AuthDialogComponent } from './features/auth/components/auth-dialog/auth-dialog.component';
-import { ListingsFiltersComponent } from './features/listings/components/listings-filters/listings-filters.component';
-import type { ListingsFilter } from './features/listings/models/listings-filter.model';
+import { AppHeaderComponent } from './shared/ui/app-header/app-header.component';
 
 interface NavItem {
   readonly path: string;
@@ -31,16 +28,9 @@ interface NavItem {
   readonly exactMatch: boolean;
 }
 
-interface LanguageOption {
-  readonly code: 'en' | 'hy' | 'ru';
-  readonly label: string;
-}
-
-const LANGUAGES: readonly LanguageOption[] = [
-  { code: 'en', label: 'English' },
-  { code: 'hy', label: 'Հայերեն' },
-  { code: 'ru', label: 'Русский' },
-];
+const LANGUAGE_STORAGE_KEY = 'stayfinder.lang';
+const VALID_LANG_CODES = ['en', 'hy', 'ru'] as const;
+const SCROLL_SHRINK_THRESHOLD = 8;
 
 interface AppShellViewModel {
   readonly primaryNav: NavItem[];
@@ -53,9 +43,6 @@ interface AppShellViewModel {
   readonly userInitials: string | null;
 }
 
-const LANGUAGE_STORAGE_KEY = 'stayfinder.lang';
-const SCROLL_SHRINK_THRESHOLD = 8;
-
 function isListingDetailsUrl(url: string): boolean {
   const path = url.split('?')[0];
   return /^\/listings\/(?!create$)[^/]+$/.test(path);
@@ -65,12 +52,17 @@ function isListingsBrowseUrl(url: string): boolean {
   return url.split('?')[0] === '/listings';
 }
 
+function isProfileChildUrl(url: string): boolean {
+  const path = url.split('?')[0];
+  return /^\/profile\/(toys|rentals|requests|saved)(\/.*)?$/.test(path);
+}
+
 @Component({
   selector: 'app-root',
   imports: [
     AsyncPipe,
+    AppHeaderComponent,
     AuthDialogComponent,
-    ListingsFiltersComponent,
     RouterLink,
     RouterLinkActive,
     RouterOutlet,
@@ -85,20 +77,15 @@ export class App {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
-  protected readonly notifPanelOpen   = signal(false);
+
   protected readonly unreadNotifCount  = signal(0);
   protected readonly scrolled          = signal(false);
   protected readonly showFooter        = signal(!isListingDetailsUrl(this.router.url));
   protected readonly isBrowsePage      = signal(isListingsBrowseUrl(this.router.url));
   protected readonly isDetailsPage     = signal(isListingDetailsUrl(this.router.url));
+  protected readonly isProfileChildPage = signal(isProfileChildUrl(this.router.url));
   protected readonly showAuthDialog    = signal(false);
   protected readonly authDialogMode    = signal<'login' | 'register'>('login');
-  protected readonly langMenuOpen      = signal(false);
-  protected readonly languages         = LANGUAGES;
-  protected readonly currentLang       = signal<LanguageOption>(this.resolveCurrentLang());
-
-  private readonly notifMenuHost  = viewChild<ElementRef<HTMLElement>>('notifMenuHost');
-  private readonly langMenuHost   = viewChild<ElementRef<HTMLElement>>('langMenuHost');
 
   protected readonly vm$ = combineLatest({
     isAuthenticated: this.store.select(selectIsAuthenticated),
@@ -165,15 +152,6 @@ export class App {
 
     this.router.events
       .pipe(
-        filter((event): event is NavigationStart => event instanceof NavigationStart),
-        takeUntilDestroyed(),
-      )
-      .subscribe(() => {
-        this.notifPanelOpen.set(false);
-      });
-
-    this.router.events
-      .pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
         takeUntilDestroyed(),
       )
@@ -182,6 +160,7 @@ export class App {
         this.showFooter.set(!isListingDetailsUrl(url));
         this.isBrowsePage.set(isListingsBrowseUrl(url));
         this.isDetailsPage.set(isListingDetailsUrl(url));
+        this.isProfileChildPage.set(isProfileChildUrl(url));
       });
   }
 
@@ -190,48 +169,8 @@ export class App {
     this.showAuthDialog.set(true);
   }
 
-  protected onBrowseFiltersChanged(filters: ListingsFilter): void {
-    void this.router.navigate(['/listings'], {
-      queryParams: {
-        q: filters.query || null,
-        city: filters.city || null,
-        categoryId: filters.categoryId || null,
-        minPrice: filters.minPrice ?? null,
-        maxPrice: filters.maxPrice ?? null,
-      },
-      queryParamsHandling: 'merge',
-    });
-  }
-
-  protected toggleNotifPanel(): void {
-    this.notifPanelOpen.update((open) => !open);
-  }
-
-  protected toggleLangMenu(): void {
-    this.langMenuOpen.update((open) => !open);
-  }
-
-  protected selectLanguage(option: LanguageOption): void {
-    this.currentLang.set(option);
-    this.translate.use(option.code);
-    try { localStorage.setItem(LANGUAGE_STORAGE_KEY, option.code); } catch { /* ignore */ }
-    this.langMenuOpen.set(false);
-  }
-
-  @HostListener('document:click', ['$event'])
-  protected onDocumentClick(event: MouseEvent): void {
-    const target = event.target as Node | null;
-    if (target === null) return;
-
-    const notifHost = this.notifMenuHost()?.nativeElement;
-    if (notifHost !== undefined && !notifHost.contains(target)) {
-      this.notifPanelOpen.set(false);
-    }
-
-    const langHost = this.langMenuHost()?.nativeElement;
-    if (langHost !== undefined && !langHost.contains(target)) {
-      this.langMenuOpen.set(false);
-    }
+  protected onSignOut(): void {
+    this.store.dispatch(AuthActions.logout());
   }
 
   @HostListener('window:scroll')
@@ -242,14 +181,10 @@ export class App {
     }
   }
 
-  private resolveCurrentLang(): LanguageOption {
+  private hydrateLanguage(): void {
     let stored: string | null = null;
     try { stored = localStorage.getItem(LANGUAGE_STORAGE_KEY); } catch { /* ignore */ }
-    return LANGUAGES.find((l) => l.code === stored) ?? LANGUAGES[0];
-  }
-
-  private hydrateLanguage(): void {
-    const lang = this.resolveCurrentLang();
-    this.translate.use(lang.code);
+    const code = (VALID_LANG_CODES as readonly string[]).includes(stored ?? '') ? stored! : 'en';
+    this.translate.use(code);
   }
 }

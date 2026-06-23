@@ -4,4 +4,6 @@ export interface ListingsFilter {
   categoryId: string | null;
   minPrice: number | null;
   maxPrice: number | null;
+  ageGroup: string | null;
+  maxDistance: number | null;
 }

@@ -40,7 +40,12 @@
         </span>
       }
 
-      @if (ageRange(); as age) {
+      @if (hasHygieneNotes()) {
+        <span class="listing-card__verified-badge">
+          <i class="pi pi-check" aria-hidden="true"></i>
+          {{ 'listings.card.verified' | translate }}
+        </span>
+      } @else if (ageRange(); as age) {
         <span class="listing-card__age-badge">
           {{ age.key | translate: age.params }}
         </span>
@@ -73,14 +78,19 @@
         >{{ badge.labelKey | translate }}</span>
       }
 
-      <p class="listing-card__price">
-        <span class="listing-card__price-amount">{{
-          listing().pricePerDay | currency
-        }}</span>
-        <span class="listing-card__price-suffix">{{
-          'listings.booking.priceSuffix' | translate
-        }}</span>
-      </p>
+      <div class="listing-card__price-row">
+        <p class="listing-card__price">
+          <span class="listing-card__price-amount">{{
+            listing().pricePerDay | currency
+          }}</span>
+          <span class="listing-card__price-suffix">{{
+            'listings.booking.priceSuffix' | translate
+          }}</span>
+        </p>
+        <span class="listing-card__view-btn" aria-hidden="true">
+          {{ 'listings.card.viewBtn' | translate }}
+        </span>
+      </div>
     </div>
 
     <!-- Trust footer: hygiene + condition (only when data exists) -->

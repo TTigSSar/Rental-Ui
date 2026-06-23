@@ -1,0 +1,246 @@
+<div class="nh__inner">
+  <div class="nh__row">
+
+    <!-- ── Brand ─────────────────────────────────────────────────────── -->
+    <a routerLink="/" class="nh__brand" aria-label="ToyRent home">
+      <span class="nh__brand-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+      </span>
+      <span class="nh__brand-text" aria-hidden="true">
+        <span class="nh__brand-primary">Toy</span><span class="nh__brand-accent">Rent</span>
+      </span>
+    </a>
+
+    <!-- ── Search bar ─────────────────────────────────────────────────── -->
+    <div class="nh__search" role="search">
+      <label class="nh__search-field" for="nh-search-input">
+        <i class="pi pi-search nh__search-icon" aria-hidden="true"></i>
+        <input
+          id="nh-search-input"
+          class="nh__search-input"
+          type="search"
+          placeholder="Search toys, brands, owners..."
+          [value]="searchQuery()"
+          (input)="onSearchInput($event)"
+          (keydown.enter)="onSearchSubmit()"
+          aria-label="Search toys, brands, owners"
+          autocomplete="off"
+        />
+      </label>
+      <button type="button" class="nh__search-btn" (click)="onSearchSubmit()" aria-label="Submit search">
+        Search
+      </button>
+    </div>
+
+    <!-- ── Right controls ─────────────────────────────────────────────── -->
+    <div class="nh__controls">
+
+      <!-- Auth skeleton while hydrating -->
+      @if (isAuthPending()) {
+        <span class="nh__skeleton" aria-hidden="true"></span>
+      }
+
+      <!-- Guest: Log in + Sign up -->
+      @if (!isAuthPending() && !isAuthenticated()) {
+        <button type="button" class="nh__btn nh__btn--ghost" (click)="onOpenAuth('login')">
+          Log in
+        </button>
+        <button type="button" class="nh__btn nh__btn--primary" (click)="onOpenAuth('register')">
+          Sign up
+        </button>
+      }
+
+      <!-- Authenticated: bell + user pill ─────────────────────────── -->
+      @if (isAuthenticated()) {
+
+        <!-- Notification bell -->
+        <div class="nh__notif" #notifMenuHost>
+          <button
+            type="button"
+            class="nh__notif-btn"
+            [class.nh__notif-btn--active]="notifOpen()"
+            [attr.aria-expanded]="notifOpen()"
+            aria-haspopup="true"
+            aria-label="Open notifications"
+            (click)="toggleNotif()"
+          >
+            <i class="pi pi-bell" aria-hidden="true"></i>
+            @if (unreadNotifCount() > 0) {
+              <span class="nh__notif-badge" aria-hidden="true">
+                {{ unreadNotifCount() > 99 ? '99+' : unreadNotifCount() }}
+              </span>
+            }
+          </button>
+
+          @if (notifOpen()) {
+            <div class="nh__notif-panel" role="dialog" aria-label="Notifications" aria-modal="false">
+              <div class="nh__panel-head">
+                <span class="nh__panel-head-title">Notifications</span>
+              </div>
+              <div class="nh__panel-empty">
+                <i class="pi pi-bell-slash" aria-hidden="true"></i>
+                <p>You're all caught up — no notifications yet.</p>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- User pill with hover dropdown ──────────────────────────── -->
+        <div
+          class="nh__user"
+          (mouseenter)="openProfileMenu()"
+          (mouseleave)="scheduleCloseProfileMenu()"
+        >
+          <button
+            type="button"
+            class="nh__user-trigger"
+            [class.nh__user-trigger--open]="profileOpen()"
+            [attr.aria-expanded]="profileOpen()"
+            aria-haspopup="true"
+            aria-label="Account menu"
+          >
+            <span class="nh__user-avatar" aria-hidden="true">{{ userInitials() ?? 'U' }}</span>
+            <span class="nh__user-name">{{ userFirstName() }}</span>
+            <i
+              class="pi pi-chevron-down nh__user-chevron"
+              [class.nh__user-chevron--open]="profileOpen()"
+              aria-hidden="true"
+            ></i>
+          </button>
+
+          @if (profileOpen()) {
+            <div
+              class="nh__dropdown"
+              role="menu"
+              aria-label="Account navigation"
+              (mouseenter)="openProfileMenu()"
+              (mouseleave)="scheduleCloseProfileMenu()"
+            >
+              <!-- User header ────────────────────────────────────────── -->
+              <div class="nh__dd-user-head">
+                <span class="nh__dd-avatar" aria-hidden="true">{{ userInitials() ?? 'U' }}</span>
+                <div class="nh__dd-user-info">
+                  <p class="nh__dd-user-name">
+                    {{ userDisplayName() ?? 'User' }}
+                    <span class="nh__dd-verified" title="Verified" aria-label="Verified">
+                      <i class="pi pi-check" aria-hidden="true"></i>
+                    </span>
+                  </p>
+                  <a
+                    class="nh__dd-view-profile"
+                    routerLink="/profile"
+                    role="menuitem"
+                    (click)="closeProfile()"
+                  >
+                    View profile
+                    <i class="pi pi-chevron-right" aria-hidden="true"></i>
+                  </a>
+                </div>
+              </div>
+
+              <!-- Primary nav items ──────────────────────────────────── -->
+              <div class="nh__dd-section" role="group" aria-label="My account">
+                <a
+                  class="nh__dd-item"
+                  routerLink="/profile/toys"
+                  routerLinkActive="nh__dd-item--active"
+                  role="menuitem"
+                  (click)="closeProfile()"
+                >
+                  <i class="pi pi-box nh__dd-icon" aria-hidden="true"></i>
+                  <span class="nh__dd-label">My toys</span>
+                  @if (myToysCount() > 0) {
+                    <span class="nh__dd-count" aria-label="{{ myToysCount() }} toys">{{ myToysCount() }}</span>
+                  }
+                </a>
+
+                <a
+                  class="nh__dd-item"
+                  routerLink="/profile/rentals"
+                  routerLinkActive="nh__dd-item--active"
+                  role="menuitem"
+                  (click)="closeProfile()"
+                >
+                  <i class="pi pi-calendar nh__dd-icon" aria-hidden="true"></i>
+                  <span class="nh__dd-label">{{ 'profile.nav.myRentals' | translate }}</span>
+                  @if (myRentalsCount() > 0) {
+                    <span class="nh__dd-count" aria-label="{{ myRentalsCount() }} bookings">{{ myRentalsCount() }}</span>
+                  }
+                </a>
+
+                <a
+                  class="nh__dd-item"
+                  routerLink="/profile/requests"
+                  routerLinkActive="nh__dd-item--active"
+                  role="menuitem"
+                  (click)="closeProfile()"
+                >
+                  <i class="pi pi-inbox nh__dd-icon" aria-hidden="true"></i>
+                  <span class="nh__dd-label">Incoming requests</span>
+                  @if (requestsCount() > 0) {
+                    <span class="nh__dd-count nh__dd-count--badge" aria-label="{{ requestsCount() }} requests">{{ requestsCount() }}</span>
+                  }
+                </a>
+
+                <a
+                  class="nh__dd-item"
+                  routerLink="/profile/saved"
+                  routerLinkActive="nh__dd-item--active"
+                  role="menuitem"
+                  (click)="closeProfile()"
+                >
+                  <i class="pi pi-heart nh__dd-icon" aria-hidden="true"></i>
+                  <span class="nh__dd-label">Saved toys</span>
+                  @if (savedCount() > 0) {
+                    <span class="nh__dd-count" aria-label="{{ savedCount() }} saved">{{ savedCount() }}</span>
+                  }
+                </a>
+              </div>
+
+              <!-- Secondary nav items ────────────────────────────────── -->
+              <div class="nh__dd-section" role="group" aria-label="Account settings">
+                <a
+                  class="nh__dd-item"
+                  routerLink="/profile"
+                  role="menuitem"
+                  (click)="closeProfile()"
+                >
+                  <i class="pi pi-chart-bar nh__dd-icon" aria-hidden="true"></i>
+                  <span class="nh__dd-label">Earnings & payouts</span>
+                  <i class="pi pi-chevron-right nh__dd-chevron" aria-hidden="true"></i>
+                </a>
+
+                <a
+                  class="nh__dd-item"
+                  routerLink="/profile"
+                  role="menuitem"
+                  (click)="closeProfile()"
+                >
+                  <i class="pi pi-cog nh__dd-icon" aria-hidden="true"></i>
+                  <span class="nh__dd-label">Account settings</span>
+                  <i class="pi pi-chevron-right nh__dd-chevron" aria-hidden="true"></i>
+                </a>
+              </div>
+
+              <!-- Sign out ────────────────────────────────────────────── -->
+              <div class="nh__dd-footer" role="group">
+                <button
+                  type="button"
+                  class="nh__dd-item nh__dd-item--signout"
+                  role="menuitem"
+                  (click)="onSignOut()"
+                >
+                  <i class="pi pi-sign-out nh__dd-icon" aria-hidden="true"></i>
+                  <span class="nh__dd-label">Sign out</span>
+                  <i class="pi pi-chevron-right nh__dd-chevron" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

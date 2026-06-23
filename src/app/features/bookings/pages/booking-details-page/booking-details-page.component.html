@@ -1,15 +1,8 @@
 <section class="booking-details">
-  <header class="booking-details__header">
-    <button
-      type="button"
-      class="booking-details__back"
-      (click)="back()"
-      [attr.aria-label]="'common.back' | translate"
-    >
-      <i class="pi pi-arrow-left"></i>
-    </button>
-    <h1 class="booking-details__heading">{{ 'bookings.details.title' | translate }}</h1>
-  </header>
+  <app-ui-page-header
+    [title]="'bookings.details.title' | translate"
+    backLink="/bookings"
+  />
 
   @if (showSkeleton()) {
     <div class="booking-details__skeleton">

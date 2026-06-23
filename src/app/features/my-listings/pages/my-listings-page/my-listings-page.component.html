@@ -3,6 +3,7 @@
     [title]="'myListings.page.title' | translate"
     [subtitle]="'myListings.page.subtitle' | translate"
     backLink="/profile"
+    mobileTitleAlign="start"
   >
     @if (viewModel().items.length > 0) {
       <p-button
@@ -53,14 +54,36 @@
   }
 
   @if (viewModel().showEmpty) {
-    <app-ui-empty-state
-      icon="pi pi-gift"
-      [title]="'myListings.page.emptyTitle' | translate"
-      [description]="'myListings.page.empty' | translate"
-      [ctaLabel]="'myListings.actions.listToy' | translate"
-      ctaIcon="pi pi-plus"
-      [ctaRouterLink]="['/listings/create']"
-    />
+    <div class="my-listings-page__empty ui-card-surface">
+      <div class="my-listings-page__empty-icon-wrap">
+        <i class="pi pi-th-large my-listings-page__empty-icon" aria-hidden="true"></i>
+        <span class="my-listings-page__empty-badge" aria-hidden="true">+</span>
+      </div>
+      <h2 class="my-listings-page__empty-title">{{ 'myListings.page.emptyTitle' | translate }}</h2>
+      <p class="my-listings-page__empty-desc">{{ 'myListings.page.empty' | translate }}</p>
+      <ul class="my-listings-page__empty-bullets" role="list">
+        <li class="my-listings-page__empty-bullet">
+          <i class="pi pi-camera" aria-hidden="true"></i>
+          <span>{{ 'myListings.page.emptyBullet1' | translate }}</span>
+        </li>
+        <li class="my-listings-page__empty-bullet">
+          <i class="pi pi-tag" aria-hidden="true"></i>
+          <span>{{ 'myListings.page.emptyBullet2' | translate }}</span>
+        </li>
+        <li class="my-listings-page__empty-bullet">
+          <i class="pi pi-shield" aria-hidden="true"></i>
+          <span>{{ 'myListings.page.emptyBullet3' | translate }}</span>
+        </li>
+      </ul>
+      <p-button
+        type="button"
+        icon="pi pi-plus"
+        [label]="'myListings.page.emptyCtaLabel' | translate"
+        [routerLink]="['/listings/create']"
+        styleClass="my-listings-page__empty-cta"
+      />
+      <p class="my-listings-page__empty-note">{{ 'myListings.page.emptyCtaNote' | translate }}</p>
+    </div>
   }
 
   @if (viewModel().items.length > 0) {
@@ -90,7 +113,97 @@
     </div>
 
     @if (filteredItems().length > 0) {
-      <div class="my-listings-page__grid">
+
+      <!-- ── Desktop table ──────────────────────────────────────── -->
+      <div class="my-listings-page__table-wrap">
+        <table class="my-listings-page__table">
+          <thead class="my-listings-page__thead">
+            <tr>
+              <th class="my-listings-page__th my-listings-page__th--toy">{{ 'myListings.table.toy' | translate }}</th>
+              <th class="my-listings-page__th">{{ 'myListings.table.status' | translate }}</th>
+              <th class="my-listings-page__th">{{ 'myListings.table.price' | translate }}</th>
+              <th class="my-listings-page__th my-listings-page__th--num">{{ 'myListings.table.bookings' | translate }}</th>
+              <th class="my-listings-page__th my-listings-page__th--actions">{{ 'myListings.table.actions' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (listing of filteredItems(); track listing.id) {
+              <tr class="my-listings-page__row">
+                <!-- TOY -->
+                <td class="my-listings-page__td my-listings-page__td--toy">
+                  @if (listing.imageUrl) {
+                    <img
+                      class="my-listings-page__row-img"
+                      [src]="listing.imageUrl"
+                      [alt]="listing.title"
+                      loading="lazy"
+                    />
+                  } @else {
+                    <div class="my-listings-page__row-img my-listings-page__row-img--placeholder">
+                      <i class="pi pi-gift"></i>
+                    </div>
+                  }
+                  <div class="my-listings-page__row-info">
+                    <span class="my-listings-page__row-title">{{ listing.title }}</span>
+                    @if (formatAge(listing)) {
+                      <span class="my-listings-page__row-age">{{ formatAge(listing) }}</span>
+                    }
+                  </div>
+                </td>
+                <!-- STATUS -->
+                <td class="my-listings-page__td">
+                  <app-ui-badge
+                    [label]="statusLabelKey(listing.status) | translate"
+                    [tone]="statusTone(listing.status)"
+                  />
+                </td>
+                <!-- PRICE / DAY -->
+                <td class="my-listings-page__td my-listings-page__td--price">
+                  {{ listing.pricePerDay | currency: 'USD' : 'symbol' : '1.0-0' }}
+                </td>
+                <!-- BOOKINGS -->
+                <td class="my-listings-page__td my-listings-page__td--num">—</td>
+                <!-- ACTIONS -->
+                <td class="my-listings-page__td my-listings-page__td--actions">
+                  <button
+                    type="button"
+                    class="my-listings-page__action-btn"
+                    [attr.data-tooltip]="'myListings.actions.edit' | translate"
+                    [attr.aria-label]="'myListings.actions.edit' | translate"
+                    (click)="onEditRequested(listing.id)"
+                  >
+                    <i class="pi pi-pencil" aria-hidden="true"></i>
+                  </button>
+                  @if (listing.status !== 'Archived') {
+                    <button
+                      type="button"
+                      class="my-listings-page__action-btn my-listings-page__action-btn--archive"
+                      [attr.data-tooltip]="'myListings.actions.archive' | translate"
+                      [attr.aria-label]="'myListings.actions.archive' | translate"
+                      (click)="onArchiveRequested(listing.id)"
+                    >
+                      <i class="pi pi-inbox" aria-hidden="true"></i>
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="my-listings-page__action-btn my-listings-page__action-btn--restore"
+                      [attr.data-tooltip]="'myListings.actions.restore' | translate"
+                      [attr.aria-label]="'myListings.actions.restore' | translate"
+                      (click)="onRestoreRequested(listing.id)"
+                    >
+                      <i class="pi pi-replay" aria-hidden="true"></i>
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ── Mobile cards ───────────────────────────────────────── -->
+      <div class="my-listings-page__grid my-listings-page__cards">
         @for (listing of filteredItems(); track listing.id) {
           <app-my-listing-card
             [listing]="listing"
@@ -100,6 +213,7 @@
           />
         }
       </div>
+
     } @else {
       <p class="my-listings-page__filter-empty">
         {{ 'myListings.filter.noResults' | translate }}

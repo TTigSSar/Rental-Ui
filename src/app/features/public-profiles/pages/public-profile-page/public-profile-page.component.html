@@ -363,7 +363,11 @@
         <h3 class="pub-profile__section-title">{{ 'publicProfile.postedItems' | translate }}</h3>
         @if (userIdSignal(); as uid) {
           <a class="pub-profile__see-all" [routerLink]="['/users', uid, 'listings']">
-            {{ 'publicProfile.viewAll' | translate }}
+            @if (listingCount() > 0) {
+              {{ 'publicProfile.viewAllCount' | translate: { count: listingCount() } }}
+            } @else {
+              {{ 'publicProfile.viewAll' | translate }}
+            }
           </a>
         }
       </div>
@@ -377,14 +381,13 @@
       } @else if ((userListings()?.length ?? 0) > 0) {
         <div class="pub-profile__listings-grid">
           @for (listing of (userListings() ?? []) | slice:0:4; track listing.id) {
-            <app-listing-card [listing]="listing" />
+            <app-listing-card
+              [listing]="listing"
+              [isAuthenticated]="isAuthenticated()"
+              (favoriteToggled)="onFavoriteToggled($event)"
+            />
           }
         </div>
-        @if (listingCount() > 4 && userIdSignal(); as uid) {
-          <a class="pub-profile__view-all-btn" [routerLink]="['/users', uid, 'listings']">
-            {{ 'publicProfile.viewAllCount' | translate: { count: listingCount() } }}
-          </a>
-        }
       } @else {
         <p class="pub-profile__reviews-empty">{{ 'publicProfile.noListings' | translate }}</p>
       }

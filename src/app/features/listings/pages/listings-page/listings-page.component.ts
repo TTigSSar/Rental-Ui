@@ -118,6 +118,21 @@ function applySort(items: ListingPreview[], sortBy: string): ListingPreview[] {
   return items;
 }
 
+const AGE_GROUPS = [
+  { value: '0-12',   label: '0–1 yr' },
+  { value: '12-36',  label: '1–3 yr' },
+  { value: '36-72',  label: '3–6 yr' },
+  { value: '72-120', label: '6–10 yr' },
+  { value: '120+',   label: '10+ yr' },
+] as const;
+
+const DISTANCES = [
+  { value: 1,    label: '< 1 km' },
+  { value: 3,    label: '< 3 km' },
+  { value: 5,    label: '< 5 km' },
+  { value: null, label: 'Any' },
+] as const;
+
 @Component({
   selector: 'app-listings-page',
   standalone: true,
@@ -172,6 +187,13 @@ export class ListingsPageComponent {
   protected readonly categoriesSignal = this.store.selectSignal(selectListingCategories);
 
   protected readonly activeCategoryId = computed(() => this.filtersSignal().categoryId);
+  protected readonly activeAgeGroup   = computed(() => this.filtersSignal().ageGroup);
+  protected readonly activeMaxDistance = computed(() => this.filtersSignal().maxDistance);
+  protected readonly activeMinPrice   = computed(() => this.filtersSignal().minPrice);
+  protected readonly activeMaxPrice   = computed(() => this.filtersSignal().maxPrice);
+
+  protected readonly ageGroups  = AGE_GROUPS;
+  protected readonly distances  = DISTANCES;
 
   protected readonly activeCategoryName = computed(() => {
     const id = this.filtersSignal().categoryId;
@@ -179,18 +201,27 @@ export class ListingsPageComponent {
     return this.categoriesSignal().find((c) => c.id === id)?.name ?? null;
   });
 
+  protected readonly activeQuery = computed(() => this.filtersSignal().query ?? '');
+
+  protected readonly hasSidebarFilters = computed(() => {
+    const f = this.filtersSignal();
+    return !!(f.categoryId || f.ageGroup || f.minPrice != null || f.maxPrice != null || f.maxDistance != null);
+  });
+
   protected readonly activeFilterChips = computed(() => {
     const f = this.filtersSignal();
     const chips: { key: string; label: string }[] = [];
-    // categoryId is shown via the category chips row — not duplicated here
-    if (f.city?.trim()) {
-      chips.push({ key: 'city', label: f.city.trim() });
+    if (f.categoryId) {
+      const cat = this.categoriesSignal().find((c) => c.id === f.categoryId);
+      chips.push({ key: 'categoryId', label: cat?.name ?? f.categoryId });
     }
-    if (f.minPrice != null) {
-      chips.push({ key: 'minPrice', label: `$${f.minPrice}+` });
+    if (f.ageGroup) {
+      const ag = AGE_GROUPS.find((a) => a.value === f.ageGroup);
+      chips.push({ key: 'ageGroup', label: ag?.label ?? f.ageGroup });
     }
-    if (f.maxPrice != null) {
-      chips.push({ key: 'maxPrice', label: `≤ $${f.maxPrice}` });
+    if (f.maxDistance != null) {
+      const d = DISTANCES.find((dist) => dist.value === f.maxDistance);
+      chips.push({ key: 'maxDistance', label: d?.label ?? `< ${f.maxDistance} km` });
     }
     return chips;
   });
@@ -249,6 +280,12 @@ export class ListingsPageComponent {
     void this.router.navigate([], { relativeTo: this.route, queryParams: {} });
   }
 
+  protected onNotifyMe(): void {
+    if (!this.isAuthenticated()) {
+      this.showAuthDialog.set(true);
+    }
+  }
+
   protected toggleSortMenu(): void {
     this.sortMenuOpen.update(v => !v);
   }
@@ -278,12 +315,53 @@ export class ListingsPageComponent {
     });
   }
 
+  protected selectAgeGroup(value: string): void {
+    const current = this.filtersSignal().ageGroup;
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { ageGroup: current === value ? null : value },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  protected selectDistance(value: number | null): void {
+    const current = this.filtersSignal().maxDistance;
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { maxDistance: current === value ? null : value },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  protected setMinPrice(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    const num = val.trim() ? Number(val) : null;
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { minPrice: num ?? null },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  protected setMaxPrice(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    const num = val.trim() ? Number(val) : null;
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { maxPrice: num ?? null },
+      queryParamsHandling: 'merge',
+    });
+  }
+
   protected removeFilterChip(key: string): void {
-    const paramKey = key === 'categoryId' ? 'categoryId'
-      : key === 'city' ? 'city'
-      : key === 'minPrice' ? 'minPrice'
-      : key === 'maxPrice' ? 'maxPrice'
-      : null;
+    const paramKey =
+      key === 'categoryId'  ? 'categoryId'  :
+      key === 'city'        ? 'city'        :
+      key === 'minPrice'    ? 'minPrice'    :
+      key === 'maxPrice'    ? 'maxPrice'    :
+      key === 'ageGroup'    ? 'ageGroup'    :
+      key === 'maxDistance' ? 'maxDistance' :
+      null;
     if (!paramKey) return;
     void this.router.navigate([], {
       relativeTo: this.route,
@@ -292,12 +370,19 @@ export class ListingsPageComponent {
     });
   }
 
+  protected selectCategoryFromSidebar(id: string): void {
+    const current = this.filtersSignal().categoryId;
+    this.selectCategory(current === id ? null : id);
+  }
+
   private parseFiltersFromParams(params: ParamMap): ListingsFilter {
     const q = params.get('q');
     const city = params.get('city');
     const categoryId = params.get('categoryId');
     const minPriceStr = params.get('minPrice');
     const maxPriceStr = params.get('maxPrice');
+    const ageGroup = params.get('ageGroup');
+    const maxDistanceStr = params.get('maxDistance');
     return {
       query: q?.trim() || null,
       city: city?.trim() || null,
@@ -309,6 +394,11 @@ export class ListingsPageComponent {
       maxPrice:
         maxPriceStr != null && !Number.isNaN(Number(maxPriceStr))
           ? Number(maxPriceStr)
+          : null,
+      ageGroup: ageGroup?.trim() || null,
+      maxDistance:
+        maxDistanceStr != null && !Number.isNaN(Number(maxDistanceStr))
+          ? Number(maxDistanceStr)
           : null,
     };
   }

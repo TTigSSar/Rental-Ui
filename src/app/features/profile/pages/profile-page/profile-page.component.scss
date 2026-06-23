@@ -702,6 +702,29 @@
 @media (max-width: 560px) {
   .profile-page {
     gap: var(--ui-space-8);
+    padding-top: 0;
+  }
+}
+
+/* ── Profile child route mobile layout ── */
+@media (max-width: 960px) {
+  // When a child route is active on mobile, strip redundant spacing so the
+  // fixed back-nav bar sits flush and the nested page-container doesn't
+  // double the horizontal padding already provided by profile-page.
+  .profile-page--child-active {
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-inline: 0;
+    gap: 0;
+
+    // Mirror the desktop rule: child pages rendered inside profile-page__main
+    // inherit the outer page-container bounds; their own padding is redundant.
+    .profile-page__main .page-container {
+      max-width: none;
+      width: 100%;
+      margin-inline: 0;
+      padding-inline: 0;
+    }
   }
 }
 

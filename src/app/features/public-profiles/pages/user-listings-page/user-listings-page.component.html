@@ -50,14 +50,6 @@
         </div>
       </div>
     }
-
-    <a
-      class="user-listings__header-search"
-      [routerLink]="['/listings']"
-      [attr.aria-label]="'listings.common.search' | translate"
-    >
-      <i class="pi pi-search" aria-hidden="true"></i>
-    </a>
   </header>
 
   @if (showSkeleton()) {
@@ -163,7 +155,11 @@
     <div class="user-listings__grid page-container">
       @if (filteredListings().length > 0) {
         @for (listing of filteredListings(); track listing.id) {
-          <app-listing-card [listing]="listing" />
+          <app-listing-card
+            [listing]="listing"
+            [isAuthenticated]="isAuthenticated()"
+            (favoriteToggled)="onFavoriteToggled($event)"
+          />
         }
       } @else {
         <div class="user-listings__empty">

@@ -8,36 +8,6 @@
   gap: var(--ui-space-12, 12px);
 }
 
-.booking-details__header {
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-12, 12px);
-}
-
-.booking-details__back {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--ui-color-border);
-  border-radius: 50%;
-  background: var(--ui-color-surface);
-  color: var(--ui-color-text-primary);
-  cursor: pointer;
-
-  &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
-    outline-offset: 2px;
-  }
-}
-
-.booking-details__heading {
-  margin: 0;
-  font-size: var(--ui-font-size-h2, 1.25rem);
-  font-weight: 700;
-}
-
 .booking-details__status-row {
   display: flex;
   align-items: center;

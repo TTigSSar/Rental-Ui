@@ -442,6 +442,24 @@
   align-items: center;
   gap: var(--ui-space-12);
   padding: 16px var(--ui-space-16);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+
+  &:hover {
+    background: var(--ui-color-surface-muted);
+
+    .detail-page__owner-profile-btn {
+      border-color: var(--ui-color-primary);
+      color: var(--ui-color-primary);
+      background: var(--ui-color-primary-wash);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary);
+    outline-offset: -2px;
+  }
 }
 
 .detail-page__owner-avatar-wrap {
@@ -530,22 +548,10 @@
   border: 1.5px solid var(--ui-color-border);
   background: var(--ui-color-surface-muted);
   color: var(--ui-color-text-secondary);
-  text-decoration: none;
   transition: border-color 120ms ease, color 120ms ease, background-color 120ms ease;
 
   i {
     font-size: 0.75rem;
-  }
-
-  &:hover {
-    border-color: var(--ui-color-primary);
-    color: var(--ui-color-primary);
-    background: var(--ui-color-primary-wash);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
-    outline-offset: 2px;
   }
 }
 

@@ -16,6 +16,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
 import { ListingCardComponent } from '../../../listings/components/listing-card/listing-card.component';
+import * as ListingsActions from '../../../listings/store/listings.actions';
 import { ReviewCardComponent } from '../../../reviews/components/review-card/review-card.component';
 import * as ReviewsActions from '../../../reviews/store/reviews.actions';
 import {
@@ -24,6 +25,7 @@ import {
   selectRenterReviews,
   selectRenterReviewsLoading,
 } from '../../../reviews/store/reviews.selectors';
+import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 import * as PublicProfilesActions from '../../store/public-profiles.actions';
 import {
   selectPublicProfile,
@@ -184,6 +186,8 @@ export class PublicProfilePageComponent {
     this.activeTab() === 'owner' ? this.ownerReviewCount() : this.renterReviewCount(),
   );
 
+  protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
+
   protected readonly showSkeleton = computed(
     () => this.profileLoading() && this.profile() === null,
   );
@@ -231,5 +235,9 @@ export class PublicProfilePageComponent {
 
   protected getHygieneIcon(iconKey: string): string {
     return this.hygieneSectionIcons[iconKey] ?? 'pi pi-check';
+  }
+
+  protected onFavoriteToggled(listingId: string): void {
+    this.store.dispatch(ListingsActions.toggleFavoriteOptimistic({ listingId }));
   }
 }

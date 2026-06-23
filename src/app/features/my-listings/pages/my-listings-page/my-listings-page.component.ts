@@ -1,3 +1,4 @@
+import { CurrencyPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
@@ -9,8 +10,14 @@ import { SkeletonModule } from 'primeng/skeleton';
 
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
+import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
 import { MyListingCardComponent } from '../../components/my-listing-card/my-listing-card.component';
 import type { MyListing, MyListingStatus } from '../../models/my-listing.model';
+import {
+  mapListingStatusLabelKey,
+  mapListingStatusTone,
+} from '../../../../shared/utils/listing-status.utils';
+import type { BadgeTone } from '../../../../shared/ui/badge/badge.component';
 import * as MyListingsActions from '../../store/my-listings.actions';
 import {
   selectMyListingsError,
@@ -55,7 +62,9 @@ const selectMyListingsPageViewModel = createSelector(
   selector: 'app-my-listings-page',
   standalone: true,
   imports: [
+    BadgeComponent,
     ButtonModule,
+    CurrencyPipe,
     EmptyStateComponent,
     PageHeaderComponent,
     MessageModule,
@@ -135,5 +144,22 @@ export class MyListingsPageComponent implements OnInit {
 
   protected onRestoreRequested(listingId: string): void {
     this.store.dispatch(MyListingsActions.restoreListing({ listingId }));
+  }
+
+  protected statusLabelKey(status: MyListingStatus): string {
+    return mapListingStatusLabelKey(status);
+  }
+
+  protected statusTone(status: MyListingStatus): BadgeTone {
+    return mapListingStatusTone(status);
+  }
+
+  protected formatAge(listing: MyListing): string {
+    const from = listing.ageFromMonths != null ? Math.floor(listing.ageFromMonths / 12) : null;
+    const to = listing.ageToMonths != null ? Math.floor(listing.ageToMonths / 12) : null;
+    if (from != null && to != null) return `${from}–${to} yr`;
+    if (from != null) return `${from}+ yr`;
+    if (to != null) return `0–${to} yr`;
+    return '';
   }
 }

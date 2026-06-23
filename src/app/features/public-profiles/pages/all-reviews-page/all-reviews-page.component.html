@@ -11,11 +11,7 @@
       <i class="pi pi-arrow-left" aria-hidden="true"></i>
     </button>
     <span class="ar__mobile-title">
-      @if (activeTab() === 'owner') {
-        {{ 'publicProfile.reviewsFromRenters' | translate }}
-      } @else {
-        {{ 'publicProfile.reviewsFromOwners' | translate }}
-      }
+        {{ 'profile.reviews.heading' | translate }}
     </span>
     <span class="ar__mobile-spacer" aria-hidden="true"></span>
   </header>
@@ -108,7 +104,7 @@
             <p-skeleton height="5rem" borderRadius="12px" styleClass="mt-4" />
           </div>
 
-        } @else if (activeSummary()?.hasAggregate) {
+        } @else if (activeSummary()) {
 
           <!-- Overall score card -->
           <div class="ar__score-card">
@@ -170,11 +166,6 @@
             </div>
           }
 
-        } @else if (!activeLoading()) {
-          <div class="ar__sidebar-empty">
-            <i class="pi pi-star" aria-hidden="true"></i>
-            <p>{{ 'allReviews.noReviewsYet' | translate }}</p>
-          </div>
         }
       </aside>
 

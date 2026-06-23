@@ -16,6 +16,23 @@
   place-items: center;
   flex-shrink: 0;
   margin-bottom: var(--ui-space-4);
+  position: relative;
+}
+
+.ui-empty-state__badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ui-color-primary);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+  border: 2px solid var(--ui-color-surface);
 }
 
 .ui-empty-state__icon-wrap--primary {

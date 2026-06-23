@@ -217,6 +217,8 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
       categoryId: raw.categoryId.trim() || null,
       minPrice: raw.minPrice,
       maxPrice: raw.maxPrice,
+      ageGroup: null,
+      maxDistance: null,
     };
   }
 

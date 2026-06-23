@@ -1,136 +1,307 @@
 <div class="listings-page page-container">
-  <!-- ── Scrollable content ── -->
-  @if (vm(); as v) {
 
-    @if (v.hasError && v.error) {
-      <div class="listings-page__error" role="alert">
-        <p-message severity="error" styleClass="listings-page__message">
-          <div class="listings-page__error-content">
-            <strong>{{ 'listings.page.errorTitle' | translate }}</strong>
-            <span>{{ v.error }}</span>
-          </div>
-        </p-message>
-        <p-button
-          type="button"
-          styleClass="listings-page__retry"
-          [label]="'listings.common.retry' | translate"
-          (onClick)="retryAfterError()"
-        />
-      </div>
-    }
+  <!-- ── Mobile sticky header (hidden on desktop via CSS) ──────── -->
+  <div class="lp-sticky-header">
+    <div class="lp-bar">
+      <app-listings-filters [showChips]="false" (filtersChanged)="onFiltersChanged($event)" />
+    </div>
+  </div>
 
-    @if (v.showInitialSkeleton) {
-      <app-ui-loading-skeleton [items]="skeletonCount(v)" />
-    }
+  <!-- ── Page layout: sidebar (desktop) + main content ─────────── -->
+  <div class="lp-layout">
 
-    @if (v.showEmpty) {
-      @if (v.hasActiveFilters) {
-        <app-ui-empty-state
-          tone="neutral"
-          icon="pi pi-filter-slash"
-          [title]="'listings.page.emptyFilterTitle' | translate"
-          [description]="'listings.page.emptyFilter' | translate"
-          [ctaLabel]="'listings.page.emptyFilterCta' | translate"
-          (ctaClicked)="clearFilters()"
-        />
-      } @else {
-        <app-ui-empty-state
-          icon="pi pi-gift"
-          [title]="'listings.page.emptyTitle' | translate"
-          [description]="'listings.page.empty' | translate"
-        />
-      }
-    }
+    <!-- ── Desktop filter sidebar ──────────────────────────────── -->
+    <aside class="lp-sidebar" aria-label="Filters">
 
-    <!-- Results toolbar: count + sort dropdown -->
-    @if (!v.showInitialSkeleton && (v.items.length > 0 || v.hasMore)) {
-      <div class="lp-toolbar">
-        <span class="lp-toolbar__count">
-          {{ resultCountLabel() }}&nbsp;{{ 'listings.page.toysSuffix' | translate }}
-        </span>
-
-        <div class="lp-sort-wrapper">
-          @if (sortMenuOpen()) {
-            <div class="lp-sort-backdrop" aria-hidden="true" (click)="sortMenuOpen.set(false)"></div>
-          }
-          <button
-            type="button"
-            class="lp-toolbar__sort"
-            [class.lp-toolbar__sort--active]="sortBy() !== ''"
-            [attr.aria-label]="'listings.page.sortLabel' | translate"
-            [attr.aria-expanded]="sortMenuOpen()"
-            (click)="toggleSortMenu()"
-          >
-            <i class="pi pi-sort-amount-down-alt" aria-hidden="true"></i>
-            <span>
-              @if (activeSortOption(); as opt) {
-                {{ 'listings.page.sortPrefix' | translate }}{{ opt.labelKey | translate }}
-              } @else {
-                {{ 'listings.page.sortLabel' | translate }}
-              }
-            </span>
-            <i class="pi pi-chevron-down lp-toolbar__sort-chevron" aria-hidden="true"></i>
+      <div class="lp-sidebar__header">
+        <h2 class="lp-sidebar__title">{{ 'listings.filters.sidebar.title' | translate }}</h2>
+        @if (hasSidebarFilters()) {
+          <button type="button" class="lp-sidebar__clear" (click)="clearFilters()">
+            {{ 'listings.filters.sidebar.clearAll' | translate }}
           </button>
+        }
+      </div>
 
-          @if (sortMenuOpen()) {
-            <div class="lp-sort-menu" role="listbox" [attr.aria-label]="'listings.page.sortLabel' | translate">
-              @for (opt of sortOptions; track opt.value) {
-                <button
-                  type="button"
-                  class="lp-sort-menu__item"
-                  [class.lp-sort-menu__item--active]="sortBy() === opt.value"
-                  role="option"
-                  [attr.aria-selected]="sortBy() === opt.value"
-                  (click)="selectSort(opt.value)"
-                >
-                  <i [class]="opt.icon" aria-hidden="true"></i>
-                  <span>{{ opt.labelKey | translate }}</span>
-                  @if (sortBy() === opt.value) {
-                    <i class="pi pi-check lp-sort-menu__check" aria-hidden="true"></i>
-                  }
-                </button>
-              }
-            </div>
+      <!-- Category -->
+      <div class="lp-sidebar__section">
+        <p class="lp-sidebar__section-label">{{ 'listings.filters.sidebar.category' | translate }}</p>
+        @for (cat of categoriesSignal(); track cat.id) {
+          <label class="lp-sidebar__checkbox-row">
+            <input
+              type="checkbox"
+              class="lp-sidebar__checkbox"
+              [checked]="activeCategoryId() === cat.id"
+              (change)="selectCategoryFromSidebar(cat.id)"
+            />
+            <span class="lp-sidebar__checkbox-name">{{ cat.name }}</span>
+          </label>
+        }
+      </div>
+
+      <div class="lp-sidebar__divider"></div>
+
+      <!-- Age -->
+      <div class="lp-sidebar__section">
+        <p class="lp-sidebar__section-label">{{ 'listings.filters.sidebar.age' | translate }}</p>
+        <div class="lp-sidebar__pills">
+          @for (ag of ageGroups; track ag.value) {
+            <button
+              type="button"
+              class="lp-sidebar__pill"
+              [class.lp-sidebar__pill--active]="activeAgeGroup() === ag.value"
+              (click)="selectAgeGroup(ag.value)"
+            >{{ ag.label }}</button>
           }
         </div>
       </div>
-    }
 
-    @if (v.items.length > 0) {
-      <div class="listings-page__grid cards-grid">
-        @for (listing of v.items; track listing.id) {
-          <app-listing-card
-            [listing]="listing"
-            [isAuthenticated]="v.isAuthenticated"
-            [bookingStatus]="bookingStatusMap().get(listing.id)"
-            (favoriteToggled)="onFavoriteToggled($event)"
-          />
+      <div class="lp-sidebar__divider"></div>
+
+      <!-- Price per day -->
+      <div class="lp-sidebar__section">
+        <p class="lp-sidebar__section-label">{{ 'listings.filters.sidebar.pricePerDay' | translate }}</p>
+        <div class="lp-sidebar__price-row">
+          <div class="lp-sidebar__price-wrap">
+            <span class="lp-sidebar__price-prefix">₽</span>
+            <input
+              type="number"
+              class="lp-sidebar__price-input"
+              [value]="activeMinPrice() ?? ''"
+              placeholder="0"
+              min="0"
+              (change)="setMinPrice($event)"
+            />
+          </div>
+          <div class="lp-sidebar__price-wrap">
+            <span class="lp-sidebar__price-prefix">₽</span>
+            <input
+              type="number"
+              class="lp-sidebar__price-input"
+              [value]="activeMaxPrice() ?? ''"
+              placeholder="10 000"
+              min="0"
+              (change)="setMaxPrice($event)"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="lp-sidebar__divider"></div>
+
+      <!-- Distance -->
+      <div class="lp-sidebar__section">
+        <p class="lp-sidebar__section-label">{{ 'listings.filters.sidebar.distance' | translate }}</p>
+        <div class="lp-sidebar__pills">
+          @for (d of distances; track d.label) {
+            <button
+              type="button"
+              class="lp-sidebar__pill"
+              [class.lp-sidebar__pill--active]="activeMaxDistance() === d.value"
+              (click)="selectDistance(d.value)"
+            >{{ d.label }}</button>
+          }
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ── Main content area ──────────────────────────────────── -->
+    <div class="lp-main">
+
+      @if (vm(); as v) {
+
+        @if (v.hasError && v.error) {
+          <div class="listings-page__error" role="alert">
+            <p-message severity="error" styleClass="listings-page__message">
+              <div class="listings-page__error-content">
+                <strong>{{ 'listings.page.errorTitle' | translate }}</strong>
+                <span>{{ v.error }}</span>
+              </div>
+            </p-message>
+            <p-button
+              type="button"
+              styleClass="listings-page__retry"
+              [label]="'listings.common.retry' | translate"
+              (onClick)="retryAfterError()"
+            />
+          </div>
         }
-      </div>
-    }
 
-    @if (v.showAppendSkeleton) {
-      <div
-        class="listings-page__append-loading"
-        aria-live="polite"
-        [attr.aria-label]="'listings.page.loadingMore' | translate"
-      >
-        <app-ui-loading-skeleton [items]="3" />
-      </div>
-    }
+        @if (v.showInitialSkeleton) {
+          <app-ui-loading-skeleton [items]="skeletonCount(v)" />
+        }
 
-    @if (v.showLoadMore) {
-      <div class="listings-page__load-more">
-        <p-button
-          type="button"
-          [outlined]="true"
-          icon="pi pi-angle-down"
-          [label]="'listings.page.loadMore' | translate"
-          (onClick)="loadMore()"
-        />
-      </div>
-    }
-  }
+        @if (v.showEmpty) {
+          @if (v.hasActiveFilters) {
+            <div class="lp-empty-search">
+              <div class="lp-empty-search__icon-wrap" aria-hidden="true">
+                <i class="pi pi-search lp-empty-search__icon"></i>
+                <span class="lp-empty-search__emoji">🧸</span>
+              </div>
+              @if (activeQuery()) {
+                <h2 class="lp-empty-search__title">
+                  {{ 'listings.page.emptySearchTitle' | translate }}
+                  <span class="lp-empty-search__query">"{{ activeQuery() }}"</span>
+                </h2>
+              } @else {
+                <h2 class="lp-empty-search__title">
+                  {{ 'listings.page.emptyFilterTitle' | translate }}
+                </h2>
+              }
+              <p class="lp-empty-search__desc">
+                {{ 'listings.page.emptySearchDescription' | translate }}
+              </p>
+              <div class="lp-empty-search__actions">
+                <button
+                  type="button"
+                  class="lp-empty-search__btn lp-empty-search__btn--outline"
+                  (click)="clearFilters()"
+                >
+                  {{ 'listings.page.emptyFilterCta' | translate }}
+                </button>
+                <button
+                  type="button"
+                  class="lp-empty-search__btn lp-empty-search__btn--filled"
+                  (click)="onNotifyMe()"
+                >
+                  <i class="pi pi-bell" aria-hidden="true"></i>
+                  {{ 'listings.page.notifyMe' | translate }}
+                </button>
+              </div>
+              @if (categoriesSignal().length > 0) {
+                <div class="lp-empty-search__try">
+                  <span class="lp-empty-search__try-label">
+                    {{ 'listings.page.tryInstead' | translate }}
+                  </span>
+                  <div class="lp-empty-search__cats">
+                    @for (cat of categoriesSignal().slice(0, 4); track cat.id) {
+                      <button
+                        type="button"
+                        class="lp-empty-search__cat-chip"
+                        (click)="selectCategory(cat.id)"
+                      >
+                        {{ cat.name }}
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <app-ui-empty-state
+              icon="pi pi-gift"
+              [title]="'listings.page.emptyTitle' | translate"
+              [description]="'listings.page.empty' | translate"
+            />
+          }
+        }
+
+        <!-- Results toolbar: count + active chips + sort dropdown -->
+        @if (!v.showInitialSkeleton && (v.items.length > 0 || v.hasMore)) {
+          <div class="lp-toolbar">
+            <span class="lp-toolbar__count">
+              {{ resultCountLabel() }}&nbsp;{{ 'listings.page.toysSuffix' | translate }}&nbsp;{{ 'listings.page.inYerevan' | translate }}
+            </span>
+
+            <!-- Active filter chips (desktop only) -->
+            <div class="lp-toolbar__chips" role="list" aria-label="Active filters">
+              @for (chip of activeFilterChips(); track chip.key) {
+                <button
+                  type="button"
+                  class="lp-active-chip"
+                  role="listitem"
+                  (click)="removeFilterChip(chip.key)"
+                >
+                  {{ chip.label }}
+                  <i class="pi pi-times lp-active-chip__icon" aria-hidden="true"></i>
+                </button>
+              }
+            </div>
+
+            <div class="lp-sort-wrapper">
+              @if (sortMenuOpen()) {
+                <div class="lp-sort-backdrop" aria-hidden="true" (click)="sortMenuOpen.set(false)"></div>
+              }
+              <button
+                type="button"
+                class="lp-toolbar__sort"
+                [class.lp-toolbar__sort--active]="sortBy() !== ''"
+                [attr.aria-label]="'listings.page.sortLabel' | translate"
+                [attr.aria-expanded]="sortMenuOpen()"
+                (click)="toggleSortMenu()"
+              >
+                <span>
+                  @if (activeSortOption(); as opt) {
+                    {{ 'listings.page.sortBy' | translate }}&nbsp;{{ opt.labelKey | translate }}
+                  } @else {
+                    {{ 'listings.page.sortBy' | translate }}&nbsp;{{ 'listings.page.sortNearest' | translate }}
+                  }
+                </span>
+                <i class="pi pi-chevron-down lp-toolbar__sort-chevron" aria-hidden="true"></i>
+              </button>
+
+              @if (sortMenuOpen()) {
+                <div class="lp-sort-menu" role="listbox" [attr.aria-label]="'listings.page.sortLabel' | translate">
+                  @for (opt of sortOptions; track opt.value) {
+                    <button
+                      type="button"
+                      class="lp-sort-menu__item"
+                      [class.lp-sort-menu__item--active]="sortBy() === opt.value"
+                      role="option"
+                      [attr.aria-selected]="sortBy() === opt.value"
+                      (click)="selectSort(opt.value)"
+                    >
+                      <i [class]="opt.icon" aria-hidden="true"></i>
+                      <span>{{ opt.labelKey | translate }}</span>
+                      @if (sortBy() === opt.value) {
+                        <i class="pi pi-check lp-sort-menu__check" aria-hidden="true"></i>
+                      }
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (v.items.length > 0) {
+          <div class="listings-page__grid cards-grid">
+            @for (listing of v.items; track listing.id) {
+              <app-listing-card
+                [listing]="listing"
+                [isAuthenticated]="v.isAuthenticated"
+                [bookingStatus]="bookingStatusMap().get(listing.id)"
+                (favoriteToggled)="onFavoriteToggled($event)"
+              />
+            }
+          </div>
+        }
+
+        @if (v.showAppendSkeleton) {
+          <div
+            class="listings-page__append-loading"
+            aria-live="polite"
+            [attr.aria-label]="'listings.page.loadingMore' | translate"
+          >
+            <app-ui-loading-skeleton [items]="3" />
+          </div>
+        }
+
+        @if (v.showLoadMore) {
+          <div class="listings-page__load-more">
+            <p-button
+              type="button"
+              [outlined]="true"
+              icon="pi pi-angle-down"
+              [label]="'listings.page.loadMore' | translate"
+              (onClick)="loadMore()"
+            />
+          </div>
+        }
+      }
+
+    </div><!-- /lp-main -->
+  </div><!-- /lp-layout -->
 </div>
 
 <app-auth-dialog [visible]="showAuthDialog()" (closed)="showAuthDialog.set(false)" />

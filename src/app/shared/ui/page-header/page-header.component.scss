@@ -65,6 +65,13 @@
   gap: var(--ui-space-8);
 }
 
+.ph__row-start,
+.ph__row-end {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .ph--center .ph__row {
   justify-content: center;
 }
@@ -81,4 +88,99 @@
   margin: 0;
   color: var(--ui-color-text-secondary);
   line-height: var(--ui-line-height-relaxed);
+}
+
+/* ── Hide back arrow on desktop ─────────────────────────── */
+@media (min-width: 961px) {
+  .ph__back {
+    display: none;
+  }
+
+  .ph--hide-desktop-title .ph__title {
+    display: none;
+  }
+}
+
+/* ── Mobile fixed back-nav bar (when backLink is provided) ── */
+@media (max-width: 960px) {
+  // Host reserves the same height so content doesn't slide under the fixed bar
+  :host.ph-back-host {
+    display: block;
+    height: 3.25rem;
+    flex-shrink: 0;
+  }
+
+  .ph--has-back {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: saturate(140%) blur(6px);
+    -webkit-backdrop-filter: saturate(140%) blur(6px);
+    border-bottom: 1px solid var(--ui-color-border);
+    padding-inline: var(--ui-space-12);
+    margin-bottom: 0 !important;
+
+    .ph__row {
+      display: grid;
+      grid-template-columns: 2rem 1fr 2rem;
+      align-items: center;
+      min-height: 3.25rem;
+      max-width: min(640px, 100%);
+      margin-inline: auto;
+      gap: 0;
+    }
+
+    .ph__row-start {
+      justify-content: flex-start;
+    }
+
+    .ph__row-end {
+      justify-content: flex-end;
+    }
+
+    .ph__subtitle,
+    .ph__eyebrow {
+      display: none;
+    }
+
+    .ph__title {
+      font-size: 1rem;
+      font-weight: 600;
+      text-align: center;
+    }
+  }
+
+  .ph--has-back .ph__back {
+    width: 1.75rem;
+    height: 1.75rem;
+
+    .pi {
+      font-size: 0.875rem;
+    }
+  }
+
+  // Start-aligned title: revert to flex so actions get natural width
+  .ph--has-back.ph--mobile-title-start {
+    .ph__row {
+      display: flex;
+      grid-template-columns: unset;
+    }
+
+    .ph__row-start {
+      flex-shrink: 0;
+    }
+
+    .ph__title {
+      text-align: left;
+      flex: 1;
+      padding-left: 12px;
+    }
+
+    .ph__row-end {
+      flex-shrink: 0;
+    }
+  }
 }

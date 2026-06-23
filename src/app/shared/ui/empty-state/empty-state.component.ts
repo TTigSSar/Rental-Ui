@@ -24,6 +24,7 @@ export class EmptyStateComponent {
   readonly ctaLabel = input<string | null>(null);
   readonly ctaIcon = input<string>('');
   readonly ctaRouterLink = input<string[] | null>(null);
+  readonly showPlusBadge = input<boolean>(false);
 
   @Output() readonly ctaClicked = new EventEmitter<void>();
 }

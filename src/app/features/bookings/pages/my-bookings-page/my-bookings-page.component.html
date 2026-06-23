@@ -5,6 +5,7 @@
     backLink="/profile"
   />
 
+  <!-- Error state -->
   @if (vm().hasError && vm().error) {
     <div class="bookings-page__error" role="alert">
       <p-message severity="error" styleClass="bookings-page__message">
@@ -17,24 +18,25 @@
     </div>
   }
 
+  <!-- Skeleton -->
   @if (vm().showInitialSkeleton) {
-    <div class="bookings-page__list">
+    <div class="bookings-page__skeleton-list">
       @for (i of [0, 1, 2]; track i) {
         <div class="bookings-page__skeleton-card">
-          <p-skeleton width="80px" height="80px" borderRadius="12px" />
+          <p-skeleton width="100%" height="44px" borderRadius="12px 12px 0 0" />
           <div class="bookings-page__skeleton-body">
-            <p-skeleton width="60%" height="1.1rem" />
-            <p-skeleton width="40%" height="0.9rem" />
-          </div>
-          <div class="bookings-page__skeleton-actions">
-            <p-skeleton width="7rem" height="2.2rem" borderRadius="10px" />
-            <p-skeleton width="5rem" height="2.2rem" borderRadius="10px" />
+            <p-skeleton width="72px" height="72px" borderRadius="10px" />
+            <div class="bookings-page__skeleton-info">
+              <p-skeleton width="65%" height="1.1rem" />
+              <p-skeleton width="40%" height="0.85rem" />
+            </div>
           </div>
         </div>
       }
     </div>
   }
 
+  <!-- Empty state -->
   @if (vm().showEmpty) {
     <app-ui-empty-state
       icon="pi pi-calendar-times"
@@ -46,34 +48,44 @@
   }
 
   @if (vm().bookings.length > 0) {
-    <!-- Tabs -->
-    <div class="bookings-page__tabs" role="tablist">
-      @for (tab of TABS; track tab) {
-        <button
-          type="button"
-          class="bookings-page__tab"
-          [class.bookings-page__tab--active]="activeTab() === tab"
-          role="tab"
-          [attr.aria-selected]="activeTab() === tab"
-          (click)="setTab(tab)"
-        >
-          {{ ('bookings.myBookings.tab.' + tab) | translate }}
-          <span class="bookings-page__tab-count">{{ tabCounts()[tab] }}</span>
-        </button>
+
+    <!-- Filter tabs (same pattern as My Toys) -->
+    <div
+      class="bookings-page__filters"
+      role="tablist"
+      [attr.aria-label]="'bookings.myBookings.title' | translate"
+    >
+      @for (tab of FILTER_TABS; track tab.key) {
+        @if (tab.key === 'all' || (tabCounts().get(tab.key) ?? 0) > 0) {
+          <button
+            type="button"
+            class="bookings-page__filter-tab"
+            [class.bookings-page__filter-tab--active]="activeFilter() === tab.key"
+            role="tab"
+            [attr.aria-selected]="activeFilter() === tab.key"
+            (click)="setFilter(tab.key)"
+          >
+            {{ tab.labelKey | translate }}
+            <span class="bookings-page__filter-count" aria-hidden="true">
+              {{ tabCounts().get(tab.key) ?? 0 }}
+            </span>
+          </button>
+        }
       }
     </div>
 
-    <!-- Booking list -->
+    <!-- Booking cards -->
     @if (filteredBookings().length > 0) {
-      <div class="bookings-page__list">
+      <div class="bookings-page__grid">
         @for (booking of filteredBookings(); track booking.id) {
           <app-my-booking-card [booking]="booking" />
         }
       </div>
     } @else {
-      <p class="bookings-page__tab-empty">
+      <p class="bookings-page__filter-empty">
         {{ 'bookings.myBookings.tabEmpty' | translate }}
       </p>
     }
+
   }
 </section>

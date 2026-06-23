@@ -16,6 +16,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
 import { AuthDialogComponent } from '../../../auth/components/auth-dialog/auth-dialog.component';
+import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 import * as FavoritesActions from '../../../favorites/store/favorites.actions';
 import { selectFavoriteIds } from '../../../favorites/store/favorites.selectors';
@@ -186,6 +187,7 @@ const selectListingDetailsBase = createSelector(
     ButtonModule,
     CommonModule,
     ListingGalleryComponent,
+    PageHeaderComponent,
     ReviewCardComponent,
     RouterLink,
     SkeletonModule,
@@ -298,6 +300,8 @@ export class ListingDetailsPageComponent {
   });
 
   private readonly currentListingSignal = this.store.selectSignal(selectSelectedListing);
+
+  protected readonly listingTitle = computed(() => this.currentListingSignal()?.title ?? '');
 
   private readonly createBookingSuccessId = this.store.selectSignal(selectCreateBookingSuccessId);
 
