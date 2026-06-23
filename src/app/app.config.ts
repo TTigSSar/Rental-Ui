@@ -9,31 +9,9 @@ import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
 
-import { HomeEffects } from './features/home/store/home.effects';
-import { homeFeatureKey, homeReducer } from './features/home/store/home.reducer';
 import { AuthEffects } from './features/auth/store/auth.effects';
 import { authInterceptor } from './features/auth/services/auth.interceptor';
 import { authFeatureKey, authReducer } from './features/auth/store/auth.reducer';
-import { BookingsEffects } from './features/bookings/store/bookings.effects';
-import { bookingsFeatureKey, bookingsReducer } from './features/bookings/store/bookings.reducer';
-import { FavoritesEffects } from './features/favorites/store/favorites.effects';
-import {
-  favoritesFeatureKey,
-  favoritesReducer,
-} from './features/favorites/store/favorites.reducer';
-import { ListingsEffects } from './features/listings/store/listings.effects';
-import { listingsFeatureKey, listingsReducer } from './features/listings/store/listings.reducer';
-import { MyListingsEffects } from './features/my-listings/store/my-listings.effects';
-import {
-  myListingsFeatureKey,
-  myListingsReducer,
-} from './features/my-listings/store/my-listings.reducer';
-import { ProfileEffects } from './features/profile/store/profile.effects';
-import { profileFeatureKey, profileReducer } from './features/profile/store/profile.reducer';
-import { PublicProfilesEffects } from './features/public-profiles/store/public-profiles.effects';
-import { publicProfilesFeatureKey, publicProfilesReducer } from './features/public-profiles/store/public-profiles.reducer';
-import { ReviewsEffects } from './features/reviews/store/reviews.effects';
-import { reviewsFeatureKey, reviewsReducer } from './features/reviews/store/reviews.reducer';
 import { routes } from './app.routes';
 
 const translateHttpLoaderProviders = provideTranslateHttpLoader({
@@ -47,24 +25,12 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
     provideStore(),
-    provideState(homeFeatureKey, homeReducer),
+    // Auth is the only eagerly-registered slice: the app shell reads auth
+    // state and dispatches authInitStarted at bootstrap. Every other feature
+    // slice is registered lazily on the route(s) that consume it (see each
+    // feature's routes.ts).
     provideState(authFeatureKey, authReducer),
-    provideState(bookingsFeatureKey, bookingsReducer),
-    provideState(favoritesFeatureKey, favoritesReducer),
-    provideState(listingsFeatureKey, listingsReducer),
-    provideState(myListingsFeatureKey, myListingsReducer),
-    provideState(profileFeatureKey, profileReducer),
-    provideState(publicProfilesFeatureKey, publicProfilesReducer),
-    provideState(reviewsFeatureKey, reviewsReducer),
-    provideEffects(HomeEffects),
     provideEffects(AuthEffects),
-    provideEffects(BookingsEffects),
-    provideEffects(FavoritesEffects),
-    provideEffects(ListingsEffects),
-    provideEffects(MyListingsEffects),
-    provideEffects(ProfileEffects),
-    provideEffects(PublicProfilesEffects),
-    provideEffects(ReviewsEffects),
     translateHttpLoaderProviders[0],
     ...provideTranslateService({
       fallbackLang: 'en',
