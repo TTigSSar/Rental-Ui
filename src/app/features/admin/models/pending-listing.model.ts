@@ -1,4 +1,6 @@
-export type ToyCondition = 'New' | 'LikeNew' | 'Good' | 'Fair' | 'Poor';
+import type { ToyCondition } from '../../listings/models/listing-details.model';
+
+export type { ToyCondition };
 
 export interface PendingListingOwner {
   id: string;

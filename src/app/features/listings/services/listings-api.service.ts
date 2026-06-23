@@ -9,7 +9,7 @@ import type {
   ListingCategoryOption,
   ListingImageUploadResponse,
 } from '../models/create-listing.model';
-import type { ListingDetails } from '../models/listing-details.model';
+import type { ListingDetails, ToyCondition } from '../models/listing-details.model';
 import type {
   BookedDateRange,
   ListingImage,
@@ -91,6 +91,15 @@ function normalizeNonEmptyString(value: unknown): string | null {
   }
   const trimmed = value.trim();
   return trimmed.length === 0 ? null : trimmed;
+}
+
+const TOY_CONDITIONS = new Set<ToyCondition>(['New', 'LikeNew', 'Good', 'Fair', 'Poor']);
+
+/** Narrows an untrusted backend value to a known ToyCondition, or null. */
+function normalizeToyCondition(value: unknown): ToyCondition | null {
+  return typeof value === 'string' && TOY_CONDITIONS.has(value as ToyCondition)
+    ? (value as ToyCondition)
+    : null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -297,7 +306,7 @@ export class ListingsApiService {
           : 0,
       ageFromMonths: normalizeFiniteNumber(listing.ageFromMonths),
       ageToMonths: normalizeFiniteNumber(listing.ageToMonths),
-      condition: normalizeNonEmptyString(listing.condition),
+      condition: normalizeToyCondition(listing.condition),
       hygieneNotes: normalizeNonEmptyString(listing.hygieneNotes),
       safetyNotes: normalizeNonEmptyString(listing.safetyNotes),
       depositAmount: normalizeFiniteNumber(listing.depositAmount),

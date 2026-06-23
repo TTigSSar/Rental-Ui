@@ -1,11 +1,11 @@
 import type { BookedDateRange, ListingImage, ListingOwner } from './listing.model';
 
 /**
- * Subset of conditions the create form lets owners choose from. The backend
- * accepts any string, so we keep this as a free-form `string` on the model
- * and only treat the values below as well-known labels in the UI.
+ * Canonical set of toy conditions. This is the single source of truth shared
+ * across listings, create/edit, and admin moderation. The admin API service
+ * narrows untrusted backend strings to this union via a runtime guard.
  */
-export type ToyCondition = 'New' | 'LikeNew' | 'Good' | 'Fair' | string;
+export type ToyCondition = 'New' | 'LikeNew' | 'Good' | 'Fair' | 'Poor';
 
 export interface ListingDetails {
   id: string;
