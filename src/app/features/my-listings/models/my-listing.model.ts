@@ -1,9 +1,6 @@
-export interface ListingImage {
-  id: string;
-  url: string;
-  isPrimary: boolean;
-  sortOrder: number;
-}
+import type { ListingImage } from '../../listings/models/listing.model';
+
+export type { ListingImage };
 
 export interface UpdateListingRequest {
   title?: string;
