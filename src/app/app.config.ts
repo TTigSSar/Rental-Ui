@@ -9,20 +9,13 @@ import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
 
-import { AdminModerationEffects } from './features/admin/store/admin-moderation.effects';
 import { HomeEffects } from './features/home/store/home.effects';
 import { homeFeatureKey, homeReducer } from './features/home/store/home.reducer';
-import {
-  adminModerationFeatureKey,
-  adminModerationReducer,
-} from './features/admin/store/admin-moderation.reducer';
 import { AuthEffects } from './features/auth/store/auth.effects';
 import { authInterceptor } from './features/auth/services/auth.interceptor';
 import { authFeatureKey, authReducer } from './features/auth/store/auth.reducer';
 import { BookingsEffects } from './features/bookings/store/bookings.effects';
 import { bookingsFeatureKey, bookingsReducer } from './features/bookings/store/bookings.reducer';
-import { ChatEffects } from './features/chat/store/chat.effects';
-import { chatFeatureKey, chatReducer } from './features/chat/store/chat.reducer';
 import { FavoritesEffects } from './features/favorites/store/favorites.effects';
 import {
   favoritesFeatureKey,
@@ -54,22 +47,18 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
     provideStore(),
-    provideState(adminModerationFeatureKey, adminModerationReducer),
     provideState(homeFeatureKey, homeReducer),
     provideState(authFeatureKey, authReducer),
     provideState(bookingsFeatureKey, bookingsReducer),
-    provideState(chatFeatureKey, chatReducer),
     provideState(favoritesFeatureKey, favoritesReducer),
     provideState(listingsFeatureKey, listingsReducer),
     provideState(myListingsFeatureKey, myListingsReducer),
     provideState(profileFeatureKey, profileReducer),
     provideState(publicProfilesFeatureKey, publicProfilesReducer),
     provideState(reviewsFeatureKey, reviewsReducer),
-    provideEffects(AdminModerationEffects),
     provideEffects(HomeEffects),
     provideEffects(AuthEffects),
     provideEffects(BookingsEffects),
-    provideEffects(ChatEffects),
     provideEffects(FavoritesEffects),
     provideEffects(ListingsEffects),
     provideEffects(MyListingsEffects),
