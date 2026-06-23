@@ -6,12 +6,10 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Store } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { StarRatingComponent } from '../../../../shared/ui/star-rating/star-rating.component';
 import { toApiErrorMessage } from '../../../../api/http-error-message.util';
-import * as ReviewsActions from '../../../reviews/store/reviews.actions';
 import { ReviewsApiService } from '../../../reviews/services/reviews-api.service';
 
 interface SubScore {
@@ -30,7 +28,6 @@ interface SubScore {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RateRenterPageComponent {
-  private readonly store = inject(Store);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly api = inject(ReviewsApiService);
@@ -74,7 +71,6 @@ export class RateRenterPageComponent {
         next: () => {
           this.submitting.set(false);
           this.done.set(true);
-          this.store.dispatch(ReviewsActions.loadBookingStatus({ bookingId: this.bookingId }));
         },
         error: (e: unknown) => {
           this.submitting.set(false);

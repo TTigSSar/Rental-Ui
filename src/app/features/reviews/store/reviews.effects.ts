@@ -53,17 +53,4 @@ export class ReviewsEffects {
     ),
   );
 
-  readonly loadBookingStatus$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(ReviewsActions.loadBookingStatus),
-      mergeMap(({ bookingId }) =>
-        this.reviewsApi.getBookingStatus(bookingId).pipe(
-          map((status) => ReviewsActions.loadBookingStatusSuccess({ bookingId, status })),
-          catchError((error: unknown) =>
-            of(ReviewsActions.loadBookingStatusFailure({ bookingId, error: toApiErrorMessage(error) })),
-          ),
-        ),
-      ),
-    ),
-  );
 }

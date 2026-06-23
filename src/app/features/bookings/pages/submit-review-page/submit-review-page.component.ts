@@ -13,7 +13,6 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 import { StarRatingComponent } from '../../../../shared/ui/star-rating/star-rating.component';
 import { toApiErrorMessage } from '../../../../api/http-error-message.util';
-import * as ReviewsActions from '../../../reviews/store/reviews.actions';
 import { ReviewsApiService } from '../../../reviews/services/reviews-api.service';
 import * as BookingsActions from '../../store/bookings.actions';
 import { selectMyBookingById } from '../../store/bookings.selectors';
@@ -130,7 +129,6 @@ export class SubmitReviewPageComponent implements OnInit {
         next: () => {
           this.toySubmitted.set(true);
           this.submitting.set(false);
-          this.refreshStatus();
           this.step.set(2);
         },
         error: (e: unknown) => {
@@ -163,7 +161,6 @@ export class SubmitReviewPageComponent implements OnInit {
         next: () => {
           this.ownerSubmitted.set(true);
           this.submitting.set(false);
-          this.refreshStatus();
           this.step.set('success');
         },
         error: (e: unknown) => {
@@ -185,9 +182,5 @@ export class SubmitReviewPageComponent implements OnInit {
 
   protected browseToys(): void {
     void this.router.navigate(['/listings']);
-  }
-
-  private refreshStatus(): void {
-    this.store.dispatch(ReviewsActions.loadBookingStatus({ bookingId: this.bookingId }));
   }
 }

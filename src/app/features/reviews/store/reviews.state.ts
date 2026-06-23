@@ -1,8 +1,4 @@
-import type {
-  BookingReviewStatus,
-  OwnerReviewSummary,
-  ToyReviewSummary,
-} from '../models/review.model';
+import type { OwnerReviewSummary, ToyReviewSummary } from '../models/review.model';
 
 export interface AsyncEntry<T> {
   readonly data: T | null;
@@ -14,12 +10,10 @@ export interface ReviewsState {
   readonly listingToyReviews: Readonly<Record<string, AsyncEntry<ToyReviewSummary>>>;
   readonly ownerReviews: Readonly<Record<string, AsyncEntry<OwnerReviewSummary>>>;
   readonly renterReviews: Readonly<Record<string, AsyncEntry<OwnerReviewSummary>>>;
-  readonly bookingStatus: Readonly<Record<string, AsyncEntry<BookingReviewStatus>>>;
 }
 
 export const initialReviewsState: ReviewsState = {
   listingToyReviews: {},
   ownerReviews: {},
   renterReviews: {},
-  bookingStatus: {},
 };
