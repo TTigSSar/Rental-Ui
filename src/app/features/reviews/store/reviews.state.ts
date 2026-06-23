@@ -15,11 +15,6 @@ export interface ReviewsState {
   readonly ownerReviews: Readonly<Record<string, AsyncEntry<OwnerReviewSummary>>>;
   readonly renterReviews: Readonly<Record<string, AsyncEntry<OwnerReviewSummary>>>;
   readonly bookingStatus: Readonly<Record<string, AsyncEntry<BookingReviewStatus>>>;
-  readonly submission: {
-    readonly isSubmitting: boolean;
-    readonly error: string | null;
-    readonly lastStatus: BookingReviewStatus | null;
-  };
 }
 
 export const initialReviewsState: ReviewsState = {
@@ -27,9 +22,4 @@ export const initialReviewsState: ReviewsState = {
   ownerReviews: {},
   renterReviews: {},
   bookingStatus: {},
-  submission: {
-    isSubmitting: false,
-    error: null,
-    lastStatus: null,
-  },
 };

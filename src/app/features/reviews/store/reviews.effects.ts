@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, concatMap, map, mergeMap, of } from 'rxjs';
+import { catchError, map, mergeMap, of } from 'rxjs';
 
 import { toApiErrorMessage } from '../../../api/http-error-message.util';
 import { ReviewsApiService } from '../services/reviews-api.service';
@@ -61,48 +61,6 @@ export class ReviewsEffects {
           map((status) => ReviewsActions.loadBookingStatusSuccess({ bookingId, status })),
           catchError((error: unknown) =>
             of(ReviewsActions.loadBookingStatusFailure({ bookingId, error: toApiErrorMessage(error) })),
-          ),
-        ),
-      ),
-    ),
-  );
-
-  readonly submitToyReview$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(ReviewsActions.submitToyReview),
-      concatMap(({ request }) =>
-        this.reviewsApi.submitToy(request).pipe(
-          map((status) => ReviewsActions.submitReviewSuccess({ status })),
-          catchError((error: unknown) =>
-            of(ReviewsActions.submitReviewFailure({ error: toApiErrorMessage(error) })),
-          ),
-        ),
-      ),
-    ),
-  );
-
-  readonly submitOwnerReview$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(ReviewsActions.submitOwnerReview),
-      concatMap(({ request }) =>
-        this.reviewsApi.submitOwner(request).pipe(
-          map((status) => ReviewsActions.submitReviewSuccess({ status })),
-          catchError((error: unknown) =>
-            of(ReviewsActions.submitReviewFailure({ error: toApiErrorMessage(error) })),
-          ),
-        ),
-      ),
-    ),
-  );
-
-  readonly submitRenterReview$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(ReviewsActions.submitRenterReview),
-      concatMap(({ request }) =>
-        this.reviewsApi.submitRenter(request).pipe(
-          map((status) => ReviewsActions.submitReviewSuccess({ status })),
-          catchError((error: unknown) =>
-            of(ReviewsActions.submitReviewFailure({ error: toApiErrorMessage(error) })),
           ),
         ),
       ),

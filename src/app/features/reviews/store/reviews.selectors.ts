@@ -74,15 +74,3 @@ export const selectBookingStatus = (bookingId: string) =>
 
 export const selectBookingStatusLoading = (bookingId: string) =>
   createSelector(selectBookingStatusEntry(bookingId), (e): boolean => e.isLoading);
-
-// ── Submission ───────────────────────────────────────────────────────────────────
-export const selectSubmission = createSelector(selectReviewsState, (s) => s.submission);
-
-export const selectIsSubmitting = createSelector(selectSubmission, (s): boolean => s.isSubmitting);
-
-export const selectSubmissionError = createSelector(selectSubmission, (s): string | null => s.error);
-
-export const selectLastSubmittedStatus = createSelector(
-  selectSubmission,
-  (s): BookingReviewStatus | null => s.lastStatus,
-);

@@ -2,9 +2,6 @@ import { createAction, props } from '@ngrx/store';
 
 import type {
   BookingReviewStatus,
-  CreateOwnerReviewRequest,
-  CreateRenterReviewRequest,
-  CreateToyReviewRequest,
   OwnerReviewSummary,
   ToyReviewSummary,
 } from '../models/review.model';
@@ -68,29 +65,3 @@ export const loadBookingStatusFailure = createAction(
   '[Reviews] Load Booking Status Failure',
   props<{ bookingId: string; error: string }>(),
 );
-
-// ── Submissions ──────────────────────────────────────────────────────────────
-
-export const submitToyReview = createAction(
-  '[Reviews] Submit Toy Review',
-  props<{ request: CreateToyReviewRequest }>(),
-);
-export const submitOwnerReview = createAction(
-  '[Reviews] Submit Owner Review',
-  props<{ request: CreateOwnerReviewRequest }>(),
-);
-export const submitRenterReview = createAction(
-  '[Reviews] Submit Renter Review',
-  props<{ request: CreateRenterReviewRequest }>(),
-);
-
-export const submitReviewSuccess = createAction(
-  '[Reviews] Submit Review Success',
-  props<{ status: BookingReviewStatus }>(),
-);
-export const submitReviewFailure = createAction(
-  '[Reviews] Submit Review Failure',
-  props<{ error: string }>(),
-);
-
-export const resetSubmission = createAction('[Reviews] Reset Submission');

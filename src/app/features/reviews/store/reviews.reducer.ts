@@ -73,29 +73,4 @@ export const reviewsReducer = createReducer(
     ...state,
     bookingStatus: { ...state.bookingStatus, [bookingId]: failed(state.bookingStatus[bookingId], error) },
   })),
-
-  // ── Submissions ─────────────────────────────────────────────────────────────
-  on(
-    ReviewsActions.submitToyReview,
-    ReviewsActions.submitOwnerReview,
-    ReviewsActions.submitRenterReview,
-    (state): ReviewsState => ({
-      ...state,
-      submission: { ...state.submission, isSubmitting: true, error: null },
-    }),
-  ),
-  on(ReviewsActions.submitReviewSuccess, (state, { status }): ReviewsState => ({
-    ...state,
-    submission: { isSubmitting: false, error: null, lastStatus: status },
-    // Keep the cached booking status in sync so prompts update without a refetch.
-    bookingStatus: { ...state.bookingStatus, [status.bookingId]: loaded(status) },
-  })),
-  on(ReviewsActions.submitReviewFailure, (state, { error }): ReviewsState => ({
-    ...state,
-    submission: { ...state.submission, isSubmitting: false, error },
-  })),
-  on(ReviewsActions.resetSubmission, (state): ReviewsState => ({
-    ...state,
-    submission: { isSubmitting: false, error: null, lastStatus: null },
-  })),
 );

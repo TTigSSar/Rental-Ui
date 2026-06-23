@@ -95,7 +95,6 @@ export class SubmitReviewPageComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.store.dispatch(ReviewsActions.resetSubmission());
     if (this.booking() === null) {
       this.store.dispatch(BookingsActions.loadMyBookings());
     }
