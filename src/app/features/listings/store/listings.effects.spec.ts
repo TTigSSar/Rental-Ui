@@ -1,0 +1,176 @@
+import { TestBed } from '@angular/core/testing';
+import { MockStore, provideMockStore } from '@ngrx/store/testing';
+import { of, throwError } from 'rxjs';
+
+import { actionsHarness, collect } from '../../../../testing/ngrx.helpers';
+import { makeListingPreview } from '../../../../testing/fixtures';
+import { selectFavoriteIds } from '../../favorites/store/favorites.selectors';
+import type { ListingsFilter } from '../models/listings-filter.model';
+import { ListingsApiService } from '../services/listings-api.service';
+import * as ListingsActions from './listings.actions';
+import { ListingsEffects } from './listings.effects';
+import {
+  selectListingsFilters,
+  selectListingsHasMore,
+  selectListingsPage,
+  selectListingsPageSize,
+} from './listings.selectors';
+
+function setup(api: Partial<ListingsApiService> = {}) {
+  const harness = actionsHarness();
+  TestBed.configureTestingModule({
+    providers: [
+      ListingsEffects,
+      harness.provider,
+      provideMockStore(),
+      { provide: ListingsApiService, useValue: api },
+    ],
+  });
+  const store = TestBed.inject(MockStore);
+  store.overrideSelector(selectListingsFilters, {} as ListingsFilter);
+  store.overrideSelector(selectListingsPage, 1);
+  store.overrideSelector(selectListingsPageSize, 20);
+  store.overrideSelector(selectListingsHasMore, true);
+  store.overrideSelector(selectFavoriteIds, new Set<string>());
+  return { harness, store, effects: TestBed.inject(ListingsEffects) };
+}
+
+describe('ListingsEffects', () => {
+  describe('loadNextPage$ pagination guard', () => {
+    it('fetches the next page when more results exist', async () => {
+      const getListings = vi.fn().mockReturnValue(
+        of({ items: [makeListingPreview()], page: 2, pageSize: 20, hasMore: false }),
+      );
+      const { harness, store, effects } = setup({ getListings });
+      store.overrideSelector(selectListingsHasMore, true);
+      store.overrideSelector(selectListingsPage, 1);
+      store.refreshState();
+
+      const result = collect(effects.loadNextPage$);
+      harness.send(ListingsActions.loadNextPage());
+      harness.complete();
+
+      const emitted = await result;
+      expect(emitted).toHaveLength(1);
+      expect(getListings).toHaveBeenCalledWith(expect.anything(), 2, 20);
+    });
+
+    it('does nothing when there are no more pages', async () => {
+      const getListings = vi.fn();
+      const { harness, store, effects } = setup({ getListings });
+      store.overrideSelector(selectListingsHasMore, false);
+      store.refreshState();
+
+      const result = collect(effects.loadNextPage$);
+      harness.send(ListingsActions.loadNextPage());
+      harness.complete();
+
+      expect(await result).toEqual([]);
+      expect(getListings).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('createListing$ image-upload resilience', () => {
+    const payload = { title: 'Toy' } as never;
+    const response = { id: 'L1' } as never;
+
+    it('succeeds with no image error when there are no files', async () => {
+      const createListing = vi.fn().mockReturnValue(of(response));
+      const uploadListingImages = vi.fn();
+      const { harness, effects } = setup({ createListing, uploadListingImages });
+
+      const result = collect(effects.createListing$);
+      harness.send(ListingsActions.createListing({ payload, files: [] }));
+      harness.complete();
+
+      expect(await result).toEqual([
+        ListingsActions.createListingSuccess({ response, imageUploadError: null }),
+      ]);
+      expect(uploadListingImages).not.toHaveBeenCalled();
+    });
+
+    it('succeeds with no image error when files upload cleanly', async () => {
+      const file = new File(['x'], 'toy.png');
+      const { harness, effects } = setup({
+        createListing: vi.fn().mockReturnValue(of(response)),
+        uploadListingImages: vi.fn().mockReturnValue(of(undefined)),
+      });
+
+      const result = collect(effects.createListing$);
+      harness.send(ListingsActions.createListing({ payload, files: [file] }));
+      harness.complete();
+
+      expect(await result).toEqual([
+        ListingsActions.createListingSuccess({ response, imageUploadError: null }),
+      ]);
+    });
+
+    it('still succeeds (with a captured warning) when the image upload fails', async () => {
+      // The listing already exists on the backend, so an upload failure must NOT
+      // become createListingFailure — it surfaces as a non-blocking warning.
+      const file = new File(['x'], 'toy.png');
+      const { harness, effects } = setup({
+        createListing: vi.fn().mockReturnValue(of(response)),
+        uploadListingImages: vi.fn().mockReturnValue(throwError(() => new Error('upload too large'))),
+      });
+
+      const result = collect(effects.createListing$);
+      harness.send(ListingsActions.createListing({ payload, files: [file] }));
+      harness.complete();
+
+      expect(await result).toEqual([
+        ListingsActions.createListingSuccess({ response, imageUploadError: 'upload too large' }),
+      ]);
+    });
+
+    it('fails when the listing creation itself fails', async () => {
+      const { harness, effects } = setup({
+        createListing: vi.fn().mockReturnValue(throwError(() => new Error('invalid listing'))),
+      });
+
+      const result = collect(effects.createListing$);
+      harness.send(ListingsActions.createListing({ payload, files: [] }));
+      harness.complete();
+
+      expect(await result).toEqual([
+        ListingsActions.createListingFailure({ error: 'invalid listing' }),
+      ]);
+    });
+  });
+
+  describe('persistFavoriteToggle$', () => {
+    it('rolls back to the previous state when the favorite request fails', async () => {
+      // favoriteIds now contains the listing => it was just favorited; on failure we
+      // must roll back to not-favorited.
+      const { harness, store, effects } = setup({
+        addToFavorites: vi.fn().mockReturnValue(throwError(() => new Error('x'))),
+        removeFromFavorites: vi.fn(),
+      });
+      store.overrideSelector(selectFavoriteIds, new Set(['L1']));
+      store.refreshState();
+
+      const result = collect(effects.persistFavoriteToggle$);
+      harness.send(ListingsActions.toggleFavoriteOptimistic({ listingId: 'L1' }));
+      harness.complete();
+
+      expect(await result).toEqual([
+        ListingsActions.toggleFavoriteRollback({ listingId: 'L1', isFavorite: false }),
+      ]);
+    });
+
+    it('emits nothing on a successful toggle', async () => {
+      const { harness, store, effects } = setup({
+        addToFavorites: vi.fn().mockReturnValue(of(undefined)),
+        removeFromFavorites: vi.fn().mockReturnValue(of(undefined)),
+      });
+      store.overrideSelector(selectFavoriteIds, new Set(['L1']));
+      store.refreshState();
+
+      const result = collect(effects.persistFavoriteToggle$);
+      harness.send(ListingsActions.toggleFavoriteOptimistic({ listingId: 'L1' }));
+      harness.complete();
+
+      expect(await result).toEqual([]);
+    });
+  });
+});
