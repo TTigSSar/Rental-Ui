@@ -85,7 +85,7 @@
         </header>
 
         <!-- Message list -->
-        <div class="chat-thread__messages">
+        <div class="chat-thread__messages" #messagesPane>
           @if (vm.threadItems.length === 0) {
             <p class="chat-thread__no-messages">
               {{ 'chat.details.noMessages' | translate }}

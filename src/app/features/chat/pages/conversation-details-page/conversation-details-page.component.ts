@@ -3,10 +3,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
   OnInit,
+  afterRenderEffect,
   inject,
+  viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
@@ -224,6 +227,41 @@ export class ConversationDetailsPageComponent implements OnInit {
   protected readonly messageForm = this.fb.nonNullable.group({
     content: ['', [Validators.required]],
   });
+
+  /** The scrollable message pane, resolved once the conversation renders. */
+  private readonly messagesPane =
+    viewChild<ElementRef<HTMLElement>>('messagesPane');
+
+  /**
+   * A signature that changes only when the rendered thread changes — a new
+   * conversation loads or a message is appended. Reading it in the render effect
+   * scopes the auto-scroll to those events, so we don't fight the user on every
+   * change-detection pass.
+   */
+  private readonly threadScrollKey = toSignal(
+    this.viewModel$.pipe(
+      map((vm) =>
+        vm.conversation
+          ? `${vm.conversation.id}:${vm.conversation.messages.length}`
+          : null,
+      ),
+      distinctUntilChanged(),
+    ),
+  );
+
+  constructor() {
+    // Pin the pane to the newest message. afterRenderEffect runs after the DOM
+    // has been updated, so scrollHeight already reflects freshly appended
+    // messages (initial load and post-send alike).
+    afterRenderEffect(() => {
+      const key = this.threadScrollKey();
+      const pane = this.messagesPane()?.nativeElement;
+      if (key == null || !pane) {
+        return;
+      }
+      pane.scrollTop = pane.scrollHeight;
+    });
+  }
 
   ngOnInit(): void {
     this.routeConversationId$
