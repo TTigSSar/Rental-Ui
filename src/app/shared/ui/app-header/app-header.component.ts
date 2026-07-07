@@ -31,6 +31,7 @@ export class AppHeaderComponent {
   readonly userDisplayName = input<string | null>(null);
   readonly userInitials    = input<string | null>(null);
   readonly unreadNotifCount = input(0);
+  readonly unreadChatCount = input(0);
   readonly myToysCount     = input(0);
   readonly myRentalsCount  = input(0);
   readonly requestsCount   = input(0);

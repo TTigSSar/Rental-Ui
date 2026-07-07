@@ -20,6 +20,7 @@ import {
   selectIsAuthenticated,
 } from './features/auth/store/auth.selectors';
 import { AuthDialogComponent } from './features/auth/components/auth-dialog/auth-dialog.component';
+import { ChatBadgeService } from './features/chat/services/chat-badge.service';
 import { NotificationBadgeService } from './features/notifications/services/notification-badge.service';
 import { AppHeaderComponent } from './shared/ui/app-header/app-header.component';
 
@@ -95,11 +96,15 @@ export class App {
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
   private readonly notificationBadge = inject(NotificationBadgeService);
+  private readonly chatBadge = inject(ChatBadgeService);
 
   // Global unread badge, kept in sync from a single source: the badge service
   // polls the unread-count endpoint while authenticated (there is no realtime
   // transport yet) and the notifications feature updates it after mark-read.
   protected readonly unreadNotifCount = this.notificationBadge.unreadCount;
+  // Global unread-chat badge: sums unreadCount across conversations, polled
+  // while authenticated (see ChatBadgeService).
+  protected readonly unreadChatCount = this.chatBadge.unreadCount;
   protected readonly scrolled          = signal(false);
   protected readonly showFooter        = signal(!isListingDetailsUrl(this.router.url) && !isListingWizardUrl(this.router.url) && !isBookingFlowUrl(this.router.url));
   protected readonly isBrowsePage      = signal(isListingsBrowseUrl(this.router.url));
@@ -180,8 +185,10 @@ export class App {
       .subscribe((isAuthenticated) => {
         if (isAuthenticated) {
           this.notificationBadge.start();
+          this.chatBadge.start();
         } else {
           this.notificationBadge.stop();
+          this.chatBadge.stop();
         }
       });
 

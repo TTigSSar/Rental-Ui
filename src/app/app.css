@@ -771,7 +771,7 @@
   }
 
   .app-bottom-nav:not(.app-bottom-nav--admin):not(.app-bottom-nav--guest) {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     align-items: center;
   }
 
@@ -846,6 +846,31 @@
 
   .app-bottom-nav__icon {
     font-size: 1.125rem;
+  }
+
+  /* Icon + unread badge wrapper (Messages tab) */
+  .app-bottom-nav__icon-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .app-bottom-nav__badge {
+    position: absolute;
+    top: -4px;
+    right: -8px;
+    min-width: 1rem;
+    height: 1rem;
+    padding: 0 3px;
+    border-radius: var(--ui-radius-pill);
+    background: var(--ui-color-primary);
+    color: #fff;
+    font-size: 0.5625rem;
+    font-weight: 700;
+    line-height: 1rem;
+    text-align: center;
+    pointer-events: none;
   }
 
   .app-bottom-nav__label {

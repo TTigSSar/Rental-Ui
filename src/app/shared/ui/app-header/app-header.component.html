@@ -55,6 +55,23 @@
       <!-- Authenticated: bell + user pill ─────────────────────────── -->
       @if (isAuthenticated()) {
 
+        <!-- Messages → chat inbox -->
+        <div class="nh__notif">
+          <a
+            class="nh__notif-btn"
+            routerLink="/chat"
+            routerLinkActive="nh__notif-btn--active"
+            aria-label="Open messages"
+          >
+            <i class="pi pi-comments" aria-hidden="true"></i>
+            @if (unreadChatCount() > 0) {
+              <span class="nh__notif-badge" aria-hidden="true">
+                {{ unreadChatCount() > 99 ? '99+' : unreadChatCount() }}
+              </span>
+            }
+          </a>
+        </div>
+
         <!-- Notification bell → notifications inbox -->
         <div class="nh__notif">
           <a

@@ -40,7 +40,8 @@
         "savedShort": "Saved",
         "language": "Language",
         "menu": "Menu",
-        "moderationShort": "Moderate"
+        "moderationShort": "Moderate",
+        "messages": "Messages"
       }
     }
   },

@@ -40,7 +40,8 @@
         "savedShort": "Сохранённые",
         "language": "Язык",
         "menu": "Меню",
-        "moderationShort": "Модерация"
+        "moderationShort": "Модерация",
+        "messages": "Сообщения"
       }
     }
   },
