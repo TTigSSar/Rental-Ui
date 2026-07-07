@@ -99,4 +99,15 @@ export const chatReducer = createReducer(
       sendingMessageError: error,
     }),
   ),
+  on(
+    ChatActions.markConversationRead,
+    (state, { conversationId }): ChatState => ({
+      ...state,
+      conversations: state.conversations.map((conversation) =>
+        conversation.id === conversationId
+          ? { ...conversation, unreadCount: 0 }
+          : conversation,
+      ),
+    }),
+  ),
 );

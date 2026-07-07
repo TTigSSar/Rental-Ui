@@ -59,11 +59,29 @@ export class ChatEffects {
     this.actions$.pipe(
       ofType(ChatActions.sendMessage),
       concatMap(({ conversationId, content }) =>
-        this.chatApi.sendMessage(conversationId, { content }).pipe(
+        this.chatApi.sendMessage(conversationId, content).pipe(
           map((message) => ChatActions.sendMessageSuccess({ message })),
           catchError((error: unknown) =>
             of(
               ChatActions.sendMessageFailure({
+                error: toErrorMessage(error),
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  readonly markConversationRead$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ChatActions.markConversationRead),
+      concatMap(({ conversationId }) =>
+        this.chatApi.markRead(conversationId).pipe(
+          map(() => ChatActions.markConversationReadSuccess({ conversationId })),
+          catchError((error: unknown) =>
+            of(
+              ChatActions.markConversationReadFailure({
                 error: toErrorMessage(error),
               }),
             ),

@@ -26,10 +26,12 @@
     @if (vm.showInitialSkeleton) {
       <div class="conversations-page__list">
         @for (i of [0, 1, 2]; track i) {
-          <div class="conversations-page__skeleton-card">
-            <p-skeleton width="55%" height="1.25rem" />
-            <p-skeleton width="80%" height="1rem" />
-            <p-skeleton width="35%" height="1rem" />
+          <div class="conversations-page__skeleton-row">
+            <p-skeleton shape="circle" size="2.875rem" />
+            <div class="conversations-page__skeleton-lines">
+              <p-skeleton width="45%" height="1rem" />
+              <p-skeleton width="75%" height="0.85rem" />
+            </div>
           </div>
         }
       </div>
@@ -48,40 +50,75 @@
     }
 
     @if (vm.conversations.length > 0) {
-      <div class="conversations-page__list">
+      <ul class="conversations-page__list">
         @for (conversation of vm.conversations; track conversation.id) {
-          <a
-            class="conversations-page__item-link"
-            [routerLink]="['/chat', conversation.id]"
-          >
-            <p-card styleClass="conversations-page__item-card">
-              <div class="conversations-page__item-header">
-                <h3 class="conversations-page__item-title">
-                  {{ conversation.title }}
-                </h3>
-                @if (conversation.unreadCount > 0) {
-                  <span class="conversations-page__unread-badge">
-                    {{ conversation.unreadCount }}
-                  </span>
+          <li>
+            <a
+              class="chat-row"
+              [class.chat-row--unread]="conversation.unreadCount > 0"
+              [routerLink]="['/chat', conversation.id]"
+            >
+              <div class="chat-row__avatar">
+                @if (conversation.counterpartAvatarUrl) {
+                  <img
+                    class="chat-row__avatar-img"
+                    [src]="conversation.counterpartAvatarUrl"
+                    [alt]="conversation.counterpartName"
+                    loading="lazy"
+                  />
+                } @else {
+                  <app-ui-avatar [name]="conversation.counterpartName" size="md" />
+                }
+                @if (conversation.toyImageUrl) {
+                  <img
+                    class="chat-row__toy-thumb"
+                    [src]="conversation.toyImageUrl"
+                    [alt]="conversation.toyTitle"
+                    loading="lazy"
+                  />
                 }
               </div>
-              <p class="conversations-page__item-text">
-                {{
-                  conversation.lastMessageSnippet ??
-                    ('chat.conversations.noMessages' | translate)
-                }}
-              </p>
-              <p class="conversations-page__item-meta">
-                @if (conversation.lastMessageAt; as lastMessageAt) {
-                  {{ lastMessageAt | date: 'medium' }}
-                } @else {
-                  {{ 'chat.common.notAvailable' | translate }}
-                }
-              </p>
-            </p-card>
-          </a>
+
+              <div class="chat-row__content">
+                <div class="chat-row__top">
+                  <span class="chat-row__name">{{ conversation.counterpartName }}</span>
+                  <span class="chat-row__time">
+                    {{ conversation.lastMessageAt | chatTimeAgo }}
+                  </span>
+                </div>
+
+                <div class="chat-row__meta">
+                  <app-ui-badge
+                    [tone]="statusTone(conversation.status)"
+                    [label]="statusLabelKey(conversation.status) | translate"
+                  />
+                  <span class="chat-row__toy-title">{{ conversation.toyTitle }}</span>
+                </div>
+
+                <div class="chat-row__bottom">
+                  <p class="chat-row__snippet">
+                    {{
+                      conversation.lastMessageSnippet ??
+                        ('chat.conversations.noMessages' | translate)
+                    }}
+                  </p>
+                  @if (conversation.unreadCount > 0) {
+                    <span
+                      class="chat-row__unread-badge"
+                      [attr.aria-label]="
+                        'chat.conversations.unreadAria'
+                          | translate: { count: conversation.unreadCount }
+                      "
+                    >
+                      {{ conversation.unreadCount }}
+                    </span>
+                  }
+                </div>
+              </div>
+            </a>
+          </li>
         }
-      </div>
+      </ul>
     }
   }
 </section>

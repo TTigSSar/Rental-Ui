@@ -1,14 +1,14 @@
-<section class="conversation-details-page">
-  <a class="conversation-details-page__back" routerLink="/chat">
+<section class="chat-thread">
+  <a class="chat-thread__back" routerLink="/chat">
     <i class="pi pi-arrow-left" aria-hidden="true"></i>
     <span>{{ 'chat.details.backToConversations' | translate }}</span>
   </a>
 
   @if (viewModel$ | async; as vm) {
     @if (vm.hasError && vm.error) {
-      <div class="conversation-details-page__error" role="alert">
-        <p-message severity="error" styleClass="conversation-details-page__message">
-          <div class="conversation-details-page__error-content">
+      <div class="chat-thread__error" role="alert">
+        <p-message severity="error" styleClass="chat-thread__message">
+          <div class="chat-thread__error-content">
             <strong>{{ 'chat.details.errorTitle' | translate }}</strong>
             <span>{{ vm.error }}</span>
           </div>
@@ -22,80 +22,159 @@
     }
 
     @if (vm.showInitialSkeleton) {
-      <div class="conversation-details-page__skeleton">
-        <p-skeleton width="45%" height="1.3rem" />
-        <p-skeleton width="100%" height="3rem" />
-        <p-skeleton width="100%" height="3rem" />
-        <p-skeleton width="60%" height="3rem" />
+      <div class="chat-thread__skeleton">
+        <p-skeleton width="100%" height="4.5rem" />
+        <p-skeleton width="70%" height="3rem" />
+        <p-skeleton width="55%" height="3rem" />
+        <p-skeleton width="65%" height="3rem" />
       </div>
     }
 
     @if (vm.showEmpty) {
-      <div class="conversation-details-page__empty">
-        <span class="pi pi-comment conversation-details-page__empty-icon"></span>
-        <h2 class="conversation-details-page__empty-title">
+      <div class="chat-thread__empty">
+        <span class="pi pi-comment chat-thread__empty-icon"></span>
+        <h2 class="chat-thread__empty-title">
           {{ 'chat.details.emptyTitle' | translate }}
         </h2>
-        <p class="conversation-details-page__empty-text">
+        <p class="chat-thread__empty-text">
           {{ 'chat.details.empty' | translate }}
         </p>
       </div>
     }
 
     @if (vm.conversation; as conversation) {
-      <div class="conversation-details-page__panel">
-        <header class="conversation-details-page__header">
-          <h1 class="conversation-details-page__title">{{ conversation.title }}</h1>
-          <p class="conversation-details-page__meta">
-            {{
-              conversation.participantName ??
-                ('chat.common.notAvailable' | translate)
-            }}
-          </p>
+      <div class="chat-thread__panel">
+        <!-- Pinned booking-context header -->
+        <header class="chat-thread__context">
+          @if (conversation.toyImageUrl) {
+            <img
+              class="chat-thread__toy-img"
+              [src]="conversation.toyImageUrl"
+              [alt]="conversation.toyTitle"
+              loading="lazy"
+            />
+          } @else {
+            <span class="chat-thread__toy-img chat-thread__toy-img--placeholder" aria-hidden="true">
+              <i class="pi pi-image"></i>
+            </span>
+          }
+
+          <div class="chat-thread__context-body">
+            <div class="chat-thread__context-top">
+              <h1 class="chat-thread__toy-title">{{ conversation.toyTitle }}</h1>
+              <app-ui-badge
+                [tone]="statusTone(conversation.status)"
+                [label]="statusLabelKey(conversation.status) | translate"
+              />
+            </div>
+            <p class="chat-thread__context-meta">
+              <span>{{ conversation.bookingDates }}</span>
+              <span class="chat-thread__dot" aria-hidden="true">·</span>
+              <span class="chat-thread__price">
+                {{ conversation.bookingPrice | currency: 'USD' : 'symbol' : '1.0-0' }}
+              </span>
+            </p>
+            <a
+              class="chat-thread__view-booking"
+              [routerLink]="['/bookings', conversation.bookingId]"
+            >
+              {{ 'chat.details.viewBooking' | translate }}
+              <i class="pi pi-arrow-right" aria-hidden="true"></i>
+            </a>
+          </div>
         </header>
 
-        <div class="conversation-details-page__messages">
-          @if (conversation.messages.length === 0) {
-            <p class="conversation-details-page__no-messages">
+        <!-- Message list -->
+        <div class="chat-thread__messages">
+          @if (vm.threadItems.length === 0) {
+            <p class="chat-thread__no-messages">
               {{ 'chat.details.noMessages' | translate }}
             </p>
           } @else {
-            @for (message of conversation.messages; track message.id) {
-              <article class="conversation-details-page__message-bubble">
-                <header class="conversation-details-page__message-head">
-                  <strong>{{ message.senderName }}</strong>
-                  <time>{{ message.sentAt | date: 'short' }}</time>
-                </header>
-                <p>{{ message.content }}</p>
-              </article>
+            @for (item of vm.threadItems; track item.id) {
+              @if (item.kind === 'system') {
+                <div class="chat-system">
+                  <span class="chat-system__line">
+                    <i [class]="item.meta.icon" aria-hidden="true"></i>
+                    <span>{{ item.meta.labelKey | translate }}</span>
+                    @if (item.body) {
+                      <span class="chat-system__body">{{ item.body }}</span>
+                    }
+                  </span>
+                </div>
+              } @else {
+                <div
+                  class="chat-group"
+                  [class.chat-group--mine]="item.isMine"
+                >
+                  @if (!item.isMine && item.senderName) {
+                    <span class="chat-group__sender">{{ item.senderName }}</span>
+                  }
+
+                  @for (message of item.messages; track message.id) {
+                    <div class="chat-bubble" [class.chat-bubble--mine]="item.isMine">
+                      @if (message.type === 'image') {
+                        <div class="chat-bubble__image-placeholder">
+                          <i class="pi pi-image" aria-hidden="true"></i>
+                          <span>{{ 'chat.details.imagePlaceholder' | translate }}</span>
+                        </div>
+                        @if (message.body) {
+                          <p class="chat-bubble__text">{{ message.body }}</p>
+                        }
+                      } @else {
+                        <p class="chat-bubble__text">{{ message.body }}</p>
+                      }
+                    </div>
+                  }
+
+                  <div class="chat-group__footer">
+                    <time class="chat-group__time">{{ item.time | chatTimeAgo }}</time>
+                    @if (item.showSeen) {
+                      <span class="chat-group__seen">
+                        {{ 'chat.details.seen' | translate }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
             }
           }
         </div>
 
         @if (vm.sendingMessageError; as sendingError) {
-          <p-message severity="error" styleClass="conversation-details-page__message">
+          <p-message severity="error" styleClass="chat-thread__message">
             <span>{{ sendingError }}</span>
           </p-message>
         }
 
-        <form
-          class="conversation-details-page__composer"
-          [formGroup]="messageForm"
-          (ngSubmit)="sendMessage(conversation.id)"
-        >
-          <app-ui-input
-            type="text"
-            formControlName="content"
-            [placeholder]="'chat.details.messagePlaceholder' | translate"
-          />
-          <p-button
-            type="submit"
-            icon="pi pi-send"
-            [label]="'chat.details.send' | translate"
-            [loading]="vm.sendingMessage"
-            [disabled]="messageForm.invalid || vm.sendingMessage"
-          />
-        </form>
+        <!-- Composer (or closed banner) -->
+        @if (conversation.isClosed) {
+          <div class="chat-thread__closed" role="status">
+            <i class="pi pi-lock" aria-hidden="true"></i>
+            <span>{{ 'chat.details.closedBanner' | translate }}</span>
+          </div>
+        } @else {
+          <form
+            class="chat-thread__composer"
+            [formGroup]="messageForm"
+            (ngSubmit)="sendMessage(conversation.id)"
+          >
+            <app-ui-input
+              class="chat-thread__composer-input"
+              type="text"
+              variant="filled"
+              formControlName="content"
+              [placeholder]="'chat.details.messagePlaceholder' | translate"
+            />
+            <p-button
+              type="submit"
+              icon="pi pi-send"
+              [label]="'chat.details.send' | translate"
+              [loading]="vm.sendingMessage"
+              [disabled]="messageForm.invalid || vm.sendingMessage"
+            />
+          </form>
+        }
       </div>
     }
   }

@@ -47,3 +47,18 @@ export const sendMessageFailure = createAction(
   '[Chat] Send Message Failure',
   props<{ error: string }>(),
 );
+
+export const markConversationRead = createAction(
+  '[Chat] Mark Conversation Read',
+  props<{ conversationId: string }>(),
+);
+
+export const markConversationReadSuccess = createAction(
+  '[Chat] Mark Conversation Read Success',
+  props<{ conversationId: string }>(),
+);
+
+export const markConversationReadFailure = createAction(
+  '[Chat] Mark Conversation Read Failure',
+  props<{ error: string }>(),
+);

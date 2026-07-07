@@ -1,14 +1,20 @@
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
-import { CardModule } from 'primeng/card';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 
+import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
+import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
+import {
+  mapChatStatusLabelKey,
+  mapChatStatusTone,
+} from '../../models/chat-ui.util';
 import type { ChatConversationPreview } from '../../models/chat.model';
+import { ChatTimeAgoPipe } from '../../pipes/chat-time-ago.pipe';
 import * as ChatActions from '../../store/chat.actions';
 import {
   selectConversations,
@@ -47,9 +53,10 @@ const selectConversationsPageViewModel = createSelector(
   standalone: true,
   imports: [
     AsyncPipe,
+    AvatarComponent,
+    BadgeComponent,
     ButtonModule,
-    CardModule,
-    DatePipe,
+    ChatTimeAgoPipe,
     MessageModule,
     RouterLink,
     SkeletonModule,
@@ -65,6 +72,9 @@ export class ConversationsPageComponent implements OnInit {
   protected readonly viewModel$ = this.store.select(
     selectConversationsPageViewModel,
   );
+
+  protected readonly statusTone = mapChatStatusTone;
+  protected readonly statusLabelKey = mapChatStatusLabelKey;
 
   ngOnInit(): void {
     this.store.dispatch(ChatActions.loadConversations());

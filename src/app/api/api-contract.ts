@@ -93,6 +93,10 @@ export const ApiContract = {
     conversations: '/api/chat/conversations',
     conversationById: (conversationId: string): ApiPath =>
       `/api/chat/conversations/${encodeURIComponent(conversationId)}`,
+    read: (conversationId: string): ApiPath =>
+      `/api/chat/conversations/${encodeURIComponent(conversationId)}/read`,
+    fromBooking: (bookingId: string): ApiPath =>
+      `/api/chat/conversations/from-booking/${encodeURIComponent(bookingId)}`,
     messages: '/api/chat/messages',
   },
   notifications: {

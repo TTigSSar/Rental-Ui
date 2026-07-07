@@ -1,5 +1,11 @@
-import { AsyncPipe, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { AsyncPipe, CurrencyPipe } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -10,8 +16,19 @@ import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, filter, map } from 'rxjs';
 
+import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
-import type { ChatConversationDetails } from '../../models/chat.model';
+import {
+  type ChatSystemMeta,
+  mapChatStatusLabelKey,
+  mapChatStatusTone,
+  mapChatSystemMeta,
+} from '../../models/chat-ui.util';
+import type {
+  ChatConversationDetails,
+  ChatMessage,
+} from '../../models/chat.model';
+import { ChatTimeAgoPipe } from '../../pipes/chat-time-ago.pipe';
 import * as ChatActions from '../../store/chat.actions';
 import {
   selectActiveConversation,
@@ -21,9 +38,31 @@ import {
   selectSendingMessageError,
 } from '../../store/chat.selectors';
 
+/** A run of consecutive same-sender text/image messages, rendered as a bubble stack. */
+interface MessageGroup {
+  readonly kind: 'group';
+  readonly id: string;
+  readonly isMine: boolean;
+  readonly senderName: string | null;
+  readonly messages: ChatMessage[];
+  readonly time: string;
+  readonly showSeen: boolean;
+}
+
+/** A centered inline system event (no bubble). */
+interface SystemLine {
+  readonly kind: 'system';
+  readonly id: string;
+  readonly meta: ChatSystemMeta;
+  readonly body: string | null;
+}
+
+type ThreadItem = MessageGroup | SystemLine;
+
 interface ConversationDetailsPageViewModel {
   readonly routeConversationId: string | null;
   readonly conversation: ChatConversationDetails | null;
+  readonly threadItems: ThreadItem[];
   readonly loading: boolean;
   readonly error: string | null;
   readonly sendingMessage: boolean;
@@ -37,7 +76,11 @@ const selectConversationDetailsRouteState = createSelector(
   selectActiveConversation,
   selectActiveConversationLoading,
   selectActiveConversationError,
-  (conversation, loading, error): {
+  (
+    conversation,
+    loading,
+    error,
+  ): {
     readonly conversation: ChatConversationDetails | null;
     readonly loading: boolean;
     readonly error: string | null;
@@ -48,13 +91,73 @@ const selectConversationDetailsRouteState = createSelector(
   }),
 );
 
+function buildThreadItems(messages: ChatMessage[]): ThreadItem[] {
+  const items: ThreadItem[] = [];
+
+  // Index of the last message the current user sent — used for the "Seen" marker.
+  let lastMineId: string | null = null;
+  for (const message of messages) {
+    if (message.isMine && message.type !== 'system') {
+      lastMineId = message.id;
+    }
+  }
+
+  for (const message of messages) {
+    if (message.type === 'system') {
+      items.push({
+        kind: 'system',
+        id: message.id,
+        meta: mapChatSystemMeta(message.systemKind),
+        body: message.body,
+      });
+      continue;
+    }
+
+    const previous = items[items.length - 1];
+    if (
+      previous &&
+      previous.kind === 'group' &&
+      previous.isMine === message.isMine &&
+      previous.senderName === message.senderName
+    ) {
+      previous.messages.push(message);
+      continue;
+    }
+
+    items.push({
+      kind: 'group',
+      id: message.id,
+      isMine: message.isMine,
+      senderName: message.senderName,
+      messages: [message],
+      time: '',
+      showSeen: false,
+    });
+  }
+
+  // Finalise each group's footer (time from last message, seen marker).
+  return items.map((item) => {
+    if (item.kind !== 'group') {
+      return item;
+    }
+    const last = item.messages[item.messages.length - 1];
+    return {
+      ...item,
+      time: last.sentAt,
+      showSeen: item.isMine && last.id === lastMineId && last.seen,
+    };
+  });
+}
+
 @Component({
   selector: 'app-conversation-details-page',
   standalone: true,
   imports: [
     AsyncPipe,
+    BadgeComponent,
     ButtonModule,
-    DatePipe,
+    ChatTimeAgoPipe,
+    CurrencyPipe,
     MessageModule,
     ReactiveFormsModule,
     RouterLink,
@@ -70,10 +173,14 @@ export class ConversationDetailsPageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly store = inject(Store);
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly routeConversationId$ = this.route.paramMap.pipe(
     map((params) => params.get('conversationId')),
     distinctUntilChanged(),
   );
+
+  protected readonly statusTone = mapChatStatusTone;
+  protected readonly statusLabelKey = mapChatStatusLabelKey;
 
   protected readonly viewModel$ = combineLatest({
     routeState: this.store.select(selectConversationDetailsRouteState),
@@ -94,10 +201,14 @@ export class ConversationDetailsPageComponent implements OnInit {
           routeConversationId !== null &&
           conversation.id === routeConversationId;
         const hasError = routeState.error !== null;
+        const activeConversation = isMatch ? conversation : null;
 
         return {
           routeConversationId,
-          conversation: isMatch ? conversation : null,
+          conversation: activeConversation,
+          threadItems: activeConversation
+            ? buildThreadItems(activeConversation.messages)
+            : [],
           loading: routeState.loading,
           error: routeState.error,
           sendingMessage,
@@ -118,10 +229,11 @@ export class ConversationDetailsPageComponent implements OnInit {
     this.routeConversationId$
       .pipe(
         filter((conversationId): conversationId is string => conversationId !== null),
-        takeUntilDestroyed(),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((conversationId) => {
         this.store.dispatch(ChatActions.loadConversationDetails({ conversationId }));
+        this.store.dispatch(ChatActions.markConversationRead({ conversationId }));
       });
   }
 

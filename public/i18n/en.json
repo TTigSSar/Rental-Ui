@@ -1236,7 +1236,8 @@
       "errorTitle": "Unable to load conversations",
       "emptyTitle": "No conversations yet",
       "empty": "Your conversations will appear here after you start chatting.",
-      "noMessages": "No messages yet"
+      "noMessages": "No messages yet",
+      "unreadAria": "{{count}} unread messages"
     },
     "details": {
       "backToConversations": "Back to conversations",
@@ -1245,7 +1246,32 @@
       "empty": "This conversation is unavailable or has no data.",
       "noMessages": "No messages in this conversation yet.",
       "messagePlaceholder": "Type your message",
-      "send": "Send"
+      "send": "Send",
+      "viewBooking": "View booking",
+      "seen": "Seen",
+      "imagePlaceholder": "Photo",
+      "closedBanner": "This conversation is closed. You can no longer send messages."
+    },
+    "status": {
+      "requested": "Requested",
+      "approved": "Approved",
+      "active": "Active",
+      "returnDue": "Return due",
+      "closed": "Closed"
+    },
+    "system": {
+      "request": "Booking requested",
+      "approved": "Request approved",
+      "handover": "Toy handed over",
+      "return": "Toy returned",
+      "closed": "Conversation closed",
+      "default": "Update"
+    },
+    "time": {
+      "justNow": "Just now",
+      "minutes": "{{value}}m",
+      "hours": "{{value}}h",
+      "days": "{{value}}d"
     }
   },
   "reviews": {
