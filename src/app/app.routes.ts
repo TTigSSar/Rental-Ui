@@ -33,6 +33,11 @@ export const routes: Routes = [
       import('./features/chat').then((m) => m.chatRoutes),
   },
   {
+    path: 'notifications',
+    loadChildren: () =>
+      import('./features/notifications').then((m) => m.notificationsRoutes),
+  },
+  {
     path: 'favorites',
     loadChildren: () =>
       import('./features/favorites').then((m) => m.favoritesRoutes),

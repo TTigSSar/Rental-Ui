@@ -1,14 +1,11 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  ElementRef,
-  HostListener,
   computed,
   inject,
   input,
   output,
   signal,
-  viewChild,
 } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -43,7 +40,6 @@ export class AppHeaderComponent {
   readonly openAuthClick = output<'login' | 'register'>();
 
   protected readonly profileOpen  = signal(false);
-  protected readonly notifOpen    = signal(false);
   protected readonly searchQuery  = signal('');
 
   protected readonly userFirstName = computed(
@@ -51,14 +47,12 @@ export class AppHeaderComponent {
   );
 
   private profileCloseTimer: ReturnType<typeof setTimeout> | null = null;
-  private readonly notifMenuHost = viewChild<ElementRef<HTMLElement>>('notifMenuHost');
 
   protected openProfileMenu(): void {
     if (this.profileCloseTimer !== null) {
       clearTimeout(this.profileCloseTimer);
       this.profileCloseTimer = null;
     }
-    this.notifOpen.set(false);
     this.profileOpen.set(true);
   }
 
@@ -67,11 +61,6 @@ export class AppHeaderComponent {
       this.profileOpen.set(false);
       this.profileCloseTimer = null;
     }, 150);
-  }
-
-  protected toggleNotif(): void {
-    this.profileOpen.set(false);
-    this.notifOpen.update((open) => !open);
   }
 
   protected onSearchInput(event: Event): void {
@@ -97,15 +86,5 @@ export class AppHeaderComponent {
 
   protected closeProfile(): void {
     this.profileOpen.set(false);
-  }
-
-  @HostListener('document:click', ['$event'])
-  protected onDocumentClick(event: MouseEvent): void {
-    const target = event.target as Node | null;
-    if (target === null) return;
-    const notifHost = this.notifMenuHost()?.nativeElement;
-    if (notifHost !== undefined && !notifHost.contains(target)) {
-      this.notifOpen.set(false);
-    }
   }
 }

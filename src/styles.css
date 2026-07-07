@@ -14,7 +14,7 @@
 :root {
   /* —— Brand & core colors —— */
   --ui-color-primary: #ff6008;
-  --ui-color-primary-strong: #e85500;
+  --ui-color-primary-strong: #e5530a;
   --ui-color-primary-soft: #ffeedc;
   --ui-color-primary-wash: #fff2e9;
   --ui-color-primary-disabled: #f4cfb7;
@@ -25,21 +25,21 @@
   --ui-color-surface-muted: #f4f4f8;
   --ui-color-surface-elevated: #fbfbfe;
   --ui-color-footer: #7b7a7a;
-  --ui-color-text-primary: #181a24;
-  --ui-color-text-secondary: #6a6f86;
+  --ui-color-text-primary: #1a1b26;
+  --ui-color-text-secondary: #6b6a75;
   --ui-color-text-muted: #b5b6b7;
-  --ui-color-text-label: #5e6478;
-  --ui-color-text-hint: #8d92a6;
-  --ui-color-border: #e6e8f1;
-  --ui-color-border-strong: #b5b6b7;
-  --ui-color-border-subtle: #eceef6;
-  --ui-color-border-input: #d8dbe7;
-  --ui-color-border-separator: #e3e6f0;
+  --ui-color-text-label: #5e5f6c;
+  --ui-color-text-hint: #908f9c;
+  --ui-color-border: #e8e5de;
+  --ui-color-border-strong: #b5b2a9;
+  --ui-color-border-subtle: #efece4;
+  --ui-color-border-input: #ddd9d0;
+  --ui-color-border-separator: #e8e5de;
   --ui-color-on-primary: #ffffff;
   --ui-color-error: #d43f5e;
 
   /* —— Semantic / trust colors —— */
-  --ui-color-success: #1f8a4c;
+  --ui-color-success: #0e8a5f;
   --ui-color-success-surface: #edf9f1;
   --ui-color-success-border: #c6ebd2;
   --ui-color-warning: #8a5c00;
@@ -70,6 +70,7 @@
   --ui-space-20: 20px;
   --ui-space-24: 24px;
   --ui-space-32: 32px;
+  --ui-space-40: 40px;
   --ui-space-48: 48px;
   --ui-space-64: 64px;
 
@@ -82,9 +83,9 @@
   --ui-radius-input: 14px;
   --ui-radius-auth-panel: 16px;
 
-  /* —— Shadows —— */
-  --ui-shadow-card: 0 10px 24px rgba(16, 18, 30, 0.07);
-  --ui-shadow-card-hover: 0 16px 34px rgba(16, 18, 30, 0.13);
+  /* —— Shadows (warm-tinted, layered — prototype TOKENS.A) —— */
+  --ui-shadow-card: 0 1px 2px rgba(20, 15, 5, 0.04), 0 8px 24px rgba(20, 15, 5, 0.06);
+  --ui-shadow-card-hover: 0 2px 4px rgba(20, 15, 5, 0.05), 0 16px 40px rgba(20, 15, 5, 0.11);
   --ui-shadow-booking-panel: 0 4px 6px rgba(0, 0, 0, 0.08), 0 24px 48px rgba(16, 18, 30, 0.08);
   --ui-shadow-primary-button: 0 4px 14px rgba(255, 96, 8, 0.28);
   --ui-shadow-booking-cta: 0 10px 24px rgba(255, 96, 8, 0.28);

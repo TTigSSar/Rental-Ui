@@ -19,6 +19,22 @@
   height: 100%;
 }
 
+/* Owner card: highlighted orange border */
+.listing-card--owner {
+  border: 2px solid var(--ui-color-primary);
+  box-shadow:
+    var(--ui-shadow-card),
+    0 0 0 0 transparent;
+}
+
+@media (hover: hover) {
+  .listing-card--owner:hover {
+    box-shadow:
+      var(--ui-shadow-card-hover),
+      0 0 0 3px color-mix(in srgb, var(--ui-color-primary) 18%, transparent);
+  }
+}
+
 @media (hover: hover) {
   .listing-card:hover {
     transform: translateY(-2px);
@@ -99,6 +115,34 @@
 .listing-card__no-image-icon {
   font-size: 2rem;
   opacity: 0.3;
+}
+
+/* ── "Your listing" owner badge (image top-center) ──────── */
+.listing-card__owner-badge {
+  position: absolute;
+  top: var(--ui-space-8);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: var(--ui-radius-pill);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  background: var(--ui-color-primary);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(255, 96, 8, 0.35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.listing-card__owner-badge .pi {
+  font-size: 0.6rem;
 }
 
 /* ── Availability status badge (image top-left) ─────────── */
@@ -269,6 +313,27 @@
   flex-shrink: 0;
 }
 
+/* ── Rating (star + score, or empty 5-star placeholder) ──── */
+.listing-card__rating {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-4);
+  margin: 0;
+  font-size: var(--ui-font-size-caption);
+  color: var(--ui-color-text-secondary);
+}
+
+/* Star color mirrors the price accent */
+.listing-card__rating-star {
+  color: var(--ui-color-primary-strong);
+  font-size: 0.8125rem;
+}
+
+.listing-card__rating-value {
+  font-weight: 600;
+  color: var(--ui-color-text-primary);
+}
+
 /* ── Booking relationship badge ──────────────────────────── */
 .listing-card__booking-badge {
   display: inline-block;
@@ -365,6 +430,36 @@
   }
 }
 
+/* ── Manage button (owner variant of view-btn) ───────────── */
+.listing-card__manage-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 2rem;
+  padding: 0 var(--ui-space-14);
+  border-radius: var(--ui-radius-pill);
+  background: color-mix(in srgb, var(--ui-color-primary) 12%, transparent);
+  color: var(--ui-color-primary-strong);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: background-color 120ms ease;
+  border: 1.5px solid color-mix(in srgb, var(--ui-color-primary) 30%, transparent);
+}
+
+.listing-card__manage-btn .pi {
+  font-size: 0.75rem;
+}
+
+@media (hover: hover) {
+  .listing-card--owner:hover .listing-card__manage-btn {
+    background: color-mix(in srgb, var(--ui-color-primary) 20%, transparent);
+  }
+}
+
 @media (max-width: 560px) {
   :host {
     min-width: 0;
@@ -396,6 +491,10 @@
     display: none;
   }
 
+  .listing-card__manage-btn {
+    display: none;
+  }
+
   .listing-card__trust-footer {
     display: none;
   }
@@ -407,6 +506,12 @@
 
   .listing-card__fav-icon {
     font-size: 0.875rem;
+  }
+
+  /* On mobile the "Your listing" badge shrinks slightly */
+  .listing-card__owner-badge {
+    font-size: 0.625rem;
+    padding: 3px 9px;
   }
 }
 

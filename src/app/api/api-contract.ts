@@ -25,6 +25,12 @@ export const ApiContract = {
       `/api/listings/${encodeURIComponent(id)}/archive`,
     restore: (id: string): ApiPath =>
       `/api/listings/${encodeURIComponent(id)}/restore`,
+    resubmit: (id: string): ApiPath =>
+      `/api/listings/${encodeURIComponent(id)}/resubmit`,
+    deleteImage: (listingId: string, imageId: string): ApiPath =>
+      `/api/listings/${encodeURIComponent(listingId)}/images/${encodeURIComponent(imageId)}`,
+    reorderImages: (listingId: string): ApiPath =>
+      `/api/listings/${encodeURIComponent(listingId)}/images/order`,
   },
   categories: {
     root: '/api/categories',
@@ -88,5 +94,12 @@ export const ApiContract = {
     conversationById: (conversationId: string): ApiPath =>
       `/api/chat/conversations/${encodeURIComponent(conversationId)}`,
     messages: '/api/chat/messages',
+  },
+  notifications: {
+    root: '/api/notifications',
+    unreadCount: '/api/notifications/unread-count',
+    markRead: (notificationId: string): ApiPath =>
+      `/api/notifications/${encodeURIComponent(notificationId)}/read`,
+    markAllRead: '/api/notifications/read-all',
   },
 } as const;

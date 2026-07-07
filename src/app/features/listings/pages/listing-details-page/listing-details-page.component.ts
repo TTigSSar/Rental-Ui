@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
@@ -17,20 +17,12 @@ import { combineLatest, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
 import { AuthDialogComponent } from '../../../auth/components/auth-dialog/auth-dialog.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
-import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
+import { selectAuthUser, selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 import * as FavoritesActions from '../../../favorites/store/favorites.actions';
 import { selectFavoriteIds } from '../../../favorites/store/favorites.selectors';
 import * as BookingsActions from '../../../bookings/store/bookings.actions';
 import type { MyBooking } from '../../../bookings/models/booking.model';
-import {
-  selectCancelBookingError,
-  selectCancelBookingPending,
-  selectCancelBookingSuccessId,
-  selectCreateBookingError,
-  selectCreateBookingLoading,
-  selectCreateBookingSuccessId,
-  selectMyBookings,
-} from '../../../bookings/store/bookings.selectors';
+import { selectMyBookings } from '../../../bookings/store/bookings.selectors';
 
 const BOOKING_DISPLAY_PRIORITY: Partial<Record<MyBooking['status'], number>> = {
   Active: 6,
@@ -42,10 +34,6 @@ const BOOKING_DISPLAY_PRIORITY: Partial<Record<MyBooking['status'], number>> = {
   Rejected: 0,
   Cancelled: 0,
 };
-import {
-  BookingPanelComponent,
-  type BookingSubmitPayload,
-} from '../../components/booking-panel/booking-panel.component';
 import { ListingGalleryComponent } from '../../components/listing-gallery/listing-gallery.component';
 import type { ListingDetails } from '../../models/listing-details.model';
 import * as ListingsActions from '../../store/listings.actions';
@@ -73,16 +61,8 @@ export interface ListingDetailsPageViewModel {
   readonly showError: boolean;
   readonly showContent: boolean;
   readonly error: string | null;
-  readonly createBookingLoading: boolean;
-  readonly createBookingError: string | null;
-  readonly createBookingSuccess: boolean;
 }
 
-/**
- * Resolves a backend `condition` string to a translation key when it matches
- * a known canonical value. Returns `null` so the template can fall back to
- * showing the raw backend string when the value is unknown.
- */
 export function resolveConditionLabelKey(value: string | null | undefined): string | null {
   if (typeof value !== 'string') {
     return null;
@@ -183,7 +163,6 @@ const selectListingDetailsBase = createSelector(
   standalone: true,
   imports: [
     AuthDialogComponent,
-    BookingPanelComponent,
     ButtonModule,
     CommonModule,
     ListingGalleryComponent,
@@ -200,14 +179,13 @@ const selectListingDetailsBase = createSelector(
 export class ListingDetailsPageComponent {
   private readonly store = inject(Store);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
+  private readonly currentUser = this.store.selectSignal(selectAuthUser);
   protected readonly showAuthDialog = signal(false);
 
   private readonly myBookingsSignal = this.store.selectSignal(selectMyBookings);
-  private readonly cancelBookingSuccessId = this.store.selectSignal(selectCancelBookingSuccessId);
-  protected readonly cancelBookingPending = this.store.selectSignal(selectCancelBookingPending);
-  protected readonly cancelBookingError = this.store.selectSignal(selectCancelBookingError);
 
   protected readonly protectionBullets = PROTECTION_BULLET_KEYS;
 
@@ -253,15 +231,12 @@ export class ListingDetailsPageComponent {
     { initialValue: null },
   );
 
-  // Header rating: shown only once the aggregate threshold is met (overall toy rating).
   protected readonly ratingSummary = computed(() => {
     const s = this.toySummary();
     return s && s.hasAggregate
       ? { averageRating: s.overallAverage, reviewCount: s.reviewCount }
       : null;
   });
-
-  // ── Owner trust signals ────────────────────────────────────────────────────
 
   private readonly ownerId$ = this.store.select(selectSelectedListing).pipe(
     map((listing) => listing?.owner?.id ?? null),
@@ -303,8 +278,6 @@ export class ListingDetailsPageComponent {
 
   protected readonly listingTitle = computed(() => this.currentListingSignal()?.title ?? '');
 
-  private readonly createBookingSuccessId = this.store.selectSignal(selectCreateBookingSuccessId);
-
   protected readonly existingBookingId = computed<string | null>(() => {
     const listingId = this.routeListingId();
     if (!listingId) return null;
@@ -312,15 +285,6 @@ export class ListingDetailsPageComponent {
       (b) =>
         b.listingId === listingId &&
         (b.status === 'Pending' || b.status === 'Approved' || b.status === 'Active'),
-    );
-    return booking?.id ?? null;
-  });
-
-  protected readonly cancellableBookingId = computed<string | null>(() => {
-    const listingId = this.routeListingId();
-    if (!listingId) return null;
-    const booking = this.myBookingsSignal().find(
-      (b) => b.listingId === listingId && (b.status === 'Pending' || b.status === 'Approved'),
     );
     return booking?.id ?? null;
   });
@@ -342,18 +306,12 @@ export class ListingDetailsPageComponent {
 
   protected readonly viewModel$ = combineLatest({
     listingState: this.store.select(selectListingDetailsBase),
-    createBookingLoading: this.store.select(selectCreateBookingLoading),
-    createBookingError: this.store.select(selectCreateBookingError),
-    createBookingSuccessId: this.store.select(selectCreateBookingSuccessId),
     routeId: this.routeId$,
     favoriteIds: this.store.select(selectFavoriteIds),
   }).pipe(
     map(
       ({
         listingState: state,
-        createBookingLoading,
-        createBookingError,
-        createBookingSuccessId,
         routeId,
         favoriteIds,
       }): ListingDetailsPageViewModel => {
@@ -367,9 +325,6 @@ export class ListingDetailsPageComponent {
             showError: true,
             showContent: false,
             error: null,
-            createBookingLoading,
-            createBookingError,
-            createBookingSuccess: false,
           };
         }
 
@@ -390,15 +345,32 @@ export class ListingDetailsPageComponent {
           showError: hasError,
           showContent: idMatches && !loading && !hasError,
           error: err,
-          createBookingLoading,
-          createBookingError,
-          createBookingSuccess: createBookingSuccessId !== null,
         };
       },
     ),
   );
 
   constructor() {
+    // Owners always see the owner ("This is your listing") view, regardless of
+    // how they reached the public route — redirect once the listing's owner is
+    // confirmed to be the current user. The owner page mirrors the inverse
+    // guard (non-owners → public view), so the two never loop.
+    effect(() => {
+      const id = this.routeListingId();
+      const listing = this.currentListingSignal();
+      const user = this.currentUser();
+      if (
+        id !== null &&
+        id !== '' &&
+        listing !== null &&
+        listing.id === id &&
+        user !== null &&
+        listing.owner.id === user.id
+      ) {
+        void this.router.navigate(['/my-listings', id], { replaceUrl: true });
+      }
+    });
+
     effect(() => {
       const id = this.routeListingId();
       if (id !== null && id !== '') {
@@ -417,25 +389,6 @@ export class ListingDetailsPageComponent {
       }
     });
 
-    effect(() => {
-      const successId = this.createBookingSuccessId();
-      if (successId === null) return;
-      const listingId = this.routeListingId();
-      if (listingId !== null && listingId !== '') {
-        this.store.dispatch(ListingsActions.loadListingDetails({ id: listingId }));
-      }
-    });
-
-    effect(() => {
-      const cancelledId = this.cancelBookingSuccessId();
-      if (cancelledId === null) return;
-      const listingId = this.routeListingId();
-      if (listingId !== null && listingId !== '') {
-        this.store.dispatch(ListingsActions.loadListingDetails({ id: listingId }));
-      }
-    });
-
-    // Load owner rating + public profile when the listing owner is known
     effect(() => {
       const ownerId = this.currentListingSignal()?.owner?.id;
       if (ownerId) {
@@ -461,38 +414,4 @@ export class ListingDetailsPageComponent {
       this.store.dispatch(ListingsActions.loadListingDetails({ id }));
     }
   }
-
-  protected onCancelRequest(bookingId: string): void {
-    this.store.dispatch(BookingsActions.cancelBooking({ bookingId }));
-  }
-
-  protected onBookingSubmit(payload: BookingSubmitPayload): void {
-    const listingId = this.routeListingId();
-    if (listingId === null || listingId === '') {
-      return;
-    }
-
-    if (!this.isAuthenticated()) {
-      this.showAuthDialog.set(true);
-      return;
-    }
-
-    this.store.dispatch(BookingsActions.clearCreateBookingState());
-    this.store.dispatch(
-      BookingsActions.createBooking({
-        payload: {
-          listingId,
-          startDate: toLocalIsoDate(payload.startDate),
-          endDate: toLocalIsoDate(payload.endDate),
-        },
-      }),
-    );
-  }
-}
-
-function toLocalIsoDate(value: Date): string {
-  const year = value.getFullYear();
-  const month = String(value.getMonth() + 1).padStart(2, '0');
-  const day = String(value.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
 }

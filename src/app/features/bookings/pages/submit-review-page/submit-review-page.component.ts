@@ -51,8 +51,12 @@ export class SubmitReviewPageComponent implements OnInit {
   protected readonly step = signal<FlowStep>(1);
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
+  /** True once a toy review exists for this booking — pre-existing or submitted here. */
   protected readonly toySubmitted = signal(false);
+  /** True once an owner review exists for this booking — pre-existing or submitted here. */
   protected readonly ownerSubmitted = signal(false);
+  /** Gates the flow until the existing review status is known, so we resume on the right step. */
+  protected readonly statusLoaded = signal(false);
 
   // Step 1 — toy
   protected readonly toyOverall = signal(0);
@@ -97,6 +101,34 @@ export class SubmitReviewPageComponent implements OnInit {
     if (this.booking() === null) {
       this.store.dispatch(BookingsActions.loadMyBookings());
     }
+    this.loadReviewStatus();
+  }
+
+  /**
+   * Resume the flow based on what the renter has already reviewed. If the toy
+   * review was saved on a previous visit, we skip straight to the owner step
+   * (or the success screen if both are done) instead of re-prompting for a toy
+   * rating that the backend would reject as a duplicate.
+   */
+  private loadReviewStatus(): void {
+    if (!this.bookingId) {
+      this.statusLoaded.set(true);
+      return;
+    }
+    this.api.getBookingStatus(this.bookingId).subscribe({
+      next: (status) => {
+        this.toySubmitted.set(status.hasToyReview);
+        this.ownerSubmitted.set(status.hasOwnerReview);
+        if (status.hasToyReview && status.hasOwnerReview) {
+          this.step.set('success');
+        } else if (status.hasToyReview) {
+          this.step.set(2);
+        }
+        this.statusLoaded.set(true);
+      },
+      // On failure fall back to the default step 1 — a fresh review still works.
+      error: () => this.statusLoaded.set(true),
+    });
   }
 
   protected setToyOverall(v: number): void { this.toyOverall.set(v); }
@@ -111,7 +143,14 @@ export class SubmitReviewPageComponent implements OnInit {
 
   /** Step 1 primary action: submit the toy review, then advance to the owner step. */
   protected submitToyAndContinue(): void {
-    if (!this.toyValid() || this.submitting()) return;
+    if (this.submitting()) return;
+    // Toy already reviewed (resumed flow) — don't re-submit, just advance.
+    if (this.toySubmitted()) {
+      this.error.set(null);
+      this.step.set(2);
+      return;
+    }
+    if (!this.toyValid()) return;
     this.submitting.set(true);
     this.error.set(null);
     this.api
@@ -146,7 +185,14 @@ export class SubmitReviewPageComponent implements OnInit {
 
   /** Step 2 primary action: submit the owner review, then show success. */
   protected submitOwnerAndFinish(): void {
-    if (!this.ownerValid() || this.submitting()) return;
+    if (this.submitting()) return;
+    // Owner already reviewed (resumed flow) — don't re-submit, just finish.
+    if (this.ownerSubmitted()) {
+      this.error.set(null);
+      this.step.set('success');
+      return;
+    }
+    if (!this.ownerValid()) return;
     this.submitting.set(true);
     this.error.set(null);
     this.api

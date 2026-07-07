@@ -1,0 +1,22 @@
+<div class="notif-tabs" role="tablist" [attr.aria-label]="'notifications.filter.aria' | translate">
+  @for (tab of tabs; track tab.id) {
+    <button
+      type="button"
+      role="tab"
+      class="notif-tabs__tab"
+      [class.notif-tabs__tab--active]="tab.id === value()"
+      [attr.aria-selected]="tab.id === value()"
+      (click)="select(tab.id)"
+    >
+      <span class="notif-tabs__label">{{ tab.labelKey | translate }}</span>
+      @if (countFor(tab.id) > 0) {
+        <span
+          class="notif-tabs__count"
+          [class.notif-tabs__count--accent]="tab.id !== 'all'"
+        >
+          {{ countFor(tab.id) > 99 ? '99+' : countFor(tab.id) }}
+        </span>
+      }
+    </button>
+  }
+</div>

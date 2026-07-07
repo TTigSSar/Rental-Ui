@@ -1,0 +1,99 @@
+@let n = notification();
+@let k = meta();
+
+<article
+  class="notif-card"
+  [class.notif-card--unread]="!n.read"
+  [style.--notif-kind-color]="k.color"
+  [style.--notif-kind-soft]="k.soft"
+  role="button"
+  tabindex="0"
+  [attr.aria-label]="n.title"
+  (click)="onOpen()"
+  (keydown.enter)="onOpen()"
+  (keydown.space)="onOpen()"
+>
+  @if (!n.read) {
+    <span class="notif-card__unread-dot" aria-hidden="true"></span>
+  }
+
+  <div class="notif-card__body">
+    <!-- Actor avatar (photo / initials / system chip) + kind badge -->
+    <div class="notif-card__avatar">
+      @if (n.actor.system) {
+        <span class="notif-card__system-chip" aria-hidden="true">
+          <i class="pi pi-{{ n.actor.systemIcon ?? 'bell' }}"></i>
+        </span>
+      } @else if (n.actor.avatarUrl) {
+        <img
+          class="notif-card__avatar-img"
+          [src]="n.actor.avatarUrl"
+          [alt]="n.actor.name"
+          loading="lazy"
+        />
+      } @else {
+        <app-ui-avatar [name]="n.actor.name" size="md" />
+      }
+      <span class="notif-card__kind-badge" aria-hidden="true">
+        <i class="pi pi-{{ k.icon }}"></i>
+      </span>
+    </div>
+
+    <div class="notif-card__content">
+      <div class="notif-card__label-row">
+        <span class="notif-card__label-pill">
+          <i class="pi pi-{{ k.icon }}" aria-hidden="true"></i>
+          {{ k.labelKey | translate }}
+        </span>
+        @if (n.urgent) {
+          <span class="notif-card__action-pill">
+            {{ 'notifications.actionNeeded' | translate }}
+          </span>
+        }
+      </div>
+
+      <h3 class="notif-card__title">{{ n.title }}</h3>
+      <p class="notif-card__text">{{ n.body }}</p>
+      <p class="notif-card__meta">
+        @if (n.meta) {
+          <span>{{ n.meta }}</span>
+          <span class="notif-card__dot" aria-hidden="true">·</span>
+        }
+        <span>{{ n.createdAt | notifTimeAgo }}</span>
+      </p>
+    </div>
+
+    @if (n.toy?.imageUrl) {
+      <img
+        class="notif-card__toy"
+        [src]="n.toy!.imageUrl"
+        [alt]="n.toy!.title"
+        loading="lazy"
+      />
+    }
+  </div>
+
+  @if (n.primaryAction || n.secondaryAction) {
+    <div class="notif-card__actions">
+      @if (n.primaryAction; as primary) {
+        <button
+          type="button"
+          class="notif-card__btn notif-card__btn--primary"
+          (click)="onAction($event, primary)"
+        >
+          {{ primary.label }}
+          <i class="pi pi-arrow-right" aria-hidden="true"></i>
+        </button>
+      }
+      @if (n.secondaryAction; as secondary) {
+        <button
+          type="button"
+          class="notif-card__btn notif-card__btn--secondary"
+          (click)="onAction($event, secondary)"
+        >
+          {{ secondary.label }}
+        </button>
+      }
+    </div>
+  }
+</article>

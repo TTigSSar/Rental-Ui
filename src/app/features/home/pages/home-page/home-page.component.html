@@ -134,6 +134,7 @@
                       class="home__carousel-item home__carousel-item--section"
                       [listing]="item"
                       [isAuthenticated]="vm.isAuthenticated"
+                      [isOwner]="myListingIds().has(item.id)"
                       (favoriteToggled)="onFavoriteToggle($event)"
                     />
                   }

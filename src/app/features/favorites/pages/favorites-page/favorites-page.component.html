@@ -3,6 +3,7 @@
     [title]="'favorites.page.title' | translate"
     [subtitle]="'favorites.page.subtitle' | translate"
     backLink="/profile"
+    [hideOnDesktop]="true"
   />
 
   @if (viewModel$ | async; as vm) {

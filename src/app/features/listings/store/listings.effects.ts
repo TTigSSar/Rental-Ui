@@ -179,18 +179,27 @@ export class ListingsEffects {
             }
 
             // Image upload failure must NOT prevent success/redirect — the
-            // listing was already created on the backend. Capture the error
-            // message so the UI can show a contextual warning with the actual
-            // reason, then treat the overall operation as a success so the
-            // user is redirected to My Toys.
+            // listing was already created on the backend. Stream progress
+            // actions, then capture any error as a non-blocking warning so the
+            // user is still redirected to My Toys (and can retry the upload).
             return this.listingsApi.uploadListingImages(response.id, files).pipe(
-              map(() => null as string | null),
-              catchError((err: unknown) => of(toErrorMessage(err))),
-              map((imageUploadError) =>
-                ListingsActions.createListingSuccess({
-                  response,
-                  imageUploadError,
-                }),
+              map((event) =>
+                event.kind === 'progress'
+                  ? ListingsActions.setImageUploadProgress({
+                      progress: event.percent,
+                    })
+                  : ListingsActions.createListingSuccess({
+                      response,
+                      imageUploadError: null,
+                    }),
+              ),
+              catchError((err: unknown) =>
+                of(
+                  ListingsActions.createListingSuccess({
+                    response,
+                    imageUploadError: toErrorMessage(err),
+                  }),
+                ),
               ),
             );
           }),
@@ -199,6 +208,30 @@ export class ListingsEffects {
             of(
               ListingsActions.createListingFailure({
                 error: toErrorMessage(error),
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  readonly retryImageUpload$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ListingsActions.retryImageUpload),
+      concatMap(({ listingId, files }) =>
+        this.listingsApi.uploadListingImages(listingId, files).pipe(
+          map((event) =>
+            event.kind === 'progress'
+              ? ListingsActions.setImageUploadProgress({
+                  progress: event.percent,
+                })
+              : ListingsActions.retryImageUploadSuccess(),
+          ),
+          catchError((err: unknown) =>
+            of(
+              ListingsActions.retryImageUploadFailure({
+                error: toErrorMessage(err),
               }),
             ),
           ),

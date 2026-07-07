@@ -11,7 +11,7 @@
   padding-top: 14px;
   padding-bottom: var(--ui-space-64);
   min-height: calc(100dvh - 4rem);
-  animation: page-fade-in 200ms ease-out both;
+  animation: page-fade-in 200ms ease-out;
 }
 
 /* ── Sticky header (mobile only) ────────────────────────────── */
@@ -27,9 +27,17 @@
   padding-inline: var(--ui-space-24);
 }
 
+/* The sticky header creates its own stacking context (position: sticky +
+   z-index), which otherwise traps the filter bottom sheet's z-index below
+   the fixed mobile bottom nav (z-index: 99). Raise it above the nav only
+   while the sheet is open, via the body class the sheet already toggles. */
+:host-context(body.body--sheet-open) .lp-sticky-header {
+  z-index: 402;
+}
+
 @media (max-width: 960px) {
   .lp-sticky-header {
-    top: 0;
+    top: -1px;
     border-bottom: none;
     box-shadow: 0 2px 10px rgba(16, 18, 30, 0.07);
   }
@@ -492,6 +500,7 @@
   gap: var(--ui-space-12);
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: stretch;
+  padding-top: var(--ui-space-12);
 
   @media (min-width: 961px) {
     grid-template-columns: repeat(4, minmax(0, 1fr));

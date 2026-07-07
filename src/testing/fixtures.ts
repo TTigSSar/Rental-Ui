@@ -68,6 +68,7 @@ export function makeBookingRequest(
     id: 'booking-1',
     listingId: 'listing-1',
     listingTitle: 'Wooden Train Set',
+    renterId: 'renter-1',
     renterFirstName: 'Rena',
     renterLastName: 'Renter',
     renterEmail: 'rena@example.com',

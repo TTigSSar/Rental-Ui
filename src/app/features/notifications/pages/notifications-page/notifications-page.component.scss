@@ -1,0 +1,162 @@
+.notifications-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.notifications-page__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.notifications-page__heading {
+  min-width: 0;
+}
+
+.notifications-page__eyebrow {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--p-primary-color, #ff6008);
+}
+
+.notifications-page__title {
+  margin: 0.3rem 0 0;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: clamp(1.5rem, 4vw, 1.875rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--p-text-color, #1a1b26);
+}
+
+.notifications-page__count {
+  display: grid;
+  place-items: center;
+  min-width: 1.625rem;
+  height: 1.625rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  background: var(--p-primary-color, #ff6008);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.notifications-page__mark-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  height: 2.5rem;
+  padding: 0 1rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1.5px solid var(--p-content-border-color, #e8e5de);
+  background: var(--p-surface-0, #fff);
+  color: var(--p-text-color, #1a1b26);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.notifications-page__mark-all:hover:not(:disabled) {
+  background: var(--p-surface-100, #f4f4f8);
+}
+
+.notifications-page__mark-all:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.notifications-page__error {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.notifications-page__message {
+  width: 100%;
+}
+
+.notifications-page__error-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.notifications-page__feed {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.notifications-page__group-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.625rem;
+}
+
+.notifications-page__group-label {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--p-text-muted-color, #6b6a75);
+}
+
+.notifications-page__group-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--p-content-border-color, #e8e5de);
+}
+
+.notifications-page__group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.notifications-page__more {
+  display: flex;
+  justify-content: center;
+  padding-top: 0.5rem;
+}
+
+@media (max-width: 600px) {
+  .notifications-page {
+    padding: 1rem 0.75rem 4rem;
+  }
+
+  .notifications-page__head {
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+  }
+
+  // Mobile header drops the eyebrow (matches the design): just the title + count.
+  .notifications-page__eyebrow {
+    display: none;
+  }
+
+  .notifications-page__title {
+    font-size: 1.375rem;
+  }
+
+  .notifications-page__mark-all {
+    margin-left: auto;
+  }
+}

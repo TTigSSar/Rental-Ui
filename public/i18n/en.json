@@ -260,6 +260,8 @@
       "statusRented": "Rented",
       "verified": "Verified",
       "viewBtn": "View",
+      "yourListing": "Your listing",
+      "manageBtn": "Manage",
       "bookingBadge": {
         "rentalRequested": "Rental requested",
         "approved": "Approved",
@@ -391,6 +393,20 @@
       "guestSignIn": "Sign In",
       "guestSignUp": "Sign Up",
       "guestAuthPrivacy": "Your data stays private and is never shared.",
+      "ctaBook": "Request to rent",
+      "ctaExistingHint": "You already have an active request for this toy.",
+      "eyebrow": {
+        "overview": "Overview",
+        "host": "Your host",
+        "reviews": "Reviews"
+      },
+      "howItWorks": {
+        "label": "How renting works",
+        "step1": "Pick your dates",
+        "step2": "Add a note for the owner",
+        "step3": "Owner confirms, then you pay",
+        "nextStepHint": "Pick your dates on the next step"
+      },
       "breadcrumb": {
         "home": "Home",
         "listings": "Browse Toys"
@@ -489,13 +505,21 @@
         "step1Hint": "Bright daylight, clean background, all parts visible.",
         "step2Heading": "Tell us about your toy",
         "step2Hint": "The clearer the basics, the faster you’ll get a renter.",
-        "step3Heading": "How much per day?",
+        "step3Heading": "How much to rent it?",
         "step3Hint": "You earn ~85% after our 15% service fee.",
         "step4Heading": "Keep families safe",
         "step4Hint": "Parents look here before booking. Be honest.",
         "step5Heading": "How renters will see it",
         "step5Hint": "Goes live within 4 hours after we review.",
-        "submitNote": "Once submitted, our team will review your listing and get back to you within 24–48 hours."
+        "submitNote": "Once submitted, our team will review your listing and get back to you within 24–48 hours.",
+        "sidebarTitle": "List your toy",
+        "stepShort": "Step {{n}}",
+        "aboutTime": "About 2 minutes",
+        "reviewTime": "Goes live within ~4 hours after our team reviews it.",
+        "previewEyebrow": "How renters see it",
+        "reviewTitle": "Review & submit",
+        "nextHint": "Next: {{next}}",
+        "readyHint": "Ready to publish — we'll review within ~4 hours."
       }
     },
     "createForm": {
@@ -561,18 +585,28 @@
         "d1": "1 day",
         "d3": "3 days",
         "d7": "1 week",
-        "d14": "2 weeks"
+        "d14": "2 weeks",
+        "hint": "Shortest booking a renter can make."
       },
       "delivery": {
         "label": "How can renters get the toy?",
         "pickup": "Pickup from me",
         "pickupHint": "Free · Meet at agreed spot",
         "deliver": "Deliver to renter",
-        "deliverHint": "Paid · Drop off at renter's location"
+        "deliverHint": "Paid · Drop off at renter's location",
+        "pickupShort": "pickup",
+        "deliverShort": "delivery"
       },
       "photos": {
         "addCover": "Add cover photo",
-        "coverHint": "This shows first in search results"
+        "coverHint": "This shows first in search results",
+        "coverLabel": "Cover",
+        "setCoverTitle": "Set as cover photo",
+        "dragHint": "Drag photos to reorder · Drop on the cover zone to set as cover",
+        "countHint": "{{current}} of {{min}}–{{max}} photos added",
+        "tipClear": "3+ clear photos",
+        "tipWear": "Show any wear or damage",
+        "tipPieces": "Include all pieces / packaging"
       },
       "cleaning": {
         "title": "Cleaning between rentals",
@@ -598,8 +632,112 @@
         "priceGreaterThanZero": "Price must be greater than 0.",
         "ageRangeInvalid": "Max age must be greater than or equal to min age.",
         "depositNonNegative": "Deposit cannot be negative.",
-        "ageNonNegative": "Age cannot be negative."
+        "ageNonNegative": "Age cannot be negative.",
+        "photoTooFew": "Please add at least {{min}} photos.",
+        "photoTooLarge": "Each photo must be smaller than 10 MB.",
+        "photoWrongType": "Only image files are allowed.",
+        "photoTooMany": "You can add up to {{max}} photos."
+      },
+      "ageYears": "years",
+      "ageYearsShort": "yr",
+      "ageMinAria": "Minimum age",
+      "ageMaxAria": "Maximum age",
+      "ageHint": "Renters filter by age — drag both handles to set the range this toy suits best.",
+      "ageBand": {
+        "babies": "Babies",
+        "toddlers": "Toddlers",
+        "toddlersUp": "Toddlers & up",
+        "preschool": "Preschool",
+        "bigKids": "Big kids",
+        "preTeens": "Pre-teens"
+      },
+      "priceUnitLabel": "Charged per",
+      "priceLabel": "Rental price",
+      "priceUnit": {
+        "hourly": "Hourly",
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "monthly": "Monthly",
+        "yearly": "Yearly"
+      },
+      "perUnit": {
+        "hourly": "/ hour",
+        "daily": "/ day",
+        "weekly": "/ week",
+        "monthly": "/ month",
+        "yearly": "/ year"
+      },
+      "draft": {
+        "resumeTitle": "You have an unsaved draft. Resume where you left off?",
+        "resume": "Resume",
+        "discard": "Discard"
+      },
+      "upload": {
+        "uploading": "Uploading… {{percent}}%",
+        "retry": "Retry upload"
+      },
+      "titleHint": "Keep it short and searchable",
+      "priceUnitPer": "per",
+      "rentersSee": "Renters see",
+      "priceUnitNoun": {
+        "hourly": "hour",
+        "daily": "day",
+        "weekly": "week",
+        "monthly": "month",
+        "yearly": "year"
+      },
+      "priceUnitMenuTitle": "Charge per",
+      "priceUnitOption": {
+        "hourly": "Per Hour",
+        "daily": "Per Day",
+        "weekly": "Per Week",
+        "monthly": "Per Month",
+        "yearly": "Per Year"
       }
+    },
+    "bookingPage": {
+      "title": "Request to rent",
+      "mobileTitle": "Booking details",
+      "stepLabel": "Step 2 of 2",
+      "heroSubtitle": "Pick your dates and add a note for {{name}}. They'll review and confirm — you're not charged yet.",
+      "stepItem": "Item",
+      "stepBooking": "Booking",
+      "reserveEyebrow": "Reserve",
+      "datesSectionHeading": "Choose your dates",
+      "quickBook": "Quick book",
+      "quick": {
+        "day": "1 day",
+        "week": "1 week",
+        "month": "1 month",
+        "year": "1 year"
+      },
+      "noteSectionHeading": "Add a note for the owner",
+      "ownerSeesThis": "Owner sees this",
+      "noteIntro": "{{name}} gets this with your request — say when you'd like to pick up, ask a question, or share anything helpful.",
+      "optional": "Optional.",
+      "noteLabel": "Your message",
+      "notePlaceholder": "e.g. Hi {{name}}! Hoping to pick up Saturday morning near Kentron metro. Is the storage box included?",
+      "notePreviewEmpty": "Your note will appear here…",
+      "whatOwnerSees": "What {{name}} will see",
+      "suggestion": {
+        "chip1": "Could I pick up after 6 PM?",
+        "chip2": "Is the original box included?",
+        "chip3": "I can be flexible on the return day.",
+        "chip4": "First time renting — any tips welcome!"
+      },
+      "yourRequestEyebrow": "Your request",
+      "phoneUnlock": "{{name}}'s phone number unlocks <strong>right after you send this request.</strong>",
+      "notCharged": "You won't be charged until {{name}} confirms.",
+      "notChargedShort": "You're not charged yet",
+      "summaryTotal": "Total",
+      "selectDatesHint": "Choose dates to see the total price",
+      "daysLabel": "days",
+      "submitCta": "Send booking request",
+      "submitting": "Submitting…",
+      "confirmTitle": "Booking request sent!",
+      "confirmBody": "The owner will review your request and get back to you soon. You'll be notified when the status changes.",
+      "confirmViewBooking": "View booking",
+      "confirmBrowse": "Browse more toys"
     }
   },
   "profile": {
@@ -704,7 +842,14 @@
       "edit": "Edit",
       "archive": "Archive",
       "restore": "Restore",
-      "listToy": "List new toy"
+      "listToy": "List new toy",
+      "resubmit": "Resubmit for review",
+      "editAndResubmit": "Edit & resubmit"
+    },
+    "rejection": {
+      "reasonLabel": "Rejection reason",
+      "note": "Moderator note",
+      "moderatedBy": "Reviewed by {{name}}"
     },
     "common": {
       "notAvailable": "Not available"
@@ -738,9 +883,9 @@
         "currentPhoto": "Current cover",
         "newCoverPhoto": "New cover selected",
         "replacePhotos": "Tap to replace photos",
-        "replaceWarning": "{{count}} new photo(s) will replace all current photos when you save.",
-        "clearNewPhotos": "Undo — keep current photos",
-        "photoKeepNote": "No new photos selected — current photos will be kept.",
+        "addNote": "{{count}} new photo(s) will be added to your listing when you save.",
+        "clearNewPhotos": "Discard new photos",
+        "photoKeepNote": "No new photos selected — existing photos will be kept.",
         "noPhoto": "No photo uploaded",
         "basicsTitle": "Edit basics",
         "hygieneLabel": "Hygiene & cleaning notes",
@@ -749,7 +894,11 @@
         "previewTitle": "Review your changes",
         "previewSubtitle": "Check your updates before saving.",
         "saveChanges": "Save changes",
-        "saveNote": "Changes are saved immediately and the listing stays in its current status."
+        "saveNote": "Changes are saved immediately and the listing stays in its current status.",
+        "saveAndResubmit": "Save & resubmit for review",
+        "resubmitNote": "Your changes will be saved and the listing sent back for review.",
+        "fixItTitle": "Changes needed",
+        "fixItReviewedBy": "Reviewed by {{name}}"
       },
       "fields": {
         "title": "Title",
@@ -782,6 +931,46 @@
       "rejected": "This listing was not approved. You may edit and relist it.",
       "approved": "Live — renters can find and book this toy.",
       "archived": "Hidden from renters."
+    },
+    "ownerView": {
+      "back": "Back to my toys",
+      "editListing": "Edit listing",
+      "editPhotos": "Edit photos",
+      "reviewsCount": "{{count}} reviews",
+      "banner": {
+        "title": "This is your listing",
+        "subtitle": "You're viewing it as the owner — renters see the public version.",
+        "statusActive": "Active",
+        "statusPaused": "Paused",
+        "toggleAria": "Toggle listing active or paused"
+      },
+      "stats": {
+        "heading": "Performance",
+        "rating": "Rating",
+        "ratingDelta": "{{count}} reviews",
+        "noReviews": "No reviews yet",
+        "pendingRequests": "Pending requests",
+        "pendingRequestsDelta": "{{count}} total"
+      },
+      "dailyRate": {
+        "title": "Your daily rate",
+        "hint": "What renters pay per day for this toy."
+      },
+      "requests": {
+        "heading": "Booking requests",
+        "pendingCount": "{{count}} pending requests",
+        "empty": "No booking requests yet.",
+        "rentalsCount": "{{count}} rentals",
+        "youEarn": "you earn",
+        "minutesAgo": "Requested {{count}}m ago",
+        "hoursAgo": "Requested {{count}}h ago",
+        "daysAgo": "Requested {{count}}d ago",
+        "accept": "Accept request",
+        "decline": "Decline",
+        "accepted": "Accepted",
+        "declined": "Declined",
+        "message": "Message {{name}}"
+      }
     }
   },
   "bookings": {
@@ -1061,6 +1250,7 @@
   },
   "reviews": {
     "flow": {
+      "loading": "Loading your review…",
       "stepOf": "Step {{current}} of {{total}}",
       "rateToyTitle": "Rate the toy",
       "rateOwnerTitle": "Rate the owner",
@@ -1263,6 +1453,46 @@
       "pageTitle": "Privacy Policy",
       "heroTitle": "Privacy Policy",
       "lastUpdated": "Last updated: May 2026"
+    }
+  },
+  "notifications": {
+    "eyebrow": "Inbox",
+    "title": "Notifications",
+    "subtitle": "Booking updates, reminders and messages — all in one place.",
+    "markAllRead": "Mark all read",
+    "errorTitle": "Unable to load notifications",
+    "retry": "Retry",
+    "emptyTitle": "You're all caught up",
+    "emptyText": "No notifications match this filter yet.",
+    "loadMore": "Load more",
+    "actionNeeded": "Action",
+    "filter": {
+      "all": "All",
+      "unread": "Unread",
+      "action": "Action needed",
+      "aria": "Filter notifications"
+    },
+    "group": {
+      "today": "Today",
+      "earlier": "Earlier"
+    },
+    "kind": {
+      "request": "New request",
+      "approved": "Approved",
+      "declined": "Declined",
+      "listingLive": "Listing live",
+      "listingChanges": "Changes needed",
+      "pickup": "Pickup today",
+      "confirm": "Action needed",
+      "return": "Due today",
+      "review": "Review",
+      "message": "Message"
+    },
+    "time": {
+      "justNow": "Just now",
+      "minutes": "{{value}}m ago",
+      "hours": "{{value}}h ago",
+      "days": "{{value}}d ago"
     }
   }
 }

@@ -1,4 +1,4 @@
-<div class="app-shell" [class.app-shell--browse]="isBrowsePage()" [class.app-shell--details]="isDetailsPage()" [class.app-shell--profile-child]="isProfileChildPage()">
+<div class="app-shell" [class.app-shell--browse]="isBrowsePage()" [class.app-shell--details]="isDetailsPage()" [class.app-shell--profile-child]="isProfileChildPage()" [class.app-shell--create]="isListingWizardPage()" [class.app-shell--booking]="isBookingPage()">
   @if (vm$ | async; as vm) {
     <app-header
       [scrolled]="scrolled()"

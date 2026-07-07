@@ -96,7 +96,9 @@
               </div>
 
               <!-- User booking relationship panel -->
+              <!-- Hidden for finished states (Rejected / Completed) since no action is needed -->
               @if (isAuthenticated() && userBooking(); as booking) {
+                @if (booking.status !== 'Rejected' && booking.status !== 'Completed') {
                 <div
                   class="detail-page__relationship"
                   [class]="'detail-page__relationship--' + booking.status.toLowerCase()"
@@ -110,17 +112,10 @@
                         @case ('Approved') { {{ 'listings.details.relationship.approved' | translate }} }
                         @case ('Active') { {{ 'listings.details.relationship.currentlyRenting' | translate }} }
                         @case ('ReturnMarked') { {{ 'listings.details.relationship.awaitingCompletion' | translate }} }
-                        @case ('Completed') { {{ 'listings.details.relationship.previouslyRented' | translate }} }
-                        @case ('Rejected') { {{ 'listings.details.relationship.requestDeclined' | translate }} }
                         @case ('Cancelled') { {{ 'listings.details.relationship.cancelled' | translate }} }
                       }
                     </span>
 
-                    @if (booking.status === 'Completed' && booking.endDate) {
-                      <span class="detail-page__relationship-date">
-                        {{ 'listings.details.relationship.completedOn' | translate }}: {{ booking.endDate }}
-                      </span>
-                    }
                     @if ((booking.status === 'Approved' || booking.status === 'Active') && booking.endDate) {
                       <span class="detail-page__relationship-date">
                         {{ 'listings.details.relationship.endsOn' | translate }}: {{ booking.endDate }}
@@ -141,6 +136,7 @@
                     <i class="pi pi-arrow-right" aria-hidden="true"></i>
                   </a>
                 </div>
+                }
               }
 
               <!-- Title + favorite -->
@@ -181,11 +177,12 @@
                 }
               </div>
 
-              <!-- Price (mobile only — desktop sees it in the booking panel sidebar) -->
+              <!-- Price (mobile only — desktop sees it in the sidebar CTA card) -->
               <p class="detail-page__price-mobile">
                 <span class="detail-page__price-amount">{{ listing.pricePerDay | currency }}</span>
                 <span class="detail-page__price-suffix">&thinsp;/ {{ 'listings.booking.priceSuffix' | translate }}</span>
               </p>
+
 
               <div class="detail-page__sections">
 
@@ -255,6 +252,7 @@
                   class="detail-page__section"
                   aria-labelledby="detail-description-heading"
                 >
+                  <span class="detail-page__section-eyebrow">{{ 'listings.details.eyebrow.overview' | translate }}</span>
                   <h2 id="detail-description-heading" class="detail-page__section-title">
                     {{ 'listings.details.descriptionHeading' | translate }}
                   </h2>
@@ -266,8 +264,9 @@
                 <!-- 3. Owner / contact card -->
                 <section class="detail-page__section detail-page__section--owner" aria-labelledby="detail-owner-heading">
                   <div class="detail-page__owner-section-head">
+                    <span class="detail-page__section-eyebrow">{{ 'listings.details.eyebrow.host' | translate }}</span>
                     <h2 id="detail-owner-heading" class="detail-page__section-title">
-                      {{ 'listings.details.ownerCardTitle' | translate }}
+                      {{ 'listings.details.hostHeading' | translate }}
                     </h2>
                   </div>
 
@@ -331,6 +330,7 @@
                   class="detail-page__section"
                   aria-labelledby="detail-reviews-heading"
                 >
+                  <span class="detail-page__section-eyebrow">{{ 'listings.details.eyebrow.reviews' | translate }}</span>
                   <h2
                     id="detail-reviews-heading"
                     class="detail-page__section-title"
@@ -368,24 +368,128 @@
               </div>
             </div>
 
-            <!-- Desktop sidebar: sticky booking panel -->
+            <!-- Desktop sidebar: price card + booking CTA -->
             <aside class="detail-page__sidebar">
               <div class="detail-page__sidebar-sticky">
-                <app-booking-panel
-                  [pricePerDay]="listing.pricePerDay"
-                  [bookedDates]="listing.bookedDates"
-                  [submitting]="vm.createBookingLoading"
-                  [submitError]="vm.createBookingError"
-                  [submitSuccess]="vm.createBookingSuccess"
-                  [existingBookingId]="existingBookingId()"
-                  [cancellableBookingId]="cancellableBookingId()"
-                  [cancelPending]="cancelBookingPending()"
-                  [cancelError]="cancelBookingError()"
-                  (bookingSubmit)="onBookingSubmit($event)"
-                  (cancelRequest)="onCancelRequest($event)"
-                />
+                <div class="detail-page__cta-card">
+                  <div class="detail-page__cta-price-row">
+                    <p class="detail-page__cta-price">
+                      <span class="detail-page__cta-price-amount">{{ listing.pricePerDay | currency }}</span>
+                      <span class="detail-page__cta-price-suffix">/ {{ 'listings.booking.priceSuffix' | translate }}</span>
+                    </p>
+                    @if (ratingSummary(); as summary) {
+                      @if (summary.reviewCount > 0) {
+                        <span class="detail-page__cta-rating">
+                          <i class="pi pi-star-fill" aria-hidden="true"></i>
+                          <strong>{{ summary.averageRating | number:'1.1-1' }}</strong>
+                          <span class="detail-page__cta-rating-count">({{ summary.reviewCount }})</span>
+                        </span>
+                      }
+                    }
+                  </div>
+
+                  <div class="detail-page__cta-divider" aria-hidden="true"></div>
+
+                  <p class="detail-page__cta-steps-label">{{ 'listings.details.howItWorks.label' | translate }}</p>
+                  <ol class="detail-page__cta-steps">
+                    <li class="detail-page__cta-step">
+                      <span class="detail-page__cta-step-num">1</span>
+                      <span class="detail-page__cta-step-text">{{ 'listings.details.howItWorks.step1' | translate }}</span>
+                    </li>
+                    <li class="detail-page__cta-step">
+                      <span class="detail-page__cta-step-num">2</span>
+                      <span class="detail-page__cta-step-text">{{ 'listings.details.howItWorks.step2' | translate }}</span>
+                    </li>
+                    <li class="detail-page__cta-step">
+                      <span class="detail-page__cta-step-num">3</span>
+                      <span class="detail-page__cta-step-text">{{ 'listings.details.howItWorks.step3' | translate }}</span>
+                    </li>
+                  </ol>
+
+                  @if (existingBookingId()) {
+                    <p class="detail-page__cta-hint">
+                      <i class="pi pi-info-circle" aria-hidden="true"></i>
+                      {{ 'listings.details.ctaExistingHint' | translate }}
+                    </p>
+                  }
+
+                  @if (isAuthenticated()) {
+                    <p-button
+                      type="button"
+                      styleClass="detail-page__cta-btn"
+                      [label]="'listings.details.ctaBook' | translate"
+                      icon="pi pi-arrow-right"
+                      iconPos="right"
+                      [disabled]="existingBookingId() !== null"
+                      [routerLink]="['/listings', listing.id, 'book']"
+                    />
+                    @if (!existingBookingId()) {
+                      <p class="detail-page__cta-next-hint">
+                        <i class="pi pi-calendar" aria-hidden="true"></i>
+                        {{ 'listings.details.howItWorks.nextStepHint' | translate }}
+                      </p>
+                    }
+                  } @else {
+                    <div class="detail-page__cta-guest">
+                      <p class="detail-page__cta-guest-text">{{ 'listings.details.guestRentSubtext' | translate }}</p>
+                      <p-button
+                        type="button"
+                        styleClass="detail-page__cta-btn"
+                        [label]="'listings.details.guestSignIn' | translate"
+                        (onClick)="showAuthDialog.set(true)"
+                      />
+                    </div>
+                  }
+
+                  <div class="detail-page__cta-assurance">
+                    <p class="detail-page__cta-assurance-item">
+                      <i class="pi pi-shield" aria-hidden="true"></i>
+                      <span>{{ 'listings.booking.assurance' | translate }}</span>
+                    </p>
+                    <p class="detail-page__cta-assurance-item">
+                      <i class="pi pi-check-circle" aria-hidden="true"></i>
+                      <span>{{ 'listings.booking.assuranceTransparency' | translate }}</span>
+                    </p>
+                  </div>
+                </div>
               </div>
             </aside>
+          </div>
+
+          <!-- Mobile fixed action bar — replaces the global bottom nav -->
+          <div class="detail-page__mobile-bar">
+            <div class="detail-page__mobile-bar-info">
+              <span class="detail-page__mobile-bar-price">
+                <span class="detail-page__mobile-bar-amount">{{ listing.pricePerDay | currency }}</span>
+                <span class="detail-page__mobile-bar-suffix">/ {{ 'listings.booking.priceSuffix' | translate }}</span>
+              </span>
+              @if (ratingSummary(); as summary) {
+                @if (summary.reviewCount > 0) {
+                  <span class="detail-page__mobile-bar-rating">
+                    <i class="pi pi-star-fill" aria-hidden="true"></i>
+                    {{ summary.averageRating | number:'1.1-1' }} · {{ summary.reviewCount }}
+                  </span>
+                }
+              }
+            </div>
+            @if (isAuthenticated()) {
+              <p-button
+                type="button"
+                styleClass="detail-page__cta-btn"
+                [label]="'listings.details.ctaBook' | translate"
+                icon="pi pi-arrow-right"
+                iconPos="right"
+                [disabled]="existingBookingId() !== null"
+                [routerLink]="['/listings', listing.id, 'book']"
+              />
+            } @else {
+              <p-button
+                type="button"
+                styleClass="detail-page__cta-btn"
+                [label]="'listings.details.guestSignIn' | translate"
+                (onClick)="showAuthDialog.set(true)"
+              />
+            }
           </div>
         </article>
       }

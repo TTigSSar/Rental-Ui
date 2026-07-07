@@ -271,6 +271,7 @@
                 [listing]="listing"
                 [isAuthenticated]="v.isAuthenticated"
                 [bookingStatus]="bookingStatusMap().get(listing.id)"
+                [isOwner]="myListingIds().has(listing.id)"
                 (favoriteToggled)="onFavoriteToggled($event)"
               />
             }

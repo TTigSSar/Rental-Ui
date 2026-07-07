@@ -182,6 +182,7 @@ export const listingsReducer = createReducer(
       createListingError: null,
       createListingSuccessId: null,
       createListingImageUploadError: null,
+      createListingImageUploadProgress: null,
     }),
   ),
   on(
@@ -192,6 +193,7 @@ export const listingsReducer = createReducer(
       createListingError: null,
       createListingSuccessId: response.id,
       createListingImageUploadError: imageUploadError,
+      createListingImageUploadProgress: null,
     }),
   ),
   on(
@@ -202,6 +204,38 @@ export const listingsReducer = createReducer(
       createListingError: error,
       createListingSuccessId: null,
       createListingImageUploadError: null,
+      createListingImageUploadProgress: null,
+    }),
+  ),
+  on(
+    ListingsActions.setImageUploadProgress,
+    (state, { progress }): ListingsState => ({
+      ...state,
+      createListingImageUploadProgress: progress,
+    }),
+  ),
+  on(
+    ListingsActions.retryImageUpload,
+    (state): ListingsState => ({
+      ...state,
+      createListingImageUploadError: null,
+      createListingImageUploadProgress: 0,
+    }),
+  ),
+  on(
+    ListingsActions.retryImageUploadSuccess,
+    (state): ListingsState => ({
+      ...state,
+      createListingImageUploadError: null,
+      createListingImageUploadProgress: null,
+    }),
+  ),
+  on(
+    ListingsActions.retryImageUploadFailure,
+    (state, { error }): ListingsState => ({
+      ...state,
+      createListingImageUploadError: error,
+      createListingImageUploadProgress: null,
     }),
   ),
   on(
@@ -212,6 +246,7 @@ export const listingsReducer = createReducer(
       createListingError: null,
       createListingSuccessId: null,
       createListingImageUploadError: null,
+      createListingImageUploadProgress: null,
     }),
   ),
   on(

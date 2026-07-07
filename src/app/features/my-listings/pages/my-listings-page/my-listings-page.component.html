@@ -4,6 +4,7 @@
     [subtitle]="'myListings.page.subtitle' | translate"
     backLink="/profile"
     mobileTitleAlign="start"
+    [hideOnDesktop]="true"
   >
     @if (viewModel().items.length > 0) {
       <p-button
@@ -16,6 +17,23 @@
       />
     }
   </app-ui-page-header>
+
+  <!-- ── Desktop header (mirrors the mobile page header) ─────── -->
+  <header class="my-listings-page__desktop-header">
+    <div class="my-listings-page__desktop-heading">
+      <h1 class="my-listings-page__desktop-title">{{ 'myListings.page.title' | translate }}</h1>
+      <p class="my-listings-page__desktop-subtitle">{{ 'myListings.page.subtitle' | translate }}</p>
+    </div>
+    @if (viewModel().items.length > 0) {
+      <p-button
+        type="button"
+        icon="pi pi-plus"
+        [label]="'myListings.actions.listToy' | translate"
+        [routerLink]="['/listings/create']"
+        styleClass="my-listings-page__add-btn"
+      />
+    }
+  </header>
 
   @if (viewModel().hasError && viewModel().error) {
     <div class="my-listings-page__error" role="alert">
@@ -156,6 +174,19 @@
                     [label]="statusLabelKey(listing.status) | translate"
                     [tone]="statusTone(listing.status)"
                   />
+                  @if (listing.status === 'Rejected' && listing.rejection) {
+                    <div class="my-listings-page__rejection">
+                      @if (rejectionReasonI18nKey(listing.rejection); as key) {
+                        <span class="my-listings-page__rejection-chip">
+                          <i class="pi pi-flag" aria-hidden="true"></i>
+                          {{ key | translate }}
+                        </span>
+                      }
+                      @if (listing.rejection.note) {
+                        <span class="my-listings-page__rejection-note">{{ listing.rejection.note }}</span>
+                      }
+                    </div>
+                  }
                 </td>
                 <!-- PRICE / DAY -->
                 <td class="my-listings-page__td my-listings-page__td--price">
@@ -174,7 +205,17 @@
                   >
                     <i class="pi pi-pencil" aria-hidden="true"></i>
                   </button>
-                  @if (listing.status !== 'Archived') {
+                  @if (listing.status === 'Rejected') {
+                    <button
+                      type="button"
+                      class="my-listings-page__action-btn my-listings-page__action-btn--resubmit"
+                      [attr.data-tooltip]="'myListings.actions.resubmit' | translate"
+                      [attr.aria-label]="'myListings.actions.resubmit' | translate"
+                      (click)="onResubmitRequested(listing.id)"
+                    >
+                      <i class="pi pi-send" aria-hidden="true"></i>
+                    </button>
+                  } @else if (listing.status !== 'Archived') {
                     <button
                       type="button"
                       class="my-listings-page__action-btn my-listings-page__action-btn--archive"

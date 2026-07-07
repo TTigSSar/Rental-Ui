@@ -53,4 +53,15 @@ export const myListingsReducer = createReducer(
       ),
     }),
   ),
+  on(
+    MyListingsActions.resubmitListingSuccess,
+    (state, { listingId }): MyListingsState => ({
+      ...state,
+      items: state.items.map((item) =>
+        item.id === listingId
+          ? { ...item, status: 'Pending' as const, rejection: null }
+          : item,
+      ),
+    }),
+  ),
 );

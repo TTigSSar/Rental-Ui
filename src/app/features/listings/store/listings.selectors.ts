@@ -84,3 +84,9 @@ export const selectCreateListingImageUploadError = createSelector(
   selectListingsState,
   (state: ListingsState): string | null => state.createListingImageUploadError,
 );
+
+export const selectCreateListingImageUploadProgress = createSelector(
+  selectListingsState,
+  (state: ListingsState): number | null =>
+    state.createListingImageUploadProgress,
+);

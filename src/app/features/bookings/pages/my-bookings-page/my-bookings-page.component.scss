@@ -1,6 +1,6 @@
 @keyframes page-fade-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: none; }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .bookings-page {
@@ -131,7 +131,9 @@
 
 @media (max-width: 899px) {
   .bookings-page__grid {
-    grid-template-columns: 1fr;
+    /* minmax(0, 1fr) lets the single column shrink below its content's
+       intrinsic min-width so cards never force horizontal page scroll. */
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

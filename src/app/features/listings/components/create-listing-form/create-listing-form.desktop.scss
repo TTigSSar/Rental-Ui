@@ -1,0 +1,188 @@
+/* Desktop (≥ 1024px) overrides for the create-listing wizard.
+   Kept in a separate component stylesheet so each file stays within Angular's
+   per-component style budget; loaded after the base sheet via styleUrls. */
+@media (min-width: 1024px) {
+  .wizard__header,
+  .wizard__progress { display: none; }
+
+  .wizard__layout {
+    max-width: 1080px;
+    display: grid;
+    grid-template-columns: 244px 1fr;
+    gap: 40px;
+    padding: 28px 32px 120px;
+  }
+
+  /* Sidebar stepper */
+  .wizard__sidebar { display: block; }
+  .wizard__sidebar-sticky { position: sticky; top: 24px; }
+
+  .wizard__sidebar-eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ui-color-text-secondary);
+    margin-bottom: 14px;
+  }
+
+  .wizard-stepper { position: relative; display: flex; flex-direction: column; gap: 8px; }
+
+  .wizard-stepper__track {
+    position: absolute;
+    left: 17px;
+    top: 18px;
+    bottom: 18px;
+    width: 2px;
+    background: var(--ui-color-border);
+  }
+
+  .wizard-stepper__fill {
+    position: absolute;
+    left: 17px;
+    top: 18px;
+    width: 2px;
+    background: var(--ui-color-primary);
+    transition: height 250ms ease;
+    max-height: calc(100% - 36px);
+  }
+
+  .wizard-stepper__item {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 7px 8px;
+    border-radius: 12px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    position: relative;
+    z-index: 1;
+    transition: background 150ms ease;
+
+    &:hover { background: var(--ui-color-surface-muted); }
+    &:focus-visible { outline: 2px solid var(--ui-color-primary); outline-offset: 2px; }
+  }
+
+  .wizard-stepper__item--active {
+    background: var(--ui-color-surface);
+    box-shadow: 0 1px 2px rgba(20, 15, 5, 0.05);
+  }
+
+  .wizard-stepper__dot {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--ui-radius-pill);
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    background: var(--ui-color-surface);
+    border: 2px solid var(--ui-color-border);
+    color: var(--ui-color-text-secondary);
+
+    .pi { font-size: 0.9rem; }
+  }
+
+  .wizard-stepper__item--active .wizard-stepper__dot {
+    background: var(--ui-color-primary);
+    border-color: var(--ui-color-primary);
+    color: #fff;
+  }
+
+  .wizard-stepper__item--done .wizard-stepper__dot {
+    background: var(--ui-color-success, var(--ui-color-primary));
+    border-color: var(--ui-color-success, var(--ui-color-primary));
+    color: #fff;
+  }
+
+  .wizard-stepper__text { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .wizard-stepper__step { font-size: 0.65rem; font-weight: 700; color: var(--ui-color-text-secondary); }
+  .wizard-stepper__label { font-size: 0.85rem; font-weight: 600; color: var(--ui-color-text-secondary); }
+
+  .wizard-stepper__item--active .wizard-stepper__label,
+  .wizard-stepper__item--done .wizard-stepper__label { color: var(--ui-color-text-primary); }
+  .wizard-stepper__item--active .wizard-stepper__label { font-weight: 800; }
+
+  .wizard-stepper__note {
+    margin-top: 18px;
+    padding: 14px;
+    border-radius: 14px;
+    background: var(--ui-color-primary-wash);
+    border: 1px solid color-mix(in srgb, var(--ui-color-primary) 13%, transparent);
+  }
+
+  .wizard-stepper__note-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--ui-color-text-primary);
+
+    .pi { color: var(--ui-color-primary); font-size: 0.8rem; }
+  }
+
+  .wizard-stepper__note-sub {
+    margin-top: 4px;
+    font-size: 0.72rem;
+    color: var(--ui-color-text-secondary);
+    line-height: 1.5;
+  }
+
+  /* Content head */
+  .wizard__content-head { display: block; margin-bottom: 18px; }
+  .wizard__content-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ui-color-primary);
+  }
+  .wizard__content-title {
+    margin: 6px 0 0;
+    font-size: 1.625rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--ui-color-text-primary);
+  }
+
+  /* Panels become cards */
+  .wizard-panel {
+    background: var(--ui-color-surface);
+    border: 1px solid var(--ui-color-border);
+    border-radius: 18px;
+    padding: 28px;
+  }
+  .wizard-panel__subtitle { margin-top: -8px; }
+
+  /* Two-column groups split on desktop */
+  .wizard-2col { grid-template-columns: 1fr 1fr; gap: 22px; }
+  .wizard-delivery-list { grid-template-columns: 1fr 1fr; }
+
+  /* Step 1 photos: cover beside grid. align-items:start keeps the cover at its
+     own 4/3 height instead of stretching to the grid's height (which crushed
+     the layout once several large photos were added). */
+  .wizard-photo__main { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; align-items: start; }
+  .wizard-photo__cover { min-height: 0; aspect-ratio: 4 / 3; }
+  .wizard-photo__grid { grid-template-columns: 1fr 1fr; align-content: start; }
+  .wizard-photo__slot--filler { display: block; }
+
+  /* Step 5: preview card left, review right */
+  .wizard-preview-grid { grid-template-columns: 340px 1fr; gap: 22px; }
+
+  /* Footer aligns to content, buttons right */
+  .wizard__footer { padding: 14px 32px; }
+  .wizard__footer-inner { max-width: 1080px; }
+  .wizard__footer-hint {
+    display: block;
+    flex: 1;
+    font-size: 0.78rem;
+    color: var(--ui-color-text-secondary);
+  }
+  .wizard__btn { height: 3rem; padding: 0 28px; }
+  .wizard__btn--primary { flex: 0 0 auto; }
+  .wizard__btn--full { width: auto; }
+  .wizard__btn--hidden { display: inline-flex; visibility: hidden; }
+}

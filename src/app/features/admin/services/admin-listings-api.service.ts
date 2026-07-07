@@ -95,9 +95,10 @@ export class AdminListingsApiService {
     return this.http.post<void>(toApiUrl(ApiContract.adminListings.approve(listingId)), {});
   }
 
-  rejectListing(listingId: string, reason: string): Observable<void> {
+  rejectListing(listingId: string, reasonCode: string, note: string): Observable<void> {
     return this.http.post<void>(toApiUrl(ApiContract.adminListings.reject(listingId)), {
-      reason,
+      reasonCode,
+      note: note.trim() || null,
     });
   }
 }

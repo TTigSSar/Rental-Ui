@@ -1,0 +1,64 @@
+<div class="age-slider">
+  <!-- readout -->
+  <div class="age-slider__readout">
+    <span class="age-slider__value">{{ fmt(lo()) }} – {{ fmt(hi()) }}</span>
+    <span class="age-slider__unit">{{ 'listings.createForm.ageYears' | translate }}</span>
+    <span class="age-slider__band">
+      <i class="pi pi-user" aria-hidden="true"></i>
+      {{ bandKey() | translate }}
+    </span>
+  </div>
+
+  <!-- track -->
+  <div class="age-slider__track-wrap">
+    <div #track class="age-slider__track">
+      <div class="age-slider__rail"></div>
+      <div
+        class="age-slider__fill"
+        [style.left.%]="pct(lo())"
+        [style.width.%]="pct(hi()) - pct(lo())"
+      ></div>
+
+      <button
+        type="button"
+        class="age-slider__thumb"
+        [class.age-slider__thumb--active]="active() === 'lo'"
+        [style.left.%]="pct(lo())"
+        role="slider"
+        [attr.aria-valuemin]="min()"
+        [attr.aria-valuemax]="max()"
+        [attr.aria-valuenow]="lo()"
+        [attr.aria-label]="'listings.createForm.ageMinAria' | translate"
+        (pointerdown)="onThumbDown($event, 'lo')"
+        (keydown)="onThumbKey($event, 'lo')"
+      >
+        <span class="age-slider__thumb-dot"></span>
+        <span class="age-slider__bubble" [class.age-slider__bubble--on]="active() === 'lo'">{{ fmt(lo()) }}</span>
+      </button>
+
+      <button
+        type="button"
+        class="age-slider__thumb"
+        [class.age-slider__thumb--active]="active() === 'hi'"
+        [style.left.%]="pct(hi())"
+        role="slider"
+        [attr.aria-valuemin]="min()"
+        [attr.aria-valuemax]="max()"
+        [attr.aria-valuenow]="hi()"
+        [attr.aria-label]="'listings.createForm.ageMaxAria' | translate"
+        (pointerdown)="onThumbDown($event, 'hi')"
+        (keydown)="onThumbKey($event, 'hi')"
+      >
+        <span class="age-slider__thumb-dot"></span>
+        <span class="age-slider__bubble" [class.age-slider__bubble--on]="active() === 'hi'">{{ fmt(hi()) }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ticks -->
+  <div class="age-slider__ticks" aria-hidden="true">
+    @for (v of ticks(); track v) {
+      <span class="age-slider__tick">{{ fmt(v) }}</span>
+    }
+  </div>
+</div>

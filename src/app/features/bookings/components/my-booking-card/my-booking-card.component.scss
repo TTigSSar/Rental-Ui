@@ -294,6 +294,16 @@
 }
 
 /* ── Mobile adjustments ─────────────────────────────────── */
+@media (max-width: 899px) {
+  /* Allow the card to shrink to its grid column instead of being held
+     open by intrinsic content widths (nowrap title/price), which would
+     otherwise push the page into horizontal scroll on narrow phones. */
+  .mbc {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
 @media (max-width: 560px) {
   .mbc__img {
     width: 64px;

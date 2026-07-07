@@ -3,6 +3,7 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnInit,
   Output,
   computed,
   inject,
@@ -13,8 +14,8 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import type { AbstractControl, ValidationErrors } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { InputNumberModule } from 'primeng/inputnumber';
-import { InputTextModule } from 'primeng/inputtext';
 
+import { AgeRangeSliderComponent } from '../../../../shared/ui/age-range-slider/age-range-slider.component';
 import {
   CategorySelectorComponent,
 } from '../../../../shared/ui/category-selector/category-selector.component';
@@ -22,12 +23,52 @@ import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component
 import type {
   CreateListingRequest,
   ListingCategoryOption,
+  PriceUnit,
 } from '../../models/create-listing.model';
+import { PRICE_UNITS } from '../../models/create-listing.model';
+import type { ListingImage } from '../../models/listing.model';
 
-interface AgeChip {
-  readonly key: string;
-  readonly fromMonths: number;
-  readonly toMonths: number;
+/** Whether the wizard creates a new listing or edits an existing one. */
+export type ListingFormMode = 'create' | 'edit';
+
+/**
+ * Existing listing values used to pre-populate the wizard in edit mode. Photos
+ * are passed separately via `existingImageUrls`.
+ */
+export interface ListingFormPrefill {
+  title: string;
+  description: string;
+  categoryId: string;
+  pricePerDay: number | null;
+  priceUnit?: PriceUnit;
+  city: string;
+  ageFromMonths: number | null;
+  ageToMonths: number | null;
+  condition: string | null;
+  hygieneNotes: string | null;
+  safetyNotes: string | null;
+}
+
+/**
+ * One photo in the edit-mode gallery. Existing photos carry their server `id`;
+ * freshly picked ones carry the `File` to upload. Both live in a single ordered
+ * list so new photos behave exactly like existing ones — they can be reordered,
+ * removed, or promoted to cover (index 0).
+ */
+interface EditPhoto {
+  url: string;
+  existingId: string | null;
+  file: File | null;
+}
+
+/**
+ * Final photo order emitted in edit mode. Each entry is either an existing image
+ * (by id) or a newly added file (by its index within the emitted `files` array),
+ * letting the page resolve real ids after upload and reorder the full set.
+ */
+export interface ListingImageOrderItem {
+  existingId: string | null;
+  newFileIndex: number | null;
 }
 
 interface ConditionChip {
@@ -35,12 +76,11 @@ interface ConditionChip {
   readonly labelKey: string;
 }
 
-const AGE_CHIPS: readonly AgeChip[] = [
-  { key: 'y02',  fromMonths: 0,   toMonths: 24  },
-  { key: 'y35',  fromMonths: 36,  toMonths: 60  },
-  { key: 'y68',  fromMonths: 72,  toMonths: 96  },
-  { key: 'y912', fromMonths: 108, toMonths: 144 },
-];
+interface WizardStep {
+  readonly labelKey: string;
+  readonly subKey: string;
+  readonly icon: string;
+}
 
 const CONDITION_CHIPS: readonly ConditionChip[] = [
   { value: 'New',     labelKey: 'listings.createForm.conditionOptions.new'     },
@@ -49,14 +89,33 @@ const CONDITION_CHIPS: readonly ConditionChip[] = [
   { value: 'Fair',    labelKey: 'listings.createForm.conditionOptions.fair'    },
 ];
 
+const WIZARD_STEPS: readonly WizardStep[] = [
+  { labelKey: 'listings.createPage.wizard.step1Label', subKey: 'listings.createPage.wizard.step1Sub', icon: 'pi-camera' },
+  { labelKey: 'listings.createPage.wizard.step2Label', subKey: 'listings.createPage.wizard.step2Sub', icon: 'pi-tag' },
+  { labelKey: 'listings.createPage.wizard.step3Label', subKey: 'listings.createPage.wizard.step3Sub', icon: 'pi-map-marker' },
+  { labelKey: 'listings.createPage.wizard.step4Label', subKey: 'listings.createPage.wizard.step4Sub', icon: 'pi-shield' },
+  { labelKey: 'listings.createPage.wizard.step5Label', subKey: 'listings.createPage.wizard.step5Sub', icon: 'pi-check' },
+];
+
 const MIN_RENTAL_DAYS = [1, 3, 7, 14] as const;
 
+/** Listings are currently Armenia-only; kept out of the template (no literal). */
+const DEFAULT_COUNTRY = 'Armenia';
+
+/** Display currency code, matching the rest of the app (see my-listing-card). */
+const CURRENCY_CODE = 'USD';
+
+const MIN_PHOTOS = 3;
+const MAX_PHOTOS = 8;
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const AGE_MAX_YEARS = 12;
+
 const STEP_CONTROLS: readonly string[][] = [
-  [],                                      // 1 Photos
-  ['title', 'categoryId', 'description'],  // 2 Basics
-  ['pricePerDay'],                         // 3 Pricing
-  [],                                      // 4 Safety
-  [],                                      // 5 Preview
+  [],                                          // 1 Photos (gated on photo count)
+  ['title', 'categoryId', 'description'],      // 2 Basics
+  ['pricePerDay', 'priceUnit', 'city'],        // 3 Pricing & Location
+  [],                                          // 4 Safety
+  [],                                          // 5 Preview
 ];
 
 function ageRangeValidator(control: AbstractControl): ValidationErrors | null {
@@ -72,6 +131,7 @@ function ageRangeValidator(control: AbstractControl): ValidationErrors | null {
   selector: 'app-create-listing-form',
   standalone: true,
   imports: [
+    AgeRangeSliderComponent,
     CategorySelectorComponent,
     CurrencyPipe,
     InputNumberModule,
@@ -80,35 +140,112 @@ function ageRangeValidator(control: AbstractControl): ValidationErrors | null {
     UiInputComponent,
   ],
   templateUrl: './create-listing-form.component.html',
-  styleUrl: './create-listing-form.component.scss',
+  styleUrls: [
+    './create-listing-form.component.scss',
+    './create-listing-form.menu.scss',
+    './create-listing-form.desktop.scss',
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CreateListingFormComponent {
+export class CreateListingFormComponent implements OnInit {
   private readonly fb       = inject(FormBuilder);
   private readonly location = inject(Location);
 
   @Input() categories: ListingCategoryOption[] = [];
   @Input() isSubmitting = false;
   @Input() createError: string | null = null;
+  @Input() uploadProgress: number | null = null;
+  @Input() imageUploadError: string | null = null;
 
-  @Output() readonly submitted = new EventEmitter<{ payload: CreateListingRequest; files: File[] }>();
+  /** 'create' (default) builds a new listing; 'edit' pre-fills and keeps photos. */
+  @Input() mode: ListingFormMode = 'create';
+  /** i18n key for the final submit button (lets edit mode say "Save & resubmit"). */
+  @Input() submitLabelKey = 'listings.createPage.wizard.submitForReview';
+
+  /**
+   * Edit mode only: the full ordered photo gallery (existing + newly added). The
+   * first entry is the cover. New photos are appended at the end and behave like
+   * any other photo. Rebuilt whenever the bound existing images change.
+   */
+  readonly editGallery = signal<EditPhoto[]>([]);
+  @Input() set existingImageUrls(images: ListingImage[] | null | undefined) {
+    const imgs = images ?? [];
+    this.editGallery.set(imgs.map(i => ({ url: i.url, existingId: i.id || null, file: null })));
+  }
+
+  /** Pre-fills every field in edit mode. Applied once a value is bound. */
+  @Input() set prefill(value: ListingFormPrefill | null) {
+    if (!value) return;
+    this.createListingForm.patchValue({
+      title:         value.title,
+      description:   value.description,
+      categoryId:    value.categoryId,
+      pricePerDay:   value.pricePerDay,
+      priceUnit:     value.priceUnit ?? 'Daily',
+      city:          value.city,
+      ageFromMonths: value.ageFromMonths,
+      ageToMonths:   value.ageToMonths,
+      condition:     (value.condition as ConditionChip['value'] | null) ?? '',
+      hygieneNotes:  value.hygieneNotes ?? '',
+      safetyNotes:   value.safetyNotes ?? '',
+    });
+    if (typeof value.ageFromMonths === 'number' && typeof value.ageToMonths === 'number') {
+      this.ageYears.set([
+        Math.round(value.ageFromMonths / 12),
+        Math.round(value.ageToMonths / 12),
+      ]);
+    }
+    const cond = value.condition as ConditionChip['value'] | null;
+    if (cond && CONDITION_CHIPS.some(c => c.value === cond)) {
+      this.selectedCond.set(cond);
+    }
+  }
+
+  @Output() readonly submitted = new EventEmitter<{ payload: CreateListingRequest; files: File[]; imageOrder: ListingImageOrderItem[] | null }>();
   @Output() readonly cancelled = new EventEmitter<void>();
+  @Output() readonly retryUpload = new EventEmitter<File[]>();
+
+  ngOnInit(): void {
+    // Category isn't part of the listing-update payload, so don't force a value
+    // in edit mode — the owner may not have one and we never persist a change.
+    if (this.mode === 'edit') {
+      this.createListingForm.controls.categoryId.clearValidators();
+      this.createListingForm.controls.categoryId.updateValueAndValidity();
+    }
+  }
+
+  // ── Constants exposed to template ─────────────────────────────
+  readonly currencyCode = CURRENCY_CODE;
+  readonly minPhotos    = MIN_PHOTOS;
+  readonly maxPhotos    = MAX_PHOTOS;
+  readonly steps        = WIZARD_STEPS;
 
   // ── Wizard ───────────────────────────────────────────────────
   readonly currentStep = signal(1);
   readonly totalSteps  = 5;
+  readonly stepIndices = [1, 2, 3, 4, 5] as const;
   readonly progressPct = computed(() => (this.currentStep() / this.totalSteps) * 100);
+  // Vertical desktop stepper fill: 0% at step 1 → 100% at the last step.
+  readonly stepperFillPct = computed(
+    () => ((this.currentStep() - 1) / (this.totalSteps - 1)) * 100,
+  );
 
   // ── Chip data ─────────────────────────────────────────────────
-  readonly ageChips       = AGE_CHIPS;
   readonly conditionChips = CONDITION_CHIPS;
   readonly minRentalDays  = MIN_RENTAL_DAYS;
+  readonly priceUnits     = PRICE_UNITS;
 
-  // ── Chip state ────────────────────────────────────────────────
-  readonly selectedAgeKeys     = signal<ReadonlySet<string>>(new Set());
+  // ── Chip / selection state ────────────────────────────────────
   readonly selectedDeliveryTypes = signal<ReadonlySet<'pickup' | 'deliver'>>(new Set(['pickup']));
-  readonly selectedCond        = signal<ConditionChip['value'] | null>(null);
-  readonly selectedMinDays     = signal<number>(1);
+  readonly selectedCond          = signal<ConditionChip['value'] | null>(null);
+  readonly selectedMinDays       = signal<number>(1);
+
+  // ── Age range (years) ─────────────────────────────────────────
+  readonly ageYears   = signal<[number, number]>([2, 5]);
+  readonly ageRangeText = computed(() => {
+    const [lo, hi] = this.ageYears();
+    return `${this.fmtAge(lo)}–${this.fmtAge(hi)}`;
+  });
 
   // ── Safety state ──────────────────────────────────────────────
   readonly cleanWashed      = signal(false);
@@ -118,6 +255,60 @@ export class CreateListingFormComponent {
   // ── Images ────────────────────────────────────────────────────
   selectedFiles: File[] = [];
   readonly imagePreviews = signal<string[]>([]);
+  readonly photoError    = signal<string | null>(null);
+  readonly dragSrcIdx    = signal<number | null>(null);
+  readonly dragOverIdx   = signal<number | null>(null);
+  readonly coverDragOver = signal(false);
+  readonly photoCount    = computed(() => this.imagePreviews().length);
+  readonly photosValid   = computed(() => {
+    if (this.mode === 'edit') {
+      // The listing must keep at least one photo and stay within the cap.
+      const n = this.editGallery().length;
+      return n >= 1 && n <= MAX_PHOTOS;
+    }
+    const n = this.photoCount();
+    return n >= MIN_PHOTOS && n <= MAX_PHOTOS;
+  });
+  // Create mode grid: indices 1..n-1 (first photo lives in the cover zone).
+  // Edit mode renders its grid from `editGridItems` instead, so this stays empty.
+  readonly gridIndices = computed(() =>
+    this.mode === 'edit'
+      ? []
+      : Array.from({ length: Math.max(this.imagePreviews().length - 1, 0) }, (_, i) => i + 1),
+  );
+  // Edit mode grid: every gallery photo except the cover (index 0), carrying its
+  // absolute gallery index so remove / set-cover / reorder act on the right item.
+  readonly editGridItems = computed(() =>
+    this.editGallery()
+      .map((item, index) => ({ ...item, index }))
+      .slice(1),
+  );
+  // Number of freshly picked photos in edit mode (drives the "added" hint).
+  readonly newPhotoCount = computed(() =>
+    this.editGallery().filter(i => i.file !== null).length,
+  );
+  // Whether the grid has any non-cover photos (drives the drag-to-reorder hint).
+  readonly hasGridPhotos = computed(() =>
+    this.mode === 'edit' ? this.editGridItems().length > 0 : this.gridIndices().length > 0,
+  );
+  // Preview card image: the cover is the first gallery photo in edit mode.
+  readonly coverImageUrl = computed(() =>
+    this.mode === 'edit'
+      ? (this.editGallery()[0]?.url ?? null)
+      : (this.imagePreviews()[0] ?? null),
+  );
+  // Total photos that will exist after save.
+  readonly displayPhotoCount = computed(() =>
+    this.mode === 'edit' ? this.editGallery().length : this.imagePreviews().length,
+  );
+  // Decorative empty slots to round the desktop photo grid out to 4 cells.
+  readonly fillerSlots = computed(() => {
+    const gridItems = this.mode === 'edit'
+      ? this.editGridItems().length
+      : Math.max(this.imagePreviews().length - 1, 0);
+    const gridUsed  = gridItems + 1; // +1 for the add slot
+    return Array.from({ length: Math.max(0, 4 - gridUsed) }, (_, i) => i);
+  });
 
   // ── Form ──────────────────────────────────────────────────────
   readonly createListingForm = this.fb.group(
@@ -126,11 +317,13 @@ export class CreateListingFormComponent {
       description:   this.fb.nonNullable.control('', [Validators.required, Validators.minLength(20), Validators.maxLength(4000)]),
       categoryId:    this.fb.nonNullable.control('', [Validators.required]),
       pricePerDay:   this.fb.control<number | null>(null, [Validators.required, Validators.min(0.01)]),
+      priceUnit:     this.fb.nonNullable.control<PriceUnit>('Daily', [Validators.required]),
+      city:          this.fb.nonNullable.control('', [Validators.required]),
       addressLine:   this.fb.nonNullable.control(''),
       latitude:      this.fb.control<number | null>(null),
       longitude:     this.fb.control<number | null>(null),
-      ageFromMonths: this.fb.control<number | null>(null, [Validators.min(0)]),
-      ageToMonths:   this.fb.control<number | null>(null, [Validators.min(0)]),
+      ageFromMonths: this.fb.control<number | null>(24, [Validators.min(0)]),
+      ageToMonths:   this.fb.control<number | null>(60, [Validators.min(0)]),
       condition:     this.fb.nonNullable.control<'' | ConditionChip['value']>(''),
       hygieneNotes:  this.fb.nonNullable.control(''),
       safetyNotes:   this.fb.nonNullable.control(''),
@@ -144,11 +337,15 @@ export class CreateListingFormComponent {
   }
 
   goToNextStep(): void {
-    const step  = this.currentStep();
+    const step = this.currentStep();
+    if (step === 1 && !this.photosValid()) {
+      this.photoError.set('listings.createForm.validation.photoTooFew');
+      return;
+    }
     const names = STEP_CONTROLS[step - 1] ?? [];
     names.forEach(n => this.createListingForm.get(n)?.markAsTouched());
     const valid = names.every(n => this.createListingForm.get(n)?.valid !== false);
-if (valid) {
+    if (valid) {
       this.currentStep.update(s => Math.min(s + 1, this.totalSteps));
       this.scrollToTop();
     }
@@ -168,30 +365,62 @@ if (valid) {
     if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // ── Chip handlers ─────────────────────────────────────────────
-  selectAge(chip: AgeChip): void {
-    const current = this.selectedAgeKeys();
-    const next = new Set(current);
-    if (next.has(chip.key)) {
-      next.delete(chip.key);
-    } else {
-      next.add(chip.key);
-    }
-    this.selectedAgeKeys.set(next);
-    const selected = this.ageChips.filter(c => next.has(c.key));
-    if (selected.length === 0) {
-      this.createListingForm.patchValue({ ageFromMonths: null, ageToMonths: null });
-    } else {
-      this.createListingForm.patchValue({
-        ageFromMonths: Math.min(...selected.map(c => c.fromMonths)),
-        ageToMonths:   Math.max(...selected.map(c => c.toMonths)),
-      });
-    }
+  // ── Age slider ────────────────────────────────────────────────
+  protected onAgeChange(value: [number, number]): void {
+    this.ageYears.set(value);
+    this.createListingForm.patchValue({
+      ageFromMonths: value[0] * 12,
+      ageToMonths:   value[1] * 12,
+    });
   }
 
+  protected fmtAge(v: number): string {
+    return v >= AGE_MAX_YEARS ? `${AGE_MAX_YEARS}+` : `${v}`;
+  }
+
+  // ── Pricing ───────────────────────────────────────────────────
+  /** Open state for the custom "charge per" dropdown. */
+  readonly unitMenuOpen = signal(false);
+
+  protected selectedUnit(): PriceUnit {
+    return this.createListingForm.controls.priceUnit.value;
+  }
+
+  protected toggleUnitMenu(): void {
+    this.unitMenuOpen.update(o => !o);
+  }
+
+  protected selectUnit(unit: PriceUnit): void {
+    this.createListingForm.controls.priceUnit.setValue(unit);
+    this.createListingForm.controls.priceUnit.markAsDirty();
+    this.unitMenuOpen.set(false);
+  }
+
+  protected closeUnitMenu(): void {
+    this.unitMenuOpen.set(false);
+  }
+
+  /** Single-letter badge for a unit row (H / D / W / M / Y). */
+  protected priceUnitBadge(unit: PriceUnit): string {
+    return unit.charAt(0);
+  }
+
+  /** Dropdown row label, e.g. "Per Day". */
+  protected priceUnitOptionKey(unit: PriceUnit): string {
+    return `listings.createForm.priceUnitOption.${unit.toLowerCase()}`;
+  }
+
+  protected priceUnitSuffixKey(): string {
+    return `listings.createForm.perUnit.${this.createListingForm.controls.priceUnit.value.toLowerCase()}`;
+  }
+
+  protected priceUnitNounKey(unit: PriceUnit): string {
+    return `listings.createForm.priceUnitNoun.${unit.toLowerCase()}`;
+  }
+
+  // ── Chip handlers ─────────────────────────────────────────────
   toggleDelivery(type: 'pickup' | 'deliver'): void {
-    const current = this.selectedDeliveryTypes();
-    const next = new Set(current);
+    const next = new Set(this.selectedDeliveryTypes());
     if (next.has(type) && next.size > 1) {
       next.delete(type);
     } else {
@@ -221,57 +450,26 @@ if (valid) {
   protected onImagesSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files) return;
-    this.selectedFiles = Array.from(input.files).slice(0, 6);
-    const previews = new Array<string>(this.selectedFiles.length);
-    let done = 0;
-    if (this.selectedFiles.length === 0) { this.imagePreviews.set([]); return; }
-    this.selectedFiles.forEach((file, i) => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        previews[i] = e.target?.result as string;
-        if (++done === this.selectedFiles.length) this.imagePreviews.set([...previews]);
-      };
-      reader.readAsDataURL(file);
-    });
+    const accepted = this.acceptFiles(Array.from(input.files), true);
+    input.value = '';
+    if (accepted.length === 0) return;
+    this.selectedFiles = accepted;
+    this.readPreviews(accepted, 0, true);
   }
 
-  // Strip add button: appends one or more files without replacing existing ones
+  // Strip add button: appends files without replacing existing ones
   protected onStripImagesAdded(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
-    const remaining = 6 - this.selectedFiles.length;
-    if (remaining <= 0) return;
-    const newFiles = Array.from(input.files).slice(0, remaining);
-    const startIdx = this.selectedFiles.length;
-    this.selectedFiles = [...this.selectedFiles, ...newFiles];
-    const previews = [...this.imagePreviews()];
-    let done = 0;
-    newFiles.forEach((file, i) => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        previews[startIdx + i] = e.target?.result as string;
-        if (++done === newFiles.length) this.imagePreviews.set([...previews]);
-      };
-      reader.readAsDataURL(file);
-    });
+    this.appendFiles(Array.from(input.files));
     input.value = '';
   }
 
-  // Individual slot: appends one file at the next available position
+  // Individual slot: appends one file
   protected onSlotImageAdded(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
-    if (this.selectedFiles.length >= 6) return;
-    const file = input.files[0];
-    this.selectedFiles = [...this.selectedFiles, file];
-    const idx = this.selectedFiles.length - 1;
-    const reader = new FileReader();
-    reader.onload = e => {
-      const prev = [...this.imagePreviews()];
-      prev[idx] = e.target?.result as string;
-      this.imagePreviews.set([...prev]);
-    };
-    reader.readAsDataURL(file);
+    this.appendFiles([input.files[0]]);
     input.value = '';
   }
 
@@ -282,6 +480,170 @@ if (valid) {
       ...this.selectedFiles.slice(index + 1),
     ];
     this.imagePreviews.update(prev => prev.filter((_, i) => i !== index));
+    if (this.photosValid()) this.photoError.set(null);
+  }
+
+  // Edit mode: remove one gallery photo (existing or newly added) by index.
+  protected removeGalleryItem(index: number): void {
+    this.editGallery.update(g => g.filter((_, i) => i !== index));
+    if (this.photosValid()) this.photoError.set(null);
+  }
+
+  // Edit mode: promote any gallery photo to cover (index 0).
+  protected setGalleryCover(index: number): void {
+    if (index <= 0) return;
+    this.editGallery.update(g => {
+      const copy = [...g];
+      const [item] = copy.splice(index, 1);
+      return [item, ...copy];
+    });
+  }
+
+  // Edit mode: move a gallery photo from one position to another.
+  private reorderGallery(from: number, to: number): void {
+    this.editGallery.update(g => {
+      const copy = [...g];
+      const [item] = copy.splice(from, 1);
+      copy.splice(to, 0, item);
+      return copy;
+    });
+  }
+
+  // Edit mode: discard the freshly picked photos and keep the existing ones.
+  protected clearNewImages(): void {
+    this.editGallery.update(g => g.filter(i => i.existingId !== null));
+    this.photoError.set(null);
+    this.dragSrcIdx.set(null);
+    this.dragOverIdx.set(null);
+  }
+
+  // ── Cover zone DnD (OS file drops + internal image drops to set as cover) ──
+  protected onCoverDragOver(event: DragEvent): void {
+    event.preventDefault();
+    this.coverDragOver.set(true);
+  }
+
+  protected onCoverDragLeave(): void {
+    this.coverDragOver.set(false);
+  }
+
+  protected onCoverDrop(event: DragEvent): void {
+    event.preventDefault();
+    this.coverDragOver.set(false);
+    const srcStr = event.dataTransfer?.getData('text/x-photo-index');
+    if (srcStr) {
+      const src = parseInt(srcStr, 10);
+      if (!isNaN(src) && src > 0) {
+        if (this.mode === 'edit') this.setGalleryCover(src);
+        else this.reorder(src, 0);
+      }
+      return;
+    }
+    const files = Array.from(event.dataTransfer?.files ?? []).filter(f => f.type.startsWith('image/'));
+    if (files.length) this.appendFiles(files);
+  }
+
+  // ── Grid slot DnD (drag to reorder) ──────────────────────────
+  protected onSlotDragStart(event: DragEvent, index: number): void {
+    this.dragSrcIdx.set(index);
+    event.dataTransfer?.setData('text/x-photo-index', String(index));
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
+  }
+
+  protected onSlotDragOver(event: DragEvent, index: number): void {
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+    this.dragOverIdx.set(index);
+  }
+
+  protected onSlotDrop(event: DragEvent, targetIdx: number): void {
+    event.preventDefault();
+    const srcIdx = this.dragSrcIdx();
+    if (srcIdx !== null && srcIdx !== targetIdx) {
+      if (this.mode === 'edit') this.reorderGallery(srcIdx, targetIdx);
+      else this.reorder(srcIdx, targetIdx);
+    }
+    this.dragSrcIdx.set(null);
+    this.dragOverIdx.set(null);
+  }
+
+  protected onSlotDragEnd(): void {
+    this.dragSrcIdx.set(null);
+    this.dragOverIdx.set(null);
+  }
+
+  // Promote any image to cover position (index 0)
+  protected setCoverImage(index: number): void {
+    if (index > 0) this.reorder(index, 0);
+  }
+
+  private reorder(from: number, to: number): void {
+    const files = [...this.selectedFiles];
+    const [movedFile] = files.splice(from, 1);
+    files.splice(to, 0, movedFile);
+    this.selectedFiles = files;
+
+    const previews = [...this.imagePreviews()];
+    const [movedPreview] = previews.splice(from, 1);
+    previews.splice(to, 0, movedPreview);
+    this.imagePreviews.set(previews);
+  }
+
+  private appendFiles(newFiles: File[]): void {
+    const accepted = this.acceptFiles(newFiles, false);
+    if (accepted.length === 0) return;
+    // Edit mode: append each new photo to the end of the unified gallery so it
+    // behaves like any other photo (reorderable, removable, promotable to cover).
+    if (this.mode === 'edit') {
+      accepted.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const url = e.target?.result as string;
+          this.editGallery.update(g => [...g, { url, existingId: null, file }]);
+        };
+        reader.readAsDataURL(file);
+      });
+      if (this.photosValid()) this.photoError.set(null);
+      return;
+    }
+    const startIdx = this.selectedFiles.length;
+    this.selectedFiles = [...this.selectedFiles, ...accepted];
+    this.readPreviews(accepted, startIdx, false);
+  }
+
+  /** Validates type/size/count, sets photoError, returns the accepted files. */
+  private acceptFiles(incoming: File[], replacing: boolean): File[] {
+    const baseCount = this.mode === 'edit'
+      ? this.editGallery().length
+      : (replacing ? 0 : this.selectedFiles.length);
+    const accepted: File[] = [];
+    let typeError = false;
+    let sizeError = false;
+    let maxError = false;
+    for (const file of incoming) {
+      if (!file.type.startsWith('image/')) { typeError = true; continue; }
+      if (file.size > MAX_IMAGE_BYTES) { sizeError = true; continue; }
+      if (baseCount + accepted.length >= MAX_PHOTOS) { maxError = true; continue; }
+      accepted.push(file);
+    }
+    if (typeError) this.photoError.set('listings.createForm.validation.photoWrongType');
+    else if (sizeError) this.photoError.set('listings.createForm.validation.photoTooLarge');
+    else if (maxError) this.photoError.set('listings.createForm.validation.photoTooMany');
+    else this.photoError.set(null);
+    return accepted;
+  }
+
+  private readPreviews(files: File[], startIdx: number, replace: boolean): void {
+    const previews = replace ? new Array<string>(files.length) : [...this.imagePreviews()];
+    let done = 0;
+    files.forEach((file, i) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        previews[startIdx + i] = e.target?.result as string;
+        if (++done === files.length) this.imagePreviews.set([...previews]);
+      };
+      reader.readAsDataURL(file);
+    });
   }
 
   // ── Helpers ───────────────────────────────────────────────────
@@ -290,13 +652,17 @@ if (valid) {
     return this.categories.find(c => c.id === id)?.name ?? id;
   }
 
-  protected getSelectedAgeName(): string {
-    const keys = this.selectedAgeKeys();
-    const selected = this.ageChips.filter(c => keys.has(c.key));
-    if (selected.length === 0) return '—';
-    const from = Math.min(...selected.map(c => c.fromMonths));
-    const to   = Math.max(...selected.map(c => c.toMonths));
-    return `${Math.round(from / 12)}–${Math.round(to / 12)} yr`;
+  protected getPickupSummary(): string {
+    const area = this.createListingForm.controls.addressLine.value.trim();
+    const city = this.createListingForm.controls.city.value.trim();
+    if (area && city) return `${area}, ${city}`;
+    return area || city || '—';
+  }
+
+  protected getDeliverySummaryKey(): string {
+    return this.selectedDeliveryTypes().has('pickup')
+      ? 'listings.createForm.delivery.pickupShort'
+      : 'listings.createForm.delivery.deliverShort';
   }
 
   protected getConditionLabelKey(): string {
@@ -306,14 +672,7 @@ if (valid) {
   }
 
   protected getStepNameKey(): string {
-    const keys = [
-      'listings.createPage.wizard.step1Label',
-      'listings.createPage.wizard.step2Label',
-      'listings.createPage.wizard.step3Label',
-      'listings.createPage.wizard.step4Label',
-      'listings.createPage.wizard.step5Label',
-    ];
-    return keys[this.currentStep() - 1] ?? '';
+    return this.steps[this.currentStep() - 1]?.labelKey ?? '';
   }
 
   protected getContinueLabelKey(): string {
@@ -342,10 +701,17 @@ if (valid) {
     return 'listings.createForm.validation.titleTooLong';
   }
 
+  protected canSubmit(): boolean {
+    return this.createListingForm.valid && this.photosValid() && !this.isSubmitting;
+  }
+
   // ── Submit ────────────────────────────────────────────────────
   protected onSubmit(): void {
-    if (this.createListingForm.invalid) {
+    if (this.createListingForm.invalid || !this.photosValid()) {
       this.createListingForm.markAllAsTouched();
+      if (!this.photosValid()) {
+        this.photoError.set('listings.createForm.validation.photoTooFew');
+      }
       return;
     }
     const raw = this.createListingForm.getRawValue();
@@ -365,8 +731,9 @@ if (valid) {
       description:   raw.description.trim(),
       categoryId:    raw.categoryId.trim(),
       pricePerDay:   raw.pricePerDay,
-      country:       'Armenia',
-      city:          'Yerevan',
+      priceUnit:     raw.priceUnit,
+      country:       DEFAULT_COUNTRY,
+      city:          raw.city.trim(),
       addressLine:   this.toNullStr(raw.addressLine),
       latitude:      raw.latitude,
       longitude:     raw.longitude,
@@ -377,7 +744,27 @@ if (valid) {
       safetyNotes:   this.toNullStr(raw.safetyNotes),
     };
 
-    this.submitted.emit({ payload, files: this.selectedFiles });
+    if (this.mode === 'edit') {
+      // Walk the gallery once, keeping only real photos (existing id or a file).
+      // New photos get a sequential index into the emitted files array so the
+      // page can swap in their server ids after upload and reorder the full set.
+      const emittable = this.editGallery().filter(i => i.existingId !== null || i.file !== null);
+      const files = emittable.filter(i => i.file !== null).map(i => i.file!);
+      let newFileIndex = 0;
+      const imageOrder: ListingImageOrderItem[] = emittable.map(i =>
+        i.existingId !== null
+          ? { existingId: i.existingId, newFileIndex: null }
+          : { existingId: null, newFileIndex: newFileIndex++ },
+      );
+      this.submitted.emit({ payload, files, imageOrder });
+      return;
+    }
+    this.submitted.emit({ payload, files: this.selectedFiles, imageOrder: null });
+  }
+
+  // ── Retry image upload (re-emitted to the page) ───────────────
+  protected onRetryUpload(): void {
+    this.retryUpload.emit(this.selectedFiles);
   }
 
   private toNullStr(v: string): string | null {

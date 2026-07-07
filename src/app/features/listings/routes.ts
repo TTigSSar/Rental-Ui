@@ -55,6 +55,14 @@ export const listingsRoutes: Routes = [
             (m) => m.ListingDetailsPageComponent,
           ),
       },
+      {
+        path: ':id/book',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./pages/listing-booking-page/listing-booking-page.component').then(
+            (m) => m.ListingBookingPageComponent,
+          ),
+      },
     ],
   },
 ];

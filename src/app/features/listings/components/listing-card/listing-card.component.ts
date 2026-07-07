@@ -114,8 +114,15 @@ export class ListingCardComponent {
   readonly listing = input.required<ListingPreview>();
   readonly isAuthenticated = input<boolean>(false);
   readonly bookingStatus = input<BookingStatus | null | undefined>(undefined);
+  readonly isOwner = input<boolean>(false);
 
   @Output() readonly favoriteToggled = new EventEmitter<string>();
+
+  protected readonly cardLink = computed(() =>
+    this.isOwner()
+      ? ['/my-listings', this.listing().id]
+      : ['/listings', this.listing().id],
+  );
 
   protected readonly bookingBadge = computed(() =>
     this.isAuthenticated() ? resolveBookingBadge(this.bookingStatus()) : null,

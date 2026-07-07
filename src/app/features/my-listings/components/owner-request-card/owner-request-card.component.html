@@ -1,0 +1,93 @@
+<article class="orc" [class.orc--declined]="request().decision === 'declined'">
+  <!-- Renter identity row -->
+  <header class="orc__head">
+    <span class="orc__avatar" aria-hidden="true">
+      @if (request().renter.avatarUrl; as avatarUrl) {
+        <img class="orc__avatar-img" [src]="avatarUrl" [alt]="renterName()" loading="lazy" />
+      } @else {
+        {{ initials() }}
+      }
+    </span>
+    <div class="orc__identity">
+      <p class="orc__name">{{ renterName() }}</p>
+      <p class="orc__renter-meta">
+        @if (request().renter.rating !== null) {
+          <span class="orc__rating">
+            <i class="pi pi-star-fill" aria-hidden="true"></i>
+            {{ request().renter.rating | number: '1.1-1' }}
+          </span>
+          <span class="orc__dot" aria-hidden="true">·</span>
+        }
+        <span>
+          {{
+            'myListings.ownerView.requests.rentalsCount'
+              | translate: { count: request().renter.rentalsCount }
+          }}
+        </span>
+      </p>
+    </div>
+    <span class="orc__requested">
+      {{ requestedAgo().key | translate: requestedAgo().params }}
+    </span>
+  </header>
+
+  <!-- Dates + earnings -->
+  <div class="orc__summary">
+    <span class="orc__dates">
+      <i class="pi pi-calendar" aria-hidden="true"></i>
+      {{ request().startDate | date: 'MMM d' }} – {{ request().endDate | date: 'MMM d' }}
+    </span>
+    <span class="orc__earnings">
+      <strong>{{ request().ownerEarnings | currency }}</strong>
+      <span class="orc__earnings-label">{{ 'myListings.ownerView.requests.youEarn' | translate }}</span>
+    </span>
+  </div>
+
+  <!-- Decision / actions -->
+  @switch (request().decision) {
+    @case ('pending') {
+      <div class="orc__actions">
+        <p-button
+          type="button"
+          severity="secondary"
+          [outlined]="true"
+          styleClass="orc__btn"
+          [label]="'myListings.ownerView.requests.decline' | translate"
+          [disabled]="actionLoading()"
+          (onClick)="decline()"
+        />
+        <p-button
+          type="button"
+          styleClass="orc__btn orc__btn--accept"
+          icon="pi pi-check"
+          [label]="'myListings.ownerView.requests.accept' | translate"
+          [loading]="actionLoading()"
+          (onClick)="accept()"
+        />
+      </div>
+    }
+    @case ('accepted') {
+      <div class="orc__decided">
+        <span class="orc__status orc__status--accepted" role="status">
+          <i class="pi pi-check-circle" aria-hidden="true"></i>
+          {{ 'myListings.ownerView.requests.accepted' | translate }}
+        </span>
+        <p-button
+          type="button"
+          severity="secondary"
+          [outlined]="true"
+          styleClass="orc__btn"
+          icon="pi pi-comment"
+          [label]="'myListings.ownerView.requests.message' | translate: { name: request().renter.firstName }"
+          (onClick)="message()"
+        />
+      </div>
+    }
+    @case ('declined') {
+      <span class="orc__status orc__status--declined" role="status">
+        <i class="pi pi-times-circle" aria-hidden="true"></i>
+        {{ 'myListings.ownerView.requests.declined' | translate }}
+      </span>
+    }
+  }
+</article>

@@ -1,0 +1,30 @@
+<div class="status-banner" [class.status-banner--paused]="!isActive()">
+  <span class="status-banner__icon" aria-hidden="true">
+    <i class="pi pi-sparkles"></i>
+  </span>
+
+  <div class="status-banner__copy">
+    <p class="status-banner__title">{{ 'myListings.ownerView.banner.title' | translate }}</p>
+    <p class="status-banner__subtitle">{{ 'myListings.ownerView.banner.subtitle' | translate }}</p>
+  </div>
+
+  <span
+    class="status-banner__state"
+    [class.status-banner__state--active]="isActive()"
+    role="status"
+    [attr.aria-label]="
+      (isActive()
+        ? 'myListings.ownerView.banner.statusActive'
+        : 'myListings.ownerView.banner.statusPaused'
+      ) | translate
+    "
+  >
+    <span class="status-banner__dot" aria-hidden="true"></span>
+    {{
+      (isActive()
+        ? 'myListings.ownerView.banner.statusActive'
+        : 'myListings.ownerView.banner.statusPaused'
+      ) | translate
+    }}
+  </span>
+</div>

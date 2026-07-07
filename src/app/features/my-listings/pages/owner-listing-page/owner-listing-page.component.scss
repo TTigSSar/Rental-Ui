@@ -1,0 +1,472 @@
+:host {
+  --owner-aside-width: 360px;
+  --owner-sticky-top: calc(var(--ui-header-height) + var(--ui-space-16));
+  display: block;
+}
+
+.owner-page {
+  padding-block: var(--ui-space-20) var(--ui-space-48);
+}
+
+.owner-page__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* —— Skeleton / error —— */
+.owner-page__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-20);
+}
+
+.owner-page__skeleton-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-16);
+}
+
+.owner-page__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ui-space-12);
+  padding: var(--ui-space-40);
+  text-align: center;
+  color: var(--ui-color-text-secondary);
+
+  .pi {
+    font-size: 1.75rem;
+    color: var(--ui-color-warning);
+  }
+}
+
+/* —— Article —— */
+.owner-page__article {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-24);
+}
+
+.owner-page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-8);
+  align-self: flex-start;
+  font-size: var(--ui-font-size-caption);
+  font-weight: var(--ui-font-weight-semibold);
+  color: var(--ui-color-text-secondary);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--ui-color-primary);
+  }
+}
+
+.owner-page__top {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-16);
+}
+
+/* —— Hero gallery + edit photos overlay —— */
+.owner-page__hero {
+  position: relative;
+}
+
+.owner-page__edit-photos {
+  position: absolute;
+  top: var(--ui-space-12);
+  right: var(--ui-space-12);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-6);
+  padding: var(--ui-space-8) var(--ui-space-14);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-primary);
+  font-size: var(--ui-font-size-caption);
+  font-weight: var(--ui-font-weight-semibold);
+  text-decoration: none;
+  box-shadow: var(--ui-shadow-card);
+  border: 1px solid var(--ui-color-border);
+
+  &:hover {
+    background: var(--ui-color-surface-muted);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ui-focus-ring);
+  }
+
+  .pi {
+    font-size: 0.9375rem;
+  }
+}
+
+/* —— Body layout —— */
+.owner-page__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-24);
+}
+
+/* On mobile, dissolve the column containers so leaves can be re-ordered. */
+.owner-page__main,
+.owner-page__aside {
+  display: contents;
+}
+
+.owner-page__leaf {
+  /* default single-column order (mobile): heading, earnings, stats,
+     requests, about, specs, reviews */
+}
+
+.owner-page__leaf--heading { order: 1; }
+.owner-page__leaf--earnings { order: 2; }
+.owner-page__leaf--stats { order: 3; }
+.owner-page__leaf--requests { order: 4; }
+.owner-page__leaf--about { order: 5; }
+.owner-page__leaf--specs { order: 6; }
+.owner-page__leaf--reviews { order: 7; }
+
+/* —— Heading —— */
+.owner-page__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ui-space-16);
+  flex-wrap: wrap;
+}
+
+.owner-page__title {
+  font-size: var(--ui-font-size-h1);
+  font-weight: var(--ui-font-weight-extrabold);
+  line-height: var(--ui-line-height-tight);
+  color: var(--ui-color-text-primary);
+}
+
+.owner-page__meta-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-8);
+  margin-top: var(--ui-space-8);
+  font-size: var(--ui-font-size-caption);
+  color: var(--ui-color-text-secondary);
+}
+
+.owner-page__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  .pi {
+    font-size: 0.8125rem;
+    color: #f5a623;
+  }
+
+  strong {
+    font-weight: var(--ui-font-weight-bold);
+    color: var(--ui-color-text-primary);
+  }
+}
+
+.owner-page__rating-count {
+  color: var(--ui-color-text-secondary);
+}
+
+.owner-page__meta-sep {
+  color: var(--ui-color-text-muted);
+}
+
+.owner-page__city {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  .pi {
+    font-size: 0.8125rem;
+  }
+}
+
+/* —— Stats —— */
+.owner-page__stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ui-space-12);
+}
+
+/* —— Sections —— */
+.owner-page__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-10);
+}
+
+.owner-page__eyebrow {
+  font-size: 0.6875rem;
+  font-weight: var(--ui-font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ui-color-primary);
+}
+
+.owner-page__section-title {
+  font-size: var(--ui-font-size-h3);
+  font-weight: var(--ui-font-weight-bold);
+  color: var(--ui-color-text-primary);
+}
+
+.owner-page__section-body {
+  font-size: var(--ui-font-size-body);
+  line-height: var(--ui-line-height-relaxed);
+  color: var(--ui-color-text-secondary);
+  white-space: pre-line;
+}
+
+.owner-page__reviews-count {
+  font-weight: var(--ui-font-weight-medium);
+  color: var(--ui-color-text-secondary);
+}
+
+/* —— Specs —— */
+.owner-page__specs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ui-space-12);
+  margin: 0;
+}
+
+.owner-page__spec {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  dt {
+    font-size: var(--ui-font-size-caption);
+    color: var(--ui-color-text-secondary);
+  }
+
+  dd {
+    margin: 0;
+    font-size: var(--ui-font-size-body);
+    font-weight: var(--ui-font-weight-semibold);
+    color: var(--ui-color-text-primary);
+  }
+
+  &--block {
+    grid-column: 1 / -1;
+
+    dd {
+      font-weight: var(--ui-font-weight-regular);
+      color: var(--ui-color-text-secondary);
+      line-height: var(--ui-line-height-base);
+    }
+  }
+}
+
+.owner-page__reviews-skeleton,
+.owner-page__reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-12);
+}
+
+.owner-page__reviews-empty,
+.owner-page__reviews-error {
+  font-size: var(--ui-font-size-caption);
+  color: var(--ui-color-text-secondary);
+}
+
+/* —— Earnings (dark feature card) —— */
+.owner-page__earnings {
+  padding: var(--ui-space-20);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-color-canvas-dark);
+  color: var(--ui-color-surface);
+}
+
+.owner-page__earnings-label {
+  font-size: 0.6875rem;
+  font-weight: var(--ui-font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ui-color-text-muted);
+}
+
+.owner-page__earnings-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--ui-space-12);
+  margin-top: var(--ui-space-8);
+}
+
+.owner-page__earnings-amount {
+  font-size: 1.875rem;
+  font-weight: var(--ui-font-weight-extrabold);
+  line-height: var(--ui-line-height-tight);
+}
+
+.owner-page__earnings-rate {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.owner-page__earnings-rate-amount {
+  font-size: var(--ui-font-size-body);
+  font-weight: var(--ui-font-weight-bold);
+}
+
+.owner-page__earnings-rate-suffix {
+  font-size: var(--ui-font-size-caption);
+  color: var(--ui-color-text-muted);
+}
+
+.owner-page__earnings-pending {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-6);
+  margin-top: var(--ui-space-14);
+  padding-top: var(--ui-space-14);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: var(--ui-font-size-caption);
+  color: var(--ui-color-text-muted);
+
+  .pi {
+    font-size: 0.8125rem;
+  }
+}
+
+/* —— Requests panel —— */
+.owner-page__requests-head {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-8);
+  margin-bottom: var(--ui-space-12);
+}
+
+.owner-page__requests-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.375rem;
+  height: 1.375rem;
+  padding-inline: var(--ui-space-6);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-primary);
+  color: var(--ui-color-on-primary);
+  font-size: 0.75rem;
+  font-weight: var(--ui-font-weight-bold);
+}
+
+.owner-page__requests-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-12);
+}
+
+.owner-page__requests-empty {
+  font-size: var(--ui-font-size-caption);
+  color: var(--ui-color-text-secondary);
+}
+
+/* —— Mobile fixed action bar —— */
+.owner-page__mobile-bar {
+  display: none;
+}
+
+@media (max-width: 899px) {
+  .owner-page__mobile-bar {
+    display: flex;
+    align-items: center;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--ui-z-bottom-nav);
+    padding: 10px var(--ui-space-16) calc(10px + env(safe-area-inset-bottom, 0px));
+    background: var(--ui-color-surface);
+    border-top: 1px solid var(--ui-color-border);
+    box-shadow: 0 -4px 16px rgba(20, 15, 5, 0.08);
+  }
+
+  /* Reserve space so page content is never hidden behind the fixed bar. */
+  .owner-page {
+    padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+    
+    p-button{
+      width: 100%;
+    }
+  }
+}
+
+/* PrimeNG applies styleClass onto the `.p-button` element itself, so the
+   override must be a compound selector (not a descendant one). */
+:host ::ng-deep .owner-page__mobile-edit.p-button {
+  width: 100%;
+  min-height: 45px;
+  justify-content: center;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-canvas-dark);
+  border-color: var(--ui-color-canvas-dark);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.96875rem;
+  box-shadow: var(--ui-shadow-card);
+}
+
+:host ::ng-deep .owner-page__mobile-edit.p-button:hover {
+  background: var(--ui-color-canvas-dark);
+  border-color: var(--ui-color-canvas-dark);
+  opacity: 0.92;
+}
+
+/* —— Desktop two-column layout —— */
+@media (min-width: 900px) {
+  .owner-page__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--owner-aside-width);
+    align-items: start;
+    gap: var(--ui-space-32);
+  }
+
+  .owner-page__main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-32);
+    min-width: 0;
+  }
+
+  .owner-page__aside {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-16);
+    position: sticky;
+    top: var(--owner-sticky-top);
+  }
+
+  /* order is irrelevant once leaves live inside their columns again */
+  .owner-page__leaf {
+    order: 0;
+  }
+
+  .owner-page__stats-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  :host {
+    --owner-aside-width: 400px;
+  }
+}

@@ -1,0 +1,56 @@
+.notif-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.notif-tabs__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 2.25rem;
+  padding: 0 0.9rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--p-content-border-color, #e8e5de);
+  background: var(--p-surface-0, #fff);
+  color: var(--p-text-color, #1a1b26);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.notif-tabs__tab:hover {
+  border-color: var(--p-text-color, #1a1b26);
+}
+
+.notif-tabs__tab--active {
+  background: var(--p-text-color, #1a1b26);
+  border-color: var(--p-text-color, #1a1b26);
+  color: #fff;
+}
+
+.notif-tabs__count {
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+  background: var(--p-surface-100, #f4f4f8);
+  color: var(--p-text-muted-color, #6b6a75);
+}
+
+.notif-tabs__count--accent {
+  background: var(--p-primary-100, #ffeedc);
+  color: var(--p-primary-color, #ff6008);
+}
+
+.notif-tabs__tab--active .notif-tabs__count {
+  background: rgb(255 255 255 / 0.22);
+  color: #fff;
+}

@@ -15,6 +15,8 @@ export interface ListingPreview {
   reviewCount?: number;
   /** Availability status returned by user-listings and my-listings APIs. */
   listingStatus?: 'available' | 'rented' | null;
+  /** Owner user ID — present when returned by the listings browse API. */
+  ownerId?: string | null;
 }
 
 export interface ListingImage {

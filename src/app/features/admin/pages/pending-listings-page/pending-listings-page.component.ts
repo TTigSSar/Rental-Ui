@@ -9,7 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { Store, createSelector } from '@ngrx/store';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 
@@ -85,7 +85,6 @@ const REJECT_REASONS: readonly RejectReason[] = [
 export class PendingListingsPageComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly location = inject(Location);
-  private readonly translate = inject(TranslateService);
 
   protected readonly viewModel$ = this.store.select(selectPendingListingsPageViewModel);
 
@@ -166,14 +165,12 @@ export class PendingListingsPageComponent implements OnInit {
     const reasonKey = this.selectedReasonKey();
     if (listingId === null || reasonKey === null) return;
 
-    const reasonLabel = this.translate.instant(
-      `admin.pendingListings.rejectSheet.reasons.${reasonKey}.title`,
-    );
-    const note = this.rejectNote().trim();
-    const reason = note ? `${reasonLabel}: ${note}` : reasonLabel;
-
     this.store.dispatch(
-      AdminModerationActions.rejectPendingListing({ listingId, reason }),
+      AdminModerationActions.rejectPendingListing({
+        listingId,
+        reasonCode: reasonKey,
+        note: this.rejectNote().trim(),
+      }),
     );
   }
 }

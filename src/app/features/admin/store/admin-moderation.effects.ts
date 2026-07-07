@@ -63,8 +63,8 @@ export class AdminModerationEffects {
   readonly rejectPendingListing$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AdminModerationActions.rejectPendingListing),
-      concatMap(({ listingId, reason }) =>
-        this.adminListingsApi.rejectListing(listingId, reason).pipe(
+      concatMap(({ listingId, reasonCode, note }) =>
+        this.adminListingsApi.rejectListing(listingId, reasonCode, note).pipe(
           map(() =>
             AdminModerationActions.rejectPendingListingSuccess({ listingId }),
           ),

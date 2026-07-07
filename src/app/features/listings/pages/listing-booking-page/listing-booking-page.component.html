@@ -1,0 +1,400 @@
+<div class="booking-page">
+  <div class="booking-page__container page-container">
+
+    <app-ui-page-header
+      [title]="'listings.bookingPage.mobileTitle' | translate"
+      [subtitle]="'listings.bookingPage.stepLabel' | translate"
+      [backLink]="'/listings/' + (listingId() ?? '')"
+      mobileTitleAlign="start"
+      [hideTitleOnDesktop]="true"
+    />
+
+    @if (isSuccess()) {
+      <!-- ── Confirmation state ─────────────────────── -->
+      <div class="booking-page__confirm" role="status">
+        <div class="booking-page__confirm-icon" aria-hidden="true">
+          <i class="pi pi-check-circle"></i>
+        </div>
+        <h1 class="booking-page__confirm-title">
+          {{ 'listings.bookingPage.confirmTitle' | translate }}
+        </h1>
+        <p class="booking-page__confirm-body">
+          {{ 'listings.bookingPage.confirmBody' | translate }}
+        </p>
+        <div class="booking-page__confirm-actions">
+          <p-button
+            type="button"
+            [label]="'listings.bookingPage.confirmViewBooking' | translate"
+            icon="pi pi-calendar-check"
+            (onClick)="onViewBooking()"
+          />
+          <p-button
+            type="button"
+            severity="secondary"
+            [label]="'listings.bookingPage.confirmBrowse' | translate"
+            routerLink="/listings"
+          />
+        </div>
+      </div>
+
+    } @else {
+
+      <!-- Desktop hero: title + subtitle + step indicator -->
+      <div class="booking-page__hero">
+        <div class="booking-page__hero-text">
+          <h1 class="booking-page__hero-title">{{ 'listings.bookingPage.title' | translate }}</h1>
+          <p class="booking-page__hero-subtitle">
+            {{ 'listings.bookingPage.heroSubtitle' | translate: { name: ownerFirstName() } }}
+          </p>
+        </div>
+        <ol class="booking-page__steps" aria-hidden="true">
+          <li class="booking-page__step booking-page__step--done">
+            <span class="booking-page__step-dot"><i class="pi pi-check"></i></span>
+            {{ 'listings.bookingPage.stepItem' | translate }}
+          </li>
+          <li class="booking-page__step-line"></li>
+          <li class="booking-page__step booking-page__step--active">
+            <span class="booking-page__step-dot">2</span>
+            {{ 'listings.bookingPage.stepBooking' | translate }}
+          </li>
+        </ol>
+      </div>
+
+      <!-- ── Main booking flow ─────────────────────── -->
+      <div class="booking-page__body">
+
+        <!-- Left: Form column -->
+        <main class="booking-page__form-col">
+
+          <!-- Item summary strip (mobile only — desktop shows it in the request card) -->
+          @if (listing(); as item) {
+            <div class="booking-page__item-summary">
+              @if (primaryImageUrl(); as imgUrl) {
+                <img class="booking-page__item-thumb" [src]="imgUrl" [alt]="item.title" loading="eager" />
+              }
+              <div class="booking-page__item-info">
+                <p class="booking-page__item-title">{{ item.title }}</p>
+                <p class="booking-page__item-sub">
+                  @if (ownerSummary(); as summary) {
+                    @if (summary.reviewCount > 0) {
+                      <span class="booking-page__request-rating"><i class="pi pi-star-fill" aria-hidden="true"></i>{{ summary.averageRating | number:'1.1-1' }}</span>
+                      <span aria-hidden="true">·</span>
+                    }
+                  }
+                  <span class="booking-page__request-city"><i class="pi pi-map-marker" aria-hidden="true"></i>{{ item.city }}</span>
+                </p>
+              </div>
+              <p class="booking-page__item-price">
+                <span class="booking-page__item-price-amount">{{ item.pricePerDay | currency }}</span>
+                <span class="booking-page__item-price-suffix">/ {{ 'listings.booking.priceSuffix' | translate }}</span>
+              </p>
+            </div>
+          }
+
+          <!-- Section 1: Choose dates -->
+          <section class="booking-page__section" aria-labelledby="dates-heading">
+            <span class="booking-page__eyebrow">{{ 'listings.bookingPage.reserveEyebrow' | translate }}</span>
+            <h2 id="dates-heading" class="booking-page__section-title">
+              {{ 'listings.bookingPage.datesSectionHeading' | translate }}
+            </h2>
+
+            <div class="booking-page__quick-book">
+              <span class="booking-page__quick-label">
+                {{ 'listings.bookingPage.quickBook' | translate }}
+              </span>
+              <div class="booking-page__quick-chips">
+                @for (opt of quickBookOptions; track opt.key) {
+                  <button
+                    type="button"
+                    class="booking-page__quick-chip"
+                    [class.booking-page__quick-chip--active]="selectedQuickBook()?.key === opt.key"
+                    (click)="applyQuickBook(opt)"
+                  >
+                    {{ opt.labelKey | translate }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            @if (listing(); as item) {
+              <app-booking-calendar
+                [bookedDates]="item.bookedDates"
+                [pricePerDay]="item.pricePerDay"
+                [value]="controlledRange()"
+                (dateRangeSelected)="onRangeChange($event)"
+              />
+
+              <!-- Price breakdown -->
+              <dl class="booking-page__breakdown" aria-live="polite" aria-atomic="true">
+                @if (rentalDays() > 0 && totalPrice() !== null) {
+                  <div class="booking-page__breakdown-row">
+                    <dt>{{ item.pricePerDay | currency }} × {{ rentalDays() }} {{ 'listings.bookingPage.daysLabel' | translate }}</dt>
+                    <dd>{{ totalPrice() | currency }}</dd>
+                  </div>
+                  <div class="booking-page__breakdown-row booking-page__breakdown-row--total">
+                    <dt>{{ 'listings.bookingPage.summaryTotal' | translate }}</dt>
+                    <dd>{{ totalPrice() | currency }}</dd>
+                  </div>
+                } @else {
+                  <div class="booking-page__breakdown-row booking-page__breakdown-row--hint">
+                    <dt>{{ 'listings.bookingPage.selectDatesHint' | translate }}</dt>
+                    <dd aria-hidden="true">—</dd>
+                  </div>
+                }
+              </dl>
+            }
+          </section>
+
+          <!-- Section 2: Note for the owner -->
+          <section class="booking-page__section" aria-labelledby="note-heading">
+            <div class="booking-page__note-head">
+              <h2 id="note-heading" class="booking-page__section-title">
+                {{ 'listings.bookingPage.noteSectionHeading' | translate }}
+              </h2>
+              <span class="booking-page__owner-sees">
+                <i class="pi pi-eye" aria-hidden="true"></i>
+                {{ 'listings.bookingPage.ownerSeesThis' | translate }}
+              </span>
+            </div>
+            <p class="booking-page__note-intro">
+              {{ 'listings.bookingPage.noteIntro' | translate: { name: ownerFirstName() } }}
+              <span class="booking-page__note-optional">{{ 'listings.bookingPage.optional' | translate }}</span>
+            </p>
+
+            <form [formGroup]="form" class="booking-page__note-form">
+              <div class="booking-page__note-field">
+                <label class="booking-page__visually-hidden" for="noteForOwner">
+                  {{ 'listings.bookingPage.noteLabel' | translate }}
+                </label>
+                <textarea
+                  id="noteForOwner"
+                  class="booking-page__note-textarea"
+                  formControlName="noteForOwner"
+                  [maxlength]="NOTE_MAX_LENGTH"
+                  [placeholder]="'listings.bookingPage.notePlaceholder' | translate: { name: ownerFirstName() }"
+                  rows="4"
+                ></textarea>
+                <span
+                  class="booking-page__note-counter"
+                  [class.booking-page__note-counter--near]="noteLength() > NOTE_MAX_LENGTH * 0.85"
+                >
+                  {{ noteLength() }}/{{ NOTE_MAX_LENGTH }}
+                </span>
+              </div>
+
+              <!-- Suggestion chips (tap to append) -->
+              <div class="booking-page__suggestions">
+                @for (chipKey of suggestionChipKeys; track chipKey) {
+                  <button
+                    type="button"
+                    class="booking-page__suggestion-chip"
+                    (click)="appendChip(chipKey)"
+                  >
+                    <i class="pi pi-plus" aria-hidden="true"></i>
+                    {{ chipKey | translate }}
+                  </button>
+                }
+              </div>
+
+              <!-- Live preview -->
+              <div class="booking-page__preview" aria-live="polite" aria-atomic="true">
+                <div class="booking-page__preview-head">
+                  <span class="booking-page__preview-avatar">
+                    @if (ownerPublicProfile()?.avatarUrl; as avatarUrl) {
+                      <img [src]="avatarUrl" [alt]="ownerName()" loading="lazy" />
+                    } @else {
+                      <span class="booking-page__preview-initials">{{ ownerInitials() }}</span>
+                    }
+                  </span>
+                  <span class="booking-page__preview-label">
+                    {{ 'listings.bookingPage.whatOwnerSees' | translate: { name: ownerFirstName() } }}
+                  </span>
+                </div>
+                <div class="booking-page__preview-bubble">
+                  @if (noteValue()) {
+                    <p class="booking-page__preview-text">{{ noteValue() }}</p>
+                  } @else {
+                    <p class="booking-page__preview-empty">
+                      {{ 'listings.bookingPage.notePreviewEmpty' | translate }}
+                    </p>
+                  }
+                </div>
+              </div>
+            </form>
+          </section>
+
+          <!-- Owner card (mobile only — desktop shows it in the request card) -->
+          @if (listing()) {
+            <div class="booking-page__mobile-owner">
+              <div class="booking-page__request-owner">
+                <span class="booking-page__request-owner-avatar">
+                  @if (ownerPublicProfile()?.avatarUrl; as avatarUrl) {
+                    <img [src]="avatarUrl" [alt]="ownerName()" loading="lazy" />
+                  } @else {
+                    <span class="booking-page__preview-initials">{{ ownerInitials() }}</span>
+                  }
+                </span>
+                <div class="booking-page__request-owner-info">
+                  <p class="booking-page__request-owner-name">
+                    {{ ownerName() }}
+                    <span class="booking-page__request-owner-badge" aria-label="verified">
+                      <i class="pi pi-check" aria-hidden="true"></i>
+                    </span>
+                  </p>
+                  <p class="booking-page__request-owner-meta">
+                    @if (ownerPublicProfile()?.activeListingsCount; as count) {
+                      <span>{{ count }}&nbsp;{{ 'listings.details.ownerToySuffix' | translate }}</span>
+                    }
+                    @if (ownerSummary(); as summary) {
+                      @if (summary.reviewCount > 0) {
+                        <span aria-hidden="true">&ensp;·&ensp;</span>
+                        <span><i class="pi pi-star-fill" aria-hidden="true"></i>&nbsp;{{ summary.averageRating | number:'1.1-1' }}</span>
+                      }
+                    }
+                  </p>
+                </div>
+              </div>
+              <p class="booking-page__request-unlock">
+                <i class="pi pi-lock" aria-hidden="true"></i>
+                <span [innerHTML]="'listings.bookingPage.phoneUnlock' | translate: { name: ownerFirstName() }"></span>
+              </p>
+            </div>
+          }
+
+        </main>
+
+        <!-- Right: Sticky "Your request" card (desktop) -->
+        <aside class="booking-page__request-col">
+          <div class="booking-page__request-sticky">
+            <div class="booking-page__request-card">
+              <span class="booking-page__eyebrow">{{ 'listings.bookingPage.yourRequestEyebrow' | translate }}</span>
+
+              @if (listing(); as item) {
+                <!-- Item row -->
+                <div class="booking-page__request-item">
+                  @if (primaryImageUrl(); as imgUrl) {
+                    <img class="booking-page__request-thumb" [src]="imgUrl" [alt]="item.title" loading="eager" />
+                  }
+                  <div class="booking-page__request-item-info">
+                    <p class="booking-page__request-item-title">{{ item.title }}</p>
+                    <p class="booking-page__request-item-meta">
+                      @if (ownerSummary(); as summary) {
+                        @if (summary.reviewCount > 0) {
+                          <span class="booking-page__request-rating">
+                            <i class="pi pi-star-fill" aria-hidden="true"></i>{{ summary.averageRating | number:'1.1-1' }}
+                          </span>
+                          <span aria-hidden="true">·</span>
+                        }
+                      }
+                      <span class="booking-page__request-city">
+                        <i class="pi pi-map-marker" aria-hidden="true"></i>{{ item.city }}
+                      </span>
+                    </p>
+                  </div>
+                  <p class="booking-page__request-price">
+                    <span class="booking-page__request-price-amount">{{ item.pricePerDay | currency }}</span>
+                    <span class="booking-page__request-price-suffix">/ {{ 'listings.booking.priceSuffix' | translate }}</span>
+                  </p>
+                </div>
+
+                <div class="booking-page__request-divider" aria-hidden="true"></div>
+
+                <!-- Owner row -->
+                <div class="booking-page__request-owner">
+                  <span class="booking-page__request-owner-avatar">
+                    @if (ownerPublicProfile()?.avatarUrl; as avatarUrl) {
+                      <img [src]="avatarUrl" [alt]="ownerName()" loading="lazy" />
+                    } @else {
+                      <span class="booking-page__preview-initials">{{ ownerInitials() }}</span>
+                    }
+                  </span>
+                  <div class="booking-page__request-owner-info">
+                    <p class="booking-page__request-owner-name">
+                      {{ ownerName() }}
+                      <span class="booking-page__request-owner-badge" aria-label="verified">
+                        <i class="pi pi-check" aria-hidden="true"></i>
+                      </span>
+                    </p>
+                    <p class="booking-page__request-owner-meta">
+                      @if (ownerPublicProfile()?.activeListingsCount; as count) {
+                        <span>{{ count }}&nbsp;{{ 'listings.details.ownerToySuffix' | translate }}</span>
+                      }
+                      @if (ownerSummary(); as summary) {
+                        @if (summary.reviewCount > 0) {
+                          <span aria-hidden="true">&ensp;·&ensp;</span>
+                          <span><i class="pi pi-star-fill" aria-hidden="true"></i>&nbsp;{{ summary.averageRating | number:'1.1-1' }}</span>
+                        }
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Phone unlock note -->
+                <p class="booking-page__request-unlock">
+                  <i class="pi pi-lock" aria-hidden="true"></i>
+                  <span [innerHTML]="'listings.bookingPage.phoneUnlock' | translate: { name: ownerFirstName() }"></span>
+                </p>
+              }
+
+              <p-button
+                type="button"
+                styleClass="booking-page__submit-btn"
+                [label]="submitting()
+                  ? ('listings.bookingPage.submitting' | translate)
+                  : ('listings.bookingPage.submitCta' | translate)"
+                icon="pi pi-arrow-right"
+                iconPos="right"
+                [disabled]="!canSubmit()"
+                [loading]="submitting()"
+                (onClick)="onSubmit()"
+              />
+
+              @if (submitError(); as err) {
+                <p class="booking-page__error" role="alert">
+                  <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+                  <span>{{ err }}</span>
+                </p>
+              }
+
+              <p class="booking-page__request-charge">
+                <i class="pi pi-lock" aria-hidden="true"></i>
+                {{ 'listings.bookingPage.notCharged' | translate: { name: ownerFirstName() } }}
+              </p>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+
+      <!-- Mobile sticky action bar — replaces the global bottom nav -->
+      <div class="booking-page__mobile-bar">
+        <div class="booking-page__mobile-info">
+          @if (totalPrice() !== null) {
+            <span class="booking-page__mobile-total">{{ totalPrice() | currency }}</span>
+            <span class="booking-page__mobile-days">
+              {{ rentalDays() }}&nbsp;{{ 'listings.bookingPage.daysLabel' | translate }}
+            </span>
+          } @else {
+            <span class="booking-page__mobile-charge">
+              <i class="pi pi-lock" aria-hidden="true"></i>
+              {{ 'listings.bookingPage.notChargedShort' | translate }}
+            </span>
+          }
+        </div>
+        <p-button
+          type="button"
+          styleClass="booking-page__submit-btn"
+          [label]="submitting()
+            ? ('listings.bookingPage.submitting' | translate)
+            : ('listings.bookingPage.submitCta' | translate)"
+          icon="pi pi-arrow-right"
+          iconPos="right"
+          [disabled]="!canSubmit()"
+          [loading]="submitting()"
+          (onClick)="onSubmit()"
+        />
+      </div>
+    }
+
+  </div>
+</div>

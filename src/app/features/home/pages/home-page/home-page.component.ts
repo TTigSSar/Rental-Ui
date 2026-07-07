@@ -6,11 +6,12 @@ import {
   signal,
   inject,
 } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
-import { Observable, combineLatest, map } from 'rxjs';
+import { Observable, combineLatest, map, of, switchMap } from 'rxjs';
 
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { LoadingSkeletonComponent } from '../../../../shared/ui/loading-skeleton/loading-skeleton.component';
@@ -24,6 +25,7 @@ import {
   selectListingCategoriesLoading,
 } from '../../../listings/store/listings.selectors';
 import { ListingCardComponent } from '../../../listings/components/listing-card/listing-card.component';
+import { MyListingsApiService } from '../../../my-listings/services/my-listings-api.service';
 import type { HomeSectionResponse } from '../../models/home-section.model';
 import { HomeSectionsActions } from '../../store/home.actions';
 import {
@@ -246,12 +248,26 @@ export class HomePageComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  private readonly myListingsApi = inject(MyListingsApiService);
 
   protected readonly processSteps = PROCESS_STEPS;
   protected readonly faqEntries = FAQ_ENTRIES;
 
   protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
   protected readonly showAuthDialog = signal(false);
+
+  protected readonly myListingIds = toSignal(
+    toObservable(this.isAuthenticated).pipe(
+      switchMap((isAuth) =>
+        isAuth
+          ? this.myListingsApi
+              .getMyListings()
+              .pipe(map((listings) => new Set(listings.map((l) => l.id))))
+          : of(new Set<string>()),
+      ),
+    ),
+    { initialValue: new Set<string>() },
+  );
 
   protected readonly processMode = signal<ProcessMode>('renting');
   protected readonly expandedFaq = signal<string | null>('q1');

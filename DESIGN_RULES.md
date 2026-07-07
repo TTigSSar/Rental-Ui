@@ -260,6 +260,7 @@ Use these consistently. Avoid introducing new arbitrary breakpoints.
 | `--ui-space-16` | 16px |
 | `--ui-space-24` | 24px |
 | `--ui-space-32` | 32px |
+| `--ui-space-40` | 40px |
 | `--ui-space-48` | 48px |
 | `--ui-space-64` | 64px |
 

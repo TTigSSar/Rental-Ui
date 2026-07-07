@@ -38,7 +38,7 @@ describe('adminModerationReducer', () => {
 
       const rejecting = adminModerationReducer(
         approving,
-        AdminModerationActions.rejectPendingListing({ listingId: 'p2', reason: 'spam' }),
+        AdminModerationActions.rejectPendingListing({ listingId: 'p2', reasonCode: 'spam', note: '' }),
       );
       expect(rejecting.actionIds).toEqual(['p1', 'p2']);
     });

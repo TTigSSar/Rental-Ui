@@ -13,12 +13,13 @@ import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
-import { combineLatest, map } from 'rxjs';
+import { combineLatest, map, of, switchMap } from 'rxjs';
 
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { LoadingSkeletonComponent } from '../../../../shared/ui/loading-skeleton/loading-skeleton.component';
 import { AuthDialogComponent } from '../../../auth/components/auth-dialog/auth-dialog.component';
 import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
+import { MyListingsApiService } from '../../../my-listings/services/my-listings-api.service';
 import * as BookingsActions from '../../../bookings/store/bookings.actions';
 import type { BookingStatus } from '../../../bookings/models/booking.model';
 import { selectMyBookings } from '../../../bookings/store/bookings.selectors';
@@ -158,6 +159,21 @@ export class ListingsPageComponent {
 
   protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
   protected readonly showAuthDialog = signal(false);
+
+  private readonly myListingsApi = inject(MyListingsApiService);
+
+  protected readonly myListingIds = toSignal(
+    toObservable(this.isAuthenticated).pipe(
+      switchMap((isAuth) =>
+        isAuth
+          ? this.myListingsApi
+              .getMyListings()
+              .pipe(map((listings) => new Set(listings.map((l) => l.id))))
+          : of(new Set<string>()),
+      ),
+    ),
+    { initialValue: new Set<string>() },
+  );
 
   private readonly myBookingsSignal = this.store.selectSignal(selectMyBookings);
 

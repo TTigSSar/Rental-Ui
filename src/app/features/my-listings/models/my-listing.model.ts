@@ -23,6 +23,14 @@ export type MyListingStatus =
   | 'Rejected'
   | 'Archived';
 
+export interface RejectionInfo {
+  reasonCode: string;
+  reasonLabel: string;
+  note: string | null;
+  moderatorName: string | null;
+  moderatedAt: string | null;
+}
+
 export interface MyListing {
   id: string;
   title: string;
@@ -31,6 +39,7 @@ export interface MyListing {
   imageUrl: string | null;
   status: MyListingStatus;
   createdAt: string | null;
+  rejection: RejectionInfo | null;
   // Extended fields populated when backend returns them (edit form + richer card)
   description: string | null;
   categoryId: string;

@@ -1,0 +1,91 @@
+/* "Charge per" price-unit dropdown.
+   Split into its own component stylesheet so the base sheet stays within
+   Angular's per-component style budget; loaded via styleUrls. */
+
+/* Click-catcher behind the open menu. */
+.rate-card__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: default;
+}
+
+.rate-card__menu {
+  position: absolute;
+  z-index: 41;
+  top: calc(100% + 6px);
+  right: 0;
+  width: min(20rem, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--ui-space-8);
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  box-shadow: var(--ui-shadow-card, 0 12px 32px rgba(20, 15, 5, 0.16));
+}
+
+.rate-card__menu-title {
+  padding: var(--ui-space-6) var(--ui-space-10) var(--ui-space-4);
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ui-color-text-secondary);
+}
+
+.rate-card__menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-10);
+  width: 100%;
+  padding: var(--ui-space-8) var(--ui-space-10);
+  border: 0;
+  border-radius: var(--ui-radius-sm);
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 130ms ease;
+
+  &:hover { background: var(--ui-color-surface-muted); }
+  &:focus-visible { outline: 2px solid var(--ui-color-primary); outline-offset: -2px; }
+}
+
+.rate-card__menu-badge {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 800;
+}
+
+.rate-card__menu-label {
+  flex: 1;
+  font-size: var(--ui-font-size-caption);
+  font-weight: 700;
+  color: var(--ui-color-text-primary);
+}
+
+.rate-card__menu-check {
+  font-size: 0.8rem;
+  color: var(--ui-color-primary);
+}
+
+.rate-card__menu-item--active {
+  background: var(--ui-color-primary-wash);
+
+  &:hover { background: var(--ui-color-primary-wash); }
+
+  .rate-card__menu-badge { background: var(--ui-color-primary); color: #fff; }
+  .rate-card__menu-label { color: var(--ui-color-primary); }
+}

@@ -140,8 +140,8 @@
 
 @media (max-width: 900px) {
   .detail-page__hero {
-    margin-inline: calc(-1 * var(--ui-space-16));
-    width: calc(100% + var(--ui-space-16) * 2);
+    margin-inline: calc(-1 * var(--ui-space-10));
+    width: calc(100% + var(--ui-space-10) * 2);
   }
 }
 
@@ -287,10 +287,10 @@
 }
 
 .detail-page__title {
-  font-size: clamp(1.375rem, 3.2vw, 2rem);
-  line-height: 1.2;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: clamp(1.5rem, 3.4vw, 2.125rem);
+  line-height: 1.08;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   color: var(--ui-color-text-primary);
   margin: 0;
 }
@@ -612,11 +612,22 @@
 }
 
 .detail-page__section-title {
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 800;
   color: var(--ui-color-text-primary);
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
+}
+
+/* Small orange small-caps eyebrow above section titles (prototype IDHead) */
+.detail-page__section-eyebrow {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ui-color-primary);
+  margin: 0 0 6px;
 }
 
 .detail-page__section-body {
@@ -719,10 +730,10 @@
   }
 }
 
-/* On mobile, sidebar (booking panel) renders after main */
+/* On mobile, sidebar (CTA card) is hidden — mobile CTA is inline above sections */
 @media (max-width: 1099px) {
   .detail-page__sidebar {
-    order: 3;
+    display: none;
   }
 
   .detail-page__sections {
@@ -763,18 +774,276 @@
   color: var(--ui-color-error);
 }
 
+/* ── Desktop CTA card (sidebar) ───────────────────────── */
+.detail-page__cta-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-14);
+  padding: var(--ui-space-24);
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  box-shadow:
+    0 1px 2px rgba(20, 15, 5, 0.04),
+    0 16px 40px rgba(20, 15, 5, 0.09);
+}
+
+.detail-page__cta-price-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--ui-space-8);
+}
+
+.detail-page__cta-price {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  margin: 0;
+}
+
+.detail-page__cta-price-amount {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--ui-color-text-primary);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.detail-page__cta-price-suffix {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--ui-color-text-secondary);
+}
+
+.detail-page__cta-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  font-size: 0.8125rem;
+  color: var(--ui-color-text-primary);
+
+  .pi-star-fill {
+    color: #f2a900;
+    font-size: 0.8125rem;
+  }
+}
+
+.detail-page__cta-rating-count {
+  color: var(--ui-color-text-secondary);
+}
+
+.detail-page__cta-steps-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ui-color-text-secondary);
+  margin: 0;
+}
+
+.detail-page__cta-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-page__cta-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.detail-page__cta-step-num {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--ui-color-primary-soft);
+  color: var(--ui-color-primary-strong);
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail-page__cta-step-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ui-color-text-primary);
+  line-height: 1.3;
+}
+
+.detail-page__cta-next-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: var(--ui-color-text-secondary);
+  margin: 0;
+
+  .pi {
+    font-size: 0.75rem;
+  }
+}
+
+.detail-page__cta-divider {
+  height: 1px;
+  background: var(--ui-color-border);
+}
+
+.detail-page__cta-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--ui-radius-md);
+  background: color-mix(in srgb, #f59e0b 8%, transparent);
+  border: 1px solid color-mix(in srgb, #f59e0b 25%, transparent);
+  color: #92400e;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  margin: 0;
+
+  .pi {
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: #b45309;
+  }
+}
+
+.detail-page__cta-guest {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-12);
+}
+
+.detail-page__cta-guest-text {
+  font-size: 0.875rem;
+  color: var(--ui-color-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.detail-page__cta-assurance {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-page__cta-assurance-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.8125rem;
+  color: var(--ui-color-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+
+  .pi {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 0.875rem;
+    color: var(--ui-color-success);
+  }
+}
+
+/* ── Mobile fixed action bar (replaces global bottom nav) ── */
+.detail-page__mobile-bar {
+  display: none;
+}
+
+@media (max-width: 1099px) {
+  .detail-page__mobile-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-12);
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: var(--ui-color-surface);
+    border-top: 1px solid var(--ui-color-border);
+    box-shadow: 0 -4px 16px rgba(20, 15, 5, 0.08);
+  }
+
+  .detail-page__mobile-bar > p-button {
+    flex: 1 1 auto;
+    display: block;
+  }
+}
+
+.detail-page__mobile-bar-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.detail-page__mobile-bar-price {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.detail-page__mobile-bar-amount {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ui-color-text-primary);
+}
+
+.detail-page__mobile-bar-suffix {
+  font-size: 0.75rem;
+  color: var(--ui-color-text-secondary);
+}
+
+.detail-page__mobile-bar-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--ui-color-text-secondary);
+
+  .pi-star-fill {
+    color: #f2a900;
+    font-size: 0.6875rem;
+  }
+}
+
 /* ── PrimeNG overrides ────────────────────────────────── */
 ::ng-deep .detail-page__retry.p-button {
   border-radius: 999px;
   min-height: 2.4rem;
 }
 
+::ng-deep .detail-page__cta-btn.p-button {
+  width: 100%;
+  justify-content: center;
+  border-radius: var(--ui-radius-pill);
+  font-weight: 800;
+  font-size: 0.96875rem;
+  min-height: 3.25rem;
+  box-shadow: var(--ui-shadow-booking-cta);
+}
+
+/* Clear the fixed mobile action bar (shown ≤ 1099px) */
+@media (max-width: 1099px) {
+  .detail-page {
+    padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 /* ── Mobile adjustments ───────────────────────────────── */
 @media (max-width: 700px) {
-  .detail-page {
-    padding-bottom: var(--app-bottom-nav-safe-space);
-  }
-
   .detail-page__container {
     gap: 0;
   }

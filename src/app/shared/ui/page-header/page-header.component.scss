@@ -99,23 +99,26 @@
   .ph--hide-desktop-title .ph__title {
     display: none;
   }
+
+  :host.ph--hide-on-desktop {
+    display: none;
+  }
 }
 
-/* ── Mobile fixed back-nav bar (when backLink is provided) ── */
+/* ── Mobile sticky back-nav bar (when backLink is provided) ── */
 @media (max-width: 960px) {
-  // Host reserves the same height so content doesn't slide under the fixed bar
   :host.ph-back-host {
     display: block;
-    height: 3.25rem;
+    height:3.25rem ;
     flex-shrink: 0;
+    margin-left: -10px;
   }
 
   .ph--has-back {
     position: fixed;
+    width: 100%;
+    z-index: 10;
     top: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
     background: rgba(255, 255, 255, 0.97);
     backdrop-filter: saturate(140%) blur(6px);
     -webkit-backdrop-filter: saturate(140%) blur(6px);
@@ -127,7 +130,7 @@
       display: grid;
       grid-template-columns: 2rem 1fr 2rem;
       align-items: center;
-      min-height: 3.25rem;
+      height: 46px;
       max-width: min(640px, 100%);
       margin-inline: auto;
       gap: 0;
@@ -150,6 +153,9 @@
       font-size: 1rem;
       font-weight: 600;
       text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 
@@ -176,6 +182,7 @@
     .ph__title {
       text-align: left;
       flex: 1;
+      min-width: 0;
       padding-left: 12px;
     }
 

@@ -18,6 +18,7 @@ export interface ListingsState {
   createListingError: string | null;
   createListingSuccessId: string | null;
   createListingImageUploadError: string | null;
+  createListingImageUploadProgress: number | null;
   error: string | null;
 }
 
@@ -44,5 +45,6 @@ export const initialListingsState: ListingsState = {
   createListingError: null,
   createListingSuccessId: null,
   createListingImageUploadError: null,
+  createListingImageUploadProgress: null,
   error: null,
 };

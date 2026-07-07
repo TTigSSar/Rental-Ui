@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
-import { of, throwError } from 'rxjs';
+import { from, of, throwError } from 'rxjs';
 
 import { actionsHarness, collect } from '../../../../testing/ngrx.helpers';
 import { makeListingPreview } from '../../../../testing/fixtures';
@@ -93,7 +93,9 @@ describe('ListingsEffects', () => {
       const file = new File(['x'], 'toy.png');
       const { harness, effects } = setup({
         createListing: vi.fn().mockReturnValue(of(response)),
-        uploadListingImages: vi.fn().mockReturnValue(of(undefined)),
+        uploadListingImages: vi
+          .fn()
+          .mockReturnValue(of({ kind: 'complete', images: [] })),
       });
 
       const result = collect(effects.createListing$);
@@ -123,6 +125,28 @@ describe('ListingsEffects', () => {
       ]);
     });
 
+    it('streams upload progress before success', async () => {
+      const file = new File(['x'], 'toy.png');
+      const { harness, effects } = setup({
+        createListing: vi.fn().mockReturnValue(of(response)),
+        uploadListingImages: vi.fn().mockReturnValue(
+          from([
+            { kind: 'progress', percent: 40 },
+            { kind: 'complete', images: [] },
+          ]),
+        ),
+      });
+
+      const result = collect(effects.createListing$);
+      harness.send(ListingsActions.createListing({ payload, files: [file] }));
+      harness.complete();
+
+      expect(await result).toEqual([
+        ListingsActions.setImageUploadProgress({ progress: 40 }),
+        ListingsActions.createListingSuccess({ response, imageUploadError: null }),
+      ]);
+    });
+
     it('fails when the listing creation itself fails', async () => {
       const { harness, effects } = setup({
         createListing: vi.fn().mockReturnValue(throwError(() => new Error('invalid listing'))),
@@ -134,6 +158,44 @@ describe('ListingsEffects', () => {
 
       expect(await result).toEqual([
         ListingsActions.createListingFailure({ error: 'invalid listing' }),
+      ]);
+    });
+  });
+
+  describe('retryImageUpload$', () => {
+    it('re-uploads and emits success', async () => {
+      const file = new File(['x'], 'toy.png');
+      const { harness, effects } = setup({
+        uploadListingImages: vi
+          .fn()
+          .mockReturnValue(of({ kind: 'complete', images: [] })),
+      });
+
+      const result = collect(effects.retryImageUpload$);
+      harness.send(
+        ListingsActions.retryImageUpload({ listingId: 'L1', files: [file] }),
+      );
+      harness.complete();
+
+      expect(await result).toEqual([ListingsActions.retryImageUploadSuccess()]);
+    });
+
+    it('emits failure when the retry upload fails', async () => {
+      const file = new File(['x'], 'toy.png');
+      const { harness, effects } = setup({
+        uploadListingImages: vi
+          .fn()
+          .mockReturnValue(throwError(() => new Error('still failing'))),
+      });
+
+      const result = collect(effects.retryImageUpload$);
+      harness.send(
+        ListingsActions.retryImageUpload({ listingId: 'L1', files: [file] }),
+      );
+      harness.complete();
+
+      expect(await result).toEqual([
+        ListingsActions.retryImageUploadFailure({ error: 'still failing' }),
       ]);
     });
   });

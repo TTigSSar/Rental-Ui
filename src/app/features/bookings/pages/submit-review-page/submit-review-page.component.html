@@ -1,4 +1,10 @@
 <div class="review-flow">
+  @if (!statusLoaded()) {
+    <div class="review-flow__loading" role="status">
+      <i class="pi pi-spinner pi-spin" aria-hidden="true"></i>
+      <span>{{ 'reviews.flow.loading' | translate }}</span>
+    </div>
+  } @else {
   @if (step() !== 'success') {
     <header class="review-flow__top">
       <a routerLink="/bookings" class="review-flow__back" [attr.aria-label]="'common.back' | translate">
@@ -26,13 +32,6 @@
   <!-- ───────────────────────── Step 1 · Rate the toy ───────────────────────── -->
   @if (step() === 1) {
     <section class="review-flow__body">
-      @if (booking(); as b) {
-        <div class="review-flow__subject">
-          <span class="review-flow__subject-kicker">{{ 'reviews.flow.reviewingToy' | translate }}</span>
-          <span class="review-flow__subject-name">{{ b.listingTitle }}</span>
-        </div>
-      }
-
       <div class="review-flow__card review-flow__card--overall">
         <h2 class="review-flow__q">{{ 'reviews.toy.overallQuestion' | translate }}</h2>
         <app-ui-star-rating
@@ -104,13 +103,6 @@
   <!-- ──────────────────────── Step 2 · Rate the owner ──────────────────────── -->
   @if (step() === 2) {
     <section class="review-flow__body">
-      <div class="review-flow__subject">
-        <span class="review-flow__subject-kicker">{{ 'reviews.flow.reviewingOwner' | translate }}</span>
-        @if (booking(); as b) {
-          <span class="review-flow__subject-name">{{ b.listingTitle }}</span>
-        }
-      </div>
-
       <div class="review-flow__card">
         @for (s of ownerSubScores; track s.key) {
           <div class="review-flow__row">
@@ -205,5 +197,6 @@
         {{ 'reviews.success.backToBookings' | translate }}
       </button>
     </section>
+  }
   }
 </div>

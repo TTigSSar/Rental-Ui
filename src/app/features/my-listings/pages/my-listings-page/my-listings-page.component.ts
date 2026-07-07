@@ -18,6 +18,7 @@ import {
   mapListingStatusTone,
 } from '../../../../shared/utils/listing-status.utils';
 import type { BadgeTone } from '../../../../shared/ui/badge/badge.component';
+import type { RejectionInfo } from '../../models/my-listing.model';
 import * as MyListingsActions from '../../store/my-listings.actions';
 import {
   selectMyListingsError,
@@ -144,6 +145,16 @@ export class MyListingsPageComponent implements OnInit {
 
   protected onRestoreRequested(listingId: string): void {
     this.store.dispatch(MyListingsActions.restoreListing({ listingId }));
+  }
+
+  protected onResubmitRequested(listingId: string): void {
+    this.store.dispatch(MyListingsActions.resubmitListing({ listingId }));
+  }
+
+  protected rejectionReasonI18nKey(rejection: RejectionInfo | null): string | null {
+    return rejection?.reasonCode
+      ? `admin.pendingListings.rejectSheet.reasons.${rejection.reasonCode}.title`
+      : null;
   }
 
   protected statusLabelKey(status: MyListingStatus): string {

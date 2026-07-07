@@ -3,6 +3,7 @@
     [title]="'bookings.requests.title' | translate"
     [subtitle]="'bookings.requests.subtitle' | translate"
     backLink="/profile"
+    [hideOnDesktop]="true"
   />
 
   @if (vm().hasError && vm().error) {

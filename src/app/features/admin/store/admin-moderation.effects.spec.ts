@@ -64,12 +64,12 @@ describe('AdminModerationEffects', () => {
     const rejectListing = vi.fn().mockReturnValue(of(undefined));
     const { harness, effects } = setup({ rejectListing });
     const result = collect(effects.rejectPendingListing$);
-    harness.send(AdminModerationActions.rejectPendingListing({ listingId: 'p1', reason: 'spam' }));
+    harness.send(AdminModerationActions.rejectPendingListing({ listingId: 'p1', reasonCode: 'spam', note: '' }));
     harness.complete();
     expect(await result).toEqual([
       AdminModerationActions.rejectPendingListingSuccess({ listingId: 'p1' }),
     ]);
-    expect(rejectListing).toHaveBeenCalledWith('p1', 'spam');
+    expect(rejectListing).toHaveBeenCalledWith('p1', 'spam', '');
   });
 
   describe('toasts', () => {

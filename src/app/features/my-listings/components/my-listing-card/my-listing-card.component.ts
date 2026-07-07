@@ -40,6 +40,11 @@ export class MyListingCardComponent {
     mapListingStatusTone(this.listing().status),
   );
 
+  protected readonly rejectionReasonI18nKey = computed(() => {
+    const code = this.listing().rejection?.reasonCode;
+    return code ? `admin.pendingListings.rejectSheet.reasons.${code}.title` : null;
+  });
+
   protected requestEdit(): void {
     this.editRequested.emit(this.listing().id);
   }

@@ -18,6 +18,7 @@ import * as ListingsActions from '../../store/listings.actions';
 import {
   selectCreateListingError,
   selectCreateListingImageUploadError,
+  selectCreateListingImageUploadProgress,
   selectCreateListingLoading,
   selectCreateListingSuccessId,
   selectListingCategories,
@@ -45,36 +46,33 @@ export class CreateListingPageComponent implements OnInit {
     selectCreateListingImageUploadError,
   );
 
+  private hasNavigated = false;
+
   protected readonly vm$ = combineLatest({
     categories:           this.store.select(selectListingCategories),
     categoriesLoading:    this.store.select(selectListingCategoriesLoading),
     createListingLoading: this.store.select(selectCreateListingLoading),
     createListingError:   this.store.select(selectCreateListingError),
+    imageUploadError:     this.store.select(selectCreateListingImageUploadError),
+    uploadProgress:       this.store.select(selectCreateListingImageUploadProgress),
   }).pipe(map(vm => vm));
 
   constructor() {
     effect(() => {
       const createdListingId = this.createListingSuccessId();
-      if (createdListingId === null) return;
+      if (createdListingId === null || this.hasNavigated) return;
 
-      const imageUploadError = this.createListingImageUploadError();
+      // Listing exists. If photos failed, KEEP the user on the wizard so they
+      // can retry the upload; only redirect once the listing is fully done.
+      if (this.createListingImageUploadError() !== null) return;
 
-      if (imageUploadError !== null) {
-        this.messageService.add({
-          severity: 'warn',
-          summary: this.translate.instant('listings.createPage.imageUploadWarningTitle'),
-          detail:  this.translate.instant('listings.createPage.imageUploadWarning'),
-          life:    8000,
-        });
-      } else {
-        this.messageService.add({
-          severity: 'success',
-          summary: this.translate.instant('listings.createPage.successTitle'),
-          detail:  this.translate.instant('listings.createPage.successMessage'),
-          life:    5000,
-        });
-      }
-
+      this.hasNavigated = true;
+      this.messageService.add({
+        severity: 'success',
+        summary: this.translate.instant('listings.createPage.successTitle'),
+        detail:  this.translate.instant('listings.createPage.successMessage'),
+        life:    5000,
+      });
       this.store.dispatch(ListingsActions.clearCreateListingState());
       void this.router.navigate(['/my-listings']);
     });
@@ -85,11 +83,17 @@ export class CreateListingPageComponent implements OnInit {
     this.store.dispatch(ListingsActions.loadListingCategories());
   }
 
-  protected onSubmitted(event: { payload: CreateListingRequest; files: File[] }): void {
+  protected onSubmitted(event: { payload: CreateListingRequest; files: File[]; imageOrder: unknown }): void {
     this.store.dispatch(ListingsActions.createListing({
       payload: event.payload,
       files:   event.files,
     }));
+  }
+
+  protected onRetryUpload(files: File[]): void {
+    const listingId = this.createListingSuccessId();
+    if (listingId === null) return;
+    this.store.dispatch(ListingsActions.retryImageUpload({ listingId, files }));
   }
 
   protected onCancelled(): void {

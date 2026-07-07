@@ -15,6 +15,7 @@ export type PageHeaderMobileTitleAlign = 'center' | 'start';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '[class.ph-back-host]': '!!backLink()',
+    '[class.ph--hide-on-desktop]': 'hideOnDesktop()',
   },
 })
 export class PageHeaderComponent {
@@ -26,6 +27,7 @@ export class PageHeaderComponent {
   readonly spacing = input<PageHeaderSpacing>('comfortable');
   readonly mobileTitleAlign = input<PageHeaderMobileTitleAlign>('center');
   readonly hideTitleOnDesktop = input<boolean>(false);
+  readonly hideOnDesktop = input<boolean>(false);
 
   protected readonly hostClasses = computed(() => ({
     'ph': true,

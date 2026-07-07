@@ -21,7 +21,8 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
   transition: opacity 220ms ease;
 }
 
@@ -208,8 +209,11 @@
 
   .listing-gallery__hero {
     border-radius: 0;
-    max-height: 62vw;
-    aspect-ratio: unset;
+    /* Keep a defined aspect ratio so `object-fit: contain` has a real box
+       to fit against; without it the image renders at its natural height and
+       gets clipped to a top band on mobile. */
+    aspect-ratio: 4 / 3;
+    max-height: 80vh;
   }
 
   .listing-gallery__nav {

@@ -55,16 +55,13 @@
       <!-- Authenticated: bell + user pill ─────────────────────────── -->
       @if (isAuthenticated()) {
 
-        <!-- Notification bell -->
-        <div class="nh__notif" #notifMenuHost>
-          <button
-            type="button"
+        <!-- Notification bell → notifications inbox -->
+        <div class="nh__notif">
+          <a
             class="nh__notif-btn"
-            [class.nh__notif-btn--active]="notifOpen()"
-            [attr.aria-expanded]="notifOpen()"
-            aria-haspopup="true"
+            routerLink="/notifications"
+            routerLinkActive="nh__notif-btn--active"
             aria-label="Open notifications"
-            (click)="toggleNotif()"
           >
             <i class="pi pi-bell" aria-hidden="true"></i>
             @if (unreadNotifCount() > 0) {
@@ -72,19 +69,7 @@
                 {{ unreadNotifCount() > 99 ? '99+' : unreadNotifCount() }}
               </span>
             }
-          </button>
-
-          @if (notifOpen()) {
-            <div class="nh__notif-panel" role="dialog" aria-label="Notifications" aria-modal="false">
-              <div class="nh__panel-head">
-                <span class="nh__panel-head-title">Notifications</span>
-              </div>
-              <div class="nh__panel-empty">
-                <i class="pi pi-bell-slash" aria-hidden="true"></i>
-                <p>You're all caught up — no notifications yet.</p>
-              </div>
-            </div>
-          }
+          </a>
         </div>
 
         <!-- User pill with hover dropdown ──────────────────────────── -->

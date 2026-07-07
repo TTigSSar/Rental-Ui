@@ -1,9 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, from, map, switchMap } from 'rxjs';
 
 import { ApiContract, toApiUrl } from '../../../api/api-contract';
-import type { ListingImage, MyListing, MyListingStatus, UpdateListingRequest } from '../models/my-listing.model';
+import { compressImageFiles } from '../../../shared/utils/image-compression.utils';
+import type { ListingImage, MyListing, MyListingStatus, RejectionInfo, UpdateListingRequest } from '../models/my-listing.model';
 
 const KNOWN_MY_LISTING_STATUSES: ReadonlySet<MyListingStatus> = new Set([
   'PendingApproval',
@@ -18,6 +19,40 @@ function coerceMyListingStatus(value: unknown): MyListingStatus {
     return value as MyListingStatus;
   }
   return 'PendingApproval';
+}
+
+function toNullableString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+}
+
+function normalizeRejection(raw: Record<string, unknown>): RejectionInfo | null {
+  // Backend may return rejection as a nested object or as flat fields prefixed with 'rejection'
+  const nested = raw['rejection'];
+  if (nested !== null && typeof nested === 'object') {
+    const r = nested as Record<string, unknown>;
+    const code = toNullableString(r['reasonCode']);
+    if (code) {
+      return {
+        reasonCode: code,
+        reasonLabel: toNullableString(r['reasonLabel']) ?? code,
+        note: toNullableString(r['note']),
+        moderatorName: toNullableString(r['moderatorName']),
+        moderatedAt: toNullableString(r['moderatedAt']),
+      };
+    }
+  }
+  // Flat fields fallback: rejectionReasonCode, rejectionNote, rejectionModerator, rejectedAt
+  const flatCode = toNullableString(raw['rejectionReasonCode']);
+  if (flatCode) {
+    return {
+      reasonCode: flatCode,
+      reasonLabel: toNullableString(raw['rejectionReasonLabel']) ?? flatCode,
+      note: toNullableString(raw['rejectionNote']),
+      moderatorName: toNullableString(raw['rejectionModerator']),
+      moderatedAt: toNullableString(raw['rejectedAt']),
+    };
+  }
+  return null;
 }
 
 function normalizeMyListing(raw: Record<string, unknown> & { id: string }): MyListing {
@@ -37,6 +72,7 @@ function normalizeMyListing(raw: Record<string, unknown> & { id: string }): MyLi
       typeof raw['createdAt'] === 'string' && raw['createdAt'].length > 0
         ? raw['createdAt']
         : null,
+    rejection: normalizeRejection(raw),
     description: typeof raw['description'] === 'string' ? raw['description'] : null,
     categoryId: typeof raw['categoryId'] === 'string' ? raw['categoryId'] : '',
     ageFromMonths:
@@ -61,6 +97,10 @@ function normalizeMyListing(raw: Record<string, unknown> & { id: string }): MyLi
 export class MyListingsApiService {
   private readonly http = inject(HttpClient);
 
+  resubmitListing(listingId: string): Observable<void> {
+    return this.http.post<void>(toApiUrl(ApiContract.listings.resubmit(listingId)), {});
+  }
+
   archiveListing(listingId: string): Observable<void> {
     return this.http.post<void>(toApiUrl(ApiContract.listings.archive(listingId)), {});
   }
@@ -73,12 +113,37 @@ export class MyListingsApiService {
     return this.http.patch<void>(toApiUrl(ApiContract.listings.byId(listingId)), request);
   }
 
+  deleteListingImage(listingId: string, imageId: string): Observable<unknown> {
+    return this.http.delete(toApiUrl(ApiContract.listings.deleteImage(listingId, imageId)));
+  }
+
+  reorderListingImages(listingId: string, imageIds: string[]): Observable<unknown> {
+    return this.http.put(toApiUrl(ApiContract.listings.reorderImages(listingId)), { imageIds });
+  }
+
   replaceListingImages(listingId: string, files: File[]): Observable<ListingImage[]> {
-    const formData = new FormData();
-    files.forEach(f => formData.append('files', f));
-    return this.http.put<ListingImage[]>(
-      toApiUrl(ApiContract.listings.uploadImages(listingId)),
-      formData,
+    return from(compressImageFiles(files)).pipe(
+      switchMap((compressed) => {
+        const formData = new FormData();
+        compressed.forEach(f => formData.append('files', f));
+        return this.http.put<ListingImage[]>(
+          toApiUrl(ApiContract.listings.uploadImages(listingId)),
+          formData,
+        );
+      }),
+    );
+  }
+
+  addListingImages(listingId: string, files: File[]): Observable<ListingImage[]> {
+    return from(compressImageFiles(files)).pipe(
+      switchMap((compressed) => {
+        const formData = new FormData();
+        compressed.forEach(f => formData.append('files', f));
+        return this.http.post<ListingImage[]>(
+          toApiUrl(ApiContract.listings.uploadImages(listingId)),
+          formData,
+        );
+      }),
     );
   }
 

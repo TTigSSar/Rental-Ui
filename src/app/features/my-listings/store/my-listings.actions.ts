@@ -43,3 +43,18 @@ export const restoreListingFailure = createAction(
   '[My Listings] Restore Listing Failure',
   props<{ error: string }>(),
 );
+
+export const resubmitListing = createAction(
+  '[My Listings] Resubmit Listing',
+  props<{ listingId: string }>(),
+);
+
+export const resubmitListingSuccess = createAction(
+  '[My Listings] Resubmit Listing Success',
+  props<{ listingId: string }>(),
+);
+
+export const resubmitListingFailure = createAction(
+  '[My Listings] Resubmit Listing Failure',
+  props<{ error: string }>(),
+);

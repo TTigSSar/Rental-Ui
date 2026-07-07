@@ -1,7 +1,7 @@
-<article class="listing-card">
+<article class="listing-card" [class.listing-card--owner]="isOwner()">
   <a
     class="listing-card__link"
-    [routerLink]="['/listings', listing().id]"
+    [routerLink]="cardLink()"
     [attr.aria-label]="listing().title"
   >
     <!-- Image + overlays wrapper -->
@@ -27,6 +27,13 @@
         }
       </app-ui-image-container>
 
+      @if (isOwner()) {
+        <span class="listing-card__owner-badge">
+          <span class="pi pi-pencil" aria-hidden="true"></span>
+          {{ 'listings.card.yourListing' | translate }}
+        </span>
+      }
+
       @if (listing().listingStatus) {
         <span
           class="listing-card__status-badge"
@@ -40,15 +47,23 @@
         </span>
       }
 
-      @if (hasHygieneNotes()) {
-        <span class="listing-card__verified-badge">
-          <i class="pi pi-check" aria-hidden="true"></i>
-          {{ 'listings.card.verified' | translate }}
-        </span>
-      } @else if (ageRange(); as age) {
-        <span class="listing-card__age-badge">
-          {{ age.key | translate: age.params }}
-        </span>
+      @if (!isOwner()) {
+        @if (hasHygieneNotes()) {
+          <span class="listing-card__verified-badge">
+            <i class="pi pi-check" aria-hidden="true"></i>
+            {{ 'listings.card.verified' | translate }}
+          </span>
+        } @else if (ageRange(); as age) {
+          <span class="listing-card__age-badge">
+            {{ age.key | translate: age.params }}
+          </span>
+        }
+      } @else {
+        @if (ageRange(); as age) {
+          <span class="listing-card__age-badge">
+            {{ age.key | translate: age.params }}
+          </span>
+        }
       }
     </div>
 
@@ -67,6 +82,12 @@
           <span class="pi pi-star-fill listing-card__rating-star" aria-hidden="true"></span>
           <span class="listing-card__rating-value">{{ listing().rating | number: '1.1-1' }}</span>
           <span class="listing-card__rating-count">({{ listing().reviewCount }})</span>
+        </p>
+      } @else {
+        <p class="listing-card__rating listing-card__rating--empty" [attr.aria-label]="'reviews.summary.noReviews' | translate">
+          <span class="pi pi-star-fill listing-card__rating-star" aria-hidden="true"></span>
+          <span class="listing-card__rating-value">{{ 5 | number: '1.1-1' }}</span>
+          <span class="listing-card__rating-count">(0)</span>
         </p>
       }
 
@@ -87,9 +108,16 @@
             'listings.booking.priceSuffix' | translate
           }}</span>
         </p>
-        <span class="listing-card__view-btn" aria-hidden="true">
-          {{ 'listings.card.viewBtn' | translate }}
-        </span>
+        @if (isOwner()) {
+          <span class="listing-card__manage-btn" aria-hidden="true">
+            <span class="pi pi-pencil" aria-hidden="true"></span>
+            {{ 'listings.card.manageBtn' | translate }}
+          </span>
+        } @else {
+          <span class="listing-card__view-btn" aria-hidden="true">
+            {{ 'listings.card.viewBtn' | translate }}
+          </span>
+        }
       </div>
     </div>
 
@@ -118,19 +146,21 @@
     }
   </a>
 
-  <!-- Favorite button: overlaid on image (outside <a> for semantic clarity) -->
-  <button
-    type="button"
-    class="listing-card__fav-btn"
-    [attr.aria-label]="'listings.card.toggleFavorite' | translate"
-    [attr.aria-pressed]="listing().isFavorite"
-    (click)="onFavoriteClick($event)"
-  >
-    <span
-      class="pi listing-card__fav-icon"
-      [class.pi-heart-fill]="listing().isFavorite"
-      [class.pi-heart]="!listing().isFavorite"
-      aria-hidden="true"
-    ></span>
-  </button>
+  <!-- Favorite button: overlaid on image (outside <a> for semantic clarity) — hidden for owner -->
+  @if (!isOwner()) {
+    <button
+      type="button"
+      class="listing-card__fav-btn"
+      [attr.aria-label]="'listings.card.toggleFavorite' | translate"
+      [attr.aria-pressed]="listing().isFavorite"
+      (click)="onFavoriteClick($event)"
+    >
+      <span
+        class="pi listing-card__fav-icon"
+        [class.pi-heart-fill]="listing().isFavorite"
+        [class.pi-heart]="!listing().isFavorite"
+        aria-hidden="true"
+      ></span>
+    </button>
+  }
 </article>

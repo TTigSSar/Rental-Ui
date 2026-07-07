@@ -89,6 +89,25 @@ export const createListingFailure = createAction(
   props<{ error: string }>(),
 );
 
+export const setImageUploadProgress = createAction(
+  '[Listings] Set Image Upload Progress',
+  props<{ progress: number }>(),
+);
+
+export const retryImageUpload = createAction(
+  '[Listings] Retry Image Upload',
+  props<{ listingId: string; files: File[] }>(),
+);
+
+export const retryImageUploadSuccess = createAction(
+  '[Listings] Retry Image Upload Success',
+);
+
+export const retryImageUploadFailure = createAction(
+  '[Listings] Retry Image Upload Failure',
+  props<{ error: string }>(),
+);
+
 export const clearCreateListingState = createAction(
   '[Listings] Clear Create Listing State',
 );

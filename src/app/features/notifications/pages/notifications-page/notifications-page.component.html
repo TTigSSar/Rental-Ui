@@ -1,0 +1,100 @@
+<section class="notifications-page">
+  @if (viewModel$ | async; as vm) {
+    <header class="notifications-page__head">
+      <div class="notifications-page__heading">
+        <p class="notifications-page__eyebrow">{{ 'notifications.eyebrow' | translate }}</p>
+        <h1 class="notifications-page__title">
+          <span>{{ 'notifications.title' | translate }}</span>
+          @if (vm.counts.unread > 0) {
+            <span class="notifications-page__count" aria-hidden="true">
+              {{ vm.counts.unread > 99 ? '99+' : vm.counts.unread }}
+            </span>
+          }
+        </h1>
+      </div>
+      <button
+        type="button"
+        class="notifications-page__mark-all"
+        [disabled]="!vm.hasUnread || vm.markingAll"
+        (click)="onMarkAll()"
+      >
+        <i class="pi pi-check" aria-hidden="true"></i>
+        {{ 'notifications.markAllRead' | translate }}
+      </button>
+    </header>
+
+    <div class="notifications-page__tabs">
+      <app-notification-filter-tabs
+        [value]="vm.filter"
+        [counts]="vm.counts"
+        (filterChange)="onFilterChange($event)"
+      />
+    </div>
+
+    @if (vm.hasError && vm.error) {
+      <div class="notifications-page__error" role="alert">
+        <p-message severity="error" styleClass="notifications-page__message">
+          <div class="notifications-page__error-content">
+            <strong>{{ 'notifications.errorTitle' | translate }}</strong>
+            <span>{{ vm.error }}</span>
+          </div>
+        </p-message>
+        <p-button
+          type="button"
+          [label]="'notifications.retry' | translate"
+          (onClick)="retry(vm.filter)"
+        />
+      </div>
+    }
+
+    @if (vm.showInitialSkeleton) {
+      <app-ui-loading-skeleton [items]="5" />
+    }
+
+    @if (vm.showEmpty) {
+      <app-ui-empty-state
+        icon="pi pi-bell"
+        [title]="'notifications.emptyTitle' | translate"
+        [description]="'notifications.emptyText' | translate"
+        tone="primary"
+      />
+    }
+
+    @if (vm.groups.length > 0) {
+      <div class="notifications-page__feed">
+        @for (group of vm.groups; track group.id) {
+          <div class="notifications-page__group">
+            <div class="notifications-page__group-head">
+              <span class="notifications-page__group-label">
+                {{ group.labelKey | translate }}
+              </span>
+              <span class="notifications-page__group-rule" aria-hidden="true"></span>
+            </div>
+            <div class="notifications-page__group-items">
+              @for (item of group.items; track item.id) {
+                <app-notification-card
+                  [notification]="item"
+                  (open)="onOpen(item)"
+                  (actionClick)="onAction(item, $event)"
+                />
+              }
+            </div>
+          </div>
+        }
+
+        @if (vm.hasMore) {
+          <div class="notifications-page__more">
+            <p-button
+              type="button"
+              severity="secondary"
+              [outlined]="true"
+              [loading]="vm.loadingMore"
+              [label]="'notifications.loadMore' | translate"
+              (onClick)="onLoadMore()"
+            />
+          </div>
+        }
+      </div>
+    }
+  }
+</section>

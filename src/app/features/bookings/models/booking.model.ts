@@ -82,6 +82,7 @@ export interface BookingRequest {
   id: string;
   listingId: string;
   listingTitle: string;
+  renterId: string;
   renterFirstName: string;
   renterLastName: string;
   renterEmail: string;

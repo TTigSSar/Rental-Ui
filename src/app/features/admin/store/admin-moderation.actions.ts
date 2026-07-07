@@ -33,7 +33,7 @@ export const approvePendingListingFailure = createAction(
 
 export const rejectPendingListing = createAction(
   '[Admin Moderation] Reject Pending Listing',
-  props<{ listingId: string; reason: string }>(),
+  props<{ listingId: string; reasonCode: string; note: string }>(),
 );
 
 export const rejectPendingListingSuccess = createAction(

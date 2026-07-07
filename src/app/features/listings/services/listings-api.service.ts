@@ -1,12 +1,14 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, filter, from, map, switchMap } from 'rxjs';
 
 import { ApiContract, toApiUrl } from '../../../api/api-contract';
+import { compressImageFiles } from '../../../shared/utils/image-compression.utils';
 import type {
   CreateListingRequest,
   CreateListingResponse,
   ListingCategoryOption,
+  ListingImageUploadEvent,
   ListingImageUploadResponse,
 } from '../models/create-listing.model';
 import type { ListingDetails, ToyCondition } from '../models/listing-details.model';
@@ -46,6 +48,7 @@ export function normalizeListingPreview(
       typeof item.reviewCount === 'number' && Number.isFinite(item.reviewCount)
         ? item.reviewCount
         : 0,
+    ownerId: normalizeNonEmptyString(item.ownerId),
   };
 }
 
@@ -137,19 +140,45 @@ export class ListingsApiService {
     );
   }
 
+  /**
+   * Uploads listing images, surfacing upload progress so the wizard can show a
+   * progress bar. Emits `progress` events (0–100) followed by a single
+   * `complete` event with the created image records.
+   */
   uploadListingImages(
     listingId: string,
     files: File[],
-  ): Observable<ListingImageUploadResponse[]> {
-    const formData = new FormData();
+  ): Observable<ListingImageUploadEvent> {
+    // Compress in the browser first so large phone photos don't blow past the
+    // reverse proxy's body-size limit (HTTP 413) on the way to the API.
+    return from(compressImageFiles(files)).pipe(
+      switchMap((compressed) => {
+        const formData = new FormData();
 
-    for (const file of files) {
-      formData.append('files', file, file.name);
-    }
+        for (const file of compressed) {
+          formData.append('files', file, file.name);
+        }
 
-    return this.http.post<ListingImageUploadResponse[]>(
-      toApiUrl(ApiContract.listings.uploadImages(listingId)),
-      formData,
+        return this.http.post<ListingImageUploadResponse[]>(
+          toApiUrl(ApiContract.listings.uploadImages(listingId)),
+          formData,
+          { reportProgress: true, observe: 'events' },
+        );
+      }),
+      map((event): ListingImageUploadEvent | null => {
+        if (event.type === HttpEventType.UploadProgress) {
+          const percent =
+            typeof event.total === 'number' && event.total > 0
+              ? Math.round((event.loaded / event.total) * 100)
+              : 0;
+          return { kind: 'progress', percent };
+        }
+        if (event.type === HttpEventType.Response) {
+          return { kind: 'complete', images: event.body ?? [] };
+        }
+        return null;
+      }),
+      filter((event): event is ListingImageUploadEvent => event !== null),
     );
   }
 

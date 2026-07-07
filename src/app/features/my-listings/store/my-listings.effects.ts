@@ -56,4 +56,18 @@ export class MyListingsEffects {
       ),
     ),
   );
+
+  readonly resubmitListing$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(MyListingsActions.resubmitListing),
+      mergeMap(({ listingId }) =>
+        this.myListingsApi.resubmitListing(listingId).pipe(
+          map(() => MyListingsActions.resubmitListingSuccess({ listingId })),
+          catchError((error: unknown) =>
+            of(MyListingsActions.resubmitListingFailure({ error: toErrorMessage(error) })),
+          ),
+        ),
+      ),
+    ),
+  );
 }

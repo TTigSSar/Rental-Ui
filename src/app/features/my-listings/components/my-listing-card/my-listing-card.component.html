@@ -27,29 +27,42 @@
         {{ 'myListings.statusNote.pending' | translate }}
       </p>
     } @else if (listing().status === 'Rejected') {
-      <p class="mlc__status-note mlc__status-note--danger">
-        <i class="pi pi-times-circle"></i>
-        {{ 'myListings.statusNote.rejected' | translate }}
-      </p>
+      <div class="mlc__rejection">
+        @if (rejectionReasonI18nKey(); as key) {
+          <span class="mlc__rejection-chip">
+            <i class="pi pi-flag" aria-hidden="true"></i>
+            {{ key | translate }}
+          </span>
+        }
+        @if (listing().rejection?.note; as note) {
+          <p class="mlc__rejection-note">{{ note }}</p>
+        }
+      </div>
     }
   </div>
 
   <!-- Actions -->
   <div class="mlc__actions" (click)="$event.stopPropagation()">
-    <a class="mlc__btn mlc__btn--outline" [routerLink]="['/listings', listing().id]">
-      {{ 'myListings.actions.view' | translate }}
-    </a>
-    @if (listing().status !== 'Archived') {
-      <button type="button" class="mlc__btn mlc__btn--outline" (click)="requestEdit()">
-        {{ 'myListings.actions.edit' | translate }}
-      </button>
-      <button type="button" class="mlc__btn mlc__btn--ghost" (click)="requestArchive()">
-        {{ 'myListings.actions.archive' | translate }}
+    @if (listing().status === 'Rejected') {
+      <button type="button" class="mlc__btn mlc__btn--primary" (click)="requestEdit()">
+        {{ 'myListings.actions.editAndResubmit' | translate }}
       </button>
     } @else {
-      <button type="button" class="mlc__btn mlc__btn--ghost" (click)="requestRestore()">
-        {{ 'myListings.actions.restore' | translate }}
-      </button>
+      <a class="mlc__btn mlc__btn--outline" [routerLink]="['/my-listings', listing().id]">
+        {{ 'myListings.actions.view' | translate }}
+      </a>
+      @if (listing().status !== 'Archived') {
+        <button type="button" class="mlc__btn mlc__btn--outline" (click)="requestEdit()">
+          {{ 'myListings.actions.edit' | translate }}
+        </button>
+        <button type="button" class="mlc__btn mlc__btn--ghost" (click)="requestArchive()">
+          {{ 'myListings.actions.archive' | translate }}
+        </button>
+      } @else {
+        <button type="button" class="mlc__btn mlc__btn--ghost" (click)="requestRestore()">
+          {{ 'myListings.actions.restore' | translate }}
+        </button>
+      }
     }
   </div>
 </div>

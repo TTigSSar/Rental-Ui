@@ -286,6 +286,7 @@
   color: var(--ui-color-text-primary);
   cursor: pointer;
   font: inherit;
+  text-decoration: none;
   transition:
     background-color 140ms ease,
     border-color 140ms ease,

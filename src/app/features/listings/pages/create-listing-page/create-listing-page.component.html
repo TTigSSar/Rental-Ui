@@ -3,7 +3,10 @@
     [categories]="vm.categories"
     [isSubmitting]="vm.createListingLoading"
     [createError]="vm.createListingError"
+    [imageUploadError]="vm.imageUploadError"
+    [uploadProgress]="vm.uploadProgress"
     (submitted)="onSubmitted($event)"
+    (retryUpload)="onRetryUpload($event)"
     (cancelled)="onCancelled()"
   />
 }

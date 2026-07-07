@@ -11,12 +11,16 @@ interface Internals {
   step(): 1 | 2 | 'success';
   submitting(): boolean;
   error(): string | null;
+  statusLoaded(): boolean;
+  toySubmitted(): boolean;
+  ownerSubmitted(): boolean;
   toyValid(): boolean;
   ownerValid(): boolean;
   toyOverall: { set(v: number): void };
   toyComment: { set(v: string): void };
   toySubScores: readonly { value: { set(v: number): void } }[];
   ownerSubScores: readonly { value: { set(v: number): void } }[];
+  ngOnInit(): void;
   submitToyAndContinue(): void;
   submitOwnerAndFinish(): void;
   skipToy(): void;
@@ -26,7 +30,7 @@ function createComponent(api: Partial<ReviewsApiService>) {
   TestBed.configureTestingModule({
     providers: [
       provideRouter([]),
-      provideMockStore(),
+      provideMockStore({ initialState: { bookings: { myBookings: [] } } }),
       { provide: ReviewsApiService, useValue: api },
       {
         provide: ActivatedRoute,
@@ -93,6 +97,72 @@ describe('SubmitReviewPageComponent flow', () => {
       expect(c.error()).toBe('server down');
       expect(c.submitting()).toBe(false);
       expect(c.step()).toBe(1);
+    });
+  });
+
+  describe('resume flow (existing review status)', () => {
+    it('starts on the owner step when the toy is already reviewed', () => {
+      const getBookingStatus = vi
+        .fn()
+        .mockReturnValue(of(makeReviewStatus({ hasToyReview: true })));
+      const c = createComponent({ getBookingStatus });
+
+      c.ngOnInit();
+
+      expect(getBookingStatus).toHaveBeenCalledWith('booking-1');
+      expect(c.step()).toBe(2);
+      expect(c.toySubmitted()).toBe(true);
+      expect(c.statusLoaded()).toBe(true);
+    });
+
+    it('jumps to success when both reviews already exist', () => {
+      const getBookingStatus = vi
+        .fn()
+        .mockReturnValue(of(makeReviewStatus({ hasToyReview: true, hasOwnerReview: true })));
+      const c = createComponent({ getBookingStatus });
+
+      c.ngOnInit();
+
+      expect(c.step()).toBe('success');
+      expect(c.toySubmitted()).toBe(true);
+      expect(c.ownerSubmitted()).toBe(true);
+    });
+
+    it('advances to the owner step without re-submitting the toy review', () => {
+      const submitToy = vi.fn();
+      const getBookingStatus = vi
+        .fn()
+        .mockReturnValue(of(makeReviewStatus({ hasToyReview: true })));
+      const c = createComponent({ submitToy, getBookingStatus });
+      c.ngOnInit();
+
+      c.submitToyAndContinue();
+
+      expect(submitToy).not.toHaveBeenCalled();
+      expect(c.step()).toBe(2);
+      expect(c.error()).toBeNull();
+    });
+
+    it('stays on step 1 and loads when there is no existing review', () => {
+      const getBookingStatus = vi.fn().mockReturnValue(of(makeReviewStatus()));
+      const c = createComponent({ getBookingStatus });
+
+      c.ngOnInit();
+
+      expect(c.step()).toBe(1);
+      expect(c.statusLoaded()).toBe(true);
+    });
+
+    it('falls back to step 1 when the status request fails', () => {
+      const getBookingStatus = vi
+        .fn()
+        .mockReturnValue(throwError(() => new Error('offline')));
+      const c = createComponent({ getBookingStatus });
+
+      c.ngOnInit();
+
+      expect(c.step()).toBe(1);
+      expect(c.statusLoaded()).toBe(true);
     });
   });
 

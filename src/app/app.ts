@@ -11,7 +11,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } fro
 import { Store } from '@ngrx/store';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { Toast } from 'primeng/toast';
-import { combineLatest, filter, map } from 'rxjs';
+import { combineLatest, distinctUntilChanged, filter, map } from 'rxjs';
 
 import * as AuthActions from './features/auth/store/auth.actions';
 import {
@@ -20,6 +20,7 @@ import {
   selectIsAuthenticated,
 } from './features/auth/store/auth.selectors';
 import { AuthDialogComponent } from './features/auth/components/auth-dialog/auth-dialog.component';
+import { NotificationBadgeService } from './features/notifications/services/notification-badge.service';
 import { AppHeaderComponent } from './shared/ui/app-header/app-header.component';
 
 interface NavItem {
@@ -45,7 +46,18 @@ interface AppShellViewModel {
 
 function isListingDetailsUrl(url: string): boolean {
   const path = url.split('?')[0];
-  return /^\/listings\/(?!create$)[^/]+$/.test(path);
+  // Public listing detail (/listings/:id) and owner listing detail (/my-listings/:id)
+  // both suppress the global header on mobile and the global bottom nav so each page's
+  // own back link + action bar serve as the sole navigation.
+  return (
+    /^\/listings\/(?!create$)[^/]+$/.test(path) ||
+    /^\/my-listings\/[^/]+$/.test(path)
+  );
+}
+
+function isBookingFlowUrl(url: string): boolean {
+  const path = url.split('?')[0];
+  return /^\/listings\/[^/]+\/book$/.test(path);
 }
 
 function isListingsBrowseUrl(url: string): boolean {
@@ -55,6 +67,11 @@ function isListingsBrowseUrl(url: string): boolean {
 function isProfileChildUrl(url: string): boolean {
   const path = url.split('?')[0];
   return /^\/profile\/(toys|rentals|requests|saved)(\/.*)?$/.test(path);
+}
+
+function isListingWizardUrl(url: string): boolean {
+  const path = url.split('?')[0];
+  return path === '/listings/create' || /^\/my-listings\/[^/]+\/edit$/.test(path);
 }
 
 @Component({
@@ -77,13 +94,19 @@ export class App {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
+  private readonly notificationBadge = inject(NotificationBadgeService);
 
-  protected readonly unreadNotifCount  = signal(0);
+  // Global unread badge, kept in sync from a single source: the badge service
+  // polls the unread-count endpoint while authenticated (there is no realtime
+  // transport yet) and the notifications feature updates it after mark-read.
+  protected readonly unreadNotifCount = this.notificationBadge.unreadCount;
   protected readonly scrolled          = signal(false);
-  protected readonly showFooter        = signal(!isListingDetailsUrl(this.router.url));
+  protected readonly showFooter        = signal(!isListingDetailsUrl(this.router.url) && !isListingWizardUrl(this.router.url) && !isBookingFlowUrl(this.router.url));
   protected readonly isBrowsePage      = signal(isListingsBrowseUrl(this.router.url));
   protected readonly isDetailsPage     = signal(isListingDetailsUrl(this.router.url));
   protected readonly isProfileChildPage = signal(isProfileChildUrl(this.router.url));
+  protected readonly isListingWizardPage = signal(isListingWizardUrl(this.router.url));
+  protected readonly isBookingPage     = signal(isBookingFlowUrl(this.router.url));
   protected readonly showAuthDialog    = signal(false);
   protected readonly authDialogMode    = signal<'login' | 'register'>('login');
 
@@ -150,6 +173,18 @@ export class App {
     this.store.dispatch(AuthActions.authInitStarted());
     this.hydrateLanguage();
 
+    // Drive the global notification badge poller off auth state.
+    this.store
+      .select(selectIsAuthenticated)
+      .pipe(distinctUntilChanged(), takeUntilDestroyed())
+      .subscribe((isAuthenticated) => {
+        if (isAuthenticated) {
+          this.notificationBadge.start();
+        } else {
+          this.notificationBadge.stop();
+        }
+      });
+
     this.router.events
       .pipe(
         filter((event): event is NavigationEnd => event instanceof NavigationEnd),
@@ -157,10 +192,12 @@ export class App {
       )
       .subscribe((event) => {
         const url = event.urlAfterRedirects;
-        this.showFooter.set(!isListingDetailsUrl(url));
+        this.showFooter.set(!isListingDetailsUrl(url) && !isListingWizardUrl(url) && !isBookingFlowUrl(url));
         this.isBrowsePage.set(isListingsBrowseUrl(url));
         this.isDetailsPage.set(isListingDetailsUrl(url));
         this.isProfileChildPage.set(isProfileChildUrl(url));
+        this.isListingWizardPage.set(isListingWizardUrl(url));
+        this.isBookingPage.set(isBookingFlowUrl(url));
       });
   }
 

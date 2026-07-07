@@ -1,0 +1,295 @@
+<div class="owner-page page-container">
+
+  <app-ui-page-header
+    [title]="listingTitle()"
+    backLink="/my-listings"
+    mobileTitleAlign="start"
+    [hideTitleOnDesktop]="true"
+  />
+
+  @if (showSkeleton()) {
+    <div class="owner-page__skeleton" aria-busy="true">
+      <p-skeleton width="100%" height="3rem" borderRadius="16px" />
+      <p-skeleton width="100%" height="22rem" borderRadius="20px" />
+      <div class="owner-page__skeleton-grid">
+        <p-skeleton width="60%" height="2.5rem" />
+        <p-skeleton width="100%" height="9rem" borderRadius="16px" />
+        <p-skeleton width="100%" height="14rem" borderRadius="16px" />
+      </div>
+    </div>
+  }
+
+  @if (showError()) {
+    <div class="owner-page__error" role="alert">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <p>{{ detailsError() }}</p>
+      <p-button
+        type="button"
+        [label]="'listings.common.retry' | translate"
+        (onClick)="retryLoad()"
+      />
+    </div>
+  }
+
+  @if (showContent() && listing(); as listing) {
+    <article class="owner-page__article">
+
+      <div class="owner-page__top">
+        <!-- Listing-status banner -->
+        <app-listing-status-banner
+          class="owner-page__banner"
+          [status]="status()"
+        />
+
+        <!-- Hero gallery with Edit photos overlay -->
+        <div class="owner-page__hero">
+          <app-listing-gallery [images]="listing.images" />
+          <a
+            class="owner-page__edit-photos"
+            [routerLink]="['/my-listings', listing.id, 'edit']"
+          >
+            <i class="pi pi-images" aria-hidden="true"></i>
+            <span>{{ 'myListings.ownerView.editPhotos' | translate }}</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="owner-page__body">
+        <!-- LEFT / main column -->
+        <div class="owner-page__main">
+
+          <!-- Heading -->
+          <header class="owner-page__heading owner-page__leaf owner-page__leaf--heading">
+            <div class="owner-page__heading-text">
+              <h1 class="owner-page__title">{{ listing.title }}</h1>
+              <div class="owner-page__meta-row">
+                @if (ratingSummary(); as summary) {
+                  @if (summary.reviewCount > 0) {
+                    <span class="owner-page__rating">
+                      <i class="pi pi-star-fill" aria-hidden="true"></i>
+                      <strong>{{ summary.averageRating | number: '1.1-1' }}</strong>
+                      <span class="owner-page__rating-count">
+                        {{
+                          'myListings.ownerView.reviewsCount'
+                            | translate: { count: summary.reviewCount }
+                        }}
+                      </span>
+                    </span>
+                    <span class="owner-page__meta-sep" aria-hidden="true">•</span>
+                  }
+                }
+                <span class="owner-page__city">
+                  <i class="pi pi-map-marker" aria-hidden="true"></i>
+                  <span>{{ listing.city }}</span>
+                </span>
+              </div>
+            </div>
+          </header>
+
+          <!-- Performance stats (real: rating + pending requests) -->
+          <section
+            class="owner-page__stats owner-page__leaf owner-page__leaf--stats"
+            aria-labelledby="owner-stats-heading"
+          >
+            <h2 id="owner-stats-heading" class="owner-page__sr-only">
+              {{ 'myListings.ownerView.stats.heading' | translate }}
+            </h2>
+            <div class="owner-page__stats-grid">
+              <app-owner-stat-card
+                icon="pi pi-star"
+                [label]="'myListings.ownerView.stats.rating' | translate"
+                [value]="ratingValue()"
+                [delta]="
+                  hasReviews()
+                    ? ('myListings.ownerView.stats.ratingDelta' | translate: { count: reviewCount() })
+                    : ('myListings.ownerView.stats.noReviews' | translate)
+                "
+                deltaTone="neutral"
+              />
+              <app-owner-stat-card
+                icon="pi pi-inbox"
+                [label]="'myListings.ownerView.stats.pendingRequests' | translate"
+                [value]="pendingCountLabel()"
+                [delta]="
+                  'myListings.ownerView.stats.pendingRequestsDelta' | translate: { count: totalRequests() }
+                "
+                deltaTone="positive"
+              />
+            </div>
+          </section>
+
+          <!-- About -->
+          <section
+            class="owner-page__section owner-page__leaf owner-page__leaf--about"
+            aria-labelledby="owner-about-heading"
+          >
+            <span class="owner-page__eyebrow">{{ 'listings.details.eyebrow.overview' | translate }}</span>
+            <h2 id="owner-about-heading" class="owner-page__section-title">
+              {{ 'listings.details.descriptionHeading' | translate }}
+            </h2>
+            <p class="owner-page__section-body">{{ listing.description }}</p>
+          </section>
+
+          <!-- Specs -->
+          @if (hasAnyToyDetail(listing)) {
+            <section
+              class="owner-page__section owner-page__leaf owner-page__leaf--specs"
+              aria-labelledby="owner-specs-heading"
+            >
+              <h2 id="owner-specs-heading" class="owner-page__section-title">
+                {{ 'listings.details.toyDetails.heading' | translate }}
+              </h2>
+              <dl class="owner-page__specs">
+                @if (resolveAgeRangeDisplay(listing.ageFromMonths, listing.ageToMonths); as ageRange) {
+                  <div class="owner-page__spec">
+                    <dt>{{ 'listings.details.toyDetails.ageRange' | translate }}</dt>
+                    <dd>{{ ageRange.key | translate: ageRange.params }}</dd>
+                  </div>
+                }
+                @if (listing.condition; as condition) {
+                  <div class="owner-page__spec">
+                    <dt>{{ 'listings.details.toyDetails.condition' | translate }}</dt>
+                    <dd>
+                      @if (resolveConditionLabelKey(condition); as conditionKey) {
+                        {{ conditionKey | translate }}
+                      } @else {
+                        {{ condition }}
+                      }
+                    </dd>
+                  </div>
+                }
+                @if (listing.hygieneNotes; as hygieneNotes) {
+                  <div class="owner-page__spec owner-page__spec--block">
+                    <dt>{{ 'listings.details.toyDetails.hygieneNotes' | translate }}</dt>
+                    <dd>{{ hygieneNotes }}</dd>
+                  </div>
+                }
+                @if (listing.safetyNotes; as safetyNotes) {
+                  <div class="owner-page__spec owner-page__spec--block">
+                    <dt>{{ 'listings.details.toyDetails.safetyNotes' | translate }}</dt>
+                    <dd>{{ safetyNotes }}</dd>
+                  </div>
+                }
+              </dl>
+            </section>
+          }
+
+          <!-- Reviews (read-only) -->
+          <section
+            class="owner-page__section owner-page__leaf owner-page__leaf--reviews"
+            aria-labelledby="owner-reviews-heading"
+          >
+            <span class="owner-page__eyebrow">{{ 'listings.details.eyebrow.reviews' | translate }}</span>
+            <h2 id="owner-reviews-heading" class="owner-page__section-title">
+              {{ 'listings.details.reviews.heading' | translate }}
+              @if (ratingSummary(); as summary) {
+                @if (summary.reviewCount > 0) {
+                  <span class="owner-page__reviews-count">({{ summary.reviewCount }})</span>
+                }
+              }
+            </h2>
+
+            @if (reviewsLoading()) {
+              <div class="owner-page__reviews-skeleton">
+                @for (i of [0, 1, 2]; track i) {
+                  <p-skeleton height="5.25rem" borderRadius="16px" />
+                }
+              </div>
+            } @else if (reviewsError()) {
+              <p class="owner-page__reviews-error" role="alert">
+                {{ 'listings.details.reviews.error' | translate }}
+              </p>
+            } @else if (reviews().length === 0) {
+              <p class="owner-page__reviews-empty">
+                {{ 'listings.details.reviews.empty' | translate }}
+              </p>
+            } @else {
+              <div class="owner-page__reviews-list">
+                @for (review of reviews(); track review.id) {
+                  <app-review-card [review]="review" />
+                }
+              </div>
+            }
+          </section>
+        </div>
+
+        <!-- RIGHT / sidebar column -->
+        <aside class="owner-page__aside">
+
+          <!-- Daily-rate feature card (real price/day) -->
+          <section
+            class="owner-page__earnings owner-page__leaf owner-page__leaf--earnings"
+            aria-labelledby="owner-rate-heading"
+          >
+            <p id="owner-rate-heading" class="owner-page__earnings-label">
+              {{ 'myListings.ownerView.dailyRate.title' | translate }}
+            </p>
+            <div class="owner-page__earnings-row">
+              <p class="owner-page__earnings-amount">
+                {{ listing.pricePerDay | currency }}
+                <span class="owner-page__earnings-rate-suffix">/ {{ 'listings.booking.priceSuffix' | translate }}</span>
+              </p>
+            </div>
+            <p class="owner-page__earnings-pending">
+              <i class="pi pi-info-circle" aria-hidden="true"></i>
+              {{ 'myListings.ownerView.dailyRate.hint' | translate }}
+            </p>
+          </section>
+
+          <!-- Booking requests panel -->
+          <section
+            class="owner-page__requests owner-page__leaf owner-page__leaf--requests"
+            aria-labelledby="owner-requests-heading"
+          >
+            <div class="owner-page__requests-head">
+              <h2 id="owner-requests-heading" class="owner-page__section-title">
+                {{ 'myListings.ownerView.requests.heading' | translate }}
+              </h2>
+              @if (pendingCount() > 0) {
+                <span class="owner-page__requests-badge" aria-hidden="true">{{ pendingCount() }}</span>
+                <span class="owner-page__sr-only">
+                  {{ 'myListings.ownerView.requests.pendingCount' | translate: { count: pendingCount() } }}
+                </span>
+              }
+            </div>
+
+            @if (requestsLoading() && requests().length === 0) {
+              <div class="owner-page__requests-list" aria-busy="true">
+                @for (i of [0, 1]; track i) {
+                  <p-skeleton height="9rem" borderRadius="16px" />
+                }
+              </div>
+            } @else if (requests().length === 0) {
+              <p class="owner-page__requests-empty">
+                {{ 'myListings.ownerView.requests.empty' | translate }}
+              </p>
+            } @else {
+              <div class="owner-page__requests-list">
+                @for (request of requests(); track request.id) {
+                  <app-owner-request-card
+                    [request]="request"
+                    [actionLoading]="isActionLoading(request.id)"
+                    (accepted)="onAccept($event)"
+                    (declined)="onDecline($event)"
+                    (messaged)="onMessage($event)"
+                  />
+                }
+              </div>
+            }
+          </section>
+        </aside>
+      </div>
+
+      <!-- Mobile sticky action bar -->
+      <div class="owner-page__mobile-bar">
+        <p-button
+          type="button"
+          styleClass="owner-page__mobile-edit"
+          icon="pi pi-pencil"
+          [label]="'myListings.ownerView.editListing' | translate"
+          [routerLink]="['/my-listings', listing.id, 'edit']"
+        />
+      </div>
+    </article>
+  }
+</div>

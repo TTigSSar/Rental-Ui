@@ -118,6 +118,7 @@ function normalizeBookingRequest(
     id: String(item.id),
     listingId: toStr(item.listingId),
     listingTitle: toStr(item.listingTitle),
+    renterId: toStr(item.renterId),
     renterFirstName: toStr(item.renterFirstName),
     renterLastName: toStr(item.renterLastName),
     renterEmail: toStr(item.renterEmail),

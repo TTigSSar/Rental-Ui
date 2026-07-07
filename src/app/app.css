@@ -676,17 +676,49 @@
   }
 }
 
-/* ── Details page: hide global header on mobile only ─── */
+/* ── Details / booking pages: hide global header on mobile only ─── */
 @media (max-width: 960px) {
   .app-shell--details .app-shell__header-wrap,
+  .app-shell--booking .app-shell__header-wrap,
   .app-shell--profile-child .app-shell__header-wrap {
     display: none;
   }
 }
 
+/* ── Item-details & booking flow own their bottom action bar, so the
+      global bottom nav is suppressed and its reserved space removed.
+      (Mirrors the create-listing wizard behaviour.) ─────────────── */
+.app-shell--details .app-bottom-nav,
+.app-shell--booking .app-bottom-nav {
+  display: none;
+}
+
+.app-shell--details .app-shell__content--with-bottom-nav,
+.app-shell--booking .app-shell__content--with-bottom-nav {
+  padding-bottom: 0;
+}
+
 /* —— Mobile bottom navigation (hidden on desktop) —— */
 .app-bottom-nav {
   display: none;
+}
+
+/* Create-listing wizard owns the bottom bar (its own Back/Continue footer),
+   so the global bottom nav is suppressed and its reserved space removed.
+   The global header is also hidden on mobile so the wizard's own sticky header
+   sits at the very top — this ensures the Continue button in the sticky footer
+   is always within the initial viewport instead of pushed below the fold. */
+.app-shell--create .app-bottom-nav {
+  display: none;
+}
+.app-shell--create .app-shell__content--with-bottom-nav {
+  padding-bottom: 0;
+}
+
+@media (max-width: 960px) {
+  .app-shell--create .app-shell__header-wrap {
+    display: none;
+  }
 }
 
 /* —— Responsive: mobile header with icon buttons —— */
