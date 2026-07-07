@@ -65,4 +65,13 @@ export class ChatBadgeService {
   setUnreadCount(count: number): void {
     this.unreadCountSignal.set(Math.max(0, count));
   }
+
+  /**
+   * Optimistically bump the count by one. Used by {@link ChatRealtimeService}
+   * for an incoming message arriving while the lazy chat store is not loaded
+   * (nothing else can keep the badge live in that case).
+   */
+  increment(by = 1): void {
+    this.unreadCountSignal.update((current) => Math.max(0, current + by));
+  }
 }

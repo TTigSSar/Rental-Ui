@@ -4,6 +4,7 @@ import type {
   ChatConversationDetails,
   ChatConversationPreview,
   ChatMessage,
+  ChatRealtimeMessage,
 } from '../models/chat.model';
 
 export const loadConversations = createAction('[Chat] Load Conversations');
@@ -61,4 +62,46 @@ export const markConversationReadSuccess = createAction(
 export const markConversationReadFailure = createAction(
   '[Chat] Mark Conversation Read Failure',
   props<{ error: string }>(),
+);
+
+// --- Realtime (SignalR chat hub) ---------------------------------------------
+
+/**
+ * Raw viewer-neutral message received over the hub. Dispatched by
+ * `ChatRealtimeService`; enriched with the current user (isMine) by the effect,
+ * which then dispatches {@link realtimeMessageResolved}.
+ */
+export const realtimeMessageReceived = createAction(
+  '[Chat] Realtime Message Received',
+  props<{ message: ChatRealtimeMessage }>(),
+);
+
+/**
+ * A hub message mapped to the local `ChatMessage` shape (isMine resolved,
+ * seen=false). The reducer dedupes by id, appends to the open conversation and
+ * updates the inbox row.
+ */
+export const realtimeMessageResolved = createAction(
+  '[Chat] Realtime Message Resolved',
+  props<{ message: ChatMessage }>(),
+);
+
+/**
+ * Raw `conversationRead` hub event. Dispatched by `ChatRealtimeService`;
+ * resolved against the current user by the effect into
+ * {@link realtimeConversationReadResolved}.
+ */
+export const realtimeConversationRead = createAction(
+  '[Chat] Realtime Conversation Read',
+  props<{ conversationId: string; readerUserId: string; readAtUtc: string }>(),
+);
+
+/**
+ * A `conversationRead` event with the reader identity resolved. `readerIsMe`
+ * true → the current user read it elsewhere (clear my unread); false → the
+ * counterpart read my messages (live "Seen").
+ */
+export const realtimeConversationReadResolved = createAction(
+  '[Chat] Realtime Conversation Read Resolved',
+  props<{ conversationId: string; readAtUtc: string; readerIsMe: boolean }>(),
 );

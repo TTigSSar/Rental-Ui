@@ -61,3 +61,29 @@ export interface SendChatMessageRequest {
   conversationId: string;
   content: string;
 }
+
+/**
+ * Viewer-neutral message pushed over the chat SignalR hub (`messageReceived`).
+ * The server sends the same payload to BOTH participants, so `isMine` / `seen`
+ * are not present — they are derived locally against the current user.
+ */
+export interface ChatRealtimeMessage {
+  id: string;
+  conversationId: string;
+  senderId: string | null;
+  senderName: string | null;
+  type: ChatMessageType;
+  systemKind: ChatSystemKind | null;
+  body: string | null;
+  attachmentUrl: string | null;
+  /** ISO UTC (ends in `Z`). */
+  sentAt: string;
+}
+
+/** Payload of the hub `conversationRead` event, sent to both participants. */
+export interface ChatRealtimeReadEvent {
+  conversationId: string;
+  readerUserId: string;
+  /** ISO UTC (ends in `Z`). */
+  readAtUtc: string;
+}

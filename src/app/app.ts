@@ -21,6 +21,7 @@ import {
 } from './features/auth/store/auth.selectors';
 import { AuthDialogComponent } from './features/auth/components/auth-dialog/auth-dialog.component';
 import { ChatBadgeService } from './features/chat/services/chat-badge.service';
+import { ChatRealtimeService } from './features/chat/services/chat-realtime.service';
 import { NotificationBadgeService } from './features/notifications/services/notification-badge.service';
 import { AppHeaderComponent } from './shared/ui/app-header/app-header.component';
 
@@ -97,6 +98,7 @@ export class App {
   private readonly translate = inject(TranslateService);
   private readonly notificationBadge = inject(NotificationBadgeService);
   private readonly chatBadge = inject(ChatBadgeService);
+  private readonly chatRealtime = inject(ChatRealtimeService);
 
   // Global unread badge, kept in sync from a single source: the badge service
   // polls the unread-count endpoint while authenticated (there is no realtime
@@ -186,9 +188,11 @@ export class App {
         if (isAuthenticated) {
           this.notificationBadge.start();
           this.chatBadge.start();
+          this.chatRealtime.start();
         } else {
           this.notificationBadge.stop();
           this.chatBadge.stop();
+          this.chatRealtime.stop();
         }
       });
 
