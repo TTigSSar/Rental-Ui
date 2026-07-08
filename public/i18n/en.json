@@ -1231,6 +1231,10 @@
     "common": {
       "notAvailable": "Not available"
     },
+    "shell": {
+      "emptyTitle": "Select a conversation",
+      "emptyText": "Choose a conversation from the list to view messages."
+    },
     "conversations": {
       "title": "Conversations",
       "subtitle": "Stay connected with renters and owners.",

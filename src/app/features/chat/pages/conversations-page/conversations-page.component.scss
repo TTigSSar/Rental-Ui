@@ -158,6 +158,17 @@
   border-color: color-mix(in srgb, var(--ui-color-primary) 38%, transparent);
 }
 
+/* Active conversation (open in the desktop right pane) — persistent highlight. */
+.chat-row--active {
+  border-color: var(--ui-color-primary);
+  background: color-mix(in srgb, var(--ui-color-primary) 8%, var(--ui-color-surface));
+  box-shadow: var(--ui-shadow-card-hover);
+}
+
+.chat-row--active:hover {
+  box-shadow: var(--ui-shadow-card-hover);
+}
+
 .chat-row__avatar {
   position: relative;
   flex-shrink: 0;

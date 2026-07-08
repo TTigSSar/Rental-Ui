@@ -1,6 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
@@ -71,6 +71,7 @@ const selectConversationsBaseState = createSelector(
     ChatTimeAgoPipe,
     MessageModule,
     RouterLink,
+    RouterLinkActive,
     SkeletonModule,
     TranslatePipe,
     UiInputComponent,

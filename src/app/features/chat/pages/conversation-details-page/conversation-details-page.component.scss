@@ -396,6 +396,14 @@
   text-align: center;
 }
 
+/* Desktop two-pane: the conversations list is always visible in the shell
+   rail, so the in-thread back arrow is redundant. */
+@media (min-width: 1024px) {
+  .chat-thread__back {
+    display: none;
+  }
+}
+
 @media (max-width: 640px) {
   .chat-thread {
     padding: 1rem 0.75rem 3rem;

@@ -88,6 +88,7 @@
               class="chat-row"
               [class.chat-row--unread]="conversation.unreadCount > 0"
               [routerLink]="['/chat', conversation.id]"
+              routerLinkActive="chat-row--active"
             >
               <div class="chat-row__avatar">
                 @if (conversation.counterpartAvatarUrl) {

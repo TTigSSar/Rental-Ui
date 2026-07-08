@@ -1,0 +1,21 @@
+<div class="chat-shell" [class.chat-shell--thread-open]="threadOpen()">
+  <aside class="chat-shell__rail">
+    <app-conversations-page />
+  </aside>
+
+  <section class="chat-shell__pane">
+    <router-outlet />
+
+    @if (!threadOpen()) {
+      <div class="chat-shell__empty">
+        <span class="pi pi-comments chat-shell__empty-icon" aria-hidden="true"></span>
+        <h2 class="chat-shell__empty-title">
+          {{ 'chat.shell.emptyTitle' | translate }}
+        </h2>
+        <p class="chat-shell__empty-text">
+          {{ 'chat.shell.emptyText' | translate }}
+        </p>
+      </div>
+    }
+  </section>
+</div>

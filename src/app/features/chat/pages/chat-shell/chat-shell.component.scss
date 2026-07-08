@@ -1,0 +1,85 @@
+.chat-shell {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: 100%;
+}
+
+/* ── Rail (conversations list) ────────────────────────────────────────── */
+.chat-shell__rail {
+  min-width: 0;
+}
+
+/* ── Right pane (active thread / empty state) ─────────────────────────── */
+.chat-shell__pane {
+  position: relative;
+  min-width: 0;
+}
+
+.chat-shell__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: 55vh;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+
+.chat-shell__empty-icon {
+  font-size: 2rem;
+  color: var(--ui-color-text-muted);
+}
+
+.chat-shell__empty-title {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.chat-shell__empty-text {
+  margin: 0;
+  max-width: 22rem;
+  color: var(--ui-color-text-secondary);
+}
+
+/*
+ * ── Mobile single-column (< 1024px) ──────────────────────────────────────
+ * Show exactly one pane: the rail (list) at /chat, or the outlet (thread)
+ * when a conversation is open. Both stay in the DOM (no duplication); CSS
+ * keyed off `--thread-open` decides which is visible.
+ */
+.chat-shell__pane {
+  display: none;
+}
+
+.chat-shell--thread-open .chat-shell__rail {
+  display: none;
+}
+
+.chat-shell--thread-open .chat-shell__pane {
+  display: block;
+}
+
+/* ── Desktop two-pane (≥ 1024px) ──────────────────────────────────────── */
+@media (min-width: 1024px) {
+  .chat-shell {
+    grid-template-columns: minmax(320px, 380px) 1fr;
+    gap: 1.5rem;
+    max-width: 1200px;
+    margin-inline: auto;
+    padding-inline: 1rem;
+    align-items: start;
+  }
+
+  /* Both panes always visible, regardless of --thread-open. */
+  .chat-shell__rail,
+  .chat-shell--thread-open .chat-shell__rail,
+  .chat-shell__pane,
+  .chat-shell--thread-open .chat-shell__pane {
+    display: block;
+  }
+
+  .chat-shell__rail {
+    border-right: 1px solid var(--ui-color-border);
+  }
+}
