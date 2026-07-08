@@ -15,13 +15,46 @@
 
 .conversations-page__title {
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: clamp(1.5rem, 3vw, 2rem);
   line-height: 1.2;
+}
+
+.conversations-page__title-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.45rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: var(--ui-font-weight-bold);
+  color: var(--ui-color-on-primary);
+  background: var(--ui-color-primary);
 }
 
 .conversations-page__subtitle {
   margin: 0;
   color: var(--ui-color-text-secondary);
+}
+
+.conversations-page__search {
+  display: block;
+}
+
+.conversations-page__visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .conversations-page__error {
@@ -183,8 +216,37 @@
 .chat-row__meta {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   min-width: 0;
+}
+
+.chat-row__status-dot {
+  flex-shrink: 0;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--ui-color-text-secondary);
+}
+
+.chat-row__status-dot--pending {
+  background: var(--ui-color-warning);
+}
+
+.chat-row__status-dot--approved {
+  background: var(--ui-color-approved);
+}
+
+.chat-row__status-dot--rejected {
+  background: var(--ui-color-rejected);
+}
+
+.chat-row__status-dot--booked {
+  background: var(--ui-color-info);
+}
+
+.chat-row__status-dot--completed,
+.chat-row__status-dot--neutral {
+  background: var(--ui-color-text-secondary);
 }
 
 .chat-row__toy-title {

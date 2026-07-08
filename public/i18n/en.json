@@ -1238,10 +1238,16 @@
       "emptyTitle": "No conversations yet",
       "empty": "Your conversations will appear here after you start chatting.",
       "noMessages": "No messages yet",
-      "unreadAria": "{{count}} unread messages"
+      "unreadAria": "{{count}} unread messages",
+      "searchPlaceholder": "Search conversations",
+      "noResultsTitle": "No matches",
+      "noResults": "No conversations match “{{query}}”."
     },
     "details": {
       "backToConversations": "Back to conversations",
+      "verifiedAria": "Verified user",
+      "dayToday": "Today",
+      "dayYesterday": "Yesterday",
       "errorTitle": "Unable to load conversation",
       "emptyTitle": "Conversation not available",
       "empty": "This conversation is unavailable or has no data.",

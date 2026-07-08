@@ -7,18 +7,82 @@
   padding: 1.5rem 1rem 3rem;
 }
 
+/* ── Thread header (back + counterpart identity) ──────────────────────── */
+.chat-thread__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
 .chat-thread__back {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  width: fit-content;
-  color: var(--ui-color-primary);
-  font-weight: var(--ui-font-weight-medium);
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  color: var(--ui-color-text-primary);
+  background: var(--ui-color-surface-muted);
   text-decoration: none;
+  transition: background 0.15s ease;
 }
 
 .chat-thread__back:hover {
-  text-decoration: underline;
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 80%, var(--ui-color-primary));
+}
+
+.chat-thread__back:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
+}
+
+.chat-thread__back .pi {
+  font-size: 1rem;
+}
+
+.chat-thread__header-title {
+  font-weight: var(--ui-font-weight-medium);
+  color: var(--ui-color-text-secondary);
+}
+
+.chat-thread__identity {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.chat-thread__identity-avatar {
+  flex-shrink: 0;
+  width: 2.375rem;
+  height: 2.375rem;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.chat-thread__identity-name {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  font-size: 1.0625rem;
+  font-weight: var(--ui-font-weight-bold);
+}
+
+.chat-thread__identity-text {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-thread__verified {
+  flex-shrink: 0;
+  font-size: 1rem;
+  color: var(--ui-color-info);
 }
 
 .chat-thread__error {
@@ -259,6 +323,25 @@
   font-size: 0.7rem;
   font-weight: var(--ui-font-weight-semibold);
   color: var(--ui-color-primary);
+}
+
+/* ── Day divider ──────────────────────────────────────────────────────── */
+.chat-day-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0;
+}
+
+.chat-day-divider__label {
+  padding: 0.15rem 0.75rem;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-secondary);
+  font-size: 0.7rem;
+  font-weight: var(--ui-font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 /* ── System line ──────────────────────────────────────────────────────── */

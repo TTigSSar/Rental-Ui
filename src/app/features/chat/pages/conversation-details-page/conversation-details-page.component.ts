@@ -19,18 +19,19 @@ import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, filter, map } from 'rxjs';
 
+import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import {
+  type ChatDayLabel,
   type ChatSystemMeta,
+  chatDayKey,
+  chatDayLabel,
   mapChatStatusLabelKey,
   mapChatStatusTone,
   mapChatSystemMeta,
 } from '../../models/chat-ui.util';
-import type {
-  ChatConversationDetails,
-  ChatMessage,
-} from '../../models/chat.model';
+import type { ChatConversationDetails, ChatMessage } from '../../models/chat.model';
 import { ChatTimeAgoPipe } from '../../pipes/chat-time-ago.pipe';
 import * as ChatActions from '../../store/chat.actions';
 import {
@@ -60,7 +61,32 @@ interface SystemLine {
   readonly body: string | null;
 }
 
-type ThreadItem = MessageGroup | SystemLine;
+/** A centered calendar-day separator inserted between messages of different days. */
+interface DayDivider {
+  readonly kind: 'day';
+  readonly id: string;
+  /** Translate key for Today / Yesterday, or null when an absolute date is used. */
+  readonly labelKey: string | null;
+  /** Pre-formatted absolute date (weekday or day-month), or null for Today/Yesterday. */
+  readonly labelText: string | null;
+}
+
+/** Flattens a {@link ChatDayLabel} into template-friendly key/text fields. */
+function toDayDividerFields(label: ChatDayLabel): {
+  labelKey: string | null;
+  labelText: string | null;
+} {
+  switch (label.kind) {
+    case 'today':
+      return { labelKey: 'chat.details.dayToday', labelText: null };
+    case 'yesterday':
+      return { labelKey: 'chat.details.dayYesterday', labelText: null };
+    default:
+      return { labelKey: null, labelText: label.text };
+  }
+}
+
+type ThreadItem = MessageGroup | SystemLine | DayDivider;
 
 interface ConversationDetailsPageViewModel {
   readonly routeConversationId: string | null;
@@ -105,7 +131,22 @@ function buildThreadItems(messages: ChatMessage[]): ThreadItem[] {
     }
   }
 
+  // Track the local calendar day so a divider is emitted whenever it changes.
+  // Pushing the divider also breaks message grouping across a day boundary,
+  // because the item preceding the next message is then the divider, not a group.
+  let currentDayKey: string | null = null;
+
   for (const message of messages) {
+    const dayKey = chatDayKey(message.sentAt);
+    if (dayKey !== currentDayKey) {
+      currentDayKey = dayKey;
+      items.push({
+        kind: 'day',
+        id: `day:${dayKey}`,
+        ...toDayDividerFields(chatDayLabel(message.sentAt)),
+      });
+    }
+
     if (message.type === 'system') {
       items.push({
         kind: 'system',
@@ -157,6 +198,7 @@ function buildThreadItems(messages: ChatMessage[]): ThreadItem[] {
   standalone: true,
   imports: [
     AsyncPipe,
+    AvatarComponent,
     BadgeComponent,
     ButtonModule,
     ChatTimeAgoPipe,
@@ -209,9 +251,7 @@ export class ConversationDetailsPageComponent implements OnInit {
         return {
           routeConversationId,
           conversation: activeConversation,
-          threadItems: activeConversation
-            ? buildThreadItems(activeConversation.messages)
-            : [],
+          threadItems: activeConversation ? buildThreadItems(activeConversation.messages) : [],
           loading: routeState.loading,
           error: routeState.error,
           sendingMessage,
@@ -229,8 +269,7 @@ export class ConversationDetailsPageComponent implements OnInit {
   });
 
   /** The scrollable message pane, resolved once the conversation renders. */
-  private readonly messagesPane =
-    viewChild<ElementRef<HTMLElement>>('messagesPane');
+  private readonly messagesPane = viewChild<ElementRef<HTMLElement>>('messagesPane');
 
   /**
    * A signature that changes only when the rendered thread changes — a new
@@ -241,9 +280,7 @@ export class ConversationDetailsPageComponent implements OnInit {
   private readonly threadScrollKey = toSignal(
     this.viewModel$.pipe(
       map((vm) =>
-        vm.conversation
-          ? `${vm.conversation.id}:${vm.conversation.messages.length}`
-          : null,
+        vm.conversation ? `${vm.conversation.id}:${vm.conversation.messages.length}` : null,
       ),
       distinctUntilChanged(),
     ),

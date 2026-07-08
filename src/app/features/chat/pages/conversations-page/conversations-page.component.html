@@ -1,12 +1,35 @@
 <section class="conversations-page">
-  <header class="conversations-page__header">
-    <h1 class="conversations-page__title">{{ 'chat.conversations.title' | translate }}</h1>
-    <p class="conversations-page__subtitle">
-      {{ 'chat.conversations.subtitle' | translate }}
-    </p>
-  </header>
-
   @if (viewModel$ | async; as vm) {
+    <header class="conversations-page__header">
+      <h1 class="conversations-page__title">
+        <span>{{ 'chat.conversations.title' | translate }}</span>
+        @if (vm.totalUnread > 0) {
+          <span
+            class="conversations-page__title-count"
+            [attr.aria-label]="
+              'chat.conversations.unreadAria' | translate: { count: vm.totalUnread }
+            "
+          >
+            {{ vm.totalUnread }}
+          </span>
+        }
+      </h1>
+      <p class="conversations-page__subtitle">
+        {{ 'chat.conversations.subtitle' | translate }}
+      </p>
+    </header>
+
+    @if (vm.showSearch) {
+      <app-ui-input
+        class="conversations-page__search"
+        type="search"
+        variant="filled"
+        [value]="vm.searchTerm"
+        [placeholder]="'chat.conversations.searchPlaceholder' | translate"
+        (valueChange)="onSearch($event)"
+      />
+    }
+
     @if (vm.hasError && vm.error) {
       <div class="conversations-page__error" role="alert">
         <p-message severity="error" styleClass="conversations-page__message">
@@ -15,11 +38,7 @@
             <span>{{ vm.error }}</span>
           </div>
         </p-message>
-        <p-button
-          type="button"
-          [label]="'listings.common.retry' | translate"
-          (onClick)="retry()"
-        />
+        <p-button type="button" [label]="'listings.common.retry' | translate" (onClick)="retry()" />
       </div>
     }
 
@@ -49,9 +68,21 @@
       </div>
     }
 
-    @if (vm.conversations.length > 0) {
+    @if (vm.showNoResults) {
+      <div class="conversations-page__empty">
+        <span class="pi pi-search conversations-page__empty-icon"></span>
+        <h2 class="conversations-page__empty-title">
+          {{ 'chat.conversations.noResultsTitle' | translate }}
+        </h2>
+        <p class="conversations-page__empty-text">
+          {{ 'chat.conversations.noResults' | translate: { query: vm.searchTerm } }}
+        </p>
+      </div>
+    }
+
+    @if (vm.filteredConversations.length > 0) {
       <ul class="conversations-page__list">
-        @for (conversation of vm.conversations; track conversation.id) {
+        @for (conversation of vm.filteredConversations; track conversation.id) {
           <li>
             <a
               class="chat-row"
@@ -88,11 +119,17 @@
                 </div>
 
                 <div class="chat-row__meta">
-                  <app-ui-badge
-                    [tone]="statusTone(conversation.status)"
-                    [label]="statusLabelKey(conversation.status) | translate"
-                  />
+                  <span
+                    [class]="
+                      'chat-row__status-dot chat-row__status-dot--' +
+                      statusTone(conversation.status)
+                    "
+                    aria-hidden="true"
+                  ></span>
                   <span class="chat-row__toy-title">{{ conversation.toyTitle }}</span>
+                  <span class="conversations-page__visually-hidden">
+                    {{ statusLabelKey(conversation.status) | translate }}
+                  </span>
                 </div>
 
                 <div class="chat-row__bottom">

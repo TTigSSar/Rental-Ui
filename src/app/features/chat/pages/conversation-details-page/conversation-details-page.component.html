@@ -1,10 +1,43 @@
 <section class="chat-thread">
-  <a class="chat-thread__back" routerLink="/chat">
-    <i class="pi pi-arrow-left" aria-hidden="true"></i>
-    <span>{{ 'chat.details.backToConversations' | translate }}</span>
-  </a>
-
   @if (viewModel$ | async; as vm) {
+    <header class="chat-thread__header">
+      <a
+        class="chat-thread__back"
+        routerLink="/chat"
+        [attr.aria-label]="'chat.details.backToConversations' | translate"
+      >
+        <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      </a>
+
+      @if (vm.conversation; as conversation) {
+        <div class="chat-thread__identity">
+          @if (conversation.counterpartAvatarUrl) {
+            <img
+              class="chat-thread__identity-avatar"
+              [src]="conversation.counterpartAvatarUrl"
+              [alt]="conversation.counterpartName"
+              loading="lazy"
+            />
+          } @else {
+            <app-ui-avatar [name]="conversation.counterpartName" size="md" />
+          }
+          <h1 class="chat-thread__identity-name">
+            <span class="chat-thread__identity-text">{{ conversation.counterpartName }}</span>
+            @if (conversation.counterpartVerified) {
+              <i
+                class="pi pi-verified chat-thread__verified"
+                [attr.aria-label]="'chat.details.verifiedAria' | translate"
+              ></i>
+            }
+          </h1>
+        </div>
+      } @else {
+        <span class="chat-thread__header-title">
+          {{ 'chat.details.backToConversations' | translate }}
+        </span>
+      }
+    </header>
+
     @if (vm.hasError && vm.error) {
       <div class="chat-thread__error" role="alert">
         <p-message severity="error" styleClass="chat-thread__message">
@@ -13,11 +46,7 @@
             <span>{{ vm.error }}</span>
           </div>
         </p-message>
-        <p-button
-          type="button"
-          [label]="'listings.common.retry' | translate"
-          (onClick)="retry()"
-        />
+        <p-button type="button" [label]="'listings.common.retry' | translate" (onClick)="retry()" />
       </div>
     }
 
@@ -61,7 +90,7 @@
 
           <div class="chat-thread__context-body">
             <div class="chat-thread__context-top">
-              <h1 class="chat-thread__toy-title">{{ conversation.toyTitle }}</h1>
+              <h2 class="chat-thread__toy-title">{{ conversation.toyTitle }}</h2>
               <app-ui-badge
                 [tone]="statusTone(conversation.status)"
                 [label]="statusLabelKey(conversation.status) | translate"
@@ -92,7 +121,17 @@
             </p>
           } @else {
             @for (item of vm.threadItems; track item.id) {
-              @if (item.kind === 'system') {
+              @if (item.kind === 'day') {
+                <div class="chat-day-divider">
+                  <span class="chat-day-divider__label">
+                    @if (item.labelKey) {
+                      {{ item.labelKey | translate }}
+                    } @else {
+                      {{ item.labelText }}
+                    }
+                  </span>
+                </div>
+              } @else if (item.kind === 'system') {
                 <div class="chat-system">
                   <span class="chat-system__line">
                     <i [class]="item.meta.icon" aria-hidden="true"></i>
@@ -103,10 +142,7 @@
                   </span>
                 </div>
               } @else {
-                <div
-                  class="chat-group"
-                  [class.chat-group--mine]="item.isMine"
-                >
+                <div class="chat-group" [class.chat-group--mine]="item.isMine">
                   @if (!item.isMine && item.senderName) {
                     <span class="chat-group__sender">{{ item.senderName }}</span>
                   }

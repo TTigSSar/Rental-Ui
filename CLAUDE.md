@@ -24,9 +24,9 @@ src/app/
 
 Listing: `Draft / PendingApproval / Approved / Rejected / Archived`. Booking: `Pending / Approved / Active / Completed / Rejected / Cancelled / Expired`.
 
-## Known gap
+## Chat backend (this note was once "no backend" — it is now REAL)
 
-`features/chat/` is frontend-only: `chat-api.service.ts` has no real backend yet — the API has no chat controller.
+`features/chat/` is wired to a real backend: `ChatController` (booking-scoped conversations, messages, read cursors) + a SignalR hub at `/hubs/chat`. Verify live against a running API. Realtime works under `npm start` (Angular dev proxy) and `dotnet run`; it is currently BROKEN in the docker UI image (nginx doesn't proxy the hub — M-008), but the REST chat endpoints work in docker.
 
 ## Tests
 
