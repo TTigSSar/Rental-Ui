@@ -7,10 +7,26 @@
   padding: 1.5rem 1rem 3rem;
 }
 
+/*
+ * Embedded in the desktop two-pane shell rail (≥1024px), the list must FILL the
+ * fixed rail column. The page-level chrome above (max-width / centering margin /
+ * large bottom padding) is meant for the standalone full-screen list (/chat on
+ * mobile) — inside the narrow rail it left the cards short of the column edge,
+ * which combined with the shell gap read as an empty "dead strip". Neutralize it
+ * here so cards reach the rail's border-right divider. Mobile (< 1024px) keeps
+ * the full-page layout untouched.
+ */
+@media (min-width: 1024px) {
+  :host-context(.chat-shell__rail) .conversations-page {
+    max-width: none;
+    margin: 0;
+    padding: 1.25rem 1rem;
+  }
+}
+
 .conversations-page__header {
   display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  align-items: center;
 }
 
 .conversations-page__title {
@@ -34,11 +50,6 @@
   font-weight: var(--ui-font-weight-bold);
   color: var(--ui-color-on-primary);
   background: var(--ui-color-primary);
-}
-
-.conversations-page__subtitle {
-  margin: 0;
-  color: var(--ui-color-text-secondary);
 }
 
 .conversations-page__search {

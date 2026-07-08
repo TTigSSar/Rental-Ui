@@ -1237,7 +1237,6 @@
     },
     "conversations": {
       "title": "Conversations",
-      "subtitle": "Stay connected with renters and owners.",
       "errorTitle": "Unable to load conversations",
       "emptyTitle": "No conversations yet",
       "empty": "Your conversations will appear here after you start chatting.",

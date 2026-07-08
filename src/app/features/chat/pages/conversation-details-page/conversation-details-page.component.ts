@@ -59,6 +59,12 @@ interface SystemLine {
   readonly id: string;
   readonly meta: ChatSystemMeta;
   readonly body: string | null;
+  /**
+   * True when {@link meta} fell through to the generic default (no recognized
+   * `systemKind`). Only then is the raw {@link body} shown as a fallback; a
+   * mapped event renders solely its localized label.
+   */
+  readonly isGeneric: boolean;
 }
 
 /** A centered calendar-day separator inserted between messages of different days. */
@@ -148,11 +154,13 @@ function buildThreadItems(messages: ChatMessage[]): ThreadItem[] {
     }
 
     if (message.type === 'system') {
+      const meta = mapChatSystemMeta(message.systemKind);
       items.push({
         kind: 'system',
         id: message.id,
-        meta: mapChatSystemMeta(message.systemKind),
+        meta,
         body: message.body,
+        isGeneric: meta.labelKey === 'chat.system.default',
       });
       continue;
     }

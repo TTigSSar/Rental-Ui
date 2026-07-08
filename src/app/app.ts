@@ -76,6 +76,13 @@ function isListingWizardUrl(url: string): boolean {
   return path === '/listings/create' || /^\/my-listings\/[^/]+\/edit$/.test(path);
 }
 
+function isChatUrl(url: string): boolean {
+  const path = url.split('?')[0];
+  // The chat feature (/chat inbox and /chat/:id thread) is a full-height
+  // messaging surface — the global footer is suppressed on all of it.
+  return path === '/chat' || path.startsWith('/chat/');
+}
+
 @Component({
   selector: 'app-root',
   imports: [
@@ -108,7 +115,7 @@ export class App {
   // while authenticated (see ChatBadgeService).
   protected readonly unreadChatCount = this.chatBadge.unreadCount;
   protected readonly scrolled          = signal(false);
-  protected readonly showFooter        = signal(!isListingDetailsUrl(this.router.url) && !isListingWizardUrl(this.router.url) && !isBookingFlowUrl(this.router.url));
+  protected readonly showFooter        = signal(!isListingDetailsUrl(this.router.url) && !isListingWizardUrl(this.router.url) && !isBookingFlowUrl(this.router.url) && !isChatUrl(this.router.url));
   protected readonly isBrowsePage      = signal(isListingsBrowseUrl(this.router.url));
   protected readonly isDetailsPage     = signal(isListingDetailsUrl(this.router.url));
   protected readonly isProfileChildPage = signal(isProfileChildUrl(this.router.url));
@@ -203,7 +210,7 @@ export class App {
       )
       .subscribe((event) => {
         const url = event.urlAfterRedirects;
-        this.showFooter.set(!isListingDetailsUrl(url) && !isListingWizardUrl(url) && !isBookingFlowUrl(url));
+        this.showFooter.set(!isListingDetailsUrl(url) && !isListingWizardUrl(url) && !isBookingFlowUrl(url) && !isChatUrl(url));
         this.isBrowsePage.set(isListingsBrowseUrl(url));
         this.isDetailsPage.set(isListingDetailsUrl(url));
         this.isProfileChildPage.set(isProfileChildUrl(url));

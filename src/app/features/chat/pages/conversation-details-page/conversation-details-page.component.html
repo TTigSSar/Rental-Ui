@@ -135,9 +135,10 @@
                 <div class="chat-system">
                   <span class="chat-system__line">
                     <i [class]="item.meta.icon" aria-hidden="true"></i>
-                    <span>{{ item.meta.labelKey | translate }}</span>
-                    @if (item.body) {
+                    @if (item.isGeneric && item.body) {
                       <span class="chat-system__body">{{ item.body }}</span>
+                    } @else {
+                      <span>{{ item.meta.labelKey | translate }}</span>
                     }
                   </span>
                 </div>

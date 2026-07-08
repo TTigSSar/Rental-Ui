@@ -64,7 +64,10 @@
 @media (min-width: 1024px) {
   .chat-shell {
     grid-template-columns: minmax(320px, 380px) 1fr;
-    gap: 1.5rem;
+    /* No column gap: the rail's border-right is the thin divider between the
+       two panes. A gap here (plus the list's page-level chrome, neutralized in
+       conversations-page.scss) is what produced the empty "dead strip". */
+    gap: 0;
     max-width: 1200px;
     margin-inline: auto;
     padding-inline: 1rem;
