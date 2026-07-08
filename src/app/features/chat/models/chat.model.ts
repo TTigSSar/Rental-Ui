@@ -25,6 +25,7 @@ export interface ChatConversationPreview {
   status: ChatStatus;
   lastMessageSnippet: string | null;
   lastMessageAt: string | null;
+  lastMessageIsMine: boolean;
   unreadCount: number;
 }
 
@@ -45,6 +46,7 @@ export interface ChatMessage {
 export interface ChatConversationDetails {
   id: string;
   bookingId: string;
+  counterpartId: string;
   counterpartName: string;
   counterpartAvatarUrl: string | null;
   counterpartVerified: boolean;

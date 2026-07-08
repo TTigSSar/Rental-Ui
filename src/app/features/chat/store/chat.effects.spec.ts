@@ -31,6 +31,7 @@ function makeActiveConversation(
   return {
     id: 'c1',
     bookingId: 'b1',
+    counterpartId: 'owner-1',
     counterpartName: 'Owner',
     counterpartAvatarUrl: null,
     counterpartVerified: false,

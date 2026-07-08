@@ -31,6 +31,17 @@
             }
           </h1>
         </div>
+
+        <a
+          class="chat-thread__view-profile"
+          [routerLink]="['/users', conversation.counterpartId]"
+          [attr.aria-label]="'chat.details.viewProfile' | translate"
+        >
+          <i class="pi pi-user" aria-hidden="true"></i>
+          <span class="chat-thread__view-profile-text">
+            {{ 'chat.details.viewProfile' | translate }}
+          </span>
+        </a>
       } @else {
         <span class="chat-thread__header-title">
           {{ 'chat.details.backToConversations' | translate }}
@@ -133,14 +144,32 @@
                 </div>
               } @else if (item.kind === 'system') {
                 <div class="chat-system">
-                  <span class="chat-system__line">
-                    <i [class]="item.meta.icon" aria-hidden="true"></i>
-                    @if (item.isGeneric && item.body) {
-                      <span class="chat-system__body">{{ item.body }}</span>
-                    } @else {
-                      <span>{{ item.meta.labelKey | translate }}</span>
-                    }
-                  </span>
+                  @if (item.request; as request) {
+                    <span class="chat-system__line chat-system__line--request">
+                      <i class="pi pi-calendar" aria-hidden="true"></i>
+                      <span class="chat-system__body">
+                        {{
+                          'chat.system.requestDetail'
+                            | translate
+                              : {
+                                  name: request.counterpartName,
+                                  dates: request.bookingDates,
+                                  price:
+                                    request.bookingPrice | currency: 'USD' : 'symbol' : '1.0-0',
+                                }
+                        }}
+                      </span>
+                    </span>
+                  } @else {
+                    <span class="chat-system__line">
+                      <i [class]="item.meta.icon" aria-hidden="true"></i>
+                      @if (item.isGeneric && item.body) {
+                        <span class="chat-system__body">{{ item.body }}</span>
+                      } @else {
+                        <span>{{ item.meta.labelKey | translate }}</span>
+                      }
+                    </span>
+                  }
                 </div>
               } @else {
                 <div class="chat-group" [class.chat-group--mine]="item.isMine">
@@ -205,8 +234,10 @@
             />
             <p-button
               type="submit"
-              icon="pi pi-send"
-              [label]="'chat.details.send' | translate"
+              icon="pi pi-arrow-right"
+              [rounded]="true"
+              styleClass="chat-thread__send"
+              [ariaLabel]="'chat.details.send' | translate"
               [loading]="vm.sendingMessage"
               [disabled]="messageForm.invalid || vm.sendingMessage"
             />

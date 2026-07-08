@@ -90,6 +90,7 @@ function preview(overrides: Partial<ChatConversationPreview>): ChatConversationP
     status: 'active',
     lastMessageSnippet: null,
     lastMessageAt: null,
+    lastMessageIsMine: false,
     unreadCount: 0,
     ...overrides,
   };

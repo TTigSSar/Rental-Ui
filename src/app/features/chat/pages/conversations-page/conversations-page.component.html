@@ -132,10 +132,16 @@
 
                 <div class="chat-row__bottom">
                   <p class="chat-row__snippet">
-                    {{
-                      conversation.lastMessageSnippet ??
-                        ('chat.conversations.noMessages' | translate)
-                    }}
+                    @if (conversation.lastMessageSnippet) {
+                      @if (conversation.lastMessageIsMine) {
+                        <span class="chat-row__snippet-prefix">{{
+                          'chat.conversations.youPrefix' | translate
+                        }}</span>
+                      }
+                      {{ conversation.lastMessageSnippet }}
+                    } @else {
+                      {{ 'chat.conversations.noMessages' | translate }}
+                    }
                   </p>
                   @if (conversation.unreadCount > 0) {
                     <span

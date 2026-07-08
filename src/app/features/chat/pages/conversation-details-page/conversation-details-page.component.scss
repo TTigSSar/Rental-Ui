@@ -85,6 +85,55 @@
   color: var(--ui-color-info);
 }
 
+/* ── View profile (pill on desktop, icon on mobile) ───────────────────── */
+.chat-thread__view-profile {
+  margin-left: auto;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  height: 2.25rem;
+  padding: 0 0.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--ui-color-border);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-primary);
+  font-size: 0.8125rem;
+  font-weight: var(--ui-font-weight-semibold);
+  text-decoration: none;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.chat-thread__view-profile:hover {
+  background: var(--ui-color-surface-muted);
+  border-color: var(--ui-color-primary);
+  color: var(--ui-color-primary);
+}
+
+.chat-thread__view-profile:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
+}
+
+.chat-thread__view-profile .pi {
+  font-size: 0.9rem;
+}
+
+@media (max-width: 639px) {
+  .chat-thread__view-profile {
+    width: 2.25rem;
+    padding: 0;
+  }
+
+  .chat-thread__view-profile-text {
+    display: none;
+  }
+}
+
 .chat-thread__error {
   display: flex;
   flex-direction: column;
@@ -367,6 +416,19 @@
   font-size: 0.8rem;
 }
 
+/* Enriched booking-request pill: "{name} requested this toy · dates · price". */
+.chat-system__line--request {
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 100%;
+  background: var(--ui-color-primary-soft);
+  text-align: center;
+}
+
+.chat-system__line--request .pi {
+  color: var(--ui-color-primary);
+}
+
 .chat-system__body {
   color: var(--ui-color-text-primary);
 }
@@ -381,6 +443,14 @@
 
 .chat-thread__composer-input {
   min-width: 0;
+}
+
+/* Round orange send control (icon-only). */
+:host ::ng-deep .chat-thread__send.p-button {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
 }
 
 .chat-thread__closed {

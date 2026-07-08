@@ -20,6 +20,7 @@ function makePreview(
     status: 'active',
     lastMessageSnippet: 'See you soon',
     lastMessageAt: '2026-07-07T10:00:00.000Z',
+    lastMessageIsMine: false,
     unreadCount: 3,
     ...overrides,
   };
@@ -48,6 +49,7 @@ function makeDetails(
   return {
     id: 'c1',
     bookingId: 'b1',
+    counterpartId: 'owner-1',
     counterpartName: 'Owner',
     counterpartAvatarUrl: null,
     counterpartVerified: false,

@@ -53,6 +53,13 @@ interface MessageGroup {
   readonly showSeen: boolean;
 }
 
+/** The booking context threaded into the enriched `request` system line. */
+interface SystemRequestContext {
+  readonly counterpartName: string;
+  readonly bookingDates: string;
+  readonly bookingPrice: number;
+}
+
 /** A centered inline system event (no bubble). */
 interface SystemLine {
   readonly kind: 'system';
@@ -65,6 +72,12 @@ interface SystemLine {
    * mapped event renders solely its localized label.
    */
   readonly isGeneric: boolean;
+  /**
+   * Booking context for the `request` kind only — rendered as an enriched pill
+   * ("{name} requested this toy · {dates} · {price}"). Null for every other
+   * system kind, which keeps its single localized label.
+   */
+  readonly request: SystemRequestContext | null;
 }
 
 /** A centered calendar-day separator inserted between messages of different days. */
@@ -126,7 +139,8 @@ const selectConversationDetailsRouteState = createSelector(
   }),
 );
 
-function buildThreadItems(messages: ChatMessage[]): ThreadItem[] {
+function buildThreadItems(conversation: ChatConversationDetails): ThreadItem[] {
+  const messages = conversation.messages;
   const items: ThreadItem[] = [];
 
   // Index of the last message the current user sent — used for the "Seen" marker.
@@ -161,6 +175,14 @@ function buildThreadItems(messages: ChatMessage[]): ThreadItem[] {
         meta,
         body: message.body,
         isGeneric: meta.labelKey === 'chat.system.default',
+        request:
+          message.systemKind === 'request'
+            ? {
+                counterpartName: conversation.counterpartName,
+                bookingDates: conversation.bookingDates,
+                bookingPrice: conversation.bookingPrice,
+              }
+            : null,
       });
       continue;
     }
@@ -259,7 +281,7 @@ export class ConversationDetailsPageComponent implements OnInit {
         return {
           routeConversationId,
           conversation: activeConversation,
-          threadItems: activeConversation ? buildThreadItems(activeConversation.messages) : [],
+          threadItems: activeConversation ? buildThreadItems(activeConversation) : [],
           loading: routeState.loading,
           error: routeState.error,
           sendingMessage,

@@ -1236,11 +1236,12 @@
       "emptyText": "Choose a conversation from the list to view messages."
     },
     "conversations": {
-      "title": "Conversations",
+      "title": "Messages",
       "errorTitle": "Unable to load conversations",
       "emptyTitle": "No conversations yet",
       "empty": "Your conversations will appear here after you start chatting.",
       "noMessages": "No messages yet",
+      "youPrefix": "You: ",
       "unreadAria": "{{count}} unread messages",
       "searchPlaceholder": "Search conversations",
       "noResultsTitle": "No matches",
@@ -1248,6 +1249,7 @@
     },
     "details": {
       "backToConversations": "Back to conversations",
+      "viewProfile": "View profile",
       "verifiedAria": "Verified user",
       "dayToday": "Today",
       "dayYesterday": "Yesterday",
@@ -1271,6 +1273,7 @@
     },
     "system": {
       "request": "Booking requested",
+      "requestDetail": "{{name}} requested this toy · {{dates}} · {{price}}",
       "approved": "Request approved",
       "handover": "Toy handed over",
       "return": "Toy returned",

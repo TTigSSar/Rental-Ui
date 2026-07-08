@@ -302,6 +302,12 @@
   font-weight: var(--ui-font-weight-medium);
 }
 
+/* "You:" prefix on own last-message rows. */
+.chat-row__snippet-prefix {
+  font-weight: var(--ui-font-weight-semibold);
+  color: var(--ui-color-text-secondary);
+}
+
 .chat-row__unread-badge {
   flex-shrink: 0;
   min-width: 1.35rem;

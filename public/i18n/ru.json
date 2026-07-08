@@ -1236,11 +1236,12 @@
       "emptyText": "Выберите диалог из списка, чтобы увидеть сообщения."
     },
     "conversations": {
-      "title": "Диалоги",
+      "title": "Сообщения",
       "errorTitle": "Не удалось загрузить диалоги",
       "emptyTitle": "Диалогов пока нет",
       "empty": "Ваши диалоги появятся здесь после начала переписки.",
       "noMessages": "Сообщений пока нет",
+      "youPrefix": "Вы: ",
       "unreadAria": "Непрочитанных сообщений: {{count}}",
       "searchPlaceholder": "Поиск по диалогам",
       "noResultsTitle": "Ничего не найдено",
@@ -1248,6 +1249,7 @@
     },
     "details": {
       "backToConversations": "Назад к диалогам",
+      "viewProfile": "Профиль",
       "verifiedAria": "Проверенный пользователь",
       "dayToday": "Сегодня",
       "dayYesterday": "Вчера",
@@ -1271,6 +1273,7 @@
     },
     "system": {
       "request": "Запрос на бронирование",
+      "requestDetail": "{{name}} запросил(а) эту игрушку · {{dates}} · {{price}}",
       "approved": "Запрос одобрен",
       "handover": "Игрушка передана",
       "return": "Игрушка возвращена",
