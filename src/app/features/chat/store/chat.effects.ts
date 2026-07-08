@@ -146,11 +146,25 @@ export class ChatEffects {
         const actions: ReturnType<
           | typeof ChatActions.realtimeMessageResolved
           | typeof ChatActions.markConversationRead
+          | typeof ChatActions.loadConversationDetails
         >[] = [ChatActions.realtimeMessageResolved({ message })];
 
         if (isOpen && !message.isMine) {
           actions.push(
             ChatActions.markConversationRead({
+              conversationId: message.conversationId,
+            }),
+          );
+        }
+
+        // A system message fires only on a real booking transition. Re-fetch the
+        // open conversation so the server re-derives the authoritative `status`
+        // and `isClosed` (ADR-001: "closed" also depends on both reviews being
+        // in — a server-side rule). Without this the header status pill stays
+        // stale (M-007). Skipped for ordinary text messages.
+        if (isOpen && message.type === 'system') {
+          actions.push(
+            ChatActions.loadConversationDetails({
               conversationId: message.conversationId,
             }),
           );
