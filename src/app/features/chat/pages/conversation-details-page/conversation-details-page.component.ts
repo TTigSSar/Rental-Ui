@@ -1,4 +1,4 @@
-import { AsyncPipe, CurrencyPipe } from '@angular/common';
+import { AsyncPipe, CurrencyPipe, DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -32,7 +32,6 @@ import {
   mapChatSystemMeta,
 } from '../../models/chat-ui.util';
 import type { ChatConversationDetails, ChatMessage } from '../../models/chat.model';
-import { ChatTimeAgoPipe } from '../../pipes/chat-time-ago.pipe';
 import * as ChatActions from '../../store/chat.actions';
 import {
   selectActiveConversation,
@@ -231,8 +230,8 @@ function buildThreadItems(conversation: ChatConversationDetails): ThreadItem[] {
     AvatarComponent,
     BadgeComponent,
     ButtonModule,
-    ChatTimeAgoPipe,
     CurrencyPipe,
+    DatePipe,
     MessageModule,
     ReactiveFormsModule,
     RouterLink,
@@ -350,6 +349,17 @@ export class ConversationDetailsPageComponent implements OnInit {
     this.store.dispatch(
       ChatActions.loadConversationDetails({ conversationId: routeConversationId }),
     );
+  }
+
+  /**
+   * Image-picker affordance. Attachment upload/sending is a separate backend
+   * vertical, so selecting a file is intentionally a no-op here — we only reset
+   * the native input so the same file can be re-picked later. The composer icons
+   * exist to match the design; no message is sent.
+   */
+  protected onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    input.value = '';
   }
 
   protected sendMessage(conversationId: string): void {

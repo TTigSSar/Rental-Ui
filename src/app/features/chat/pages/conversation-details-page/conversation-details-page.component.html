@@ -100,26 +100,28 @@
           }
 
           <div class="chat-thread__context-body">
-            <div class="chat-thread__context-top">
-              <h2 class="chat-thread__toy-title">{{ conversation.toyTitle }}</h2>
-              <app-ui-badge
-                [tone]="statusTone(conversation.status)"
-                [label]="statusLabelKey(conversation.status) | translate"
-              />
-            </div>
+            <h2 class="chat-thread__toy-title">{{ conversation.toyTitle }}</h2>
             <p class="chat-thread__context-meta">
+              <i class="pi pi-calendar" aria-hidden="true"></i>
               <span>{{ conversation.bookingDates }}</span>
               <span class="chat-thread__dot" aria-hidden="true">·</span>
               <span class="chat-thread__price">
                 {{ conversation.bookingPrice | currency: 'USD' : 'symbol' : '1.0-0' }}
               </span>
             </p>
+          </div>
+
+          <div class="chat-thread__context-actions">
+            <app-ui-badge
+              [tone]="statusTone(conversation.status)"
+              [label]="statusLabelKey(conversation.status) | translate"
+            />
             <a
               class="chat-thread__view-booking"
               [routerLink]="['/bookings', conversation.bookingId]"
             >
               {{ 'chat.details.viewBooking' | translate }}
-              <i class="pi pi-arrow-right" aria-hidden="true"></i>
+              <i class="pi pi-chevron-right" aria-hidden="true"></i>
             </a>
           </div>
         </header>
@@ -194,7 +196,7 @@
                   }
 
                   <div class="chat-group__footer">
-                    <time class="chat-group__time">{{ item.time | chatTimeAgo }}</time>
+                    <time class="chat-group__time">{{ item.time | date: 'H:mm' }}</time>
                     @if (item.showSeen) {
                       <span class="chat-group__seen">
                         {{ 'chat.details.seen' | translate }}
@@ -225,13 +227,45 @@
             [formGroup]="messageForm"
             (ngSubmit)="sendMessage(conversation.id)"
           >
-            <app-ui-input
-              class="chat-thread__composer-input"
-              type="text"
-              variant="filled"
-              formControlName="content"
-              [placeholder]="'chat.details.messagePlaceholder' | translate"
+            <!-- Image picker (left). Opens a native file input as an affordance;
+                 attachment SENDING is a separate backend vertical (deferred). -->
+            <button
+              type="button"
+              class="chat-thread__composer-icon"
+              (click)="imageInput.click()"
+              [title]="'chat.details.attachImageSoon' | translate"
+              [attr.aria-label]="'chat.details.attachImage' | translate"
+            >
+              <i class="pi pi-image" aria-hidden="true"></i>
+            </button>
+            <input
+              #imageInput
+              type="file"
+              class="chat-thread__composer-file"
+              accept="image/*"
+              hidden
+              (change)="onImageSelected($event)"
             />
+
+            <div class="chat-thread__composer-field">
+              <app-ui-input
+                class="chat-thread__composer-input"
+                type="text"
+                variant="filled"
+                formControlName="content"
+                [placeholder]="'chat.details.messagePlaceholder' | translate"
+              />
+              <!-- Camera (right, inside the input). Cosmetic no-op for now. -->
+              <button
+                type="button"
+                class="chat-thread__composer-icon chat-thread__composer-icon--camera"
+                [title]="'chat.details.attachCameraSoon' | translate"
+                [attr.aria-label]="'chat.details.attachCamera' | translate"
+              >
+                <i class="pi pi-camera" aria-hidden="true"></i>
+              </button>
+            </div>
+
             <p-button
               type="submit"
               icon="pi pi-arrow-right"
