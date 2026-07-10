@@ -15,11 +15,12 @@
     <!-- Global toast overlay -->
     <p-toast position="top-center" />
 
-    <main class="app-shell__content app-shell__content--with-bottom-nav">
+    <main class="app-shell__content" [class.app-shell__content--with-bottom-nav]="showBottomNav()">
       <router-outlet></router-outlet>
     </main>
 
     <!-- ── Bottom navigation ─────────────────────────────────────── -->
+    @if (showBottomNav()) {
     <nav
       class="app-bottom-nav"
       [class.app-bottom-nav--admin]="vm.isAdmin"
@@ -140,6 +141,7 @@
         </a>
       }
     </nav>
+    }
   }
 
   <app-auth-dialog

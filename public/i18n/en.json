@@ -1266,7 +1266,7 @@
       "viewBooking": "View booking",
       "seen": "Seen",
       "imagePlaceholder": "Photo",
-      "closedBanner": "This conversation is closed. You can no longer send messages."
+      "closedBanner": "This conversation is closed. The rental is complete and both reviews are in — it's now read-only."
     },
     "status": {
       "requested": "Requested",

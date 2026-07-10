@@ -83,6 +83,15 @@ function isChatUrl(url: string): boolean {
   return path === '/chat' || path.startsWith('/chat/');
 }
 
+function isChatThreadUrl(url: string): boolean {
+  const path = url.split('?')[0].split('#')[0];
+  // An OPEN chat thread — `/chat/:id` with a non-empty id — is a full-screen
+  // messaging surface with no global bottom nav (the inbox `/chat` keeps it).
+  // Mirrors `isThreadOpenUrl` in chat-shell.component.ts.
+  const match = /^\/chat\/([^/]+)/.exec(path);
+  return match !== null && match[1].length > 0;
+}
+
 @Component({
   selector: 'app-root',
   imports: [
@@ -116,6 +125,7 @@ export class App {
   protected readonly unreadChatCount = this.chatBadge.unreadCount;
   protected readonly scrolled          = signal(false);
   protected readonly showFooter        = signal(!isListingDetailsUrl(this.router.url) && !isListingWizardUrl(this.router.url) && !isBookingFlowUrl(this.router.url) && !isChatUrl(this.router.url));
+  protected readonly showBottomNav     = signal(!isChatThreadUrl(this.router.url));
   protected readonly isBrowsePage      = signal(isListingsBrowseUrl(this.router.url));
   protected readonly isDetailsPage     = signal(isListingDetailsUrl(this.router.url));
   protected readonly isProfileChildPage = signal(isProfileChildUrl(this.router.url));
@@ -211,6 +221,7 @@ export class App {
       .subscribe((event) => {
         const url = event.urlAfterRedirects;
         this.showFooter.set(!isListingDetailsUrl(url) && !isListingWizardUrl(url) && !isBookingFlowUrl(url) && !isChatUrl(url));
+        this.showBottomNav.set(!isChatThreadUrl(url));
         this.isBrowsePage.set(isListingsBrowseUrl(url));
         this.isDetailsPage.set(isListingDetailsUrl(url));
         this.isProfileChildPage.set(isProfileChildUrl(url));

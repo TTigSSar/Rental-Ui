@@ -372,3 +372,52 @@
   color: var(--ui-color-on-primary);
   background: var(--ui-color-primary);
 }
+
+/* ── Mobile inbox two-tone (< 1024px) ─────────────────────────────────────
+ * The design's mobile inbox is NOT uniform. The top band — "Messages" title +
+ * unread badge + the search input row — is WHITE (`--ui-color-surface`). The
+ * conversation list and the empty space beneath the last row sit on the app's
+ * subtle warm page tint (`--ui-color-background`), visibly distinct from the
+ * white band. (The desktop rail stays all-white — see the min-width:1024px
+ * block near the top of this file, which is unaffected here.)
+ */
+@media (max-width: 1023px) {
+  :host {
+    display: block;
+    background: var(--ui-color-background);
+    min-height: calc(100dvh - 4rem);
+  }
+
+  .conversations-page {
+    gap: 0;
+    padding: 0;
+    background: var(--ui-color-background);
+    min-height: calc(100dvh - 4rem);
+  }
+
+  /* White top band: title/badge row + search row form one continuous white
+     surface spanning the full width above the tinted list. */
+  .conversations-page__header {
+    background: var(--ui-color-surface);
+    padding: 1.5rem 1rem 0.75rem;
+  }
+
+  .conversations-page__search {
+    background: var(--ui-color-surface);
+    padding: 0 1rem 1.1rem;
+  }
+
+  /* Tinted content region below the band. Rows keep their white card treatment
+     (base .chat-row) so they stay legible on the tint. */
+  .conversations-page__list {
+    padding: 1rem 1rem 1.5rem;
+  }
+
+  .conversations-page__error {
+    padding: 1rem;
+  }
+
+  .conversations-page__empty {
+    margin: 1rem;
+  }
+}
