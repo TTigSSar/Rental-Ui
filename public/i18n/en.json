@@ -1266,13 +1266,16 @@
       "viewBooking": "View booking",
       "seen": "Seen",
       "imagePlaceholder": "Photo",
-      "closedBanner": "This conversation is closed. The rental is complete and both reviews are in — it's now read-only."
+      "closedBanner": "This conversation is closed. The rental is complete and both reviews are in — it's now read-only.",
+      "charCounter": "{{count}} / {{max}}",
+      "limitReached": "Message limit of {{max}} characters reached"
     },
     "status": {
       "requested": "Requested",
       "approved": "Approved",
       "active": "Active",
       "returnDue": "Return due",
+      "completed": "Completed",
       "closed": "Closed"
     },
     "system": {

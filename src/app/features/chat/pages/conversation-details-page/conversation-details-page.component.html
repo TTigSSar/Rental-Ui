@@ -253,6 +253,7 @@
                 type="text"
                 variant="filled"
                 formControlName="content"
+                [maxLength]="maxMessageLength"
                 [placeholder]="'chat.details.messagePlaceholder' | translate"
               />
               <!-- Camera (right, inside the input). Cosmetic no-op for now. -->
@@ -264,6 +265,25 @@
               >
                 <i class="pi pi-camera" aria-hidden="true"></i>
               </button>
+
+              @if (messageLength() >= counterVisibleThreshold) {
+                <span
+                  class="chat-thread__composer-counter"
+                  [class.chat-thread__composer-counter--limit]="
+                    messageLength() === maxMessageLength
+                  "
+                  aria-live="polite"
+                >
+                  @if (messageLength() === maxMessageLength) {
+                    {{ 'chat.details.limitReached' | translate: { max: maxMessageLength } }}
+                  } @else {
+                    {{
+                      'chat.details.charCounter'
+                        | translate: { count: messageLength(), max: maxMessageLength }
+                    }}
+                  }
+                </span>
+              }
             </div>
 
             <p-button

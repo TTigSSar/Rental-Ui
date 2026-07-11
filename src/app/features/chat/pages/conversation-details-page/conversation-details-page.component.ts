@@ -31,7 +31,11 @@ import {
   mapChatStatusTone,
   mapChatSystemMeta,
 } from '../../models/chat-ui.util';
-import type { ChatConversationDetails, ChatMessage } from '../../models/chat.model';
+import {
+  CHAT_MESSAGE_MAX_LENGTH,
+  type ChatConversationDetails,
+  type ChatMessage,
+} from '../../models/chat.model';
 import * as ChatActions from '../../store/chat.actions';
 import {
   selectActiveConversation,
@@ -294,8 +298,27 @@ export class ConversationDetailsPageComponent implements OnInit {
   );
 
   protected readonly messageForm = this.fb.nonNullable.group({
-    content: ['', [Validators.required]],
+    content: ['', [Validators.required, Validators.maxLength(CHAT_MESSAGE_MAX_LENGTH)]],
   });
+
+  /** Character limit for a chat message (mirrors the backend cap). */
+  protected readonly maxMessageLength = CHAT_MESSAGE_MAX_LENGTH;
+
+  /**
+   * Below this the counter stays hidden to avoid noise on short messages; at and
+   * above it the composer shows the live count. (90% of the limit.)
+   */
+  protected readonly counterVisibleThreshold = 3500;
+
+  /**
+   * Live length of the composer content. Derived from the reactive control's
+   * value stream — declared as a field initializer so `toSignal` runs inside the
+   * component's injection context (see knowledge/mistakes.md M-004).
+   */
+  protected readonly messageLength = toSignal(
+    this.messageForm.controls.content.valueChanges.pipe(map((value) => value.length)),
+    { initialValue: 0 },
+  );
 
   /** The scrollable message pane, resolved once the conversation renders. */
   private readonly messagesPane = viewChild<ElementRef<HTMLElement>>('messagesPane');

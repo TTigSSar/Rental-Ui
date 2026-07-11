@@ -38,6 +38,7 @@
     [disabled]="isDisabledComp()"
     [attr.readonly]="readonly() || null"
     [required]="required()"
+    [attr.maxlength]="maxLength()"
     [attr.autocomplete]="autocomplete()"
     [attr.aria-invalid]="hasError() ? 'true' : null"
     [attr.aria-describedby]="hasHelper() ? helperId : null"

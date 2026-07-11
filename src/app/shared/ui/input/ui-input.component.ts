@@ -45,6 +45,7 @@ export class UiInputComponent implements ControlValueAccessor {
   readonly rightIcon      = input<string>('');
   readonly type           = input<'text' | 'email' | 'password' | 'number' | 'search' | 'tel'>('text');
   readonly hint           = input<string>('');
+  readonly maxLength      = input<number | null>(null);
   readonly autocomplete   = input<string>('off');
   readonly size           = input<'sm' | 'md' | 'lg'>('md');
   /**

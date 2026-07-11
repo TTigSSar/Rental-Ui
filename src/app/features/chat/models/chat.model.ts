@@ -1,8 +1,17 @@
+/**
+ * Derived conversation status pill (computed server-side from the linked
+ * booking's status + `Conversation.ClosedAt` — see `ChatTokens.StatusToken`
+ * on the backend). Progression: requested -> approved -> active ->
+ * return_due -> completed -> closed. `completed` is the booking-Completed,
+ * chat-still-open state (awaiting party reviews); `closed` is the terminal,
+ * read-only state set only once `ClosedAt` is non-null.
+ */
 export type ChatStatus =
   | 'requested'
   | 'approved'
   | 'active'
   | 'return_due'
+  | 'completed'
   | 'closed';
 
 export type ChatMessageType = 'text' | 'image' | 'system';
@@ -63,6 +72,13 @@ export interface SendChatMessageRequest {
   conversationId: string;
   content: string;
 }
+
+/**
+ * Mirrors `ChatService.MaxContentLength` on the backend. The server rejects
+ * a message whose `content` exceeds this length with ServiceError code
+ * `chat.message_too_long` (HTTP 400).
+ */
+export const CHAT_MESSAGE_MAX_LENGTH = 4000;
 
 /**
  * Viewer-neutral message pushed over the chat SignalR hub (`messageReceived`).

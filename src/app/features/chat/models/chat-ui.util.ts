@@ -12,6 +12,8 @@ export function mapChatStatusTone(status: ChatStatus): BadgeTone {
       return 'booked';
     case 'return_due':
       return 'pending';
+    case 'completed':
+      return 'approved';
     case 'closed':
       return 'neutral';
     default:
@@ -30,6 +32,8 @@ export function mapChatStatusLabelKey(status: ChatStatus): string {
       return 'chat.status.active';
     case 'return_due':
       return 'chat.status.returnDue';
+    case 'completed':
+      return 'chat.status.completed';
     case 'closed':
       return 'chat.status.closed';
     default:

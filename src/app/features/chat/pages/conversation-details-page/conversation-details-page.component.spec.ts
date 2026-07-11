@@ -1,11 +1,13 @@
+import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
+import type { FormControl, FormGroup } from '@angular/forms';
 import {
   ActivatedRoute,
   convertToParamMap,
   provideRouter,
 } from '@angular/router';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import type {
@@ -72,8 +74,53 @@ function createFixture() {
   });
 
   const store = TestBed.inject(MockStore);
+  // Load just the counter strings so the translate pipe interpolates params
+  // (the real bundle isn't wired into unit tests).
+  const translate = TestBed.inject(TranslateService);
+  translate.setTranslation(
+    'en',
+    {
+      chat: {
+        details: {
+          charCounter: '{{count}} / {{max}}',
+          limitReached: 'Message limit of {{max}} characters reached',
+        },
+      },
+    },
+    true,
+  );
+  translate.use('en');
   const fixture = TestBed.createComponent(ConversationDetailsPageComponent);
   return { fixture, store };
+}
+
+/** Reaches the component's reactive composer form (protected in the component). */
+function messageForm(
+  fixture: ComponentFixture<ConversationDetailsPageComponent>,
+): FormGroup<{ content: FormControl<string> }> {
+  return (
+    fixture.componentInstance as unknown as {
+      messageForm: FormGroup<{ content: FormControl<string> }>;
+    }
+  ).messageForm;
+}
+
+/** Renders the composer for an open conversation and types `content`. */
+function typeContent(
+  fixture: ComponentFixture<ConversationDetailsPageComponent>,
+  store: MockStore,
+  content: string,
+): HTMLElement {
+  store.setState({
+    [chatFeatureKey]: {
+      ...initialChatState,
+      activeConversation: conversationWith([]),
+    },
+  });
+  fixture.detectChanges();
+  messageForm(fixture).controls.content.setValue(content);
+  fixture.detectChanges();
+  return fixture.nativeElement as HTMLElement;
 }
 
 describe('ConversationDetailsPageComponent', () => {
@@ -126,5 +173,62 @@ describe('ConversationDetailsPageComponent', () => {
       '.chat-system__line:not(.chat-system__line--request)',
     );
     expect(plainLines).toHaveLength(1);
+  });
+
+  describe('composer character counter', () => {
+    it('stays hidden for short content', () => {
+      const { fixture, store } = createFixture();
+      const host = typeContent(fixture, store, 'a'.repeat(10));
+
+      expect(host.querySelector('.chat-thread__composer-counter')).toBeNull();
+    });
+
+    it('appears with the live count once the threshold is reached', () => {
+      const { fixture, store } = createFixture();
+      const host = typeContent(fixture, store, 'a'.repeat(3500));
+
+      const counter = host.querySelector('.chat-thread__composer-counter');
+      expect(counter).not.toBeNull();
+      expect(
+        counter?.classList.contains('chat-thread__composer-counter--limit'),
+      ).toBe(false);
+      expect(counter?.textContent?.trim()).toBe('3500 / 4000');
+    });
+
+    it('switches to the limit-reached state at exactly the limit', () => {
+      const { fixture, store } = createFixture();
+      const host = typeContent(fixture, store, 'a'.repeat(4000));
+
+      const counter = host.querySelector('.chat-thread__composer-counter');
+      expect(counter).not.toBeNull();
+      expect(
+        counter?.classList.contains('chat-thread__composer-counter--limit'),
+      ).toBe(true);
+      expect(counter?.textContent?.trim()).toBe(
+        'Message limit of 4000 characters reached',
+      );
+    });
+  });
+
+  describe('composer length validator', () => {
+    it('invalidates the form when content exceeds the limit', () => {
+      const { fixture } = createFixture();
+      fixture.detectChanges();
+
+      const form = messageForm(fixture);
+      form.controls.content.setValue('a'.repeat(4001));
+
+      expect(form.invalid).toBe(true);
+    });
+
+    it('keeps the form valid at exactly the limit', () => {
+      const { fixture } = createFixture();
+      fixture.detectChanges();
+
+      const form = messageForm(fixture);
+      form.controls.content.setValue('a'.repeat(4000));
+
+      expect(form.valid).toBe(true);
+    });
   });
 });

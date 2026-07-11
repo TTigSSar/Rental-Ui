@@ -1,5 +1,39 @@
 import type { ChatConversationPreview } from './chat.model';
-import { chatDayKey, chatDayLabel, filterConversations } from './chat-ui.util';
+import {
+  chatDayKey,
+  chatDayLabel,
+  filterConversations,
+  mapChatStatusLabelKey,
+  mapChatStatusTone,
+} from './chat-ui.util';
+
+describe('mapChatStatusTone', () => {
+  it('maps requested to pending', () => {
+    expect(mapChatStatusTone('requested')).toBe('pending');
+  });
+
+  it('maps completed to approved (finished, still-open thread — distinct from neutral closed)', () => {
+    expect(mapChatStatusTone('completed')).toBe('approved');
+  });
+
+  it('maps closed to neutral', () => {
+    expect(mapChatStatusTone('closed')).toBe('neutral');
+  });
+});
+
+describe('mapChatStatusLabelKey', () => {
+  it('maps requested to its label key', () => {
+    expect(mapChatStatusLabelKey('requested')).toBe('chat.status.requested');
+  });
+
+  it('maps completed to its label key', () => {
+    expect(mapChatStatusLabelKey('completed')).toBe('chat.status.completed');
+  });
+
+  it('maps closed to its label key', () => {
+    expect(mapChatStatusLabelKey('closed')).toBe('chat.status.closed');
+  });
+});
 
 describe('chatDayKey', () => {
   it('produces a local YYYY-MM-DD key', () => {

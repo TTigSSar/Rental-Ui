@@ -508,6 +508,23 @@
   min-width: 0;
 }
 
+/* Live character counter under the composer input. Small muted text aligned to
+   the right edge of the field (mirrors the listing wizard's field counter). */
+.chat-thread__composer-counter {
+  display: block;
+  margin-top: 0.25rem;
+  padding-inline: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--ui-color-text-secondary);
+  text-align: right;
+}
+
+/* Limit-reached state: a valid but capped length — flag it in the error color. */
+.chat-thread__composer-counter--limit {
+  color: var(--ui-color-error);
+  font-weight: var(--ui-font-weight-semibold);
+}
+
 /* Design: the composer input is a rounded RECTANGLE (~12px), not a full pill —
    a muted-gray fill (`--ui-color-surface-muted`, from the filled variant) in the
    white composer bar. Pin the radius explicitly to `--ui-radius-md`. */
