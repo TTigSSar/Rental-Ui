@@ -13,7 +13,7 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
@@ -22,6 +22,7 @@ import { combineLatest, distinctUntilChanged, filter, map } from 'rxjs';
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
+import { compressImageFile } from '../../../../shared/utils/image-compression.utils';
 import {
   type ChatDayLabel,
   type ChatSystemMeta,
@@ -32,6 +33,8 @@ import {
   mapChatSystemMeta,
 } from '../../models/chat-ui.util';
 import {
+  CHAT_ATTACHMENT_ALLOWED_TYPES,
+  CHAT_ATTACHMENT_MAX_BYTES,
   CHAT_MESSAGE_MAX_LENGTH,
   type ChatConversationDetails,
   type ChatMessage,
@@ -41,9 +44,12 @@ import {
   selectActiveConversation,
   selectActiveConversationError,
   selectActiveConversationLoading,
+  selectPendingImage,
+  selectSendingImageError,
   selectSendingMessage,
   selectSendingMessageError,
 } from '../../store/chat.selectors';
+import type { PendingChatImage } from '../../store/chat.state';
 
 /** A run of consecutive same-sender text/image messages, rendered as a bubble stack. */
 interface MessageGroup {
@@ -118,6 +124,9 @@ interface ConversationDetailsPageViewModel {
   readonly error: string | null;
   readonly sendingMessage: boolean;
   readonly sendingMessageError: string | null;
+  /** Optimistic image bubble for THIS conversation (uploading or failed). */
+  readonly pendingImage: PendingChatImage | null;
+  readonly sendingImageError: string | null;
   readonly showInitialSkeleton: boolean;
   readonly showEmpty: boolean;
   readonly hasError: boolean;
@@ -252,6 +261,7 @@ export class ConversationDetailsPageComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
   private readonly routeConversationId$ = this.route.paramMap.pipe(
     map((params) => params.get('conversationId')),
     distinctUntilChanged(),
@@ -264,6 +274,8 @@ export class ConversationDetailsPageComponent implements OnInit {
     routeState: this.store.select(selectConversationDetailsRouteState),
     sendingMessage: this.store.select(selectSendingMessage),
     sendingMessageError: this.store.select(selectSendingMessageError),
+    pendingImage: this.store.select(selectPendingImage),
+    sendingImageError: this.store.select(selectSendingImageError),
     routeConversationId: this.routeConversationId$,
   }).pipe(
     map(
@@ -271,6 +283,8 @@ export class ConversationDetailsPageComponent implements OnInit {
         routeState,
         sendingMessage,
         sendingMessageError,
+        pendingImage,
+        sendingImageError,
         routeConversationId,
       }): ConversationDetailsPageViewModel => {
         const conversation = routeState.conversation;
@@ -289,6 +303,13 @@ export class ConversationDetailsPageComponent implements OnInit {
           error: routeState.error,
           sendingMessage,
           sendingMessageError,
+          pendingImage:
+            pendingImage !== null &&
+            activeConversation !== null &&
+            pendingImage.conversationId === activeConversation.id
+              ? pendingImage
+              : null,
+          sendingImageError,
           showInitialSkeleton: routeState.loading && !isMatch,
           showEmpty: !routeState.loading && !isMatch && !hasError,
           hasError,
@@ -332,7 +353,11 @@ export class ConversationDetailsPageComponent implements OnInit {
   private readonly threadScrollKey = toSignal(
     this.viewModel$.pipe(
       map((vm) =>
-        vm.conversation ? `${vm.conversation.id}:${vm.conversation.messages.length}` : null,
+        vm.conversation
+          ? `${vm.conversation.id}:${vm.conversation.messages.length}:${
+              vm.pendingImage ? vm.pendingImage.previewUrl : ''
+            }`
+          : null,
       ),
       distinctUntilChanged(),
     ),
@@ -375,14 +400,68 @@ export class ConversationDetailsPageComponent implements OnInit {
   }
 
   /**
-   * Image-picker affordance. Attachment upload/sending is a separate backend
-   * vertical, so selecting a file is intentionally a no-op here — we only reset
-   * the native input so the same file can be re-picked later. The composer icons
-   * exist to match the design; no message is sent.
+   * Picks an image attachment, validates it client-side, compresses it and hands
+   * it to the store for upload. Validation mirrors the backend's rules
+   * (`CHAT_ATTACHMENT_ALLOWED_TYPES` / `CHAT_ATTACHMENT_MAX_BYTES`) so an
+   * obviously-bad file never leaves the browser; the server re-validates by
+   * magic bytes regardless. The size check runs on the COMPRESSED file — that is
+   * the payload the server actually receives (a 9 MB phone photo compresses well
+   * under the cap and must not be rejected here).
+   *
+   * The composer text, if any, travels with the image as its caption.
    */
-  protected onImageSelected(event: Event): void {
+  protected async onImageSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    // Reset immediately so re-picking the same file fires `change` again.
     input.value = '';
+
+    const conversationId = this.route.snapshot.paramMap.get('conversationId');
+    if (file === null || conversationId === null) {
+      return;
+    }
+
+    if (!this.isAllowedAttachmentType(file.type)) {
+      this.failImage('chat.details.imageInvalidType');
+      return;
+    }
+
+    const compressed = await compressImageFile(file);
+    if (compressed.size > CHAT_ATTACHMENT_MAX_BYTES) {
+      this.failImage('chat.details.imageTooLarge', {
+        max: Math.round(CHAT_ATTACHMENT_MAX_BYTES / (1024 * 1024)),
+      });
+      return;
+    }
+
+    const caption = this.messageForm.controls.content.value.trim();
+    this.store.dispatch(
+      ChatActions.sendImageMessage({
+        conversationId,
+        file: compressed,
+        caption: caption.length > 0 ? caption : null,
+        previewUrl: URL.createObjectURL(compressed),
+      }),
+    );
+    this.messageForm.reset({ content: '' });
+  }
+
+  /** Clears a failed optimistic image bubble (and its error banner). */
+  protected dismissPendingImage(): void {
+    this.store.dispatch(ChatActions.dismissPendingImage());
+  }
+
+  private isAllowedAttachmentType(type: string): boolean {
+    return (CHAT_ATTACHMENT_ALLOWED_TYPES as readonly string[]).includes(type);
+  }
+
+  /** Reports a client-side rejection through the same failure path as the server's. */
+  private failImage(messageKey: string, params?: Record<string, unknown>): void {
+    this.store.dispatch(
+      ChatActions.sendImageMessageFailure({
+        error: this.translate.instant(messageKey, params),
+      }),
+    );
   }
 
   protected sendMessage(conversationId: string): void {

@@ -1,9 +1,16 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
+import { TranslateService } from '@ngx-translate/core';
+import { of, throwError } from 'rxjs';
 
 import { actionsHarness, collect } from '../../../../testing/ngrx.helpers';
 import { selectAuthUser } from '../../auth/store/auth.selectors';
-import type { ChatConversationDetails, ChatRealtimeMessage } from '../models/chat.model';
+import type {
+  ChatConversationDetails,
+  ChatMessage,
+  ChatRealtimeMessage,
+} from '../models/chat.model';
 import { ChatBadgeService } from '../services/chat-badge.service';
 import { ChatApiService } from '../services/chat-api.service';
 import * as ChatActions from './chat.actions';
@@ -46,15 +53,39 @@ function makeActiveConversation(
   };
 }
 
-function setup() {
+/** The real en.json strings for the keys the chat error map resolves to. */
+const TRANSLATIONS: Record<string, string> = {
+  'chat.details.imageInvalidType': 'Unsupported file type. Use a JPEG, PNG, WebP or GIF image.',
+  'chat.details.imageTooLarge': 'This photo is too large. Maximum size is {{max}} MB.',
+};
+
+function translateStub(): Pick<TranslateService, 'instant'> {
+  return {
+    instant: ((key: string, params?: Record<string, unknown>) => {
+      const value = TRANSLATIONS[key] ?? key;
+      return value.replace(/\{\{(\w+)\}\}/g, (_, name: string) => String(params?.[name] ?? ''));
+    }) as TranslateService['instant'],
+  };
+}
+
+/** A ProblemDetails 400 exactly as the API returns it (code in `type`). */
+function problemDetails(status: number, code: string, title: string): HttpErrorResponse {
+  return new HttpErrorResponse({
+    status,
+    error: { status, type: code, title },
+  });
+}
+
+function setup(chatApi: Partial<ChatApiService> = {}) {
   const harness = actionsHarness();
   TestBed.configureTestingModule({
     providers: [
       ChatEffects,
       harness.provider,
       provideMockStore(),
-      { provide: ChatApiService, useValue: {} },
+      { provide: ChatApiService, useValue: chatApi },
       { provide: ChatBadgeService, useValue: { setUnreadCount: vi.fn() } },
+      { provide: TranslateService, useValue: translateStub() },
     ],
   });
   const store = TestBed.inject(MockStore);
@@ -64,6 +95,135 @@ function setup() {
 }
 
 describe('ChatEffects', () => {
+  describe('sendImageMessage$', () => {
+    it('uploads the file and revokes the optimistic preview URL on success', async () => {
+      const message: ChatMessage = {
+        id: 'img-1',
+        conversationId: 'c1',
+        senderId: 'renter-1',
+        senderName: 'Ada',
+        type: 'image',
+        systemKind: null,
+        body: 'Hi',
+        attachmentUrl: '/uploads/chat/c1/photo.jpg',
+        sentAt: '2026-07-08T10:00:00.000Z',
+        isMine: true,
+        seen: false,
+      };
+      const sendImageMessage = vi.fn(() => of(message));
+      const { harness, effects } = setup({
+        sendImageMessage,
+      } as unknown as Partial<ChatApiService>);
+      const revoke = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+
+      const result = collect(effects.sendImageMessage$);
+      const file = new File(['x'], 'p.jpg', { type: 'image/jpeg' });
+      harness.send(
+        ChatActions.sendImageMessage({
+          conversationId: 'c1',
+          file,
+          caption: 'Hi',
+          previewUrl: 'blob:preview',
+        }),
+      );
+      harness.complete();
+
+      const emitted = await result;
+      expect(sendImageMessage).toHaveBeenCalledWith('c1', file, 'Hi');
+      expect(emitted).toEqual([ChatActions.sendImageMessageSuccess({ message })]);
+      expect(revoke).toHaveBeenCalledWith('blob:preview');
+      revoke.mockRestore();
+    });
+
+    it('maps a rejected upload to sendImageMessageFailure', async () => {
+      const { harness, effects } = setup({
+        sendImageMessage: vi.fn(() => throwError(() => new Error('Attachment too large'))),
+      } as unknown as Partial<ChatApiService>);
+
+      const result = collect(effects.sendImageMessage$);
+      harness.send(
+        ChatActions.sendImageMessage({
+          conversationId: 'c1',
+          file: new File(['x'], 'p.jpg', { type: 'image/jpeg' }),
+          caption: null,
+          previewUrl: 'blob:preview',
+        }),
+      );
+      harness.complete();
+
+      const emitted = await result;
+      expect(emitted).toEqual([
+        ChatActions.sendImageMessageFailure({ error: 'Attachment too large' }),
+      ]);
+    });
+
+    // A text file renamed to .jpg reports `File.type === "image/jpeg"`, so the
+    // composer's client-side pre-check passes it and only the server's
+    // magic-byte validation rejects it. That rejection must still be translated
+    // rather than showing the server's hardcoded-English ProblemDetails title.
+    it('translates a server chat.attachment_invalid_type rejection instead of showing the raw server title', async () => {
+      const { harness, effects } = setup({
+        sendImageMessage: vi.fn(() =>
+          throwError(() =>
+            problemDetails(
+              400,
+              'chat.attachment_invalid_type',
+              'File is not a valid or supported image.',
+            ),
+          ),
+        ),
+      } as unknown as Partial<ChatApiService>);
+
+      const result = collect(effects.sendImageMessage$);
+      harness.send(
+        ChatActions.sendImageMessage({
+          conversationId: 'c1',
+          file: new File(['plain text'], 'notes.jpg', { type: 'image/jpeg' }),
+          caption: null,
+          previewUrl: 'blob:preview',
+        }),
+      );
+      harness.complete();
+
+      const emitted = await result;
+      expect(emitted).toEqual([
+        ChatActions.sendImageMessageFailure({
+          error: 'Unsupported file type. Use a JPEG, PNG, WebP or GIF image.',
+        }),
+      ]);
+      const [failure] = emitted as [ReturnType<typeof ChatActions.sendImageMessageFailure>];
+      expect(failure.error).not.toContain('File is not a valid or supported image.');
+    });
+
+    it('translates a server chat.attachment_too_large rejection with the size limit', async () => {
+      const { harness, effects } = setup({
+        sendImageMessage: vi.fn(() =>
+          throwError(() =>
+            problemDetails(400, 'chat.attachment_too_large', 'Attachment exceeds 5 MB.'),
+          ),
+        ),
+      } as unknown as Partial<ChatApiService>);
+
+      const result = collect(effects.sendImageMessage$);
+      harness.send(
+        ChatActions.sendImageMessage({
+          conversationId: 'c1',
+          file: new File(['x'], 'big.jpg', { type: 'image/jpeg' }),
+          caption: null,
+          previewUrl: 'blob:preview',
+        }),
+      );
+      harness.complete();
+
+      const emitted = await result;
+      expect(emitted).toEqual([
+        ChatActions.sendImageMessageFailure({
+          error: 'This photo is too large. Maximum size is 5 MB.',
+        }),
+      ]);
+    });
+  });
+
   describe('realtimeMessageReceived$', () => {
     it('re-fetches conversation details for a SYSTEM message in the open thread (M-007)', async () => {
       const { harness, store, effects } = setup();

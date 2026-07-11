@@ -139,6 +139,14 @@
                         }}</span>
                       }
                       {{ conversation.lastMessageSnippet }}
+                    } @else if (conversation.lastMessageType === 'image') {
+                      <!-- An uncaptioned image has no snippet — label it instead. -->
+                      @if (conversation.lastMessageIsMine) {
+                        <span class="chat-row__snippet-prefix">{{
+                          'chat.conversations.youPrefix' | translate
+                        }}</span>
+                      }
+                      {{ 'chat.conversations.photo' | translate }}
                     } @else {
                       {{ 'chat.conversations.noMessages' | translate }}
                     }

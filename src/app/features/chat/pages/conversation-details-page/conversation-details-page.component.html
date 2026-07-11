@@ -180,14 +180,20 @@
                   }
 
                   @for (message of item.messages; track message.id) {
-                    <div class="chat-bubble" [class.chat-bubble--mine]="item.isMine">
-                      @if (message.type === 'image') {
-                        <div class="chat-bubble__image-placeholder">
-                          <i class="pi pi-image" aria-hidden="true"></i>
-                          <span>{{ 'chat.details.imagePlaceholder' | translate }}</span>
-                        </div>
+                    <div
+                      class="chat-bubble"
+                      [class.chat-bubble--mine]="item.isMine"
+                      [class.chat-bubble--image]="message.type === 'image' && message.attachmentUrl"
+                    >
+                      @if (message.type === 'image' && message.attachmentUrl) {
+                        <img
+                          class="chat-bubble__image"
+                          [src]="message.attachmentUrl"
+                          [alt]="message.body || ('chat.details.imageAlt' | translate)"
+                          loading="lazy"
+                        />
                         @if (message.body) {
-                          <p class="chat-bubble__text">{{ message.body }}</p>
+                          <p class="chat-bubble__text chat-bubble__caption">{{ message.body }}</p>
                         }
                       } @else {
                         <p class="chat-bubble__text">{{ message.body }}</p>
@@ -207,11 +213,54 @@
               }
             }
           }
+
+          <!-- Optimistic bubble for the image currently uploading (or the one
+               whose upload was rejected) — replaced by the server message on
+               success. -->
+          @if (vm.pendingImage; as pending) {
+            <div class="chat-group chat-group--mine">
+              <div
+                class="chat-bubble chat-bubble--mine chat-bubble--image chat-bubble--pending"
+                [class.chat-bubble--failed]="pending.failed"
+              >
+                <img
+                  class="chat-bubble__image"
+                  [src]="pending.previewUrl"
+                  [alt]="pending.caption || ('chat.details.imageAlt' | translate)"
+                />
+                @if (pending.caption) {
+                  <p class="chat-bubble__text chat-bubble__caption">{{ pending.caption }}</p>
+                }
+                <p class="chat-bubble__status" aria-live="polite">
+                  @if (pending.failed) {
+                    <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+                    <span>{{ 'chat.details.imageFailed' | translate }}</span>
+                    <button
+                      type="button"
+                      class="chat-bubble__dismiss"
+                      (click)="dismissPendingImage()"
+                    >
+                      {{ 'chat.details.imageDismiss' | translate }}
+                    </button>
+                  } @else {
+                    <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+                    <span>{{ 'chat.details.imageSending' | translate }}</span>
+                  }
+                </p>
+              </div>
+            </div>
+          }
         </div>
 
         @if (vm.sendingMessageError; as sendingError) {
           <p-message severity="error" styleClass="chat-thread__message">
             <span>{{ sendingError }}</span>
+          </p-message>
+        }
+
+        @if (vm.sendingImageError; as imageError) {
+          <p-message severity="error" styleClass="chat-thread__message">
+            <span>{{ imageError }}</span>
           </p-message>
         }
 
@@ -227,13 +276,13 @@
             [formGroup]="messageForm"
             (ngSubmit)="sendMessage(conversation.id)"
           >
-            <!-- Image picker (left). Opens a native file input as an affordance;
-                 attachment SENDING is a separate backend vertical (deferred). -->
+            <!-- Image picker (left): gallery/file picker. Composer text, if any,
+                 is sent along as the image's caption. -->
             <button
               type="button"
               class="chat-thread__composer-icon"
               (click)="imageInput.click()"
-              [title]="'chat.details.attachImageSoon' | translate"
+              [title]="'chat.details.attachImage' | translate"
               [attr.aria-label]="'chat.details.attachImage' | translate"
             >
               <i class="pi pi-image" aria-hidden="true"></i>
@@ -242,7 +291,7 @@
               #imageInput
               type="file"
               class="chat-thread__composer-file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp,image/gif"
               hidden
               (change)="onImageSelected($event)"
             />
@@ -256,15 +305,26 @@
                 [maxLength]="maxMessageLength"
                 [placeholder]="'chat.details.messagePlaceholder' | translate"
               />
-              <!-- Camera (right, inside the input). Cosmetic no-op for now. -->
+              <!-- Camera (right, inside the input): same upload path, but
+                   `capture="environment"` makes mobile open the rear camera. -->
               <button
                 type="button"
                 class="chat-thread__composer-icon chat-thread__composer-icon--camera"
-                [title]="'chat.details.attachCameraSoon' | translate"
+                (click)="cameraInput.click()"
+                [title]="'chat.details.attachCamera' | translate"
                 [attr.aria-label]="'chat.details.attachCamera' | translate"
               >
                 <i class="pi pi-camera" aria-hidden="true"></i>
               </button>
+              <input
+                #cameraInput
+                type="file"
+                class="chat-thread__composer-file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                capture="environment"
+                hidden
+                (change)="onImageSelected($event)"
+              />
 
               @if (messageLength() >= counterVisibleThreshold) {
                 <span

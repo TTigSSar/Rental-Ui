@@ -98,6 +98,8 @@ export const ApiContract = {
     fromBooking: (bookingId: string): ApiPath =>
       `/api/chat/conversations/from-booking/${encodeURIComponent(bookingId)}`,
     messages: '/api/chat/messages',
+    sendImageMessage: (conversationId: string): ApiPath =>
+      `/api/chat/conversations/${encodeURIComponent(conversationId)}/messages/image`,
     hub: '/hubs/chat',
   },
   notifications: {

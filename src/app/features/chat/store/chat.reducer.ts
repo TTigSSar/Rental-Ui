@@ -1,6 +1,7 @@
 import { createReducer, on } from '@ngrx/store';
 
 import type {
+  ChatConversationDetails,
   ChatConversationPreview,
   ChatMessage,
 } from '../models/chat.model';
@@ -29,13 +30,36 @@ function applyMessageToInbox(
     const bumpsUnread = !message.isMine && !isOpenConversation;
     return {
       ...conversation,
-      lastMessageSnippet: message.body ?? conversation.lastMessageSnippet,
+      // An image with no caption has a null body — the row then renders the
+      // localized "Photo" label off `lastMessageType`, so don't fall back to the
+      // previous (now stale) snippet.
+      lastMessageSnippet: message.body,
+      lastMessageType: message.type,
+      lastMessageIsMine: message.isMine,
       lastMessageAt: message.sentAt,
       unreadCount: bumpsUnread
         ? conversation.unreadCount + 1
         : conversation.unreadCount,
     };
   });
+}
+
+/**
+ * Append `message` to the open conversation, deduped by the stable server id.
+ *
+ * A sent message reaches the client through TWO channels — the HTTP response of
+ * the send (text or image upload) and the SignalR echo the hub broadcasts back
+ * to the sender — and either can win the race. EVERY append path must go through
+ * this helper (knowledge/mistakes.md M-006).
+ */
+function appendMessageDeduped(
+  conversation: ChatConversationDetails,
+  message: ChatMessage,
+): ChatConversationDetails {
+  const alreadyPresent = conversation.messages.some((m) => m.id === message.id);
+  return alreadyPresent
+    ? conversation
+    : { ...conversation, messages: [...conversation.messages, message] };
 }
 
 export const chatReducer = createReducer(
@@ -113,23 +137,16 @@ export const chatReducer = createReducer(
         };
       }
 
-      // Dedupe against the SignalR echo: the hub broadcasts `messageReceived`
-      // to the sender too, and it can land before this POST response. If that
-      // id is already present, don't append it a second time.
-      const alreadyPresent = state.activeConversation.messages.some(
-        (m) => m.id === message.id,
-      );
-
+      // Deduped against the SignalR echo: the hub broadcasts `messageReceived`
+      // to the sender too, and it can land before this POST response (M-006).
       return {
         ...state,
         sendingMessage: false,
         sendingMessageError: null,
-        activeConversation: {
-          ...state.activeConversation,
-          messages: alreadyPresent
-            ? state.activeConversation.messages
-            : [...state.activeConversation.messages, message],
-        },
+        activeConversation: appendMessageDeduped(
+          state.activeConversation,
+          message,
+        ),
       };
     },
   ),
@@ -139,6 +156,60 @@ export const chatReducer = createReducer(
       ...state,
       sendingMessage: false,
       sendingMessageError: error,
+    }),
+  ),
+  on(
+    ChatActions.sendImageMessage,
+    (state, { conversationId, previewUrl, caption }): ChatState => ({
+      ...state,
+      pendingImage: { conversationId, previewUrl, caption, failed: false },
+      sendingImageError: null,
+    }),
+  ),
+  on(
+    ChatActions.sendImageMessageSuccess,
+    (state, { message }): ChatState => {
+      const base: ChatState = {
+        ...state,
+        pendingImage: null,
+        sendingImageError: null,
+      };
+
+      if (
+        state.activeConversation === null ||
+        state.activeConversation.id !== message.conversationId
+      ) {
+        return base;
+      }
+
+      // Same two-channel race as the text send: the hub echoes the image back to
+      // the uploader, so this HTTP response may be the SECOND arrival (M-006).
+      return {
+        ...base,
+        activeConversation: appendMessageDeduped(
+          state.activeConversation,
+          message,
+        ),
+      };
+    },
+  ),
+  on(
+    ChatActions.sendImageMessageFailure,
+    (state, { error }): ChatState => ({
+      ...state,
+      pendingImage:
+        state.pendingImage === null
+          ? null
+          : { ...state.pendingImage, failed: true },
+      sendingImageError: error,
+    }),
+  ),
+  on(
+    ChatActions.dismissPendingImage,
+    (state): ChatState => ({
+      ...state,
+      pendingImage: null,
+      sendingImageError: null,
     }),
   ),
   on(
@@ -159,28 +230,25 @@ export const chatReducer = createReducer(
         state.activeConversation !== null &&
         state.activeConversation.id === message.conversationId;
 
-      // Dedupe against the optimistic `sendMessageSuccess` echo of our own send.
-      const alreadyPresent =
-        isOpenConversation &&
-        state.activeConversation!.messages.some((m) => m.id === message.id);
-
       const conversations = applyMessageToInbox(
         state.conversations,
         message,
         isOpenConversation,
       );
 
-      if (!isOpenConversation || alreadyPresent) {
+      if (!isOpenConversation) {
         return { ...state, conversations };
       }
 
+      // Deduped against the HTTP response of our own send (text or image) —
+      // whichever channel arrives first wins, the other is a no-op (M-006).
       return {
         ...state,
         conversations,
-        activeConversation: {
-          ...state.activeConversation!,
-          messages: [...state.activeConversation!.messages, message],
-        },
+        activeConversation: appendMessageDeduped(
+          state.activeConversation!,
+          message,
+        ),
       };
     },
   ),

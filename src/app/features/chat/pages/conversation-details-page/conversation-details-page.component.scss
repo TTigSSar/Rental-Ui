@@ -395,18 +395,68 @@
   line-height: 1.4;
 }
 
-.chat-bubble__image-placeholder {
+/* Image bubble: the picture fills the bubble's content box, with an inner radius
+   inset from the 16px bubble corner. Sized so a portrait phone photo stays a
+   comfortable thumbnail inside the 78%-wide bubble column. */
+.chat-bubble--image {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  background: color-mix(in srgb, currentColor 8%, transparent);
-  font-size: 0.85rem;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
-.chat-bubble__image-placeholder .pi {
-  font-size: 1.1rem;
+.chat-bubble__image {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(260px, 100%);
+  max-height: 320px;
+  border-radius: 12px;
+  object-fit: contain;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+/* Caption under the picture — slightly smaller than a plain text bubble. */
+.chat-bubble__caption {
+  font-size: 0.875rem;
+}
+
+/* Optimistic upload states (sending / failed). */
+.chat-bubble--pending .chat-bubble__image {
+  opacity: 0.75;
+}
+
+.chat-bubble--failed .chat-bubble__image {
+  opacity: 0.5;
+}
+
+.chat-bubble__status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+  font-size: 0.72rem;
+  opacity: 0.9;
+}
+
+.chat-bubble__status .pi {
+  font-size: 0.8rem;
+}
+
+.chat-bubble__dismiss {
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  font-weight: var(--ui-font-weight-semibold);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.chat-bubble__dismiss:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
 }
 
 .chat-group__footer {
@@ -544,8 +594,8 @@
 }
 
 /* Muted gray icon buttons — image picker (left) + camera (in-field right).
-   Affordance only: image opens a native file input; camera is a no-op.
-   Attachment SENDING is a separate backend vertical (deferred). */
+   Both open a hidden file input; the camera one carries `capture="environment"`
+   so mobile opens the rear camera. */
 .chat-thread__composer-icon {
   flex-shrink: 0;
   display: inline-flex;

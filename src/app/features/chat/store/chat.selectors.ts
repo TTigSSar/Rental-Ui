@@ -5,7 +5,7 @@ import type {
   ChatConversationPreview,
 } from '../models/chat.model';
 import { chatFeatureKey } from './chat.reducer';
-import type { ChatState } from './chat.state';
+import type { ChatState, PendingChatImage } from './chat.state';
 
 export const selectChatState = createFeatureSelector<ChatState>(chatFeatureKey);
 
@@ -47,4 +47,14 @@ export const selectSendingMessage = createSelector(
 export const selectSendingMessageError = createSelector(
   selectChatState,
   (state: ChatState): string | null => state.sendingMessageError,
+);
+
+export const selectPendingImage = createSelector(
+  selectChatState,
+  (state: ChatState): PendingChatImage | null => state.pendingImage,
+);
+
+export const selectSendingImageError = createSelector(
+  selectChatState,
+  (state: ChatState): string | null => state.sendingImageError,
 );

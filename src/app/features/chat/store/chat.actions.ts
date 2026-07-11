@@ -49,6 +49,39 @@ export const sendMessageFailure = createAction(
   props<{ error: string }>(),
 );
 
+/**
+ * Upload + send an image attachment. `file` is already compressed and validated
+ * by the composer (type + `CHAT_ATTACHMENT_MAX_BYTES`); `previewUrl` is a local
+ * object URL used to render the optimistic "sending" bubble until the server
+ * message arrives.
+ */
+export const sendImageMessage = createAction(
+  '[Chat] Send Image Message',
+  props<{
+    conversationId: string;
+    file: File;
+    caption: string | null;
+    previewUrl: string;
+  }>(),
+);
+
+export const sendImageMessageSuccess = createAction(
+  '[Chat] Send Image Message Success',
+  props<{ message: ChatMessage }>(),
+);
+
+/**
+ * Upload rejected — by the server, or client-side before it ever left the
+ * browser (wrong type / too large). `error` is already a display string.
+ */
+export const sendImageMessageFailure = createAction(
+  '[Chat] Send Image Message Failure',
+  props<{ error: string }>(),
+);
+
+/** Dismisses the failed optimistic image bubble + its error banner. */
+export const dismissPendingImage = createAction('[Chat] Dismiss Pending Image');
+
 export const markConversationRead = createAction(
   '[Chat] Mark Conversation Read',
   props<{ conversationId: string }>(),

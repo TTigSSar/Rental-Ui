@@ -1,6 +1,8 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
+import { TranslateService } from '@ngx-translate/core';
 import {
   catchError,
   concatMap,
@@ -14,9 +16,10 @@ import {
 
 import { toApiErrorMessage } from '../../../api/http-error-message.util';
 import { selectAuthUser } from '../../auth/store/auth.selectors';
-import type {
-  ChatMessage,
-  ChatRealtimeMessage,
+import {
+  CHAT_ATTACHMENT_MAX_BYTES,
+  type ChatMessage,
+  type ChatRealtimeMessage,
 } from '../models/chat.model';
 import { ChatBadgeService } from '../services/chat-badge.service';
 import { ChatApiService } from '../services/chat-api.service';
@@ -26,8 +29,38 @@ import {
   selectConversations,
 } from './chat.selectors';
 
-function toErrorMessage(error: unknown): string {
-  return toApiErrorMessage(error);
+/**
+ * Server ServiceError codes → the i18n keys the composer's client-side
+ * pre-checks already use. The client checks are only a fast path: the browser
+ * derives `File.type` from the extension, so a renamed text file passes them
+ * and is caught by the server's magic-byte validation instead. Without this map
+ * that rejection would surface the server's hardcoded-English ProblemDetails
+ * `title`, untranslated.
+ */
+const CHAT_ERROR_MESSAGE_KEYS: Readonly<Record<string, string>> = {
+  'chat.attachment_invalid_type': 'chat.details.imageInvalidType',
+  'chat.attachment_too_large': 'chat.details.imageTooLarge',
+  'chat.conversation_closed': 'chat.details.closedBanner',
+};
+
+/**
+ * The API puts the ServiceError code in the ProblemDetails `type` member
+ * (see `ChatController.ToProblemDetails`).
+ */
+function toServerErrorCode(error: unknown): string | null {
+  if (!(error instanceof HttpErrorResponse)) {
+    return null;
+  }
+  const body: unknown = error.error;
+  if (
+    typeof body === 'object' &&
+    body !== null &&
+    'type' in body &&
+    typeof (body as { type: unknown }).type === 'string'
+  ) {
+    return (body as { type: string }).type;
+  }
+  return null;
 }
 
 /** Map a viewer-neutral hub message to the local, viewer-relative shape. */
@@ -48,6 +81,22 @@ export class ChatEffects {
   private readonly chatApi = inject(ChatApiService);
   private readonly store = inject(Store);
   private readonly chatBadge = inject(ChatBadgeService);
+  private readonly translate = inject(TranslateService);
+
+  /**
+   * Translate a known chat error code; fall back to the generic HTTP message
+   * for anything unmapped.
+   */
+  private toErrorMessage(error: unknown): string {
+    const key = CHAT_ERROR_MESSAGE_KEYS[toServerErrorCode(error) ?? ''];
+    if (key === undefined) {
+      return toApiErrorMessage(error);
+    }
+    // `imageTooLarge` interpolates {{max}}; the other keys ignore it.
+    return this.translate.instant(key, {
+      max: Math.round(CHAT_ATTACHMENT_MAX_BYTES / (1024 * 1024)),
+    });
+  }
 
   readonly loadConversations$ = createEffect(() =>
     this.actions$.pipe(
@@ -60,7 +109,7 @@ export class ChatEffects {
           catchError((error: unknown) =>
             of(
               ChatActions.loadConversationsFailure({
-                error: toErrorMessage(error),
+                error: this.toErrorMessage(error),
               }),
             ),
           ),
@@ -80,7 +129,7 @@ export class ChatEffects {
           catchError((error: unknown) =>
             of(
               ChatActions.loadConversationDetailsFailure({
-                error: toErrorMessage(error),
+                error: this.toErrorMessage(error),
               }),
             ),
           ),
@@ -98,7 +147,34 @@ export class ChatEffects {
           catchError((error: unknown) =>
             of(
               ChatActions.sendMessageFailure({
-                error: toErrorMessage(error),
+                error: this.toErrorMessage(error),
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  /**
+   * Upload an image attachment. The file arrives already compressed and
+   * validated by the composer. On success the object URL behind the optimistic
+   * bubble is revoked (the bubble is replaced by the server message); on failure
+   * it is kept so the failed bubble still shows the picture.
+   */
+  readonly sendImageMessage$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ChatActions.sendImageMessage),
+      concatMap(({ conversationId, file, caption, previewUrl }) =>
+        this.chatApi.sendImageMessage(conversationId, file, caption).pipe(
+          map((message) => {
+            URL.revokeObjectURL(previewUrl);
+            return ChatActions.sendImageMessageSuccess({ message });
+          }),
+          catchError((error: unknown) =>
+            of(
+              ChatActions.sendImageMessageFailure({
+                error: this.toErrorMessage(error),
               }),
             ),
           ),
@@ -116,7 +192,7 @@ export class ChatEffects {
           catchError((error: unknown) =>
             of(
               ChatActions.markConversationReadFailure({
-                error: toErrorMessage(error),
+                error: this.toErrorMessage(error),
               }),
             ),
           ),

@@ -19,6 +19,7 @@ function preview(overrides: Partial<ChatConversationPreview>): ChatConversationP
     status: 'active',
     lastMessageSnippet: 'Enjoy! Ping me any time.',
     lastMessageAt: '2026-07-07T10:00:00.000Z',
+    lastMessageType: 'text',
     lastMessageIsMine: false,
     unreadCount: 0,
     ...overrides,
@@ -64,5 +65,55 @@ describe('ConversationsPageComponent', () => {
 
     const host = fixture.nativeElement as HTMLElement;
     expect(host.querySelector('.chat-row__snippet-prefix')).toBeNull();
+  });
+
+  describe('image last message', () => {
+    it('labels an uncaptioned image row instead of leaving the snippet empty', () => {
+      const fixture = createFixture([
+        preview({
+          id: 'img',
+          lastMessageType: 'image',
+          lastMessageSnippet: null,
+          lastMessageIsMine: false,
+        }),
+      ]);
+
+      const host = fixture.nativeElement as HTMLElement;
+      const snippet = host.querySelector('.chat-row__snippet')?.textContent?.trim();
+      // TranslateModule.forRoot() with no bundle echoes the key back.
+      expect(snippet).toBe('chat.conversations.photo');
+      expect(host.querySelector('.chat-row__snippet-prefix')).toBeNull();
+    });
+
+    it('keeps the "You:" prefix on my own uncaptioned image', () => {
+      const fixture = createFixture([
+        preview({
+          id: 'img-mine',
+          lastMessageType: 'image',
+          lastMessageSnippet: null,
+          lastMessageIsMine: true,
+        }),
+      ]);
+
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelector('.chat-row__snippet-prefix')).not.toBeNull();
+      expect(host.querySelector('.chat-row__snippet')?.textContent).toContain(
+        'chat.conversations.photo',
+      );
+    });
+
+    it('shows the caption (not the Photo label) when the image has one', () => {
+      const fixture = createFixture([
+        preview({
+          id: 'img-caption',
+          lastMessageType: 'image',
+          lastMessageSnippet: 'Look at this',
+        }),
+      ]);
+
+      const host = fixture.nativeElement as HTMLElement;
+      const snippet = host.querySelector('.chat-row__snippet')?.textContent?.trim();
+      expect(snippet).toBe('Look at this');
+    });
   });
 });

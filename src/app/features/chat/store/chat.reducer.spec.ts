@@ -20,6 +20,7 @@ function makePreview(
     status: 'active',
     lastMessageSnippet: 'See you soon',
     lastMessageAt: '2026-07-07T10:00:00.000Z',
+    lastMessageType: 'text',
     lastMessageIsMine: false,
     unreadCount: 3,
     ...overrides,
@@ -170,6 +171,161 @@ describe('chatReducer', () => {
       ]);
       expect(next.sendingMessage).toBe(false);
       expect(next.sendingMessageError).toBeNull();
+    });
+  });
+
+  describe('image attachments', () => {
+    function imageMessage(overrides: Partial<ChatMessage> = {}): ChatMessage {
+      return makeMessage({
+        id: 'img-1',
+        conversationId: 'c1',
+        type: 'image',
+        body: null,
+        attachmentUrl: '/uploads/chat/c1/photo.jpg',
+        isMine: true,
+        ...overrides,
+      });
+    }
+
+    it('sendImageMessage stores the optimistic pending image', () => {
+      const next = chatReducer(
+        stateWith({ sendingImageError: 'stale' }),
+        ChatActions.sendImageMessage({
+          conversationId: 'c1',
+          file: new File([''], 'p.jpg', { type: 'image/jpeg' }),
+          caption: 'Hi',
+          previewUrl: 'blob:preview',
+        }),
+      );
+
+      expect(next.pendingImage).toEqual({
+        conversationId: 'c1',
+        previewUrl: 'blob:preview',
+        caption: 'Hi',
+        failed: false,
+      });
+      expect(next.sendingImageError).toBeNull();
+    });
+
+    it('sendImageMessageSuccess appends the message and clears the pending image', () => {
+      const start = stateWith({
+        activeConversation: makeDetails({ id: 'c1', messages: [makeMessage({ id: 'm1' })] }),
+        pendingImage: {
+          conversationId: 'c1',
+          previewUrl: 'blob:preview',
+          caption: null,
+          failed: false,
+        },
+      });
+
+      const next = chatReducer(
+        start,
+        ChatActions.sendImageMessageSuccess({ message: imageMessage() }),
+      );
+
+      expect(next.activeConversation?.messages.map((m) => m.id)).toEqual(['m1', 'img-1']);
+      expect(next.pendingImage).toBeNull();
+      expect(next.sendingImageError).toBeNull();
+    });
+
+    // M-006: the hub echoes our own image back to us, so the upload's HTTP
+    // response and the realtime push are two append paths for ONE message.
+    it('sendImageMessageSuccess does NOT duplicate an image already added by the realtime echo', () => {
+      const echoed = imageMessage({ id: 'img-1' });
+      const start = stateWith({
+        activeConversation: makeDetails({
+          id: 'c1',
+          messages: [makeMessage({ id: 'm1' }), echoed],
+        }),
+        pendingImage: {
+          conversationId: 'c1',
+          previewUrl: 'blob:preview',
+          caption: null,
+          failed: false,
+        },
+      });
+
+      const next = chatReducer(
+        start,
+        ChatActions.sendImageMessageSuccess({ message: { ...echoed } }),
+      );
+
+      expect(next.activeConversation?.messages.map((m) => m.id)).toEqual(['m1', 'img-1']);
+      expect(next.pendingImage).toBeNull();
+    });
+
+    // The mirror case: the upload response won the race, so the realtime echo
+    // must be the no-op.
+    it('realtimeMessageResolved does NOT duplicate an image already added by the upload response', () => {
+      const uploaded = imageMessage({ id: 'img-1' });
+      const start = stateWith({
+        conversations: [makePreview({ id: 'c1' })],
+        activeConversation: makeDetails({ id: 'c1', messages: [uploaded] }),
+      });
+
+      const next = chatReducer(
+        start,
+        ChatActions.realtimeMessageResolved({ message: { ...uploaded } }),
+      );
+
+      expect(next.activeConversation?.messages).toHaveLength(1);
+    });
+
+    it('marks the pending image failed and surfaces the error', () => {
+      const start = stateWith({
+        pendingImage: {
+          conversationId: 'c1',
+          previewUrl: 'blob:preview',
+          caption: null,
+          failed: false,
+        },
+      });
+
+      const next = chatReducer(
+        start,
+        ChatActions.sendImageMessageFailure({ error: 'Photo is too large' }),
+      );
+
+      expect(next.pendingImage?.failed).toBe(true);
+      expect(next.sendingImageError).toBe('Photo is too large');
+    });
+
+    it('dismissPendingImage clears the failed bubble and its error', () => {
+      const start = stateWith({
+        pendingImage: {
+          conversationId: 'c1',
+          previewUrl: 'blob:preview',
+          caption: null,
+          failed: true,
+        },
+        sendingImageError: 'Photo is too large',
+      });
+
+      const next = chatReducer(start, ChatActions.dismissPendingImage());
+
+      expect(next.pendingImage).toBeNull();
+      expect(next.sendingImageError).toBeNull();
+    });
+
+    it('an incoming image updates the inbox row type so it can render the Photo label', () => {
+      const start = stateWith({
+        conversations: [
+          makePreview({ id: 'c1', lastMessageType: 'text', lastMessageSnippet: 'hi' }),
+        ],
+        activeConversation: makeDetails({ id: 'c2' }),
+      });
+
+      const next = chatReducer(
+        start,
+        ChatActions.realtimeMessageResolved({
+          message: imageMessage({ id: 'img-9', isMine: false }),
+        }),
+      );
+
+      const row = next.conversations.find((c) => c.id === 'c1');
+      expect(row?.lastMessageType).toBe('image');
+      expect(row?.lastMessageSnippet).toBeNull();
+      expect(row?.lastMessageIsMine).toBe(false);
     });
   });
 

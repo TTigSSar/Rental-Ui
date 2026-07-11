@@ -124,6 +124,7 @@ function preview(overrides: Partial<ChatConversationPreview>): ChatConversationP
     status: 'active',
     lastMessageSnippet: null,
     lastMessageAt: null,
+    lastMessageType: null,
     lastMessageIsMine: false,
     unreadCount: 0,
     ...overrides,
