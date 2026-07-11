@@ -76,6 +76,48 @@
   display: block;
 }
 
+/*
+ * ── Single-column thread-open: fixed messenger viewport (≤ 1023px) ────────
+ * When a thread is open the shell becomes a fixed-height messenger column so
+ * the composer / closed banner pins to the viewport bottom and only the
+ * message list scrolls — mirroring the desktop pane. The height fills exactly
+ * the space under whatever chrome sits above the chat surface:
+ *   • 961–1023px → the global sticky header is visible (3.5rem row + 1px
+ *     border — same expression as the desktop block below).
+ *   • ≤960px     → the global header is `display:none` (app-header), so the
+ *     thread owns the full viewport height (overridden in the ≤960 block).
+ * On an open thread below 1024px the app bottom nav is also hidden (app.ts
+ * `showBottomNav`), so the surface reaches the real viewport bottom — no strip.
+ * The inbox (/chat: rail visible, no `--thread-open`) keeps its normal-flow
+ * `min-height: calc(100dvh - 4rem)` layout untouched, so it stays visually
+ * identical (its 4rem shortfall is covered by the fixed bottom nav as before).
+ */
+@media (max-width: 1023px) {
+  :host:has(.chat-shell--thread-open) {
+    min-height: 0;
+    height: calc(100dvh - 3.5rem - 1px);
+    overflow: hidden;
+  }
+
+  .chat-shell--thread-open {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .chat-shell--thread-open .chat-shell__pane {
+    height: 100%;
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 960px) {
+  /* No global header on mobile — the open thread owns the entire viewport. */
+  :host:has(.chat-shell--thread-open) {
+    height: 100dvh;
+  }
+}
+
 /* ── Desktop two-pane (≥ 1024px) ──────────────────────────────────────── */
 @media (min-width: 1024px) {
   :host {

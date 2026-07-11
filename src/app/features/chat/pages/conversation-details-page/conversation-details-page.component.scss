@@ -611,87 +611,106 @@
   text-align: center;
 }
 
+/*
+ * The thread ALWAYS renders inside the shell pane (it is the shell's child
+ * router-outlet), so this messenger-column layout applies at EVERY width:
+ * counterpart header + booking bar pinned at the top, the message list is the
+ * only scrollable region, and the composer / closed banner is pinned at the
+ * bottom of the viewport. The shell gives the pane its fixed height — the
+ * two-pane grid at ≥1024px, and the single-column thread-open block at ≤1023px
+ * (see chat-shell.component.scss). The standalone full-page `.chat-thread`
+ * chrome (max-width / centering margin / page padding / panel border) is thus
+ * always neutralized here; it is effectively dead now that the thread only ever
+ * mounts inside the shell.
+ */
+:host-context(.chat-shell__pane) {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
+:host-context(.chat-shell__pane) .chat-thread {
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+}
+
+:host-context(.chat-shell__pane) .chat-thread__header {
+  flex-shrink: 0;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--ui-color-border);
+}
+
+:host-context(.chat-shell__pane) .chat-thread__error,
+:host-context(.chat-shell__pane) .chat-thread__skeleton,
+:host-context(.chat-shell__pane) .chat-thread__empty {
+  margin: 1rem 1.25rem;
+}
+
+:host-context(.chat-shell__pane) .chat-thread__panel {
+  flex: 1;
+  min-height: 0;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  gap: 0;
+}
+
+:host-context(.chat-shell__pane) .chat-thread__context {
+  flex-shrink: 0;
+  border-radius: 0;
+  background: var(--ui-color-surface);
+  border-bottom: 1px solid var(--ui-color-border);
+  padding: 0.75rem 1.25rem;
+}
+
+:host-context(.chat-shell__pane) .chat-thread__messages {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  padding: 1rem 1.25rem;
+}
+
+:host-context(.chat-shell__pane) .chat-thread__panel > p-message {
+  display: block;
+  margin: 0.5rem 1.25rem 0;
+}
+
+:host-context(.chat-shell__pane) .chat-thread__composer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--ui-color-border);
+  padding: 0.75rem 1.25rem 1rem;
+}
+
+:host-context(.chat-shell__pane) .chat-thread__closed {
+  flex-shrink: 0;
+  border-radius: 0;
+  border-top: 1px solid var(--ui-color-border);
+  background: var(--ui-color-surface-muted);
+}
+
 /* Desktop two-pane: the conversations list is always visible in the shell
-   rail, so the in-thread back arrow is redundant. */
+   rail, so the in-thread back arrow is redundant (mobile/tablet keep it). */
 @media (min-width: 1024px) {
   .chat-thread__back {
     display: none;
   }
+}
 
-  /*
-   * Inside the fixed-height shell pane the thread becomes a real messenger
-   * column: counterpart header and booking bar pinned at the top, the message
-   * list is the only scrollable region, and the composer is pinned at the
-   * bottom of the viewport. The standalone card chrome (max-width, panel
-   * border/shadow, page padding) belongs to the mobile full-page layout only.
-   */
-  :host-context(.chat-shell__pane) {
-    display: block;
-    height: 100%;
-    min-height: 0;
-  }
-
-  :host-context(.chat-shell__pane) .chat-thread {
-    height: 100%;
-    max-width: none;
-    margin: 0;
-    padding: 0;
-    gap: 0;
-  }
-
-  :host-context(.chat-shell__pane) .chat-thread__header {
-    flex-shrink: 0;
-    padding: 0.85rem 1.25rem;
-    border-bottom: 1px solid var(--ui-color-border);
-  }
-
-  :host-context(.chat-shell__pane) .chat-thread__error,
-  :host-context(.chat-shell__pane) .chat-thread__skeleton,
-  :host-context(.chat-shell__pane) .chat-thread__empty {
-    margin: 1rem 1.25rem;
-  }
-
-  :host-context(.chat-shell__pane) .chat-thread__panel {
-    flex: 1;
-    min-height: 0;
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-    padding: 0;
-    gap: 0;
-  }
-
-  :host-context(.chat-shell__pane) .chat-thread__context {
-    flex-shrink: 0;
-    border-radius: 0;
-    background: var(--ui-color-surface);
-    border-bottom: 1px solid var(--ui-color-border);
-    padding: 0.75rem 1.25rem;
-  }
-
-  :host-context(.chat-shell__pane) .chat-thread__messages {
-    flex: 1;
-    min-height: 0;
-    max-height: none;
-    padding: 1rem 1.25rem;
-  }
-
-  :host-context(.chat-shell__pane) .chat-thread__panel > p-message {
-    display: block;
-    margin: 0.5rem 1.25rem 0;
-  }
-
+@media (max-width: 960px) {
+  /* On mobile the open thread has no global bottom nav (app.ts showBottomNav),
+     so the composer / closed banner pin to the REAL viewport bottom. The nav
+     normally owns the iOS home-indicator inset — add it here so the pinned
+     controls clear the home indicator on notched phones. */
   :host-context(.chat-shell__pane) .chat-thread__composer {
-    flex-shrink: 0;
-    border-top: 1px solid var(--ui-color-border);
-    padding: 0.75rem 1.25rem 1rem;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
   }
 
   :host-context(.chat-shell__pane) .chat-thread__closed {
-    flex-shrink: 0;
-    border-radius: 0;
-    border-top: 1px solid var(--ui-color-border);
-    background: var(--ui-color-surface-muted);
+    padding-bottom: calc(0.85rem + env(safe-area-inset-bottom, 0px));
   }
 }
 
