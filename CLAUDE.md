@@ -26,7 +26,7 @@ Listing: `Draft / PendingApproval / Approved / Rejected / Archived`. Booking: `P
 
 ## Chat backend (this note was once "no backend" — it is now REAL)
 
-`features/chat/` is wired to a real backend: `ChatController` (booking-scoped conversations, messages, read cursors) + a SignalR hub at `/hubs/chat`. Verify live against a running API. Realtime works under `npm start` (Angular dev proxy) and `dotnet run`; it is currently BROKEN in the docker UI image (nginx doesn't proxy the hub — M-008), but the REST chat endpoints work in docker.
+`features/chat/` is wired to a real backend: `ChatController` (booking-scoped conversations, messages, read cursors) + a SignalR hub at `/hubs/chat`. Verify live against a running API. Realtime works under `npm start` (Angular dev proxy), `dotnet run`, AND the docker stack (M-008 fixed 2026-07-11: `nginx.conf` proxies `/hubs/` with WS upgrade via the `nginx-map.conf` include).
 
 ## Tests
 

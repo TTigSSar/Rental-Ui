@@ -14,6 +14,9 @@ RUN npm run build
 # ---- Runtime stage: serve the static files with nginx ----
 FROM nginx:alpine
 
+# http-context map for WebSocket Connection header (loaded before default.conf)
+COPY nginx-map.conf /etc/nginx/conf.d/00-map.conf
+
 # SPA-aware server config (routing fallback + cache headers)
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
