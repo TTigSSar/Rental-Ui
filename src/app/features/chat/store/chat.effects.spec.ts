@@ -68,11 +68,20 @@ function translateStub(): Pick<TranslateService, 'instant'> {
   };
 }
 
-/** A ProblemDetails 400 exactly as the API returns it (code in `type`). */
-function problemDetails(status: number, code: string, title: string): HttpErrorResponse {
+/**
+ * A ProblemDetails error exactly as the API returns it: the bare ServiceError code lives in
+ * `errorCode`, while `type` is the non-dereferenceable `urn:rental:error:<code>` URI reference
+ * RFC 7807 requires. Callers may override `type` to pin that nothing parses the URN.
+ */
+function problemDetails(
+  status: number,
+  code: string,
+  title: string,
+  type = `urn:rental:error:${code}`,
+): HttpErrorResponse {
   return new HttpErrorResponse({
     status,
-    error: { status, type: code, title },
+    error: { status, type, title, errorCode: code },
   });
 }
 
@@ -219,6 +228,43 @@ describe('ChatEffects', () => {
       expect(emitted).toEqual([
         ChatActions.sendImageMessageFailure({
           error: 'This photo is too large. Maximum size is 5 MB.',
+        }),
+      ]);
+    });
+
+    // Regression guard: `type` is an opaque URN, `errorCode` is the contract. Here the two
+    // deliberately disagree — a reader that parses the URN out of `type` would resolve
+    // "too large", so only an `errorCode` reader can produce the "invalid type" message.
+    // Pins the fix for the day someone "helpfully" starts splitting `type` on ':' again.
+    it('maps off `errorCode`, not the `type` URN, when the two disagree', async () => {
+      const { harness, effects } = setup({
+        sendImageMessage: vi.fn(() =>
+          throwError(() =>
+            problemDetails(
+              400,
+              'chat.attachment_invalid_type',
+              'File is not a valid or supported image.',
+              'urn:rental:error:chat.attachment_too_large',
+            ),
+          ),
+        ),
+      } as unknown as Partial<ChatApiService>);
+
+      const result = collect(effects.sendImageMessage$);
+      harness.send(
+        ChatActions.sendImageMessage({
+          conversationId: 'c1',
+          file: new File(['plain text'], 'notes.jpg', { type: 'image/jpeg' }),
+          caption: null,
+          previewUrl: 'blob:preview',
+        }),
+      );
+      harness.complete();
+
+      const emitted = await result;
+      expect(emitted).toEqual([
+        ChatActions.sendImageMessageFailure({
+          error: 'Unsupported file type. Use a JPEG, PNG, WebP or GIF image.',
         }),
       ]);
     });

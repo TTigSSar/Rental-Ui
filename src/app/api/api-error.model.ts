@@ -1,0 +1,156 @@
+import { HttpErrorResponse } from '@angular/common/http';
+
+/**
+ * Known `ServiceError` codes, hand-enumerated from the private `ErrorCodes` classes in
+ * `rental-api/src/RentalPlatform.Application/Services/*.cs` (AdminListingsService,
+ * AuthService, BookingsService, ChatService, FavoritesService, ListingImagesOwnerService,
+ * ListingsOwnerService, NotificationsService, ReviewsService). Nothing on the backend
+ * exports these today, so this list is NOT generated — re-grep
+ * `private static class ErrorCodes` across that folder when a backend PR adds/renames a
+ * code, and update this list in the same change.
+ *
+ * Deliberately a *widened* literal union (`KnownApiErrorCode | (string & {})`, exported as
+ * `ApiErrorCode`) rather than a closed union: `errorCode` is a live wire value produced by
+ * a backend this file cannot see at compile time. A closed union would make an
+ * un-synced-yet backend code a silent type error (or force an `as` cast at every read
+ * site) instead of the drift being visible here, in the one file whose job is to track
+ * it. The widened form still gives IDE autocomplete + a canonical list to diff against,
+ * without lying about exhaustiveness.
+ */
+export type KnownApiErrorCode =
+  // admin.* — AdminListingsService
+  | 'admin.unauthenticated'
+  | 'admin.forbidden'
+  | 'admin.listing_not_found'
+  | 'admin.invalid_listing_status'
+  // auth.* — AuthService
+  | 'auth.duplicate_email'
+  | 'auth.invalid_credentials'
+  | 'auth.user_blocked'
+  | 'auth.unauthenticated'
+  | 'auth.external_provider_unsupported'
+  | 'auth.external_invalid_token'
+  | 'auth.external_email_missing'
+  | 'auth.external_link_conflict'
+  // booking.* — BookingsService
+  | 'booking.unauthenticated'
+  | 'booking.user_blocked'
+  | 'booking.listing_not_found'
+  | 'booking.listing_not_approved'
+  | 'booking.own_listing_forbidden'
+  | 'booking.invalid_dates'
+  | 'booking.overlap'
+  | 'booking.not_found'
+  | 'booking.forbidden'
+  | 'booking.not_pending'
+  | 'booking.not_cancellable'
+  | 'booking.not_activatable'
+  | 'booking.not_completable'
+  | 'booking.owner_only'
+  // chat.* — ChatService
+  | 'chat.unauthenticated'
+  | 'chat.user_blocked'
+  | 'chat.not_participant'
+  | 'chat.conversation_not_found'
+  | 'chat.booking_not_found'
+  | 'chat.conversation_closed'
+  | 'chat.message_too_long'
+  | 'chat.attachment_too_large'
+  | 'chat.attachment_invalid_type'
+  // favorite.* — FavoritesService
+  | 'favorite.unauthenticated'
+  | 'favorite.user_blocked'
+  | 'favorite.listing_not_found'
+  // listing.* — ListingsOwnerService + ListingImagesOwnerService (share the "listing." prefix;
+  // codes below are de-duplicated where both services define the same string)
+  | 'listing.unauthenticated'
+  | 'listing.user_blocked'
+  | 'listing.not_found'
+  | 'listing.forbidden'
+  | 'listing.invalid_status'
+  | 'listing.category_not_found'
+  | 'listing.invalid_age_range'
+  | 'listing.image_empty'
+  | 'listing.image_invalid_type'
+  | 'listing.image_too_many'
+  | 'listing.image_listing_limit'
+  | 'listing.image_too_large'
+  | 'listing.image_not_found'
+  | 'listing.image_invalid_reorder'
+  // notification.* — NotificationsService
+  | 'notification.unauthenticated'
+  | 'notification.invalid_filter'
+  | 'notification.not_found'
+  // review.* — ReviewsService
+  | 'review.unauthenticated'
+  | 'review.booking_not_found'
+  | 'review.booking_not_completed'
+  | 'review.forbidden'
+  | 'review.already_submitted';
+
+/**
+ * Any `errorCode` the API can send: the known codes above (for autocomplete), widened to
+ * accept any string so an un-synced backend code still type-checks. See `KnownApiErrorCode`
+ * for why this isn't a closed union.
+ */
+export type ApiErrorCode = KnownApiErrorCode | (string & {});
+
+/**
+ * The RFC 7807 ProblemDetails envelope every controller error response uses — see
+ * `rental-api/src/RentalPlatform.Api/Extensions/ServiceErrorProblemDetailsExtensions.cs`
+ * (`ToProblemDetails`), which all 8 API controllers call.
+ *
+ * ```json
+ * {
+ *   "type": "urn:rental:error:listing.image_invalid_type",
+ *   "title": "<human-readable message>",
+ *   "status": 400,
+ *   "errorCode": "listing.image_invalid_type"
+ * }
+ * ```
+ *
+ * IMPORTANT: `type` is a stable, non-dereferenceable URN (`urn:rental:error:<code>`) —
+ * RFC 7807 requires `type` to be a URI reference, so the backend puts it there in URN
+ * form and NOT as the bare code. Do not parse `type` for the error code (a prior version
+ * of this contract did exactly that by convention with nothing written down — that is the
+ * bug this type exists to prevent). Read `errorCode` instead.
+ */
+export interface ApiProblemDetails {
+  /** RFC 7807 URI reference: `urn:rental:error:<code>`. NOT the place to read the code from. */
+  type?: string;
+  /** `ServiceError.Message` — human-readable, English-only, not localized. */
+  title?: string;
+  /** HTTP status code, duplicated from the response status line. */
+  status?: number;
+  /** Present on ASP.NET's default validation ProblemDetails (model-binding failures). */
+  detail?: string;
+  instance?: string;
+  /**
+   * The bare, stable `ServiceError` code (e.g. `"listing.image_invalid_type"`). THIS is the
+   * member to branch on for a specific server error — never `type`.
+   */
+  errorCode?: ApiErrorCode;
+  /** ASP.NET validation ProblemDetails also carries this map, keyed by field name. */
+  errors?: Record<string, string[]>;
+}
+
+/**
+ * Safely read `errorCode` off an `HttpErrorResponse`, or `null` if the error isn't shaped
+ * like an `ApiProblemDetails` (network failure, non-JSON body, etc.). Prefer this over
+ * reaching into `error.error.type` — see `ApiProblemDetails` for why.
+ */
+export function getApiErrorCode(error: unknown): ApiErrorCode | null {
+  if (!(error instanceof HttpErrorResponse)) {
+    return null;
+  }
+  const body: unknown = error.error;
+  if (
+    typeof body === 'object' &&
+    body !== null &&
+    'errorCode' in body &&
+    typeof (body as { errorCode: unknown }).errorCode === 'string'
+  ) {
+    return (body as { errorCode: string }).errorCode;
+  }
+  return null;
+}

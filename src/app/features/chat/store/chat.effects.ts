@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
@@ -14,6 +13,7 @@ import {
   withLatestFrom,
 } from 'rxjs';
 
+import { type ApiErrorCode, getApiErrorCode } from '../../../api/api-error.model';
 import { toApiErrorMessage } from '../../../api/http-error-message.util';
 import { selectAuthUser } from '../../auth/store/auth.selectors';
 import {
@@ -37,31 +37,11 @@ import {
  * that rejection would surface the server's hardcoded-English ProblemDetails
  * `title`, untranslated.
  */
-const CHAT_ERROR_MESSAGE_KEYS: Readonly<Record<string, string>> = {
+const CHAT_ERROR_MESSAGE_KEYS: Readonly<Partial<Record<ApiErrorCode, string>>> = {
   'chat.attachment_invalid_type': 'chat.details.imageInvalidType',
   'chat.attachment_too_large': 'chat.details.imageTooLarge',
   'chat.conversation_closed': 'chat.details.closedBanner',
 };
-
-/**
- * The API puts the ServiceError code in the ProblemDetails `type` member
- * (see `ChatController.ToProblemDetails`).
- */
-function toServerErrorCode(error: unknown): string | null {
-  if (!(error instanceof HttpErrorResponse)) {
-    return null;
-  }
-  const body: unknown = error.error;
-  if (
-    typeof body === 'object' &&
-    body !== null &&
-    'type' in body &&
-    typeof (body as { type: unknown }).type === 'string'
-  ) {
-    return (body as { type: string }).type;
-  }
-  return null;
-}
 
 /** Map a viewer-neutral hub message to the local, viewer-relative shape. */
 function toChatMessage(
@@ -85,10 +65,12 @@ export class ChatEffects {
 
   /**
    * Translate a known chat error code; fall back to the generic HTTP message
-   * for anything unmapped.
+   * for anything unmapped. The code is read from the ProblemDetails `errorCode`
+   * member via `getApiErrorCode` — NOT from `type`, which is an opaque
+   * `urn:rental:error:<code>` URI reference (see `ApiProblemDetails`).
    */
   private toErrorMessage(error: unknown): string {
-    const key = CHAT_ERROR_MESSAGE_KEYS[toServerErrorCode(error) ?? ''];
+    const key = CHAT_ERROR_MESSAGE_KEYS[getApiErrorCode(error) ?? ''];
     if (key === undefined) {
       return toApiErrorMessage(error);
     }
