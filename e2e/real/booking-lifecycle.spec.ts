@@ -1,0 +1,286 @@
+import { expect, test, type Page } from '@playwright/test';
+
+import {
+  ACCOUNTS,
+  TOY_KITCHEN,
+  assertDockerStack,
+  loginViaDialog,
+  releaseListingForRenter,
+} from '../support/real-stack';
+
+/**
+ * Real-stack booking lifecycle — the signature journey of the real tier.
+ *
+ * Renter authenticates -> books the seeded "Wooden Toy Kitchen Set" (owned by
+ * owner@rental.local) -> owner sees the request and approves -> owner hands
+ * the toy over (Approved -> Active, owner-only) -> owner completes the rental
+ * (Active -> Completed, owner-only) -> renter is offered a review.
+ *
+ * The whole lifecycle is ONE test: the steps share a live booking, and hard
+ * rule 7 (no order-dependent tests) forbids splitting shared mutable state
+ * across test() boundaries.
+ *
+ * Determinism (persistent dev DB, re-runnable):
+ * - Seed invariants only: fixed listing GUID, demo accounts, owner phone.
+ * - The date window starts two calendar months out with a start day derived
+ *   from the run timestamp (3..24), so windows from repeated runs rarely
+ *   collide — and even a collision is harmless because every booking this
+ *   spec creates ends Completed (terminal, never blocks future ranges).
+ * - Crashed runs are self-healed up front: releaseListingForRenter() drives
+ *   any leftover non-terminal renter@ booking on the listing to a terminal
+ *   state through the real API, which re-enables the "Request to rent" CTA.
+ */
+
+/** Owner phone from the dev seed — proves the contact-reveal rule (Approved+). */
+const OWNER_PHONE = '+374 99 100 002';
+
+const MONTHS_AHEAD = 2;
+
+interface BookingWindow {
+  readonly startDay: number;
+  readonly endDay: number;
+  readonly monthName: string;
+  readonly monthShort: string;
+  readonly year: string;
+}
+
+function bookingWindow(): BookingWindow {
+  const startDay = 3 + (Math.floor(Date.now() / 60_000) % 22); // 3..24
+  const target = new Date();
+  target.setDate(1);
+  target.setMonth(target.getMonth() + MONTHS_AHEAD);
+  return {
+    startDay,
+    endDay: startDay + 3, // 4 inclusive days
+    monthName: target.toLocaleString('en-US', { month: 'long' }),
+    monthShort: target.toLocaleString('en-US', { month: 'short' }),
+    year: String(target.getFullYear()),
+  };
+}
+
+/**
+ * Clicks a day number in the inline PrimeNG datepicker (current month cells
+ * only). The click timeout is bounded: if a calendar re-bind swapped the view
+ * under us, the locator can re-resolve to a disabled (past) cell — an unbounded
+ * click would then wait forever and starve the toPass retry in selectRange.
+ */
+async function pickCalendarDay(page: Page, day: number): Promise<void> {
+  await page
+    .locator('td.p-datepicker-day-cell:not(.p-datepicker-other-month)')
+    .filter({ hasText: new RegExp(`^${day}$`) })
+    .locator('span.p-datepicker-day')
+    .click({ timeout: 5_000 });
+}
+
+/** Advances the datepicker until it shows the target month (bounded). */
+async function goToTargetMonth(page: Page, window: BookingWindow): Promise<void> {
+  const monthBtn = page.locator('button.p-datepicker-select-month');
+  const yearBtn = page.locator('button.p-datepicker-select-year');
+  for (let i = 0; i < 2 * MONTHS_AHEAD; i++) {
+    const month = ((await monthBtn.textContent()) ?? '').trim();
+    const year = ((await yearBtn.textContent()) ?? '').trim();
+    if (month === window.monthName && year === window.year) break;
+    await page.locator('button.p-datepicker-next-button').click();
+  }
+  await expect(monthBtn).toHaveText(window.monthName);
+  await expect(yearBtn).toHaveText(window.year);
+}
+
+/**
+ * Selects the rental range, riding out a REAL app bug (reported as a finding,
+ * reproduced with a standalone probe): after clicking a day in a future month,
+ * the booking calendar's VIEW snaps back to the current month within ~400ms
+ * (the selection itself survives — the pickup/return boxes keep the date). A
+ * real user hits this too and has to page forward again to click the end date;
+ * this helper does exactly what that persistent user does, verifying app state
+ * (date boxes, price breakdown) after every move. When the bug is fixed the
+ * flow is unchanged — the re-navigation loop just becomes a no-op.
+ */
+async function selectRange(
+  page: Page,
+  window: BookingWindow,
+  expectedTotal: RegExp,
+): Promise<void> {
+  const pickupBox = page.locator('.booking-calendar__date-value').first();
+  const returnBox = page.locator('.booking-calendar__date-value').nth(1);
+  const startText = `${window.startDay} ${window.monthShort} ${window.year}`;
+  const endText = `${window.endDay} ${window.monthShort} ${window.year}`;
+  const clearChip = page.locator('.booking-page__quick-chip', { hasText: '1 day' });
+
+  // Each attempt is fully self-contained: clear -> navigate -> start -> end,
+  // with the on-screen app state (pickup/return boxes, price total) verified
+  // after every move. That makes the attempt idempotent under the snap-back —
+  // no half-made PrimeNG range state can survive into the next retry.
+  await expect(async () => {
+    // Deterministic clear via the quick-book toggle (selecting then unselecting
+    // a chip resets the whole range through app logic).
+    await clearChip.click();
+    if ((await clearChip.getAttribute('class'))?.includes('quick-chip--active')) {
+      await clearChip.click();
+    }
+    await expect(pickupBox).toHaveText('—', { timeout: 2_000 });
+
+    // Range start in the target month.
+    await goToTargetMonth(page, window);
+    await pickCalendarDay(page, window.startDay);
+    await expect(pickupBox).toContainText(startText, { timeout: 2_000 });
+    await expect(returnBox).toHaveText('—');
+
+    // Let the view snap-back (the reported bug) land before re-navigating, so
+    // it does not fire between the re-navigation and the end-day click. There
+    // is no event to await — it is an internal re-bind; a late snap is still
+    // caught by the outcome checks below and retried.
+    await page.waitForTimeout(750);
+
+    // Range end: re-navigate (undoes the snap) and complete the range.
+    await goToTargetMonth(page, window);
+    await pickCalendarDay(page, window.endDay);
+    await expect(returnBox).toContainText(endText, { timeout: 2_000 });
+    await expect(page.locator('.booking-page__breakdown-row--total dd')).toHaveText(
+      expectedTotal,
+      { timeout: 2_000 },
+    );
+  }).toPass({ timeout: 90_000 });
+}
+
+function statusBadge(page: Page) {
+  return page.locator('app-booking-status-badge');
+}
+
+test.describe('Booking lifecycle (real stack)', () => {
+  test('renter books, owner approves, hands over and completes', async ({
+    page: renterPage,
+    browser,
+    request,
+  }) => {
+    await test.step('guard: docker stack is what is actually serving :4200/:8080', async () => {
+      await assertDockerStack(request);
+    });
+
+    await test.step('self-heal: release leftover bookings from crashed runs', async () => {
+      await releaseListingForRenter(request, TOY_KITCHEN.id);
+    });
+
+    await test.step('renter signs in and opens the seeded listing', async () => {
+      await loginViaDialog(renterPage, ACCOUNTS.renter);
+      await renterPage.goto(`/listings/${TOY_KITCHEN.id}`);
+      await expect(renterPage.locator('h1.detail-page__title')).toHaveText(TOY_KITCHEN.title);
+    });
+
+    const window = bookingWindow();
+    let bookingId = '';
+
+    await test.step('renter picks a future window and sends the booking request', async () => {
+      // The /book page re-fetches the listing on init; interacting with the
+      // calendar before that response lands gets undone by the re-bind reset —
+      // so synchronize on the fresh response first (see selectRange docs).
+      const freshListingLoad = renterPage.waitForResponse(
+        (res) =>
+          res.url().endsWith(`/api/listings/${TOY_KITCHEN.id}`) &&
+          res.request().method() === 'GET' &&
+          res.ok(),
+      );
+      await renterPage
+        .getByRole('button', { name: 'Request to rent' })
+        .filter({ visible: true })
+        .first()
+        .click();
+      await renterPage.waitForURL(`**/listings/${TOY_KITCHEN.id}/book`);
+      await freshListingLoad;
+      await expect(renterPage.locator('.booking-page__request-item-title')).toHaveText(
+        TOY_KITCHEN.title,
+      );
+
+      // 4 inclusive days x $9/day = $36 — selectRange only returns once the
+      // breakdown shows it.
+      await selectRange(renterPage, window, /\$36(\.00)?/);
+
+      await renterPage
+        .locator('.booking-page__request-card')
+        .getByRole('button', { name: 'Send booking request' })
+        .click();
+      await expect(renterPage.getByText('Booking request sent!')).toBeVisible({
+        timeout: 15_000,
+      });
+    });
+
+    await test.step('renter sees the booking as Pending approval', async () => {
+      await renterPage.getByRole('button', { name: 'View booking' }).click();
+      await renterPage.waitForURL(/\/bookings\/[0-9a-fA-F-]{36}$/);
+      bookingId = renterPage.url().split('/').pop()!;
+
+      await expect(statusBadge(renterPage)).toHaveText('Pending approval');
+      // Renter may cancel a pending request…
+      await expect(renterPage.getByRole('button', { name: 'Cancel request' })).toBeVisible();
+      // …but never sees the owner-only lifecycle actions (role boundary).
+      await expect(renterPage.getByRole('button', { name: 'Mark as handed over' })).toHaveCount(0);
+      // Contact details stay hidden until the owner approves.
+      await expect(renterPage.getByText(OWNER_PHONE)).toHaveCount(0);
+    });
+
+    const ownerContext = await browser.newContext();
+    const ownerPage = await ownerContext.newPage();
+
+    try {
+      await test.step('owner sees the request and approves it', async () => {
+        await loginViaDialog(ownerPage, ACCOUNTS.owner);
+        await ownerPage.goto('/bookings/requests');
+
+        const requestCard = ownerPage
+          .locator('app-booking-request-card')
+          .filter({ hasText: TOY_KITCHEN.title });
+        await expect(requestCard).toHaveCount(1);
+        await requestCard.getByRole('button', { name: 'Approve' }).click();
+        // On success the card leaves the Pending tab.
+        await expect(requestCard).toHaveCount(0);
+      });
+
+      await test.step('renter sees Approved and the now-revealed owner contact', async () => {
+        await renterPage.reload();
+        await expect(statusBadge(renterPage)).toHaveText('Approved');
+        await expect(renterPage.getByText(OWNER_PHONE)).toBeVisible();
+        // Approved-but-not-started bookings are still cancellable by the renter.
+        await expect(renterPage.getByRole('button', { name: 'Cancel request' })).toBeVisible();
+      });
+
+      await test.step('owner hands the toy over: Approved -> Active', async () => {
+        await ownerPage.goto(`/bookings/${bookingId}`);
+        await expect(statusBadge(ownerPage)).toHaveText('Approved');
+
+        await ownerPage.getByRole('button', { name: 'Mark as handed over' }).click();
+        await expect(statusBadge(ownerPage)).toHaveText('Active');
+      });
+
+      await test.step('renter sees Active and has no lifecycle actions', async () => {
+        await renterPage.reload();
+        await expect(statusBadge(renterPage)).toHaveText('Active');
+        await expect(renterPage.getByRole('button', { name: 'Mark as completed' })).toHaveCount(0);
+        // Active bookings are no longer cancellable by the renter.
+        await expect(renterPage.getByRole('button', { name: 'Cancel request' })).toHaveCount(0);
+      });
+
+      await test.step('owner completes the rental: Active -> Completed', async () => {
+        await ownerPage.getByRole('button', { name: 'Mark as completed' }).click();
+        await expect(statusBadge(ownerPage)).toHaveText('Completed');
+      });
+
+      await test.step('renter sees Completed and is offered a review', async () => {
+        await renterPage.reload();
+        await expect(statusBadge(renterPage)).toHaveText('Completed');
+        await expect(renterPage.getByRole('button', { name: 'Leave a review' })).toBeVisible();
+      });
+
+      await test.step('listing is bookable again — the run leaves no blocking state', async () => {
+        await renterPage.goto(`/listings/${TOY_KITCHEN.id}`);
+        await expect(
+          renterPage
+            .getByRole('button', { name: 'Request to rent' })
+            .filter({ visible: true })
+            .first(),
+        ).toBeEnabled();
+      });
+    } finally {
+      await ownerContext.close();
+    }
+  });
+});
