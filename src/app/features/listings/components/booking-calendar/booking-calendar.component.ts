@@ -67,7 +67,11 @@ function normalizeRangeSelection(
     return null;
   }
   if (Array.isArray(value)) {
-    return value.length === 0 ? null : [...value];
+    // Preserve the emitted array reference (do NOT copy). When this value is fed
+    // back into the datepicker's [ngModel], reference-equality lets Angular's
+    // NgModel skip writeValue() — which stops PrimeNG's updateUI() from resetting
+    // the visible month to today while a range is still partial ([start, null]).
+    return value.length === 0 ? null : value;
   }
   return [value];
 }
