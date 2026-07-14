@@ -87,14 +87,21 @@ async function goToTargetMonth(page: Page, window: BookingWindow): Promise<void>
 }
 
 /**
- * Selects the rental range, riding out a REAL app bug (reported as a finding,
- * reproduced with a standalone probe): after clicking a day in a future month,
- * the booking calendar's VIEW snaps back to the current month within ~400ms
- * (the selection itself survives — the pickup/return boxes keep the date). A
- * real user hits this too and has to page forward again to click the end date;
- * this helper does exactly what that persistent user does, verifying app state
- * (date boxes, price breakdown) after every move. When the bug is fixed the
- * flow is unchanged — the re-navigation loop just becomes a no-op.
+ * Selects the rental range and PINS the fix for the calendar snap-back bug
+ * (Rental-Ui commit e32b681). Pre-fix behaviour, reproduced against the real
+ * stack: selecting a day in a FUTURE month made the calendar view snap back to
+ * the current month within ~400ms — `normalizeRangeSelection()` copied the
+ * selection array, NgModel saw a new reference and scheduled a deferred
+ * writeValue() carrying the partial [start, null] range, and PrimeNG's
+ * updateUI() fell back to `new Date()` for the view month. The stay-on-month
+ * assertion below is the e2e regression pin: it reads the month label AFTER
+ * the ~400ms snap window and requires the target month — exactly the condition
+ * observed failing on the pre-fix bundle (probe read "July" 400ms after
+ * clicking a September day; four full runs failed on it). frontend-dev's
+ * component-level vitest harness additionally proved both directions (3 specs,
+ * failing pre-fix). The surrounding toPass stays for unrelated init-time
+ * re-bind races only — a snap-back now fails every attempt, and therefore the
+ * test.
  */
 async function selectRange(
   page: Page,
@@ -108,9 +115,8 @@ async function selectRange(
   const clearChip = page.locator('.booking-page__quick-chip', { hasText: '1 day' });
 
   // Each attempt is fully self-contained: clear -> navigate -> start -> end,
-  // with the on-screen app state (pickup/return boxes, price total) verified
-  // after every move. That makes the attempt idempotent under the snap-back —
-  // no half-made PrimeNG range state can survive into the next retry.
+  // with the on-screen app state (pickup/return boxes, month label, price
+  // total) verified after every move.
   await expect(async () => {
     // Deterministic clear via the quick-book toggle (selecting then unselecting
     // a chip resets the whole range through app logic).
@@ -126,14 +132,14 @@ async function selectRange(
     await expect(pickupBox).toContainText(startText, { timeout: 2_000 });
     await expect(returnBox).toHaveText('—');
 
-    // Let the view snap-back (the reported bug) land before re-navigating, so
-    // it does not fire between the re-navigation and the end-day click. There
-    // is no event to await — it is an internal re-bind; a late snap is still
-    // caught by the outcome checks below and retried.
+    // REGRESSION PIN (e32b681): wait PAST the historical ~400ms snap window,
+    // then require the visible month to STILL be the target month. Pre-fix
+    // this read the current month here; no re-navigation is allowed to mask it.
     await page.waitForTimeout(750);
+    await expect(page.locator('button.p-datepicker-select-month')).toHaveText(window.monthName);
+    await expect(page.locator('button.p-datepicker-select-year')).toHaveText(window.year);
 
-    // Range end: re-navigate (undoes the snap) and complete the range.
-    await goToTargetMonth(page, window);
+    // Range end, clicked directly in the (still-visible) target month.
     await pickCalendarDay(page, window.endDay);
     await expect(returnBox).toContainText(endText, { timeout: 2_000 });
     await expect(page.locator('.booking-page__breakdown-row--total dd')).toHaveText(
