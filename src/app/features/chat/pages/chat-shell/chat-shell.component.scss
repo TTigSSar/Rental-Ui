@@ -1,9 +1,11 @@
 /*
- * The whole messaging surface is WHITE (the ToyRent design), not the app's warm
- * cream page background (`--ui-color-background`). Paint the chat feature white
- * — both the full content area (`:host`, so the desktop gutters beside the
- * centered shell are white too) and the shell/columns themselves. Scoped to the
- * chat feature; the global background token is untouched.
+ * The chat CHROME is white — the inbox header band, the thread's booking bar and
+ * composer, the desktop gutters beside the centered shell. Paint that base here
+ * (`:host` + the shell/columns) rather than letting the app's warm page tint
+ * show through. The two tinted regions opt back in themselves: the thread's
+ * message list and the mobile inbox list both set `--ui-color-background`, and
+ * that two-tone contrast is intentional — don't flatten it by removing those.
+ * Scoped to the chat feature; the global background token is untouched.
  */
 :host {
   display: block;

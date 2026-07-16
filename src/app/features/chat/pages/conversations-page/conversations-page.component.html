@@ -116,14 +116,8 @@
                   </span>
                 </div>
 
-                <div class="chat-row__meta">
-                  <span
-                    [class]="
-                      'chat-row__status-dot chat-row__status-dot--' +
-                      statusTone(conversation.status)
-                    "
-                    aria-hidden="true"
-                  ></span>
+                <div [class]="'chat-row__meta chat-row__meta--' + statusTone(conversation.status)">
+                  <span class="chat-row__status-dot" aria-hidden="true"></span>
                   <span class="chat-row__toy-title">{{ conversation.toyTitle }}</span>
                   <span class="conversations-page__visually-hidden">
                     {{ statusLabelKey(conversation.status) | translate }}
@@ -138,6 +132,9 @@
                           'chat.conversations.youPrefix' | translate
                         }}</span>
                       }
+                      @if (conversation.lastMessageType === 'image') {
+                        <i class="pi pi-image chat-row__snippet-icon" aria-hidden="true"></i>
+                      }
                       {{ conversation.lastMessageSnippet }}
                     } @else if (conversation.lastMessageType === 'image') {
                       <!-- An uncaptioned image has no snippet — label it instead. -->
@@ -146,6 +143,7 @@
                           'chat.conversations.youPrefix' | translate
                         }}</span>
                       }
+                      <i class="pi pi-image chat-row__snippet-icon" aria-hidden="true"></i>
                       {{ 'chat.conversations.photo' | translate }}
                     } @else {
                       {{ 'chat.conversations.noMessages' | translate }}

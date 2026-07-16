@@ -21,6 +21,27 @@ export function mapChatStatusTone(status: ChatStatus): BadgeTone {
   }
 }
 
+/**
+ * Maps a conversation status to the primeicon shown inside its status pill
+ * (design: clock / check / calendar / lock — one glyph per status family).
+ */
+export function mapChatStatusIcon(status: ChatStatus): string {
+  switch (status) {
+    case 'requested':
+    case 'return_due':
+      return 'pi pi-clock';
+    case 'approved':
+    case 'completed':
+      return 'pi pi-check';
+    case 'active':
+      return 'pi pi-calendar';
+    case 'closed':
+      return 'pi pi-lock';
+    default:
+      return 'pi pi-lock';
+  }
+}
+
 /** Maps a conversation status to its ngx-translate label key. */
 export function mapChatStatusLabelKey(status: ChatStatus): string {
   switch (status) {
@@ -41,29 +62,33 @@ export function mapChatStatusLabelKey(status: ChatStatus): string {
   }
 }
 
+/**
+ * Color family of a system line's icon chip. Every system line shares the same
+ * white chrome; only the icon chip is tinted, and this picks the tint.
+ */
+export type ChatSystemTone = 'primary' | 'success' | 'warn' | 'neutral';
+
 export interface ChatSystemMeta {
   readonly icon: string;
   readonly labelKey: string;
+  readonly tone: ChatSystemTone;
 }
 
-/** Maps a system message kind to a primeicon + translated label. */
+/** Maps a system message kind to a primeicon + tint + translated label. */
 export function mapChatSystemMeta(kind: ChatSystemKind | null): ChatSystemMeta {
   switch (kind) {
     case 'request':
-      return { icon: 'pi pi-inbox', labelKey: 'chat.system.request' };
+      return { icon: 'pi pi-calendar', labelKey: 'chat.system.request', tone: 'primary' };
     case 'approved':
-      return { icon: 'pi pi-check-circle', labelKey: 'chat.system.approved' };
+      return { icon: 'pi pi-check', labelKey: 'chat.system.approved', tone: 'success' };
     case 'handover':
-      return {
-        icon: 'pi pi-arrow-right-arrow-left',
-        labelKey: 'chat.system.handover',
-      };
+      return { icon: 'pi pi-shield', labelKey: 'chat.system.handover', tone: 'primary' };
     case 'return':
-      return { icon: 'pi pi-replay', labelKey: 'chat.system.return' };
+      return { icon: 'pi pi-clock', labelKey: 'chat.system.return', tone: 'warn' };
     case 'closed':
-      return { icon: 'pi pi-lock', labelKey: 'chat.system.closed' };
+      return { icon: 'pi pi-lock', labelKey: 'chat.system.closed', tone: 'neutral' };
     default:
-      return { icon: 'pi pi-info-circle', labelKey: 'chat.system.default' };
+      return { icon: 'pi pi-info-circle', labelKey: 'chat.system.default', tone: 'neutral' };
   }
 }
 

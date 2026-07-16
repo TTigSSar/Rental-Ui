@@ -104,7 +104,7 @@
             <p class="chat-thread__context-meta">
               <i class="pi pi-calendar" aria-hidden="true"></i>
               <span>{{ conversation.bookingDates }}</span>
-              <span class="chat-thread__dot" aria-hidden="true">·</span>
+              <span class="chat-thread__dot" aria-hidden="true"></span>
               <span class="chat-thread__price">
                 {{ conversation.bookingPrice | currency: 'USD' : 'symbol' : '1.0-0' }}
               </span>
@@ -112,10 +112,10 @@
           </div>
 
           <div class="chat-thread__context-actions">
-            <app-ui-badge
-              [tone]="statusTone(conversation.status)"
-              [label]="statusLabelKey(conversation.status) | translate"
-            />
+            <span [class]="'chat-status chat-status--' + statusTone(conversation.status)">
+              <i [class]="statusIcon(conversation.status)" aria-hidden="true"></i>
+              <span>{{ statusLabelKey(conversation.status) | translate }}</span>
+            </span>
             <a
               class="chat-thread__view-booking"
               [routerLink]="['/bookings', conversation.bookingId]"
@@ -147,8 +147,15 @@
               } @else if (item.kind === 'system') {
                 <div class="chat-system">
                   @if (item.request; as request) {
-                    <span class="chat-system__line chat-system__line--request">
-                      <i class="pi pi-calendar" aria-hidden="true"></i>
+                    <span
+                      [class]="
+                        'chat-system__line chat-system__line--request chat-system__line--' +
+                        item.meta.tone
+                      "
+                    >
+                      <span class="chat-system__icon" aria-hidden="true">
+                        <i class="pi pi-calendar"></i>
+                      </span>
                       <span class="chat-system__body">
                         {{
                           'chat.system.requestDetail'
@@ -163,8 +170,10 @@
                       </span>
                     </span>
                   } @else {
-                    <span class="chat-system__line">
-                      <i [class]="item.meta.icon" aria-hidden="true"></i>
+                    <span [class]="'chat-system__line chat-system__line--' + item.meta.tone">
+                      <span class="chat-system__icon" aria-hidden="true">
+                        <i [class]="item.meta.icon"></i>
+                      </span>
                       @if (item.isGeneric && item.body) {
                         <span class="chat-system__body">{{ item.body }}</span>
                       } @else {
@@ -205,8 +214,11 @@
                     <time class="chat-group__time">{{ item.time | date: 'H:mm' }}</time>
                     @if (item.showSeen) {
                       <span class="chat-group__seen">
+                        <i class="pi pi-check" aria-hidden="true"></i>
                         {{ 'chat.details.seen' | translate }}
                       </span>
+                    } @else if (item.showSent) {
+                      <i class="pi pi-check chat-group__sent-tick" aria-hidden="true"></i>
                     }
                   </div>
                 </div>
@@ -267,8 +279,19 @@
         <!-- Composer (or closed banner) -->
         @if (conversation.isClosed) {
           <div class="chat-thread__closed" role="status">
-            <i class="pi pi-lock" aria-hidden="true"></i>
-            <span>{{ 'chat.details.closedBanner' | translate }}</span>
+            <div class="chat-thread__closed-card">
+              <span class="chat-thread__closed-icon" aria-hidden="true">
+                <i class="pi pi-lock"></i>
+              </span>
+              <div class="chat-thread__closed-body">
+                <p class="chat-thread__closed-title">
+                  {{ 'chat.details.closedBannerTitle' | translate }}
+                </p>
+                <p class="chat-thread__closed-text">
+                  {{ 'chat.details.closedBannerSubtitle' | translate }}
+                </p>
+              </div>
+            </div>
           </div>
         } @else {
           <form
@@ -303,7 +326,10 @@
                 variant="filled"
                 formControlName="content"
                 [maxLength]="maxMessageLength"
-                [placeholder]="'chat.details.messagePlaceholder' | translate"
+                [placeholder]="
+                  'chat.details.messagePlaceholder'
+                    | translate: { name: firstName(conversation.counterpartName) }
+                "
               />
               <!-- Camera (right, inside the input): same upload path, but
                    `capture="environment"` makes mobile open the rear camera. -->

@@ -1,3 +1,23 @@
+/*
+ * Chat-local design colors that have no global `--ui-color-*` token. Everything
+ * else MUST come from the global palette — do not add hex literals below.
+ *   --chat-warn        #D97706  requested / return_due pills, `return` system icon.
+ *                               (`--ui-color-warning` is #8a5c00 — a different
+ *                               color, used elsewhere; the design wants #D97706.)
+ *   --chat-seen        #4A5FE3  message identity — the "Seen" receipt ONLY.
+ *                               Orange is reserved for actions + unread.
+ *   --chat-closed      #9A99A3  closed status + `closed` system icon.
+ */
+:host {
+  --chat-warn: #d97706;
+  --chat-warn-soft: #fff1dc;
+  --chat-success-soft: #e6f4ee;
+  --chat-seen: #4a5fe3;
+  --chat-closed: #9a99a3;
+  --chat-lock-chip-bg: #eae7e0;
+  --chat-lock-chip-fg: #8b8a93;
+}
+
 .chat-thread {
   display: flex;
   flex-direction: column;
@@ -81,10 +101,11 @@
   text-overflow: ellipsis;
 }
 
+/* Verified tick reads as a trust mark — success green, matching the inbox row. */
 .chat-thread__verified {
   flex-shrink: 0;
   font-size: 1rem;
-  color: var(--ui-color-info);
+  color: var(--ui-color-success);
 }
 
 /* ── View profile (pill on desktop, icon on mobile) ───────────────────── */
@@ -206,10 +227,10 @@
   color: var(--ui-color-text-secondary);
 }
 
-/* The thread is a clean WHITE messaging surface (no card outline on white).
-   The pinned booking card, bubble borders and the composer's top divider do the
-   visual separation. (Desktop's two-pane rules below reaffirm this borderless
-   treatment inside the fixed shell pane.) */
+/* The thread is a two-tone messaging surface: the message list sits on the warm
+   page tint (`--ui-color-background`, see .chat-thread__messages) while the
+   pinned booking bar and the composer stay WHITE and are separated from it by
+   1px hairlines. The panel itself is a bare flex column — no card outline. */
 .chat-thread__panel {
   display: flex;
   flex-direction: column;
@@ -222,20 +243,23 @@
 }
 
 /* ── Pinned booking context ───────────────────────────────────────────── */
+/* A flush WHITE bar with a hairline under it (NOT a rounded muted card) — it is
+   chrome pinned above the tinted message list, at every width. */
 .chat-thread__context {
   display: flex;
   align-items: center;
-  gap: 0.875rem;
-  padding: 0.875rem;
-  border-radius: var(--ui-radius-md);
-  background: var(--ui-color-surface-muted);
+  gap: 11px;
+  padding: 10px 14px;
+  border-radius: 0;
+  background: var(--ui-color-surface);
+  border-bottom: 1px solid var(--ui-color-border);
 }
 
 .chat-thread__toy-img {
   flex-shrink: 0;
-  width: 3.25rem;
-  height: 3.25rem;
-  border-radius: var(--ui-radius-sm);
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
   object-fit: cover;
 }
 
@@ -257,8 +281,9 @@
 
 .chat-thread__toy-title {
   margin: 0;
-  font-size: 1rem;
-  font-weight: var(--ui-font-weight-bold);
+  font-size: 13px;
+  font-weight: var(--ui-font-weight-extrabold);
+  letter-spacing: -0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -268,13 +293,13 @@
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8125rem;
+  gap: 6px;
+  font-size: 11.5px;
   color: var(--ui-color-text-secondary);
 }
 
 .chat-thread__context-meta .pi {
-  font-size: 0.85rem;
+  font-size: 12px;
 }
 
 /* Right-side action group: status chip + "View booking" pill (mock layout). */
@@ -287,13 +312,65 @@
   gap: 0.5rem;
 }
 
+/* Separator between dates and price: a real 3px round dot, not a "·" glyph. */
 .chat-thread__dot {
-  opacity: 0.7;
+  flex-shrink: 0;
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--ui-color-text-secondary);
 }
 
 .chat-thread__price {
-  font-weight: var(--ui-font-weight-semibold);
+  font-weight: var(--ui-font-weight-bold);
   color: var(--ui-color-text-primary);
+}
+
+/* ── Booking status pill ──────────────────────────────────────────────────
+ * Chat-local (not `app-ui-badge`): the design's pill carries a status icon and
+ * its own soft-bg/solid-fg pairing per status. Class comes from the shared
+ * `mapChatStatusTone()` vocabulary, so the tone names below are badge tones:
+ *   pending  → requested / return_due   warn   #D97706 on #FFF1DC
+ *   approved → approved / completed     success        on #E6F4EE
+ *   booked   → active                   primary        on primary-soft
+ *   neutral  → closed                   #9A99A3        on surface-muted
+ */
+.chat-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px 3px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: var(--ui-font-weight-extrabold);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.chat-status .pi {
+  font-size: 12px;
+}
+
+.chat-status--pending {
+  background: var(--chat-warn-soft);
+  color: var(--chat-warn);
+}
+
+.chat-status--approved,
+.chat-status--completed {
+  background: var(--chat-success-soft);
+  color: var(--ui-color-success);
+}
+
+.chat-status--booked {
+  background: var(--ui-color-primary-soft);
+  color: var(--ui-color-primary);
+}
+
+.chat-status--neutral,
+.chat-status--rejected {
+  background: var(--ui-color-surface-muted);
+  color: var(--chat-closed);
 }
 
 /* "View booking ›" — bordered pill matching the view-profile control. */
@@ -302,15 +379,16 @@
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
-  height: 2.25rem;
-  padding: 0 0.9rem;
+  height: 30px;
+  padding: 0 11px;
   border-radius: 999px;
-  border: 1px solid var(--ui-color-border);
+  border: 1.5px solid var(--ui-color-border);
   background: var(--ui-color-surface);
   color: var(--ui-color-text-primary);
-  font-size: 0.8125rem;
-  font-weight: var(--ui-font-weight-semibold);
+  font-size: 12px;
+  font-weight: var(--ui-font-weight-bold);
   text-decoration: none;
+  white-space: nowrap;
   transition:
     background 0.15s ease,
     border-color 0.15s ease,
@@ -318,7 +396,12 @@
 }
 
 .chat-thread__view-booking .pi {
-  font-size: 0.75rem;
+  font-size: 13px;
+  color: var(--ui-color-text-secondary);
+}
+
+.chat-thread__view-booking:hover .pi {
+  color: inherit;
 }
 
 .chat-thread__view-booking:hover {
@@ -333,13 +416,16 @@
 }
 
 /* ── Messages ─────────────────────────────────────────────────────────── */
+/* The message list is the warm page tint — bubbles float ON it. The white bars
+   above (context) and below (composer) are what make the two-tone read. */
 .chat-thread__messages {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
   max-height: 55vh;
   overflow-y: auto;
-  padding: 0.25rem;
+  padding: 12px 14px;
+  background: var(--ui-color-background);
 }
 
 .chat-thread__no-messages {
@@ -348,12 +434,15 @@
   color: var(--ui-color-text-secondary);
 }
 
+/* Design gives each bubble 2px block padding for the in-group rhythm; express it
+   as a 4px group gap instead so the net spacing matches without double-counting
+   (2px + 2px between two adjacent bubbles). */
 .chat-group {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 4px;
   align-items: flex-start;
-  max-width: 78%;
+  max-width: 74%;
 }
 
 .chat-group--mine {
@@ -368,56 +457,53 @@
   padding-inline: 0.35rem;
 }
 
-/* Received (counterpart) bubble: white fill + 1px light-gray border + a very
-   soft shadow so it still reads as a bubble on the white messaging surface. */
+/* Received (counterpart) bubble: white fill + 1px border + a very soft shadow so
+   it reads as a bubble on the warm messaging surface. `overflow: hidden` is
+   load-bearing — it clips an image bubble's picture to the bubble corners. */
 .chat-bubble {
-  padding: 0.55rem 0.75rem;
-  border-radius: 16px;
+  border-radius: 18px;
   border: 1px solid var(--ui-color-border);
   background: var(--ui-color-surface);
   color: var(--ui-color-text-primary);
-  border-bottom-left-radius: 4px;
-  box-shadow: 0 1px 2px rgba(16, 18, 30, 0.06);
+  border-bottom-left-radius: 6px;
+  box-shadow: 0 1px 2px rgba(20, 15, 5, 0.04);
+  overflow: hidden;
 }
 
 .chat-bubble--mine {
   background: var(--ui-color-secondary);
   border-color: var(--ui-color-secondary);
   color: var(--ui-color-on-primary);
-  border-bottom-left-radius: 16px;
-  border-bottom-right-radius: 4px;
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 6px;
+  box-shadow: 0 2px 8px -3px rgba(42, 44, 65, 0.4);
 }
 
 .chat-bubble__text {
   margin: 0;
+  padding: 8px 12px;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  line-height: 1.4;
+  font-size: 13.5px;
+  font-weight: var(--ui-font-weight-medium);
+  line-height: 1.42;
 }
 
-/* Image bubble: the picture fills the bubble's content box, with an inner radius
-   inset from the 16px bubble corner. Sized so a portrait phone photo stays a
-   comfortable thumbnail inside the 78%-wide bubble column. */
+/* Image bubble: the picture BLEEDS to the bubble edges (no inset, no own radius,
+   no gap) — the bubble's `overflow: hidden` clips it to the bubble corners. A
+   caption, when present, sits directly beneath it with the normal text padding. */
 .chat-bubble--image {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
 }
 
 .chat-bubble__image {
   display: block;
-  width: auto;
-  height: auto;
-  max-width: min(260px, 100%);
-  max-height: 320px;
-  border-radius: 12px;
-  object-fit: contain;
+  width: 210px;
+  height: 132px;
+  max-width: 100%;
+  object-fit: cover;
   background: color-mix(in srgb, currentColor 8%, transparent);
-}
-
-/* Caption under the picture — slightly smaller than a plain text bubble. */
-.chat-bubble__caption {
-  font-size: 0.875rem;
 }
 
 /* Optimistic upload states (sending / failed). */
@@ -429,12 +515,15 @@
   opacity: 0.5;
 }
 
+/* Optimistic upload status line. The bubble no longer has padding of its own
+   (the image bleeds edge-to-edge), so the status line carries the text inset. */
 .chat-bubble__status {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 0.35rem;
   margin: 0;
+  padding: 6px 12px 8px;
   font-size: 0.72rem;
   opacity: 0.9;
 }
@@ -467,32 +556,53 @@
 }
 
 .chat-group__time {
-  font-size: 0.7rem;
+  font-size: 10.5px;
   color: var(--ui-color-text-secondary);
 }
 
+/* "✓ Seen" uses the message-identity blue, NOT primary — in this design orange
+   is reserved for actions and unread, and one color does exactly one job. */
 .chat-group__seen {
-  font-size: 0.7rem;
-  font-weight: var(--ui-font-weight-semibold);
-  color: var(--ui-color-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10.5px;
+  font-weight: var(--ui-font-weight-bold);
+  color: var(--chat-seen);
+}
+
+.chat-group__seen .pi {
+  font-size: 11px;
+}
+
+/* Delivered-but-unread: a bare muted tick on the last own message only. */
+.chat-group__sent-tick {
+  font-size: 11px;
+  color: var(--ui-color-text-secondary);
 }
 
 /* ── Day divider ──────────────────────────────────────────────────────── */
+/* Rule — LABEL — rule (no pill): two hairlines flanking a bare uppercase label. */
 .chat-day-divider {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0.35rem 0;
+  gap: 10px;
+  margin: 8px 0 2px;
+}
+
+.chat-day-divider::before,
+.chat-day-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--ui-color-border);
 }
 
 .chat-day-divider__label {
-  padding: 0.15rem 0.75rem;
-  border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-surface-muted);
   color: var(--ui-color-text-secondary);
-  font-size: 0.7rem;
-  font-weight: var(--ui-font-weight-semibold);
-  letter-spacing: 0.04em;
+  font-size: 10.5px;
+  font-weight: var(--ui-font-weight-extrabold);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -503,33 +613,64 @@
   padding: 0.15rem 0;
 }
 
+/* Every system line shares the SAME white bordered chrome — only the icon chip
+   is tinted per kind. (The request line used to get a primary-soft fill; the
+   design drops that, so the enriched copy is its only distinction.) */
 .chat-system__line {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-surface-muted);
+  gap: 7px;
+  max-width: 86%;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--ui-color-border);
+  background: var(--ui-color-surface);
+  box-shadow: 0 1px 2px rgba(20, 15, 5, 0.04);
   color: var(--ui-color-text-secondary);
-  font-size: 0.75rem;
-  font-weight: var(--ui-font-weight-medium);
+  font-size: 11.5px;
+  font-weight: var(--ui-font-weight-semibold);
+  line-height: 1.35;
 }
 
-.chat-system__line .pi {
-  font-size: 0.8rem;
+/* Tinted 18px icon chip: the kind's color at 10% alpha behind its full-color
+   glyph. `--chat-system-tint` is set per tone just below. */
+.chat-system__icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--chat-system-tint) 10%, transparent);
+  color: var(--chat-system-tint);
 }
 
-/* Enriched booking-request pill: "{name} requested this toy · dates · price". */
+.chat-system__icon .pi {
+  font-size: 11px;
+}
+
+.chat-system__line--primary {
+  --chat-system-tint: var(--ui-color-primary);
+}
+
+.chat-system__line--success {
+  --chat-system-tint: var(--ui-color-success);
+}
+
+.chat-system__line--warn {
+  --chat-system-tint: var(--chat-warn);
+}
+
+.chat-system__line--neutral {
+  --chat-system-tint: var(--chat-closed);
+}
+
+/* Enriched booking-request line: "{name} requested this toy · dates · price". */
 .chat-system__line--request {
   flex-wrap: wrap;
   justify-content: center;
-  max-width: 100%;
-  background: var(--ui-color-primary-soft);
   text-align: center;
-}
-
-.chat-system__line--request .pi {
-  color: var(--ui-color-primary);
 }
 
 .chat-system__body {
@@ -537,13 +678,14 @@
 }
 
 /* ── Composer / closed banner ─────────────────────────────────────────── */
-/* White composer bar with a subtle top divider from the messages. Layout:
-   [image icon] [ input · camera icon inside ] [round orange send]. */
+/* White composer bar, hairline-divided from the tinted message list. Layout:
+   [attach circle] [ pill field · camera circle inside ] [round orange send]. */
 .chat-thread__composer {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding-top: 0.75rem;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--ui-color-surface);
   border-top: 1px solid var(--ui-color-border);
 }
 
@@ -575,11 +717,19 @@
   font-weight: var(--ui-font-weight-semibold);
 }
 
-/* Design: the composer input is a rounded RECTANGLE (~12px), not a full pill —
-   a muted-gray fill (`--ui-color-surface-muted`, from the filled variant) in the
-   white composer bar. Pin the radius explicitly to `--ui-radius-md`. */
+/* The composer field is a full PILL on the warm page tint with a 1.5px border —
+   it must read as an inset well in the white composer bar. (This overrides the
+   filled variant's muted fill and borderless treatment.) */
 .chat-thread__composer-field ::ng-deep .uii-field {
-  border-radius: var(--ui-radius-md);
+  min-height: 40px;
+  border-radius: 999px;
+  background: var(--ui-color-background);
+  border: 1.5px solid var(--ui-color-border);
+  padding: 0 6px 0 16px;
+}
+
+.chat-thread__composer-field ::ng-deep .uii-native {
+  font-size: 13.5px;
 }
 
 /* Make room for the in-field camera icon, and hide the input's auto clear-X so
@@ -593,29 +743,30 @@
   display: none;
 }
 
-/* Muted gray icon buttons — image picker (left) + camera (in-field right).
-   Both open a hidden file input; the camera one carries `capture="environment"`
-   so mobile opens the rear camera. */
+/* Bordered circular icon buttons — image picker (left, on the muted fill) and
+   camera (in-field right, on white). Both open a hidden file input; the camera
+   one carries `capture="environment"` so mobile opens the rear camera. */
 .chat-thread__composer-icon {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border: none;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--ui-color-border);
   border-radius: 999px;
-  background: transparent;
-  color: var(--ui-color-text-muted);
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-secondary);
   cursor: pointer;
   transition:
     color 0.15s ease,
-    background 0.15s ease;
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .chat-thread__composer-icon:hover {
-  color: var(--ui-color-text-secondary);
-  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-primary);
+  border-color: var(--ui-color-border-strong);
 }
 
 .chat-thread__composer-icon:focus-visible {
@@ -624,41 +775,86 @@
 }
 
 .chat-thread__composer-icon .pi {
-  font-size: 1.15rem;
+  font-size: 18px;
 }
 
 .chat-thread__composer-icon--camera {
   position: absolute;
-  right: 0.35rem;
+  right: 5px;
   top: 50%;
   transform: translateY(-50%);
-  width: 1.9rem;
-  height: 1.9rem;
+  width: 30px;
+  height: 30px;
+  background: var(--ui-color-surface);
 }
 
 .chat-thread__composer-icon--camera .pi {
-  font-size: 1.05rem;
+  font-size: 16px;
 }
 
-/* Round orange send control (icon-only). */
+/* Round orange send control (icon-only), lifted off the bar by a primary glow. */
 :host ::ng-deep .chat-thread__send.p-button {
   flex-shrink: 0;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 40px;
+  height: 40px;
   padding: 0;
+  border: none;
+  box-shadow: 0 4px 12px -3px rgba(255, 96, 8, 0.53);
 }
 
+:host ::ng-deep .chat-thread__send.p-button .pi {
+  font-size: 18px;
+}
+
+/* ── Closed banner ────────────────────────────────────────────────────────
+ * A two-line card inside the white bar that replaces the composer. */
 .chat-thread__closed {
+  padding: 12px 14px;
+  background: var(--ui-color-surface);
+  border-top: 1px solid var(--ui-color-border);
+}
+
+.chat-thread__closed-card {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.85rem 1rem;
-  border-radius: var(--ui-radius-md);
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--ui-color-border);
+  border-radius: 14px;
   background: var(--ui-color-surface-muted);
+}
+
+.chat-thread__closed-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--chat-lock-chip-bg);
+  color: var(--chat-lock-chip-fg);
+}
+
+.chat-thread__closed-icon .pi {
+  font-size: 15px;
+}
+
+.chat-thread__closed-body {
+  min-width: 0;
+}
+
+.chat-thread__closed-title {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: var(--ui-font-weight-bold);
+  color: var(--ui-color-text-primary);
+}
+
+.chat-thread__closed-text {
+  margin: 1px 0 0;
+  font-size: 11.5px;
   color: var(--ui-color-text-secondary);
-  font-size: 0.875rem;
-  text-align: center;
 }
 
 /*
@@ -709,19 +905,16 @@
   gap: 0;
 }
 
+/* The context bar's white/hairline chrome is now the baseline (see above), so
+   the pane only has to pin it. */
 :host-context(.chat-shell__pane) .chat-thread__context {
   flex-shrink: 0;
-  border-radius: 0;
-  background: var(--ui-color-surface);
-  border-bottom: 1px solid var(--ui-color-border);
-  padding: 0.75rem 1.25rem;
 }
 
 :host-context(.chat-shell__pane) .chat-thread__messages {
   flex: 1;
   min-height: 0;
   max-height: none;
-  padding: 1rem 1.25rem;
 }
 
 :host-context(.chat-shell__pane) .chat-thread__panel > p-message {
@@ -731,22 +924,121 @@
 
 :host-context(.chat-shell__pane) .chat-thread__composer {
   flex-shrink: 0;
-  border-top: 1px solid var(--ui-color-border);
-  padding: 0.75rem 1.25rem 1rem;
 }
 
 :host-context(.chat-shell__pane) .chat-thread__closed {
   flex-shrink: 0;
-  border-radius: 0;
-  border-top: 1px solid var(--ui-color-border);
-  background: var(--ui-color-surface-muted);
 }
 
-/* Desktop two-pane: the conversations list is always visible in the shell
-   rail, so the in-thread back arrow is redundant (mobile/tablet keep it). */
+/*
+ * Desktop two-pane (≥1024px) — the design's `big` scale. Everything above is
+ * the mobile scale; this block is the only place the larger sizes live.
+ * The conversations list is always visible in the shell rail here, so the
+ * in-thread back arrow is redundant (mobile/tablet keep it).
+ */
 @media (min-width: 1024px) {
   .chat-thread__back {
     display: none;
+  }
+
+  .chat-thread__context {
+    gap: 13px;
+    padding: 12px 16px;
+  }
+
+  .chat-thread__toy-img {
+    width: 46px;
+    height: 46px;
+  }
+
+  .chat-thread__toy-title {
+    font-size: 14px;
+  }
+
+  .chat-thread__context-meta {
+    font-size: 12px;
+  }
+
+  .chat-status {
+    padding: 4px 11px 4px 9px;
+    font-size: 12px;
+  }
+
+  .chat-status .pi {
+    font-size: 13px;
+  }
+
+  .chat-thread__view-booking {
+    height: 34px;
+    padding: 0 13px;
+    font-size: 12.5px;
+  }
+
+  .chat-thread__messages {
+    padding: 14px 18px;
+  }
+
+  .chat-bubble__text {
+    padding: 9px 14px;
+    font-size: 14px;
+  }
+
+  .chat-bubble__image {
+    width: 240px;
+    height: 150px;
+  }
+
+  .chat-day-divider {
+    margin: 10px 0 4px;
+  }
+
+  .chat-system__line {
+    padding: 7px 14px;
+    font-size: 12px;
+  }
+
+  .chat-thread__composer {
+    gap: 8px;
+    padding: 12px 16px;
+  }
+
+  .chat-thread__composer-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .chat-thread__composer-icon--camera {
+    width: 32px;
+    height: 32px;
+  }
+
+  .chat-thread__composer-field ::ng-deep .uii-field {
+    min-height: 42px;
+  }
+
+  .chat-thread__composer-field ::ng-deep .uii-native {
+    font-size: 14px;
+  }
+
+  :host ::ng-deep .chat-thread__send.p-button {
+    width: 42px;
+    height: 42px;
+  }
+
+  .chat-thread__closed {
+    padding: 14px 18px;
+  }
+
+  .chat-thread__closed-card {
+    padding: 11px 14px;
+  }
+
+  .chat-thread__closed-title {
+    font-size: 13px;
+  }
+
+  .chat-thread__closed-text {
+    font-size: 12px;
   }
 }
 
@@ -756,11 +1048,11 @@
      normally owns the iOS home-indicator inset — add it here so the pinned
      controls clear the home indicator on notched phones. */
   :host-context(.chat-shell__pane) .chat-thread__composer {
-    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   }
 
   :host-context(.chat-shell__pane) .chat-thread__closed {
-    padding-bottom: calc(0.85rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -795,9 +1087,5 @@
   .chat-thread__context-actions {
     width: 100%;
     justify-content: flex-start;
-  }
-
-  .chat-group {
-    max-width: 88%;
   }
 }

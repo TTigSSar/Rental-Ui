@@ -20,7 +20,6 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, filter, map } from 'rxjs';
 
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
-import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import { compressImageFile } from '../../../../shared/utils/image-compression.utils';
 import {
@@ -28,6 +27,7 @@ import {
   type ChatSystemMeta,
   chatDayKey,
   chatDayLabel,
+  mapChatStatusIcon,
   mapChatStatusLabelKey,
   mapChatStatusTone,
   mapChatSystemMeta,
@@ -59,7 +59,10 @@ interface MessageGroup {
   readonly senderName: string | null;
   readonly messages: ChatMessage[];
   readonly time: string;
+  /** Last own message in the thread AND read by the counterpart → "✓ Seen". */
   readonly showSeen: boolean;
+  /** Last own message in the thread, not yet read → bare muted delivery tick. */
+  readonly showSent: boolean;
 }
 
 /** The booking context threaded into the enriched `request` system line. */
@@ -218,6 +221,7 @@ function buildThreadItems(conversation: ChatConversationDetails): ThreadItem[] {
       messages: [message],
       time: '',
       showSeen: false,
+      showSent: false,
     });
   }
 
@@ -227,10 +231,12 @@ function buildThreadItems(conversation: ChatConversationDetails): ThreadItem[] {
       return item;
     }
     const last = item.messages[item.messages.length - 1];
+    const isLastMine = item.isMine && last.id === lastMineId;
     return {
       ...item,
       time: last.sentAt,
-      showSeen: item.isMine && last.id === lastMineId && last.seen,
+      showSeen: isLastMine && last.seen,
+      showSent: isLastMine && !last.seen,
     };
   });
 }
@@ -241,7 +247,6 @@ function buildThreadItems(conversation: ChatConversationDetails): ThreadItem[] {
   imports: [
     AsyncPipe,
     AvatarComponent,
-    BadgeComponent,
     ButtonModule,
     CurrencyPipe,
     DatePipe,
@@ -269,6 +274,16 @@ export class ConversationDetailsPageComponent implements OnInit {
 
   protected readonly statusTone = mapChatStatusTone;
   protected readonly statusLabelKey = mapChatStatusLabelKey;
+  protected readonly statusIcon = mapChatStatusIcon;
+
+  /**
+   * First name of the counterpart, for the personalised composer placeholder
+   * ("Message Anna…"). Falls back to the whole string when the name is a single
+   * token — never empty, so the placeholder never reads "Message …".
+   */
+  protected firstName(name: string): string {
+    return name.trim().split(/\s+/)[0] || name;
+  }
 
   protected readonly viewModel$ = combineLatest({
     routeState: this.store.select(selectConversationDetailsRouteState),

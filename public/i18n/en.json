@@ -1258,7 +1258,7 @@
       "emptyTitle": "Conversation not available",
       "empty": "This conversation is unavailable or has no data.",
       "noMessages": "No messages in this conversation yet.",
-      "messagePlaceholder": "Type your message",
+      "messagePlaceholder": "Message {{name}}…",
       "send": "Send",
       "attachImage": "Attach image",
       "attachCamera": "Take photo",
@@ -1271,6 +1271,8 @@
       "imageTooLarge": "This photo is too large. Maximum size is {{max}} MB.",
       "imageInvalidType": "Unsupported file type. Use a JPEG, PNG, WebP or GIF image.",
       "closedBanner": "This conversation is closed. The rental is complete and both reviews are in — it's now read-only.",
+      "closedBannerTitle": "This conversation is closed",
+      "closedBannerSubtitle": "The rental is complete and both reviews are in — it's now read-only.",
       "charCounter": "{{count}} / {{max}}",
       "limitReached": "Message limit of {{max}} characters reached"
     },

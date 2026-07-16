@@ -1,3 +1,16 @@
+/*
+ * Chat-local design colors with no global `--ui-color-*` token (kept in sync
+ * with the thread's copy of the same list):
+ *   --chat-warn        #D97706  requested / return_due status.
+ *   --chat-closed      #9A99A3  closed status.
+ *   --chat-row-unread  #FFFDFB  the barely-there warm tint on an unread row.
+ */
+:host {
+  --chat-warn: #d97706;
+  --chat-closed: #9a99a3;
+  --chat-row-unread: #fffdfb;
+}
+
 .conversations-page {
   display: flex;
   flex-direction: column;
@@ -31,10 +44,11 @@
     min-height: 0;
   }
 
-  /* Long single-word titles (hy "Հաղորդագրություններ") must fit the fixed
-     rail column: cap the size below the standalone-page clamp. */
+  /* 22px is also the ceiling that keeps the long hy single-word title
+     ("Հաղորդագրություններ") inside the fixed rail column — it wraps mid-word
+     rather than overflowing (see the overflow-wrap rule on the title span). */
   :host-context(.chat-shell__rail) .conversations-page__title {
-    font-size: 1.4rem;
+    font-size: 22px;
   }
 
   /* Rows scroll; the title + search stay pinned at the top of the rail. */
@@ -42,27 +56,11 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding-bottom: 0.5rem;
+    padding: 0 8px 12px;
   }
 
-  /* Mock shows flat rows inside the rail (no card border/shadow); the active
-     and hovered rows are the only surfaced ones. */
   :host-context(.chat-shell__rail) .chat-row {
-    border-color: transparent;
-    box-shadow: none;
-    background: transparent;
-  }
-
-  :host-context(.chat-shell__rail) .chat-row:hover {
-    background: var(--ui-color-surface-muted);
-    box-shadow: none;
-  }
-
-  :host-context(.chat-shell__rail) .chat-row--active,
-  :host-context(.chat-shell__rail) .chat-row--active:hover {
-    border-color: color-mix(in srgb, var(--ui-color-primary) 45%, transparent);
-    background: color-mix(in srgb, var(--ui-color-primary) 8%, var(--ui-color-surface));
-    box-shadow: none;
+    padding: 12px 14px;
   }
 }
 
@@ -77,7 +75,9 @@
   align-items: center;
   gap: 0.5rem;
   min-width: 0;
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
   line-height: 1.2;
 }
 
@@ -89,21 +89,44 @@
 }
 
 .conversations-page__title-count {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.5rem;
-  height: 1.5rem;
-  padding: 0 0.45rem;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
   border-radius: 999px;
-  font-size: 0.8125rem;
-  font-weight: var(--ui-font-weight-bold);
+  font-size: 12px;
+  font-weight: var(--ui-font-weight-extrabold);
   color: var(--ui-color-on-primary);
   background: var(--ui-color-primary);
 }
 
 .conversations-page__search {
   display: block;
+}
+
+/* The search field is a PILL on the warm page tint with a 1.5px border — it must
+   read as an inset well in the white header band (the filled variant's muted
+   fill and borderless treatment are overridden here). */
+.conversations-page__search ::ng-deep .uii-field {
+  height: 40px;
+  min-height: 40px;
+  gap: 9px;
+  border-radius: 999px;
+  background: var(--ui-color-background);
+  border: 1.5px solid var(--ui-color-border);
+  padding: 0 14px;
+}
+
+.conversations-page__search ::ng-deep .uii-icon--left {
+  font-size: 15px;
+  color: var(--ui-color-text-secondary);
+}
+
+.conversations-page__search ::ng-deep .uii-native {
+  font-size: 13px;
 }
 
 .conversations-page__visually-hidden {
@@ -138,9 +161,9 @@
 .conversations-page__list {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 2px;
   margin: 0;
-  padding: 0;
+  padding: 0 6px 12px;
   list-style: none;
 }
 
@@ -188,80 +211,116 @@
   color: var(--ui-color-text-secondary);
 }
 
-/* ── Conversation row ─────────────────────────────────────────────────── */
+/* ── Conversation row ─────────────────────────────────────────────────────
+ * Borderless and transparent by default — rows are separated by rhythm, not by
+ * chrome. Only three states paint a background: unread (a barely-there warm
+ * tint), hover, and active (primary-soft + an inset primary hairline).
+ */
 .chat-row {
   display: flex;
   align-items: center;
-  gap: 0.8125rem;
-  padding: 0.875rem;
-  border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-md);
-  background: var(--ui-color-surface);
-  box-shadow: var(--ui-shadow-card);
+  gap: 12px;
+  padding: 11px 12px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
   text-decoration: none;
   color: inherit;
   transition:
-    border-color 0.15s ease,
+    background 0.15s ease,
     box-shadow 0.15s ease;
 }
 
-.chat-row:hover {
-  box-shadow: var(--ui-shadow-card-hover);
+.chat-row--unread {
+  background: var(--chat-row-unread);
 }
 
+.chat-row:hover {
+  background: var(--ui-color-surface-muted);
+}
+
+/* Keyboard focus. The soft `--ui-focus-ring` halo alone is NOT perceivable here:
+   at 18% alpha it measures 1.23:1 against the white rail, 1.22:1 against the
+   mobile cream tint and 1.08:1 against an active row's `--ui-color-primary-soft`
+   fill — far below the 3:1 WCAG 2.2 SC 1.4.11 needs. Rows are borderless and
+   transparent, so unlike the composer/`view-profile` controls there is no
+   bordered pill for the halo to hug. A solid INSET ring carries the contrast
+   (`--ui-color-primary-strong` = 3.77:1 on white / 3.55:1 on cream / 3.32:1 on
+   the soft fill); the halo is kept so the ring still reads as the same family as
+   the rest of the feature. Inset also keeps the row's box size stable and can't
+   be clipped by the rail's `overflow` at the scroll edges. */
 .chat-row:focus-visible {
   outline: none;
-  border-color: var(--ui-color-primary);
-  box-shadow: var(--ui-focus-ring);
+  box-shadow:
+    inset 0 0 0 2px var(--ui-color-primary-strong),
+    var(--ui-focus-ring);
 }
 
-.chat-row--unread {
-  border-color: color-mix(in srgb, var(--ui-color-primary) 38%, transparent);
-}
-
-/* Active conversation (open in the desktop right pane) — persistent highlight. */
-.chat-row--active {
-  border-color: var(--ui-color-primary);
-  background: color-mix(in srgb, var(--ui-color-primary) 8%, var(--ui-color-surface));
-  box-shadow: var(--ui-shadow-card-hover);
-}
-
+/* Active conversation (open in the desktop right pane) — persistent highlight.
+   The inset ring stands in for a border so the row keeps its exact box size. */
+.chat-row--active,
 .chat-row--active:hover {
-  box-shadow: var(--ui-shadow-card-hover);
+  background: var(--ui-color-primary-soft);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ui-color-primary) 33%, transparent);
+}
+
+/* Focused AND active: the solid ring REPLACES the 33%-primary hairline (which is
+   only 1.41:1 on the soft fill and would read as the same faint edge whether or
+   not the row has focus). The primary-soft background still marks "this is the
+   open conversation", the solid ring marks "this is where my focus is" — so the
+   two states stay tellable apart. This rule must stay AFTER the `--active` /
+   `--active:hover` pair: `.chat-row--active:hover` has equal specificity to
+   `.chat-row:focus-visible`, so a focused row that is also hovered would
+   otherwise lose the ring to source order. */
+.chat-row--active:focus-visible {
+  box-shadow:
+    inset 0 0 0 2px var(--ui-color-primary-strong),
+    var(--ui-focus-ring);
 }
 
 .chat-row__avatar {
   position: relative;
   flex-shrink: 0;
-  width: 2.875rem;
-  height: 2.875rem;
+  width: 50px;
+  height: 50px;
 }
 
 .chat-row__avatar-img {
-  width: 2.875rem;
-  height: 2.875rem;
+  width: 50px;
+  height: 50px;
   border-radius: 999px;
   object-fit: cover;
 }
 
+/* The initials fallback must fill the same 50px block as a real photo, so the
+   toy thumb anchors identically either way (`size="md"` alone is only 36px). */
+.chat-row__avatar ::ng-deep .ui-avatar {
+  width: 50px;
+  height: 50px;
+  font-size: 1rem;
+}
+
+/* Toy thumbnail, ringed in white so it reads on top of the avatar. */
 .chat-row__toy-thumb {
   position: absolute;
-  right: -4px;
-  bottom: -4px;
-  width: 1.375rem;
-  height: 1.375rem;
-  border-radius: 7px;
+  right: -3px;
+  bottom: -3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
   object-fit: cover;
-  border: 2px solid var(--ui-color-surface);
+  border: 2.5px solid var(--ui-color-surface);
   background: var(--ui-color-surface-muted);
 }
 
+/* The three lines set their own top margins (design rhythm: 2px / 3px), so the
+   column itself contributes no gap. */
 .chat-row__content {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0;
 }
 
 .chat-row__top {
@@ -272,6 +331,7 @@
 }
 
 .chat-row__name {
+  font-size: 14px;
   font-weight: var(--ui-font-weight-bold);
   color: var(--ui-color-text-primary);
   white-space: nowrap;
@@ -279,52 +339,71 @@
   text-overflow: ellipsis;
 }
 
+.chat-row--unread .chat-row__name {
+  font-weight: var(--ui-font-weight-extrabold);
+}
+
 .chat-row__time {
   flex-shrink: 0;
-  font-size: 0.75rem;
+  font-size: 11px;
+  font-weight: var(--ui-font-weight-medium);
   color: var(--ui-color-text-secondary);
 }
 
+.chat-row--unread .chat-row__time {
+  color: var(--ui-color-primary);
+  font-weight: var(--ui-font-weight-bold);
+}
+
+/* ── Status line ──────────────────────────────────────────────────────────
+ * Both the dot AND the toy title carry the status color (the title is not a
+ * neutral caption here — the color IS the status signal). `--chat-row-status`
+ * is set per tone and consumed by both. Tone names come from the shared
+ * `mapChatStatusTone()` vocabulary.
+ */
 .chat-row__meta {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 5px;
+  margin-top: 2px;
   min-width: 0;
+  --chat-row-status: var(--ui-color-text-secondary);
+}
+
+.chat-row__meta--pending {
+  --chat-row-status: var(--chat-warn);
+}
+
+.chat-row__meta--approved,
+.chat-row__meta--completed {
+  --chat-row-status: var(--ui-color-success);
+}
+
+.chat-row__meta--booked {
+  --chat-row-status: var(--ui-color-primary);
+}
+
+.chat-row__meta--rejected {
+  --chat-row-status: var(--ui-color-rejected);
+}
+
+.chat-row__meta--neutral {
+  --chat-row-status: var(--chat-closed);
 }
 
 .chat-row__status-dot {
   flex-shrink: 0;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: var(--ui-color-text-secondary);
-}
-
-.chat-row__status-dot--pending {
-  background: var(--ui-color-warning);
-}
-
-.chat-row__status-dot--approved {
-  background: var(--ui-color-approved);
-}
-
-.chat-row__status-dot--rejected {
-  background: var(--ui-color-rejected);
-}
-
-.chat-row__status-dot--booked {
-  background: var(--ui-color-info);
-}
-
-.chat-row__status-dot--completed,
-.chat-row__status-dot--neutral {
-  background: var(--ui-color-text-secondary);
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--chat-row-status);
 }
 
 .chat-row__toy-title {
   min-width: 0;
-  font-size: 0.8125rem;
-  color: var(--ui-color-text-secondary);
+  font-size: 11.5px;
+  font-weight: var(--ui-font-weight-bold);
+  color: var(--chat-row-status);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -335,12 +414,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+  margin-top: 3px;
 }
 
 .chat-row__snippet {
   margin: 0;
   min-width: 0;
-  font-size: 0.85rem;
+  font-size: 12.5px;
   color: var(--ui-color-text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -349,7 +429,14 @@
 
 .chat-row--unread .chat-row__snippet {
   color: var(--ui-color-text-primary);
-  font-weight: var(--ui-font-weight-medium);
+  font-weight: var(--ui-font-weight-semibold);
+}
+
+/* Image glyph marking a photo as the last message. */
+.chat-row__snippet-icon {
+  margin-right: 4px;
+  font-size: 12px;
+  vertical-align: -1px;
 }
 
 /* "You:" prefix on own last-message rows. */
@@ -360,15 +447,15 @@
 
 .chat-row__unread-badge {
   flex-shrink: 0;
-  min-width: 1.35rem;
-  height: 1.35rem;
-  padding: 0 0.4rem;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.72rem;
-  font-weight: var(--ui-font-weight-bold);
+  font-size: 11px;
+  font-weight: var(--ui-font-weight-extrabold);
   color: var(--ui-color-on-primary);
   background: var(--ui-color-primary);
 }
@@ -407,10 +494,10 @@
     padding: 0 1rem 1.1rem;
   }
 
-  /* Tinted content region below the band. Rows keep their white card treatment
-     (base .chat-row) so they stay legible on the tint. */
+  /* Tinted content region below the band. Rows are transparent (base .chat-row)
+     and read directly on the tint; only unread/hover/active rows paint. */
   .conversations-page__list {
-    padding: 1rem 1rem 1.5rem;
+    padding: 8px 6px 12px;
   }
 
   .conversations-page__error {
