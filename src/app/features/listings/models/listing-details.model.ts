@@ -1,4 +1,5 @@
 import type { BookedDateRange, ListingImage, ListingOwner } from './listing.model';
+import type { DeliveryType } from './create-listing.model';
 
 /**
  * Canonical set of toy conditions. This is the single source of truth shared
@@ -25,4 +26,6 @@ export interface ListingDetails {
   hygieneNotes?: string | null;
   safetyNotes?: string | null;
   depositAmount?: number | null;
+  minRentalDays?: number | null;
+  deliveryType?: DeliveryType | null;
 }

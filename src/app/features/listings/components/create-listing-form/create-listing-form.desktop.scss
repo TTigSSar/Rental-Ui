@@ -52,7 +52,7 @@
     align-items: center;
     gap: 13px;
     padding: 7px 8px;
-    border-radius: 12px;
+    border-radius: var(--ui-radius-12);
     border: 0;
     background: transparent;
     cursor: pointer;
@@ -109,7 +109,7 @@
     margin-top: 18px;
     padding: 14px;
     border-radius: 14px;
-    background: var(--ui-color-primary-wash);
+    background: var(--ui-color-primary-soft);
     border: 1px solid color-mix(in srgb, var(--ui-color-primary) 13%, transparent);
   }
 
@@ -156,6 +156,8 @@
     padding: 28px;
   }
   .wizard-panel__subtitle { margin-top: -8px; }
+  /* Step 3's subtitle is mobile-only — the desktop design has none. */
+  .wizard-panel__subtitle--mobile { display: none; }
 
   /* Two-column groups split on desktop */
   .wizard-2col { grid-template-columns: 1fr 1fr; gap: 22px; }
@@ -181,8 +183,18 @@
     font-size: 0.78rem;
     color: var(--ui-color-text-secondary);
   }
-  .wizard__btn { height: 3rem; padding: 0 28px; }
+  /* Desktop: radius-12 rounded-rect (listing-desktop.jsx:293); mobile stays a
+     pill (base sheet). */
+  .wizard__btn { padding: 0 28px; border-radius: var(--ui-radius-12); }
   .wizard__btn--primary { flex: 0 0 auto; }
   .wizard__btn--full { width: auto; }
-  .wizard__btn--hidden { display: inline-flex; visibility: hidden; }
+
+  /* Step 1: the design keeps Back in place but faded and inert, rather than
+     hiding it — the footer layout stays put between steps. (Mobile still hides
+     it: the base sheet's display:none applies below 1024px.) */
+  .wizard__btn--back.wizard__btn--hidden {
+    display: inline-flex;
+    visibility: visible;
+    opacity: 0.4;
+  }
 }

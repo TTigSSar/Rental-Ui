@@ -3,6 +3,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, from, map, switchMap } from 'rxjs';
 
 import { ApiContract, toApiUrl } from '../../../api/api-contract';
+import { DELIVERY_TYPES } from '../../listings/models/create-listing.model';
+import type { DeliveryType } from '../../listings/models/create-listing.model';
 import { compressImageFiles } from '../../../shared/utils/image-compression.utils';
 import type { ListingImage, MyListing, MyListingStatus, RejectionInfo, UpdateListingRequest } from '../models/my-listing.model';
 
@@ -19,6 +21,17 @@ function coerceMyListingStatus(value: unknown): MyListingStatus {
     return value as MyListingStatus;
   }
   return 'PendingApproval';
+}
+
+/**
+ * The API serializes DeliveryType as a string (global JsonStringEnumConverter).
+ * Anything else — including the legacy null on listings created before the
+ * field existed — reads as "not set".
+ */
+function coerceDeliveryType(value: unknown): DeliveryType | null {
+  return typeof value === 'string' && (DELIVERY_TYPES as readonly string[]).includes(value)
+    ? (value as DeliveryType)
+    : null;
 }
 
 function toNullableString(value: unknown): string | null {
@@ -90,6 +103,9 @@ function normalizeMyListing(raw: Record<string, unknown> & { id: string }): MyLi
       : null,
     depositAmount:
       typeof raw['depositAmount'] === 'number' ? (raw['depositAmount'] as number) : null,
+    minRentalDays:
+      typeof raw['minRentalDays'] === 'number' ? (raw['minRentalDays'] as number) : null,
+    deliveryType: coerceDeliveryType(raw['deliveryType']),
   };
 }
 

@@ -18,7 +18,7 @@
       </button>
       <div class="wizard__header-center">
         <span class="wizard__step-of">{{
-          'listings.createPage.wizard.stepOf'
+          'listings.createPage.wizard.stepProgress'
             | translate: { current: currentStep(), total: totalSteps }
         }}</span>
         <span class="wizard__step-name">{{ getStepNameKey() | translate }}</span>
@@ -73,10 +73,12 @@
   <!-- ── Responsive layout: desktop sidebar + content ────────── -->
   <div class="wizard__layout">
 
-    <!-- Desktop vertical stepper (desktop only) -->
-    <aside class="wizard__sidebar" aria-hidden="true">
-      <div class="wizard__sidebar-sticky">
-        <div class="wizard__sidebar-eyebrow">{{ 'listings.createPage.wizard.sidebarTitle' | translate }}</div>
+    <!-- Desktop vertical stepper. `display:none` below 1024px keeps its buttons
+         out of the mobile tab order, so no aria-hidden is needed (and it must
+         not be hidden — these are the only step controls on desktop). -->
+    <aside class="wizard__sidebar">
+      <nav class="wizard__sidebar-sticky" [attr.aria-label]="'listings.createPage.wizard.sidebarTitle' | translate">
+        <div class="wizard__sidebar-eyebrow" aria-hidden="true">{{ 'listings.createPage.wizard.sidebarTitle' | translate }}</div>
         <div class="wizard-stepper">
           <div class="wizard-stepper__track"></div>
           <div class="wizard-stepper__fill" [style.height.%]="stepperFillPct()"></div>
@@ -86,6 +88,7 @@
               class="wizard-stepper__item"
               [class.wizard-stepper__item--active]="currentStep() === $index + 1"
               [class.wizard-stepper__item--done]="currentStep() > $index + 1"
+              [attr.aria-current]="currentStep() === $index + 1 ? 'step' : null"
               (click)="jumpToStep($index + 1)"
             >
               <span class="wizard-stepper__dot">
@@ -97,7 +100,7 @@
               </span>
               <span class="wizard-stepper__text">
                 <span class="wizard-stepper__step">{{ 'listings.createPage.wizard.stepShort' | translate: { n: $index + 1 } }}</span>
-                <span class="wizard-stepper__label">{{ st.labelKey | translate }}</span>
+                <span class="wizard-stepper__label">{{ st.shortLabelKey | translate }}</span>
               </span>
             </button>
           }
@@ -109,7 +112,7 @@
           </div>
           <div class="wizard-stepper__note-sub">{{ 'listings.createPage.wizard.reviewTime' | translate }}</div>
         </div>
-      </div>
+      </nav>
     </aside>
 
     <!-- Content column -->
@@ -118,7 +121,7 @@
       <!-- Desktop content head (desktop only) -->
       <div class="wizard__content-head">
         <span class="wizard__content-eyebrow">{{
-          'listings.createPage.wizard.stepOf' | translate: { current: currentStep(), total: totalSteps }
+          'listings.createPage.wizard.stepProgress' | translate: { current: currentStep(), total: totalSteps }
         }}</span>
         <h1 class="wizard__content-title">{{ getStepNameKey() | translate }}</h1>
       </div>
@@ -474,6 +477,10 @@
         @if (currentStep() === 3) {
           <section class="wizard-step wizard-panel">
             <h2 class="wizard-panel__title">{{ 'listings.createPage.wizard.step3Heading' | translate }}</h2>
+            <!-- Mobile only: the desktop design deliberately has no step-3 subtitle. -->
+            <p class="wizard-panel__subtitle wizard-panel__subtitle--mobile">
+              {{ 'listings.createPage.wizard.step3Subtitle' | translate }}
+            </p>
 
             <!-- Rate card: price + unit -->
             <div class="wizard-field wizard-field--rate">
@@ -563,7 +570,8 @@
                     type="button"
                     class="wizard-chip"
                     [class.wizard-chip--active]="selectedMinDays() === days"
-                    (click)="selectedMinDays.set(days)"
+                    [attr.aria-pressed]="selectedMinDays() === days"
+                    (click)="selectMinDays(days)"
                   >
                     {{ 'listings.createForm.minRental.d' + days | translate }}
                   </button>
@@ -602,14 +610,17 @@
             <!-- Delivery -->
             <div class="wizard-field">
               <span class="wizard-field__label">{{ 'listings.createForm.delivery.label' | translate }}</span>
-              <div class="wizard-delivery-list">
+              <!-- Mutually exclusive: exactly one of Pickup / Courier is always set. -->
+              <div class="wizard-delivery-list" role="radiogroup" [attr.aria-label]="'listings.createForm.delivery.label' | translate">
                 <button
                   type="button"
+                  role="radio"
                   class="wizard-delivery"
-                  [class.wizard-delivery--selected]="selectedDeliveryTypes().has('pickup')"
-                  (click)="toggleDelivery('pickup')"
+                  [class.wizard-delivery--selected]="selectedDelivery() === 'Pickup'"
+                  [attr.aria-checked]="selectedDelivery() === 'Pickup'"
+                  (click)="selectDelivery('Pickup')"
                 >
-                  <span class="wizard-delivery__radio"></span>
+                  <span class="wizard-delivery__radio" aria-hidden="true"></span>
                   <div class="wizard-delivery__text">
                     <span class="wizard-delivery__title">{{ 'listings.createForm.delivery.pickup' | translate }}</span>
                     <span class="wizard-delivery__hint">{{ 'listings.createForm.delivery.pickupHint' | translate }}</span>
@@ -617,11 +628,13 @@
                 </button>
                 <button
                   type="button"
+                  role="radio"
                   class="wizard-delivery"
-                  [class.wizard-delivery--selected]="selectedDeliveryTypes().has('deliver')"
-                  (click)="toggleDelivery('deliver')"
+                  [class.wizard-delivery--selected]="selectedDelivery() === 'Courier'"
+                  [attr.aria-checked]="selectedDelivery() === 'Courier'"
+                  (click)="selectDelivery('Courier')"
                 >
-                  <span class="wizard-delivery__radio"></span>
+                  <span class="wizard-delivery__radio" aria-hidden="true"></span>
                   <div class="wizard-delivery__text">
                     <span class="wizard-delivery__title">{{ 'listings.createForm.delivery.deliver' | translate }}</span>
                     <span class="wizard-delivery__hint">{{ 'listings.createForm.delivery.deliverHint' | translate }}</span>
@@ -643,7 +656,7 @@
               <div class="wizard-section">
                 <span class="wizard-section__label">{{ 'listings.createForm.cleaning.title' | translate }}</span>
                 <div class="wizard-check-list">
-                  <label class="wizard-check-row" [class.wizard-check-row--checked]="cleanWashed()">
+                  <label class="wizard-check-row">
                     <div class="wizard-check-row__box" [class.wizard-check-row__box--on]="cleanWashed()">
                       @if (cleanWashed()) { <i class="pi pi-check wizard-check-row__tick" aria-hidden="true"></i> }
                     </div>
@@ -654,7 +667,7 @@
                     <input type="checkbox" class="wizard-check-row__input" [checked]="cleanWashed()" (change)="cleanWashed.set(!cleanWashed())" />
                   </label>
 
-                  <label class="wizard-check-row" [class.wizard-check-row--checked]="cleanDisinfected()">
+                  <label class="wizard-check-row">
                     <div class="wizard-check-row__box" [class.wizard-check-row__box--on]="cleanDisinfected()">
                       @if (cleanDisinfected()) { <i class="pi pi-check wizard-check-row__tick" aria-hidden="true"></i> }
                     </div>
@@ -665,7 +678,7 @@
                     <input type="checkbox" class="wizard-check-row__input" [checked]="cleanDisinfected()" (change)="cleanDisinfected.set(!cleanDisinfected())" />
                   </label>
 
-                  <label class="wizard-check-row" [class.wizard-check-row--checked]="cleanUV()">
+                  <label class="wizard-check-row">
                     <div class="wizard-check-row__box" [class.wizard-check-row__box--on]="cleanUV()">
                       @if (cleanUV()) { <i class="pi pi-check wizard-check-row__tick" aria-hidden="true"></i> }
                     </div>
@@ -722,7 +735,13 @@
                     {{ getPickupSummary() }} &middot; {{ getDeliverySummaryKey() | translate }}
                   </p>
                   <p class="wizard-preview__price">
-                    {{ createListingForm.controls.pricePerDay.value | currency: currencyCode }}<span class="wizard-preview__price-suffix"> {{ priceUnitSuffixKey() | translate }}</span>
+                    {{ createListingForm.controls.pricePerDay.value | currency: currencyCode }}<span class="wizard-preview__price-suffix">
+                      {{ priceUnitSuffixKey() | translate }} &middot;
+                      {{
+                        'listings.createForm.minRental.preview'
+                          | translate: { period: minRentalLabelKey() | translate }
+                      }}
+                    </span>
                   </p>
                 </div>
               </div>
@@ -730,22 +749,22 @@
 
             <!-- Review & submit -->
             <div class="wizard-review-col wizard-panel">
-              <h2 class="wizard-panel__title">{{ 'listings.createPage.wizard.reviewTitle' | translate }}</h2>
+              <h2 class="wizard-panel__title">{{ 'listings.createPage.wizard.step5Heading' | translate }}</h2>
               <p class="wizard-panel__subtitle">{{ 'listings.createPage.wizard.step5Hint' | translate }}</p>
 
               <dl class="wizard-summary">
                 <div class="wizard-summary__row">
-                  <dt class="wizard-summary__label">{{ 'listings.createForm.category' | translate }}</dt>
+                  <dt class="wizard-summary__label">{{ 'listings.createPage.wizard.summaryCategory' | translate }}</dt>
                   <dd class="wizard-summary__value">{{ getCategoryName() || '—' }}</dd>
                   <button type="button" class="wizard-summary__edit" (click)="jumpToStep(2)">{{ 'listings.createPage.wizard.edit' | translate }}</button>
                 </div>
                 <div class="wizard-summary__row">
-                  <dt class="wizard-summary__label">{{ 'listings.createForm.ageRange' | translate }}</dt>
+                  <dt class="wizard-summary__label">{{ 'listings.createPage.wizard.summaryAge' | translate }}</dt>
                   <dd class="wizard-summary__value">{{ ageRangeText() }} {{ 'listings.createForm.ageYearsShort' | translate }}</dd>
                   <button type="button" class="wizard-summary__edit" (click)="jumpToStep(2)">{{ 'listings.createPage.wizard.edit' | translate }}</button>
                 </div>
                 <div class="wizard-summary__row">
-                  <dt class="wizard-summary__label">{{ 'listings.createForm.images' | translate }}</dt>
+                  <dt class="wizard-summary__label">{{ 'listings.createPage.wizard.summaryPhotos' | translate }}</dt>
                   <dd class="wizard-summary__value">
                     @if (displayPhotoCount() > 0) {
                       {{ 'listings.createPage.wizard.photosAdded' | translate: { count: displayPhotoCount() } }}
@@ -756,24 +775,27 @@
                   <button type="button" class="wizard-summary__edit" (click)="jumpToStep(1)">{{ 'listings.createPage.wizard.edit' | translate }}</button>
                 </div>
                 <div class="wizard-summary__row">
-                  <dt class="wizard-summary__label">{{ 'listings.createForm.priceLabel' | translate }}</dt>
+                  <dt class="wizard-summary__label">{{ 'listings.createPage.wizard.summaryPrice' | translate }}</dt>
                   <dd class="wizard-summary__value wizard-summary__value--price">
                     {{ createListingForm.controls.pricePerDay.value | currency: currencyCode }} {{ priceUnitSuffixKey() | translate }}
                   </dd>
                   <button type="button" class="wizard-summary__edit" (click)="jumpToStep(3)">{{ 'listings.createPage.wizard.edit' | translate }}</button>
                 </div>
                 <div class="wizard-summary__row">
-                  <dt class="wizard-summary__label">{{ 'listings.createForm.pickupArea' | translate }}</dt>
+                  <dt class="wizard-summary__label">{{ 'listings.createPage.wizard.summaryPickup' | translate }}</dt>
                   <dd class="wizard-summary__value">{{ getPickupSummary() }}</dd>
                   <button type="button" class="wizard-summary__edit" (click)="jumpToStep(3)">{{ 'listings.createPage.wizard.edit' | translate }}</button>
                 </div>
-                @if (selectedCond()) {
-                  <div class="wizard-summary__row">
-                    <dt class="wizard-summary__label">{{ 'listings.createForm.condition' | translate }}</dt>
-                    <dd class="wizard-summary__value">{{ getConditionLabelKey() | translate }}</dd>
-                    <button type="button" class="wizard-summary__edit" (click)="jumpToStep(2)">{{ 'listings.createPage.wizard.edit' | translate }}</button>
-                  </div>
-                }
+                <div class="wizard-summary__row">
+                  <dt class="wizard-summary__label">{{ 'listings.createPage.wizard.summarySafety' | translate }}</dt>
+                  <dd class="wizard-summary__value">
+                    {{
+                      'listings.createPage.wizard.summarySafetyValue'
+                        | translate: { done: cleaningStepsDone(), total: cleaningStepsTotal }
+                    }}
+                  </dd>
+                  <button type="button" class="wizard-summary__edit" (click)="jumpToStep(4)">{{ 'listings.createPage.wizard.edit' | translate }}</button>
+                </div>
               </dl>
 
               <p class="wizard-submit-note">
@@ -796,7 +818,7 @@
         class="wizard__btn wizard__btn--back"
         [class.wizard__btn--hidden]="currentStep() === 1"
         (click)="goToPrevStep()"
-        [disabled]="isSubmitting"
+        [disabled]="isSubmitting || currentStep() === 1"
       >
         <i class="pi pi-chevron-left" aria-hidden="true"></i>
         {{ 'listings.createPage.wizard.back' | translate }}

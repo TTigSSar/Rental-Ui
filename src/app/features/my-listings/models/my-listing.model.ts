@@ -1,4 +1,5 @@
 import type { ListingImage } from '../../listings/models/listing.model';
+import type { DeliveryType } from '../../listings/models/create-listing.model';
 
 export type { ListingImage };
 
@@ -14,6 +15,8 @@ export interface UpdateListingRequest {
   hygieneNotes?: string | null;
   safetyNotes?: string | null;
   depositAmount?: number | null;
+  minRentalDays?: number | null;
+  deliveryType?: DeliveryType | null;
 }
 
 export type MyListingStatus =
@@ -49,4 +52,7 @@ export interface MyListing {
   hygieneNotes: string | null;
   safetyNotes: string | null;
   depositAmount: number | null;
+  // Null on listings created before these fields existed.
+  minRentalDays?: number | null;
+  deliveryType?: DeliveryType | null;
 }

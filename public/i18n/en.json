@@ -503,7 +503,7 @@
         "photosAdded": "Photos · {{count}} added",
         "reviewCityFixed": "Yerevan, Armenia",
         "step1Heading": "Show your toy",
-        "step1Hint": "Bright daylight, clean background, all parts visible.",
+        "step1Hint": "Bright daylight, clean background, all parts visible. 3+ photos, max 8.",
         "step2Heading": "Tell us about your toy",
         "step2Hint": "The clearer the basics, the faster you’ll get a renter.",
         "step3Heading": "How much to rent it?",
@@ -520,7 +520,20 @@
         "previewEyebrow": "How renters see it",
         "reviewTitle": "Review & submit",
         "nextHint": "Next: {{next}}",
-        "readyHint": "Ready to publish — we'll review within ~4 hours."
+        "readyHint": "Ready to publish — we'll review within ~4 hours.",
+        "step1Short": "Photos",
+        "step2Short": "Basics",
+        "step3Short": "Pricing",
+        "step4Short": "Safety",
+        "step5Short": "Preview",
+        "step3Subtitle": "Set a price and pick the rental period.",
+        "summaryCategory": "Category",
+        "summaryAge": "Age",
+        "summaryPhotos": "Photos",
+        "summaryPrice": "Price",
+        "summaryPickup": "Pickup",
+        "summarySafety": "Safety",
+        "summarySafetyValue": "{{done}} of {{total}} cleaning steps"
       }
     },
     "createForm": {
@@ -587,20 +600,21 @@
         "d3": "3 days",
         "d7": "1 week",
         "d14": "2 weeks",
-        "hint": "Shortest booking a renter can make."
+        "hint": "Shortest booking a renter can make.",
+        "preview": "min {{period}}"
       },
       "delivery": {
         "label": "How can renters get the toy?",
         "pickup": "Pickup from me",
         "pickupHint": "Free · Meet at agreed spot",
-        "deliver": "Deliver to renter",
-        "deliverHint": "Paid · Drop off at renter's location",
+        "deliver": "Courier delivery",
+        "deliverHint": "Renter pays · delivered in Yerevan",
         "pickupShort": "pickup",
         "deliverShort": "delivery"
       },
       "photos": {
         "addCover": "Add cover photo",
-        "coverHint": "This shows first in search results",
+        "coverHint": "Shows first in search · drag & drop or browse",
         "coverLabel": "Cover",
         "setCoverTitle": "Set as cover photo",
         "dragHint": "Drag photos to reorder · Drop on the cover zone to set as cover",

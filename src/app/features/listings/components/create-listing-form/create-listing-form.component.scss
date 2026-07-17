@@ -290,13 +290,21 @@
   border: none;
   background: transparent;
   box-shadow: none;
-  font-size: 1.5rem;
-  font-weight: 800;
+  /* Design: the amount is the loudest thing on the step — 32px / 900. */
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
   padding: 0 var(--ui-space-16);
 }
+/* Focus was previously suppressed outright, leaving the field with no visible
+   focus state at all. The design rings the whole card in primary instead. */
 :host ::ng-deep .rate-card__input .p-inputtext:enabled:focus {
   box-shadow: none;
   outline: none;
+}
+.rate-card:focus-within {
+  border-color: var(--ui-color-primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ui-color-primary) 10%, transparent);
 }
 
 .rate-card__unit-wrap { display: flex; }
@@ -309,17 +317,18 @@
   padding: 0 var(--ui-space-12) 0 var(--ui-space-16);
   border: 0;
   border-left: 1px solid var(--ui-color-border);
-  background: var(--ui-color-surface-muted);
+  /* Design: the unit cell is a warm recessed well (t.bg), not the cool grey. */
+  background: var(--ui-color-background);
   font-family: inherit;
   cursor: pointer;
   white-space: nowrap;
   transition: background 140ms ease;
 
-  &:hover { background: color-mix(in srgb, var(--ui-color-surface-muted) 70%, var(--ui-color-border)); }
+  &:hover { background: color-mix(in srgb, var(--ui-color-background) 70%, var(--ui-color-border)); }
   &:focus-visible { outline: 2px solid var(--ui-color-primary); outline-offset: -2px; }
 }
 
-.rate-card__unit--open { background: var(--ui-color-primary-wash); }
+.rate-card__unit--open { background: var(--ui-color-primary-soft); }
 
 .rate-card__per {
   font-size: 0.625rem;
@@ -335,9 +344,10 @@
   color: var(--ui-color-text-primary);
 }
 
+/* Design: 18px chevron in primary orange (not a grey 0.7rem tick). */
 .rate-card__chevron {
-  font-size: 0.7rem;
-  color: var(--ui-color-text-secondary);
+  font-size: 1.125rem;
+  color: var(--ui-color-primary);
   transition: transform 160ms ease;
 
   .rate-card__unit--open & { transform: rotate(180deg); }
@@ -373,31 +383,33 @@
   justify-content: center;
   gap: var(--ui-space-8);
   min-height: 200px;
-  border: 2px dashed color-mix(in srgb, var(--ui-color-primary) 40%, transparent);
-  border-radius: var(--ui-radius-md);
-  background: var(--ui-color-primary-wash);
+  /* Design: 1.5px dashed at full primary strength, radius 16 (= --ui-radius-card). */
+  border: 1.5px dashed var(--ui-color-primary);
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-color-primary-soft);
   cursor: pointer;
   text-align: center;
   overflow: hidden;
   position: relative;
   transition: border-color 150ms ease, background 150ms ease;
 
-  &:hover { border-color: var(--ui-color-primary); background: color-mix(in srgb, var(--ui-color-primary-wash) 80%, white); }
+  &:hover { background: color-mix(in srgb, var(--ui-color-primary-soft) 80%, white); }
 }
 
 .wizard-photo__cover-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
+/* Design: 58×58 rounded square (radius 16 = --ui-radius-card) on white, 28px icon. */
 .wizard-photo__cover-icon-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
-  border-radius: var(--ui-radius-pill);
-  background: color-mix(in srgb, var(--ui-color-primary) 15%, white);
+  width: 58px;
+  height: 58px;
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-color-surface);
 }
 
-.wizard-photo__cover-icon { font-size: 1.375rem; color: var(--ui-color-primary); }
+.wizard-photo__cover-icon { font-size: 1.75rem; color: var(--ui-color-primary); }
 .wizard-photo__cover-label { font-size: var(--ui-font-size-body); font-weight: 700; color: var(--ui-color-text-primary); }
 .wizard-photo__cover-hint { font-size: var(--ui-font-size-caption); color: var(--ui-color-text-secondary); }
 
@@ -414,7 +426,7 @@
 .wizard-photo__slot {
   aspect-ratio: 1;
   border: 1.5px dashed var(--ui-color-border);
-  border-radius: var(--ui-radius-sm);
+  border-radius: var(--ui-radius-12);
   background: var(--ui-color-surface);
   display: flex;
   align-items: center;
@@ -482,7 +494,7 @@
 
 .wizard-photo__cover--drag-over {
   border-color: var(--ui-color-primary);
-  background: color-mix(in srgb, var(--ui-color-primary-wash) 90%, white);
+  background: color-mix(in srgb, var(--ui-color-primary-soft) 90%, white);
   box-shadow: inset 0 0 0 2px var(--ui-color-primary);
 }
 
@@ -574,7 +586,9 @@
   flex-wrap: wrap;
   gap: var(--ui-space-16);
   padding: var(--ui-space-12) var(--ui-space-16);
-  background: var(--ui-color-surface-muted);
+  /* Design: warm recessed well (t.bg) inside the white panel — a deliberate
+     two-tone, not the cool --ui-color-surface-muted. */
+  background: var(--ui-color-background);
   border: 1px solid var(--ui-color-border);
   border-radius: var(--ui-radius-md);
 }
@@ -607,7 +621,8 @@
   flex-shrink: 0;
   width: 64px;
   height: 64px;
-  border-radius: var(--ui-radius-sm);
+  /* Design: radius 12 — matches the photo-grid slots. */
+  border-radius: var(--ui-radius-12);
   overflow: hidden;
 }
 
@@ -635,7 +650,7 @@
   height: 64px;
   flex-shrink: 0;
   border: 1.5px dashed var(--ui-color-border);
-  border-radius: var(--ui-radius-sm);
+  border-radius: var(--ui-radius-12);
   cursor: pointer;
   color: var(--ui-color-text-secondary);
   font-size: 0.875rem;
@@ -662,7 +677,9 @@
   transition: border-color 140ms ease, background-color 140ms ease;
 }
 
-.wizard-delivery--selected { border-color: var(--ui-color-primary); background: var(--ui-color-primary-wash); }
+/* Design: selected card keeps a white surface with a primary border — the ring,
+   not a fill, carries the selected state (listing-desktop.jsx:170). */
+.wizard-delivery--selected { border-color: var(--ui-color-primary); background: var(--ui-color-surface); }
 
 .wizard-delivery__radio {
   width: 18px;
@@ -707,10 +724,8 @@
   &:hover { background: var(--ui-color-surface-muted); }
 }
 
-.wizard-check-row--checked {
-  background: var(--ui-color-primary-wash);
-  &:hover { background: color-mix(in srgb, var(--ui-color-primary-wash) 80%, white); }
-}
+/* The design gives checked rows no background — the ticked box carries the
+   state on its own. (Previously a primary-wash fill.) */
 
 .wizard-check-row__box {
   width: 22px;
@@ -751,18 +766,20 @@
 }
 
 .wizard-preview {
-  border-radius: var(--ui-radius-md);
+  /* Design: radius 18 + a tight drop that lifts the card off the warm page. */
+  border-radius: 18px;
   overflow: hidden;
   border: 1px solid var(--ui-color-border);
   background: var(--ui-color-surface);
-  box-shadow: var(--ui-shadow-card);
+  box-shadow: 0 8px 30px -12px rgba(20, 15, 5, 0.18);
 }
 
-.wizard-preview__img-wrap { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: var(--ui-color-surface-muted); }
+/* Design: 4/3 — this is the real listing-card aspect renters will see. */
+.wizard-preview__img-wrap { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: var(--ui-color-surface-muted); }
 .wizard-preview__img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .wizard-preview__no-img {
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 4 / 3;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -889,9 +906,11 @@
   align-items: center;
   justify-content: center;
   gap: var(--ui-space-8);
-  height: 2.75rem;
+  height: 3rem;
   padding: 0 var(--ui-space-20);
   border: none;
+  /* Mobile design uses a pill (flow-a-mvp-final.jsx:41-42); desktop overrides to
+     a radius-12 rounded-rect (listing-desktop.jsx:293) in desktop.scss. */
   border-radius: var(--ui-radius-pill);
   font-size: var(--ui-font-size-caption);
   font-weight: 700;

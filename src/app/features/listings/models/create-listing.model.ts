@@ -16,6 +16,15 @@ export const PRICE_UNITS: readonly PriceUnit[] = [
   'Yearly',
 ];
 
+/**
+ * How the toy is handed over to the renter. Backend persists this via a
+ * `DeliveryType` enum column, serialized as a string (see `PriceUnit` above —
+ * the API registers a global `JsonStringEnumConverter`).
+ */
+export type DeliveryType = 'Pickup' | 'Courier';
+
+export const DELIVERY_TYPES: readonly DeliveryType[] = ['Pickup', 'Courier'];
+
 export interface CreateListingRequest {
   title: string;
   description: string;
@@ -35,6 +44,11 @@ export interface CreateListingRequest {
   hygieneNotes?: string | null;
   safetyNotes?: string | null;
   depositAmount?: number | null;
+
+  // Optional: shortest number of days a renter may book for (1-365).
+  minRentalDays?: number | null;
+  // Optional: how the toy is handed over (Pickup/Courier).
+  deliveryType?: DeliveryType | null;
 }
 
 export interface CreateListingResponse {

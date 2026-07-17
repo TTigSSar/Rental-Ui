@@ -76,6 +76,7 @@
 
   /* —— Radius —— */
   --ui-radius-sm: 6px;
+  --ui-radius-12: 12px;
   --ui-radius-md: 14px;
   --ui-radius-lg: 20px;
   --ui-radius-card: 16px;

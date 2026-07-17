@@ -22,6 +22,7 @@ import {
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import type {
   CreateListingRequest,
+  DeliveryType,
   ListingCategoryOption,
   PriceUnit,
 } from '../../models/create-listing.model';
@@ -47,6 +48,10 @@ export interface ListingFormPrefill {
   condition: string | null;
   hygieneNotes: string | null;
   safetyNotes: string | null;
+  /** Shortest bookable period, in days. Falls back to the 1-day default. */
+  minRentalDays?: number | null;
+  /** How the toy is handed over. Falls back to 'Pickup'. */
+  deliveryType?: DeliveryType | null;
 }
 
 /**
@@ -77,7 +82,10 @@ interface ConditionChip {
 }
 
 interface WizardStep {
+  /** Long title — used in the mobile header and the desktop <h1>. */
   readonly labelKey: string;
+  /** Short title — used only in the desktop sidebar rail. */
+  readonly shortLabelKey: string;
   readonly subKey: string;
   readonly icon: string;
 }
@@ -90,11 +98,11 @@ const CONDITION_CHIPS: readonly ConditionChip[] = [
 ];
 
 const WIZARD_STEPS: readonly WizardStep[] = [
-  { labelKey: 'listings.createPage.wizard.step1Label', subKey: 'listings.createPage.wizard.step1Sub', icon: 'pi-camera' },
-  { labelKey: 'listings.createPage.wizard.step2Label', subKey: 'listings.createPage.wizard.step2Sub', icon: 'pi-tag' },
-  { labelKey: 'listings.createPage.wizard.step3Label', subKey: 'listings.createPage.wizard.step3Sub', icon: 'pi-map-marker' },
-  { labelKey: 'listings.createPage.wizard.step4Label', subKey: 'listings.createPage.wizard.step4Sub', icon: 'pi-shield' },
-  { labelKey: 'listings.createPage.wizard.step5Label', subKey: 'listings.createPage.wizard.step5Sub', icon: 'pi-check' },
+  { labelKey: 'listings.createPage.wizard.step1Label', shortLabelKey: 'listings.createPage.wizard.step1Short', subKey: 'listings.createPage.wizard.step1Sub', icon: 'pi-camera' },
+  { labelKey: 'listings.createPage.wizard.step2Label', shortLabelKey: 'listings.createPage.wizard.step2Short', subKey: 'listings.createPage.wizard.step2Sub', icon: 'pi-tag' },
+  { labelKey: 'listings.createPage.wizard.step3Label', shortLabelKey: 'listings.createPage.wizard.step3Short', subKey: 'listings.createPage.wizard.step3Sub', icon: 'pi-map-marker' },
+  { labelKey: 'listings.createPage.wizard.step4Label', shortLabelKey: 'listings.createPage.wizard.step4Short', subKey: 'listings.createPage.wizard.step4Sub', icon: 'pi-shield' },
+  { labelKey: 'listings.createPage.wizard.step5Label', shortLabelKey: 'listings.createPage.wizard.step5Short', subKey: 'listings.createPage.wizard.step5Sub', icon: 'pi-check' },
 ];
 
 const MIN_RENTAL_DAYS = [1, 3, 7, 14] as const;
@@ -188,6 +196,10 @@ export class CreateListingFormComponent implements OnInit {
       condition:     (value.condition as ConditionChip['value'] | null) ?? '',
       hygieneNotes:  value.hygieneNotes ?? '',
       safetyNotes:   value.safetyNotes ?? '',
+      // Listings created before these fields existed carry null — fall back to
+      // the same defaults a fresh wizard starts with.
+      minRentalDays: value.minRentalDays ?? 1,
+      deliveryType:  value.deliveryType ?? 'Pickup',
     });
     if (typeof value.ageFromMonths === 'number' && typeof value.ageToMonths === 'number') {
       this.ageYears.set([
@@ -236,9 +248,9 @@ export class CreateListingFormComponent implements OnInit {
   readonly priceUnits     = PRICE_UNITS;
 
   // ── Chip / selection state ────────────────────────────────────
-  readonly selectedDeliveryTypes = signal<ReadonlySet<'pickup' | 'deliver'>>(new Set(['pickup']));
-  readonly selectedCond          = signal<ConditionChip['value'] | null>(null);
-  readonly selectedMinDays       = signal<number>(1);
+  // Minimum rental and delivery live in `createListingForm` — they are payload
+  // fields, not view state.
+  readonly selectedCond = signal<ConditionChip['value'] | null>(null);
 
   // ── Age range (years) ─────────────────────────────────────────
   readonly ageYears   = signal<[number, number]>([2, 5]);
@@ -251,6 +263,11 @@ export class CreateListingFormComponent implements OnInit {
   readonly cleanWashed      = signal(false);
   readonly cleanDisinfected = signal(false);
   readonly cleanUV          = signal(false);
+  /** Total cleaning steps offered — drives the "N of 3" summary row. */
+  readonly cleaningStepsTotal = 3;
+  readonly cleaningStepsDone  = computed(
+    () => [this.cleanWashed(), this.cleanDisinfected(), this.cleanUV()].filter(Boolean).length,
+  );
 
   // ── Images ────────────────────────────────────────────────────
   selectedFiles: File[] = [];
@@ -327,6 +344,10 @@ export class CreateListingFormComponent implements OnInit {
       condition:     this.fb.nonNullable.control<'' | ConditionChip['value']>(''),
       hygieneNotes:  this.fb.nonNullable.control(''),
       safetyNotes:   this.fb.nonNullable.control(''),
+      // Shortest bookable period in days; one of MIN_RENTAL_DAYS.
+      minRentalDays: this.fb.nonNullable.control<number>(1),
+      // Single-select: the toy is handed over one way or the other.
+      deliveryType:  this.fb.nonNullable.control<DeliveryType>('Pickup'),
     },
     { validators: ageRangeValidator },
   );
@@ -419,14 +440,36 @@ export class CreateListingFormComponent implements OnInit {
   }
 
   // ── Chip handlers ─────────────────────────────────────────────
-  toggleDelivery(type: 'pickup' | 'deliver'): void {
-    const next = new Set(this.selectedDeliveryTypes());
-    if (next.has(type) && next.size > 1) {
-      next.delete(type);
-    } else {
-      next.add(type);
-    }
-    this.selectedDeliveryTypes.set(next);
+  /**
+   * Delivery is mutually exclusive (the control renders as a radio group), so
+   * picking one replaces the other. There is no "neither" state — 'Pickup' is
+   * the default.
+   */
+  selectDelivery(type: DeliveryType): void {
+    this.createListingForm.controls.deliveryType.setValue(type);
+    this.createListingForm.controls.deliveryType.markAsDirty();
+  }
+
+  protected selectedDelivery(): DeliveryType {
+    return this.createListingForm.controls.deliveryType.value;
+  }
+
+  selectMinDays(days: number): void {
+    this.createListingForm.controls.minRentalDays.setValue(days);
+    this.createListingForm.controls.minRentalDays.markAsDirty();
+  }
+
+  protected selectedMinDays(): number {
+    return this.createListingForm.controls.minRentalDays.value;
+  }
+
+  /**
+   * Reuses the chip labels ("3 days", "1 week") for the preview's "min …" line,
+   * which keeps plural forms and word order correct in every locale without a
+   * plural-aware key.
+   */
+  protected minRentalLabelKey(): string {
+    return `listings.createForm.minRental.d${this.selectedMinDays()}`;
   }
 
   protected onCategoryChange(id: string | null): void {
@@ -660,15 +703,9 @@ export class CreateListingFormComponent implements OnInit {
   }
 
   protected getDeliverySummaryKey(): string {
-    return this.selectedDeliveryTypes().has('pickup')
+    return this.selectedDelivery() === 'Pickup'
       ? 'listings.createForm.delivery.pickupShort'
       : 'listings.createForm.delivery.deliverShort';
-  }
-
-  protected getConditionLabelKey(): string {
-    const cond = this.selectedCond();
-    if (!cond) return '';
-    return this.conditionChips.find(c => c.value === cond)?.labelKey ?? '';
   }
 
   protected getStepNameKey(): string {
@@ -742,6 +779,8 @@ export class CreateListingFormComponent implements OnInit {
       condition:     raw.condition === '' ? null : raw.condition,
       hygieneNotes,
       safetyNotes:   this.toNullStr(raw.safetyNotes),
+      minRentalDays: raw.minRentalDays,
+      deliveryType:  raw.deliveryType,
     };
 
     if (this.mode === 'edit') {

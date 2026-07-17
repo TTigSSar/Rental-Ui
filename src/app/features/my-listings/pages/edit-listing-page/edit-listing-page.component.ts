@@ -135,6 +135,8 @@ export class EditListingPageComponent implements OnInit {
       condition:     listing.condition,
       hygieneNotes:  listing.hygieneNotes,
       safetyNotes:   listing.safetyNotes,
+      minRentalDays: listing.minRentalDays ?? null,
+      deliveryType:  listing.deliveryType ?? null,
     });
 
     // Cover from the store list serves until the full image set arrives.
@@ -197,6 +199,8 @@ export class EditListingPageComponent implements OnInit {
       condition:     p.condition ?? null,
       hygieneNotes:  p.hygieneNotes ?? null,
       safetyNotes:   p.safetyNotes ?? null,
+      minRentalDays: p.minRentalDays ?? null,
+      deliveryType:  p.deliveryType ?? null,
     };
 
     this.isSubmitting.set(true);
