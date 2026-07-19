@@ -11,7 +11,7 @@ function App() {
   return (
     <DesignCanvas>
       {/* Title / intro */}
-      <DCSection id="intro" title="ToyRent · Mobile-first Evolution"
+      <DCSection id="intro" title="DoRent · Mobile-first Evolution"
         subtitle="An incremental redesign of the existing rental marketplace. Three directions, full flows, ready-to-ship token system. Drag artboards · click a label to rename · ⤢ to focus.">
         <DCArtboard id="cover" label="00 · Cover" width={780} height={420}>
           <CoverCard />
@@ -134,10 +134,10 @@ function App() {
       <DCSection id="desktop" title="09 · Desktop (1280)"
         subtitle="Tab-bar disappears, sticky booking sidebar appears, gallery becomes a 3+2 grid. Token system unchanged.">
         <DCArtboard id="desk-home" label="Desktop · Home" width={DESK_W} height={DESK_H}>
-          <DesktopFrame label="toyrent.am"><DesktopHome /></DesktopFrame>
+          <DesktopFrame label="dorent.am"><DesktopHome /></DesktopFrame>
         </DCArtboard>
         <DCArtboard id="desk-listing" label="Desktop · Listing detail" width={DESK_W} height={1200}>
-          <DesktopFrame label="toyrent.am/toy/lego-duplo-town" h={1180}><DesktopListing /></DesktopFrame>
+          <DesktopFrame label="dorent.am/toy/lego-duplo-town" h={1180}><DesktopListing /></DesktopFrame>
         </DCArtboard>
       </DCSection>
 

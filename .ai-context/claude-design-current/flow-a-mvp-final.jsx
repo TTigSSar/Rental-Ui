@@ -311,7 +311,7 @@ function FACreatePreview() {
             <Icon name="check" size={13} color="#fff" strokeWidth={3} />
           </div>
           <div style={{ flex: 1, fontSize: 11.5, color: t.text, lineHeight: 1.5 }}>
-            I agree to ToyRent's <span style={{ color: t.primary, fontWeight: 700 }}>community rules</span> and confirm this listing is accurate.
+            I agree to DoRent's <span style={{ color: t.primary, fontWeight: 700 }}>community rules</span> and confirm this listing is accurate.
           </div>
         </div>
       </div>
@@ -538,7 +538,7 @@ function FAProfileMVPv2() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: t.bg, borderRadius: 10 }}>
               <Icon name="mail" size={14} color={t.textMute} />
               <span style={{ fontSize: 12, color: t.textMute, width: 50 }}>Email</span>
-              <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: t.text }}>anna@toyrent.am</span>
+              <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: t.text }}>anna@dorent.am</span>
             </div>
           </div>
         </div>
@@ -568,7 +568,7 @@ function FAProfileMVPv2() {
             <MenuRow icon="arrow" label="Log out" danger last />
           </div>
           <div style={{ textAlign: 'center', fontSize: 10.5, color: t.textMute, marginTop: 14 }}>
-            ToyRent · v2.4.1
+            DoRent · v2.4.1
           </div>
         </div>
       </div>

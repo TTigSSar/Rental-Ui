@@ -224,7 +224,7 @@ function BeforeAfterCard() {
             Evolved
           </div>
           <div style={{ marginBottom: 14 }}>
-            <Input label="Email" placeholder="anna@toyrent.am" leading="mail" helper="We'll never share this." />
+            <Input label="Email" placeholder="anna@dorent.am" leading="mail" helper="We'll never share this." />
           </div>
           <div style={{ marginBottom: 14 }}>
             <Input label="Password" value="••••••••" leading="lock"
@@ -343,7 +343,7 @@ function PasswordWithStrength() {
   const t = TOKENS.A;
   return (
     <div>
-      <Input label="Password" value="Toyrent2026!" leading="lock"
+      <Input label="Password" value="Dorent2026!" leading="lock"
         trailing={<Icon name="image" size={16} color={t.textMute} />} />
       <div style={{ marginTop: 8, display: 'flex', gap: 4 }}>
         {[t.success, t.success, t.success, t.surfaceAlt].map((c, i) => (
@@ -709,7 +709,7 @@ function DropdownMenu() {
               <img src={FAMILY_AVS.anna} style={{ width: 36, height: 36, borderRadius: 999 }} />
               <div>
                 <div style={{ fontSize: 13, fontWeight: 700 }}>Anna Sargsyan</div>
-                <div style={{ fontSize: 11, color: t.textMute }}>anna@toyrent.am</div>
+                <div style={{ fontSize: 11, color: t.textMute }}>anna@dorent.am</div>
               </div>
             </div>
             <div style={{ height: 1, background: t.border, margin: '0 6px 4px' }} />
@@ -855,7 +855,7 @@ function InputGuidelines() {
           <div style={{ fontSize: 11, fontWeight: 700, color: t.success, letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 8 }}>✓ Do</div>
           <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: t.text, lineHeight: 1.75 }}>
             <li>Always show a label above the field.</li>
-            <li>Use placeholder as <em>example</em>, not instruction (e.g. "anna@toyrent.am").</li>
+            <li>Use placeholder as <em>example</em>, not instruction (e.g. "anna@dorent.am").</li>
             <li>Use helper text to explain why we ask, not how to type.</li>
             <li>Inline-validate on blur, not on every keystroke.</li>
             <li>Show error <strong>below</strong> the field with an icon &amp; concrete fix.</li>
@@ -910,7 +910,7 @@ function InputsBoard() {
           One input component, every form gets sharper
         </h2>
         <p style={{ margin: 0, fontSize: 14, color: '#6B6A75', maxWidth: 760, lineHeight: 1.55 }}>
-          Current ToyRent forms use placeholder-as-label, no states, no select affordance.
+          Current DoRent forms use placeholder-as-label, no states, no select affordance.
           The evolved system below keeps the brand pill where it matters (hero search),
           and ships a tighter <strong>outlined</strong> default for every form in the product.
         </p>

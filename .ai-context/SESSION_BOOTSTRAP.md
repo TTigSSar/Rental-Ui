@@ -1,4 +1,4 @@
-Project: ToyRent
+Project: DoRent
 
 Architecture:
 - Angular standalone

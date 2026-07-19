@@ -111,7 +111,7 @@ function AuditBoard() {
           Evolve, don't reinvent — five fixes that compound
         </h2>
         <p style={{ margin: 0, fontSize: 14, color: '#6B6A75', maxWidth: 800, lineHeight: 1.55 }}>
-          ToyRent already works. Architecture, flows and color identity stay. We tighten visual hierarchy, surface trust
+          DoRent already works. Architecture, flows and color identity stay. We tighten visual hierarchy, surface trust
           where parents actually look (the card), shrink booking friction, and make every screen survive on a thumb.
         </p>
       </div>

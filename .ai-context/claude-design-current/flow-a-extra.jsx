@@ -547,7 +547,7 @@ function FAProfile() {
             ))}
           </div>
 
-          <div style={{ marginTop: 18, textAlign: 'center', fontSize: 10.5, color: t.textMute }}>ToyRent · v2.4.1</div>
+          <div style={{ marginTop: 18, textAlign: 'center', fontSize: 10.5, color: t.textMute }}>DoRent · v2.4.1</div>
         </div>
       </div>
       <FANav active={4} />

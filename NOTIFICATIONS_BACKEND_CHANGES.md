@@ -117,7 +117,7 @@ row is a no-op) and **authorization-scoped**: a user may only mark their own row
 | `meta` | text null | secondary line |
 | `urgent` | bool | action-needed |
 | `actor_user_id` | FK → User null | null when a system sender |
-| `actor_system` | enum/text null | e.g. `toyrent`, `moderator` → maps to name + icon |
+| `actor_system` | enum/text null | e.g. `dorent`, `moderator` → maps to name + icon |
 | `entity_type` | enum | `booking, listing, message, review` |
 | `entity_id` | FK/string | the row the deep link targets |
 | `deep_link` | text | precomputed in-app path (or derived from entity at read time) |
@@ -189,7 +189,7 @@ add the endpoint and the emitter check, and it can be surfaced later.
 ## 7. Ready-to-paste prompt for a backend Opus
 
 ```
-You are implementing the BACKEND for the "ToyRent" Notifications feature. The
+You are implementing the BACKEND for the "DoRent" Notifications feature. The
 Angular frontend is already merged and calls these endpoints (all scoped to the
 authenticated user via bearer token — the client never sends a user id):
 

@@ -1,5 +1,5 @@
 /**
- * Notification domain model for ToyRent.
+ * Notification domain model for DoRent.
  *
  * Mirrors the approved "Avatar" notification design (notifications-data.jsx):
  * two audiences (renter / owner) share ten event `kind`s, each of which drives

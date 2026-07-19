@@ -1,4 +1,4 @@
-# ToyRent — Child Toys Rental (Frontend)
+# DoRent — Child Toys Rental (Frontend)
 
 ## A. Project Overview
 

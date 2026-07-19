@@ -22,12 +22,12 @@ const translateHttpLoaderProviders = provideTranslateHttpLoader({
 
 /**
  * "Refined Warm" (Direction A) preset over Aura. Maps PrimeNG's `primary`
- * ramp + light color-scheme to the ToyRent warm-orange tokens so components
+ * ramp + light color-scheme to the DoRent warm-orange tokens so components
  * we don't hand-style (datepicker focus/range, checkboxes, focus rings, etc.)
  * inherit the brand palette instead of Aura's default emerald/indigo.
  * Hex values mirror src/styles.css design tokens (prototype system.jsx TOKENS.A).
  */
-const ToyRentPreset = definePreset(Aura, {
+const DoRentPreset = definePreset(Aura, {
   semantic: {
     primary: {
       50: '#fff4ec',
@@ -94,7 +94,7 @@ export const appConfig: ApplicationConfig = {
     }),
     providePrimeNG({
       theme: {
-        preset: ToyRentPreset,
+        preset: DoRentPreset,
         options: {
           darkModeSelector: false,
         },

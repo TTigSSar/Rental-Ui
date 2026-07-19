@@ -360,7 +360,7 @@ function DesktopFrame({ children, w = 1280, h = 800, label }) {
         <div style={{ width: 10, height: 10, borderRadius: 999, background: '#FF5F57' }} />
         <div style={{ width: 10, height: 10, borderRadius: 999, background: '#FEBC2E' }} />
         <div style={{ width: 10, height: 10, borderRadius: 999, background: '#28C840' }} />
-        <div style={{ flex: 1, textAlign: 'center', fontSize: 11, color: '#6B6A75' }}>{label || 'toyrent.am'}</div>
+        <div style={{ flex: 1, textAlign: 'center', fontSize: 11, color: '#6B6A75' }}>{label || 'dorent.am'}</div>
       </div>
       <div style={{ width: w, height: h, background: '#fff', borderRadius: 8, overflow: 'hidden' }}>
         {children}

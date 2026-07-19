@@ -18,7 +18,7 @@ function AuthScreen({ mode = 'signin', dir = 'A' }) {
           <Icon name="heart" size={28} color="#fff" />
         </div>
         <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, color: t.text, letterSpacing: '-0.02em' }}>
-          {isSignIn ? 'Welcome back' : 'Join ToyRent'}
+          {isSignIn ? 'Welcome back' : 'Join DoRent'}
         </h1>
         <p style={{ margin: '6px 0 24px', fontSize: 13, color: t.textMute, lineHeight: 1.5 }}>
           {isSignIn ? 'Sign in to manage rentals and list toys.' : 'Free for parents. List up to 3 toys to start.'}
@@ -46,7 +46,7 @@ function AuthScreen({ mode = 'signin', dir = 'A' }) {
         <div style={{ marginBottom: 12 }}>
           <label style={{ fontSize: 12, fontWeight: 600, color: t.text, display: 'block', marginBottom: 6 }}>Email</label>
           <div style={{ height: 48, borderRadius: 12, background: t.surface, border: `1.5px solid ${t.primary}`, padding: '0 14px', display: 'flex', alignItems: 'center', fontSize: 14, color: t.text, boxShadow: `0 0 0 4px ${t.primary}1A` }}>
-            anna@toyrent.am
+            anna@dorent.am
           </div>
         </div>
         <div style={{ marginBottom: 4 }}>
