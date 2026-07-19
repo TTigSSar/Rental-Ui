@@ -1,10 +1,35 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   DELIBERATE EXCEPTION to the app-wide 1440 / 70px content grid.
+
+   Every other page wraps its content in `.page-container` (src/styles.css:
+   max-width 1440px, 70px gutter from 1024px up) so that the page's content
+   edges land exactly on the header's brand/controls edges. This page does NOT,
+   and must not be "fixed" to match — it is not layout drift.
+
+   Why: the notifications feed is a *reading column*, not a dashboard. A text
+   line longer than roughly 90 characters measurably hurts scannability, so
+   760px is the correct measure here. Widening it to the 1440 grid would make
+   every notification a ~1300px line and the feed harder to skim, so the column
+   stays narrow and simply sits centered inside the 1440 grid.
+
+   What DOES stay in sync with `.page-container`, so the page still feels like
+   a sibling of its neighbours rather than a stray:
+     - vertical top gutter: 0 — content starts flush under the header at every
+       breakpoint, exactly like `.page-container` pages do;
+     - horizontal side gutters at the narrow breakpoints: 20px ≤900px and 16px
+       ≤560px, matching `.page-container`'s scale, so mobile behaves normally.
+   ──────────────────────────────────────────────────────────────────────────── */
 .notifications-page {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
   max-width: 760px;
+  // Centers the column inside the 1440 grid: its midpoint coincides with the
+  // header's content-box midpoint, so it reads as intentionally narrow rather
+  // than slid to one side.
   margin: 0 auto;
-  padding: 1.5rem 1rem 3rem;
+  // Top gutter 0 matches `.page-container` (which sets no vertical padding).
+  padding: 0 1rem 3rem;
 }
 
 .notifications-page__head {
@@ -136,9 +161,19 @@
   padding-top: 0.5rem;
 }
 
+// Side gutters follow `.page-container`'s scale (see the block comment above):
+// 20px ≤900px, 16px ≤560px. Declared narrowest-last so the ≤560px value wins.
+@media (max-width: 900px) {
+  .notifications-page {
+    padding-inline: var(--ui-space-20);
+  }
+}
+
 @media (max-width: 600px) {
   .notifications-page {
-    padding: 1rem 0.75rem 4rem;
+    // Extra bottom room for the mobile bottom nav; gutters come from the
+    // ≤900/≤560 rules so they stay in step with the rest of the app.
+    padding-bottom: 4rem;
   }
 
   .notifications-page__head {
@@ -158,5 +193,11 @@
 
   .notifications-page__mark-all {
     margin-left: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .notifications-page {
+    padding-inline: var(--ui-space-16);
   }
 }

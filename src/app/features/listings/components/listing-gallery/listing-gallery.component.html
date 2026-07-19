@@ -1,6 +1,26 @@
 <div class="listing-gallery">
   @if (mainImage(); as primary) {
     <div class="listing-gallery__hero">
+      <!--
+        Purely decorative backdrop: the SAME photo as the hero, cover-fitted and
+        blurred, so the letterbox bands left by `object-fit: contain` read as an
+        extension of the photo instead of a dead grey band. Identical `src` to
+        the hero image (no cache-buster, no resized variant), so the browser
+        serves it from cache — one network request, not two. Never announced:
+        empty alt + aria-hidden, and <img> is not focusable.
+        Only rendered in this branch — the no-image placeholder below keeps its
+        original flat treatment.
+      -->
+      <img
+        class="listing-gallery__hero-backdrop"
+        [src]="primary.url"
+        alt=""
+        aria-hidden="true"
+        draggable="false"
+        loading="eager"
+        decoding="async"
+      />
+
       <img
         class="listing-gallery__hero-img"
         [src]="primary.url"

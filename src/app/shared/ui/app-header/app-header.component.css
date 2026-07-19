@@ -46,7 +46,15 @@
    so the brand's left edge and the controls' right edge land exactly on the
    page's content edges. Any page that wants header/body alignment must use the
    same box: `.page-container` (styles.css), `.home__container` and the desktop
-   `.chat-shell` are all on this grid — change them together or not at all. */
+   `.chat-shell` are all on this grid — change them together or not at all.
+
+   KNOWN, INTENTIONAL EXCEPTION — do not "fix" it: `/notifications`
+   (`notifications-page.component.scss`) opts out of this grid on purpose. It is
+   a 760px reading column, because a line much longer than ~90 characters hurts
+   scannability of the feed. It stays centered inside the 1440 box and matches
+   this grid's vertical top gutter and its ≤900/≤560 side gutters, but its
+   content edges deliberately do NOT meet the header's. See the block comment at
+   the top of that file. */
 .nh__inner {
   width: 100%;
   max-width: 1440px;

@@ -9,16 +9,67 @@
 .listing-gallery__hero {
   position: relative;
   width: 100%;
+  /* 785px is the gallery's native design width — it is the numerator of the
+     aspect ratio below, so at this cap the hero renders at exactly the box it
+     was designed for instead of being stretched across the full 1440-grid
+     content column (~1300px at 1440px), where `object-fit: contain` left ~283px
+     of dead band per side. `.listing-gallery` centers it (align-items: center).
+     Below 785px viewports this is inert, so the mobile full-bleed hero is
+     unaffected. */
+  max-width: 785px;
   aspect-ratio: 785 / 599;
   max-height: clamp(320px, 56vw, 560px);
   background: #e3e5ef;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
+  /* Also clips the blurred backdrop, whose blur bleeds past the box edges. */
   overflow: hidden;
   border-radius: 4px;
 }
 
+/* ── Blurred backdrop fill ──────────────────────────────────
+   The same photo, cover-fitted and blurred behind the contained foreground
+   image, so the letterbox bands look like an extension of the photo. The
+   product itself is never cropped — the foreground keeps `object-fit: contain`.
+   ─────────────────────────────────────────────────────────── */
+.listing-gallery__hero-backdrop {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  /* Blur samples beyond the element box and would otherwise leave translucent
+     corners; scaling up pushes those soft edges outside the clipped hero. */
+  transform: scale(1.1);
+  filter: blur(24px);
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Dim layer, between the backdrop (z-index 0) and the foreground photo
+   (z-index 2). It never darkens the product itself — only the bands — and
+   keeps the toy the clear focus. Slightly stronger at the bottom, where the
+   dots and the counter badge sit. */
+.listing-gallery__hero:not(.listing-gallery__hero--empty)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(16, 18, 30, 0.4) 0%,
+    rgba(16, 18, 30, 0.36) 55%,
+    rgba(16, 18, 30, 0.56) 100%
+  );
+}
+
 .listing-gallery__hero-img {
   display: block;
+  position: relative;
+  z-index: 2;
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -70,7 +121,8 @@
   transition: background-color 140ms ease, transform 140ms ease, box-shadow 140ms ease;
   opacity: 0;
   pointer-events: none;
-  z-index: 2;
+  /* Above the backdrop (0), the dim layer (1) and the hero image (2). */
+  z-index: 3;
 }
 
 .listing-gallery__hero:hover .listing-gallery__nav,
@@ -113,7 +165,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  z-index: 2;
+  z-index: 3;
   padding: 2px 4px;
 }
 
@@ -155,7 +207,7 @@
   border-radius: 99px;
   pointer-events: none;
   letter-spacing: 0.01em;
-  z-index: 2;
+  z-index: 3;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
