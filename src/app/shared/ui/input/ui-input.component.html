@@ -42,6 +42,7 @@
     [attr.autocomplete]="autocomplete()"
     [attr.aria-invalid]="hasError() ? 'true' : null"
     [attr.aria-describedby]="hasHelper() ? helperId : null"
+    [attr.aria-label]="ariaLabel() || null"
     (input)="handleInput($event)"
     (focus)="handleFocus($event)"
     (blur)="handleBlur($event)"

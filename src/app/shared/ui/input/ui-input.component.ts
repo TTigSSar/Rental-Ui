@@ -36,6 +36,7 @@ export class UiInputComponent implements ControlValueAccessor {
   readonly value          = input<string>('');
   readonly placeholder    = input<string>('');
   readonly label          = input<string>('');
+  readonly ariaLabel      = input<string>('');
   readonly disabled       = input<boolean>(false);
   readonly readonly       = input<boolean>(false);
   readonly required       = input<boolean>(false);

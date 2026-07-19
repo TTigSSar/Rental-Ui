@@ -14,10 +14,16 @@
       [class.home__mobile-search--revealed]="!headerSearchHidden()"
       [attr.inert]="headerSearchHidden() ? '' : null"
     >
+      <!-- (submit), not (ngSubmit): this form has no [formGroup]/NgForm
+           directive attached (only the inner control is bound, via
+           [formControl]), so Angular's (ngSubmit) output — which only
+           NgForm/FormGroupDirective provide — would never fire here. (submit)
+           is the plain native DOM event, so it fires on Enter's implicit
+           submission regardless; the explicit preventDefault stops the
+           browser's default full-page form submission. -->
       <form
         class="home__mobile-search-bar"
-        (ngSubmit)="onSearchSubmit()"
-        (keydown.enter)="onSearchSubmit()"
+        (submit)="$event.preventDefault(); onSearchSubmit()"
         [attr.aria-label]="'home.search.ariaLabel' | translate"
       >
         <app-ui-input
@@ -25,6 +31,7 @@
           variant="filled"
           [formControl]="searchForm.controls.query"
           [placeholder]="'home.search.placeholder' | translate"
+          [ariaLabel]="'home.search.ariaLabel' | translate"
         />
       </form>
     </div>
