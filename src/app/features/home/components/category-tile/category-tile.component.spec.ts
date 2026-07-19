@@ -35,20 +35,31 @@ describe('CategoryTileComponent overlay label', () => {
     expect(overlay!.textContent?.trim()).toBe('Outdoor Toys');
   });
 
-  it('keeps the overlay out of the a11y tree so the name is announced once', () => {
+  it('exposes exactly one accessible name — the button aria-label', () => {
     const host: HTMLElement = createFixture().nativeElement;
 
-    // The chip below the tile plus the button's aria-label already expose the
-    // name; the overlay is a duplicate and must stay decorative.
-    expect(
-      host.querySelector('.category-tile__overlay-label')!.getAttribute('aria-hidden'),
-    ).toBe('true');
     expect(host.querySelector('.category-tile')!.getAttribute('aria-label')).toBe(
       'Outdoor Toys',
     );
-    expect(host.querySelector('.category-tile__chip')!.textContent?.trim()).toBe(
-      'Outdoor Toys',
+
+    // Both visible labels are decorative: the overlay (desktop) and the chip
+    // (mobile). Without this, a screen reader would announce the name twice.
+    expect(
+      host.querySelector('.category-tile__overlay-label')!.getAttribute('aria-hidden'),
+    ).toBe('true');
+    expect(host.querySelector('.category-tile__chip')!.getAttribute('aria-hidden')).toBe(
+      'true',
     );
+  });
+
+  it('keeps the chip in the DOM so the mobile (≤560px) label survives', () => {
+    // Desktop hides the chip with `display: none` in CSS, not with @if — the
+    // media query alone decides which of the two labels is visible.
+    const host: HTMLElement = createFixture().nativeElement;
+    const chip = host.querySelector('.category-tile__chip');
+
+    expect(chip).not.toBeNull();
+    expect(chip!.textContent?.trim()).toBe('Outdoor Toys');
   });
 
   it('still renders the overlay when the category has a real image', () => {

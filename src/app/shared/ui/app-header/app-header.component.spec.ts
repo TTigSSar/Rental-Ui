@@ -14,6 +14,22 @@ function createFixture() {
   return TestBed.createComponent(AppHeaderComponent);
 }
 
+describe('AppHeaderComponent layout', () => {
+  it('puts the brand and the controls on the shared page grid', () => {
+    const fixture = createFixture();
+    fixture.detectChanges();
+
+    const host: HTMLElement = fixture.nativeElement;
+    const inner = host.querySelector('.nh__inner');
+
+    // The brand and the right-hand controls must sit inside the ONE box that
+    // also bounds the page body — see .nh__inner in the stylesheet.
+    expect(inner).not.toBeNull();
+    expect(inner!.querySelector('.nh__brand')).not.toBeNull();
+    expect(inner!.querySelector('.nh__controls')).not.toBeNull();
+  });
+});
+
 describe('AppHeaderComponent search visibility', () => {
   it('shows the search pill by default (every non-Home route)', () => {
     const fixture = createFixture();

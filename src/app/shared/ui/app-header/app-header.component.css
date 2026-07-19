@@ -40,11 +40,36 @@
     0 10px 28px rgba(16, 18, 30, 0.1);
 }
 
-/* ── Layout ──────────────────────────────────────────────────────────────── */
+/* ── Layout ──────────────────────────────────────────────────────────────────
+   ONE horizontal grid for header + page body. These values mirror Home's
+   `.home__container` (max-width 1440px, 16px base gutter, 70px from 1024px up)
+   so the brand's left edge and the controls' right edge land exactly on the
+   page's content edges. Any page that wants header/body alignment must use the
+   same box — see the note in Rental-Ui about `.page-container` still being on
+   the older min(1200px) / 24px grid. */
 .nh__inner {
-  width: min(1200px, 100%);
+  width: 100%;
+  max-width: 1440px;
   margin: 0 auto;
-  padding-inline: var(--ui-space-24);
+  padding-inline: 1rem;
+}
+
+@media (max-width: 900px) {
+  .nh__inner {
+    padding-inline: var(--ui-space-20);
+  }
+}
+
+@media (max-width: 560px) {
+  .nh__inner {
+    padding-inline: var(--ui-space-16);
+  }
+}
+
+@media (min-width: 1024px) {
+  .nh__inner {
+    padding-inline: 70px;
+  }
 }
 
 .nh__row {
@@ -62,7 +87,7 @@
   gap: 10px;
   text-decoration: none;
   color: var(--ui-color-text-primary);
-  font-size: 1.125rem;
+  font-size: 1.3125rem; /* 21px wordmark */
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1;
@@ -87,11 +112,17 @@
   color: var(--ui-color-text-primary);
 }
 
+/* Sized in px, NOT em: at 0.73em of a 21px wordmark the mark rendered ~15px,
+   far too small for the header. The mark is the logo's focal point, so it is
+   sized independently of the wordmark. */
 .nh__brand-ball {
-  width: 0.73em;
-  height: 0.73em;
+  width: 38px;
+  height: 38px;
   display: block;
   flex-shrink: 0;
+  /* Optical kerning — the mark stands in for the "o", so it must not push
+     D / Rent apart the way a 38px inline box otherwise would. */
+  margin-inline: -2px;
 }
 
 @media (prefers-reduced-motion: no-preference) {

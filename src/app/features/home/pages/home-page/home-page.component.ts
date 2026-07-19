@@ -42,6 +42,7 @@ import {
   type HomeCategoryTileVm,
 } from '../../components/category-tile/category-tile.component';
 import { SectionHeaderComponent } from '../../../../shared/ui/section-header/section-header.component';
+import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import { HeaderSearchVisibilityService } from '../../../../shared/ui/app-header/header-search-visibility.service';
 
 type ProcessMode = 'renting' | 'lending';
@@ -251,6 +252,7 @@ const selectHomeSource = createSelector(
     LoadingSkeletonComponent,
     CategoryTileComponent,
     SectionHeaderComponent,
+    UiInputComponent,
   ],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.scss',
@@ -286,6 +288,14 @@ export class HomePageComponent implements OnInit {
     ),
     { initialValue: new Set<string>() },
   );
+
+  /**
+   * True while the hero search is on screen and the revealed search (header
+   * pill on desktop, the fixed bar on mobile) must stay hidden. Read back from
+   * the shared service so both surfaces are driven by the one observer below
+   * rather than by two competing mechanisms.
+   */
+  protected readonly headerSearchHidden = this.headerSearchVisibility.hidden;
 
   protected readonly processMode = signal<ProcessMode>('renting');
   protected readonly expandedFaq = signal<string | null>('q1');

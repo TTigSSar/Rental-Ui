@@ -49,6 +49,71 @@
 }
 
 /* ==============================
+   Mobile revealed search (≤960px)
+   ==============================
+   The desktop equivalent lives in the app-header (its search pill). The header
+   is display:none below 960px, so Home renders this bar instead; both are
+   driven by the same HeaderSearchVisibilityService flag.
+
+   `position: fixed` — NOT sticky: a sticky bar placed before the hero would
+   occupy layout height from the very first paint and push the hero down by its
+   own height even while hidden. Fixed keeps it out of flow entirely, so the
+   hidden state costs zero layout, and it cannot contribute to page scroll
+   width (see the hard-won overflow notes in the ≤560px block below).
+
+   Spacing / height / radius mirror the /listings mobile sticky search
+   (.lp-sticky-header + .lf-bar): 12px top, 8px bottom, surface background,
+   the same soft downward shadow, and the same shared app-ui-input in its
+   `filled` md size (44px tall, --ui-radius-input) — minus the filter button. */
+.home__mobile-search {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 95;
+  background: var(--ui-color-surface);
+  box-shadow: 0 2px 10px rgba(16, 18, 30, 0.07);
+  padding: var(--ui-space-12) var(--ui-space-16) var(--ui-space-8);
+  transform: translateY(-100%);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    transform 180ms ease,
+    opacity 180ms ease,
+    visibility 0s linear 180ms;
+}
+
+.home__mobile-search--revealed {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+  transition:
+    transform 180ms ease,
+    opacity 180ms ease,
+    visibility 0s;
+}
+
+.home__mobile-search-bar {
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home__mobile-search,
+  .home__mobile-search--revealed {
+    transition: none;
+  }
+}
+
+/* Desktop keeps the app-header search pill — this bar is mobile-only. The
+   breakpoint matches the header's own `max-width: 960px` hide rule exactly, so
+   there is never a width with two search fields or none. */
+@media (min-width: 961px) {
+  .home__mobile-search {
+    display: none;
+  }
+}
+
+/* ==============================
    Hero
    ============================== */
 .home__hero {
@@ -263,16 +328,15 @@
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
-  scrollbar-width: thin;
+  /* Scrollbar is hidden on every horizontal scroller: the ‹ › arrow buttons are
+     the intended affordance. Hiding the bar only removes the painted track —
+     wheel / trackpad / touch scrolling and scrollBy() are unaffected. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .home__carousel::-webkit-scrollbar {
-  height: 6px;
-}
-
-.home__carousel::-webkit-scrollbar-thumb {
-  background: rgba(181, 182, 183, 0.5);
-  border-radius: 999px;
+  display: none;
 }
 
 .home__carousel-item {

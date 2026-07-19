@@ -1,5 +1,34 @@
 @if (viewModel$ | async; as vm) {
   <div class="home">
+    <!-- ── Mobile revealed search (≤960px, Home only) ──────────────────────
+         The desktop counterpart is the app-header search pill. The header
+         itself is display:none below 960px, so mobile gets this bar instead —
+         same trigger (the shared HeaderSearchVisibilityService flag written by
+         the single hero IntersectionObserver below), same treatment as the
+         /listings mobile sticky search, minus the filter control.
+         `inert` keeps it out of the tab order and the a11y tree while hidden
+         (the collapsed state is also `visibility: hidden`, which removes it
+         from the tab order natively). -->
+    <div
+      class="home__mobile-search"
+      [class.home__mobile-search--revealed]="!headerSearchHidden()"
+      [attr.inert]="headerSearchHidden() ? '' : null"
+    >
+      <form
+        class="home__mobile-search-bar"
+        (ngSubmit)="onSearchSubmit()"
+        (keydown.enter)="onSearchSubmit()"
+        [attr.aria-label]="'home.search.ariaLabel' | translate"
+      >
+        <app-ui-input
+          type="search"
+          variant="filled"
+          [formControl]="searchForm.controls.query"
+          [placeholder]="'home.search.placeholder' | translate"
+        />
+      </form>
+    </div>
+
     <!-- Hero -->
     <section class="home__hero">
       <div class="home__hero-content">

@@ -45,11 +45,11 @@
   outline: none;
 }
 
-.category-tile:focus-visible .category-tile__chip {
+/* The chip is display:none on desktop, so the focus ring has to live on the
+   media tile — otherwise keyboard focus would be invisible above 560px. */
+.category-tile:focus-visible .category-tile__media {
   outline: 2px solid var(--ui-color-primary);
   outline-offset: 2px;
-  border-color: var(--ui-color-primary);
-  background: var(--ui-color-primary-soft);
 }
 
 .category-tile__icon {
@@ -74,8 +74,12 @@
   pointer-events: none;
 }
 
+/* Mobile-only label. Above 560px the in-card overlay label is the single
+   visible name and this white pill is suppressed — rendering both was the
+   duplicate-label bug. The ≤560px block below restores it as a plain compact
+   caption under the 64px icon tile, where it is the ONLY label. */
 .category-tile__chip {
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   padding: 10px 16px;
@@ -92,19 +96,9 @@
   transition: border-color 140ms ease, background 140ms ease;
 }
 
-.category-tile:hover .category-tile__chip,
-.category-tile:focus-visible .category-tile__chip {
-  border-color: var(--ui-color-primary);
-  background: var(--ui-color-primary-soft);
-}
-
 @media (max-width: 600px) {
   .category-tile__icon {
     font-size: 2.5rem;
-  }
-  
-  .category-tile__chip {
-    border-radius: 0m;
   }
 }
 
@@ -131,8 +125,10 @@
     display: none;
   }
 
-  /* Chip becomes a plain compact label on mobile */
+  /* Chip becomes a plain compact label on mobile — and this is where it is
+     turned back on (the base rule hides it for desktop). */
   .category-tile__chip {
+    display: flex;
     background: transparent;
     border: none;
     padding: 0;
@@ -142,11 +138,5 @@
     white-space: normal;
     text-align: center;
     line-height: 1.2;
-  }
-
-  .category-tile:hover .category-tile__chip,
-  .category-tile:focus-visible .category-tile__chip {
-    background: transparent;
-    border: none;
   }
 }
