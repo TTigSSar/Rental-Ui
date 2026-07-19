@@ -5,9 +5,6 @@
   },
   "app": {
     "shell": {
-      "brand": "ToyRent",
-      "brandPrefix": "Toy",
-      "brandSuffix": "Rent",
       "primaryNavAria": "Primary navigation",
       "secondaryNavAria": "Account navigation",
       "menuToggleAria": "Open menu",
@@ -149,7 +146,7 @@
       "helpTitle": "Still have questions?",
       "helpText": "Send us an email and we’ll get back to you as soon as possible.",
       "helpCta": "Send us an email",
-      "helpEmail": "hello@toyrent.am",
+      "helpEmail": "hello@dorent.am",
       "items": {
         "q1": {
           "question": "How does renting a toy work?",
@@ -230,7 +227,7 @@
       "submit": "Create account",
       "haveAccount": "Already have an account?",
       "goToLogin": "Sign in",
-      "welcomeTitle": "Join ToyRent",
+      "welcomeTitle": "Join DoRent",
       "welcomeSubtitle": "Rent quality toys for your child or share toys you no longer need.",
       "errorTitle": "Couldn't create your account",
       "passwordHint": "Use at least 8 characters for better security.",
@@ -439,7 +436,7 @@
         "bullet2": "The deposit is fully refunded when the toy is returned in the agreed condition",
         "bullet3": "Each owner describes how the toy is cleaned between rentals",
         "bullet4": "Please follow the owner's age and safety guidance",
-        "bullet5": "If an issue comes up, contact the owner first — ToyRent support is also here to help."
+        "bullet5": "If an issue comes up, contact the owner first — DoRent support is also here to help."
       },
       "reviews": {
         "heading": "Reviews",
@@ -1497,7 +1494,7 @@
   "info": {
     "about": {
       "pageTitle": "About Us",
-      "heroTitle": "About ToyRent",
+      "heroTitle": "About DoRent",
       "heroLead": "We believe every child deserves access to great toys — without the clutter or the price tag.",
       "missionHeading": "Our Mission",
       "howHeading": "How It Works",

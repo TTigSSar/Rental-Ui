@@ -1,7 +1,10 @@
 @import 'primeicons/primeicons.css';
+/* Baloo 2 w800 — brand wordmark only (see app-header.component.css).
+   Latin subset explicitly: the bare `800.css` also pulls the Devanagari subset. */
+@import '@fontsource/baloo-2/latin-800.css';
 
 /*
- * ToyRent design tokens — Direction A: Refined Warm
+ * DoRent design tokens — Direction A: Refined Warm
  * Canonical breakpoints (use consistently — see DESIGN_RULES.md):
  *   xs:       < 560px
  *   sm:       560–639px

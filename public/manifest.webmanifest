@@ -1,6 +1,6 @@
 {
-  "name": "ToyRent",
-  "short_name": "ToyRent",
+  "name": "DoRent",
+  "short_name": "DoRent",
   "description": "Rent quality toys for your child from trusted families nearby.",
   "lang": "en",
   "start_url": "/",
@@ -10,10 +10,16 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "any",
-      "type": "image/x-icon",
-      "purpose": "any"
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

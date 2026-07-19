@@ -73,47 +73,35 @@
   outline-offset: 4px;
 }
 
-.nh__brand-icon {
-  display: grid;
-  place-items: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #ff8534 0%, #ff6008 55%, #e85500 100%);
-  box-shadow:
-    0 2px 6px rgba(255, 96, 8, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  color: #fff;
-  flex-shrink: 0;
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease;
-}
-
-.nh__brand:hover .nh__brand-icon {
-  transform: translateY(-1px) scale(1.04);
-  box-shadow:
-    0 4px 12px rgba(255, 96, 8, 0.38),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35);
-}
-
-.nh__brand-icon svg {
-  width: 1.0625rem;
-  height: 1.0625rem;
-  display: block;
-}
-
+/* "The Ball Wordmark": D + orange ball (the "o") + Rent, set in Baloo 2 800.
+   `align-items: center` — not baseline — puts the ball on the text's optical
+   centre rather than sitting it on the baseline. */
 .nh__brand-text {
   white-space: nowrap;
   display: inline-flex;
-}
-
-.nh__brand-primary {
+  align-items: center;
+  font-family: 'Baloo 2', 'Segoe UI', Roboto, Arial, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
   color: var(--ui-color-text-primary);
 }
 
-.nh__brand-accent {
-  color: var(--ui-color-primary);
+.nh__brand-ball {
+  width: 0.73em;
+  height: 0.73em;
+  display: block;
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nh__brand-ball {
+    transition: transform 180ms ease;
+  }
+
+  .nh__brand:hover .nh__brand-ball {
+    transform: translateY(-1px);
+  }
 }
 
 /* ── Search bar ──────────────────────────────────────────────────────────── */
