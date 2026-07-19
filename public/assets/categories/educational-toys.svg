@@ -4,7 +4,14 @@
       <stop offset="0%" style="stop-color:#4776E6"/>
       <stop offset="100%" style="stop-color:#8E54E9"/>
     </linearGradient>
+    <filter id="ds" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.2"/>
+    </filter>
   </defs>
   <rect width="800" height="450" fill="url(#g)"/>
-  <text x="400" y="210" font-size="140" text-anchor="middle" dominant-baseline="middle" font-family="serif">📚</text>
+  <g fill="#fff" filter="url(#ds)" transform="translate(322,147) scale(6.5)">
+    <path d="M19,3.25H6.75A2.43,2.43,0,0,0,4.25,5.6V18a2.85,2.85,0,0,0,2.94,2.75H19a.76.76,0,0,0,.75-.75V4A.76.76,0,0,0,19,3.25Zm-.75,16H7.19A1.35,1.35,0,0,1,5.75,18a1.35,1.35,0,0,1,1.44-1.25H18.25Zm0-4H7.19a3,3,0,0,0-1.44.37V5.6a.94.94,0,0,1,1-.85h11.5Z"/>
+    <path d="M8.75,8.75h6.5a.75.75,0,0,0,0-1.5H8.75a.75.75,0,0,0,0,1.5Z"/>
+    <path d="M8.75,12.25h6.5a.75.75,0,0,0,0-1.5H8.75a.75.75,0,0,0,0,1.5Z"/>
+  </g>
 </svg>

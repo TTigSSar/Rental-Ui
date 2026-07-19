@@ -4,7 +4,15 @@
       <stop offset="0%" style="stop-color:#F7631A"/>
       <stop offset="100%" style="stop-color:#FFAF40"/>
     </linearGradient>
+    <filter id="ds" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.2"/>
+    </filter>
   </defs>
   <rect width="800" height="450" fill="url(#g)"/>
-  <text x="400" y="210" font-size="140" text-anchor="middle" dominant-baseline="middle" font-family="serif">🧩</text>
+  <!-- Hand-authored: primeicons has no puzzle-piece glyph. Built in the same
+       24x24 grid / filled-silhouette convention as the reused primeicons
+       paths above (2 outward tabs, 2 inward notches). -->
+  <g fill="#fff" filter="url(#ds)" transform="translate(333.375,158.375) scale(6.5)">
+    <path d="M6,6 L9,6 C9,2.5 15,2.5 15,6 L18,6 L18,9 C14.5,9 14.5,15 18,15 L18,18 L15,18 C15,14.5 9,14.5 9,18 L6,18 L6,15 C2.5,15 2.5,9 6,9 Z"/>
+  </g>
 </svg>

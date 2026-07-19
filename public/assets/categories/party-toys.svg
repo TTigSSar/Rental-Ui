@@ -4,7 +4,12 @@
       <stop offset="0%" style="stop-color:#F953C6"/>
       <stop offset="100%" style="stop-color:#B91D73"/>
     </linearGradient>
+    <filter id="ds" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.2"/>
+    </filter>
   </defs>
   <rect width="800" height="450" fill="url(#g)"/>
-  <text x="400" y="210" font-size="140" text-anchor="middle" dominant-baseline="middle" font-family="serif">🎉</text>
+  <g fill="#fff" filter="url(#ds)" transform="translate(322,147) scale(6.5)">
+    <path d="M19.5,7.75h-1.4c.4-.48,.65-1.08,.65-1.75,0-1.52-1.23-2.75-2.75-2.75-1.68,0-3.16,.89-4,2.21-.84-1.32-2.32-2.21-4-2.21-1.52,0-2.75,1.23-2.75,2.75,0,.67,.25,1.27,.65,1.75h-1.4c-.69,0-1.25,.56-1.25,1.25v2.5c0,.6,.43,1.08,1,1.2v6.8c0,.69,.56,1.25,1.25,1.25h13c.69,0,1.25-.56,1.25-1.25v-6.8c.57-.12,1-.6,1-1.2v-2.5c0-.69-.56-1.25-1.25-1.25Zm-.25,3.5h-6.5v-2h6.5v2Zm-3.25-6.5c.69,0,1.25,.56,1.25,1.25s-.56,1.25-1.25,1.25h-3.16c.34-1.43,1.63-2.5,3.16-2.5Zm-8,0c1.53,0,2.82,1.07,3.16,2.5h-3.16c-.69,0-1.25-.56-1.25-1.25s.56-1.25,1.25-1.25Zm-3.25,4.5h6.5v2H4.75v-2Zm1,3.5h5.5v6.5H5.75v-6.5Zm12.5,6.5h-5.5v-6.5h5.5v6.5Z"/>
+  </g>
 </svg>
