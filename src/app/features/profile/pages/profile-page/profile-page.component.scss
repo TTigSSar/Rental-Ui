@@ -717,21 +717,23 @@
     padding-inline: 0;
     gap: 0;
 
-    // Mirror the desktop rule: child pages rendered inside profile-page__main
-    // inherit the outer page-container bounds; their own padding is redundant.
-    .profile-page__main .page-container {
-      max-width: none;
-      width: 100%;
-      margin-inline: 0;
-      padding-inline: 0;
-    }
+    // NOTE: there used to be a `.profile-page__main .page-container` reset
+    // here. It never applied (same component-boundary reason as the desktop
+    // rule below, which now pierces with ::ng-deep) and it must NOT be revived:
+    // on mobile this element already drops its own `padding-inline` to 0, so
+    // the child's container gutter is the only thing insetting content from the
+    // screen edge. Zeroing it too would push the page flush to the viewport.
   }
 }
 
 /* ── Desktop 2-column layout ── */
 @media (min-width: 961px) {
   .profile-page {
-    max-width: none;
+    /* Drops the 640px mobile reading column and hands the width back to
+       `.page-container` (1440px / 70px gutters) so the 2-column layout sits on
+       the same grid as the header. Was `none`, which only stayed bounded
+       because `.page-container` used to set `width: min(1200px, 100%)`. */
+    max-width: 1440px;
     padding-top: var(--ui-space-32);
   }
 
@@ -966,7 +968,15 @@
 
     // Neutralise page-container centering for child route pages rendered in
     // the right column — the grid layout already provides the container width.
-    .page-container {
+    //
+    // `::ng-deep` is load-bearing, not decoration: the child page is a separate
+    // component, so its root element carries ITS OWN _ngcontent attribute and a
+    // plain descendant selector compiles to something that can never match it.
+    // Without the pierce this rule was dead and the child inherited the global
+    // container gutter (24px before the 1440/70 grid, 70px after) as a dead
+    // inset inside the column. The pierce stays scoped: the ancestor half of
+    // the selector keeps this component's attribute, so it cannot leak.
+    ::ng-deep .page-container {
       max-width: none;
       width: 100%;
       margin-inline: 0;

@@ -215,10 +215,33 @@ p {
   margin: 0;
 }
 
+/* App-wide content box. Must stay identical to the header's `.nh__inner` and
+   Home's `.home__container` (max-width 1440px, 16px base gutter, 20px ≤900,
+   16px ≤560, 70px from 1024px up) so the header's brand/controls land exactly
+   on every page's content edges. Change all three together or not at all. */
 .page-container {
-  width: min(1200px, 100%);
+  width: 100%;
+  max-width: 1440px;
   margin: 0 auto;
-  padding-inline: var(--ui-space-24);
+  padding-inline: 1rem;
+}
+
+@media (max-width: 900px) {
+  .page-container {
+    padding-inline: var(--ui-space-20);
+  }
+}
+
+@media (max-width: 560px) {
+  .page-container {
+    padding-inline: var(--ui-space-16);
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-container {
+    padding-inline: 70px;
+  }
 }
 
 .section-stack {
@@ -364,11 +387,8 @@ select:focus {
   }
 }
 
-@media (max-width: 900px) {
-  .page-container {
-    padding-inline: var(--ui-space-10);
-  }
-}
+/* (The `.page-container` responsive gutters now live next to its base rule
+   above, matching `.nh__inner` / `.home__container`.) */
 
 /* ── Mobile form controls — Direction A polish ───────────────
    Prevents iOS auto-zoom (16px minimum font-size rule) and

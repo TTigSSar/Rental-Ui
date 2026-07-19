@@ -45,8 +45,8 @@
    `.home__container` (max-width 1440px, 16px base gutter, 70px from 1024px up)
    so the brand's left edge and the controls' right edge land exactly on the
    page's content edges. Any page that wants header/body alignment must use the
-   same box — see the note in Rental-Ui about `.page-container` still being on
-   the older min(1200px) / 24px grid. */
+   same box: `.page-container` (styles.css), `.home__container` and the desktop
+   `.chat-shell` are all on this grid — change them together or not at all. */
 .nh__inner {
   width: 100%;
   max-width: 1440px;

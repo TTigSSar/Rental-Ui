@@ -107,16 +107,24 @@
 
 /* ── Mobile sticky back-nav bar (when backLink is provided) ── */
 @media (max-width: 960px) {
+  // Flow spacer that reserves the fixed bar's height. It is empty, so it needs
+  // no horizontal correction — the bar below pins itself to the viewport.
   :host.ph-back-host {
     display: block;
-    height:3.25rem ;
+    height: 3.25rem;
     flex-shrink: 0;
-    margin-left: -10px;
   }
 
   .ph--has-back {
     position: fixed;
-    width: 100%;
+    // Pin to the viewport edges rather than `width: 100%` from the element's
+    // static position. That static position depends on the enclosing
+    // `.page-container` gutter, so `width: 100%` + a `-10px` host margin only
+    // lined up while that gutter happened to be 10px; at any other value the
+    // bar hung off-screen and the page scrolled sideways.
+    left: 0;
+    right: 0;
+    width: auto;
     z-index: 10;
     top: 0;
     background: rgba(255, 255, 255, 0.97);

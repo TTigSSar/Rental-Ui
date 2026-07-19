@@ -133,9 +133,12 @@
        two panes. A gap here (plus the list's page-level chrome, neutralized in
        conversations-page.scss) is what produced the empty "dead strip". */
     gap: 0;
-    max-width: 1200px;
+    /* Same content box as the app header (`.nh__inner`) and `.page-container`
+       so the rail's left edge lines up with the brand and the pane's right
+       edge with the user pill. */
+    max-width: 1440px;
     margin-inline: auto;
-    padding-inline: 1rem;
+    padding-inline: 70px;
     /* Fixed messenger viewport: fill exactly the space under the sticky app
        header (3.5rem row + 1px border) so the composer is always on screen.
        The page itself never scrolls — the rail list and the message pane
