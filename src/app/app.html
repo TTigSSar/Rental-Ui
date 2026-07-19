@@ -2,6 +2,7 @@
   @if (vm$ | async; as vm) {
     <app-header
       [scrolled]="scrolled()"
+      [searchHidden]="headerSearchHidden()"
       [isAuthenticated]="vm.isAuthenticated"
       [isAuthPending]="vm.isAuthPending"
       [userDisplayName]="vm.userDisplayName"

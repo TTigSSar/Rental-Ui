@@ -2,9 +2,13 @@ import { AsyncPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
+  ElementRef,
   OnInit,
+  effect,
   signal,
   inject,
+  viewChild,
 } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
@@ -38,6 +42,7 @@ import {
   type HomeCategoryTileVm,
 } from '../../components/category-tile/category-tile.component';
 import { SectionHeaderComponent } from '../../../../shared/ui/section-header/section-header.component';
+import { HeaderSearchVisibilityService } from '../../../../shared/ui/app-header/header-search-visibility.service';
 
 type ProcessMode = 'renting' | 'lending';
 
@@ -175,6 +180,13 @@ const PROCESS_STEPS: readonly HomeProcessStep[] = [
   },
 ];
 
+/**
+ * Offset roughly equal to the sticky header height, so the header search only
+ * takes over once the hero search has passed *behind* the header rather than
+ * merely touching the viewport edge.
+ */
+const HERO_SEARCH_ROOT_MARGIN = '-80px 0px 0px 0px';
+
 const FAQ_ENTRIES: readonly HomeFaqEntry[] = [
   {
     id: 'q1',
@@ -249,6 +261,12 @@ export class HomePageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly myListingsApi = inject(MyListingsApiService);
+  private readonly headerSearchVisibility = inject(HeaderSearchVisibilityService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  private readonly heroSearchRef =
+    viewChild<ElementRef<HTMLElement>>('heroSearch');
+  private heroSearchObserver: IntersectionObserver | null = null;
 
   protected readonly processSteps = PROCESS_STEPS;
   protected readonly faqEntries = FAQ_ENTRIES;
@@ -318,9 +336,48 @@ export class HomePageComponent implements OnInit {
     }),
   );
 
+  constructor() {
+    // The hero owns the search field while it is on screen; once it scrolls
+    // out from under the sticky header the header search fades in. The hero
+    // markup sits inside an `@if`, so the element arrives asynchronously and
+    // the observer is (re)attached from an effect on the view query.
+    effect(() => {
+      const element = this.heroSearchRef()?.nativeElement ?? null;
+
+      this.disconnectHeroSearchObserver();
+
+      if (element === null || typeof IntersectionObserver === 'undefined') {
+        return;
+      }
+
+      // Home always loads at the top, where the hero search is visible — hide
+      // the header search up front so it cannot flash before the first
+      // observer callback lands.
+      this.headerSearchVisibility.setHidden(true);
+
+      const observer = new IntersectionObserver(
+        ([entry]) => this.headerSearchVisibility.setHidden(entry.isIntersecting),
+        { threshold: 0, rootMargin: HERO_SEARCH_ROOT_MARGIN },
+      );
+      observer.observe(element);
+      this.heroSearchObserver = observer;
+    });
+
+    this.destroyRef.onDestroy(() => {
+      this.disconnectHeroSearchObserver();
+      // Leaving Home must restore the always-visible header search.
+      this.headerSearchVisibility.reset();
+    });
+  }
+
   ngOnInit(): void {
     this.store.dispatch(ListingsActions.loadListingCategories());
     this.store.dispatch(HomeSectionsActions.load());
+  }
+
+  private disconnectHeroSearchObserver(): void {
+    this.heroSearchObserver?.disconnect();
+    this.heroSearchObserver = null;
   }
 
   protected onSearchSubmit(): void {

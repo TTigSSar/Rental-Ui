@@ -2,19 +2,27 @@
   <div class="nh__row">
 
     <!-- ── Brand ─────────────────────────────────────────────────────── -->
-    <a routerLink="/" class="nh__brand" aria-label="ToyRent home">
+    <a routerLink="/" class="nh__brand" aria-label="DoRent home">
       <span class="nh__brand-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
         </svg>
       </span>
       <span class="nh__brand-text" aria-hidden="true">
-        <span class="nh__brand-primary">Toy</span><span class="nh__brand-accent">Rent</span>
+        <span class="nh__brand-primary">Do</span><span class="nh__brand-accent">Rent</span>
       </span>
     </a>
 
-    <!-- ── Search bar ─────────────────────────────────────────────────── -->
-    <div class="nh__search" role="search">
+    <!-- ── Search bar ─────────────────────────────────────────────────────
+         While `searchHidden` is set (Home, before the hero search scrolls
+         away) the pill is faded out. `inert` removes it from the tab order
+         and the a11y tree; the explicit tabindex="-1" is a belt-and-braces
+         guard because `pointer-events: none` alone still leaves it tabbable. -->
+    <div
+      class="nh__search"
+      role="search"
+      [attr.inert]="searchHidden() ? '' : null"
+    >
       <label class="nh__search-field" for="nh-search-input">
         <i class="pi pi-search nh__search-icon" aria-hidden="true"></i>
         <input
@@ -25,11 +33,18 @@
           [value]="searchQuery()"
           (input)="onSearchInput($event)"
           (keydown.enter)="onSearchSubmit()"
+          [attr.tabindex]="searchHidden() ? -1 : null"
           aria-label="Search toys, brands, owners"
           autocomplete="off"
         />
       </label>
-      <button type="button" class="nh__search-btn" (click)="onSearchSubmit()" aria-label="Submit search">
+      <button
+        type="button"
+        class="nh__search-btn"
+        (click)="onSearchSubmit()"
+        [attr.tabindex]="searchHidden() ? -1 : null"
+        aria-label="Submit search"
+      >
         Search
       </button>
     </div>

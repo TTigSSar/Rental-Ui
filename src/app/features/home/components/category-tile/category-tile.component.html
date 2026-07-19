@@ -25,6 +25,9 @@
     } @else {
       <i class="category-tile__icon" [class]="iconClass()"></i>
     }
+    <!-- Purely decorative: the chip below and the button's aria-label already
+         expose the category name, so this overlay stays out of the a11y tree. -->
+    <span class="category-tile__overlay-label" aria-hidden="true">{{ data.label }}</span>
   </div>
   <span class="category-tile__chip">{{ data.label }}</span>
 </button>

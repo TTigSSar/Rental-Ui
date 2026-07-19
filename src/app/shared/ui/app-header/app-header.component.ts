@@ -20,12 +20,18 @@ import { TranslatePipe } from '@ngx-translate/core';
   host: {
     role: 'banner',
     '[class.nh--scrolled]': 'scrolled()',
+    '[class.nh--search-hidden]': 'searchHidden()',
   },
 })
 export class AppHeaderComponent {
   private readonly router = inject(Router);
 
   readonly scrolled        = input(false);
+  /**
+   * Fades the search pill out and removes it from the tab order. Driven by the
+   * app shell; only Home ever sets it (see HeaderSearchVisibilityService).
+   */
+  readonly searchHidden    = input(false);
   readonly isAuthenticated = input(false);
   readonly isAuthPending   = input(false);
   readonly userDisplayName = input<string | null>(null);

@@ -8,6 +8,7 @@
           <p class="home__hero-subtitle">{{ 'home.hero.subtitle' | translate }}</p>
         </div>
         <form
+          #heroSearch
           class="home__hero-search"
           [formGroup]="searchForm"
           (ngSubmit)="onSearchSubmit()"
@@ -39,6 +40,9 @@
           [title]="'home.categoriesLabel' | translate"
           headingId="home-categories-heading"
         >
+          <a actions [routerLink]="['/listings']" class="home__section-action">
+            {{ 'home.seeAll' | translate }}
+          </a>
         </app-ui-section-header>
 
         @if (vm.showCategoriesSkeleton) {

@@ -18,10 +18,10 @@
 .category-tile__media {
   position: relative;
   width: 100%;
-  aspect-ratio: 325 / 179;
-  border-radius: 10px;
+  aspect-ratio: 268 / 190;
+  border-radius: var(--ui-radius-card); /* 16px */
   overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 24px -12px rgba(20, 15, 5, 0.3);
   display: grid;
   place-items: center;
   background: var(--ui-color-surface-muted);
@@ -56,6 +56,22 @@
   font-size: 3.25rem;
   color: rgba(255, 255, 255, 0.95);
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
+}
+
+/* Label burned into the gradient media (desktop/tablet only). */
+.category-tile__overlay-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 16px;
+  padding: 0 12px;
+  text-align: center;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
 }
 
 .category-tile__chip {
@@ -107,6 +123,12 @@
 
   .category-tile__icon {
     font-size: 1.75rem;
+  }
+
+  /* No room for the burned-in label on the 64px icon tile — the compact
+     label below carries the name instead. */
+  .category-tile__overlay-label {
+    display: none;
   }
 
   /* Chip becomes a plain compact label on mobile */

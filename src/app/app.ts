@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   HostListener,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -24,6 +25,7 @@ import { ChatBadgeService } from './features/chat/services/chat-badge.service';
 import { ChatRealtimeService } from './features/chat/services/chat-realtime.service';
 import { NotificationBadgeService } from './features/notifications/services/notification-badge.service';
 import { AppHeaderComponent } from './shared/ui/app-header/app-header.component';
+import { HeaderSearchVisibilityService } from './shared/ui/app-header/header-search-visibility.service';
 
 interface NavItem {
   readonly path: string;
@@ -76,6 +78,10 @@ function isListingWizardUrl(url: string): boolean {
   return path === '/listings/create' || /^\/my-listings\/[^/]+\/edit$/.test(path);
 }
 
+export function isHomeUrl(url: string): boolean {
+  return url.split('?')[0].split('#')[0] === '/';
+}
+
 function isChatUrl(url: string): boolean {
   const path = url.split('?')[0];
   // The chat feature (/chat inbox and /chat/:id thread) is a full-height
@@ -115,6 +121,7 @@ export class App {
   private readonly notificationBadge = inject(NotificationBadgeService);
   private readonly chatBadge = inject(ChatBadgeService);
   private readonly chatRealtime = inject(ChatRealtimeService);
+  private readonly headerSearchVisibility = inject(HeaderSearchVisibilityService);
 
   // Global unread badge, kept in sync from a single source: the badge service
   // polls the unread-count endpoint while authenticated (there is no realtime
@@ -131,8 +138,16 @@ export class App {
   protected readonly isProfileChildPage = signal(isProfileChildUrl(this.router.url));
   protected readonly isListingWizardPage = signal(isListingWizardUrl(this.router.url));
   protected readonly isBookingPage     = signal(isBookingFlowUrl(this.router.url));
+  protected readonly isHomePage        = signal(isHomeUrl(this.router.url));
   protected readonly showAuthDialog    = signal(false);
   protected readonly authDialogMode    = signal<'login' | 'register'>('login');
+
+  // The scroll-revealed header search is a HOME-ONLY behaviour. Gating the
+  // service flag on the route here means every other page keeps the header
+  // search permanently visible even if Home fails to reset the flag.
+  protected readonly headerSearchHidden = computed(
+    () => this.isHomePage() && this.headerSearchVisibility.hidden(),
+  );
 
   protected readonly vm$ = combineLatest({
     isAuthenticated: this.store.select(selectIsAuthenticated),
@@ -227,6 +242,7 @@ export class App {
         this.isProfileChildPage.set(isProfileChildUrl(url));
         this.isListingWizardPage.set(isListingWizardUrl(url));
         this.isBookingPage.set(isBookingFlowUrl(url));
+        this.isHomePage.set(isHomeUrl(url));
       });
   }
 

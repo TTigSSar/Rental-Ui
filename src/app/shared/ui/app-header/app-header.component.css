@@ -131,7 +131,18 @@
   overflow: hidden;
   transition:
     border-color 140ms ease,
-    box-shadow 140ms ease;
+    box-shadow 140ms ease,
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+/* Scroll-revealed state (Home only): the hero owns the search until it
+   scrolls out of view, then the header pill fades in. Layout is preserved so
+   the header grid does not reflow. */
+:host(.nh--search-hidden) .nh__search {
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
 }
 
 .nh__search:focus-within {
