@@ -218,12 +218,21 @@ p {
 /* App-wide content box. Must stay identical to the header's `.nh__inner` and
    Home's `.home__container` (max-width 1440px, 16px base gutter, 20px ≤900,
    16px ≤560, 70px from 1024px up) so the header's brand/controls land exactly
-   on every page's content edges. Change all three together or not at all. */
+   on every page's content edges. Change all three together or not at all.
+
+   Top gutter: 32px desktop / 16px ≤560px. Without it pages start flush against
+   the sticky header and eyebrows/headings read as cramped. 32px is the top of
+   the approved 24–32px range and is the value Home's section rhythm already
+   uses (`.home__container` padding-block 2rem), so pages land on the same
+   vertical beat as the landing page instead of a fourth arbitrary one.
+   `/notifications` opts out of the horizontal grid but tracks THIS gutter —
+   keep the two in lockstep (see notifications-page.component.scss). */
 .page-container {
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
   padding-inline: 1rem;
+  padding-top: var(--ui-space-32);
 }
 
 @media (max-width: 900px) {
@@ -235,6 +244,7 @@ p {
 @media (max-width: 560px) {
   .page-container {
     padding-inline: var(--ui-space-16);
+    padding-top: var(--ui-space-16);
   }
 }
 

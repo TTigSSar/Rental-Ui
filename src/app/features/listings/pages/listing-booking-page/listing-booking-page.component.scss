@@ -8,7 +8,9 @@
   background: var(--ui-color-surface-muted);
 
   @media (min-width: 960px) {
-    padding-block: 28px 64px;
+    /* Top gutter comes from `.page-container` on `.booking-page__container`
+       inside; only the bottom run-out is local. */
+    padding-block: 0 64px;
   }
 }
 

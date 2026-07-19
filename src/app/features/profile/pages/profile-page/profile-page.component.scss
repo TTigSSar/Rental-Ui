@@ -10,7 +10,7 @@
   gap: var(--ui-space-12);
   max-width: 640px;
   margin: 0 auto;
-  padding-top: var(--ui-space-16);
+  /* Top gutter comes from `.page-container` (same element) — no local rule. */
   padding-bottom: var(--ui-space-32);
   animation: profile-fade-in 200ms ease-out both;
 }
@@ -702,7 +702,9 @@
 @media (max-width: 560px) {
   .profile-page {
     gap: var(--ui-space-8);
-    padding-top: 0;
+    // No `padding-top: 0` here: the 16px mobile top gutter comes from
+    // `.page-container` and must survive, or /profile starts flush against the
+    // viewport while /favorites, /bookings and /notifications do not.
   }
 }
 
@@ -734,7 +736,7 @@
        the same grid as the header. Was `none`, which only stayed bounded
        because `.page-container` used to set `width: min(1200px, 100%)`. */
     max-width: 1440px;
-    padding-top: var(--ui-space-32);
+    /* Top gutter comes from `.page-container` (same element) — no local rule. */
   }
 
   .profile-page__layout {

@@ -64,12 +64,8 @@
   // ── Page wrapper ─────────────────────────────────────────────────────────────
 
   &__page {
-    padding-top: var(--ui-space-24);
+    // Top gutter comes from `.page-container` (same element) — no local rule.
     padding-bottom: var(--ui-space-64);
-
-    @media (min-width: 960px) {
-      padding-top: var(--ui-space-32);
-    }
   }
 
   // ── Desktop back button ──────────────────────────────────────────────────────

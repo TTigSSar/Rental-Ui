@@ -10,6 +10,21 @@
   background: var(--ui-color-background);
   animation: pub-profile-fade-in 200ms ease-out both;
 
+  // ── `.page-container` here is a HORIZONTAL utility only ───────────────────
+  // Most pages put `.page-container` on one page root, so its top gutter is
+  // the page's gutter. This page instead applies it to SEVEN stacked sections
+  // (identity band, tabs, body, listings section, plus the skeleton/error
+  // states) purely to line their content edges up with the header grid. Left
+  // alone, the container's top gutter would be injected between every one of
+  // them — 32px of dead space mid-page, four times over, including inside the
+  // tinted identity band which sets its own `padding-block`.
+  // The page's own top gutter is already supplied by `&__identity`'s
+  // `padding-block` (and by the sticky `&__header` on mobile), so zeroing it
+  // here is a no-op visually at the top of the page and correct below it.
+  .page-container {
+    padding-top: 0;
+  }
+
   // ── Sticky top bar (mobile only) ──────────────────────────────────────────
 
   &__header {

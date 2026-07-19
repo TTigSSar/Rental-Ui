@@ -14,8 +14,10 @@
 
    What DOES stay in sync with `.page-container`, so the page still feels like
    a sibling of its neighbours rather than a stray:
-     - vertical top gutter: 0 — content starts flush under the header at every
-       breakpoint, exactly like `.page-container` pages do;
+     - vertical top gutter: TRACKS `.page-container` exactly — 32px, dropping to
+       16px ≤560px. The horizontal grid is deliberately different here; the top
+       gutter deliberately is NOT. If the container's gutter changes, change it
+       here in the same commit or this page visibly drifts above the fold.
      - horizontal side gutters at the narrow breakpoints: 20px ≤900px and 16px
        ≤560px, matching `.page-container`'s scale, so mobile behaves normally.
    ──────────────────────────────────────────────────────────────────────────── */
@@ -28,8 +30,8 @@
   // header's content-box midpoint, so it reads as intentionally narrow rather
   // than slid to one side.
   margin: 0 auto;
-  // Top gutter 0 matches `.page-container` (which sets no vertical padding).
-  padding: 0 1rem 3rem;
+  // Top gutter matches `.page-container`'s (32px, 16px ≤560px — see below).
+  padding: var(--ui-space-32) 1rem 3rem;
 }
 
 .notifications-page__head {
@@ -199,5 +201,7 @@
 @media (max-width: 560px) {
   .notifications-page {
     padding-inline: var(--ui-space-16);
+    // Lockstep with `.page-container`'s ≤560px top gutter.
+    padding-top: var(--ui-space-16);
   }
 }

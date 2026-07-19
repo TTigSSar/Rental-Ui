@@ -156,7 +156,25 @@
   font-size: 14px;
 }
 
-/* ── Dots: overlaid at bottom-center of image ───────────── */
+/* ── Dots: overlaid at bottom-center of image ───────────────
+   The dot group doubles as its own capsule track. The dots sit at z-index 3,
+   ON TOP of the foreground photo (z-index 2) — so the dim layer at z-index 1
+   is behind the photo and does nothing for them, and the active white dot was
+   measuring 2.2:1 against bright photos (WCAG 1.4.11 non-text contrast needs
+   3:1). A scrim over the photo was rejected: it would dim the product itself.
+   Instead this compact pill carries its own dark background, so the dots have
+   a KNOWN backdrop no matter what the photo does.
+
+   Contrast, worst case (a pure-white photo behind the capsule — the darkest
+   the composite can never get, i.e. the lightest possible track):
+     track = 0.55 x rgb(20,18,16) + 0.45 x rgb(255,255,255) = rgb(126,125,124)
+     relative luminance 0.2044 -> white dot (L 1.0) measures 4.13:1. PASS.
+   Over any darker photo the track only gets darker and the ratio only rises
+   (~18:1 against black), so 4.13:1 is the floor, not a typical reading.
+
+   The capsule is styled onto the tablist element itself rather than an extra
+   wrapper, so the role="tablist" / role="tab" structure stays intact.
+   ─────────────────────────────────────────────────────────── */
 .listing-gallery__dots {
   position: absolute;
   bottom: 14px;
@@ -166,7 +184,12 @@
   align-items: center;
   gap: 6px;
   z-index: 3;
-  padding: 2px 4px;
+  /* Tight enough to read as a pill hugging the dots, not a bar across the hero. */
+  padding: 5px 8px;
+  border-radius: 99px;
+  background: rgba(20, 18, 16, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .listing-gallery__dot {
@@ -186,7 +209,11 @@
 
 .listing-gallery__dot--active {
   width: 20px;
-  background: rgba(255, 255, 255, 0.95);
+  /* Solid white, not 0.95 — the ratio above is computed for pure white. */
+  background: #fff;
+  /* Firms the active pill against the track without a hard ring, which would
+     visually shrink a 7px-tall dot. */
+  box-shadow: 0 1px 3px rgba(20, 18, 16, 0.55);
 }
 
 .listing-gallery__dot:focus-visible {

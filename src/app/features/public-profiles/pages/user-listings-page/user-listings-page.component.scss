@@ -12,6 +12,18 @@
 
   // ── Header ──────────────────────────────────────────────────────────────
 
+  // ── `.page-container` here is a HORIZONTAL utility only ───────────────────
+  // Same situation as public-profile-page: this page applies `.page-container`
+  // to four stacked sections (controls, grid, skeleton grid, error) to align
+  // their edges with the header grid, not as a single page root. Its top
+  // gutter would therefore land between the controls and the grid as well as
+  // above them — and the grid draws a `border-top`, so the gutter would push
+  // the cards away from their own divider. The page's top gutter comes from
+  // `&__header` instead (sticky bar on mobile, `padding-block` from 960px up).
+  .page-container {
+    padding-top: 0;
+  }
+
   &__header {
     display: flex;
     align-items: center;

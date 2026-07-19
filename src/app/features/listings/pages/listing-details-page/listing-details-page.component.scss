@@ -6,13 +6,10 @@
 
 .detail-page {
   background: var(--ui-color-surface-muted);
+  /* Top gutter comes from `.page-container` on `.detail-page__container`
+     inside. The old ≥1100px `padding-block-start: 28px` here was removed when
+     that gutter was introduced — keeping both stacked 60px above the header. */
   padding-block: 0 var(--ui-space-64);
-}
-
-@media (min-width: 1100px) {
-  .detail-page {
-    padding-block-start: 28px;
-  }
 }
 
 .detail-page__container {

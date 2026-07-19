@@ -8,7 +8,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-12);
-  padding-top: 14px;
+  /* Top gutter comes from `.page-container` (same element) — no local rule. */
   padding-bottom: var(--ui-space-64);
   min-height: calc(100dvh - 4rem);
   animation: page-fade-in 200ms ease-out;
