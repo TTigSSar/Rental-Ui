@@ -4,7 +4,7 @@
 >
   <header class="booking-panel__header">
     <p class="booking-panel__price">
-      <span class="booking-panel__price-amount">{{ pricePerDay() | currency }}</span>
+      <span class="booking-panel__price-amount">{{ pricePerDay() | dram }}</span>
       <span class="booking-panel__price-suffix">
         {{ 'listings.booking.priceSuffix' | translate }}
       </span>
@@ -58,13 +58,13 @@
     <dl class="booking-panel__summary" aria-live="polite">
       @if (rentalDays() > 0) {
         <div class="booking-panel__summary-row">
-          <dt>{{ pricePerDay() | currency }} × {{ rentalDays() }} {{ 'listings.booking.days' | translate }}</dt>
-          <dd>{{ basePrice() | currency }}</dd>
+          <dt>{{ pricePerDay() | dram }} × {{ rentalDays() }} {{ 'listings.booking.days' | translate }}</dt>
+          <dd>{{ basePrice() | dram }}</dd>
         </div>
 
         <div class="booking-panel__summary-row booking-panel__summary-row--total">
           <dt>{{ 'listings.booking.totalLabel' | translate }}</dt>
-          <dd>{{ totalPrice() | currency }}</dd>
+          <dd>{{ totalPrice() | dram }}</dd>
         </div>
       } @else {
         <div class="booking-panel__summary-row">

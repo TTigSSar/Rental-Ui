@@ -915,7 +915,7 @@
       "fields": {
         "title": "Title",
         "description": "Description",
-        "pricePerDay": "Price per day (USD)",
+        "pricePerDay": "Price per day (AMD)",
         "city": "City",
         "ageFromMonths": "Age from (months)",
         "ageToMonths": "Age to (months)",
@@ -923,7 +923,7 @@
         "conditionNone": "Not specified",
         "hygieneNotes": "Hygiene notes",
         "safetyNotes": "Safety notes",
-        "depositAmount": "Deposit amount (USD)"
+        "depositAmount": "Deposit amount (AMD)"
       },
       "conditions": {
         "new": "New",

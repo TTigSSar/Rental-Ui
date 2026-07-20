@@ -1,4 +1,3 @@
-import { CurrencyPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
@@ -13,6 +12,7 @@ import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-head
 import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
 import { MyListingCardComponent } from '../../components/my-listing-card/my-listing-card.component';
 import type { MyListing, MyListingStatus } from '../../models/my-listing.model';
+import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import {
   mapListingStatusLabelKey,
   mapListingStatusTone,
@@ -65,7 +65,7 @@ const selectMyListingsPageViewModel = createSelector(
   imports: [
     BadgeComponent,
     ButtonModule,
-    CurrencyPipe,
+    DramCurrencyPipe,
     EmptyStateComponent,
     PageHeaderComponent,
     MessageModule,

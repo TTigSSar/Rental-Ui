@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -14,12 +14,13 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 
+import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import type { BookingRequest } from '../../models/booking.model';
 
 @Component({
   selector: 'app-booking-request-card',
   standalone: true,
-  imports: [ButtonModule, DialogModule, CurrencyPipe, DatePipe, TranslatePipe],
+  imports: [ButtonModule, DialogModule, DramCurrencyPipe, DatePipe, TranslatePipe],
   templateUrl: './booking-request-card.component.html',
   styleUrl: './booking-request-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

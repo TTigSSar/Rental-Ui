@@ -910,7 +910,7 @@
       "fields": {
         "title": "Название",
         "description": "Описание",
-        "pricePerDay": "Цена за день (USD)",
+        "pricePerDay": "Цена за день (AMD)",
         "city": "Город",
         "ageFromMonths": "Возраст от (мес.)",
         "ageToMonths": "Возраст до (мес.)",
@@ -918,7 +918,7 @@
         "conditionNone": "Не указано",
         "hygieneNotes": "Уход и гигиена",
         "safetyNotes": "Заметки по безопасности",
-        "depositAmount": "Сумма залога (USD)"
+        "depositAmount": "Сумма залога (AMD)"
       },
       "conditions": {
         "new": "Новая",

@@ -492,11 +492,12 @@
                 <p-inputNumber
                   inputId="wz-price"
                   formControlName="pricePerDay"
-                  mode="currency"
-                  [currency]="currencyCode"
-                  [min]="0.01"
+                  mode="decimal"
+                  locale="en-US"
+                  suffix=" ֏"
+                  [min]="minPrice"
                   [minFractionDigits]="0"
-                  [maxFractionDigits]="2"
+                  [maxFractionDigits]="0"
                   [useGrouping]="true"
                   [placeholder]="'listings.createForm.pricePerDayPlaceholder' | translate"
                   styleClass="rate-card__input"
@@ -545,7 +546,7 @@
                 <div class="rate-card__renters">
                   <i class="pi pi-tag" aria-hidden="true"></i>
                   {{ 'listings.createForm.rentersSee' | translate }}
-                  <strong>{{ createListingForm.controls.pricePerDay.value | currency: currencyCode }} {{ priceUnitSuffixKey() | translate }}</strong>
+                  <strong>{{ createListingForm.controls.pricePerDay.value | dram }} {{ priceUnitSuffixKey() | translate }}</strong>
                 </div>
               }
               @if (hasError('pricePerDay')) {
@@ -735,7 +736,7 @@
                     {{ getPickupSummary() }} &middot; {{ getDeliverySummaryKey() | translate }}
                   </p>
                   <p class="wizard-preview__price">
-                    {{ createListingForm.controls.pricePerDay.value | currency: currencyCode }}<span class="wizard-preview__price-suffix">
+                    {{ createListingForm.controls.pricePerDay.value | dram }}<span class="wizard-preview__price-suffix">
                       {{ priceUnitSuffixKey() | translate }} &middot;
                       {{
                         'listings.createForm.minRental.preview'
@@ -777,7 +778,7 @@
                 <div class="wizard-summary__row">
                   <dt class="wizard-summary__label">{{ 'listings.createPage.wizard.summaryPrice' | translate }}</dt>
                   <dd class="wizard-summary__value wizard-summary__value--price">
-                    {{ createListingForm.controls.pricePerDay.value | currency: currencyCode }} {{ priceUnitSuffixKey() | translate }}
+                    {{ createListingForm.controls.pricePerDay.value | dram }} {{ priceUnitSuffixKey() | translate }}
                   </dd>
                   <button type="button" class="wizard-summary__edit" (click)="jumpToStep(3)">{{ 'listings.createPage.wizard.edit' | translate }}</button>
                 </div>

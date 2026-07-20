@@ -1,4 +1,4 @@
-import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -23,6 +23,7 @@ import { distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
 import { BookingCalendarComponent } from '../../components/booking-calendar/booking-calendar.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
+import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import * as BookingsActions from '../../../bookings/store/bookings.actions';
 import {
   selectCreateBookingError,
@@ -87,7 +88,7 @@ interface BookingForm {
   imports: [
     BookingCalendarComponent,
     ButtonModule,
-    CurrencyPipe,
+    DramCurrencyPipe,
     DecimalPipe,
     PageHeaderComponent,
     ReactiveFormsModule,

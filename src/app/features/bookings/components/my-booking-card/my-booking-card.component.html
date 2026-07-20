@@ -55,7 +55,7 @@
       </div>
 
       <div class="mbc__price-col">
-        <span class="mbc__price">{{ booking().totalPrice | currency: 'USD' : 'symbol' : '1.0-0' }}</span>
+        <span class="mbc__price">{{ booking().totalPrice | dram }}</span>
       </div>
     </div>
 
@@ -71,7 +71,7 @@
       <div class="mbc__meta-total">
         <span class="mbc__meta-label">{{ 'bookings.myBookings.total' | translate | uppercase }}</span>
         <span class="mbc__meta-value mbc__meta-value--price">
-          {{ booking().totalPrice | currency: 'USD' : 'symbol' : '1.2-2' }}
+          {{ booking().totalPrice | dram }}
         </span>
       </div>
     </div>

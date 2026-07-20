@@ -16,7 +16,7 @@
       <i class="pi pi-calendar"></i>
       {{ request().startDate | date: 'MMM d' }} – {{ request().endDate | date: 'MMM d' }}
       &middot;
-      {{ request().totalPrice | currency: 'USD' : 'symbol' : '1.0-0' }}
+      {{ request().totalPrice | dram }}
     </p>
 
     @if (canDecide()) {

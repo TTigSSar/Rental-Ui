@@ -1,8 +1,9 @@
-import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 
+import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import type { OwnerBookingRequest } from '../../models/owner-listing.model';
 
 interface RequestedAgoI18n {
@@ -18,7 +19,7 @@ interface RequestedAgoI18n {
 @Component({
   selector: 'app-owner-request-card',
   standalone: true,
-  imports: [ButtonModule, CurrencyPipe, DatePipe, DecimalPipe, TranslatePipe],
+  imports: [ButtonModule, DramCurrencyPipe, DatePipe, DecimalPipe, TranslatePipe],
   templateUrl: './owner-request-card.component.html',
   styleUrl: './owner-request-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

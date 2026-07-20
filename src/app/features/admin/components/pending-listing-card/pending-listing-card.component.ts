@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -13,6 +13,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 
+import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import type { PendingListing } from '../../models/pending-listing.model';
 
 @Component({
@@ -21,8 +22,8 @@ import type { PendingListing } from '../../models/pending-listing.model';
   imports: [
     ButtonModule,
     CardModule,
-    CurrencyPipe,
     DatePipe,
+    DramCurrencyPipe,
     RouterLink,
     TranslatePipe,
   ],

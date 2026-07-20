@@ -30,6 +30,7 @@ import {
   hasAnyToyDetail,
 } from '../../../listings/pages/listing-details-page/listing-details-page.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
+import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import { ReviewCardComponent } from '../../../reviews/components/review-card/review-card.component';
 import * as ReviewsActions from '../../../reviews/store/reviews.actions';
 import {
@@ -52,6 +53,7 @@ import { OwnerListingService } from '../../services/owner-listing.service';
   imports: [
     ButtonModule,
     CommonModule,
+    DramCurrencyPipe,
     ListingGalleryComponent,
     ListingStatusBannerComponent,
     OwnerRequestCardComponent,

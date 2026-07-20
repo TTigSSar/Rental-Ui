@@ -18,7 +18,7 @@
       <i class="pi pi-map-marker"></i>
       {{ listing().city }}
       &middot;
-      {{ listing().pricePerDay | currency: 'USD' : 'symbol' : '1.0-0' }}/{{ 'myListings.card.day' | translate }}
+      {{ listing().pricePerDay | dram }}/{{ 'myListings.card.day' | translate }}
     </p>
 
     @if (listing().status === 'PendingApproval' || listing().status === 'Pending') {

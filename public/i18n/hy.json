@@ -910,7 +910,7 @@
       "fields": {
         "title": "Վերնագիր",
         "description": "Նկարագրություն",
-        "pricePerDay": "Օրական գին (USD)",
+        "pricePerDay": "Օրական գին (AMD)",
         "city": "Քաղաք",
         "ageFromMonths": "Տարիք (ամիս, սկսած)",
         "ageToMonths": "Տարիք (ամիս, մինչև)",
@@ -918,7 +918,7 @@
         "conditionNone": "Նշված չէ",
         "hygieneNotes": "Հիգիենա",
         "safetyNotes": "Անվտանգության նշումներ",
-        "depositAmount": "Գրավի գումար (USD)"
+        "depositAmount": "Գրավի գումար (AMD)"
       },
       "conditions": {
         "new": "Նոր",

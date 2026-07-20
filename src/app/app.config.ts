@@ -1,5 +1,9 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import {
+  ApplicationConfig,
+  DEFAULT_CURRENCY_CODE,
+  provideBrowserGlobalErrorListeners,
+} from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { provideRouter } from '@angular/router';
 import { provideEffects } from '@ngrx/effects';
@@ -77,6 +81,15 @@ const DoRentPreset = definePreset(Aura, {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    // DoRent is single-currency (AMD) app-wide — no per-listing currency code,
+    // no user-selectable display currency (yet). Registering the default here
+    // means anything that ever falls back to Angular's bare `currency` pipe
+    // resolves to AMD instead of the framework default (USD). Actual price
+    // rendering across the app goes through `shared/utils/dram-currency.pipe`
+    // instead, because Angular's bundled locale data has no ֏ symbol entry
+    // for AMD (see that pipe's doc comment) — this provider is the registration
+    // + safety net, not the formatting mechanism.
+    { provide: DEFAULT_CURRENCY_CODE, useValue: 'AMD' },
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
     provideStore(),

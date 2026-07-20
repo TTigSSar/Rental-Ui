@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -20,6 +20,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { BookingProgressComponent } from '../../../../shared/ui/booking-progress/booking-progress.component';
 import { BookingStatusBadgeComponent } from '../../../../shared/ui/booking-status-badge/booking-status-badge.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
+import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import type { BookingReviewStatus } from '../../../reviews/models/review.model';
 import { ReviewsApiService } from '../../../reviews/services/reviews-api.service';
 import * as BookingsActions from '../../store/bookings.actions';
@@ -51,7 +52,7 @@ interface TimelineItem {
   selector: 'app-booking-details-page',
   standalone: true,
   imports: [
-    CurrencyPipe,
+    DramCurrencyPipe,
     DatePipe,
     RouterLink,
     TranslatePipe,

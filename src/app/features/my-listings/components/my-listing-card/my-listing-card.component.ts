@@ -1,4 +1,3 @@
-import { CurrencyPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -11,6 +10,7 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
+import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import {
   mapListingStatusLabelKey,
   mapListingStatusTone,
@@ -20,7 +20,7 @@ import type { MyListing } from '../../models/my-listing.model';
 @Component({
   selector: 'app-my-listing-card',
   standalone: true,
-  imports: [CurrencyPipe, RouterLink, TranslatePipe, BadgeComponent],
+  imports: [DramCurrencyPipe, RouterLink, TranslatePipe, BadgeComponent],
   templateUrl: './my-listing-card.component.html',
   styleUrl: './my-listing-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

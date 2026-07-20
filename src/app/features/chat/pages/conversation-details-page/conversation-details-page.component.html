@@ -106,7 +106,7 @@
               <span>{{ conversation.bookingDates }}</span>
               <span class="chat-thread__dot" aria-hidden="true"></span>
               <span class="chat-thread__price">
-                {{ conversation.bookingPrice | currency: 'USD' : 'symbol' : '1.0-0' }}
+                {{ conversation.bookingPrice | dram }}
               </span>
             </p>
           </div>
@@ -163,8 +163,7 @@
                               : {
                                   name: request.counterpartName,
                                   dates: request.bookingDates,
-                                  price:
-                                    request.bookingPrice | currency: 'USD' : 'symbol' : '1.0-0',
+                                  price: request.bookingPrice | dram,
                                 }
                         }}
                       </span>

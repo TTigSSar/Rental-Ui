@@ -17,6 +17,7 @@ import { combineLatest, distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
 import { AuthDialogComponent } from '../../../auth/components/auth-dialog/auth-dialog.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
+import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import { selectAuthUser, selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 import * as FavoritesActions from '../../../favorites/store/favorites.actions';
 import { selectFavoriteIds } from '../../../favorites/store/favorites.selectors';
@@ -165,6 +166,7 @@ const selectListingDetailsBase = createSelector(
     AuthDialogComponent,
     ButtonModule,
     CommonModule,
+    DramCurrencyPipe,
     ListingGalleryComponent,
     PageHeaderComponent,
     ReviewCardComponent,

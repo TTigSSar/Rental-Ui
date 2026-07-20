@@ -1,4 +1,4 @@
-import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -11,6 +11,7 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { ImageContainerComponent } from '../../../../shared/ui/image-container/image-container.component';
+import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import type { BookingStatus } from '../../../bookings/models/booking.model';
 import type { ListingPreview } from '../../models/listing.model';
 
@@ -100,7 +101,7 @@ function resolveAgeRangeDisplay(
   selector: 'app-listing-card',
   standalone: true,
   imports: [
-    CurrencyPipe,
+    DramCurrencyPipe,
     DecimalPipe,
     ImageContainerComponent,
     RouterLink,

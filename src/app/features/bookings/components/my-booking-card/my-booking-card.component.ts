@@ -1,9 +1,10 @@
-import { CurrencyPipe, DatePipe, UpperCasePipe } from '@angular/common';
+import { DatePipe, UpperCasePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { BookingProgressComponent } from '../../../../shared/ui/booking-progress/booking-progress.component';
+import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import type { MyBooking } from '../../models/booking.model';
 
 export type CardHeaderTone = 'active' | 'return-marked' | 'approved' | 'pending' | 'completed' | 'past';
@@ -11,7 +12,7 @@ export type CardHeaderTone = 'active' | 'return-marked' | 'approved' | 'pending'
 @Component({
   selector: 'app-my-booking-card',
   standalone: true,
-  imports: [CurrencyPipe, DatePipe, UpperCasePipe, BookingProgressComponent, TranslatePipe],
+  imports: [DramCurrencyPipe, DatePipe, UpperCasePipe, BookingProgressComponent, TranslatePipe],
   templateUrl: './my-booking-card.component.html',
   styleUrl: './my-booking-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -85,7 +85,7 @@
                 </p>
               </div>
               <p class="booking-page__item-price">
-                <span class="booking-page__item-price-amount">{{ item.pricePerDay | currency }}</span>
+                <span class="booking-page__item-price-amount">{{ item.pricePerDay | dram }}</span>
                 <span class="booking-page__item-price-suffix">/ {{ 'listings.booking.priceSuffix' | translate }}</span>
               </p>
             </div>
@@ -128,12 +128,12 @@
               <dl class="booking-page__breakdown" aria-live="polite" aria-atomic="true">
                 @if (rentalDays() > 0 && totalPrice() !== null) {
                   <div class="booking-page__breakdown-row">
-                    <dt>{{ item.pricePerDay | currency }} × {{ rentalDays() }} {{ 'listings.bookingPage.daysLabel' | translate }}</dt>
-                    <dd>{{ totalPrice() | currency }}</dd>
+                    <dt>{{ item.pricePerDay | dram }} × {{ rentalDays() }} {{ 'listings.bookingPage.daysLabel' | translate }}</dt>
+                    <dd>{{ totalPrice() | dram }}</dd>
                   </div>
                   <div class="booking-page__breakdown-row booking-page__breakdown-row--total">
                     <dt>{{ 'listings.bookingPage.summaryTotal' | translate }}</dt>
-                    <dd>{{ totalPrice() | currency }}</dd>
+                    <dd>{{ totalPrice() | dram }}</dd>
                   </div>
                 } @else {
                   <div class="booking-page__breakdown-row booking-page__breakdown-row--hint">
@@ -292,7 +292,7 @@
                     </p>
                   </div>
                   <p class="booking-page__request-price">
-                    <span class="booking-page__request-price-amount">{{ item.pricePerDay | currency }}</span>
+                    <span class="booking-page__request-price-amount">{{ item.pricePerDay | dram }}</span>
                     <span class="booking-page__request-price-suffix">/ {{ 'listings.booking.priceSuffix' | translate }}</span>
                   </p>
                 </div>
@@ -370,7 +370,7 @@
       <div class="booking-page__mobile-bar">
         <div class="booking-page__mobile-info">
           @if (totalPrice() !== null) {
-            <span class="booking-page__mobile-total">{{ totalPrice() | currency }}</span>
+            <span class="booking-page__mobile-total">{{ totalPrice() | dram }}</span>
             <span class="booking-page__mobile-days">
               {{ rentalDays() }}&nbsp;{{ 'listings.bookingPage.daysLabel' | translate }}
             </span>

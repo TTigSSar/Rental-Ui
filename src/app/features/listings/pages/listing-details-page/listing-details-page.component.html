@@ -179,7 +179,7 @@
 
               <!-- Price (mobile only — desktop sees it in the sidebar CTA card) -->
               <p class="detail-page__price-mobile">
-                <span class="detail-page__price-amount">{{ listing.pricePerDay | currency }}</span>
+                <span class="detail-page__price-amount">{{ listing.pricePerDay | dram }}</span>
                 <span class="detail-page__price-suffix">&thinsp;/ {{ 'listings.booking.priceSuffix' | translate }}</span>
               </p>
 
@@ -374,7 +374,7 @@
                 <div class="detail-page__cta-card">
                   <div class="detail-page__cta-price-row">
                     <p class="detail-page__cta-price">
-                      <span class="detail-page__cta-price-amount">{{ listing.pricePerDay | currency }}</span>
+                      <span class="detail-page__cta-price-amount">{{ listing.pricePerDay | dram }}</span>
                       <span class="detail-page__cta-price-suffix">/ {{ 'listings.booking.priceSuffix' | translate }}</span>
                     </p>
                     @if (ratingSummary(); as summary) {
@@ -460,7 +460,7 @@
           <div class="detail-page__mobile-bar">
             <div class="detail-page__mobile-bar-info">
               <span class="detail-page__mobile-bar-price">
-                <span class="detail-page__mobile-bar-amount">{{ listing.pricePerDay | currency }}</span>
+                <span class="detail-page__mobile-bar-amount">{{ listing.pricePerDay | dram }}</span>
                 <span class="detail-page__mobile-bar-suffix">/ {{ 'listings.booking.priceSuffix' | translate }}</span>
               </span>
               @if (ratingSummary(); as summary) {

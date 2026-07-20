@@ -76,7 +76,7 @@
         <div><dt>{{ 'bookings.details.startDate' | translate }}</dt><dd>{{ d.startDate | date: 'mediumDate' }}</dd></div>
         <div><dt>{{ 'bookings.details.endDate' | translate }}</dt><dd>{{ d.endDate | date: 'mediumDate' }}</dd></div>
         <div><dt>{{ 'bookings.details.duration' | translate }}</dt><dd>{{ 'bookings.details.days' | translate: { count: rentalDays() } }}</dd></div>
-        <div><dt>{{ 'bookings.details.total' | translate }}</dt><dd>{{ d.totalPrice | currency: d.currency }}</dd></div>
+        <div><dt>{{ 'bookings.details.total' | translate }}</dt><dd>{{ d.totalPrice | dram }}</dd></div>
       </dl>
     </div>
 

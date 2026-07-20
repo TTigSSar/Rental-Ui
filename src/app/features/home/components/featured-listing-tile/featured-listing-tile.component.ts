@@ -1,4 +1,4 @@
-import { CurrencyPipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -10,12 +10,13 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { ImageContainerComponent } from '../../../../shared/ui/image-container/image-container.component';
+import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import type { ListingPreview } from '../../../listings/models/listing.model';
 
 @Component({
   selector: 'app-featured-listing-tile',
   standalone: true,
-  imports: [CurrencyPipe, DecimalPipe, RouterLink, TranslatePipe, ImageContainerComponent],
+  imports: [DramCurrencyPipe, DecimalPipe, RouterLink, TranslatePipe, ImageContainerComponent],
   templateUrl: './featured-listing-tile.component.html',
   styleUrl: './featured-listing-tile.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

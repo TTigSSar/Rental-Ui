@@ -9,7 +9,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { CurrencyPipe, Location } from '@angular/common';
+import { Location } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import type { AbstractControl, ValidationErrors } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -20,6 +20,7 @@ import {
   CategorySelectorComponent,
 } from '../../../../shared/ui/category-selector/category-selector.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
+import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import type {
   CreateListingRequest,
   DeliveryType,
@@ -110,8 +111,12 @@ const MIN_RENTAL_DAYS = [1, 3, 7, 14] as const;
 /** Listings are currently Armenia-only; kept out of the template (no literal). */
 const DEFAULT_COUNTRY = 'Armenia';
 
-/** Display currency code, matching the rest of the app (see my-listing-card). */
-const CURRENCY_CODE = 'USD';
+/**
+ * Smallest allowed price. Dram has no practical minor unit — nobody prices a
+ * rental at 2500.50 ֏ — so the floor is a whole 1 ֏ (i.e. "greater than
+ * zero"), not a real minimum-price business rule.
+ */
+const MIN_PRICE_PER_DAY = 1;
 
 const MIN_PHOTOS = 3;
 const MAX_PHOTOS = 8;
@@ -141,7 +146,7 @@ function ageRangeValidator(control: AbstractControl): ValidationErrors | null {
   imports: [
     AgeRangeSliderComponent,
     CategorySelectorComponent,
-    CurrencyPipe,
+    DramCurrencyPipe,
     InputNumberModule,
     ReactiveFormsModule,
     TranslatePipe,
@@ -227,7 +232,7 @@ export class CreateListingFormComponent implements OnInit {
   }
 
   // ── Constants exposed to template ─────────────────────────────
-  readonly currencyCode = CURRENCY_CODE;
+  readonly minPrice     = MIN_PRICE_PER_DAY;
   readonly minPhotos    = MIN_PHOTOS;
   readonly maxPhotos    = MAX_PHOTOS;
   readonly steps        = WIZARD_STEPS;
@@ -333,7 +338,7 @@ export class CreateListingFormComponent implements OnInit {
       title:         this.fb.nonNullable.control('', [Validators.required, Validators.minLength(3), Validators.maxLength(200)]),
       description:   this.fb.nonNullable.control('', [Validators.required, Validators.minLength(20), Validators.maxLength(4000)]),
       categoryId:    this.fb.nonNullable.control('', [Validators.required]),
-      pricePerDay:   this.fb.control<number | null>(null, [Validators.required, Validators.min(0.01)]),
+      pricePerDay:   this.fb.control<number | null>(null, [Validators.required, Validators.min(MIN_PRICE_PER_DAY)]),
       priceUnit:     this.fb.nonNullable.control<PriceUnit>('Daily', [Validators.required]),
       city:          this.fb.nonNullable.control('', [Validators.required]),
       addressLine:   this.fb.nonNullable.control(''),

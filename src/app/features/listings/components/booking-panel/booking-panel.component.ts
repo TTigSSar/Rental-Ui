@@ -1,4 +1,3 @@
-import { CurrencyPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -11,6 +10,7 @@ import {
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 
+import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import { BookingCalendarComponent } from '../booking-calendar/booking-calendar.component';
 import type { BookedDateRange } from '../../models/listing.model';
 
@@ -53,7 +53,7 @@ function countInclusiveRentalDays(start: Date, end: Date): number {
   imports: [
     BookingCalendarComponent,
     ButtonModule,
-    CurrencyPipe,
+    DramCurrencyPipe,
     TranslatePipe,
   ],
   templateUrl: './booking-panel.component.html',

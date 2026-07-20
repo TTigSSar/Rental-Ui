@@ -1,4 +1,4 @@
-import { AsyncPipe, CurrencyPipe, DatePipe } from '@angular/common';
+import { AsyncPipe, DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -21,6 +21,7 @@ import { combineLatest, distinctUntilChanged, filter, map } from 'rxjs';
 
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
+import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import { compressImageFile } from '../../../../shared/utils/image-compression.utils';
 import {
   type ChatDayLabel,
@@ -248,7 +249,7 @@ function buildThreadItems(conversation: ChatConversationDetails): ThreadItem[] {
     AsyncPipe,
     AvatarComponent,
     ButtonModule,
-    CurrencyPipe,
+    DramCurrencyPipe,
     DatePipe,
     MessageModule,
     ReactiveFormsModule,

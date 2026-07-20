@@ -38,7 +38,7 @@
       {{ request().startDate | date: 'MMM d' }} – {{ request().endDate | date: 'MMM d' }}
     </span>
     <span class="orc__earnings">
-      <strong>{{ request().ownerEarnings | currency }}</strong>
+      <strong>{{ request().ownerEarnings | dram }}</strong>
       <span class="orc__earnings-label">{{ 'myListings.ownerView.requests.youEarn' | translate }}</span>
     </span>
   </div>
