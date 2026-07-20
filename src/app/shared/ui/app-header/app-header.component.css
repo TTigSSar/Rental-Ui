@@ -139,7 +139,17 @@
   }
 
   .nh__brand:hover .nh__brand-ball {
-    transform: translateY(-1px);
+    animation: nh-brand-bounce 0.7s ease-in-out infinite;
+  }
+
+  @keyframes nh-brand-bounce {
+    0%,
+    100% {
+      transform: translateY(-1px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
   }
 }
 
