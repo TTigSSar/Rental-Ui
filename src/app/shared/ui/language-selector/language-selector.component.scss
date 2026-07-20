@@ -8,12 +8,16 @@
   display: inline-flex;
 }
 
-/* ── Trigger (shared shape; sheet variant overrides height below) ────────── */
+/* ── Trigger (shared shape; sheet variant overrides height below) ──────────
+   Dropdown height is 2.375rem (38px) to match `.nh__btn` in the desktop
+   header ("Log in" / "Sign up"), so the three guest pills sit flush — the
+   established header baseline, not the design mock's absolute 42px, is the
+   reference here since it's a shared value already in use. */
 .lang-selector__trigger {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 42px;
+  height: 2.375rem;
   padding: 0 14px;
   border: 1px solid var(--ui-color-border);
   border-radius: var(--ui-radius-pill);
