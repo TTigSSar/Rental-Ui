@@ -143,7 +143,7 @@
        header (3.5rem row + 1px border) so the composer is always on screen.
        The page itself never scrolls — the rail list and the message pane
        scroll internally. */
-    height: calc(100dvh - 3.5rem - 1px);
+    height: calc(100dvh - 3.5rem - 5px);
     min-height: 0;
     overflow: hidden;
   }
