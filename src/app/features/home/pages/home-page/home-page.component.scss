@@ -49,6 +49,55 @@
 }
 
 /* ==============================
+   Mobile guest top row (≤960px)
+   ==============================
+   Brand mark (left) + language sheet trigger (right), guests only. Non-sticky
+   — plain flow, unlike .home__mobile-search below, which is fixed. */
+.home__mobile-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--ui-space-18) var(--ui-space-18) 0;
+}
+
+@media (min-width: 961px) {
+  .home__mobile-topbar {
+    display: none;
+  }
+}
+
+.home__mobile-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--ui-color-text-primary);
+  font-size: 1.3125rem; /* 21px wordmark, matches app-header's brand */
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.home__mobile-brand-text {
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  font-family: 'Baloo 2', 'Segoe UI', Roboto, Arial, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--ui-color-text-primary);
+}
+
+.home__mobile-brand-ball {
+  width: 25px;
+  height: 20px;
+  display: block;
+  flex-shrink: 0;
+  margin-inline: -2px;
+}
+
+/* ==============================
    Mobile revealed search (≤960px)
    ==============================
    The desktop equivalent lives in the app-header (its search pill). The header

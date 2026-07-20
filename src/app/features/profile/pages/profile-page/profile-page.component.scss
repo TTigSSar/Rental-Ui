@@ -288,6 +288,33 @@
   overflow: hidden;
 }
 
+/* Mobile variant: rendered inline in normal flow, directly under the
+   Language row, inside the card that already clips/rounds via
+   `.profile-page__m-menu` — an absolutely positioned overlay here would
+   resolve against that ancestor instead of the row (the bug this fixes),
+   and would also overlay the Notifications row below. Given a subtle inset
+   background so it reads as a sub-list of the Language row. */
+.profile-page__lang-dropdown--inline {
+  position: static;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--ui-color-surface-muted);
+  border-bottom: 1px solid var(--ui-color-border-subtle);
+
+  .profile-page__lang-option {
+    background: var(--ui-color-surface-muted);
+
+    &:first-child {
+      border-top: none;
+    }
+
+    &:hover {
+      background: var(--ui-color-border-subtle);
+    }
+  }
+}
+
 .profile-page__lang-option {
   display: flex;
   align-items: center;
@@ -643,6 +670,11 @@
 .profile-page__m-chevron {
   color: var(--ui-color-text-hint);
   flex-shrink: 0;
+  transition: transform 200ms ease;
+}
+
+.profile-page__m-chevron--open {
+  transform: rotate(90deg);
 }
 
 /* ── Mobile settings section header ── */

@@ -10,10 +10,12 @@ import {
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { LanguageSelectorComponent } from '../language-selector/language-selector.component';
+
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, TranslatePipe],
+  imports: [LanguageSelectorComponent, RouterLink, RouterLinkActive, TranslatePipe],
   templateUrl: './app-header.component.html',
   styleUrl: './app-header.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

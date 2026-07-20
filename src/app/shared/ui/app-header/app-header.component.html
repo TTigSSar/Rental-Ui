@@ -66,8 +66,9 @@
         <span class="nh__skeleton" aria-hidden="true"></span>
       }
 
-      <!-- Guest: Log in + Sign up -->
+      <!-- Guest: language switcher + Log in + Sign up -->
       @if (!isAuthPending() && !isAuthenticated()) {
+        <app-language-selector variant="dropdown" />
         <button type="button" class="nh__btn nh__btn--ghost" (click)="onOpenAuth('login')">
           Log in
         </button>

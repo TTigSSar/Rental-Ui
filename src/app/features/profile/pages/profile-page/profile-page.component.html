@@ -315,12 +315,17 @@
                     <div class="profile-page__m-item-body">
                       <span class="profile-page__m-item-label">{{ 'profile.nav.language' | translate }}</span>
                     </div>
-                    <span class="profile-page__m-item-meta">{{ currentLang().label }}</span>
-                    <app-icon name="chevron-right" [size]="16" class="profile-page__m-chevron" />
+                    <span class="profile-page__m-item-meta">{{ currentLang().native }}</span>
+                    <app-icon
+                      name="chevron-right"
+                      [size]="16"
+                      class="profile-page__m-chevron"
+                      [class.profile-page__m-chevron--open]="languageMenuOpen()"
+                    />
                   </button>
 
                   @if (languageMenuOpen()) {
-                    <div class="profile-page__lang-dropdown" role="menu">
+                    <div class="profile-page__lang-dropdown profile-page__lang-dropdown--inline" role="menu">
                       @for (option of availableLanguages; track option.code) {
                         <button
                           type="button"
@@ -330,7 +335,7 @@
                           [attr.aria-checked]="option.code === currentLang().code"
                           (click)="selectLanguage(option)"
                         >
-                          <span>{{ option.label }}</span>
+                          <span>{{ option.native }}</span>
                           @if (option.code === currentLang().code) {
                             <i class="pi pi-check" aria-hidden="true"></i>
                           }
@@ -415,7 +420,7 @@
                     <i class="pi pi-globe" aria-hidden="true"></i>
                   </span>
                   <span class="profile-page__menu-label">{{ 'profile.nav.language' | translate }}</span>
-                  <span class="profile-page__menu-meta">{{ currentLang().label }}</span>
+                  <span class="profile-page__menu-meta">{{ currentLang().native }}</span>
                   <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
                 </button>
                 <button type="button" class="profile-page__menu-row" disabled>
@@ -445,7 +450,7 @@
                       [attr.aria-checked]="option.code === currentLang().code"
                       (click)="selectLanguage(option)"
                     >
-                      <span>{{ option.label }}</span>
+                      <span>{{ option.native }}</span>
                       @if (option.code === currentLang().code) {
                         <i class="pi pi-check" aria-hidden="true"></i>
                       }

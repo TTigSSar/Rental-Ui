@@ -10,7 +10,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Toast } from 'primeng/toast';
 import { combineLatest, distinctUntilChanged, filter, map } from 'rxjs';
 
@@ -24,6 +24,7 @@ import { AuthDialogComponent } from './features/auth/components/auth-dialog/auth
 import { ChatBadgeService } from './features/chat/services/chat-badge.service';
 import { ChatRealtimeService } from './features/chat/services/chat-realtime.service';
 import { NotificationBadgeService } from './features/notifications/services/notification-badge.service';
+import { LanguageService } from './shared/services/language.service';
 import { AppHeaderComponent } from './shared/ui/app-header/app-header.component';
 import { HeaderSearchVisibilityService } from './shared/ui/app-header/header-search-visibility.service';
 
@@ -33,8 +34,6 @@ interface NavItem {
   readonly exactMatch: boolean;
 }
 
-const LANGUAGE_STORAGE_KEY = 'stayfinder.lang';
-const VALID_LANG_CODES = ['en', 'hy', 'ru'] as const;
 const SCROLL_SHRINK_THRESHOLD = 8;
 
 interface AppShellViewModel {
@@ -117,7 +116,7 @@ function isChatThreadUrl(url: string): boolean {
 export class App {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
-  private readonly translate = inject(TranslateService);
+  private readonly languageService = inject(LanguageService);
   private readonly notificationBadge = inject(NotificationBadgeService);
   private readonly chatBadge = inject(ChatBadgeService);
   private readonly chatRealtime = inject(ChatRealtimeService);
@@ -210,7 +209,7 @@ export class App {
 
   constructor() {
     this.store.dispatch(AuthActions.authInitStarted());
-    this.hydrateLanguage();
+    this.languageService.hydrate();
 
     // Drive the global notification badge poller off auth state.
     this.store
@@ -261,12 +260,5 @@ export class App {
     if (nextScrolled !== this.scrolled()) {
       this.scrolled.set(nextScrolled);
     }
-  }
-
-  private hydrateLanguage(): void {
-    let stored: string | null = null;
-    try { stored = localStorage.getItem(LANGUAGE_STORAGE_KEY); } catch { /* ignore */ }
-    const code = (VALID_LANG_CODES as readonly string[]).includes(stored ?? '') ? stored! : 'en';
-    this.translate.use(code);
   }
 }

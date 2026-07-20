@@ -12,11 +12,12 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, filter, map, of, startWith, switchMap } from 'rxjs';
 
+import { LanguageOption, LanguageService } from '../../../../shared/services/language.service';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 
 import * as AuthActions from '../../../auth/store/auth.actions';
@@ -45,13 +46,6 @@ import {
   selectProfileLoading,
 } from '../../store/profile.selectors';
 
-interface LanguageOption {
-  readonly code: 'en' | 'ru' | 'hy';
-  readonly label: string;
-}
-
-const LANGUAGE_STORAGE_KEY = 'stayfinder.lang';
-
 @Component({
   selector: 'app-profile-page',
   standalone: true,
@@ -73,7 +67,7 @@ const LANGUAGE_STORAGE_KEY = 'stayfinder.lang';
 })
 export class ProfilePageComponent implements OnInit {
   private readonly store = inject(Store);
-  private readonly translate = inject(TranslateService);
+  private readonly languageService = inject(LanguageService);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -86,14 +80,10 @@ export class ProfilePageComponent implements OnInit {
     { initialValue: false },
   );
 
-  protected readonly availableLanguages: readonly LanguageOption[] = [
-    { code: 'en', label: 'English' },
-    { code: 'ru', label: 'Русский' },
-    { code: 'hy', label: 'Հայերեն' },
-  ];
+  protected readonly availableLanguages: readonly LanguageOption[] = this.languageService.languages;
 
   protected readonly languageMenuOpen = signal(false);
-  protected readonly currentLang = signal<LanguageOption>(this.resolveCurrentLang());
+  protected readonly currentLang = this.languageService.current;
 
   private readonly profileId$ = this.store.select(selectProfile).pipe(
     map((p) => p?.id ?? null),
@@ -234,11 +224,7 @@ export class ProfilePageComponent implements OnInit {
   }
 
   protected selectLanguage(option: LanguageOption): void {
-    this.currentLang.set(option);
-    this.translate.use(option.code);
-    try {
-      localStorage.setItem(LANGUAGE_STORAGE_KEY, option.code);
-    } catch { /* ignore */ }
+    this.languageService.use(option.code);
     this.languageMenuOpen.set(false);
   }
 
@@ -253,11 +239,5 @@ export class ProfilePageComponent implements OnInit {
     if (!target.closest?.('[data-lang-section]')) {
       this.languageMenuOpen.set(false);
     }
-  }
-
-  private resolveCurrentLang(): LanguageOption {
-    let stored: string | null = null;
-    try { stored = localStorage.getItem(LANGUAGE_STORAGE_KEY); } catch { /* ignore */ }
-    return this.availableLanguages.find((l) => l.code === stored) ?? this.availableLanguages[0];
   }
 }

@@ -4,6 +4,12 @@
     "retry": "Try again"
   },
   "app": {
+    "language": {
+      "title": "Choose language",
+      "caption": "Language",
+      "change": "Change language",
+      "close": "Close"
+    },
     "shell": {
       "primaryNavAria": "Primary navigation",
       "secondaryNavAria": "Account navigation",

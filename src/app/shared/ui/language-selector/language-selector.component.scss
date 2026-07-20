@@ -1,0 +1,302 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   Language selector — shared trigger, two overlays (dropdown / sheet)
+   Prefix: lang-selector
+   ══════════════════════════════════════════════════════════════════════════ */
+
+:host {
+  position: relative;
+  display: inline-flex;
+}
+
+/* ── Trigger (shared shape; sheet variant overrides height below) ────────── */
+.lang-selector__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-primary);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+.lang-selector__trigger:hover {
+  border-color: var(--ui-color-border-strong);
+}
+
+:host(.lang-selector--open) .lang-selector__trigger {
+  background: var(--ui-color-surface-muted);
+}
+
+.lang-selector__icon {
+  font-size: 1.125rem; /* 18px */
+  color: var(--ui-color-text-secondary);
+}
+
+.lang-selector__code {
+  text-transform: uppercase;
+}
+
+.lang-selector__chevron {
+  font-size: 0.625rem;
+  color: var(--ui-color-text-secondary);
+  transition: transform 160ms ease;
+}
+
+.lang-selector__chevron--open {
+  transform: rotate(180deg);
+}
+
+/* Mobile trigger: 40px pill, no chevron (omitted in template), never shrinks
+   in the Home top row's flex layout. */
+:host(.lang-selector--sheet) .lang-selector__trigger {
+  height: 40px;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Dropdown (desktop)
+   ══════════════════════════════════════════════════════════════════════════ */
+.lang-selector__panel {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  width: 232px;
+  padding: 10px;
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-color-surface);
+  /* Exact shadow from the design reference — no existing token matches. */
+  box-shadow: 0 20px 48px -18px rgba(20, 15, 5, 0.4);
+  z-index: 60;
+  animation: lang-panel-in 140ms ease-out both;
+}
+
+@keyframes lang-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.lang-selector__caption {
+  margin: 4px 8px 6px;
+  font-size: 0.6875rem; /* 11px */
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ui-color-text-secondary);
+}
+
+.lang-selector__row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+  padding: 11px 12px;
+  border: none;
+  /* Design spec calls for 11px; no existing radius token lands there
+     (--ui-radius-12 is the nearest at 12px), so this is hardcoded. */
+  border-radius: 11px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 120ms ease;
+}
+
+.lang-selector__row:hover {
+  background: var(--ui-color-surface-muted);
+}
+
+.lang-selector__row--active {
+  background: var(--ui-color-primary-soft);
+}
+
+.lang-selector__flag {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.lang-selector__names {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.lang-selector__native {
+  font-size: 0.90625rem; /* 14.5px */
+  font-weight: 700;
+  color: var(--ui-color-text-primary);
+}
+
+.lang-selector__row--active .lang-selector__native {
+  color: var(--ui-color-primary);
+}
+
+.lang-selector__label {
+  font-size: 0.75rem;
+  color: var(--ui-color-text-secondary);
+}
+
+.lang-selector__check {
+  font-size: 0.8125rem;
+  color: var(--ui-color-primary);
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Sheet (mobile) — position: fixed, NOT absolute. The design mock renders
+   inside a phone frame so it used absolute there; the real scrolling page
+   would clip an absolutely-positioned sheet, so this must escape to the
+   viewport. z-index follows the existing bottom-sheet convention in this
+   codebase (listings-filters: backdrop 400 / sheet 401), which already
+   clears the sticky header (100) and bottom nav (99).
+   ══════════════════════════════════════════════════════════════════════════ */
+.lang-selector__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background: rgba(20, 18, 16, 0.42);
+  animation: lang-scrim-in 160ms ease-out both;
+}
+
+@keyframes lang-scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.lang-selector__sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 401;
+  padding: 10px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+  /* Design spec calls for 22px; no existing token lands there
+     (--ui-radius-lg is 20px), so this is hardcoded. */
+  border-radius: 22px 22px 0 0;
+  background: var(--ui-color-surface);
+  box-shadow: 0 -12px 40px rgba(20, 15, 5, 0.2);
+  animation: lang-sheet-in 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes lang-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lang-selector__scrim,
+  .lang-selector__sheet {
+    animation: none;
+  }
+}
+
+.lang-selector__grabber {
+  width: 40px;
+  height: 4px;
+  margin: 0 auto 14px;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-border-strong);
+}
+
+.lang-selector__sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.lang-selector__sheet-title {
+  margin: 0;
+  font-size: 1.125rem; /* 18px */
+  font-weight: 800;
+  color: var(--ui-color-text-primary);
+}
+
+.lang-selector__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-primary);
+  cursor: pointer;
+}
+
+.lang-selector__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lang-selector__card {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+  padding: 14px;
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  background: var(--ui-color-surface-muted);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+.lang-selector__card--active {
+  background: var(--ui-color-primary-soft);
+  border-color: var(--ui-color-primary);
+}
+
+.lang-selector__flag--lg {
+  font-size: 24px;
+}
+
+.lang-selector__native--lg {
+  font-size: 1rem; /* 16px */
+}
+
+.lang-selector__card .lang-selector__label {
+  font-size: 0.8125rem; /* 13px */
+}
+
+/* ── Focus rings ─────────────────────────────────────────────────────────── */
+.lang-selector__trigger:focus-visible,
+.lang-selector__row:focus-visible,
+.lang-selector__card:focus-visible,
+.lang-selector__close:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--ui-color-surface),
+    0 0 0 4px rgba(255, 96, 8, 0.55);
+}

@@ -4,6 +4,12 @@
     "retry": "Կրկնել"
   },
   "app": {
+    "language": {
+      "title": "Ընտրեք լեզուն",
+      "caption": "Լեզու",
+      "change": "Փոխել լեզուն",
+      "close": "Փակել"
+    },
     "shell": {
       "primaryNavAria": "Գլխավոր նավիգացիա",
       "secondaryNavAria": "Հաշվի նավիգացիա",

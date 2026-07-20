@@ -44,6 +44,7 @@ import {
 import { SectionHeaderComponent } from '../../../../shared/ui/section-header/section-header.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import { HeaderSearchVisibilityService } from '../../../../shared/ui/app-header/header-search-visibility.service';
+import { LanguageSelectorComponent } from '../../../../shared/ui/language-selector/language-selector.component';
 
 type ProcessMode = 'renting' | 'lending';
 
@@ -253,6 +254,7 @@ const selectHomeSource = createSelector(
     CategoryTileComponent,
     SectionHeaderComponent,
     UiInputComponent,
+    LanguageSelectorComponent,
   ],
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.scss',

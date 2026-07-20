@@ -4,6 +4,12 @@
     "retry": "Повторить"
   },
   "app": {
+    "language": {
+      "title": "Выберите язык",
+      "caption": "Язык",
+      "change": "Сменить язык",
+      "close": "Закрыть"
+    },
     "shell": {
       "primaryNavAria": "Основная навигация",
       "secondaryNavAria": "Навигация аккаунта",
