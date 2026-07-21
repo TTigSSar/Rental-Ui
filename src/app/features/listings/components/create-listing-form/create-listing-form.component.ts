@@ -6,6 +6,7 @@ import {
   Input,
   OnInit,
   Output,
+  afterRenderEffect,
   computed,
   inject,
   signal,
@@ -174,6 +175,22 @@ export class CreateListingFormComponent implements OnInit {
   private readonly fb              = inject(FormBuilder);
   private readonly location        = inject(Location);
   private readonly languageService = inject(LanguageService);
+
+  constructor() {
+    // The location-picker trigger's post-close focus return (see
+    // `closeLocationPicker` below) has to wait for the `hasPin()` template
+    // swap to actually land in the DOM before it can query the right node —
+    // `afterRenderEffect` (same primitive `conversation-details-page` uses to
+    // scroll after new messages render) guarantees that ordering, unlike a
+    // microtask which fires before Angular re-renders.
+    afterRenderEffect(() => {
+      if (!this.focusReturnPending()) {
+        return;
+      }
+      this.locationPickerTrigger()?.nativeElement.focus();
+      this.focusReturnPending.set(false);
+    });
+  }
 
   @Input() categories: ListingCategoryOption[] = [];
   /** The 12 fixed Yerevan districts. Optional owner override for the pin's
@@ -483,6 +500,15 @@ export class CreateListingFormComponent implements OnInit {
   readonly pinCenter = signal<MapLatLng | null>(null);
   readonly hasPin = computed(() => this.pinCenter() !== null);
 
+  /**
+   * Flipped true right before the picker closes; the `afterRenderEffect` in
+   * the constructor consumes it and flips it back. Confirm changes `hasPin()`
+   * in the same tick as this flag, so both land in the same render pass —
+   * by the time the effect runs, `locationPickerTrigger()` resolves to
+   * whichever button (CTA or "change") is actually visible post-swap.
+   */
+  private readonly focusReturnPending = signal(false);
+
   protected openLocationPicker(): void {
     this.showLocationPicker.set(true);
   }
@@ -501,8 +527,9 @@ export class CreateListingFormComponent implements OnInit {
 
   private closeLocationPicker(): void {
     this.showLocationPicker.set(false);
-    // Return focus to whichever button opened the picker (a11y requirement).
-    queueMicrotask(() => this.locationPickerTrigger()?.nativeElement.focus());
+    // Return focus to whichever button occupies the trigger spot once the
+    // DOM has caught up (a11y requirement) — see `focusReturnPending` above.
+    this.focusReturnPending.set(true);
   }
 
   protected districtName(district: ListingDistrict): string {

@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { CreateListingFormComponent } from './create-listing-form.component';
@@ -6,9 +7,31 @@ import type {
   ListingFormMode,
   ListingImageOrderItem,
 } from './create-listing-form.component';
+import { LocationPickerComponent } from '../location-picker/location-picker.component';
 import type { CreateListingRequest } from '../../models/create-listing.model';
 import type { ListingDistrict } from '../../models/district.model';
 import type { MapLatLng } from '../../../../shared/ui/map/map.component';
+
+/**
+ * The focus-return regression tests below advance the wizard to Step 3, which
+ * renders `<app-map>` for the confirmed-pin preview (see `hasPin()` branch in
+ * the template) — a real `import('leaflet')` in `ngAfterViewInit`. Stubbed the
+ * same way `location-picker.component.spec.ts` does, since these tests only
+ * care about focus/DOM wiring, not Leaflet's own rendering.
+ */
+vi.mock('leaflet', () => ({
+  map: vi.fn((_el: HTMLElement, options: { center: [number, number] }) => ({
+    setView: vi.fn(),
+    on: vi.fn(),
+    getCenter: vi.fn(() => ({ lat: options.center[0], lng: options.center[1] })),
+    invalidateSize: vi.fn(),
+    removeLayer: vi.fn(),
+    remove: vi.fn(),
+  })),
+  tileLayer: vi.fn(() => ({ addTo: vi.fn() })),
+  marker: vi.fn(() => ({ addTo: vi.fn() })),
+  divIcon: vi.fn((options: unknown) => options),
+}));
 
 /**
  * Regression net for the create-listing wizard's Step-3 payload (confirmed
@@ -246,5 +269,94 @@ describe('CreateListingFormComponent — pin picker → payload (P1-6)', () => {
     expect(event!.payload.latitude).toBeNull();
     expect(event!.payload.longitude).toBeNull();
     expect(event!.payload.districtId).toBeNull();
+  });
+});
+
+/**
+ * a11y regression (verifier-confirmed, P1-6): closing the location picker via
+ * Confirm left `document.activeElement` on `<body>` forever, because
+ * `onLocationConfirmed` flips `hasPin()` — which swaps the template's
+ * `@if/@else` between `.location-card__cta` and `.location-card__change-btn`
+ * — in the SAME tick as the old `queueMicrotask`-based focus call. The
+ * microtask ran before Angular re-rendered the swap, so it focused the
+ * outgoing (about-to-be-destroyed) CTA node; the instant that node was
+ * removed, focus reverted to `<body>`. Cancel/Escape never touch `hasPin()`,
+ * so the trigger node never gets swapped out from under them — that's why
+ * only the Confirm path was broken.
+ *
+ * The fix moves the focus call into an `afterRenderEffect` (the same
+ * post-render primitive `conversation-details-page.component.ts` uses to
+ * scroll after new messages render), gated by a `focusReturnPending` flag set
+ * right before the picker closes. These tests render the real Step-3 DOM
+ * (not the direct-method-call style used by the P1-6 payload tests above) so
+ * they exercise the actual `@if/@else` swap and query `document.activeElement`
+ * the same way the verifier's manual repro did.
+ */
+describe('CreateListingFormComponent — location picker focus return (a11y)', () => {
+  function goToStep3(fixture: ReturnType<typeof createComponent>['fixture'], component: CreateListingFormComponent) {
+    component.currentStep.set(3);
+    fixture.detectChanges();
+  }
+
+  it('Confirm: focus lands on the "change" button once the CTA→change-button swap has rendered (regression)', async () => {
+    const { fixture, component } = createComponent('create');
+    goToStep3(fixture, component);
+
+    const cta = fixture.nativeElement.querySelector('.location-card__cta') as HTMLButtonElement;
+    expect(cta).toBeTruthy();
+    cta.focus();
+    expect(document.activeElement).toBe(cta);
+
+    (component as unknown as LocationWireable).onLocationConfirmed({ lat: 40.1776, lng: 44.5126 });
+    // Let a microtask-scheduled callback registered synchronously during the
+    // call above (the old buggy fix used `queueMicrotask`) run BEFORE Angular
+    // re-renders — reproducing the actual race the verifier hit, rather than
+    // masking it by rendering first.
+    await Promise.resolve();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const changeBtn = fixture.nativeElement.querySelector('.location-card__change-btn') as HTMLButtonElement;
+    expect(changeBtn).toBeTruthy();
+    // The old CTA node must actually be gone (the `@else` branch un-rendered) —
+    // otherwise this test wouldn't be exercising the swap at all.
+    expect(fixture.nativeElement.querySelector('.location-card__cta')).toBeNull();
+    expect(document.activeElement).toBe(changeBtn);
+  });
+
+  it('Cancel: focus returns to the CTA button (same node persists — no template swap)', async () => {
+    const { fixture, component } = createComponent('create');
+    goToStep3(fixture, component);
+
+    const cta = fixture.nativeElement.querySelector('.location-card__cta') as HTMLButtonElement;
+    cta.focus();
+    expect(document.activeElement).toBe(cta);
+
+    (component as unknown as { onLocationCancelled(): void }).onLocationCancelled();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('.location-card__cta'));
+  });
+
+  it('Escape: the picker maps it to the same cancel path (PrimeNG dialog visibleChange(false)), which returns focus to the CTA button', async () => {
+    const { fixture, component } = createComponent('create');
+    goToStep3(fixture, component);
+
+    const cta = fixture.nativeElement.querySelector('.location-card__cta') as HTMLButtonElement;
+    cta.focus();
+    expect(document.activeElement).toBe(cta);
+
+    // Drive the REAL child component's Escape-equivalent handler (verified in
+    // `location-picker.component.spec.ts` to be what Escape/the header close
+    // button trigger) so this exercises the actual `(cancelled)` output
+    // binding between the two components, not just the parent's own handler.
+    const picker = fixture.debugElement.query(By.directive(LocationPickerComponent))
+      .componentInstance as unknown as { onVisibleChange(visible: boolean): void };
+    picker.onVisibleChange(false);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('.location-card__cta'));
   });
 });
