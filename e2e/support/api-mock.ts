@@ -1,5 +1,7 @@
 import type { Page, Route } from '@playwright/test';
 
+import { e2eDistricts } from './fixtures';
+
 /**
  * Network-level backend stub for E2E journeys. Install once per test with the
  * state the journey needs; every `/api/**` request is answered from this seed so
@@ -13,10 +15,21 @@ export interface ApiSeed {
   me?: unknown;
   /** GET /api/listings — items for the paged listings response. */
   listings?: unknown[];
+  /** GET /api/listings/:id — a single listing's full detail payload. */
+  listingDetails?: unknown;
   /** GET /api/admin/listings/pending */
   pendingListings?: unknown[];
+  /** GET /api/categories — defaults to a single "Toys" category. */
+  categories?: unknown[];
+  /**
+   * GET /api/districts — defaults to the real 12 Yerevan districts (see
+   * `e2eDistricts()`) so this can't silently drift from what the backend seeds.
+   */
+  districts?: unknown[];
   /** POST /api/auth/login outcome. */
   login?: { token?: string; status?: number; body?: unknown };
+  /** POST /api/listings outcome — defaults to a successful creation. */
+  createListing?: { status?: number; body?: unknown };
 }
 
 function json(route: Route, status: number, body: unknown): Promise<void> {
@@ -57,6 +70,30 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
         pageSize: 20,
         hasMore: false,
       });
+    }
+
+    if (pathname.endsWith('/api/listings') && method === 'POST') {
+      const status = seed.createListing?.status ?? 200;
+      return json(
+        route,
+        status,
+        seed.createListing?.body ?? { id: 'listing-created-e2e-1', status: 'PendingApproval' },
+      );
+    }
+
+    // GET /api/listings/{id} — a single listing's detail payload. Excludes
+    // /api/listings/mine, which has its own (list-shaped) response elsewhere.
+    const singleListingId = pathname.match(/^\/api\/listings\/([^/]+)$/)?.[1];
+    if (singleListingId && singleListingId !== 'mine' && method === 'GET') {
+      return json(route, 200, seed.listingDetails ?? {});
+    }
+
+    if (pathname.endsWith('/api/categories') && method === 'GET') {
+      return json(route, 200, seed.categories ?? [{ id: 'cat-e2e-1', name: 'Toys', slug: 'toys' }]);
+    }
+
+    if (pathname.endsWith('/api/districts') && method === 'GET') {
+      return json(route, 200, seed.districts ?? e2eDistricts());
     }
 
     // Anything else: keep the app happy with a benign success.

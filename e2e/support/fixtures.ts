@@ -26,6 +26,71 @@ export function e2eAdmin(overrides: Record<string, unknown> = {}) {
   return e2eUser({ id: 'admin-e2e-1', roles: ['User', 'Admin'], ...overrides });
 }
 
+/**
+ * The 12 fixed Yerevan districts served by `GET /api/districts`. Ids/codes/
+ * names are copied verbatim from the seed data in the
+ * `AddDistrictsAndListingLocationFields` migration
+ * (rental-api/src/RentalPlatform.Infrastructure/Persistence/Migrations/
+ * 20260721072621_AddDistrictsAndListingLocationFields.cs) so this fixture
+ * cannot drift from what the real backend returns. Sorted by `nameEn` to
+ * match the backend's ordering guarantee (`DistrictsController`).
+ */
+export function e2eDistricts() {
+  const districts = [
+    { id: 'd0000001-0000-4000-9000-000000000001', code: 'ajapnyak', nameEn: 'Ajapnyak', nameHy: 'Աջափնյակ', nameRu: 'Ачапняк' },
+    { id: 'd0000002-0000-4000-9000-000000000002', code: 'arabkir', nameEn: 'Arabkir', nameHy: 'Արաբկիր', nameRu: 'Арабкир' },
+    { id: 'd0000003-0000-4000-9000-000000000003', code: 'avan', nameEn: 'Avan', nameHy: 'Ավան', nameRu: 'Аван' },
+    { id: 'd0000004-0000-4000-9000-000000000004', code: 'davtashen', nameEn: 'Davtashen', nameHy: 'Դավթաշեն', nameRu: 'Давташен' },
+    { id: 'd0000005-0000-4000-9000-000000000005', code: 'erebuni', nameEn: 'Erebuni', nameHy: 'Էրեբունի', nameRu: 'Эребуни' },
+    { id: 'd0000006-0000-4000-9000-000000000006', code: 'kanaker-zeytun', nameEn: 'Kanaker-Zeytun', nameHy: 'Քանաքեռ-Զեյթուն', nameRu: 'Канакер-Зейтун' },
+    { id: 'd0000007-0000-4000-9000-000000000007', code: 'kentron', nameEn: 'Kentron', nameHy: 'Կենտրոն', nameRu: 'Кентрон' },
+    { id: 'd0000008-0000-4000-9000-000000000008', code: 'malatia-sebastia', nameEn: 'Malatia-Sebastia', nameHy: 'Մալաթիա-Սեբաստիա', nameRu: 'Малатия-Себастия' },
+    { id: 'd0000009-0000-4000-9000-000000000009', code: 'nork-marash', nameEn: 'Nork-Marash', nameHy: 'Նորք Մարաշ', nameRu: 'Норк Мараш' },
+    { id: 'd000000a-0000-4000-9000-00000000000a', code: 'nor-nork', nameEn: 'Nor Nork', nameHy: 'Նոր Նորք', nameRu: 'Нор Норк' },
+    { id: 'd000000b-0000-4000-9000-00000000000b', code: 'nubarashen', nameEn: 'Nubarashen', nameHy: 'Նուբարաշեն', nameRu: 'Нубарашен' },
+    { id: 'd000000c-0000-4000-9000-00000000000c', code: 'shengavit', nameEn: 'Shengavit', nameHy: 'Շենգավիթ', nameRu: 'Шенгавит' },
+  ];
+  return [...districts].sort((a, b) => a.nameEn.localeCompare(b.nameEn));
+}
+
+/** One district from `e2eDistricts()` — Kentron by default (central Yerevan). */
+export function e2eDistrict(overrides: Record<string, unknown> = {}) {
+  const kentron = e2eDistricts().find((d) => d.code === 'kentron');
+  return { ...kentron, ...overrides };
+}
+
+/**
+ * Full `GET /api/listings/:id` wire shape (P1-8/M-013 gap fixture — the mocked
+ * tier had never modelled this endpoint before). Defaults to a listing with a
+ * real coordinate + district so map/location journeys have something to
+ * assert on; pass `{ latitude: null, longitude: null }` for the no-pin state.
+ */
+export function e2eListingDetails(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'listing-e2e-1',
+    title: 'E2E Wooden Train Set',
+    description: 'A sturdy wooden train set, gently used and freshly cleaned.',
+    city: 'Yerevan',
+    pricePerDay: 5,
+    images: [],
+    owner: { id: 'owner-e2e-1', firstName: 'Olive', lastName: 'Owner', phoneNumber: null },
+    bookedDates: [],
+    isFavorite: false,
+    ageFromMonths: 24,
+    ageToMonths: 60,
+    condition: 'Good',
+    hygieneNotes: null,
+    safetyNotes: null,
+    depositAmount: null,
+    minRentalDays: 1,
+    deliveryType: 'Pickup',
+    district: e2eDistrict(),
+    latitude: 40.1872,
+    longitude: 44.5152,
+    ...overrides,
+  };
+}
+
 export function e2ePendingListing(overrides: Record<string, unknown> = {}) {
   return {
     id: 'pending-e2e-1',
