@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   EventEmitter,
   Input,
   OnInit,
@@ -8,6 +9,7 @@ import {
   computed,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { Location } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -20,6 +22,9 @@ import {
   CategorySelectorComponent,
 } from '../../../../shared/ui/category-selector/category-selector.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
+import { MapComponent } from '../../../../shared/ui/map/map.component';
+import type { MapLatLng } from '../../../../shared/ui/map/map.component';
+import { LanguageService } from '../../../../shared/services/language.service';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import type {
   CreateListingRequest,
@@ -28,7 +33,10 @@ import type {
   PriceUnit,
 } from '../../models/create-listing.model';
 import { PRICE_UNITS } from '../../models/create-listing.model';
+import type { ListingDistrict } from '../../models/district.model';
+import { districtDisplayName } from '../../models/district-ui.util';
 import type { ListingImage } from '../../models/listing.model';
+import { LocationPickerComponent, YEREVAN_CENTER } from '../location-picker/location-picker.component';
 
 /** Whether the wizard creates a new listing or edits an existing one. */
 export type ListingFormMode = 'create' | 'edit';
@@ -148,6 +156,8 @@ function ageRangeValidator(control: AbstractControl): ValidationErrors | null {
     CategorySelectorComponent,
     DramCurrencyPipe,
     InputNumberModule,
+    LocationPickerComponent,
+    MapComponent,
     ReactiveFormsModule,
     TranslatePipe,
     UiInputComponent,
@@ -161,10 +171,16 @@ function ageRangeValidator(control: AbstractControl): ValidationErrors | null {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreateListingFormComponent implements OnInit {
-  private readonly fb       = inject(FormBuilder);
-  private readonly location = inject(Location);
+  private readonly fb              = inject(FormBuilder);
+  private readonly location        = inject(Location);
+  private readonly languageService = inject(LanguageService);
 
   @Input() categories: ListingCategoryOption[] = [];
+  /** The 12 fixed Yerevan districts. Optional owner override for the pin's
+   *  derived district (see `district.id` control below); an empty list just
+   *  means the select has no options yet (still loading, or the call failed —
+   *  the field stays optional either way). */
+  @Input() districts: ListingDistrict[] = [];
   @Input() isSubmitting = false;
   @Input() createError: string | null = null;
   @Input() uploadProgress: number | null = null;
@@ -236,6 +252,7 @@ export class CreateListingFormComponent implements OnInit {
   readonly minPhotos    = MIN_PHOTOS;
   readonly maxPhotos    = MAX_PHOTOS;
   readonly steps        = WIZARD_STEPS;
+  readonly yerevanCenter = YEREVAN_CENTER;
 
   // ── Wizard ───────────────────────────────────────────────────
   readonly currentStep = signal(1);
@@ -344,6 +361,8 @@ export class CreateListingFormComponent implements OnInit {
       addressLine:   this.fb.nonNullable.control(''),
       latitude:      this.fb.control<number | null>(null),
       longitude:     this.fb.control<number | null>(null),
+      // Optional owner override; the backend derives this from the pin when null.
+      districtId:    this.fb.control<string | null>(null),
       ageFromMonths: this.fb.control<number | null>(24, [Validators.min(0)]),
       ageToMonths:   this.fb.control<number | null>(60, [Validators.min(0)]),
       condition:     this.fb.nonNullable.control<'' | ConditionChip['value']>(''),
@@ -442,6 +461,52 @@ export class CreateListingFormComponent implements OnInit {
 
   protected priceUnitNounKey(unit: PriceUnit): string {
     return `listings.createForm.priceUnitNoun.${unit.toLowerCase()}`;
+  }
+
+  // ── Location pin picker ───────────────────────────────────────
+  /** Trigger button — either the "Set location on map" CTA or the "Change"
+   *  affordance on the static preview, whichever is currently rendered. Focus
+   *  returns here when the full-screen picker closes (a11y requirement). */
+  private readonly locationPickerTrigger =
+    viewChild<ElementRef<HTMLButtonElement>>('locationPickerTrigger');
+
+  readonly showLocationPicker = signal(false);
+
+  /**
+   * The confirmed pin, or null while none has been set — drives the
+   * CTA-vs-preview switch in the template. Mirrors the (non-signal)
+   * `latitude`/`longitude` form controls, same reasoning as `selectedCond` /
+   * `ageYears` elsewhere in this component: a `computed()` can't react to
+   * plain `FormControl.value` reads (no signal dependency to track), so this
+   * has to be a signal set explicitly wherever those controls are written.
+   */
+  readonly pinCenter = signal<MapLatLng | null>(null);
+  readonly hasPin = computed(() => this.pinCenter() !== null);
+
+  protected openLocationPicker(): void {
+    this.showLocationPicker.set(true);
+  }
+
+  protected onLocationConfirmed(coord: MapLatLng): void {
+    this.createListingForm.patchValue({ latitude: coord.lat, longitude: coord.lng });
+    this.createListingForm.controls.latitude.markAsDirty();
+    this.createListingForm.controls.longitude.markAsDirty();
+    this.pinCenter.set(coord);
+    this.closeLocationPicker();
+  }
+
+  protected onLocationCancelled(): void {
+    this.closeLocationPicker();
+  }
+
+  private closeLocationPicker(): void {
+    this.showLocationPicker.set(false);
+    // Return focus to whichever button opened the picker (a11y requirement).
+    queueMicrotask(() => this.locationPickerTrigger()?.nativeElement.focus());
+  }
+
+  protected districtName(district: ListingDistrict): string {
+    return districtDisplayName(district, this.languageService.current().code);
   }
 
   // ── Chip handlers ─────────────────────────────────────────────
@@ -779,6 +844,7 @@ export class CreateListingFormComponent implements OnInit {
       addressLine:   this.toNullStr(raw.addressLine),
       latitude:      raw.latitude,
       longitude:     raw.longitude,
+      districtId:    raw.districtId,
       ageFromMonths: raw.ageFromMonths,
       ageToMonths:   raw.ageToMonths,
       condition:     raw.condition === '' ? null : raw.condition,

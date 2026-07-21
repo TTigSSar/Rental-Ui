@@ -659,6 +659,80 @@
   &:hover { border-color: var(--ui-color-primary); color: var(--ui-color-primary); }
 }
 
+/* ── Location — district select + pin picker ────────────────── */
+.wizard-select {
+  width: 100%;
+  height: 3rem;
+  padding: 0 var(--ui-space-16);
+  border: 1.5px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-input);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-primary);
+  font: inherit;
+  font-size: var(--ui-font-size-body);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23ff6008' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--ui-space-16) center;
+
+  &:focus-visible { outline: 2px solid var(--ui-color-primary); outline-offset: 2px; }
+}
+
+.location-card__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-space-8);
+  width: 100%;
+  height: 3rem;
+  border: 1.5px dashed var(--ui-color-primary);
+  border-radius: var(--ui-radius-input);
+  background: var(--ui-color-primary-soft);
+  color: var(--ui-color-primary);
+  font: inherit;
+  font-weight: 700;
+  font-size: var(--ui-font-size-caption);
+  cursor: pointer;
+  transition: background 150ms ease;
+
+  &:hover { background: color-mix(in srgb, var(--ui-color-primary-soft) 80%, white); }
+  &:focus-visible { outline: 2px solid var(--ui-color-primary); outline-offset: 2px; }
+}
+
+.location-card {
+  position: relative;
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-card);
+  overflow: hidden;
+}
+
+.location-card__change-btn {
+  position: absolute;
+  bottom: var(--ui-space-8);
+  right: var(--ui-space-8);
+  /* Must out-rank Leaflet's own controls (attribution/zoom top out at
+     z-index 1000) — see the matching comment on `.app-map__crosshair`. */
+  z-index: 1001;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-6);
+  height: 2rem;
+  padding: 0 var(--ui-space-12);
+  border: none;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: var(--ui-shadow-card);
+
+  &:hover { background: var(--ui-color-primary-wash); }
+  &:focus-visible { outline: 2px solid var(--ui-color-primary); outline-offset: 2px; }
+}
+
 /* ── Pricing — delivery ──────────────────────────────────────── */
 .wizard-delivery-list { display: grid; grid-template-columns: 1fr; gap: var(--ui-space-8); }
 

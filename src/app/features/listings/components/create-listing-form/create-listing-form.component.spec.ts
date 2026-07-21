@@ -7,6 +7,8 @@ import type {
   ListingImageOrderItem,
 } from './create-listing-form.component';
 import type { CreateListingRequest } from '../../models/create-listing.model';
+import type { ListingDistrict } from '../../models/district.model';
+import type { MapLatLng } from '../../../../shared/ui/map/map.component';
 
 /**
  * Regression net for the create-listing wizard's Step-3 payload (confirmed
@@ -174,5 +176,75 @@ describe('CreateListingFormComponent — Step-3 payload (min rental + delivery)'
     // Must not emit null (which would re-introduce a different data-loss shape).
     expect(event!.payload.minRentalDays).toBe(1);
     expect(event!.payload.deliveryType).toBe('Pickup');
+  });
+});
+
+/**
+ * P1-6: the full-screen pin picker writes into the existing (previously
+ * dead) `latitude`/`longitude` controls, and the optional district override
+ * rides along in the same payload. `onLocationConfirmed` is exercised
+ * directly here (bypassing the picker's own UI, which is unit-tested in
+ * `location-picker.component.spec.ts`) so this stays a fast, DOM-free test of
+ * the wiring between the two components.
+ */
+interface LocationWireable {
+  onLocationConfirmed(coord: MapLatLng): void;
+  pinCenter(): MapLatLng | null;
+  hasPin(): boolean;
+  showLocationPicker: { set(v: boolean): void };
+}
+
+const SAMPLE_DISTRICT: ListingDistrict = {
+  id: 'd1111111-1111-1111-1111-111111111111',
+  code: 'kentron',
+  nameEn: 'Kentron',
+  nameHy: 'Կենտրոն',
+  nameRu: 'Кентрон',
+};
+
+describe('CreateListingFormComponent — pin picker → payload (P1-6)', () => {
+  it('confirming the picker populates the latitude/longitude form controls', () => {
+    const { component } = createComponent('create');
+    const wireable = component as unknown as LocationWireable;
+
+    expect(wireable.hasPin()).toBe(false);
+    expect(component.createListingForm.controls.latitude.value).toBeNull();
+    expect(component.createListingForm.controls.longitude.value).toBeNull();
+
+    wireable.onLocationConfirmed({ lat: 40.1776, lng: 44.5126 });
+
+    expect(component.createListingForm.controls.latitude.value).toBe(40.1776);
+    expect(component.createListingForm.controls.longitude.value).toBe(44.5126);
+    expect(wireable.hasPin()).toBe(true);
+    expect(wireable.pinCenter()).toEqual({ lat: 40.1776, lng: 44.5126 });
+  });
+
+  it('carries latitude/longitude/districtId in the create payload once set', () => {
+    const { component } = createComponent('create');
+    fillValidBasics(component);
+    seedThreePhotos(component);
+
+    (component as unknown as LocationWireable).onLocationConfirmed({ lat: 40.19, lng: 44.51 });
+    component.createListingForm.controls.districtId.setValue(SAMPLE_DISTRICT.id);
+
+    const event = submitAndCapture(component);
+
+    expect(event).not.toBeNull();
+    expect(event!.payload.latitude).toBe(40.19);
+    expect(event!.payload.longitude).toBe(44.51);
+    expect(event!.payload.districtId).toBe(SAMPLE_DISTRICT.id);
+  });
+
+  it('still submits with null latitude/longitude/districtId when the owner never opens the picker (the pin stays optional)', () => {
+    const { component } = createComponent('create');
+    fillValidBasics(component);
+    seedThreePhotos(component);
+
+    const event = submitAndCapture(component);
+
+    expect(event).not.toBeNull();
+    expect(event!.payload.latitude).toBeNull();
+    expect(event!.payload.longitude).toBeNull();
+    expect(event!.payload.districtId).toBeNull();
   });
 });

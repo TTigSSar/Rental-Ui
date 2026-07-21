@@ -1,0 +1,82 @@
+.app-map {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-color-surface-muted);
+}
+
+.app-map__surface {
+  position: absolute;
+  inset: 0;
+}
+
+/* Fixed centre pin for the full-screen crosshair picker — the map pans UNDER
+   this; it never itself moves. Visually mirrors the Leaflet-rendered marker
+   below (`.app-map__marker-*`) so the picker and the static preview/detail map
+   read as the exact same pin. */
+.app-map__crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* Leaflet's own panes/controls top out at z-index 1000 (its zoom control and
+     attribution). Neither `.app-map` nor its Leaflet-owned descendants create
+     an isolated stacking context (no z-index anywhere in the chain), so an
+     explicit z-index here is compared directly against Leaflet's — anything
+     ≤1000 can end up painted UNDER the attribution control despite coming
+     later in the DOM. */
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.app-map__crosshair-halo {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ui-color-primary) 22%, transparent);
+}
+
+.app-map__crosshair-dot {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ui-color-primary);
+  border: 3px solid #fff;
+  box-shadow: 0 3px 8px rgba(20, 15, 5, 0.35);
+}
+
+/* ── The static `pin` marker, rendered by Leaflet as raw HTML inside its own
+   marker pane (a DOM descendant of this component's host, but NOT part of
+   Angular's template) — `::ng-deep` is required for these rules to reach it. */
+:host ::ng-deep .app-map__marker {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+:host ::ng-deep .app-map__marker-halo {
+  position: absolute;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ui-color-primary) 22%, transparent);
+}
+
+:host ::ng-deep .app-map__marker-dot {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ui-color-primary);
+  border: 3px solid #fff;
+  box-shadow: 0 3px 8px rgba(20, 15, 5, 0.35);
+}

@@ -1,6 +1,7 @@
 @if (vm$ | async; as vm) {
   <app-create-listing-form
     [categories]="vm.categories"
+    [districts]="vm.districts"
     [isSubmitting]="vm.createListingLoading"
     [createError]="vm.createListingError"
     [imageUploadError]="vm.imageUploadError"

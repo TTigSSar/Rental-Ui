@@ -608,6 +608,81 @@
               </div>
             </div>
 
+            <!-- Pin location on a map (create flow only — the separate edit
+                 page can't persist coordinates yet; see create-listing-form's
+                 class doc / P1-6). -->
+            @if (mode !== 'edit') {
+              <div class="wizard-2col">
+                <div class="wizard-field">
+                  <label class="wizard-field__label" for="wz-district">
+                    {{ 'listings.createForm.district.label' | translate }}
+                  </label>
+                  <select
+                    id="wz-district"
+                    class="wizard-select"
+                    formControlName="districtId"
+                  >
+                    <option [ngValue]="null">{{ 'listings.createForm.district.placeholder' | translate }}</option>
+                    @for (d of districts; track d.id) {
+                      <option [ngValue]="d.id">{{ districtName(d) }}</option>
+                    }
+                  </select>
+                  <p class="wizard-field__note">
+                    <i class="pi pi-info-circle" aria-hidden="true"></i>
+                    {{ 'listings.createForm.district.derivedHint' | translate }}
+                  </p>
+                </div>
+
+                <div class="wizard-field">
+                  <span class="wizard-field__label">{{ 'listings.createForm.locationPicker.cta' | translate }}</span>
+                  @if (hasPin()) {
+                    <div class="location-card">
+                      <app-map
+                        [center]="pinCenter()!"
+                        [pin]="pinCenter()"
+                        [zoom]="15"
+                        height="140px"
+                      />
+                      <button
+                        type="button"
+                        #locationPickerTrigger
+                        class="location-card__change-btn"
+                        (click)="openLocationPicker()"
+                      >
+                        <i class="pi pi-map-marker" aria-hidden="true"></i>
+                        {{ 'listings.createForm.locationPicker.change' | translate }}
+                      </button>
+                    </div>
+                    <p class="wizard-field__note">
+                      <i class="pi pi-lock" aria-hidden="true"></i>
+                      {{ 'listings.createForm.locationPicker.pinSetHint' | translate }}
+                    </p>
+                  } @else {
+                    <button
+                      type="button"
+                      #locationPickerTrigger
+                      class="location-card__cta"
+                      (click)="openLocationPicker()"
+                    >
+                      <i class="pi pi-map" aria-hidden="true"></i>
+                      {{ 'listings.createForm.locationPicker.cta' | translate }}
+                    </button>
+                    <p class="wizard-field__note">
+                      <i class="pi pi-lock" aria-hidden="true"></i>
+                      {{ 'listings.createForm.locationPicker.privacyNote' | translate }}
+                    </p>
+                  }
+                </div>
+              </div>
+
+              <app-location-picker
+                [open]="showLocationPicker()"
+                [initialCenter]="pinCenter() ?? yerevanCenter"
+                (confirmed)="onLocationConfirmed($event)"
+                (cancelled)="onLocationCancelled()"
+              />
+            }
+
             <!-- Delivery -->
             <div class="wizard-field">
               <span class="wizard-field__label">{{ 'listings.createForm.delivery.label' | translate }}</span>

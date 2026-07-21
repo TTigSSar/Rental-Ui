@@ -1,0 +1,51 @@
+<p-dialog
+  [visible]="open()"
+  (visibleChange)="onVisibleChange($event)"
+  [modal]="true"
+  [closable]="true"
+  [dismissableMask]="false"
+  [draggable]="false"
+  [resizable]="false"
+  [header]="'listings.createForm.locationPicker.title' | translate"
+  styleClass="location-picker-dialog"
+  appendTo="body"
+>
+  <div class="location-picker__map-wrap">
+    @if (open()) {
+      <app-map
+        [center]="initialCenter()"
+        [zoom]="initialZoom()"
+        [interactive]="true"
+        [crosshair]="true"
+        height="100%"
+        (centerChange)="onCenterChange($event)"
+      />
+    }
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="location-picker__footer">
+      <p class="location-picker__privacy">
+        <i class="pi pi-shield" aria-hidden="true"></i>
+        {{ 'listings.createForm.locationPicker.privacyNote' | translate }}
+      </p>
+      <div class="location-picker__actions">
+        <button
+          type="button"
+          class="location-picker__btn location-picker__btn--cancel"
+          (click)="cancel()"
+        >
+          {{ 'listings.createForm.locationPicker.cancel' | translate }}
+        </button>
+        <button
+          type="button"
+          class="location-picker__btn location-picker__btn--confirm"
+          (click)="confirm()"
+        >
+          <i class="pi pi-check" aria-hidden="true"></i>
+          {{ 'listings.createForm.locationPicker.confirm' | translate }}
+        </button>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>

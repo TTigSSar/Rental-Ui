@@ -579,10 +579,12 @@
       },
       "locationPicker": {
         "cta": "Set location on map",
+        "change": "Change",
         "title": "Set your toy's location",
         "confirm": "Confirm location",
         "cancel": "Cancel",
-        "privacyNote": "We publish only the approximate area on the map — your exact address is never shown to renters."
+        "privacyNote": "We publish only the approximate area on the map — your exact address is never shown to renters.",
+        "pinSetHint": "Pin set. Only the approximate area is ever shown to renters."
       },
       "images": "Toy photos",
       "imagesSelected": "photos selected",

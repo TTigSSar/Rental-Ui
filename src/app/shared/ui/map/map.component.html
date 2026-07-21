@@ -1,0 +1,10 @@
+<div class="app-map" [style.height]="height()">
+  <div #container class="app-map__surface"></div>
+
+  @if (crosshair()) {
+    <div class="app-map__crosshair" aria-hidden="true">
+      <span class="app-map__crosshair-halo"></span>
+      <span class="app-map__crosshair-dot"></span>
+    </div>
+  }
+</div>
