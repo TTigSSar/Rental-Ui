@@ -466,6 +466,11 @@
         "completedOn": "Completed on",
         "endsOn": "Rental ends",
         "startsOn": "Rental starts"
+      },
+      "location": {
+        "heading": "Location",
+        "approximateChip": "Approximate area",
+        "mapUnavailable": "Map preview isn't available right now — see the district above."
       }
     },
     "createPage": {
@@ -566,6 +571,19 @@
       "latitudePlaceholder": "e.g. 40.1792",
       "longitude": "Longitude",
       "longitudePlaceholder": "e.g. 44.4991",
+      "district": {
+        "label": "District",
+        "placeholder": "Select district",
+        "derivedHint": "We work this out from where you drop the pin — override it only if it looks wrong.",
+        "notFoundError": "That district couldn't be found. Please pick another one."
+      },
+      "locationPicker": {
+        "cta": "Set location on map",
+        "title": "Set your toy's location",
+        "confirm": "Confirm location",
+        "cancel": "Cancel",
+        "privacyNote": "We publish only the approximate area on the map — your exact address is never shown to renters."
+      },
       "images": "Toy photos",
       "imagesSelected": "photos selected",
       "imagesHint": "Add one or more clear photos of the toy.",

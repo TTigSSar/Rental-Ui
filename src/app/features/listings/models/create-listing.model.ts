@@ -37,6 +37,14 @@ export interface CreateListingRequest {
   latitude: number | null;
   longitude: number | null;
 
+  /**
+   * Optional owner override for the district (`ListingDistrict.id`). When omitted,
+   * the backend derives the district from `latitude`/`longitude` via
+   * point-in-polygon. Currently unused by the wizard — same status as
+   * `latitude`/`longitude` above; P1-6 (pin picker) wires this up together with them.
+   */
+  districtId?: string | null;
+
   // Optional toy-specific fields. Only sent when the owner fills them in.
   ageFromMonths?: number | null;
   ageToMonths?: number | null;

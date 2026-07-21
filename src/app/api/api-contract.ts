@@ -35,6 +35,9 @@ export const ApiContract = {
   categories: {
     root: '/api/categories',
   },
+  districts: {
+    root: '/api/districts',
+  },
   favorites: {
     root: '/api/favorites',
     byListingId: (listingId: string): ApiPath =>

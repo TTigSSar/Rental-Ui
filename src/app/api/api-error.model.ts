@@ -69,6 +69,7 @@ export type KnownApiErrorCode =
   | 'listing.forbidden'
   | 'listing.invalid_status'
   | 'listing.category_not_found'
+  | 'listing.district_not_found'
   | 'listing.invalid_age_range'
   | 'listing.image_empty'
   | 'listing.image_invalid_type'

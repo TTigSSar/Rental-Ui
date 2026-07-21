@@ -9,6 +9,14 @@ export interface UpdateListingRequest {
   pricePerDay?: number;
   city?: string;
   country?: string;
+  /**
+   * Optional direct override for the listing's district (`ListingDistrict.id`).
+   * Unlike create, update has no re-derivation path from coordinates — omitting
+   * this leaves the existing district unchanged. Not yet wired up by
+   * edit-listing-page (no location editing UI exists there); left for whichever
+   * card adds district editing to the edit flow.
+   */
+  districtId?: string | null;
   ageFromMonths?: number | null;
   ageToMonths?: number | null;
   condition?: string | null;

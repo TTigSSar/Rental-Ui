@@ -12,6 +12,7 @@ import type {
   ListingImageUploadResponse,
 } from '../models/create-listing.model';
 import type { ListingDetails, ToyCondition } from '../models/listing-details.model';
+import type { ListingDistrict } from '../models/district.model';
 import type {
   BookedDateRange,
   ListingImage,
@@ -202,6 +203,37 @@ export class ListingsApiService {
                   imageUrl: normalizeNonEmptyString(category.imageUrl),
                   iconName: normalizeNonEmptyString(category.iconName),
                   displayOrder: normalizeFiniteNumber(category.displayOrder),
+                }))
+            : [],
+        ),
+      );
+  }
+
+  /**
+   * The 12 fixed Yerevan districts, ordered by `nameEn` (backend guarantee — see
+   * `DistrictsController`). Anonymous, no NgRx state — same treatment as
+   * `getListingCategories()` above; consumers (P1-6 pin picker, P1-8 detail map)
+   * call this directly.
+   */
+  getDistricts(): Observable<ListingDistrict[]> {
+    return this.http
+      .get<ListingDistrict[]>(toApiUrl(ApiContract.districts.root))
+      .pipe(
+        map((districts) =>
+          Array.isArray(districts)
+            ? districts
+                .filter(
+                  (district): district is ListingDistrict =>
+                    district !== null &&
+                    district !== undefined &&
+                    typeof district.id === 'string',
+                )
+                .map((district) => ({
+                  id: district.id,
+                  code: typeof district.code === 'string' ? district.code : '',
+                  nameEn: typeof district.nameEn === 'string' ? district.nameEn : '',
+                  nameHy: typeof district.nameHy === 'string' ? district.nameHy : '',
+                  nameRu: typeof district.nameRu === 'string' ? district.nameRu : '',
                 }))
             : [],
         ),
