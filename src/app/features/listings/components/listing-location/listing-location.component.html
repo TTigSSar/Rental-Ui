@@ -1,0 +1,56 @@
+<div class="listing-location">
+  <p class="listing-location__place">
+    <i class="pi pi-map-marker" aria-hidden="true"></i>
+    <span>
+      @if (districtName(); as name) {
+        {{ name }}<span aria-hidden="true">,</span>
+      }
+      {{ city() }}
+    </span>
+  </p>
+
+  @if (hasCoordinates()) {
+    @if (mapFailed()) {
+      <p class="listing-location__unavailable" role="status">
+        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+        <span>{{ 'listings.details.location.mapUnavailable' | translate }}</span>
+      </p>
+    } @else if (!mapRequested()) {
+      <div class="listing-location__placeholder">
+        <p class="listing-location__placeholder-copy">
+          <i class="pi pi-shield" aria-hidden="true"></i>
+          <span>{{ 'listings.details.location.placeholderBody' | translate }}</span>
+        </p>
+        <button
+          type="button"
+          class="listing-location__show-map-btn"
+          (click)="requestMap()"
+        >
+          <i class="pi pi-map" aria-hidden="true"></i>
+          {{ 'listings.details.location.showMap' | translate }}
+        </button>
+      </div>
+    } @else {
+      <div
+        class="listing-location__map-card"
+        role="region"
+        [attr.aria-label]="'listings.details.location.mapRegionLabel' | translate"
+      >
+        <span class="listing-location__chip">
+          <i class="pi pi-shield" aria-hidden="true"></i>
+          {{ 'listings.details.location.approximateChip' | translate }}
+        </span>
+        @if (pin(); as p) {
+          <app-map
+            [center]="p"
+            [pin]="p"
+            [zoom]="mapZoom"
+            [circleRadiusMeters]="circleRadiusMeters"
+            height="220px"
+            (mapError)="onMapError()"
+          />
+        }
+      </div>
+    }
+  }
+</div>

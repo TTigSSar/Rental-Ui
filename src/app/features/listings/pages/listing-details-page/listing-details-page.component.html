@@ -261,7 +261,23 @@
                   </p>
                 </section>
 
-                <!-- 3. Owner / contact card -->
+                <!-- 3. Location -->
+                <section
+                  class="detail-page__section"
+                  aria-labelledby="detail-location-heading"
+                >
+                  <h2 id="detail-location-heading" class="detail-page__section-title">
+                    {{ 'listings.details.location.heading' | translate }}
+                  </h2>
+                  <app-listing-location
+                    [city]="listing.city"
+                    [district]="listing.district ?? null"
+                    [latitude]="listing.latitude ?? null"
+                    [longitude]="listing.longitude ?? null"
+                  />
+                </section>
+
+                <!-- 4. Owner / contact card -->
                 <section class="detail-page__section detail-page__section--owner" aria-labelledby="detail-owner-heading">
                   <div class="detail-page__owner-section-head">
                     <span class="detail-page__section-eyebrow">{{ 'listings.details.eyebrow.host' | translate }}</span>
@@ -325,7 +341,7 @@
                   </div>
                 </section>
 
-                <!-- 4. Reviews -->
+                <!-- 5. Reviews -->
                 <section
                   class="detail-page__section"
                   aria-labelledby="detail-reviews-heading"

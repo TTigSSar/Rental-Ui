@@ -1,0 +1,142 @@
+:host {
+  display: block;
+}
+
+.listing-location {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-14);
+}
+
+.listing-location__place {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ui-color-text-primary);
+
+  i {
+    font-size: 0.875rem;
+    color: var(--ui-color-primary);
+  }
+}
+
+/* ── Tap-to-load placeholder (no tiles fetched yet) ──────────────────── */
+.listing-location__placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ui-space-12);
+  padding: var(--ui-space-20);
+  background: var(--ui-color-surface-muted);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-card);
+}
+
+.listing-location__placeholder-copy {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ui-color-text-secondary);
+
+  i {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--ui-color-primary);
+  }
+}
+
+.listing-location__show-map-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1.5px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease,
+    background-color 140ms ease;
+
+  i {
+    color: var(--ui-color-primary);
+  }
+
+  &:hover {
+    border-color: var(--ui-color-primary);
+    color: var(--ui-color-primary-strong);
+    background: var(--ui-color-primary-wash);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* ── Loaded map card: 16px-rounded, 1px border, floating pill chip ──── */
+.listing-location__map-card {
+  position: relative;
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-card);
+  overflow: hidden;
+  box-shadow: var(--ui-shadow-card);
+}
+
+.listing-location__chip {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  /* Leaflet's own panes/attribution top out at z-index 1000/1001 (see
+     app-map's own crosshair comment) — this sibling overlay needs to clear
+     that to actually read as "on top of" the map. */
+  z-index: 1002;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--ui-radius-pill);
+  background: #fff;
+  box-shadow: var(--ui-shadow-card);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ui-color-text-primary);
+  white-space: nowrap;
+
+  i {
+    color: var(--ui-color-primary);
+    font-size: 0.75rem;
+  }
+}
+
+/* ── Degraded / failed state ─────────────────────────────────────────── */
+.listing-location__unavailable {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: var(--ui-space-14) var(--ui-space-16);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-muted);
+  border: 1px solid var(--ui-color-border-subtle);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ui-color-text-secondary);
+
+  i {
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: var(--ui-color-text-muted);
+  }
+}

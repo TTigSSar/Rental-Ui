@@ -13,12 +13,18 @@ import type { MapLatLng } from './map.component';
  */
 const state = vi.hoisted(() => ({
   mapOptions: null as Record<string, unknown> | null,
-  tileLayerCalls: [] as { url: string; options: Record<string, unknown> }[],
+  tileLayerCalls: [] as {
+    url: string;
+    options: Record<string, unknown>;
+    handlers: Record<string, (() => void)[]>;
+  }[],
   markerCalls: [] as { coords: [number, number]; options: Record<string, unknown> }[],
+  circleCalls: [] as { coords: [number, number]; options: Record<string, unknown> }[],
   removedLayers: [] as unknown[],
   moveendHandlers: [] as (() => void)[],
   fakeCenter: { lat: 40.1776, lng: 44.5126 },
   mapRemoved: false,
+  mapThrows: false,
 }));
 
 function makeFakeMap(options: Record<string, unknown>) {
@@ -38,13 +44,28 @@ function makeFakeMap(options: Record<string, unknown>) {
 }
 
 vi.mock('leaflet', () => ({
-  map: vi.fn((_el: HTMLElement, options: Record<string, unknown>) => makeFakeMap(options)),
+  map: vi.fn((_el: HTMLElement, options: Record<string, unknown>) => {
+    if (state.mapThrows) throw new Error('boom');
+    return makeFakeMap(options);
+  }),
   tileLayer: vi.fn((url: string, options: Record<string, unknown>) => {
-    state.tileLayerCalls.push({ url, options });
-    return { addTo: vi.fn() };
+    const handlers: Record<string, (() => void)[]> = {};
+    const layer = {
+      addTo: vi.fn(() => layer),
+      on: vi.fn((event: string, handler: () => void) => {
+        (handlers[event] ??= []).push(handler);
+        return layer;
+      }),
+    };
+    state.tileLayerCalls.push({ url, options, handlers });
+    return layer;
   }),
   marker: vi.fn((coords: [number, number], options: Record<string, unknown>) => {
     state.markerCalls.push({ coords, options });
+    return { addTo: vi.fn() };
+  }),
+  circle: vi.fn((coords: [number, number], options: Record<string, unknown>) => {
+    state.circleCalls.push({ coords, options });
     return { addTo: vi.fn() };
   }),
   divIcon: vi.fn((options: Record<string, unknown>) => ({ __divIcon: true, ...options })),
@@ -60,7 +81,9 @@ vi.mock('leaflet', () => ({
       [pin]="pin"
       [interactive]="interactive"
       [crosshair]="crosshair"
+      [circleRadiusMeters]="circleRadiusMeters"
       (centerChange)="onCenterChange($event)"
+      (mapError)="onMapError()"
     />
   `,
 })
@@ -70,9 +93,14 @@ class MapHostComponent {
   pin: MapLatLng | null = null;
   interactive = false;
   crosshair = false;
+  circleRadiusMeters: number | null = null;
   received: MapLatLng[] = [];
+  errorCount = 0;
   onCenterChange(c: MapLatLng): void {
     this.received.push(c);
+  }
+  onMapError(): void {
+    this.errorCount++;
   }
 }
 
@@ -91,10 +119,12 @@ describe('MapComponent', () => {
     state.mapOptions = null;
     state.tileLayerCalls = [];
     state.markerCalls = [];
+    state.circleCalls = [];
     state.removedLayers = [];
     state.moveendHandlers = [];
     state.fakeCenter = { lat: 40.1776, lng: 44.5126 };
     state.mapRemoved = false;
+    state.mapThrows = false;
   });
 
   afterEach(() => {
@@ -188,5 +218,88 @@ describe('MapComponent', () => {
     const fixture = await createHost();
     fixture.destroy();
     expect(state.mapRemoved).toBe(true);
+  });
+
+  it('draws no circle when circleRadiusMeters is left null (the default)', async () => {
+    TestBed.configureTestingModule({ imports: [MapHostComponent] });
+    const fixture = TestBed.createComponent(MapHostComponent);
+    fixture.componentInstance.pin = { lat: 40.18, lng: 44.51 };
+    fixture.detectChanges();
+    await vi.runAllTimersAsync();
+
+    expect(state.circleCalls).toHaveLength(0);
+  });
+
+  it('draws a translucent circle of the given radius centred on the pin', async () => {
+    TestBed.configureTestingModule({ imports: [MapHostComponent] });
+    const fixture = TestBed.createComponent(MapHostComponent);
+    fixture.componentInstance.pin = { lat: 40.18, lng: 44.51 };
+    fixture.componentInstance.circleRadiusMeters = 600;
+    fixture.detectChanges();
+    await vi.runAllTimersAsync();
+
+    expect(state.circleCalls).toHaveLength(1);
+    expect(state.circleCalls[0].coords).toEqual([40.18, 44.51]);
+    expect(state.circleCalls[0].options['radius']).toBe(600);
+    // Fill/stroke must actually resolve to a colour string (jsdom returns ''
+    // for an undeclared custom property, so this also exercises the fallback).
+    expect(state.circleCalls[0].options['fillColor']).toMatch(/^#[0-9a-f]{6}$/i);
+  });
+
+  it('does NOT draw a circle in crosshair mode even with a radius and pin set', async () => {
+    TestBed.configureTestingModule({ imports: [MapHostComponent] });
+    const fixture = TestBed.createComponent(MapHostComponent);
+    fixture.componentInstance.pin = { lat: 40.18, lng: 44.51 };
+    fixture.componentInstance.circleRadiusMeters = 600;
+    fixture.componentInstance.crosshair = true;
+    fixture.componentInstance.interactive = true;
+    fixture.detectChanges();
+    await vi.runAllTimersAsync();
+
+    expect(state.circleCalls).toHaveLength(0);
+  });
+
+  it('emits mapError when the underlying Leaflet map construction throws', async () => {
+    state.mapThrows = true;
+    TestBed.configureTestingModule({ imports: [MapHostComponent] });
+    const fixture = TestBed.createComponent(MapHostComponent);
+    fixture.detectChanges();
+    await vi.runAllTimersAsync();
+
+    expect(fixture.componentInstance.errorCount).toBe(1);
+  });
+
+  it('emits mapError when every tile in the batch errors and none ever loads (dead tile host)', async () => {
+    // Real Leaflet fires GridLayer's `load` once the tile queue is empty
+    // whether tiles succeeded or errored — so the fixture fires `tileerror`
+    // for every tile, then `load` for the settled batch, same as the real
+    // sequence a dead tile host produces.
+    const fixture = await createHost();
+
+    state.tileLayerCalls[0].handlers['tileerror']?.forEach((h) => h());
+    expect(fixture.componentInstance.errorCount).toBe(0);
+
+    state.tileLayerCalls[0].handlers['load']?.forEach((h) => h());
+
+    expect(fixture.componentInstance.errorCount).toBe(1);
+  });
+
+  it('does NOT emit mapError when at least one tile loads before the batch settles', async () => {
+    const fixture = await createHost();
+
+    state.tileLayerCalls[0].handlers['tileerror']?.forEach((h) => h());
+    state.tileLayerCalls[0].handlers['tileload']?.forEach((h) => h());
+    state.tileLayerCalls[0].handlers['load']?.forEach((h) => h());
+
+    expect(fixture.componentInstance.errorCount).toBe(0);
+  });
+
+  it('does NOT emit mapError when the tile batch settles with no errors at all', async () => {
+    const fixture = await createHost();
+
+    state.tileLayerCalls[0].handlers['tileload']?.forEach((h) => h());
+    state.tileLayerCalls[0].handlers['load']?.forEach((h) => h());
+
+    expect(fixture.componentInstance.errorCount).toBe(0);
   });
 });

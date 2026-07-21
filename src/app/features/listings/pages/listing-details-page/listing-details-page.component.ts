@@ -36,6 +36,7 @@ const BOOKING_DISPLAY_PRIORITY: Partial<Record<MyBooking['status'], number>> = {
   Cancelled: 0,
 };
 import { ListingGalleryComponent } from '../../components/listing-gallery/listing-gallery.component';
+import { ListingLocationComponent } from '../../components/listing-location/listing-location.component';
 import type { ListingDetails } from '../../models/listing-details.model';
 import * as ListingsActions from '../../store/listings.actions';
 import { ReviewCardComponent } from '../../../reviews/components/review-card/review-card.component';
@@ -168,6 +169,7 @@ const selectListingDetailsBase = createSelector(
     CommonModule,
     DramCurrencyPipe,
     ListingGalleryComponent,
+    ListingLocationComponent,
     PageHeaderComponent,
     ReviewCardComponent,
     RouterLink,
