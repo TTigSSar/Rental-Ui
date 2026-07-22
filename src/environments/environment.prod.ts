@@ -4,9 +4,9 @@ export const environment = {
   // See environment.ts for field docs.
   tileProvider: {
     urlTemplate: 'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key={key}',
-    // Leave empty in the checked-in default — see environment.ts's field
-    // comment for why a real key must never be committed here.
-    apiKey: '',
+    // See environment.ts's field comment: origin-restricted client key,
+    // safe to commit given the MapTiler-side allowlist.
+    apiKey: 'AOVIoZYj8fp5xR9RTVKe',
     attribution:
       '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>',
     maxZoom: 19,

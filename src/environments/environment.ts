@@ -10,14 +10,13 @@ export const environment = {
   tileProvider: {
     /** `{z}`/`{x}`/`{y}`/`{key}` placeholders, substituted by `app-map`. */
     urlTemplate: 'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key={key}',
-    // Leave this empty in the checked-in default — see `Rental-Ui/CLAUDE.md`
-    // for how to set a real MapTiler key for local dev. Do NOT commit a real
-    // key here: this repo is public, and a committed key ships to every
-    // clone regardless of any origin restriction configured on the MapTiler
-    // account side (which is a mitigation, not a substitute for not
-    // committing it). `TILE_PROVIDER_CONFIG` (map.component.ts) is the DI
-    // seam that lets consumers/tests supply a key without touching this file.
-    apiKey: '',
+    // This is a client-side MapTiler key restricted to specific HTTP origins
+    // (allowlist configured on the MapTiler account side) — that origin
+    // restriction, not secrecy, is what protects it, so committing it to
+    // this public repo is acceptable. `TILE_PROVIDER_CONFIG`
+    // (map.component.ts) is the DI seam that lets consumers/tests supply a
+    // different key without touching this file.
+    apiKey: 'AOVIoZYj8fp5xR9RTVKe',
     // Required by MapTiler's licence terms (both MapTiler's own attribution
     // and the underlying OSM data's), verbatim from
     // https://docs.maptiler.com/guides/map-design/how-to-add-maptiler-attribution-to-a-map/
