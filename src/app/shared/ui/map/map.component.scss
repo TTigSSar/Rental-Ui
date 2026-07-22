@@ -1,3 +1,12 @@
+// Leaflet's own stylesheet, inlined here (via Sass `@use`, which pulls in a
+// plain-CSS file's rules verbatim) rather than served as a separate copied
+// asset — see `map.component.ts`'s doc comment for why: a runtime `<link>`
+// pointing at a build-config asset entry desynced from the code that needs
+// it once (a dev server started before the entry existed served no CSS at
+// all), and bundling it here means it always travels with whatever chunk
+// this component lives in, the same way the `leaflet` JS import does.
+@use 'leaflet/dist/leaflet.css';
+
 .app-map {
   position: relative;
   width: 100%;

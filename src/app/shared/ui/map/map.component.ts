@@ -20,23 +20,31 @@ export interface MapLatLng {
   lng: number;
 }
 
-const LEAFLET_CSS_ID = 'app-map-leaflet-css';
 /**
- * The map + its stylesheet come from `node_modules/leaflet/dist` and are copied
- * to this path at build time (see the `assets` entry in `angular.json`) rather
- * than shipped in the JS bundle — see `ensureLeafletCss()`.
+ * `leaflet` ships as a CommonJS/UMD bundle, not native ESM. Depending on which
+ * bundler is processing the dynamic `import('leaflet')` below, the resulting
+ * module namespace shape differs:
+ *  - Angular's dev server (`ng serve`, Vite-based) flattens the CJS exports
+ *    onto the namespace object itself, so `mod.map` is already the function.
+ *  - A production build (`ng build`, esbuild-based) does NOT flatten them for
+ *    this dynamic import — it exposes only `mod.default` (the whole Leaflet
+ *    namespace object), leaving `mod.map` `undefined`.
+ * Calling `L.map(...)` when only `.default` is populated throws "L.map is not
+ * a function", which the try/catch in `init()` swallows and reports as
+ * `mapError` — i.e. every production build failed to render any map at all
+ * (tiles, attribution, everything) while `ng serve` looked fine, which is
+ * exactly what made this look environment-specific. Reading whichever of the
+ * two shapes actually carries the named exports makes this robust to either
+ * bundler's interop behaviour instead of depending on one of them.
  */
-const LEAFLET_CSS_HREF = 'leaflet/leaflet.css';
-
-/** Inserts Leaflet's stylesheet on first use only — never on app boot. */
-function ensureLeafletCss(): void {
-  if (typeof document === 'undefined') return;
-  if (document.getElementById(LEAFLET_CSS_ID)) return;
-  const link = document.createElement('link');
-  link.id = LEAFLET_CSS_ID;
-  link.rel = 'stylesheet';
-  link.href = LEAFLET_CSS_HREF;
-  document.head.appendChild(link);
+function resolveLeafletModule(mod: typeof Leaflet): typeof Leaflet {
+  // `'map' in mod` (rather than reading `mod.map` directly) matters here:
+  // under Vitest's mocked-module namespace, reading a property the mock
+  // factory never returned throws a diagnostic error instead of yielding
+  // `undefined`, which `in` doesn't trigger.
+  if ('map' in mod) return mod;
+  const withDefault = mod as unknown as { default?: typeof Leaflet };
+  return withDefault.default ?? mod;
 }
 
 /**
@@ -46,10 +54,14 @@ function ensureLeafletCss(): void {
  * so Leaflet types never leak across the boundary.
  *
  * Leaflet itself is loaded with a dynamic `import('leaflet')` inside
- * `ngAfterViewInit`, and its CSS is injected lazily the same way — neither adds
- * to the app's main bundle. Two `invalidateSize()` calls (60ms / 320ms after
- * init) work around Leaflet measuring a container before it has its final
- * layout size (e.g. right after a dialog opens or a wizard step becomes
+ * `ngAfterViewInit` (see `resolveLeafletModule()` above for the CJS-interop
+ * gotcha that hides behind that import), and its CSS is bundled into this
+ * component's own stylesheet (`@use 'leaflet/dist/leaflet.css'` in
+ * `map.component.scss`) rather than shipped as a separately-served asset — so
+ * neither adds to the app's main bundle, but both always travel with whatever
+ * chunk this component lives in. Two `invalidateSize()` calls (60ms / 320ms
+ * after init) work around Leaflet measuring a container before it has its
+ * final layout size (e.g. right after a dialog opens or a wizard step becomes
  * visible).
  *
  * Two display modes:
@@ -154,11 +166,11 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   private async init(): Promise<void> {
     try {
-      ensureLeafletCss();
-      const L = await import('leaflet');
+      const imported = await import('leaflet');
       // The component may have been destroyed (e.g. dialog closed) while the
       // dynamic import was in flight.
       if (this.destroyed) return;
+      const L = resolveLeafletModule(imported);
       this.leaflet = L;
 
       const interactive = this.interactive();

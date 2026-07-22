@@ -43,32 +43,44 @@ function makeFakeMap(options: Record<string, unknown>) {
   };
 }
 
+// Mocked as CJS-default-only — i.e. `{ default: { map, tileLayer, ... } }`
+// with NO flattened top-level named exports — because that is the exact
+// shape a production `ng build` (esbuild) produces for this dynamic import,
+// as opposed to `ng serve` (Vite), which flattens them onto the namespace
+// object directly. `map.component.ts`'s `resolveLeafletModule()` must unwrap
+// this; mocking the harsher of the two real shapes means every test below
+// also guards against regressing back to calling `L.map(...)` on the raw
+// import result (see the bug this fixed: that call silently threw
+// "L.map is not a function" and was swallowed into `mapError` in every
+// production build).
 vi.mock('leaflet', () => ({
-  map: vi.fn((_el: HTMLElement, options: Record<string, unknown>) => {
-    if (state.mapThrows) throw new Error('boom');
-    return makeFakeMap(options);
-  }),
-  tileLayer: vi.fn((url: string, options: Record<string, unknown>) => {
-    const handlers: Record<string, (() => void)[]> = {};
-    const layer = {
-      addTo: vi.fn(() => layer),
-      on: vi.fn((event: string, handler: () => void) => {
-        (handlers[event] ??= []).push(handler);
-        return layer;
-      }),
-    };
-    state.tileLayerCalls.push({ url, options, handlers });
-    return layer;
-  }),
-  marker: vi.fn((coords: [number, number], options: Record<string, unknown>) => {
-    state.markerCalls.push({ coords, options });
-    return { addTo: vi.fn() };
-  }),
-  circle: vi.fn((coords: [number, number], options: Record<string, unknown>) => {
-    state.circleCalls.push({ coords, options });
-    return { addTo: vi.fn() };
-  }),
-  divIcon: vi.fn((options: Record<string, unknown>) => ({ __divIcon: true, ...options })),
+  default: {
+    map: vi.fn((_el: HTMLElement, options: Record<string, unknown>) => {
+      if (state.mapThrows) throw new Error('boom');
+      return makeFakeMap(options);
+    }),
+    tileLayer: vi.fn((url: string, options: Record<string, unknown>) => {
+      const handlers: Record<string, (() => void)[]> = {};
+      const layer = {
+        addTo: vi.fn(() => layer),
+        on: vi.fn((event: string, handler: () => void) => {
+          (handlers[event] ??= []).push(handler);
+          return layer;
+        }),
+      };
+      state.tileLayerCalls.push({ url, options, handlers });
+      return layer;
+    }),
+    marker: vi.fn((coords: [number, number], options: Record<string, unknown>) => {
+      state.markerCalls.push({ coords, options });
+      return { addTo: vi.fn() };
+    }),
+    circle: vi.fn((coords: [number, number], options: Record<string, unknown>) => {
+      state.circleCalls.push({ coords, options });
+      return { addTo: vi.fn() };
+    }),
+    divIcon: vi.fn((options: Record<string, unknown>) => ({ __divIcon: true, ...options })),
+  },
 }));
 
 @Component({
