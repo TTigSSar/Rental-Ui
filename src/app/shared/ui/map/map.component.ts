@@ -4,6 +4,7 @@ import {
   Component,
   ElementRef,
   OnDestroy,
+  ViewEncapsulation,
   effect,
   input,
   output,
@@ -137,10 +138,38 @@ export function resolveTileSource(
  * component's own stylesheet (`@use 'leaflet/dist/leaflet.css'` in
  * `map.component.scss`) rather than shipped as a separately-served asset — so
  * neither adds to the app's main bundle, but both always travel with whatever
- * chunk this component lives in. Two `invalidateSize()` calls (60ms / 320ms
- * after init) work around Leaflet measuring a container before it has its
- * final layout size (e.g. right after a dialog opens or a wizard step becomes
- * visible).
+ * chunk this component lives in.
+ *
+ * `encapsulation: ViewEncapsulation.None` is load-bearing, not a style choice:
+ * Leaflet creates its own pane/tile/control DOM imperatively (`document.
+ * createElement`, inside the container this component owns) — those elements
+ * are never part of Angular's template, so under the default `Emulated`
+ * encapsulation they never receive the `_ngcontent-*` attribute Angular
+ * stamps onto template-created nodes. Angular's build scopes EVERY selector
+ * in this component's compiled stylesheet with that attribute, including
+ * `leaflet.css`'s own rules pulled in via `@use` — so with `Emulated` on,
+ * `.leaflet-tile { position: absolute; ... }` compiles to a selector that can
+ * never match a real tile `<img>`, and the whole rule silently no-ops. Every
+ * tile then falls back to the UA default for `<img>` (`position: static;
+ * display: inline`), so tiles Leaflet positions via inline
+ * `transform: translate3d(...)` (assuming absolute positioning) instead stack
+ * in NORMAL DOCUMENT FLOW one below the other — the tile pane balloons to
+ * many tiles' combined height, and `.app-map`'s `overflow: hidden` clips it
+ * back down to the visible box, leaving only whatever fragments of that
+ * flow-stacked column happen to fall inside — a "some tiles show, checkerboard
+ * grey gaps elsewhere" pattern that looks like a partial-load race but isn't:
+ * confirmed live (`ViewEncapsulation.Emulated` vs `.None`, everything else
+ * identical) by reading each tile's *computed* `position` — `static` under
+ * `Emulated`, `absolute` under `None` — while its *inline* `transform` never
+ * changed. This is why the marker/crosshair rules below use `:host ::ng-deep`
+ * (which escapes emulated scoping for those specific selectors): that was the
+ * right fix for the few custom classes this component authors itself, but
+ * `leaflet.css` is a whole third-party stylesheet of plain selectors with no
+ * `::ng-deep`, so only turning off encapsulation for the component covers it.
+ * `:host`/`::ng-deep` continue to work with `None` (the former still resolves
+ * to this component's host selector; the latter is simply a no-op since
+ * nothing is scoped) — see `map.component.spec.ts` for the regression
+ * assertion pinning this metadata.
  *
  * Two display modes:
  * - `interactive=false` (default): a frozen thumbnail — no pan/zoom/drag. Used
@@ -192,6 +221,8 @@ export function resolveTileSource(
   templateUrl: './map.component.html',
   styleUrl: './map.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  // See the class doc comment above — load-bearing, not a style preference.
+  encapsulation: ViewEncapsulation.None,
 })
 export class MapComponent implements AfterViewInit, OnDestroy {
   private readonly containerRef =
@@ -213,6 +244,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private leaflet: typeof Leaflet | null = null;
   private markerLayer: Leaflet.Marker | null = null;
   private circleLayer: Leaflet.Circle | null = null;
+  private resizeObserver: ResizeObserver | null = null;
   private destroyed = false;
   private anyTileLoaded = false;
   private anyTileErrored = false;
@@ -244,6 +276,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyed = true;
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
     this.map?.remove();
     this.map = null;
   }
@@ -314,11 +348,29 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
       // Leaflet measures its container's pixel size at creation time; if that
       // happens before the container has its final layout (a step just became
-      // visible, a dialog is still animating open) the map renders wrong until
-      // something forces a re-measure. Two delays cover both the fast case and
-      // a slower dialog-open transition.
-      setTimeout(() => map.invalidateSize(), 60);
-      setTimeout(() => map.invalidateSize(), 320);
+      // visible, a dialog is still animating open, a keyboard/orientation
+      // change resizes it later), the map keeps the stale size until told
+      // otherwise. A `ResizeObserver` on the container calls `invalidateSize()`
+      // on every REAL box-size change, however long that takes to arrive —
+      // unlike a fixed-delay `setTimeout`, it cannot race an animation of
+      // unknown duration, and it keeps working for any later resize too (a
+      // one-shot timer wouldn't). See `map.component.spec.ts` for the wiring
+      // assertion (jsdom has no native `ResizeObserver`, so the spec mocks the
+      // global) and this class's doc comment for why a *different* bug (the
+      // encapsulation gap) — not container-sizing timing — was actually
+      // behind the patchy-tiles symptom this replaced a race for.
+      //
+      // `ResizeObserver` is a widely-supported browser global (not present in
+      // jsdom, the test DOM this repo's specs run against, unless a spec
+      // explicitly stubs it — see `map.component.spec.ts`) — guarded rather
+      // than assumed so a test host or an unusually old runtime degrades to
+      // "no resize safety-net" instead of throwing here and, via the
+      // surrounding `catch`, reporting `mapError` for a map that actually
+      // rendered fine.
+      if (typeof ResizeObserver !== 'undefined') {
+        this.resizeObserver = new ResizeObserver(() => map.invalidateSize());
+        this.resizeObserver.observe(this.containerRef().nativeElement);
+      }
     } catch {
       // `import('leaflet')` rejected, or map/tile-layer setup threw
       // synchronously (e.g. no canvas/SVG support). Report and bail — no

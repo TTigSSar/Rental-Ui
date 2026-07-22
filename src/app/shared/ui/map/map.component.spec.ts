@@ -25,23 +25,58 @@ const state = vi.hoisted(() => ({
   fakeCenter: { lat: 40.1776, lng: 44.5126 },
   mapRemoved: false,
   mapThrows: false,
+  // Reassigned to the most recently created fake map's `invalidateSize` spy —
+  // lets tests assert the ResizeObserver wiring calls it without needing a
+  // handle on the map instance itself (which `map.component.ts` never exposes).
+  lastInvalidateSize: null as ReturnType<typeof vi.fn> | null,
 }));
 
 function makeFakeMap(options: Record<string, unknown>) {
   state.mapOptions = options;
+  const invalidateSize = vi.fn();
+  state.lastInvalidateSize = invalidateSize;
   return {
     setView: vi.fn(),
     on: vi.fn((event: string, handler: () => void) => {
       if (event === 'moveend') state.moveendHandlers.push(handler);
     }),
     getCenter: vi.fn(() => state.fakeCenter),
-    invalidateSize: vi.fn(),
+    invalidateSize,
     removeLayer: vi.fn((layer: unknown) => state.removedLayers.push(layer)),
     remove: vi.fn(() => {
       state.mapRemoved = true;
     }),
   };
 }
+
+/**
+ * jsdom has no native `ResizeObserver` — this fake stands in for the global so
+ * `map.component.ts`'s `new ResizeObserver(...)` doesn't throw, and lets tests
+ * both assert the wiring (`observe()` called with the map container) and
+ * simulate a real box-resize by invoking the captured callback directly. One
+ * instance is expected per mounted `app-map`; `resizeObserverInstances` is
+ * reset in `beforeEach` below.
+ */
+let resizeObserverInstances: FakeResizeObserver[] = [];
+class FakeResizeObserver {
+  readonly observed: unknown[] = [];
+  disconnected = false;
+  constructor(private readonly callback: () => void) {
+    resizeObserverInstances.push(this);
+  }
+  observe(target: unknown): void {
+    this.observed.push(target);
+  }
+  unobserve(): void {}
+  disconnect(): void {
+    this.disconnected = true;
+  }
+  /** Simulates the browser reporting a real box-size change. */
+  trigger(): void {
+    this.callback();
+  }
+}
+vi.stubGlobal('ResizeObserver', FakeResizeObserver);
 
 // Mocked as CJS-default-only — i.e. `{ default: { map, tileLayer, ... } }`
 // with NO flattened top-level named exports — because that is the exact
@@ -137,6 +172,8 @@ describe('MapComponent', () => {
     state.fakeCenter = { lat: 40.1776, lng: 44.5126 };
     state.mapRemoved = false;
     state.mapThrows = false;
+    state.lastInvalidateSize = null;
+    resizeObserverInstances = [];
   });
 
   afterEach(() => {
@@ -194,6 +231,30 @@ describe('MapComponent', () => {
     );
     expect(result.maxZoom).toBe(20);
     expect(result.attribution).toBe(fakeProvider.attribution);
+  });
+
+  // Regression for the patchy-tiles bug: Leaflet creates its pane/tile/control
+  // DOM imperatively, outside Angular's template, so it never receives the
+  // `_ngcontent-*`/`_nghost-*` attributes Angular's default `Emulated`
+  // encapsulation stamps on template-created nodes and scopes this
+  // component's compiled CSS (including the whole `leaflet.css` pulled in via
+  // `@use`) to require. Under `Emulated`, every `leaflet.css` rule silently
+  // failed to match a single real tile, so tiles kept the UA default
+  // `position: static` instead of Leaflet's intended `absolute`, and rendered
+  // stacked in document flow instead of positioned — see the class doc
+  // comment for the full mechanism and how this was confirmed live. Asserting
+  // on the rendered host/template elements (rather than reaching into
+  // Angular's private `ɵcmp` metadata) keeps this test meaningful even if
+  // Angular changes its internal encapsulation implementation.
+  it('renders with encapsulation OFF so Leaflet-created DOM is reachable by leaflet.css selectors', async () => {
+    const fixture = await createHost();
+
+    const host: HTMLElement = fixture.nativeElement.querySelector('app-map');
+    const child: HTMLElement = fixture.nativeElement.querySelector('.app-map__surface');
+    const attrNames = (el: HTMLElement) => Array.from(el.attributes).map((a) => a.name);
+
+    expect(attrNames(host).some((n) => n.startsWith('_nghost'))).toBe(false);
+    expect(attrNames(child).some((n) => n.startsWith('_ngcontent'))).toBe(false);
   });
 
   it('creates the map centred on the given coordinate and zoom, static (non-interactive) by default', async () => {
@@ -283,6 +344,35 @@ describe('MapComponent', () => {
     const fixture = await createHost();
     fixture.destroy();
     expect(state.mapRemoved).toBe(true);
+  });
+
+  // Regression for the fixed-delay `setTimeout(invalidateSize, ...)` race this
+  // replaced: a `ResizeObserver` re-measures on every REAL box-size change,
+  // however long it takes to arrive, instead of gambling on 60ms/320ms ever
+  // landing after the container reaches its final layout.
+  it('observes the map container with a ResizeObserver and calls invalidateSize() on a reported resize', async () => {
+    const fixture = await createHost();
+
+    expect(resizeObserverInstances).toHaveLength(1);
+    const observer = resizeObserverInstances[0];
+    const containerEl: HTMLElement = fixture.nativeElement.querySelector('.app-map__surface');
+    expect(observer.observed).toEqual([containerEl]);
+
+    expect(state.lastInvalidateSize).not.toBeNull();
+    expect(state.lastInvalidateSize).not.toHaveBeenCalled();
+
+    observer.trigger();
+
+    expect(state.lastInvalidateSize).toHaveBeenCalledTimes(1);
+  });
+
+  it('disconnects the ResizeObserver on destroy', async () => {
+    const fixture = await createHost();
+    const observer = resizeObserverInstances[0];
+
+    fixture.destroy();
+
+    expect(observer.disconnected).toBe(true);
   });
 
   it('draws no circle when circleRadiusMeters is left null (the default)', async () => {

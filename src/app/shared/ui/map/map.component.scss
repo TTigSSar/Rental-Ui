@@ -62,7 +62,12 @@
 
 /* ── The static `pin` marker, rendered by Leaflet as raw HTML inside its own
    marker pane (a DOM descendant of this component's host, but NOT part of
-   Angular's template) — `::ng-deep` is required for these rules to reach it. */
+   Angular's template). The `::ng-deep` here predates this component's switch
+   to `encapsulation: ViewEncapsulation.None` (see map.component.ts's class
+   doc comment) — with encapsulation off, `::ng-deep` is a no-op and `:host`
+   still resolves to this component's host selector, so these rules keep
+   working unchanged; left in place rather than rewritten to avoid an
+   unrelated diff. */
 :host ::ng-deep .app-map__marker {
   width: 36px;
   height: 36px;
