@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
-import { MapComponent, resolveTileSource } from './map.component';
+import { MapComponent, resolveTileSource, TILE_PROVIDER_CONFIG } from './map.component';
 import type { MapLatLng } from './map.component';
 
 /**
@@ -206,6 +206,7 @@ describe('MapComponent', () => {
     expect(first.url).toBe('https://tile.openstreetmap.org/{z}/{x}/{y}.png');
     expect(first.attribution).toContain('OpenStreetMap contributors');
     expect(first.maxZoom).toBe(19);
+    expect(first.isFallback).toBe(true);
     expect(warnSpy).toHaveBeenCalledTimes(1);
     expect(warnSpy.mock.calls[0][0]).toContain('tileProvider.apiKey');
 
@@ -231,6 +232,7 @@ describe('MapComponent', () => {
     );
     expect(result.maxZoom).toBe(20);
     expect(result.attribution).toBe(fakeProvider.attribution);
+    expect(result.isFallback).toBe(false);
   });
 
   // Regression for the patchy-tiles bug: Leaflet creates its pane/tile/control
@@ -285,13 +287,76 @@ describe('MapComponent', () => {
     expect(state.mapOptions!['scrollWheelZoom']).toBe(true);
   });
 
-  it('adds the OpenStreetMap tile layer with the required attribution and maxZoom', async () => {
-    await createHost();
+  // Provides its own `TILE_PROVIDER_CONFIG` via `TestBed` instead of relying
+  // on whatever happens to be in the checked-in `environment.ts` at test time
+  // (its checked-in default is an empty key — see the field comment there) —
+  // this is exactly the seam `TILE_PROVIDER_CONFIG` exists for. Covers both
+  // the configured-provider URL construction AND the MapTiler logo
+  // requirement in one scenario, since both are gated on the same
+  // "a key is configured" fact (see `ResolvedTileSource.isFallback`'s doc
+  // comment in map.component.ts).
+  it('builds the configured provider tile URL and renders the MapTiler logo when a provider key is configured', async () => {
+    const fakeConfig = {
+      urlTemplate: 'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key={key}',
+      apiKey: 'test-key-123',
+      attribution: '<a href="https://www.maptiler.com/copyright/">&copy; MapTiler</a>',
+      maxZoom: 20,
+    };
+    TestBed.configureTestingModule({
+      imports: [MapHostComponent],
+      providers: [{ provide: TILE_PROVIDER_CONFIG, useValue: fakeConfig }],
+    });
+    const fixture = TestBed.createComponent(MapHostComponent);
+    fixture.detectChanges();
+    await vi.runAllTimersAsync();
+    fixture.detectChanges();
+
+    expect(state.tileLayerCalls).toHaveLength(1);
+    expect(state.tileLayerCalls[0].url).toBe(
+      'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=test-key-123',
+    );
+    expect(state.tileLayerCalls[0].options['maxZoom']).toBe(20);
+    expect(String(state.tileLayerCalls[0].options['attribution'])).toContain('MapTiler');
+
+    const logo: HTMLAnchorElement | null =
+      fixture.nativeElement.querySelector('.app-map__maptiler-logo');
+    expect(logo).not.toBeNull();
+    expect(logo!.getAttribute('href')).toBe('https://www.maptiler.com');
+    expect(logo!.querySelector('svg')).not.toBeNull();
+  });
+
+  // Mirror of the test above with an empty key, also provided via `TestBed`,
+  // so this is deterministic regardless of `environment.ts`. Does NOT
+  // re-assert the console.warn call: `resolveTileSource()`'s "warn once" flag
+  // is module-level (see map.component.ts) and was already flipped true by
+  // the direct-call unit test at the top of this file (deliberately first,
+  // for exactly this reason) — so mounting here fires no additional warning.
+  // That test owns the warning assertion; this one owns the fallback URL +
+  // hidden-logo wiring through the real component.
+  it('falls back to the OpenStreetMap tile URL and hides the MapTiler logo when no provider key is configured', async () => {
+    const fakeConfig = {
+      urlTemplate: 'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key={key}',
+      apiKey: '',
+      attribution: '<a href="https://www.maptiler.com/copyright/">&copy; MapTiler</a>',
+      maxZoom: 20,
+    };
+    TestBed.configureTestingModule({
+      imports: [MapHostComponent],
+      providers: [{ provide: TILE_PROVIDER_CONFIG, useValue: fakeConfig }],
+    });
+    const fixture = TestBed.createComponent(MapHostComponent);
+    fixture.detectChanges();
+    await vi.runAllTimersAsync();
+    fixture.detectChanges();
 
     expect(state.tileLayerCalls).toHaveLength(1);
     expect(state.tileLayerCalls[0].url).toBe('https://tile.openstreetmap.org/{z}/{x}/{y}.png');
-    expect(state.tileLayerCalls[0].options['maxZoom']).toBe(19);
-    expect(String(state.tileLayerCalls[0].options['attribution'])).toContain('OpenStreetMap');
+    expect(String(state.tileLayerCalls[0].options['attribution'])).toContain(
+      'OpenStreetMap contributors',
+    );
+
+    const logo = fixture.nativeElement.querySelector('.app-map__maptiler-logo');
+    expect(logo).toBeNull();
   });
 
   it('renders a static marker when a pin is set and crosshair is off', async () => {

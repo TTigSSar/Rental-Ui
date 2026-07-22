@@ -18,6 +18,8 @@ import { AuthEffects } from './features/auth/store/auth.effects';
 import { authInterceptor } from './features/auth/services/auth.interceptor';
 import { authFeatureKey, authReducer } from './features/auth/store/auth.reducer';
 import { routes } from './app.routes';
+import { TILE_PROVIDER_CONFIG } from './shared/ui/map/map.component';
+import { environment } from '../environments/environment';
 
 const translateHttpLoaderProviders = provideTranslateHttpLoader({
   prefix: '/i18n/',
@@ -90,6 +92,12 @@ export const appConfig: ApplicationConfig = {
     // for AMD (see that pipe's doc comment) — this provider is the registration
     // + safety net, not the formatting mechanism.
     { provide: DEFAULT_CURRENCY_CODE, useValue: 'AMD' },
+    // `TILE_PROVIDER_CONFIG` (shared/ui/map/map.component.ts) already defaults
+    // to `environment.tileProvider` via its own `providedIn: 'root'` factory —
+    // this explicit entry exists for discoverability (app-level config lives
+    // here, alongside DEFAULT_CURRENCY_CODE above) rather than to change the
+    // resolved value.
+    { provide: TILE_PROVIDER_CONFIG, useValue: environment.tileProvider },
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
     provideStore(),

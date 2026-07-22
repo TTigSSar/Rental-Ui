@@ -3,14 +3,20 @@ export const environment = {
   apiBaseUrl: 'https://localhost:7241',
   /**
    * Raster tile provider for `app-map` (`shared/ui/map/map.component.ts`).
-   * `apiKey` is intentionally empty here — see `Rental-Ui/CLAUDE.md` for how
-   * to set it for local dev. With an empty key, `app-map` falls back to
-   * `tile.openstreetmap.org` and logs a console warning; it never renders a
-   * blank map for a missing key.
+   * With a non-empty key, `app-map` uses the configured provider (MapTiler).
+   * With an empty key, it falls back to `tile.openstreetmap.org` and logs a
+   * console warning; it never renders a blank map for a missing key.
    */
   tileProvider: {
     /** `{z}`/`{x}`/`{y}`/`{key}` placeholders, substituted by `app-map`. */
     urlTemplate: 'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key={key}',
+    // Leave this empty in the checked-in default — see `Rental-Ui/CLAUDE.md`
+    // for how to set a real MapTiler key for local dev. Do NOT commit a real
+    // key here: this repo is public, and a committed key ships to every
+    // clone regardless of any origin restriction configured on the MapTiler
+    // account side (which is a mitigation, not a substitute for not
+    // committing it). `TILE_PROVIDER_CONFIG` (map.component.ts) is the DI
+    // seam that lets consumers/tests supply a key without touching this file.
     apiKey: '',
     // Required by MapTiler's licence terms (both MapTiler's own attribution
     // and the underlying OSM data's), verbatim from

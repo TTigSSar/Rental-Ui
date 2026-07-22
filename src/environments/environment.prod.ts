@@ -1,11 +1,11 @@
 export const environment = {
   production: true,
   apiBaseUrl: '',
-  // See environment.ts for field docs. Empty apiKey => OSM fallback + console
-  // warning; set before a production build once a MapTiler key exists
-  // (Rental-Ui/CLAUDE.md documents where).
+  // See environment.ts for field docs.
   tileProvider: {
     urlTemplate: 'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key={key}',
+    // Leave empty in the checked-in default — see environment.ts's field
+    // comment for why a real key must never be committed here.
     apiKey: '',
     attribution:
       '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>',

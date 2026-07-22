@@ -94,3 +94,37 @@
   border: 3px solid #fff;
   box-shadow: 0 3px 8px rgba(20, 15, 5, 0.35);
 }
+
+/* ── MapTiler free-plan logo requirement — see map.component.ts's class doc
+   comment. Bottom-left mirrors MapTiler's own reference markup
+   (https://docs.maptiler.com/guides/map-design/how-to-add-maptiler-attribution-to-a-map/),
+   which keeps it clear of Leaflet's zoom control (top-left, interactive maps
+   only) and its attribution control (bottom-right, always shown) — and of
+   whatever this component draws at centre (crosshair / pin / circle). A
+   template-created element (not Leaflet-owned DOM), so — like
+   `.app-map__crosshair` above — a plain selector reaches it; no `::ng-deep`
+   needed. */
+.app-map__maptiler-logo {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  /* Leaflet's own panes/controls top out at z-index 1000 (see the
+     `.app-map__crosshair` comment above for why this can't be left
+     implicit). */
+  z-index: 999;
+  display: block;
+  line-height: 0;
+  opacity: 0.85;
+  transition: opacity 120ms ease;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  svg {
+    display: block;
+    width: 56px;
+    height: auto;
+  }
+}

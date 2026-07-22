@@ -3,9 +3,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  InjectionToken,
   OnDestroy,
   ViewEncapsulation,
   effect,
+  inject,
   input,
   output,
   viewChild,
@@ -54,6 +56,20 @@ interface ResolvedTileSource {
   url: string;
   attribution: string;
   maxZoom: number;
+  /**
+   * `true` when no provider key was configured and this resolved to the
+   * unauthenticated OSM fallback rather than the configured provider. Drives
+   * `MapComponent.showMapTilerLogo` below: MapTiler's free-plan terms require
+   * a visible logo linking to maptiler.com whenever ITS tiles are shown
+   * (https://docs.maptiler.com/guides/map-design/how-to-add-maptiler-attribution-to-a-map/)
+   * — showing that logo while actually serving generic OSM fallback tiles
+   * would misattribute the fallback, so the logo is gated on "using the
+   * configured provider" rather than always on. This assumes the configured
+   * provider IS MapTiler (true for every environment file today); if the
+   * provider is ever swapped for a non-MapTiler one, this flag and the logo
+   * markup in map.component.html need revisiting together.
+   */
+  isFallback: boolean;
 }
 
 /**
@@ -69,6 +85,29 @@ interface TileProviderConfig {
   attribution: string;
   maxZoom: number;
 }
+
+/**
+ * DI seam for `TileProviderConfig`. `MapComponent` (below) injects this
+ * instead of importing `environment` directly, so which config it renders
+ * with is a matter of what got provided, not a fact baked into a checked-in
+ * file. Defaults (`providedIn: 'root'`) to the real `environment.tileProvider`
+ * so every consumer that never overrides it keeps working unchanged: the app
+ * itself (explicitly re-provided in `app.config.ts` for discoverability,
+ * mirroring how e.g. `DEFAULT_CURRENCY_CODE` is registered there) and every
+ * other spec that mounts `app-map` without caring about tile config at all
+ * (`location-picker.component.spec.ts`, `listing-location.component.spec.ts`,
+ * `create-listing-form.component.spec.ts`). `map.component.spec.ts` overrides
+ * it per-test via `TestBed`'s `providers` array to pin down the
+ * "key configured" vs "no key" scenarios deterministically, regardless of
+ * whatever happens to be in `environment.ts` at test time.
+ */
+export const TILE_PROVIDER_CONFIG = new InjectionToken<TileProviderConfig>(
+  'TILE_PROVIDER_CONFIG',
+  {
+    providedIn: 'root',
+    factory: () => environment.tileProvider,
+  },
+);
 
 // Used only when `environment.tileProvider.apiKey` is empty (no vendor
 // account configured yet) — never delete this without also removing the
@@ -94,12 +133,14 @@ let didWarnMissingTileKey = false;
  * never ships a blank map for a missing key, and logs one console warning
  * naming the config field to set.
  *
- * `provider` defaults to the real `environment.tileProvider` and is only
- * ever overridden by `map.component.spec.ts`, which calls this exported
- * function directly with a fake config to verify URL construction and the
- * fallback/warning behaviour — the Angular vitest builder in this repo
- * rejects `vi.mock()` on relative imports, so mocking the `environment`
- * module itself is not an option here.
+ * `provider` defaults to the real `environment.tileProvider` — this is also
+ * the `TILE_PROVIDER_CONFIG` token's own default (see above), so callers that
+ * go through the token get the same fallback. `MapComponent` below always
+ * passes its injected config explicitly rather than relying on this default.
+ * `map.component.spec.ts` calls this exported function directly with a fake
+ * config for its two `resolveTileSource()`-level unit tests (URL
+ * construction, fallback, warn-once) instead of mounting the component; its
+ * component-level tests instead override `TILE_PROVIDER_CONFIG` via `TestBed`.
  */
 export function resolveTileSource(
   provider: TileProviderConfig = environment.tileProvider,
@@ -117,12 +158,14 @@ export function resolveTileSource(
       url: OSM_FALLBACK_URL,
       attribution: OSM_FALLBACK_ATTRIBUTION,
       maxZoom: OSM_FALLBACK_MAX_ZOOM,
+      isFallback: true,
     };
   }
   return {
     url: provider.urlTemplate.replace('{key}', provider.apiKey),
     attribution: provider.attribution,
     maxZoom: provider.maxZoom,
+    isFallback: false,
   };
 }
 
@@ -196,10 +239,24 @@ export function resolveTileSource(
  * mode — that's a licence requirement of whichever tile source is active
  * (ODbL for the OSM fallback; MapTiler's own terms for the default
  * provider), not decoration, so it is never disabled. The tile URL template,
- * attribution string, `maxZoom` and API key are configuration
- * (`environment.tileProvider`), not constants here — see
- * `resolveTileSource()` above for the fallback this component applies when
- * no key is configured yet.
+ * attribution string, `maxZoom` and API key are configuration, injected via
+ * `TILE_PROVIDER_CONFIG` (defaulting to `environment.tileProvider` — see that
+ * token's doc comment above), not constants here — see `resolveTileSource()`
+ * above for the fallback this component applies when no key is configured
+ * yet.
+ *
+ * MapTiler's free-plan terms additionally require a visible logo linking to
+ * maptiler.com (the attribution text control above is necessary but not
+ * sufficient) — see
+ * https://docs.maptiler.com/guides/map-design/how-to-add-maptiler-attribution-to-a-map/.
+ * Rendered as inline SVG (`.app-map__maptiler-logo` in the template, the
+ * exact asset MapTiler serves at `api.maptiler.com/resources/logo.svg`,
+ * committed here rather than fetched at runtime), bottom-left so it never
+ * collides with Leaflet's own zoom control (top-left) or attribution control
+ * (bottom-right), or with the crosshair/pin/circle this component draws at
+ * centre. Gated by `showMapTilerLogo` on `!tileSource.isFallback` — it must
+ * NOT show while actually serving the OSM fallback (see
+ * `ResolvedTileSource.isFallback`'s doc comment).
  *
  * `mapError` fires once if the map fails to come up at all: the dynamic
  * `import('leaflet')` rejects, `L.map()`/tile-layer setup throws, or every
@@ -239,6 +296,23 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
   readonly centerChange = output<MapLatLng>();
   readonly mapError = output<void>();
+
+  // Resolved once per instance (config is static for the app's lifetime) so
+  // `init()` and `showMapTilerLogo` below read the exact same result instead
+  // of calling `resolveTileSource()` twice. Config comes through DI
+  // (`TILE_PROVIDER_CONFIG`, defined above) rather than a direct `environment`
+  // import, so which provider this renders with is whatever got provided —
+  // see that token's doc comment.
+  private readonly tileSource = resolveTileSource(inject(TILE_PROVIDER_CONFIG));
+
+  /**
+   * Renders the MapTiler logo overlay (`.app-map__maptiler-logo` in the
+   * template) — see `ResolvedTileSource.isFallback`'s doc comment for why
+   * this is gated on "using the configured provider" rather than always on.
+   * A plain readonly field (not a signal) is intentional: `tileProvider` is
+   * static app config, never changes after this component is constructed.
+   */
+  protected readonly showMapTilerLogo = !this.tileSource.isFallback;
 
   private map: Leaflet.Map | null = null;
   private leaflet: typeof Leaflet | null = null;
@@ -309,7 +383,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       });
       this.map = map;
 
-      const tileSource = resolveTileSource();
+      const tileSource = this.tileSource;
       const tileLayer = L.tileLayer(tileSource.url, {
         maxZoom: tileSource.maxZoom,
         attribution: tileSource.attribution,

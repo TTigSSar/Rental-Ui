@@ -11,12 +11,16 @@ import { STUB_PNG_BUFFER } from './stub-image';
  *
  * The host to intercept is derived from `environment.tileProvider`
  * (`src/environments/environment.ts`), the SAME config
- * `shared/ui/map/map.component.ts`'s `resolveTileSource()` reads — not
- * hardcoded here — so this stays correct whether or not a provider API key
- * is configured for the environment the dev server (`npm start`, used by
+ * `shared/ui/map/map.component.ts`'s `resolveTileSource()` reads by default —
+ * not hardcoded here — so this stays correct whether or not a provider API
+ * key is configured for the environment the dev server (`npm start`, used by
  * `webServer` in `playwright.config.ts`) was started with: empty key ->
  * `tile.openstreetmap.org` fallback; key set -> the configured provider's
- * origin (MapTiler by default).
+ * origin (MapTiler by default). In the running app this same value reaches
+ * `MapComponent` through the `TILE_PROVIDER_CONFIG` DI token rather than a
+ * direct import (see that token's doc comment) — but this file runs as
+ * Playwright/Node code outside the Angular injector entirely, so it reads
+ * `environment` directly, which is the token's own default value anyway.
  *
  * Journeys assert against `count()` (did a tile request fire, or not) —
  * never against rendered pixels, which this stub doesn't attempt to look like
