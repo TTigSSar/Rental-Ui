@@ -11,6 +11,8 @@ import {
 } from '@angular/core';
 import type * as Leaflet from 'leaflet';
 
+import { environment } from '../../../../environments/environment';
+
 /**
  * A latitude/longitude pair. The only "coordinate" shape this component's
  * public API speaks — callers never see a Leaflet type.
@@ -45,6 +47,82 @@ function resolveLeafletModule(mod: typeof Leaflet): typeof Leaflet {
   if ('map' in mod) return mod;
   const withDefault = mod as unknown as { default?: typeof Leaflet };
   return withDefault.default ?? mod;
+}
+
+interface ResolvedTileSource {
+  url: string;
+  attribution: string;
+  maxZoom: number;
+}
+
+/**
+ * Widened shape of `environment.tileProvider` (whose own type is a `readonly`
+ * string-literal type via `as const`). `resolveTileSource()` takes this
+ * instead of `typeof environment.tileProvider` so `map.component.spec.ts` can
+ * pass a fake config of plain `string`/`number` fields — see the export's
+ * doc comment for why the spec needs to call this directly at all.
+ */
+interface TileProviderConfig {
+  urlTemplate: string;
+  apiKey: string;
+  attribution: string;
+  maxZoom: number;
+}
+
+// Used only when `environment.tileProvider.apiKey` is empty (no vendor
+// account configured yet) — never delete this without also removing the
+// fallback branch in `resolveTileSource()` below.
+const OSM_FALLBACK_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+const OSM_FALLBACK_ATTRIBUTION = '&copy; OpenStreetMap contributors';
+const OSM_FALLBACK_MAX_ZOOM = 19;
+
+// Logged at most once per page load (module-level, not per-instance) — a
+// missing key is a one-time setup fact, not something worth repeating every
+// time a map mounts.
+let didWarnMissingTileKey = false;
+
+/**
+ * Builds the tile URL/attribution/maxZoom this component's `L.tileLayer`
+ * gets constructed with. This is the ONLY function that reads
+ * `environment.tileProvider` or knows the OSM fallback exists — callers of
+ * `app-map` never see a tile URL.
+ *
+ * With `tileProvider.apiKey` set, uses the configured provider (MapTiler by
+ * default) verbatim. With it empty — e.g. no account created yet — falls
+ * back to the unauthenticated `tile.openstreetmap.org` endpoint so the app
+ * never ships a blank map for a missing key, and logs one console warning
+ * naming the config field to set.
+ *
+ * `provider` defaults to the real `environment.tileProvider` and is only
+ * ever overridden by `map.component.spec.ts`, which calls this exported
+ * function directly with a fake config to verify URL construction and the
+ * fallback/warning behaviour — the Angular vitest builder in this repo
+ * rejects `vi.mock()` on relative imports, so mocking the `environment`
+ * module itself is not an option here.
+ */
+export function resolveTileSource(
+  provider: TileProviderConfig = environment.tileProvider,
+): ResolvedTileSource {
+  if (!provider.apiKey) {
+    if (!didWarnMissingTileKey) {
+      didWarnMissingTileKey = true;
+      console.warn(
+        '[app-map] tileProvider.apiKey is empty (src/environments/environment.ts) — ' +
+          'falling back to tile.openstreetmap.org. Set tileProvider.apiKey to a MapTiler ' +
+          'key (see Rental-Ui/CLAUDE.md) to switch to the configured provider.',
+      );
+    }
+    return {
+      url: OSM_FALLBACK_URL,
+      attribution: OSM_FALLBACK_ATTRIBUTION,
+      maxZoom: OSM_FALLBACK_MAX_ZOOM,
+    };
+  }
+  return {
+    url: provider.urlTemplate.replace('{key}', provider.apiKey),
+    attribution: provider.attribution,
+    maxZoom: provider.maxZoom,
+  };
 }
 
 /**
@@ -85,8 +163,14 @@ function resolveLeafletModule(mod: typeof Leaflet): typeof Leaflet {
  * — which resolves colour strings once, on the DOM it owns outside Angular's
  * style encapsulation — to drift from the app's actual token.
  *
- * The OpenStreetMap attribution control is always shown, even in static mode —
- * that's an ODbL licence requirement, not decoration, so it is never disabled.
+ * The tile provider's attribution control is always shown, even in static
+ * mode — that's a licence requirement of whichever tile source is active
+ * (ODbL for the OSM fallback; MapTiler's own terms for the default
+ * provider), not decoration, so it is never disabled. The tile URL template,
+ * attribution string, `maxZoom` and API key are configuration
+ * (`environment.tileProvider`), not constants here — see
+ * `resolveTileSource()` above for the fallback this component applies when
+ * no key is configured yet.
  *
  * `mapError` fires once if the map fails to come up at all: the dynamic
  * `import('leaflet')` rejects, `L.map()`/tile-layer setup throws, or every
@@ -185,15 +269,16 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         touchZoom: interactive,
         boxZoom: interactive,
         keyboard: interactive,
-        // Always on — required attribution for OpenStreetMap tiles (ODbL), not
-        // gated by interactivity.
+        // Always on — a licence requirement of the active tile source (see
+        // `resolveTileSource()`), not gated by interactivity.
         attributionControl: true,
       });
       this.map = map;
 
-      const tileLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors',
+      const tileSource = resolveTileSource();
+      const tileLayer = L.tileLayer(tileSource.url, {
+        maxZoom: tileSource.maxZoom,
+        attribution: tileSource.attribution,
       }).addTo(map);
 
       // Detect a dead tile server. `tileload`/`tileerror` fire per tile;

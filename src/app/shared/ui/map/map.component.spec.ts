@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 
-import { MapComponent } from './map.component';
+import { MapComponent, resolveTileSource } from './map.component';
 import type { MapLatLng } from './map.component';
 
 /**
@@ -141,6 +141,59 @@ describe('MapComponent', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  // Deliberately the first tests in the file: `resolveTileSource()`'s "warn
+  // once" flag is module-level (see map.component.ts) and shared with every
+  // other test below (which mounts the real component against the real,
+  // checked-in `environment.ts` — apiKey always ''), so this must run first
+  // to observe the warning transition from "not yet fired" to "fired".
+  //
+  // `resolveTileSource` is called directly (exported for exactly this) with
+  // a fake provider config, rather than through the mounted component: the
+  // Angular vitest builder in this repo rejects `vi.mock()` on relative
+  // imports ("not supported for relative imports with the Angular unit-test
+  // system"), so the `environment` module itself cannot be mocked to flip
+  // between "no key" and "key configured" scenarios.
+  it('resolveTileSource: warns once and falls back to OpenStreetMap tiles when no provider key is configured', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const fakeProvider = {
+      urlTemplate: 'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key={key}',
+      apiKey: '',
+      attribution: '<a href="https://www.maptiler.com/copyright/">&copy; MapTiler</a>',
+      maxZoom: 20,
+    };
+
+    const first = resolveTileSource(fakeProvider);
+
+    expect(first.url).toBe('https://tile.openstreetmap.org/{z}/{x}/{y}.png');
+    expect(first.attribution).toContain('OpenStreetMap contributors');
+    expect(first.maxZoom).toBe(19);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy.mock.calls[0][0]).toContain('tileProvider.apiKey');
+
+    // Calling again with the key still empty must not warn a second time.
+    resolveTileSource(fakeProvider);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+
+    warnSpy.mockRestore();
+  });
+
+  it('resolveTileSource: builds the configured provider URL from its template and key once a provider key is set', () => {
+    const fakeProvider = {
+      urlTemplate: 'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key={key}',
+      apiKey: 'dummy-test-key',
+      attribution: '<a href="https://www.maptiler.com/copyright/">&copy; MapTiler</a>',
+      maxZoom: 20,
+    };
+
+    const result = resolveTileSource(fakeProvider);
+
+    expect(result.url).toBe(
+      'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=dummy-test-key',
+    );
+    expect(result.maxZoom).toBe(20);
+    expect(result.attribution).toBe(fakeProvider.attribution);
   });
 
   it('creates the map centred on the given coordinate and zoom, static (non-interactive) by default', async () => {

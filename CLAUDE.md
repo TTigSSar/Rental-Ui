@@ -16,6 +16,7 @@ src/app/
 
 - Follow the existing feature-folder pattern exactly: API calls in `services/*-api.service.ts`, state in `store/` (NgRx actions/reducer/effects/selectors), route config in `routes.ts`, public surface re-exported via `index.ts`.
 - All backend paths come from `ApiContract` + `toApiUrl()`; base URL is `environment.apiBaseUrl` (`https://localhost:7241` in dev). `/uploads/` is proxied to the API by `proxy.conf.json`.
+- Map tiles (`shared/ui/map/map.component.ts`, the ONLY file allowed to import Leaflet or know a tile URL) come from `environment.tileProvider` (`src/environments/environment.ts` / `environment.prod.ts`), default MapTiler. **To activate for local dev**: create a free MapTiler account, copy the API key, and paste it into `tileProvider.apiKey` in `src/environments/environment.ts` (do not commit a real key — leave the checked-in default empty). With `apiKey` empty, the component falls back to the unauthenticated `tile.openstreetmap.org` endpoint and logs one console warning; the app never renders a blank map for a missing key. `e2e/support/tile-mock.ts` derives which host to intercept from this same config — no separate e2e setting to update.
 - User-facing strings go through ngx-translate keys, not hardcoded text.
 - UI components: prefer PrimeNG primitives + `shared/ui` before writing new ones.
 - Match Prettier formatting (`.prettierrc` at repo root of the UI project).
