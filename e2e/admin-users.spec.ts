@@ -53,7 +53,13 @@ test.describe('Admin users', () => {
     });
 
     await page.goto('/admin/users');
-    await expect(page.getByText('Ann Admin')).toBeVisible();
+    // Scoped to the row, not `page.getByText('Ann Admin')`: the admin shell's topbar renders the
+    // signed-in admin's own display name too (account menu trigger), and this fixture
+    // deliberately gives the signed-in admin ("Ann Admin") a matching row to exercise the
+    // self-suspend guard below — an unscoped text locator is a genuine two-match strict-mode
+    // ambiguity once both have rendered, not just a theoretical one.
+    const ownRow = page.locator('.users-page__row').filter({ hasText: 'Ann Admin' });
+    await expect(ownRow).toBeVisible();
 
     // Own row.
     await page.getByRole('button', { name: 'Actions for Ann Admin' }).click();
