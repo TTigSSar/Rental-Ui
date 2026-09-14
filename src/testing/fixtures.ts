@@ -30,6 +30,11 @@ import type {
   AdminReportRow,
 } from '../app/features/admin/models/admin-report.model';
 import type {
+  AdminMessageThread,
+  AdminMessageThreadCounts,
+  AdminMessageThreadQueue,
+} from '../app/features/admin/models/admin-message-thread.model';
+import type {
   AdminActivityItem,
   AdminOverview,
 } from '../app/features/admin/models/admin-overview.model';
@@ -371,6 +376,55 @@ export function makeAdminReportQueue(overrides: Partial<AdminReportQueue> = {}):
     totalCount: 0,
     totalPages: 0,
     counts: makeAdminReportQueueCounts(),
+    ...overrides,
+  };
+}
+
+export function makeAdminMessageThread(
+  overrides: Partial<AdminMessageThread> = {},
+): AdminMessageThread {
+  return {
+    conversationId: 'conv-1',
+    memberId: 'user-2',
+    memberFirstName: 'Anahit',
+    memberLastName: 'Grigoryan',
+    memberAvatarUrl: null,
+    memberStatus: 'Active',
+    memberIsIdConfirmed: true,
+    memberMarketplaceRole: 'Owner',
+    memberOpenFlagCount: 0,
+    unreadCount: 0,
+    lastMessageSnippet: 'Hello, thanks for reaching out.',
+    lastMessageAt: '2026-08-13T00:00:00Z',
+    lastMessageType: 'text',
+    lastMessageNoteSubject: null,
+    needsReply: false,
+    createdAt: '2026-08-01T00:00:00Z',
+    ...overrides,
+  };
+}
+
+export function makeAdminMessageThreadCounts(
+  overrides: Partial<AdminMessageThreadCounts> = {},
+): AdminMessageThreadCounts {
+  return {
+    all: 0,
+    unread: 0,
+    needsReply: 0,
+    ...overrides,
+  };
+}
+
+export function makeAdminMessageThreadQueue(
+  overrides: Partial<AdminMessageThreadQueue> = {},
+): AdminMessageThreadQueue {
+  return {
+    items: [],
+    page: 1,
+    pageSize: 20,
+    totalCount: 0,
+    totalPages: 0,
+    counts: makeAdminMessageThreadCounts(),
     ...overrides,
   };
 }

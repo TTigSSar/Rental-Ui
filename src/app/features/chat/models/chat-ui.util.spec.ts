@@ -3,8 +3,10 @@ import {
   chatDayKey,
   chatDayLabel,
   filterConversations,
+  mapChatStatusIcon,
   mapChatStatusLabelKey,
   mapChatStatusTone,
+  mapModerationNoteMeta,
 } from './chat-ui.util';
 
 describe('mapChatStatusTone', () => {
@@ -19,6 +21,16 @@ describe('mapChatStatusTone', () => {
   it('maps closed to neutral', () => {
     expect(mapChatStatusTone('closed')).toBe('neutral');
   });
+
+  it('maps moderation to neutral (a Moderation thread never progresses like a booking)', () => {
+    expect(mapChatStatusTone('moderation')).toBe('neutral');
+  });
+});
+
+describe('mapChatStatusIcon', () => {
+  it('maps moderation to the shield glyph', () => {
+    expect(mapChatStatusIcon('moderation')).toBe('pi pi-shield');
+  });
 });
 
 describe('mapChatStatusLabelKey', () => {
@@ -32,6 +44,60 @@ describe('mapChatStatusLabelKey', () => {
 
   it('maps closed to its label key', () => {
     expect(mapChatStatusLabelKey('closed')).toBe('chat.status.closed');
+  });
+
+  it('maps moderation to its own label key (not the closed fallback)', () => {
+    expect(mapChatStatusLabelKey('moderation')).toBe('chat.status.moderation');
+  });
+});
+
+describe('mapModerationNoteMeta', () => {
+  it('maps reject to the x icon and danger tone', () => {
+    expect(mapModerationNoteMeta('reject')).toEqual({
+      icon: 'x',
+      labelKey: 'chat.note.kind.reject',
+      tone: 'danger',
+    });
+  });
+
+  it('maps warn to the flag icon and warn tone', () => {
+    expect(mapModerationNoteMeta('warn')).toEqual({
+      icon: 'flag',
+      labelKey: 'chat.note.kind.warn',
+      tone: 'warn',
+    });
+  });
+
+  it('maps suspend to the shield icon and danger tone', () => {
+    expect(mapModerationNoteMeta('suspend')).toEqual({
+      icon: 'shield',
+      labelKey: 'chat.note.kind.suspend',
+      tone: 'danger',
+    });
+  });
+
+  it('maps category to the tag icon and info tone', () => {
+    expect(mapModerationNoteMeta('category')).toEqual({
+      icon: 'tag',
+      labelKey: 'chat.note.kind.category',
+      tone: 'info',
+    });
+  });
+
+  it('maps info to the message icon and info tone', () => {
+    expect(mapModerationNoteMeta('info')).toEqual({
+      icon: 'message',
+      labelKey: 'chat.note.kind.info',
+      tone: 'info',
+    });
+  });
+
+  it('falls back to the info kind for an unrecognized/null noteKind', () => {
+    expect(mapModerationNoteMeta(null)).toEqual({
+      icon: 'message',
+      labelKey: 'chat.note.kind.info',
+      tone: 'info',
+    });
   });
 });
 
@@ -111,11 +177,43 @@ describe('filterConversations', () => {
     filterConversations(conversations, 'train');
     expect(conversations).toEqual(copy);
   });
+
+  describe('a Moderation conversation (kind === "moderation", toyTitle null)', () => {
+    const withModeration: ChatConversationPreview[] = [
+      ...conversations,
+      preview({
+        id: 'mod',
+        kind: 'moderation',
+        bookingId: null,
+        counterpartName: 'DoRent Support',
+        toyTitle: null,
+      }),
+    ];
+
+    it('does not throw on a null toyTitle (regression: TS18047 crash)', () => {
+      expect(() => filterConversations(withModeration, 'anything')).not.toThrow();
+    });
+
+    it('is found by counterpart name like any other conversation', () => {
+      const result = filterConversations(withModeration, 'dorent support');
+      expect(result.map((c) => c.id)).toEqual(['mod']);
+    });
+
+    it('is never matched by a toy-title query (it has no toy)', () => {
+      const result = filterConversations(withModeration, 'train');
+      expect(result.map((c) => c.id).includes('mod')).toBe(false);
+    });
+
+    it('is still included for a blank query alongside booking conversations', () => {
+      expect(filterConversations(withModeration, '')).toHaveLength(4);
+    });
+  });
 });
 
 function preview(overrides: Partial<ChatConversationPreview>): ChatConversationPreview {
   return {
     id: 'x',
+    kind: 'booking',
     bookingId: 'bk',
     counterpartName: 'Name',
     counterpartAvatarUrl: null,

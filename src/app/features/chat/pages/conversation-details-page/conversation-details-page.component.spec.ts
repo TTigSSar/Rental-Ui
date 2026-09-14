@@ -1,21 +1,14 @@
 import type { ComponentFixture } from '@angular/core/testing';
 import { TestBed } from '@angular/core/testing';
 import type { FormControl, FormGroup } from '@angular/forms';
-import {
-  ActivatedRoute,
-  convertToParamMap,
-  provideRouter,
-} from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import type { Action, Store } from '@ngrx/store';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import type { MockInstance } from 'vitest';
 
-import type {
-  ChatConversationDetails,
-  ChatMessage,
-} from '../../models/chat.model';
+import type { ChatConversationDetails, ChatMessage } from '../../models/chat.model';
 import { chatFeatureKey } from '../../store/chat.reducer';
 import { initialChatState } from '../../store/chat.state';
 import { ConversationDetailsPageComponent } from './conversation-details-page.component';
@@ -30,6 +23,9 @@ function systemMessage(overrides: Partial<ChatMessage>): ChatMessage {
     senderName: null,
     type: 'system',
     systemKind: null,
+    noteKind: null,
+    noteSubject: null,
+    noteReason: null,
     body: null,
     attachmentUrl: null,
     sentAt: '2026-07-07T10:00:00.000Z',
@@ -47,6 +43,9 @@ function imageMessage(overrides: Partial<ChatMessage> = {}): ChatMessage {
     senderName: 'Ada',
     type: 'image',
     systemKind: null,
+    noteKind: null,
+    noteSubject: null,
+    noteReason: null,
     body: null,
     attachmentUrl: '/uploads/chat/c1/photo.jpg',
     sentAt: '2026-07-07T10:00:00.000Z',
@@ -56,9 +55,34 @@ function imageMessage(overrides: Partial<ChatMessage> = {}): ChatMessage {
   };
 }
 
-function conversationWith(messages: ChatMessage[]): ChatConversationDetails {
+/** A `type === 'moderationNote'` message (noteKind/noteSubject/noteReason set). */
+function noteMessage(overrides: Partial<ChatMessage> = {}): ChatMessage {
+  return {
+    id: 'note-1',
+    conversationId: CONVERSATION_ID,
+    senderId: 'moderator-1',
+    senderName: 'DoRent Team',
+    type: 'moderationNote',
+    systemKind: null,
+    noteKind: 'reject',
+    noteSubject: 'Wooden train set',
+    noteReason: 'Photos too blurry',
+    body: 'Please resubmit with clearer photos.',
+    attachmentUrl: null,
+    sentAt: '2026-07-07T10:00:00.000Z',
+    isMine: false,
+    seen: false,
+    ...overrides,
+  };
+}
+
+function conversationWith(
+  messages: ChatMessage[],
+  overrides: Partial<ChatConversationDetails> = {},
+): ChatConversationDetails {
   return {
     id: CONVERSATION_ID,
+    kind: 'booking',
     bookingId: 'b1',
     counterpartId: 'owner-1',
     counterpartName: 'Marina',
@@ -71,7 +95,21 @@ function conversationWith(messages: ChatMessage[]): ChatConversationDetails {
     bookingPrice: 6000,
     isClosed: false,
     messages,
+    ...overrides,
   };
+}
+
+/** A Moderation conversation: no booking, no toy strip (see `ChatConversationDetails`). */
+function moderationConversationWith(messages: ChatMessage[]): ChatConversationDetails {
+  return conversationWith(messages, {
+    kind: 'moderation',
+    bookingId: null,
+    counterpartName: 'DoRent Team',
+    toyTitle: null,
+    status: 'moderation',
+    bookingDates: null,
+    bookingPrice: null,
+  });
 }
 
 function createFixture() {
@@ -104,8 +142,7 @@ function createFixture() {
           charCounter: '{{count}} / {{max}}',
           limitReached: 'Message limit of {{max}} characters reached',
           imageTooLarge: 'This photo is too large. Maximum size is {{max}} MB.',
-          imageInvalidType:
-            'Unsupported file type. Use a JPEG, PNG, WebP or GIF image.',
+          imageInvalidType: 'Unsupported file type. Use a JPEG, PNG, WebP or GIF image.',
         },
       },
     },
@@ -191,10 +228,63 @@ describe('ConversationDetailsPageComponent', () => {
     // Every other system kind keeps a plain, non-enriched line.
     const allLines = host.querySelectorAll('.chat-system__line');
     expect(allLines).toHaveLength(2);
-    const plainLines = host.querySelectorAll(
-      '.chat-system__line:not(.chat-system__line--request)',
-    );
+    const plainLines = host.querySelectorAll('.chat-system__line:not(.chat-system__line--request)');
     expect(plainLines).toHaveLength(1);
+  });
+
+  describe('a Moderation conversation (kind === "moderation")', () => {
+    it('renders the moderation banner instead of the booking toy-strip header', () => {
+      const { fixture, store } = createFixture();
+      store.setState({
+        [chatFeatureKey]: {
+          ...initialChatState,
+          activeConversation: moderationConversationWith([]),
+        },
+      });
+
+      fixture.detectChanges();
+
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelector('.chat-thread__context--moderation')).not.toBeNull();
+      // The booking-only elements never render: no toy image, no dates/price
+      // context, no "View booking" link (which would otherwise point at
+      // `/bookings/null`, since `bookingId` is null for a Moderation thread).
+      expect(host.querySelector('.chat-thread__toy-img')).toBeNull();
+      expect(host.querySelector('.chat-thread__view-booking')).toBeNull();
+      expect(host.querySelector('a[href*="/bookings/"]')).toBeNull();
+    });
+
+    it('renders the ordinary booking header for a booking conversation (regression guard)', () => {
+      const { fixture, store } = createFixture();
+      store.setState({
+        [chatFeatureKey]: {
+          ...initialChatState,
+          activeConversation: conversationWith([]),
+        },
+      });
+
+      fixture.detectChanges();
+
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelector('.chat-thread__context--moderation')).toBeNull();
+      expect(host.querySelector('.chat-thread__view-booking')).not.toBeNull();
+    });
+
+    it('renders a moderationNote message as the note card, not a chat bubble', () => {
+      const { fixture, store } = createFixture();
+      store.setState({
+        [chatFeatureKey]: {
+          ...initialChatState,
+          activeConversation: moderationConversationWith([noteMessage()]),
+        },
+      });
+
+      fixture.detectChanges();
+
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelector('app-moderation-note-card')).not.toBeNull();
+      expect(host.querySelector('.chat-bubble')).toBeNull();
+    });
   });
 
   describe('composer character counter', () => {
@@ -211,9 +301,7 @@ describe('ConversationDetailsPageComponent', () => {
 
       const counter = host.querySelector('.chat-thread__composer-counter');
       expect(counter).not.toBeNull();
-      expect(
-        counter?.classList.contains('chat-thread__composer-counter--limit'),
-      ).toBe(false);
+      expect(counter?.classList.contains('chat-thread__composer-counter--limit')).toBe(false);
       expect(counter?.textContent?.trim()).toBe('3500 / 4000');
     });
 
@@ -223,12 +311,8 @@ describe('ConversationDetailsPageComponent', () => {
 
       const counter = host.querySelector('.chat-thread__composer-counter');
       expect(counter).not.toBeNull();
-      expect(
-        counter?.classList.contains('chat-thread__composer-counter--limit'),
-      ).toBe(true);
-      expect(counter?.textContent?.trim()).toBe(
-        'Message limit of 4000 characters reached',
-      );
+      expect(counter?.classList.contains('chat-thread__composer-counter--limit')).toBe(true);
+      expect(counter?.textContent?.trim()).toBe('Message limit of 4000 characters reached');
     });
   });
 
@@ -238,9 +322,7 @@ describe('ConversationDetailsPageComponent', () => {
       store.setState({
         [chatFeatureKey]: {
           ...initialChatState,
-          activeConversation: conversationWith([
-            imageMessage({ body: 'Look at this train' }),
-          ]),
+          activeConversation: conversationWith([imageMessage({ body: 'Look at this train' })]),
         },
       });
 
@@ -253,9 +335,9 @@ describe('ConversationDetailsPageComponent', () => {
       expect(img?.getAttribute('loading')).toBe('lazy');
       // The caption doubles as the alt text when present.
       expect(img?.getAttribute('alt')).toBe('Look at this train');
-      expect(
-        host.querySelector('.chat-bubble__caption')?.textContent?.trim(),
-      ).toBe('Look at this train');
+      expect(host.querySelector('.chat-bubble__caption')?.textContent?.trim()).toBe(
+        'Look at this train',
+      );
     });
 
     it('renders the optimistic pending bubble while the upload is in flight', () => {
@@ -336,9 +418,7 @@ describe('ConversationDetailsPageComponent', () => {
         type: '[Chat] Send Image Message Failure',
         error: 'Unsupported file type. Use a JPEG, PNG, WebP or GIF image.',
       });
-      expect(
-        dispatched.some((action) => action.type === '[Chat] Send Image Message'),
-      ).toBe(false);
+      expect(dispatched.some((action) => action.type === '[Chat] Send Image Message')).toBe(false);
     });
 
     it('rejects a file over the 5 MB attachment cap', async () => {
@@ -353,9 +433,7 @@ describe('ConversationDetailsPageComponent', () => {
         type: '[Chat] Send Image Message Failure',
         error: 'This photo is too large. Maximum size is 5 MB.',
       });
-      expect(
-        dispatched.some((action) => action.type === '[Chat] Send Image Message'),
-      ).toBe(false);
+      expect(dispatched.some((action) => action.type === '[Chat] Send Image Message')).toBe(false);
     });
 
     it('dispatches sendImageMessage for a valid file, with the composer text as caption', async () => {
@@ -368,9 +446,7 @@ describe('ConversationDetailsPageComponent', () => {
 
       const sent = dispatchedActions(dispatchSpy).find(
         (action) => action.type === '[Chat] Send Image Message',
-      ) as
-        | { conversationId: string; caption: string | null; previewUrl: string }
-        | undefined;
+      ) as { conversationId: string; caption: string | null; previewUrl: string } | undefined;
       expect(sent).toBeDefined();
       expect(sent?.conversationId).toBe(CONVERSATION_ID);
       expect(sent?.caption).toBe('Look at this');

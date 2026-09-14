@@ -11,6 +11,7 @@ import { ConversationsPageComponent } from './conversations-page.component';
 function preview(overrides: Partial<ChatConversationPreview>): ChatConversationPreview {
   return {
     id: 'c1',
+    kind: 'booking',
     bookingId: 'b1',
     counterpartName: 'Marina',
     counterpartAvatarUrl: null,
@@ -114,6 +115,30 @@ describe('ConversationsPageComponent', () => {
       const host = fixture.nativeElement as HTMLElement;
       const snippet = host.querySelector('.chat-row__snippet')?.textContent?.trim();
       expect(snippet).toBe('Look at this');
+    });
+  });
+
+  describe('a Moderation conversation row (kind === "moderation", toyTitle null)', () => {
+    it('never binds the null toyTitle into the DOM and shows the moderation label + shield tile instead', () => {
+      const fixture = createFixture([
+        preview({
+          id: 'mod',
+          kind: 'moderation',
+          bookingId: null,
+          counterpartName: 'DoRent Team',
+          toyTitle: null,
+          toyImageUrl: null,
+          status: 'moderation',
+        }),
+      ]);
+
+      const host = fixture.nativeElement as HTMLElement;
+      // Regression: binding a null toyTitle into [alt]/interpolation compiles
+      // under strictTemplates but must never actually happen for this row.
+      expect(host.querySelector('.chat-row__toy-thumb')).toBeNull();
+      expect(host.querySelector('.chat-row__mod-badge')).not.toBeNull();
+      const toyTitleSpan = host.querySelector('.chat-row__toy-title');
+      expect(toyTitleSpan?.textContent?.trim()).toBe('chat.conversations.moderationLabel');
     });
   });
 });

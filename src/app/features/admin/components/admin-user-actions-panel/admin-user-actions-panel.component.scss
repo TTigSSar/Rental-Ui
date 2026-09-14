@@ -176,6 +176,11 @@
   color: var(--ui-color-danger);
 }
 
+.admin-user-actions-panel__sheet-btn--neutral {
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-primary);
+}
+
 .admin-user-actions-panel__sheet-btn--cancel {
   background: transparent;
   border: 1px solid var(--ui-color-border);

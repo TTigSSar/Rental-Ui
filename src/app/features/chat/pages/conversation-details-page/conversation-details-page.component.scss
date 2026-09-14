@@ -279,6 +279,21 @@
   gap: 0.3rem;
 }
 
+/* ── Moderation banner ─────────────────────────────────────────────────────
+ * Replaces the booking toy-strip header entirely for a Moderation conversation
+ * (`kind === 'moderation'`) — there is no toy image, dates, price, status pill
+ * or "View booking" link to show, because there is no linked booking. */
+.chat-thread__moderation-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--ui-color-info-surface);
+  color: var(--ui-color-info);
+}
+
 .chat-thread__toy-title {
   margin: 0;
   font-size: 13px;
@@ -946,7 +961,8 @@
     padding: 12px 16px;
   }
 
-  .chat-thread__toy-img {
+  .chat-thread__toy-img,
+  .chat-thread__moderation-icon {
     width: 46px;
     height: 46px;
   }

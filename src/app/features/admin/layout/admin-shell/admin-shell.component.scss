@@ -135,16 +135,34 @@
   box-shadow: 0 0 0 2px var(--ui-color-surface);
 }
 
+// The account-menu trigger — a `<button>` (was a plain `<div>` before the
+// account menu existed), so it gets its own reset: no border/background by
+// default, a hover/focus affordance since it's now interactive, but
+// otherwise the same visual weight as before (avatar + name/role stack).
 .admin-topbar__user {
   display: flex;
   align-items: center;
   gap: var(--ui-space-8);
+  border: none;
+  background: transparent;
+  padding: var(--ui-space-4) var(--ui-space-8);
+  margin: 0 calc(var(--ui-space-8) * -1);
+  border-radius: var(--ui-radius-pill);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+
+.admin-topbar__user:hover {
+  background: var(--ui-color-surface-muted);
 }
 
 .admin-topbar__user-meta {
   display: flex;
   flex-direction: column;
   line-height: 1.25;
+  text-align: left;
 }
 
 .admin-topbar__user-name {
@@ -156,6 +174,16 @@
 .admin-topbar__user-role {
   font-size: 0.6875rem;
   color: var(--ui-color-text-secondary);
+}
+
+.admin-topbar__user-chevron {
+  flex-shrink: 0;
+  color: var(--ui-color-text-hint);
+  transition: transform 140ms ease;
+}
+
+.admin-topbar__user-chevron--open {
+  transform: rotate(180deg);
 }
 
 // ══════════════════════════ Desktop body / rail ═══════════════════════
@@ -408,8 +436,30 @@
   color: var(--ui-color-text-secondary);
 }
 
-.admin-mobile-header__action:empty {
-  display: none;
+// Was `<ng-content>`-only (hidden via `:empty` when nothing projected); now
+// always hosts the account trigger, so it's a row that can additionally fit
+// a projected page-specific action alongside it (see the template comment).
+.admin-mobile-header__action {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-8);
+  flex-shrink: 0;
+}
+
+// Avatar-only trigger — circular, no border/background of its own beyond
+// the avatar bubble, hover/focus affordance to signal it's interactive.
+.admin-mobile-header__account {
+  display: inline-flex;
+  border: none;
+  background: transparent;
+  padding: 2px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+
+.admin-mobile-header__account:hover {
+  background: var(--ui-color-surface-muted);
 }
 
 .admin-shell__main--mobile {
@@ -424,7 +474,15 @@
   bottom: 0;
   z-index: var(--ui-z-bottom-nav);
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  // Column count tracks the actual number of rendered destinations via the
+  // `--admin-mobile-nav-count` custom property set from the template
+  // (`[style.--admin-mobile-nav-count]="navItems.length"`) — same idiom as
+  // `notification-card`'s `[style.--notif-kind-color]` binding. A hardcoded
+  // `repeat(N, 1fr)` here silently breaks the next time a destination is
+  // added or removed (see the six-tab regression this fixed); the fallback
+  // of 5 only applies if the binding is ever missing entirely (e.g. a stray
+  // template not wired up), not a value this component itself should hit.
+  grid-template-columns: repeat(var(--admin-mobile-nav-count, 5), 1fr);
   align-items: center;
   min-height: 64px;
   padding: var(--ui-space-6) var(--ui-space-4)
@@ -440,6 +498,19 @@
   align-items: center;
   justify-content: center;
   gap: 3px;
+  // Without this, each grid item's automatic minimum width defaults to its
+  // content's min-content size (icon + full label text + badge), NOT an
+  // equal 1fr share — so a long untruncated label (hy/ru routinely run
+  // longer than en) forces its whole track wider than a fair 1/6, and once
+  // the six tracks' summed minimums exceed the nav's width the overflow
+  // pushes later tabs (and their badges) off-screen past the viewport edge
+  // instead of the intended `.admin-mobile-nav__label` ellipsis kicking in.
+  // `min-width: 0` here is what lets `repeat(var(--admin-mobile-nav-count),
+  // 1fr)` actually divide the row equally and hands truncation back to the
+  // label's own `max-width`/`text-overflow: ellipsis`. Confirmed via a
+  // 390px real-browser check across en/hy/ru — see the implementation
+  // report for the before/after measurements.
+  min-width: 0;
   min-height: 44px;
   padding: var(--ui-space-4);
   color: var(--ui-color-text-secondary);
@@ -487,7 +558,9 @@
 // ══════════════════════════ Focus rings ═══════════════════════════════
 .admin-topbar__brand:focus-visible,
 .admin-topbar__bell:focus-visible,
+.admin-topbar__user:focus-visible,
 .admin-rail__link:focus-visible,
+.admin-mobile-header__account:focus-visible,
 .admin-mobile-nav__item:focus-visible {
   outline: none;
   box-shadow: var(--ui-focus-ring);

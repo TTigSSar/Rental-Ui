@@ -133,14 +133,20 @@
   color: var(--ui-color-danger) !important;
 }
 
-.owner-trust-panel__profile-link {
+.owner-trust-panel__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: var(--ui-space-12);
+}
+
+.owner-trust-panel__profile-link,
+.owner-trust-panel__message-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  width: 100%;
+  flex: 1;
   height: 40px;
-  margin-top: var(--ui-space-12);
   border-radius: 11px;
   border: 1px solid var(--ui-color-border);
   background: var(--ui-color-surface);
@@ -149,13 +155,17 @@
   font-weight: 700;
   text-decoration: none;
   box-sizing: border-box;
+  cursor: pointer;
+  font-family: inherit;
 }
 
-.owner-trust-panel__profile-link:hover {
+.owner-trust-panel__profile-link:hover,
+.owner-trust-panel__message-btn:hover {
   background: var(--ui-color-surface-muted);
 }
 
-.owner-trust-panel__profile-link:focus-visible {
+.owner-trust-panel__profile-link:focus-visible,
+.owner-trust-panel__message-btn:focus-visible {
   outline: none;
   box-shadow: var(--ui-focus-ring);
 }

@@ -1,7 +1,17 @@
 import type { BadgeTone } from '../../../shared/ui/badge/badge.component';
-import type { ChatConversationPreview, ChatStatus, ChatSystemKind } from './chat.model';
+import type {
+  ChatConversationPreview,
+  ChatModerationNoteKind,
+  ChatStatus,
+  ChatSystemKind,
+} from './chat.model';
 
-/** Maps a conversation status to a `shared/ui` badge tone. */
+/**
+ * Maps a conversation status to a `shared/ui` badge tone. `moderation` (the
+ * status a Moderation conversation always carries — see `ChatStatus`) maps to
+ * the existing muted `neutral` tone: it isn't a progressing booking state, so
+ * it gets the same quiet treatment as a closed thread rather than a new tone.
+ */
 export function mapChatStatusTone(status: ChatStatus): BadgeTone {
   switch (status) {
     case 'requested':
@@ -16,6 +26,8 @@ export function mapChatStatusTone(status: ChatStatus): BadgeTone {
       return 'approved';
     case 'closed':
       return 'neutral';
+    case 'moderation':
+      return 'neutral';
     default:
       return 'neutral';
   }
@@ -23,7 +35,7 @@ export function mapChatStatusTone(status: ChatStatus): BadgeTone {
 
 /**
  * Maps a conversation status to the primeicon shown inside its status pill
- * (design: clock / check / calendar / lock — one glyph per status family).
+ * (design: clock / check / calendar / lock / shield — one glyph per status family).
  */
 export function mapChatStatusIcon(status: ChatStatus): string {
   switch (status) {
@@ -37,6 +49,8 @@ export function mapChatStatusIcon(status: ChatStatus): string {
       return 'pi pi-calendar';
     case 'closed':
       return 'pi pi-lock';
+    case 'moderation':
+      return 'pi pi-shield';
     default:
       return 'pi pi-lock';
   }
@@ -57,8 +71,42 @@ export function mapChatStatusLabelKey(status: ChatStatus): string {
       return 'chat.status.completed';
     case 'closed':
       return 'chat.status.closed';
+    case 'moderation':
+      return 'chat.status.moderation';
     default:
       return 'chat.status.closed';
+  }
+}
+
+/** Color family of a moderation-note card's tinted header/reason line. */
+export type ChatNoteTone = 'danger' | 'warn' | 'info';
+
+export interface ChatNoteMeta {
+  /** `app-icon` glyph name (see `shared/ui/icon/icon.component.ts`). */
+  readonly icon: string;
+  readonly labelKey: string;
+  readonly tone: ChatNoteTone;
+}
+
+/**
+ * Maps a `type === 'moderationNote'` message's `noteKind` to the card's icon +
+ * tint + translated kind label (design: `NOTE_KINDS` in admin-desktop.jsx).
+ * Shared by the member-side note card here and the admin Messages screen,
+ * which renders the identical card.
+ */
+export function mapModerationNoteMeta(kind: ChatModerationNoteKind | null): ChatNoteMeta {
+  switch (kind) {
+    case 'reject':
+      return { icon: 'x', labelKey: 'chat.note.kind.reject', tone: 'danger' };
+    case 'warn':
+      return { icon: 'flag', labelKey: 'chat.note.kind.warn', tone: 'warn' };
+    case 'suspend':
+      return { icon: 'shield', labelKey: 'chat.note.kind.suspend', tone: 'danger' };
+    case 'category':
+      return { icon: 'tag', labelKey: 'chat.note.kind.category', tone: 'info' };
+    case 'info':
+    default:
+      return { icon: 'message', labelKey: 'chat.note.kind.info', tone: 'info' };
   }
 }
 
@@ -153,6 +201,12 @@ export function chatDayLabel(sentAt: string, now: Date = new Date()): ChatDayLab
 /**
  * Case-insensitive client-side filter of already-loaded conversations by
  * counterpart name or toy title. An empty/blank query returns the list as-is.
+ *
+ * A Moderation conversation (`kind === 'moderation'`) has no `toyTitle` — there
+ * is no toy strip, see `ChatConversationPreview` — so it matches on counterpart
+ * name alone. It has no other free-text field to search (its row shows a fixed
+ * "DoRent moderation" label, not user content), so name is genuinely the only
+ * thing there is to match.
  */
 export function filterConversations(
   conversations: readonly ChatConversationPreview[],
@@ -165,6 +219,6 @@ export function filterConversations(
   return conversations.filter(
     (conversation) =>
       conversation.counterpartName.toLowerCase().includes(normalized) ||
-      conversation.toyTitle.toLowerCase().includes(normalized),
+      (conversation.toyTitle !== null && conversation.toyTitle.toLowerCase().includes(normalized)),
   );
 }

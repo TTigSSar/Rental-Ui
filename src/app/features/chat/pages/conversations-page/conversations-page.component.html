@@ -98,7 +98,13 @@
                 } @else {
                   <app-ui-avatar [name]="conversation.counterpartName" size="md" />
                 }
-                @if (conversation.toyImageUrl) {
+                @if (conversation.kind === 'moderation') {
+                  <!-- Moderation conversation: no toy strip (bookingId / toyTitle
+                       are null) — a shield badge tile marks the thread instead. -->
+                  <span class="chat-row__mod-badge" aria-hidden="true">
+                    <app-icon name="shield" [size]="12" />
+                  </span>
+                } @else if (conversation.toyImageUrl) {
                   <img
                     class="chat-row__toy-thumb"
                     [src]="conversation.toyImageUrl"
@@ -118,7 +124,13 @@
 
                 <div [class]="'chat-row__meta chat-row__meta--' + statusTone(conversation.status)">
                   <span class="chat-row__status-dot" aria-hidden="true"></span>
-                  <span class="chat-row__toy-title">{{ conversation.toyTitle }}</span>
+                  @if (conversation.kind === 'moderation') {
+                    <span class="chat-row__toy-title">
+                      {{ 'chat.conversations.moderationLabel' | translate }}
+                    </span>
+                  } @else {
+                    <span class="chat-row__toy-title">{{ conversation.toyTitle }}</span>
+                  }
                   <span class="conversations-page__visually-hidden">
                     {{ statusLabelKey(conversation.status) | translate }}
                   </span>

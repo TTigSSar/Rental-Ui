@@ -1556,6 +1556,7 @@
         "identityUnverified": "Չհաստատված",
         "flags": "Բողոքներ",
         "flagsCount": "{{count}} բաց բողոք",
+        "messageOwner": "Հաղորդագրություն սեփականատիրոջը",
         "viewProfile": "Դիտել հանրային պրոֆիլը"
       },
       "checklist": {
@@ -1708,6 +1709,7 @@
         "verify": "Հաստատել օգտատիրոջը",
         "suspend": "Կասեցնել",
         "reactivate": "Վերաակտիվացնել",
+        "message": "Հաղորդագրություն",
         "cancel": "Չեղարկել",
         "suspendDisabledSelf": "Դուք չեք կարող կասեցնել ձեր սեփական հաշիվը։",
         "suspendDisabledAdmin": "Ադմինիստրատորի հաշիվները հնարավոր չէ կասեցնել այստեղից։"
@@ -1815,6 +1817,9 @@
         "targetType": "Բողոքի տեսակ",
         "whatWasReported": "Ինչի մասին է բողոքը",
         "reporterNote": "Բողոքողի մեկնաբանությունը",
+        "contacts": "Կոնտակտներ",
+        "messageContact": "Հաղորդագրություն {{name}}-ին",
+        "messageContactAria": "Բացել մոդերացիայի զրույցը {{name}}-ի հետ",
         "resolutionNote": "Լուծման մեկնաբանություն",
         "noteLabel": "Ավելացնել մեկնաբանություն (ոչ պարտադիր)",
         "notePlaceholder": "Օր.՝ հաստատված է սեփականատիրոջ հետ՝ իրը հանվել է հայտարարությունից։"
@@ -1832,12 +1837,53 @@
         "reportNotFound": "Այս բողոքն այլևս գոյություն չունի։"
       }
     },
+    "messages": {
+      "page": {
+        "title": "Հաղորդագրություններ",
+        "subtitle": "Կապվեք անդամների հետ ուղղակիորեն։ Ձեր ուղարկած յուրաքանչյուր մոդերացիայի նշում հայտնվում է այստեղ՝ զրույցում։",
+        "searchPlaceholder": "Փնտրել անդամներին",
+        "listAria": "Զրույցներ",
+        "errorTitle": "Չհաջողվեց բեռնել զրույցները",
+        "pagerAria": "Զրույցների էջեր",
+        "pagerPrev": "Նախորդ",
+        "pagerNext": "Հաջորդ",
+        "pagerStatus": "Էջ {{page}}-ը {{total}}-ից"
+      },
+      "filters": {
+        "ariaLabel": "Զտել զրույցները",
+        "all": "Բոլորը",
+        "unread": "Չկարդացված",
+        "reply": "Պատասխան է պետք"
+      },
+      "list": {
+        "empty": "Այստեղ զրույցներ չկան։",
+        "noMessagesYet": "Հաղորդագրություններ դեռ չկան — ասեք բարև",
+        "notePreview": "Նշում՝ {{subject}}",
+        "noteNoSubject": "Մոդերացիայի նշում"
+      },
+      "thread": {
+        "emptyStart": "Ձեր զրույցի սկիզբը {{name}}-ի հետ։ Այստեղ ուղարկած ցանկացած նշում հասնում է անմիջապես նրան։",
+        "errorTitle": "Չհաջողվեց բեռնել զրույցը"
+      },
+      "composer": {
+        "label": "Հաղորդագրություն"
+      },
+      "profile": {
+        "statusAria": "Անդամի պրոֆիլը",
+        "errorTitle": "Չհաջողվեց բեռնել անդամի պրոֆիլը"
+      },
+      "toast": {
+        "sendFailureTitle": "Հաղորդագրությունը չուղարկվեց",
+        "openFailureTitle": "Չհաջողվեց բացել զրույցը"
+      }
+    },
     "console": {
       "nav": {
         "overview": "Ընդհանուր",
         "review": "Հայտերի ստուգում",
         "categories": "Կատեգորիաներ",
         "users": "Օգտատերեր",
+        "messages": "Հաղորդագրություններ",
         "reports": "Բողոքներ և նշումներ"
       },
       "chrome": {
@@ -1855,6 +1901,13 @@
           "avgReview": "Ստուգման միջին ժամանակ",
           "flagged": "Նշված",
           "hoursValue": "{{hours}} ժ"
+        },
+        "account": {
+          "triggerAria": "Հաշվի մենյու",
+          "menuAria": "Հաշիվ",
+          "profile": "Պրոֆիլ",
+          "backToSite": "Վերադառնալ կայք",
+          "logout": "Ելք"
         }
       },
       "comingSoon": {
@@ -1944,7 +1997,8 @@
       "unreadAria": "{{count}} չկարդացված հաղորդագրություն",
       "searchPlaceholder": "Փնտրել զրույցներում",
       "noResultsTitle": "Համընկնումներ չկան",
-      "noResults": "«{{query}}» հարցմամբ զրույցներ չկան։"
+      "noResults": "«{{query}}» հարցմամբ զրույցներ չկան։",
+      "moderationLabel": "DoRent մոդերացիա"
     },
     "details": {
       "backToConversations": "Վերադառնալ զրույցներին",
@@ -1973,7 +2027,9 @@
       "closedBannerTitle": "Այս զրույցը փակ է",
       "closedBannerSubtitle": "Վարձույթն ավարտված է, և երկու կարծիքներն էլ ստացվել են — այժմ այն հասանելի է միայն ընթերցման համար։",
       "charCounter": "{{count}} / {{max}}",
-      "limitReached": "Հասել եք {{max}} նիշի սահմանաչափին"
+      "limitReached": "Հասել եք {{max}} նիշի սահմանաչափին",
+      "moderationTitle": "DoRent մոդերացիա",
+      "moderationSubtitle": "DoRent թիմի ուղիղ հաղորդագրություններ"
     },
     "status": {
       "requested": "Հայցված",
@@ -1981,7 +2037,8 @@
       "active": "Ակտիվ",
       "returnDue": "Վերադարձի ժամկետ",
       "completed": "Ավարտված",
-      "closed": "Փակված"
+      "closed": "Փակված",
+      "moderation": "Մոդերացիա"
     },
     "system": {
       "request": "Ամրագրման հայց",
@@ -1991,6 +2048,19 @@
       "return": "Խաղալիքը վերադարձված է",
       "closed": "Զրույցը փակված է",
       "default": "Թարմացում"
+    },
+    "note": {
+      "kind": {
+        "reject": "Հայտարարությունը մերժված է",
+        "warn": "Տրվել է նախազգուշացում",
+        "suspend": "Հաշիվը կասեցված է",
+        "category": "Կատեգորիան փոխվել է",
+        "info": "Մոդերացիայի նշում"
+      },
+      "by": "ուղարկող՝ {{name}}",
+      "reason": "Պատճառ",
+      "footerMember": "DoRent մոդերացիայից",
+      "footerModerator": "Ուղարկված է անդամին"
     },
     "time": {
       "justNow": "Հենց հիմա",

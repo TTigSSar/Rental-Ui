@@ -20,9 +20,11 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, filter, map } from 'rxjs';
 
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
+import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import { compressImageFile } from '../../../../shared/utils/image-compression.utils';
+import { ModerationNoteCardComponent } from '../../components/moderation-note-card/moderation-note-card.component';
 import {
   type ChatDayLabel,
   type ChatSystemMeta,
@@ -103,6 +105,17 @@ interface DayDivider {
   readonly labelText: string | null;
 }
 
+/**
+ * A `type === 'moderationNote'` message — rendered as the distinct
+ * `app-moderation-note-card`, never grouped into a bubble stack like a
+ * text/image message.
+ */
+interface NoteItem {
+  readonly kind: 'note';
+  readonly id: string;
+  readonly message: ChatMessage;
+}
+
 /** Flattens a {@link ChatDayLabel} into template-friendly key/text fields. */
 function toDayDividerFields(label: ChatDayLabel): {
   labelKey: string | null;
@@ -118,7 +131,7 @@ function toDayDividerFields(label: ChatDayLabel): {
   }
 }
 
-type ThreadItem = MessageGroup | SystemLine | DayDivider;
+type ThreadItem = MessageGroup | SystemLine | DayDivider | NoteItem;
 
 interface ConversationDetailsPageViewModel {
   readonly routeConversationId: string | null;
@@ -183,8 +196,18 @@ function buildThreadItems(conversation: ChatConversationDetails): ThreadItem[] {
       });
     }
 
+    if (message.type === 'moderationNote') {
+      items.push({ kind: 'note', id: message.id, message });
+      continue;
+    }
+
     if (message.type === 'system') {
       const meta = mapChatSystemMeta(message.systemKind);
+      // `bookingDates`/`bookingPrice` are null for a Moderation conversation
+      // (no linked booking) — a `request` system kind should never occur there
+      // in practice, but the enriched pill only ever renders when both are
+      // genuinely present; otherwise the line falls back to its plain
+      // localized label like any other non-enriched system kind.
       items.push({
         kind: 'system',
         id: message.id,
@@ -192,7 +215,9 @@ function buildThreadItems(conversation: ChatConversationDetails): ThreadItem[] {
         body: message.body,
         isGeneric: meta.labelKey === 'chat.system.default',
         request:
-          message.systemKind === 'request'
+          message.systemKind === 'request' &&
+          conversation.bookingDates !== null &&
+          conversation.bookingPrice !== null
             ? {
                 counterpartName: conversation.counterpartName,
                 bookingDates: conversation.bookingDates,
@@ -251,7 +276,9 @@ function buildThreadItems(conversation: ChatConversationDetails): ThreadItem[] {
     ButtonModule,
     DramCurrencyPipe,
     DatePipe,
+    IconComponent,
     MessageModule,
+    ModerationNoteCardComponent,
     ReactiveFormsModule,
     RouterLink,
     SkeletonModule,

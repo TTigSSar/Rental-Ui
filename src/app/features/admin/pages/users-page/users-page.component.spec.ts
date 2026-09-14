@@ -126,6 +126,28 @@ describe('UsersPageComponent', () => {
     expect(fixture.nativeElement.querySelector('app-admin-user-profile-dialog')).not.toBeNull();
   });
 
+  it('navigates to /admin/messages?userId=<id> when "Message" is chosen from the row menu', async () => {
+    await setup({ items: [makeAdminUser({ id: 'u1' })] });
+
+    const menuTrigger: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '.users-page__menu-trigger',
+    );
+    menuTrigger.click();
+    fixture.detectChanges();
+
+    const messageBtn: HTMLButtonElement | undefined = Array.from(
+      fixture.nativeElement.querySelectorAll('.admin-user-actions-panel__item'),
+    ).find((el) => (el as HTMLElement).textContent?.includes('admin.users.actions.message')) as
+      | HTMLButtonElement
+      | undefined;
+    expect(messageBtn).not.toBeUndefined();
+    messageBtn?.click();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/admin/messages'], {
+      queryParams: { userId: 'u1' },
+    });
+  });
+
   describe('profile dialog stays in sync with a mutation made from inside it', () => {
     it('shows Reactivate (not Suspend) once suspendUserSuccess fires, even though the row has left the Pending tab', async () => {
       const pendingUser = makeAdminUser({

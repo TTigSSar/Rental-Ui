@@ -4,7 +4,10 @@
  * on the backend). Progression: requested -> approved -> active ->
  * return_due -> completed -> closed. `completed` is the booking-Completed,
  * chat-still-open state (awaiting party reviews); `closed` is the terminal,
- * read-only state set only once `ClosedAt` is non-null.
+ * read-only state set only once `ClosedAt` is non-null. `moderation` is a
+ * distinct, non-progressing pill for a Moderation conversation (`kind ===
+ * 'moderation'`) — see `ChatTokens.ModerationStatusToken` on the backend;
+ * such a thread has no booking so none of the other pills ever apply to it.
  */
 export type ChatStatus =
   | 'requested'
@@ -12,35 +15,48 @@ export type ChatStatus =
   | 'active'
   | 'return_due'
   | 'completed'
-  | 'closed';
+  | 'closed'
+  | 'moderation';
 
-export type ChatMessageType = 'text' | 'image' | 'system';
+export type ChatMessageType = 'text' | 'image' | 'system' | 'moderationNote';
 
-export type ChatSystemKind =
-  | 'request'
-  | 'approved'
-  | 'handover'
-  | 'return'
-  | 'closed';
+export type ChatSystemKind = 'request' | 'approved' | 'handover' | 'return' | 'closed';
+
+/**
+ * Admin-action token for a `moderationNote` message (see
+ * `ChatTokens.ModerationNoteKindToken` on the backend).
+ */
+export type ChatModerationNoteKind = 'reject' | 'warn' | 'suspend' | 'category' | 'info';
+
+/**
+ * `"booking" | "moderation"` — see `ChatTokens.ConversationKindToken` on the
+ * backend. A `booking` conversation is the pre-existing, booking-scoped
+ * thread (ADR-001); a `moderation` conversation is a moderator's direct
+ * thread with a member, with no linked booking.
+ */
+export type ChatConversationKind = 'booking' | 'moderation';
 
 /** Inbox row: one conversation preview in the conversations list. */
 export interface ChatConversationPreview {
   id: string;
-  bookingId: string;
+  kind: ChatConversationKind;
+  /** Null for a Moderation conversation (`kind === 'moderation'`). */
+  bookingId: string | null;
   counterpartName: string;
   counterpartAvatarUrl: string | null;
-  toyTitle: string;
+  /** Null for a Moderation conversation — there is no toy strip. */
+  toyTitle: string | null;
   toyImageUrl: string | null;
   status: ChatStatus;
   lastMessageSnippet: string | null;
   lastMessageAt: string | null;
   /**
-   * "text" | "image" | "system" token for the conversation's last message (see
-   * `ChatTokens.MessageTypeToken` on the backend), or null when there is no
-   * last message yet. An image message has no text snippet, so the client
-   * should render a localized placeholder (e.g. "Photo") when this is
-   * `'image'` and `lastMessageSnippet` is null — the server never bakes in a
-   * literal display string.
+   * "text" | "image" | "system" | "moderationNote" token for the
+   * conversation's last message (see `ChatTokens.MessageTypeToken` on the
+   * backend), or null when there is no last message yet. An image message
+   * has no text snippet, so the client should render a localized placeholder
+   * (e.g. "Photo") when this is `'image'` and `lastMessageSnippet` is null —
+   * the server never bakes in a literal display string.
    */
   lastMessageType: ChatMessageType | null;
   lastMessageIsMine: boolean;
@@ -54,6 +70,12 @@ export interface ChatMessage {
   senderName: string | null;
   type: ChatMessageType;
   systemKind: ChatSystemKind | null;
+  /** Set only when `type === 'moderationNote'`; null otherwise. */
+  noteKind: ChatModerationNoteKind | null;
+  /** Subject of a moderation note (e.g. the listing title). Null otherwise. */
+  noteSubject: string | null;
+  /** Reason of a moderation note (e.g. the rejection reason label). Null otherwise. */
+  noteReason: string | null;
   body: string | null;
   attachmentUrl: string | null;
   sentAt: string;
@@ -63,16 +85,21 @@ export interface ChatMessage {
 
 export interface ChatConversationDetails {
   id: string;
-  bookingId: string;
+  kind: ChatConversationKind;
+  /** Null for a Moderation conversation (`kind === 'moderation'`). */
+  bookingId: string | null;
   counterpartId: string;
   counterpartName: string;
   counterpartAvatarUrl: string | null;
   counterpartVerified: boolean;
-  toyTitle: string;
+  /** Null for a Moderation conversation — there is no toy strip. */
+  toyTitle: string | null;
   toyImageUrl: string | null;
   status: ChatStatus;
-  bookingDates: string;
-  bookingPrice: number;
+  /** Null for a Moderation conversation. */
+  bookingDates: string | null;
+  /** Null for a Moderation conversation. */
+  bookingPrice: number | null;
   isClosed: boolean;
   messages: ChatMessage[];
 }
@@ -134,6 +161,12 @@ export interface ChatRealtimeMessage {
   senderName: string | null;
   type: ChatMessageType;
   systemKind: ChatSystemKind | null;
+  /** Set only when `type === 'moderationNote'`; null otherwise. */
+  noteKind: ChatModerationNoteKind | null;
+  /** Subject of a moderation note (e.g. the listing title). Null otherwise. */
+  noteSubject: string | null;
+  /** Reason of a moderation note (e.g. the rejection reason label). Null otherwise. */
+  noteReason: string | null;
   body: string | null;
   attachmentUrl: string | null;
   /** ISO UTC (ends in `Z`). */

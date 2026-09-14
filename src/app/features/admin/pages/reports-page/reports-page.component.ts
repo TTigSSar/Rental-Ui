@@ -291,4 +291,12 @@ export class ReportsPageComponent implements OnInit {
   protected onDialogReopen(reportId: string): void {
     this.store.dispatch(AdminReportsActions.reopenReport({ reportId }));
   }
+
+  /** Detail dialog's "Message {contact}" buttons — closes the dialog and hands off to the
+   *  Messages screen's get-or-create deep link, same contract as `users-page`'s row menu /
+   *  `owner-trust-panel`'s "Message owner". */
+  protected messageContact(userId: string): void {
+    this.closeDetail();
+    void this.router.navigate(['/admin/messages'], { queryParams: { userId } });
+  }
 }

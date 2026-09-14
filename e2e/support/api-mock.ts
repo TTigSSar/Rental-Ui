@@ -101,6 +101,27 @@ export interface ApiSeed {
    *  exercise the report detail dialog's own rollback (the working set is left untouched so the
    *  UI's optimistic-rollback + `resolveReportFailure` handling is what's under test). */
   adminReportResolve?: { status?: number; body?: unknown };
+  /**
+   * The admin console Messages screen's working set (Messages redesign), shaped by
+   * `e2eAdminMessageThread()`. Backs `GET /api/admin/messages/threads` — `items` filtered by the
+   * `filter` query param (`all` / `unread` / `needsReply`) AND genuinely paged by `page`/
+   * `pageSize` (real slicing, real `totalPages`), `counts` recomputed from the SEARCH-scoped set
+   * only (filter-pill-independent, matching the real contract) — and `POST
+   * /api/admin/messages/threads` (get-or-create by `memberId`). Mutated in place, same stateful
+   * convention as `adminListings`.
+   */
+  adminMessageThreads?: unknown[];
+  /** GET /api/chat/conversations — the signed-in user's own chat inbox list
+   *  (`ChatConversationPreview[]`). */
+  chatConversations?: unknown[];
+  /**
+   * `GET /api/chat/conversations/{id}` working set, keyed by conversation id
+   * (`ChatConversationDetails` wire shape). Mutated in place by `POST /api/chat/messages` (the
+   * sent message is appended to `messages`) so a subsequent detail fetch reflects it — same
+   * convention as `adminListingsState`. Also backs the admin Messages screen's thread detail
+   * panel, which reuses this same `ChatApiService.getConversationDetails` endpoint.
+   */
+  chatConversationDetailsById?: Record<string, unknown>;
 }
 
 function json(route: Route, status: number, body: unknown): Promise<void> {
@@ -190,6 +211,24 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
       all: scope.length,
     };
   }
+
+  // Mutable working copy of the admin Messages console's thread queue (Messages redesign) —
+  // same convention as `adminListingsState` above.
+  const adminMessageThreadsState: Record<string, unknown>[] = (seed.adminMessageThreads ?? []).map(
+    (item) => ({ ...(item as Record<string, unknown>) }),
+  );
+
+  // Mutable working copy of `GET /api/chat/conversations/{id}` responses, keyed by conversation
+  // id — same convention as `adminListingsState` above. Backs BOTH the member-side `/chat/:id`
+  // thread and the admin Messages screen's thread detail (both call
+  // `ChatApiService.getConversationDetails`).
+  const chatConversationDetailsState: Record<string, Record<string, unknown>> = Object.fromEntries(
+    Object.entries(seed.chatConversationDetailsById ?? {}).map(([id, detail]) => [
+      id,
+      { ...(detail as Record<string, unknown>) },
+    ]),
+  );
+  let chatMessageCounter = 0;
 
   await page.route('**/api/**', (route) => {
     const request = route.request();
@@ -475,6 +514,91 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
       });
     }
 
+    // ── Admin Messages console (Messages redesign) ───────────────────────
+
+    // POST /api/admin/messages/threads — get-or-create the Moderation thread for a member
+    // (`{ userId }` body). Checked before the GET below, which shares the same path.
+    if (pathname.endsWith('/api/admin/messages/threads') && method === 'POST') {
+      const body = (request.postDataJSON() as { userId?: string } | null) ?? {};
+      const userId = body.userId ?? '';
+      const existing = adminMessageThreadsState.find((t) => t['memberId'] === userId);
+      if (existing) {
+        return json(route, 200, existing);
+      }
+      const created: Record<string, unknown> = {
+        conversationId: `admin-thread-e2e-${adminMessageThreadsState.length + 1}`,
+        memberId: userId,
+        memberFirstName: 'New',
+        memberLastName: 'Member',
+        memberAvatarUrl: null,
+        memberStatus: 'Active',
+        memberIsIdConfirmed: false,
+        memberMarketplaceRole: 'Renter',
+        memberOpenFlagCount: 0,
+        unreadCount: 0,
+        lastMessageSnippet: null,
+        lastMessageAt: null,
+        lastMessageType: null,
+        lastMessageNoteSubject: null,
+        needsReply: false,
+        createdAt: new Date().toISOString(),
+      };
+      adminMessageThreadsState.push(created);
+      return json(route, 200, created);
+    }
+
+    // GET /api/admin/messages/threads?filter=&search=&page=&pageSize= — the thread queue.
+    // `counts` are computed from the SEARCH-scoped set only (stable across which pill is
+    // active, matching `AdminMessageThreadQueueResponse`'s contract) while `items` genuinely
+    // narrows by `filter` — keeping these two independent is deliberate: the live bug this
+    // journey exists to catch was the real backend once ignoring `filter` on `items` while still
+    // returning correct `counts`, so a mock that collapsed them into one filtered list could
+    // never reproduce (or catch a regression of) that shape of bug.
+    //
+    // `page`/`pageSize` are genuinely honoured too (real slicing against the filter+search-scoped
+    // set, real `totalPages`) — this is the other half of the same historical query-binding bug:
+    // the whole DTO (page/pageSize INCLUDED) once failed to bind server-side whenever `filter=`
+    // was present, so a mock that always returned page 1 of 1 could never catch a regression of
+    // "paging while a filter/search is active silently resets to the unfiltered/unsearched set".
+    if (pathname.endsWith('/api/admin/messages/threads') && method === 'GET') {
+      const params = new URL(request.url()).searchParams;
+      const filterParam = params.get('filter') ?? 'all';
+      const search = params.get('search')?.trim().toLowerCase() ?? '';
+      const pageParam = Number(params.get('page'));
+      const pageSizeParam = Number(params.get('pageSize'));
+      const page = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
+      const pageSize = Number.isInteger(pageSizeParam) && pageSizeParam > 0 ? pageSizeParam : 20;
+
+      const scoped = search
+        ? adminMessageThreadsState.filter((t) =>
+            `${t['memberFirstName']} ${t['memberLastName']}`.toLowerCase().includes(search),
+          )
+        : adminMessageThreadsState;
+
+      const filtered = scoped.filter((t) => {
+        if (filterParam === 'unread') return (t['unreadCount'] as number) > 0;
+        if (filterParam === 'needsReply') return t['needsReply'] === true;
+        return true;
+      });
+
+      const totalCount = filtered.length;
+      const totalPages = totalCount === 0 ? 0 : Math.ceil(totalCount / pageSize);
+      const items = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+      return json(route, 200, {
+        items,
+        page,
+        pageSize,
+        totalCount,
+        totalPages,
+        counts: {
+          all: scoped.length,
+          unread: scoped.filter((t) => (t['unreadCount'] as number) > 0).length,
+          needsReply: scoped.filter((t) => t['needsReply'] === true).length,
+        },
+      });
+    }
+
     if (pathname.endsWith('/api/listings') && method === 'GET') {
       return json(route, 200, {
         items: seed.listings ?? [],
@@ -554,29 +678,99 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
       });
     }
 
+    // ── Chat inbox (member-side `/chat`; also reused by the admin Messages screen's thread
+    // detail/composer via the same `ChatApiService`) ─────────────────────
+
+    // GET /api/chat/conversations — the signed-in user's own inbox list.
+    if (pathname.endsWith('/api/chat/conversations') && method === 'GET') {
+      return json(route, 200, seed.chatConversations ?? []);
+    }
+
+    // GET /api/chat/conversations/{id} — a single conversation's full detail + messages.
+    // The regex only matches a SINGLE segment after "conversations", so
+    // /api/chat/conversations/from-booking/{bookingId} (two segments, POST-only, handled below)
+    // never collides with this.
+    const chatConversationDetailId = pathname.match(/^\/api\/chat\/conversations\/([^/]+)$/)?.[1];
+    if (chatConversationDetailId && method === 'GET') {
+      const detail = chatConversationDetailsState[chatConversationDetailId];
+      return json(route, detail ? 200 : 404, detail ?? { detail: 'Not found' });
+    }
+
+    // POST /api/chat/conversations/{id}/read — mark-read cursor.
+    const chatReadId = pathname.match(/^\/api\/chat\/conversations\/([^/]+)\/read$/)?.[1];
+    if (chatReadId && method === 'POST') {
+      return json(route, 200, {});
+    }
+
+    // POST /api/chat/messages — send a text message. Appends the echoed message to the
+    // conversation's seeded detail (if any) so a subsequent detail fetch reflects it, same
+    // "mutate the working set in place" convention as the admin queues above.
+    if (pathname.endsWith('/api/chat/messages') && method === 'POST') {
+      const body =
+        (request.postDataJSON() as { conversationId?: string; content?: string } | null) ?? {};
+      const conversationId = body.conversationId ?? '';
+      const message: Record<string, unknown> = {
+        // Deliberately a DISTINCT id namespace from any seeded `e2eChatMessage`/
+        // `e2eModerationNoteMessage` (which default to `chat-message-e2e-*`/`chat-note-e2e-*`):
+        // the reducer's `appendToSelectedDetail` dedupes an incoming message by id against the
+        // already-loaded detail, so an id collision with a seeded message would make this
+        // response silently vanish instead of appending — exactly the kind of self-inflicted
+        // false negative this file exists to avoid.
+        id: `chat-message-e2e-sent-${++chatMessageCounter}`,
+        conversationId,
+        senderId: 'me-e2e-1',
+        senderName: null,
+        type: 'text',
+        systemKind: null,
+        noteKind: null,
+        noteSubject: null,
+        noteReason: null,
+        body: body.content ?? '',
+        attachmentUrl: null,
+        sentAt: new Date().toISOString(),
+        isMine: true,
+        seen: false,
+      };
+      const detail = chatConversationDetailsState[conversationId];
+      if (detail) {
+        const messages = Array.isArray(detail['messages']) ? detail['messages'] : [];
+        detail['messages'] = [...messages, message];
+      }
+      return json(route, 200, message);
+    }
+
     // POST /api/chat/conversations/from-booking/{bookingId} — "Message {owner}"
     // CTA on the booking confirmation screen.
     if (/^\/api\/chat\/conversations\/from-booking\/[^/]+$/.test(pathname) && method === 'POST') {
       const status = seed.chatFromBooking?.status ?? 200;
-      return json(
-        route,
-        status,
-        seed.chatFromBooking?.body ?? {
-          id: 'chat-e2e-1',
-          bookingId: 'booking-e2e-1',
-          counterpartId: 'owner-e2e-1',
-          counterpartName: 'Olive Owner',
-          counterpartAvatarUrl: null,
-          counterpartVerified: false,
-          toyTitle: 'E2E Wooden Train Set',
-          toyImageUrl: null,
-          status: 'requested',
-          bookingDates: '2026-09-10 – 2026-09-12',
-          bookingPrice: 15,
-          isClosed: false,
-          messages: [],
-        },
-      );
+      const body = seed.chatFromBooking?.body ?? {
+        id: 'chat-e2e-1',
+        kind: 'booking',
+        bookingId: 'booking-e2e-1',
+        counterpartId: 'owner-e2e-1',
+        counterpartName: 'Olive Owner',
+        counterpartAvatarUrl: null,
+        counterpartVerified: false,
+        toyTitle: 'E2E Wooden Train Set',
+        toyImageUrl: null,
+        status: 'requested',
+        bookingDates: '2026-09-10 – 2026-09-12',
+        bookingPrice: 15,
+        isClosed: false,
+        messages: [],
+      };
+      // Register the newly-opened conversation into the detail working set (keyed by its own
+      // id) so a subsequent GET /api/chat/conversations/{id} — e.g. after the app navigates to
+      // /chat/{id} — resolves to this same shape instead of 404, matching what the real backend
+      // would now serve.
+      if (status < 400 && body !== null && typeof body === 'object') {
+        const record = body as Record<string, unknown>;
+        const id = record['id'];
+        if (typeof id === 'string') {
+          chatConversationDetailsState[id] = { ...record };
+        }
+      }
+      return json(route, status, body);
     }
 
     // POST /api/reports — user-facing report submission (listing details /

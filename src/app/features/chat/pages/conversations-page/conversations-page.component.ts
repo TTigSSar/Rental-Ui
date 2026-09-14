@@ -9,6 +9,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { BehaviorSubject, combineLatest, map } from 'rxjs';
 
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
+import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import {
   filterConversations,
@@ -69,6 +70,7 @@ const selectConversationsBaseState = createSelector(
     AvatarComponent,
     ButtonModule,
     ChatTimeAgoPipe,
+    IconComponent,
     MessageModule,
     RouterLink,
     RouterLinkActive,

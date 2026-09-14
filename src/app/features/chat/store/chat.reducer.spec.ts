@@ -7,11 +7,10 @@ import * as ChatActions from './chat.actions';
 import { chatReducer } from './chat.reducer';
 import { initialChatState, type ChatState } from './chat.state';
 
-function makePreview(
-  overrides: Partial<ChatConversationPreview> = {},
-): ChatConversationPreview {
+function makePreview(overrides: Partial<ChatConversationPreview> = {}): ChatConversationPreview {
   return {
     id: 'c1',
+    kind: 'booking',
     bookingId: 'b1',
     counterpartName: 'Owner',
     counterpartAvatarUrl: null,
@@ -35,6 +34,9 @@ function makeMessage(overrides: Partial<ChatMessage> = {}): ChatMessage {
     senderName: 'Ada',
     type: 'text',
     systemKind: null,
+    noteKind: null,
+    noteSubject: null,
+    noteReason: null,
     body: 'Hello',
     attachmentUrl: null,
     sentAt: '2026-07-07T10:05:00.000Z',
@@ -44,11 +46,10 @@ function makeMessage(overrides: Partial<ChatMessage> = {}): ChatMessage {
   };
 }
 
-function makeDetails(
-  overrides: Partial<ChatConversationDetails> = {},
-): ChatConversationDetails {
+function makeDetails(overrides: Partial<ChatConversationDetails> = {}): ChatConversationDetails {
   return {
     id: 'c1',
+    kind: 'booking',
     bookingId: 'b1',
     counterpartId: 'owner-1',
     counterpartName: 'Owner',
@@ -79,10 +80,7 @@ describe('chatReducer', () => {
         ],
       });
 
-      const next = chatReducer(
-        start,
-        ChatActions.markConversationRead({ conversationId: 'c1' }),
-      );
+      const next = chatReducer(start, ChatActions.markConversationRead({ conversationId: 'c1' }));
 
       expect(next.conversations.find((c) => c.id === 'c1')?.unreadCount).toBe(0);
       expect(next.conversations.find((c) => c.id === 'c2')?.unreadCount).toBe(5);
@@ -111,15 +109,9 @@ describe('chatReducer', () => {
       });
       const incoming = makeMessage({ id: 'm2', conversationId: 'c1', body: 'Bye' });
 
-      const next = chatReducer(
-        start,
-        ChatActions.sendMessageSuccess({ message: incoming }),
-      );
+      const next = chatReducer(start, ChatActions.sendMessageSuccess({ message: incoming }));
 
-      expect(next.activeConversation?.messages.map((m) => m.id)).toEqual([
-        'm1',
-        'm2',
-      ]);
+      expect(next.activeConversation?.messages.map((m) => m.id)).toEqual(['m1', 'm2']);
       expect(next.sendingMessage).toBe(false);
       expect(next.sendingMessageError).toBeNull();
     });
@@ -131,10 +123,7 @@ describe('chatReducer', () => {
       });
       const incoming = makeMessage({ id: 'm2', conversationId: 'c-other' });
 
-      const next = chatReducer(
-        start,
-        ChatActions.sendMessageSuccess({ message: incoming }),
-      );
+      const next = chatReducer(start, ChatActions.sendMessageSuccess({ message: incoming }));
 
       expect(next.activeConversation?.messages).toEqual([]);
       expect(next.sendingMessage).toBe(false);
@@ -160,15 +149,9 @@ describe('chatReducer', () => {
         sendingMessage: true,
       });
 
-      const next = chatReducer(
-        start,
-        ChatActions.sendMessageSuccess({ message: { ...echoed } }),
-      );
+      const next = chatReducer(start, ChatActions.sendMessageSuccess({ message: { ...echoed } }));
 
-      expect(next.activeConversation?.messages.map((m) => m.id)).toEqual([
-        'm1',
-        'm2',
-      ]);
+      expect(next.activeConversation?.messages.map((m) => m.id)).toEqual(['m1', 'm2']);
       expect(next.sendingMessage).toBe(false);
       expect(next.sendingMessageError).toBeNull();
     });
@@ -343,15 +326,9 @@ describe('chatReducer', () => {
         isMine: false,
       });
 
-      const next = chatReducer(
-        start,
-        ChatActions.realtimeMessageResolved({ message: incoming }),
-      );
+      const next = chatReducer(start, ChatActions.realtimeMessageResolved({ message: incoming }));
 
-      expect(next.activeConversation?.messages.map((m) => m.id)).toEqual([
-        'm1',
-        'm2',
-      ]);
+      expect(next.activeConversation?.messages.map((m) => m.id)).toEqual(['m1', 'm2']);
     });
 
     it('dedupes against the optimistic send echo (same id not added twice)', () => {
@@ -380,10 +357,7 @@ describe('chatReducer', () => {
         body: 'Ping',
       });
 
-      const next = chatReducer(
-        start,
-        ChatActions.realtimeMessageResolved({ message: incoming }),
-      );
+      const next = chatReducer(start, ChatActions.realtimeMessageResolved({ message: incoming }));
 
       const row = next.conversations.find((c) => c.id === 'c1');
       expect(row?.unreadCount).toBe(3);
@@ -401,10 +375,7 @@ describe('chatReducer', () => {
         isMine: false,
       });
 
-      const next = chatReducer(
-        start,
-        ChatActions.realtimeMessageResolved({ message: incoming }),
-      );
+      const next = chatReducer(start, ChatActions.realtimeMessageResolved({ message: incoming }));
 
       expect(next.conversations.find((c) => c.id === 'c1')?.unreadCount).toBe(0);
     });
@@ -420,10 +391,7 @@ describe('chatReducer', () => {
         isMine: true,
       });
 
-      const next = chatReducer(
-        start,
-        ChatActions.realtimeMessageResolved({ message: incoming }),
-      );
+      const next = chatReducer(start, ChatActions.realtimeMessageResolved({ message: incoming }));
 
       expect(next.conversations.find((c) => c.id === 'c1')?.unreadCount).toBe(0);
     });

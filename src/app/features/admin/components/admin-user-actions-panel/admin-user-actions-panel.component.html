@@ -58,6 +58,16 @@
         </span>
       }
     }
+    <button
+      type="button"
+      role="menuitem"
+      class="admin-user-actions-panel__item"
+      [disabled]="busy()"
+      (click)="message.emit()"
+    >
+      <app-icon name="message" [size]="15" />
+      {{ 'admin.users.actions.message' | translate }}
+    </button>
   </div>
 } @else {
   <div
@@ -116,6 +126,15 @@
           </p>
         }
       }
+      <button
+        type="button"
+        class="admin-user-actions-panel__sheet-btn admin-user-actions-panel__sheet-btn--neutral"
+        [disabled]="busy()"
+        (click)="message.emit()"
+      >
+        <app-icon name="message" [size]="17" />
+        {{ 'admin.users.actions.message' | translate }}
+      </button>
       <button
         type="button"
         class="admin-user-actions-panel__sheet-btn admin-user-actions-panel__sheet-btn--cancel"

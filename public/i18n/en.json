@@ -1556,6 +1556,7 @@
         "identityUnverified": "Not verified",
         "flags": "Flags",
         "flagsCount": "{{count}} open report(s)",
+        "messageOwner": "Message owner",
         "viewProfile": "View public profile"
       },
       "checklist": {
@@ -1708,6 +1709,7 @@
         "verify": "Verify user",
         "suspend": "Suspend",
         "reactivate": "Reactivate",
+        "message": "Message",
         "cancel": "Cancel",
         "suspendDisabledSelf": "You can't suspend your own account.",
         "suspendDisabledAdmin": "Admin accounts can't be suspended from here."
@@ -1815,6 +1817,9 @@
         "targetType": "Report type",
         "whatWasReported": "What was reported",
         "reporterNote": "Reporter's note",
+        "contacts": "Contacts",
+        "messageContact": "Message {{name}}",
+        "messageContactAria": "Open a moderation chat with {{name}}",
         "resolutionNote": "Resolution note",
         "noteLabel": "Add a note (optional)",
         "notePlaceholder": "E.g. Confirmed with the owner — item pulled from listing."
@@ -1832,12 +1837,53 @@
         "reportNotFound": "This report no longer exists."
       }
     },
+    "messages": {
+      "page": {
+        "title": "Messages",
+        "subtitle": "Reach out to members directly. Every moderation note you send appears here in the conversation.",
+        "searchPlaceholder": "Search members",
+        "listAria": "Conversations",
+        "errorTitle": "Unable to load conversations",
+        "pagerAria": "Conversation pages",
+        "pagerPrev": "Previous",
+        "pagerNext": "Next",
+        "pagerStatus": "Page {{page}} of {{total}}"
+      },
+      "filters": {
+        "ariaLabel": "Filter conversations",
+        "all": "All",
+        "unread": "Unread",
+        "reply": "Needs reply"
+      },
+      "list": {
+        "empty": "No conversations here.",
+        "noMessagesYet": "No messages yet — say hello",
+        "notePreview": "Note: {{subject}}",
+        "noteNoSubject": "Moderation note"
+      },
+      "thread": {
+        "emptyStart": "Start of your conversation with {{name}}. Any note you send here reaches them directly.",
+        "errorTitle": "Unable to load conversation"
+      },
+      "composer": {
+        "label": "Message"
+      },
+      "profile": {
+        "statusAria": "Member profile",
+        "errorTitle": "Unable to load member profile"
+      },
+      "toast": {
+        "sendFailureTitle": "Message not sent",
+        "openFailureTitle": "Couldn't open conversation"
+      }
+    },
     "console": {
       "nav": {
         "overview": "Overview",
         "review": "Listing review",
         "categories": "Categories",
         "users": "Users",
+        "messages": "Messages",
         "reports": "Reports & flags"
       },
       "chrome": {
@@ -1855,6 +1901,13 @@
           "avgReview": "Avg. review time",
           "flagged": "Flagged",
           "hoursValue": "{{hours}} h"
+        },
+        "account": {
+          "triggerAria": "Account menu",
+          "menuAria": "Account",
+          "profile": "Profile",
+          "backToSite": "Back to site",
+          "logout": "Log out"
         }
       },
       "comingSoon": {
@@ -1944,7 +1997,8 @@
       "unreadAria": "{{count}} unread messages",
       "searchPlaceholder": "Search conversations",
       "noResultsTitle": "No matches",
-      "noResults": "No conversations match “{{query}}”."
+      "noResults": "No conversations match “{{query}}”.",
+      "moderationLabel": "DoRent moderation"
     },
     "details": {
       "backToConversations": "Back to conversations",
@@ -1973,7 +2027,9 @@
       "closedBannerTitle": "This conversation is closed",
       "closedBannerSubtitle": "The rental is complete and both reviews are in — it's now read-only.",
       "charCounter": "{{count}} / {{max}}",
-      "limitReached": "Message limit of {{max}} characters reached"
+      "limitReached": "Message limit of {{max}} characters reached",
+      "moderationTitle": "DoRent moderation",
+      "moderationSubtitle": "Direct messages from the DoRent team"
     },
     "status": {
       "requested": "Requested",
@@ -1981,7 +2037,8 @@
       "active": "Active",
       "returnDue": "Return due",
       "completed": "Completed",
-      "closed": "Closed"
+      "closed": "Closed",
+      "moderation": "Moderation"
     },
     "system": {
       "request": "Booking requested",
@@ -1991,6 +2048,19 @@
       "return": "Toy returned",
       "closed": "Conversation closed",
       "default": "Update"
+    },
+    "note": {
+      "kind": {
+        "reject": "Listing rejected",
+        "warn": "Warning issued",
+        "suspend": "Account suspended",
+        "category": "Category changed",
+        "info": "Moderation note"
+      },
+      "by": "by {{name}}",
+      "reason": "Reason",
+      "footerMember": "From DoRent moderation",
+      "footerModerator": "Sent to member"
     },
     "time": {
       "justNow": "Just now",

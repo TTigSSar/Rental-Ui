@@ -43,12 +43,14 @@ import { AdminBreakpointService } from '../../utils/admin-breakpoint.service';
  * `/admin/review/:id` — the item dossier (`AdminInspectDesktop` /
  * `AdminInspectMobile`).
  *
- * Two approved deviations from the design (see CLAUDE.md task spec):
- *  - "Message owner" is a link to the owner's public profile, not a chat
- *    action — chat is booking-scoped and an admin has no booking here.
- *  - There is no "Undo" after a decision — the backend has no un-approve
- *    endpoint. A successful approve/reject navigates back to the queue with
- *    a toast instead (the shared `AdminModerationEffects` already show it).
+ * One approved deviation from the design (see CLAUDE.md task spec): there is no "Undo" after a
+ * decision — the backend has no un-approve endpoint. A successful approve/reject navigates back
+ * to the queue with a toast instead (the shared `AdminModerationEffects` already show it).
+ *
+ * `owner-trust-panel`'s "Message owner" originally linked to the owner's public profile (chat is
+ * booking-scoped and an admin has no booking here) — it now opens the admin console's Messages
+ * screen's moderation thread instead (`/admin/messages?userId=<ownerId>`, see that component's
+ * doc comment / ADR-016 §4).
  *
  * One backend gap: the design's third attribute tile is "Handover: Pickup ·
  * Courier", which has no backing field — substituted with the listing's real

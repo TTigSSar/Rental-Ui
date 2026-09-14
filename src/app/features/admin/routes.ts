@@ -8,6 +8,8 @@ import {
   adminCategoriesFeatureKey,
   adminCategoriesReducer,
 } from './store/admin-categories.reducer';
+import { AdminMessagesEffects } from './store/admin-messages.effects';
+import { adminMessagesFeatureKey, adminMessagesReducer } from './store/admin-messages.reducer';
 import { AdminModerationEffects } from './store/admin-moderation.effects';
 import {
   adminModerationFeatureKey,
@@ -53,6 +55,15 @@ export const adminRoutes: Routes = [
       // (severity/status, resolve/dismiss/reopen), distinct from all of the above.
       provideState(adminReportsFeatureKey, adminReportsReducer),
       provideEffects(AdminReportsEffects),
+      // Messages screen — its own slice: the moderation thread queue + selected-thread detail
+      // (ADR-016 §4). Provided at the parent `/admin` route (not the `messages` child) for the
+      // same reason as adminModerationFeatureKey/adminOverviewFeatureKey above: the shell reads
+      // its unread-count selector for the nav badge regardless of which admin tab is active,
+      // and `ChatRealtimeService` (root-provided, already connected on `/admin`) needs
+      // `AdminMessagesEffects` registered to turn its global realtime actions into thread
+      // updates even before the admin ever opens the Messages tab.
+      provideState(adminMessagesFeatureKey, adminMessagesReducer),
+      provideEffects(AdminMessagesEffects),
     ],
     loadComponent: () =>
       import('./layout/admin-shell/admin-shell.component').then((m) => m.AdminShellComponent),
@@ -100,6 +111,14 @@ export const adminRoutes: Routes = [
         data: { titleKey: 'admin.console.nav.reports' },
         loadComponent: () =>
           import('./pages/reports-page/reports-page.component').then((m) => m.ReportsPageComponent),
+      },
+      {
+        path: 'messages',
+        data: { titleKey: 'admin.console.nav.messages' },
+        loadComponent: () =>
+          import('./pages/messages-page/messages-page.component').then(
+            (m) => m.MessagesPageComponent,
+          ),
       },
     ],
   },

@@ -80,6 +80,35 @@ describe('AdminUsersEffects', () => {
     ]);
   });
 
+  describe('single-user lookup (Messages screen profile dialog)', () => {
+    it('emits success with the fetched user', async () => {
+      const user = makeAdminUser({ id: 'u1', listingCount: 12, rentalCount: 47 });
+      const { harness, effects } = setup({ getUserById: vi.fn().mockReturnValue(of(user)) });
+      const result = collect(effects.loadUserLookup$);
+      harness.send(AdminUsersActions.loadAdminUserLookup({ userId: 'u1' }));
+      harness.complete();
+      expect(await result).toEqual([
+        AdminUsersActions.loadAdminUserLookupSuccess({ userId: 'u1', user }),
+      ]);
+    });
+
+    it('emits failure with the error message on a failed fetch', async () => {
+      const problem = new HttpErrorResponse({
+        status: 404,
+        error: { errorCode: 'admin.user_not_found', title: 'Not found' },
+      });
+      const { harness, effects } = setup({
+        getUserById: vi.fn().mockReturnValue(throwError(() => problem)),
+      });
+      const result = collect(effects.loadUserLookup$);
+      harness.send(AdminUsersActions.loadAdminUserLookup({ userId: 'u1' }));
+      harness.complete();
+      expect(await result).toEqual([
+        AdminUsersActions.loadAdminUserLookupFailure({ userId: 'u1', error: 'Not found' }),
+      ]);
+    });
+  });
+
   describe('verify', () => {
     it('emits success with the returned user', async () => {
       const user = makeAdminUser({ id: 'u1', status: 'Active' });

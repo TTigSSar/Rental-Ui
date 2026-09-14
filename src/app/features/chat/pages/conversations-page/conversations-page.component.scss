@@ -313,6 +313,23 @@
   background: var(--ui-color-surface-muted);
 }
 
+/* Shield badge tile replacing the toy thumbnail for a Moderation conversation
+   row — same overlay envelope (position/size/ring) as `.chat-row__toy-thumb`
+   so the avatar block's footprint is identical either way. */
+.chat-row__mod-badge {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  border: 2.5px solid var(--ui-color-surface);
+  background: var(--ui-color-info);
+  color: var(--ui-color-on-primary);
+}
+
 /* The three lines set their own top margins (design rhythm: 2px / 3px), so the
    column itself contributes no gap. */
 .chat-row__content {

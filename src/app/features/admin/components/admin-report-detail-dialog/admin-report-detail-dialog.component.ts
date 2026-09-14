@@ -37,6 +37,11 @@ const TYPE_LABEL_KEYS: Record<AdminReportRow['targetType'], string> = {
   Message: 'admin.reports.detail.typeMessage',
 };
 
+export interface ReportMessageableContact {
+  readonly userId: string;
+  readonly name: string;
+}
+
 /**
  * The design's `AdminReportDetailModal` (desktop centered dialog) / bottom sheet (mobile) — the
  * full report: target, severity/status, reason, the reporter's free-text note (`detail` — see
@@ -47,6 +52,15 @@ const TYPE_LABEL_KEYS: Record<AdminReportRow['targetType'], string> = {
  *
  * Resolve/Dismiss accept an optional note via the textarea below the actions; Reopen does not
  * (mirrors `AdminReportsApiService.reopenReport`, which takes no body).
+ *
+ * The design's "Message {label}" contact buttons (`admin-desktop.jsx:1036`, inside the dropped
+ * "suggested steps to resolve" playbook card — see ADR-016 §4) survive without the card that
+ * housed them: the reporter is always a real user (`reporterId`), but the reported party only
+ * resolves to a real id when `targetType === 'User'` (`targetId`) — a Listing/Message report's
+ * target carries no owner/participant id on `AdminReportRow`, so no button is fabricated for
+ * those (ADR-014's rule: no id, no button, not a guess). `messageUser` hands the chosen user id
+ * up; the page navigates to `/admin/messages?userId=<id>` and closes this dialog, same contract
+ * as `owner-trust-panel`/`users-page`'s row menu.
  */
 @Component({
   selector: 'app-admin-report-detail-dialog',
@@ -75,6 +89,7 @@ export class AdminReportDetailDialogComponent implements OnInit, OnDestroy {
   readonly resolve = output<{ note?: string }>();
   readonly dismiss = output<{ note?: string }>();
   readonly reopen = output<void>();
+  readonly messageUser = output<string>();
 
   protected readonly note = signal('');
 
@@ -85,6 +100,22 @@ export class AdminReportDetailDialogComponent implements OnInit, OnDestroy {
   );
   protected readonly isOpen = computed(() => this.report().status === 'Open');
   protected readonly isTargetUser = computed(() => this.report().targetType === 'User');
+
+  /** The reporter always resolves to a real user; the reported party only does when the report
+   *  actually targets a User (see this component's doc comment). */
+  protected readonly messageableContacts = computed<ReportMessageableContact[]>(() => {
+    const r = this.report();
+    const contacts: ReportMessageableContact[] = [
+      {
+        userId: r.reporterId,
+        name: `${r.reporterFirstName} ${r.reporterLastName}`.trim() || r.reporterEmail,
+      },
+    ];
+    if (r.targetType === 'User') {
+      contacts.push({ userId: r.targetId, name: r.targetLabel });
+    }
+    return contacts;
+  });
 
   constructor() {
     afterNextRender(() => {

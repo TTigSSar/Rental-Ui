@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { makeAdminListingDetail } from '../../../../../testing/fixtures';
@@ -44,6 +44,19 @@ describe('OwnerTrustPanelComponent', () => {
       '.owner-trust-panel__profile-link',
     );
     expect(link.getAttribute('href')).toBe('/users/owner-42');
+  });
+
+  it('navigates "Message owner" to /admin/messages?userId=:ownerId — the moderation thread, not the public profile', async () => {
+    await setup({ ownerId: 'owner-42' });
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate');
+    const messageBtn: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '.owner-trust-panel__message-btn',
+    );
+    messageBtn.click();
+    expect(navigateSpy).toHaveBeenCalledWith(['/admin/messages'], {
+      queryParams: { userId: 'owner-42' },
+    });
   });
 
   it('flags the open report count as a warning colour only when non-zero', async () => {

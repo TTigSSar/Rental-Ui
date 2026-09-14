@@ -1555,6 +1555,7 @@
         "identityUnverified": "Не подтверждена",
         "flags": "Жалобы",
         "flagsCount": "{{count}} открытых жалоб",
+        "messageOwner": "Написать владельцу",
         "viewProfile": "Открыть публичный профиль"
       },
       "checklist": {
@@ -1707,6 +1708,7 @@
         "verify": "Верифицировать",
         "suspend": "Заблокировать",
         "reactivate": "Разблокировать",
+        "message": "Написать",
         "cancel": "Отмена",
         "suspendDisabledSelf": "Вы не можете заблокировать собственный аккаунт.",
         "suspendDisabledAdmin": "Аккаунты администраторов нельзя заблокировать отсюда."
@@ -1814,6 +1816,9 @@
         "targetType": "Тип жалобы",
         "whatWasReported": "На что пожаловались",
         "reporterNote": "Комментарий автора жалобы",
+        "contacts": "Контакты",
+        "messageContact": "Написать: {{name}}",
+        "messageContactAria": "Открыть модераторский чат с {{name}}",
         "resolutionNote": "Комментарий к решению",
         "noteLabel": "Добавить комментарий (необязательно)",
         "notePlaceholder": "Например: подтверждено с владельцем — товар снят с публикации."
@@ -1831,12 +1836,53 @@
         "reportNotFound": "Эта жалоба больше не существует."
       }
     },
+    "messages": {
+      "page": {
+        "title": "Сообщения",
+        "subtitle": "Обращайтесь к участникам напрямую. Каждая отправленная модераторская заметка появляется здесь, в переписке.",
+        "searchPlaceholder": "Поиск участников",
+        "listAria": "Переписки",
+        "errorTitle": "Не удалось загрузить переписки",
+        "pagerAria": "Страницы переписок",
+        "pagerPrev": "Назад",
+        "pagerNext": "Далее",
+        "pagerStatus": "Страница {{page}} из {{total}}"
+      },
+      "filters": {
+        "ariaLabel": "Фильтр переписок",
+        "all": "Все",
+        "unread": "Непрочитанные",
+        "reply": "Ждут ответа"
+      },
+      "list": {
+        "empty": "Здесь пока нет переписок.",
+        "noMessagesYet": "Сообщений пока нет — напишите первым",
+        "notePreview": "Заметка: {{subject}}",
+        "noteNoSubject": "Заметка модератора"
+      },
+      "thread": {
+        "emptyStart": "Начало переписки с {{name}}. Любая заметка, отправленная здесь, дойдёт до него напрямую.",
+        "errorTitle": "Не удалось загрузить переписку"
+      },
+      "composer": {
+        "label": "Сообщение"
+      },
+      "profile": {
+        "statusAria": "Профиль участника",
+        "errorTitle": "Не удалось загрузить профиль участника"
+      },
+      "toast": {
+        "sendFailureTitle": "Сообщение не отправлено",
+        "openFailureTitle": "Не удалось открыть переписку"
+      }
+    },
     "console": {
       "nav": {
         "overview": "Обзор",
         "review": "Проверка объявлений",
         "categories": "Категории",
         "users": "Пользователи",
+        "messages": "Сообщения",
         "reports": "Жалобы и метки"
       },
       "chrome": {
@@ -1854,6 +1900,13 @@
           "avgReview": "Среднее время проверки",
           "flagged": "Помечено",
           "hoursValue": "{{hours}} ч"
+        },
+        "account": {
+          "triggerAria": "Меню аккаунта",
+          "menuAria": "Аккаунт",
+          "profile": "Профиль",
+          "backToSite": "Вернуться на сайт",
+          "logout": "Выйти"
         }
       },
       "comingSoon": {
@@ -1943,7 +1996,8 @@
       "unreadAria": "Непрочитанных сообщений: {{count}}",
       "searchPlaceholder": "Поиск по диалогам",
       "noResultsTitle": "Ничего не найдено",
-      "noResults": "Нет диалогов по запросу «{{query}}»."
+      "noResults": "Нет диалогов по запросу «{{query}}».",
+      "moderationLabel": "Модерация DoRent"
     },
     "details": {
       "backToConversations": "Назад к диалогам",
@@ -1972,7 +2026,9 @@
       "closedBannerTitle": "Этот диалог закрыт",
       "closedBannerSubtitle": "Аренда завершена, и оба отзыва оставлены — теперь он доступен только для чтения.",
       "charCounter": "{{count}} / {{max}}",
-      "limitReached": "Достигнут лимит {{max}} символов"
+      "limitReached": "Достигнут лимит {{max}} символов",
+      "moderationTitle": "Модерация DoRent",
+      "moderationSubtitle": "Личные сообщения от команды DoRent"
     },
     "status": {
       "requested": "Запрошено",
@@ -1980,7 +2036,8 @@
       "active": "Активно",
       "returnDue": "Пора вернуть",
       "completed": "Завершено",
-      "closed": "Закрыто"
+      "closed": "Закрыто",
+      "moderation": "Модерация"
     },
     "system": {
       "request": "Запрос на бронирование",
@@ -1990,6 +2047,19 @@
       "return": "Игрушка возвращена",
       "closed": "Диалог закрыт",
       "default": "Обновление"
+    },
+    "note": {
+      "kind": {
+        "reject": "Объявление отклонено",
+        "warn": "Вынесено предупреждение",
+        "suspend": "Аккаунт заблокирован",
+        "category": "Категория изменена",
+        "info": "Заметка модератора"
+      },
+      "by": "от {{name}}",
+      "reason": "Причина",
+      "footerMember": "От модерации DoRent",
+      "footerModerator": "Отправлено участнику"
     },
     "time": {
       "justNow": "Только что",

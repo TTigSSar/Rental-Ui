@@ -243,4 +243,118 @@ describe('adminUsersReducer', () => {
       expect(next.rollbacks['missing']).toBeUndefined();
     });
   });
+
+  // ── Single-user lookup (Messages screen profile dialog) ──
+  describe('single-user lookup', () => {
+    it('sets loading and clears any previous user/error on request', () => {
+      const start = stateWith({
+        lookup: {
+          userId: 'stale',
+          user: makeAdminUser({ id: 'stale' }),
+          loading: false,
+          error: 'x',
+        },
+      });
+      const next = adminUsersReducer(
+        start,
+        AdminUsersActions.loadAdminUserLookup({ userId: 'u1' }),
+      );
+      expect(next.lookup).toEqual({ userId: 'u1', user: null, loading: true, error: null });
+    });
+
+    it('applies the fetched user on success', () => {
+      const start = stateWith({
+        lookup: { userId: 'u1', user: null, loading: true, error: null },
+      });
+      const user = makeAdminUser({ id: 'u1', listingCount: 12, rentalCount: 47 });
+      const next = adminUsersReducer(
+        start,
+        AdminUsersActions.loadAdminUserLookupSuccess({ userId: 'u1', user }),
+      );
+      expect(next.lookup).toEqual({ userId: 'u1', user, loading: false, error: null });
+    });
+
+    it('ignores a success for a superseded (no longer requested) user id', () => {
+      const start = stateWith({
+        lookup: { userId: 'u2', user: null, loading: true, error: null },
+      });
+      const next = adminUsersReducer(
+        start,
+        AdminUsersActions.loadAdminUserLookupSuccess({
+          userId: 'u1',
+          user: makeAdminUser({ id: 'u1' }),
+        }),
+      );
+      expect(next.lookup).toEqual(start.lookup);
+    });
+
+    it('records the error on failure', () => {
+      const start = stateWith({
+        lookup: { userId: 'u1', user: null, loading: true, error: null },
+      });
+      const next = adminUsersReducer(
+        start,
+        AdminUsersActions.loadAdminUserLookupFailure({ userId: 'u1', error: 'Network error' }),
+      );
+      expect(next.lookup).toEqual({
+        userId: 'u1',
+        user: null,
+        loading: false,
+        error: 'Network error',
+      });
+    });
+
+    it('ignores a failure for a superseded (no longer requested) user id', () => {
+      const start = stateWith({
+        lookup: { userId: 'u2', user: makeAdminUser({ id: 'u2' }), loading: false, error: null },
+      });
+      const next = adminUsersReducer(
+        start,
+        AdminUsersActions.loadAdminUserLookupFailure({ userId: 'u1', error: 'Network error' }),
+      );
+      expect(next.lookup).toEqual(start.lookup);
+    });
+
+    it('resets to empty on clear', () => {
+      const start = stateWith({
+        lookup: { userId: 'u1', user: makeAdminUser({ id: 'u1' }), loading: false, error: null },
+      });
+      const next = adminUsersReducer(start, AdminUsersActions.clearAdminUserLookup());
+      expect(next.lookup).toEqual({ userId: null, user: null, loading: false, error: null });
+    });
+
+    it('refreshes the lookup slice when a verify/suspend/reactivate mutation succeeds for the same user, even though it has no row in items', () => {
+      const start = stateWith({
+        items: [],
+        lookup: {
+          userId: 'u1',
+          user: makeAdminUser({ id: 'u1', status: 'Pending' }),
+          loading: false,
+          error: null,
+        },
+      });
+      const updated = makeAdminUser({ id: 'u1', status: 'Suspended' });
+      const next = adminUsersReducer(
+        start,
+        AdminUsersActions.suspendUserSuccess({ userId: 'u1', user: updated }),
+      );
+      expect(next.lookup.user).toEqual(updated);
+    });
+
+    it('leaves the lookup slice untouched when a mutation succeeds for a different user', () => {
+      const shown = makeAdminUser({ id: 'u1', status: 'Pending' });
+      const start = stateWith({
+        items: [],
+        lookup: { userId: 'u1', user: shown, loading: false, error: null },
+      });
+      const next = adminUsersReducer(
+        start,
+        AdminUsersActions.suspendUserSuccess({
+          userId: 'someone-else',
+          user: makeAdminUser({ id: 'someone-else', status: 'Suspended' }),
+        }),
+      );
+      expect(next.lookup.user).toEqual(shown);
+    });
+  });
 });

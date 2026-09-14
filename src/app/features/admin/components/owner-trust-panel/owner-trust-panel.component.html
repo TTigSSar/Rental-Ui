@@ -72,8 +72,14 @@
     </div>
   </div>
 
-  <a class="owner-trust-panel__profile-link" [routerLink]="ownerProfilePath()">
-    <app-icon name="user" [size]="15" />
-    {{ 'admin.inspect.owner.viewProfile' | translate }}
-  </a>
+  <div class="owner-trust-panel__actions">
+    <button type="button" class="owner-trust-panel__message-btn" (click)="messageOwner()">
+      <app-icon name="message" [size]="15" />
+      {{ 'admin.inspect.owner.messageOwner' | translate }}
+    </button>
+    <a class="owner-trust-panel__profile-link" [routerLink]="ownerProfilePath()">
+      <app-icon name="user" [size]="15" />
+      {{ 'admin.inspect.owner.viewProfile' | translate }}
+    </a>
+  </div>
 </div>

@@ -1,0 +1,38 @@
+<div [class]="'mod-note mod-note--' + meta().tone">
+  <header class="mod-note__header">
+    <span class="mod-note__icon-tile">
+      <app-icon [name]="meta().icon" [size]="13" />
+    </span>
+    <span class="mod-note__kind-label">{{ meta().labelKey | translate }}</span>
+    @if (message().senderName) {
+      <span class="mod-note__by">
+        {{ 'chat.note.by' | translate: { name: message().senderName } }}
+      </span>
+    }
+  </header>
+
+  <div class="mod-note__body">
+    @if (message().noteSubject) {
+      <p class="mod-note__subject">{{ message().noteSubject }}</p>
+    }
+    @if (message().noteReason) {
+      <p class="mod-note__reason">
+        {{ 'chat.note.reason' | translate }}: {{ message().noteReason }}
+      </p>
+    }
+    @if (message().body) {
+      <p class="mod-note__text">{{ message().body }}</p>
+    }
+  </div>
+
+  <footer class="mod-note__footer">
+    <time [attr.datetime]="message().sentAt">{{ message().sentAt | date: 'd MMM, H:mm' }}</time>
+    <span aria-hidden="true">·</span>
+    <span>
+      {{
+        (audience() === 'moderator' ? 'chat.note.footerModerator' : 'chat.note.footerMember')
+          | translate
+      }}
+    </span>
+  </footer>
+</div>

@@ -110,6 +110,23 @@
       </div>
     }
 
+    <div class="admin-report-detail-dialog__section-label">
+      {{ 'admin.reports.detail.contacts' | translate }}
+    </div>
+    <div class="admin-report-detail-dialog__contacts">
+      @for (contact of messageableContacts(); track contact.userId) {
+        <button
+          type="button"
+          class="admin-report-detail-dialog__contact-btn"
+          [title]="'admin.reports.detail.messageContactAria' | translate: { name: contact.name }"
+          (click)="messageUser.emit(contact.userId)"
+        >
+          <app-icon name="message" [size]="13" />
+          {{ 'admin.reports.detail.messageContact' | translate: { name: contact.name } }}
+        </button>
+      }
+    </div>
+
     @if (!isOpen() && report().resolutionNote) {
       <div class="admin-report-detail-dialog__note-block">
         <div class="admin-report-detail-dialog__section-label">
