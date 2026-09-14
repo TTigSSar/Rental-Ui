@@ -53,7 +53,6 @@ function createFixture() {
                 id: 'owner-1',
                 firstName: 'Owen',
                 lastName: 'Owner',
-                phoneNumber: null,
               },
             }),
           },

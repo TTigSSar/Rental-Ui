@@ -146,6 +146,7 @@ function normalizeAdminListingDetail(
     status: coerceListingModerationStatus(raw['status']),
     // Real count as of phase 4 (`AdminListingsService.BuildDetailAsync` -> `stats?.OpenReportCount`).
     ownerOpenReportCount: toNonNegativeInteger(raw['ownerOpenReportCount']),
+    ownerPhoneNumber: toNullableString(raw['ownerPhoneNumber']),
   };
 }
 

@@ -962,8 +962,8 @@
   }
 }
 
-/* ── Phone notice (inside owner card) ────────────────── */
-.detail-page__phone-notice-wrap {
+/* ── Chat notice (inside owner card) ────────────────── */
+.detail-page__chat-notice-wrap {
   padding: 12px 14px;
 
   &::before {
@@ -976,7 +976,7 @@
   }
 }
 
-.detail-page__phone-notice {
+.detail-page__chat-notice {
   display: flex;
   align-items: flex-start;
   gap: 12px;

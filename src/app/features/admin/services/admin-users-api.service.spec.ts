@@ -9,6 +9,7 @@ import { AdminUsersApiService } from './admin-users-api.service';
 const FULL_USER_RAW = {
   id: 'user-1',
   email: 'anahit@toyrent.am',
+  phoneNumber: '+37499123456',
   firstName: 'Anahit',
   lastName: 'Grigoryan',
   avatarUrl: '/uploads/avatar.jpg',
@@ -25,6 +26,7 @@ const FULL_USER_RAW = {
 const FULL_USER_EXPECTED: AdminUser = {
   id: 'user-1',
   email: 'anahit@toyrent.am',
+  phoneNumber: '+37499123456',
   firstName: 'Anahit',
   lastName: 'Grigoryan',
   avatarUrl: '/uploads/avatar.jpg',

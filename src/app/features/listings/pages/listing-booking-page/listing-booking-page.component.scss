@@ -166,7 +166,7 @@
   margin: 0;
   padding: 10px 12px;
   border-radius: var(--ui-radius-md);
-  border: 1px dashed var(--ui-color-border);
+  background: var(--ui-color-surface-muted);
   font-size: 0.75rem;
   line-height: 1.45;
   color: var(--ui-color-text-secondary);
@@ -176,11 +176,6 @@
     flex-shrink: 0;
     margin-top: 2px;
     font-size: 0.75rem;
-  }
-
-  ::ng-deep strong {
-    color: var(--ui-color-text-primary);
-    font-weight: 700;
   }
 }
 
@@ -923,8 +918,8 @@
   }
 }
 
-/* Phone unlock note */
-.booking-page__request-unlock {
+/* Chat notice */
+.booking-page__request-chat-notice {
   display: flex;
   align-items: flex-start;
   gap: 8px;
@@ -940,11 +935,6 @@
     flex-shrink: 0;
     margin-top: 2px;
     font-size: 0.8125rem;
-  }
-
-  ::ng-deep strong {
-    color: var(--ui-color-text-primary);
-    font-weight: 700;
   }
 }
 

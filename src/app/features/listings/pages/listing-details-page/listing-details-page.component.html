@@ -439,7 +439,7 @@
                       class="detail-page__owner-message-btn"
                       [routerLink]="['/users', listing.owner.id]"
                     >
-                      {{ 'listings.details.messageOwner' | translate }}
+                      {{ 'listings.details.viewOwnerProfile' | translate }}
                     </a>
                   </div>
 
@@ -456,14 +456,11 @@
                     </div>
                   }
 
-                  <!-- Phone notice (inside card) -->
-                  <div class="detail-page__phone-notice-wrap">
-                    <div class="detail-page__phone-notice">
-                      <i class="pi pi-lock" aria-hidden="true"></i>
-                      <p>
-                        {{ 'listings.details.contactLabelPre' | translate
-                        }}<strong>{{ 'listings.details.contactLabelBold' | translate }}</strong>
-                      </p>
+                  <!-- Chat notice (inside card) -->
+                  <div class="detail-page__chat-notice-wrap">
+                    <div class="detail-page__chat-notice">
+                      <i class="pi pi-comments" aria-hidden="true"></i>
+                      <p>{{ 'listings.details.chatAfterRequest' | translate }}</p>
                     </div>
                   </div>
                 </div>

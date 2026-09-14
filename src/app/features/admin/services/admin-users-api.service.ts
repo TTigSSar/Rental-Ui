@@ -76,6 +76,7 @@ function normalizeAdminUser(raw: Record<string, unknown> & { id: string }): Admi
   return {
     id: raw['id'],
     email: typeof raw['email'] === 'string' ? raw['email'] : '',
+    phoneNumber: toNullableString(raw['phoneNumber']),
     firstName: typeof raw['firstName'] === 'string' ? raw['firstName'] : '',
     lastName: typeof raw['lastName'] === 'string' ? raw['lastName'] : '',
     avatarUrl: toNullableString(raw['avatarUrl']),

@@ -34,7 +34,7 @@ function baseListing(overrides: Partial<ListingDetails> = {}): ListingDetails {
     city: 'Yerevan',
     pricePerDay: 1500,
     images: [],
-    owner: { id: 'u1', firstName: 'Anna', lastName: 'K', phoneNumber: null },
+    owner: { id: 'u1', firstName: 'Anna', lastName: 'K' },
     bookedDateRanges: [],
     isFavorite: false,
     ...overrides,
@@ -179,7 +179,6 @@ describe('ListingDetailsPageComponent — report affordance', () => {
         id: options.ownerId ?? 'owner-1',
         firstName: 'Owen',
         lastName: 'Owner',
-        phoneNumber: null,
       },
     });
     TestBed.configureTestingModule({

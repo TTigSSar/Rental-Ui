@@ -79,7 +79,6 @@ export function makeListingDetails(overrides: Partial<ListingDetails> = {}): Lis
       id: 'owner-1',
       firstName: 'Owen',
       lastName: 'Owner',
-      phoneNumber: null,
     },
     bookedDateRanges: [],
     isFavorite: false,
@@ -141,7 +140,6 @@ export function makeBookingRequest(overrides: Partial<BookingRequest> = {}): Boo
     renterFirstName: 'Rena',
     renterLastName: 'Renter',
     renterEmail: 'rena@example.com',
-    renterPhoneNumber: null,
     startDate: '2026-07-01',
     endDate: '2026-07-03',
     totalPrice: 15,
@@ -182,7 +180,6 @@ export function makeBookingDetail(overrides: Partial<BookingDetail> = {}): Booki
     counterpartyFirstName: 'Rena',
     counterpartyLastName: 'Renter',
     counterpartyAvatarUrl: null,
-    counterpartyPhoneNumber: null,
     ...overrides,
   };
 }
@@ -238,6 +235,7 @@ export function makeAdminListingDetail(
     ...makeAdminListingSummary(),
     status: 'PendingApproval',
     ownerOpenReportCount: 0,
+    ownerPhoneNumber: null,
     ...overrides,
   };
 }
@@ -294,6 +292,7 @@ export function makeAdminUser(overrides: Partial<AdminUser> = {}): AdminUser {
   return {
     id: 'user-1',
     email: 'anahit@toyrent.am',
+    phoneNumber: null,
     firstName: 'Anahit',
     lastName: 'Grigoryan',
     avatarUrl: null,

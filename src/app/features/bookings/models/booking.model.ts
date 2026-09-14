@@ -49,7 +49,7 @@ export interface MyBooking {
 
 // Full booking detail for the dedicated Booking Details page (GET /api/bookings/:id).
 // `role` tells the page which side the current user is; counterparty fields are the
-// other party (phone/address only present once the booking is at least Approved).
+// other party (address only present once the booking is at least Approved).
 export interface BookingDetail {
   id: string;
   status: BookingStatus;
@@ -81,7 +81,6 @@ export interface BookingDetail {
   counterpartyFirstName: string;
   counterpartyLastName: string;
   counterpartyAvatarUrl: string | null;
-  counterpartyPhoneNumber: string | null;
 }
 
 export interface BookingRequest {
@@ -92,7 +91,6 @@ export interface BookingRequest {
   renterFirstName: string;
   renterLastName: string;
   renterEmail: string;
-  renterPhoneNumber: string | null;
   startDate: string;
   endDate: string;
   totalPrice: number;

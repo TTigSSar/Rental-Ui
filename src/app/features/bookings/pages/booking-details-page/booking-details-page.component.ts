@@ -21,6 +21,8 @@ import { BookingProgressComponent } from '../../../../shared/ui/booking-progress
 import { BookingStatusBadgeComponent } from '../../../../shared/ui/booking-status-badge/booking-status-badge.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
+import * as ChatActions from '../../../chat/store/chat.actions';
+import { selectOpeningConversationFromBooking } from '../../../chat/store/chat.selectors';
 import type { BookingReviewStatus } from '../../../reviews/models/review.model';
 import { ReviewsApiService } from '../../../reviews/services/reviews-api.service';
 import * as BookingsActions from '../../store/bookings.actions';
@@ -83,6 +85,9 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
   protected readonly cancelPending = this.store.selectSignal(selectCancelBookingPending);
   protected readonly cancelError = this.store.selectSignal(selectCancelBookingError);
   private readonly cancelSuccessId = this.store.selectSignal(selectCancelBookingSuccessId);
+  protected readonly openingConversation = this.store.selectSignal(
+    selectOpeningConversationFromBooking,
+  );
 
   protected readonly reviewStatus = signal<BookingReviewStatus | null>(null);
 
@@ -148,37 +153,38 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
   });
 
   // Rejection reason: known codes map to a localized label, free text shows as-is.
-  private static readonly KNOWN_REJECT_REASONS = ['dates_unavailable', 'item_unavailable', 'not_a_fit'];
+  private static readonly KNOWN_REJECT_REASONS = [
+    'dates_unavailable',
+    'item_unavailable',
+    'not_a_fit',
+  ];
 
-  protected readonly rejectionReason = computed<{ key: string | null; raw: string | null } | null>(() => {
-    const d = this.detail();
-    if (!d || d.status !== 'Rejected' || !d.rejectionReason) return null;
-    const code = d.rejectionReason;
-    return BookingDetailsPageComponent.KNOWN_REJECT_REASONS.includes(code)
-      ? { key: 'bookings.rejectReason.' + code, raw: null }
-      : { key: null, raw: code };
-  });
+  protected readonly rejectionReason = computed<{ key: string | null; raw: string | null } | null>(
+    () => {
+      const d = this.detail();
+      if (!d || d.status !== 'Rejected' || !d.rejectionReason) return null;
+      const code = d.rejectionReason;
+      return BookingDetailsPageComponent.KNOWN_REJECT_REASONS.includes(code)
+        ? { key: 'bookings.rejectReason.' + code, raw: null }
+        : { key: null, raw: code };
+    },
+  );
 
   protected readonly canCancel = computed(() => {
     const d = this.detail();
-    return d !== null && d.role === 'renter' &&
-      (d.status === 'Pending' || d.status === 'Approved');
+    return d !== null && d.role === 'renter' && (d.status === 'Pending' || d.status === 'Approved');
   });
 
   protected readonly canLeaveReview = computed(() => {
     const rs = this.reviewStatus();
     if (!rs) return false;
-    return rs.role === 'owner'
-      ? rs.canReviewRenter
-      : rs.canReviewToy || rs.canReviewOwner;
+    return rs.role === 'owner' ? rs.canReviewRenter : rs.canReviewToy || rs.canReviewOwner;
   });
 
   protected readonly reviewSubmitted = computed(() => {
     const rs = this.reviewStatus();
     if (!rs) return false;
-    return rs.role === 'owner'
-      ? rs.hasRenterReview
-      : rs.hasToyReview && rs.hasOwnerReview;
+    return rs.role === 'owner' ? rs.hasRenterReview : rs.hasToyReview && rs.hasOwnerReview;
   });
 
   protected readonly reviewLink = computed<string[]>(() => {
@@ -243,6 +249,15 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
   protected cancelBooking(): void {
     if (this.bookingId && !this.cancelPending()) {
       this.store.dispatch(BookingsActions.cancelBooking({ bookingId: this.bookingId }));
+    }
+  }
+
+  /** "Message {counterparty}" — opens/creates the booking's conversation via the
+   * chat store and lets ChatEffects navigate there. Available to both the renter
+   * and the owner (mirrors `onMessageOwner()` on the booking confirmation screen). */
+  protected messageCounterparty(): void {
+    if (this.bookingId) {
+      this.store.dispatch(ChatActions.openConversationFromBooking({ bookingId: this.bookingId }));
     }
   }
 }

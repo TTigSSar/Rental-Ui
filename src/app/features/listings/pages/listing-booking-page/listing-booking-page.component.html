@@ -36,10 +36,9 @@
         }
 
         <p class="booking-page__confirm-contact">
-          <i class="pi pi-lock" aria-hidden="true"></i>
+          <i class="pi pi-comments" aria-hidden="true"></i>
           <span>
-            {{ 'listings.bookingPage.phoneUnlockLead' | translate: { name: ownerFirstName() } }}
-            <strong>{{ 'listings.bookingPage.phoneUnlockEmphasis' | translate }}</strong>
+            {{ 'listings.bookingPage.chatAfterRequestSent' | translate: { name: ownerFirstName() } }}
           </span>
         </p>
 
@@ -293,11 +292,10 @@
                   </p>
                 </div>
               </div>
-              <p class="booking-page__request-unlock">
-                <i class="pi pi-lock" aria-hidden="true"></i>
+              <p class="booking-page__request-chat-notice">
+                <i class="pi pi-comments" aria-hidden="true"></i>
                 <span>
-                  {{ 'listings.bookingPage.phoneUnlockLead' | translate: { name: ownerFirstName() } }}
-                  <strong>{{ 'listings.bookingPage.phoneUnlockEmphasis' | translate }}</strong>
+                  {{ 'listings.bookingPage.chatAfterRequest' | translate: { name: ownerFirstName() } }}
                 </span>
               </p>
             </div>
@@ -371,12 +369,11 @@
                   </div>
                 </div>
 
-                <!-- Phone unlock note -->
-                <p class="booking-page__request-unlock">
-                  <i class="pi pi-lock" aria-hidden="true"></i>
+                <!-- Chat notice -->
+                <p class="booking-page__request-chat-notice">
+                  <i class="pi pi-comments" aria-hidden="true"></i>
                   <span>
-                    {{ 'listings.bookingPage.phoneUnlockLead' | translate: { name: ownerFirstName() } }}
-                    <strong>{{ 'listings.bookingPage.phoneUnlockEmphasis' | translate }}</strong>
+                    {{ 'listings.bookingPage.chatAfterRequest' | translate: { name: ownerFirstName() } }}
                   </span>
                 </p>
               }

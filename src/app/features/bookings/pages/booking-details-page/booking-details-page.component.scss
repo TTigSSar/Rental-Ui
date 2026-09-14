@@ -125,6 +125,10 @@
   }
 }
 
+::ng-deep .booking-details__message-btn.p-button {
+  margin-top: var(--ui-space-12, 12px);
+}
+
 // --- Timeline ---
 .booking-timeline {
   list-style: none;

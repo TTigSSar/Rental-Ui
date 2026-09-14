@@ -479,10 +479,6 @@ export class ListingsApiService {
       id: typeof rawOwner?.id === 'string' ? rawOwner.id : '',
       firstName: typeof rawOwner?.firstName === 'string' ? rawOwner.firstName : '',
       lastName: typeof rawOwner?.lastName === 'string' ? rawOwner.lastName : '',
-      phoneNumber:
-        typeof rawOwner?.phoneNumber === 'string' && rawOwner.phoneNumber.length > 0
-          ? rawOwner.phoneNumber
-          : null,
     };
 
     const images: ListingImage[] = Array.isArray(listing.images)

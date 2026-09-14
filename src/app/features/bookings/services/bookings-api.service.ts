@@ -108,7 +108,6 @@ function normalizeBookingDetail(item: Partial<BookingDetail> & { id: string }): 
     counterpartyFirstName: toStr(item.counterpartyFirstName),
     counterpartyLastName: toStr(item.counterpartyLastName),
     counterpartyAvatarUrl: toNullableStr(item.counterpartyAvatarUrl),
-    counterpartyPhoneNumber: toNullableStr(item.counterpartyPhoneNumber),
   };
 }
 
@@ -123,7 +122,6 @@ function normalizeBookingRequest(
     renterFirstName: toStr(item.renterFirstName),
     renterLastName: toStr(item.renterLastName),
     renterEmail: toStr(item.renterEmail),
-    renterPhoneNumber: toNullableStr(item.renterPhoneNumber),
     startDate: toStr(item.startDate),
     endDate: toStr(item.endDate),
     totalPrice: toFiniteNumber(item.totalPrice),

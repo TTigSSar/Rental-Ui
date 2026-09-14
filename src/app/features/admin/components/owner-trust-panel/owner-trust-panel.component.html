@@ -15,6 +15,14 @@
         }
       </div>
       <div class="owner-trust-panel__email">{{ listing().ownerEmail }}</div>
+      <div class="owner-trust-panel__phone">
+        {{ 'admin.inspect.owner.phone' | translate }}:
+        @if (listing().ownerPhoneNumber; as phone) {
+          <a [href]="'tel:' + phone">{{ phone }}</a>
+        } @else {
+          {{ 'profile.common.notAvailable' | translate }}
+        }
+      </div>
     </div>
   </div>
 

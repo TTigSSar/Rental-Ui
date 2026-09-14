@@ -97,6 +97,8 @@ export interface AdminListingSummary {
 export interface AdminListingDetail extends AdminListingSummary {
   status: ListingModerationStatus;
   ownerOpenReportCount: number;
+  /** Admin-only: surfaced so moderators can call the owner directly. Never shown to renters. */
+  ownerPhoneNumber: string | null;
 }
 
 export interface AdminListingQueueCounts {

@@ -354,7 +354,7 @@ describe('ListingsApiService — getListingById', () => {
       city: 'Yerevan',
       pricePerDay: 5000,
       images: [],
-      owner: { id: 'owner-1', firstName: 'Owen', lastName: 'Owner', phoneNumber: null },
+      owner: { id: 'owner-1', firstName: 'Owen', lastName: 'Owner' },
       bookedDateRanges: [
         { startDate: '2026-09-10', endDate: '2026-09-10' },
         { startDate: '2026-09-20', endDate: '2026-09-22' },
@@ -396,7 +396,7 @@ describe('ListingsApiService — getListingById', () => {
       city: 'Yerevan',
       pricePerDay: 5000,
       images: [],
-      owner: { id: 'owner-1', firstName: 'Owen', lastName: 'Owner', phoneNumber: null },
+      owner: { id: 'owner-1', firstName: 'Owen', lastName: 'Owner' },
       isFavorite: false,
       category: null,
     });
