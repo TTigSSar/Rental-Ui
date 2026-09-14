@@ -201,4 +201,40 @@ test.describe('Admin users', () => {
     await sheet.getByRole('button', { name: 'Cancel' }).click();
     await expect(sheet).toHaveCount(0);
   });
+
+  /**
+   * The admin console is the one place the owner's phone number is still allowed to appear —
+   * `AdminUserSummaryResponse.PhoneNumber` was added specifically as the admin-only exception when
+   * the renter/owner-facing reveal (`ListingOwnerResponse.PhoneNumber`,
+   * `BookingDetailResponse.CounterpartyPhoneNumber`) was removed entirely (see
+   * `listing-contact-privacy.spec.ts`). This pins that exception on both surfaces it renders on
+   * (`users-page.component.html`'s desktop row and `admin-user-profile-dialog`'s dialog) so a
+   * future change can't silently take it away from admins too.
+   */
+  test("admin sees a user's phone number as a tel: link — the one surface that still shows it", async ({
+    page,
+  }) => {
+    await mockApi(page, {
+      me: e2eAdmin(),
+      adminUsers: [
+        e2eAdminUser({
+          id: 'user-phone-1',
+          firstName: 'Nara',
+          lastName: 'Normal',
+          phoneNumber: '+374 55 123456',
+        }),
+      ],
+    });
+
+    await page.goto('/admin/users');
+    const row = page.locator('.users-page__row').filter({ hasText: 'Nara Normal' });
+    const rowPhoneLink = row.locator('a[href="tel:+374 55 123456"]');
+    await expect(rowPhoneLink).toHaveText('+374 55 123456');
+
+    // Same field, same value, surfaced again inside the profile dialog
+    // (`GET /api/admin/users/{id}`'s response backs the dialog's own fetch).
+    await page.getByRole('button', { name: "View Nara Normal's profile" }).click();
+    const dialog = page.getByRole('dialog', { name: "Nara Normal's profile" });
+    await expect(dialog.locator('a[href="tel:+374 55 123456"]')).toHaveText('+374 55 123456');
+  });
 });

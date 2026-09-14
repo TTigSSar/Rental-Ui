@@ -16,6 +16,19 @@ import {
  * the toy over (Approved -> Active, owner-only) -> owner completes the rental
  * (Active -> Completed, owner-only) -> renter is offered a review.
  *
+ * Also pins the post-phone-removal contact model end to end against the real
+ * API: `ListingOwnerResponse.PhoneNumber` and
+ * `BookingDetailResponse.CounterpartyPhoneNumber` were deleted from the
+ * product — chat is now the only contact channel, and it is booking-scoped
+ * (`POST /api/chat/conversations/from-booking/{bookingId}` is the only
+ * creation path). This suite asserts the owner's phone number is absent at
+ * EVERY stage of the lifecycle (Pending, Approved, Active, Completed —
+ * previously this only held pre-Approval, and Approved+ actually revealed
+ * it), and asserts what genuinely replaces/survives that reveal: the
+ * booking's chat thread is reachable from the confirmation screen
+ * immediately after the request is sent, and the pickup `AddressLine` (the
+ * one contact-reveal gate the product kept) appears once the owner approves.
+ *
  * The whole lifecycle is ONE test: the steps share a live booking, and hard
  * rule 7 (no order-dependent tests) forbids splitting shared mutable state
  * across test() boundaries.
@@ -31,8 +44,28 @@ import {
  *   state through the real API, which re-enables the "Request to rent" CTA.
  */
 
-/** Owner phone from the dev seed — proves the contact-reveal rule (Approved+). */
+/**
+ * Owner phone from the dev seed (Olivia Owner, owner@rental.local). It is a
+ * real, non-empty value on the seeded account specifically so this suite can
+ * prove a negative that means something: if the API ever accidentally put it
+ * back on the wire, this text would appear somewhere in the renter's DOM and
+ * the assertions below would catch it. Never rendered to the renter — the
+ * one surviving exception is the admin console, which is out of scope here
+ * (see `admin-users.spec.ts`).
+ */
 const OWNER_PHONE = '+374 99 100 002';
+
+/**
+ * Asserts the owner's phone number is not exposed on the given page by any
+ * means: not as literal text, and not as a `tel:` affordance (the pattern the
+ * admin-only surfaces use — see `admin-users.spec.ts`'s admin-visibility
+ * pin). Two checks because either alone would miss a regression that used
+ * the other rendering path.
+ */
+async function assertPhoneNeverExposed(page: Page): Promise<void> {
+  await expect(page.getByText(OWNER_PHONE)).toHaveCount(0);
+  await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
+}
 
 const MONTHS_AHEAD = 2;
 
@@ -181,6 +214,22 @@ function statusBadge(page: Page) {
   return page.locator('app-booking-status-badge');
 }
 
+/**
+ * The "Pickup & return" card's fact line on the booking details page
+ * (`booking-details-page.component.html`): always renders the city, and
+ * appends `, {addressLine}` only once the backend actually sends
+ * `AddressLine` — which BookingsService gates on `contactRevealed` (Approved
+ * or later). Asserting this line's text is the positive counterpart to
+ * `assertPhoneNeverExposed`: it proves something real unlocks at Approved+,
+ * even though the phone number itself no longer does.
+ */
+function pickupLine(page: Page) {
+  return page
+    .locator('.booking-details__card')
+    .filter({ hasText: 'Pickup & return' })
+    .locator('.booking-details__line');
+}
+
 test.describe('Booking lifecycle (real stack)', () => {
   test('renter books, owner approves, hands over and completes', async ({
     page: renterPage,
@@ -235,27 +284,59 @@ test.describe('Booking lifecycle (real stack)', () => {
       // breakdown shows it.
       await selectRange(renterPage, window, expectedTotalPattern(TOY_KITCHEN.pricePerDay * 4));
 
-      await renterPage
-        .locator('.booking-page__request-card')
-        .getByRole('button', { name: 'Send booking request' })
-        .click();
-      await expect(renterPage.getByText('Booking request sent!')).toBeVisible({
-        timeout: 15_000,
-      });
+      // Capture the created booking's id from the network response itself
+      // (not from a subsequent UI click) — the confirmation screen's two
+      // action buttons ("Message {owner}" / "View booking") each navigate
+      // away, and the id is needed regardless of which one the next step
+      // exercises.
+      const [createResponse] = await Promise.all([
+        renterPage.waitForResponse(
+          (res) =>
+            res.url().endsWith('/api/bookings') && res.request().method() === 'POST' && res.ok(),
+        ),
+        renterPage
+          .locator('.booking-page__request-card')
+          .getByRole('button', { name: 'Send booking request' })
+          .click(),
+      ]);
+      bookingId = ((await createResponse.json()) as { id: string }).id;
+      expect(bookingId).toMatch(/^[0-9a-fA-F-]{36}$/);
+
+      await expect(
+        renterPage.getByRole('heading', { name: 'Request sent to Olivia!' }),
+      ).toBeVisible({ timeout: 15_000 });
+      // The old padlock notice ("contact unlocks once approved") is gone —
+      // this is its replacement, shown on the same confirmation screen.
+      await expect(
+        renterPage.getByText('Your request has been sent — chat with Olivia to agree pickup and contact details.'),
+      ).toBeVisible();
+    });
+
+    await test.step("the booking's chat thread is reachable from the confirmation screen", async () => {
+      // This is what genuinely replaces the old phone-reveal: the renter can
+      // reach a real, booking-scoped chat conversation with the owner
+      // straight from the confirmation screen, no approval required.
+      await renterPage.getByRole('button', { name: 'Message Olivia' }).click();
+      await renterPage.waitForURL(/\/chat\/[0-9a-fA-F-]{36}$/, { timeout: 15_000 });
+      await expect(renterPage.locator('.chat-thread__identity-name')).toContainText(
+        'Olivia Owner',
+      );
+      // The phone number is not smuggled into the chat surface either.
+      await assertPhoneNeverExposed(renterPage);
     });
 
     await test.step('renter sees the booking as Pending approval', async () => {
-      await renterPage.getByRole('button', { name: 'View booking' }).click();
-      await renterPage.waitForURL(/\/bookings\/[0-9a-fA-F-]{36}$/);
-      bookingId = renterPage.url().split('/').pop()!;
-
+      await renterPage.goto(`/bookings/${bookingId}`);
       await expect(statusBadge(renterPage)).toHaveText('Pending approval');
       // Renter may cancel a pending request…
       await expect(renterPage.getByRole('button', { name: 'Cancel request' })).toBeVisible();
       // …but never sees the owner-only lifecycle actions (role boundary).
       await expect(renterPage.getByRole('button', { name: 'Mark as handed over' })).toHaveCount(0);
-      // Contact details stay hidden until the owner approves.
-      await expect(renterPage.getByText(OWNER_PHONE)).toHaveCount(0);
+      // The phone number was never part of this page — confirm it stays that way.
+      await assertPhoneNeverExposed(renterPage);
+      // Nor is the pickup address — that gate is still Approved+ only, and
+      // Pending is before it.
+      await expect(pickupLine(renterPage)).not.toContainText(TOY_KITCHEN.addressLine);
     });
 
     const ownerContext = await browser.newContext();
@@ -275,10 +356,15 @@ test.describe('Booking lifecycle (real stack)', () => {
         await expect(requestCard).toHaveCount(0);
       });
 
-      await test.step('renter sees Approved and the now-revealed owner contact', async () => {
+      await test.step('renter sees Approved: address unlocks, phone number never does', async () => {
         await renterPage.reload();
         await expect(statusBadge(renterPage)).toHaveText('Approved');
-        await expect(renterPage.getByText(OWNER_PHONE)).toBeVisible();
+        // The one thing that genuinely unlocks at Approved+ (BookingsService:
+        // `contactRevealed ? listing.AddressLine : null`).
+        await expect(pickupLine(renterPage)).toContainText(TOY_KITCHEN.addressLine);
+        // The phone number does not — the reveal rule that used to cover both
+        // was narrowed to the address alone.
+        await assertPhoneNeverExposed(renterPage);
         // Approved-but-not-started bookings are still cancellable by the renter.
         await expect(renterPage.getByRole('button', { name: 'Cancel request' })).toBeVisible();
       });
@@ -297,6 +383,9 @@ test.describe('Booking lifecycle (real stack)', () => {
         await expect(renterPage.getByRole('button', { name: 'Mark as completed' })).toHaveCount(0);
         // Active bookings are no longer cancellable by the renter.
         await expect(renterPage.getByRole('button', { name: 'Cancel request' })).toHaveCount(0);
+        // Address stays revealed (Approved+ still covers Active); phone still never appears.
+        await expect(pickupLine(renterPage)).toContainText(TOY_KITCHEN.addressLine);
+        await assertPhoneNeverExposed(renterPage);
       });
 
       await test.step('owner completes the rental: Active -> Completed', async () => {
@@ -308,6 +397,8 @@ test.describe('Booking lifecycle (real stack)', () => {
         await renterPage.reload();
         await expect(statusBadge(renterPage)).toHaveText('Completed');
         await expect(renterPage.getByRole('button', { name: 'Leave a review' })).toBeVisible();
+        // Lifecycle's last stage — the phone number never appeared at any point in it.
+        await assertPhoneNeverExposed(renterPage);
       });
 
       await test.step('listing is bookable again — the run leaves no blocking state', async () => {

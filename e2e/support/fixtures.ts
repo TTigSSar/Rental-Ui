@@ -73,7 +73,12 @@ export function e2eListingDetails(overrides: Record<string, unknown> = {}) {
     city: 'Yerevan',
     pricePerDay: 5,
     images: [],
-    owner: { id: 'owner-e2e-1', firstName: 'Olive', lastName: 'Owner', phoneNumber: null },
+    // `phoneNumber` is deliberately absent: `ListingOwnerResponse.PhoneNumber`
+    // was removed from the API entirely (chat replaced the contact-reveal
+    // gate — see `listing-contact-privacy.spec.ts`). A mock that still
+    // carried this field would hide a regression if the UI ever re-bound to
+    // it, since a real API response would never send it.
+    owner: { id: 'owner-e2e-1', firstName: 'Olive', lastName: 'Owner' },
     bookedDates: [],
     isFavorite: false,
     ageFromMonths: 24,
@@ -445,7 +450,9 @@ export function e2eAdminCategory(overrides: Record<string, unknown> = {}) {
  * One row of the admin console Users screen (Phase 3) — `GET /api/admin/users`
  * (`AdminUserSummaryResponse` wire shape, mirrored by `AdminUser` in
  * `features/admin/models/admin-user.model.ts`). All enums are PascalCase strings on the wire
- * (`role`/`status`/`marketplaceRole`).
+ * (`role`/`status`/`marketplaceRole`). `phoneNumber` is the one place this field is still on the
+ * wire at all — admin-only, added alongside the renter/owner-facing phone-reveal removal (see
+ * `listing-contact-privacy.spec.ts` and `admin-users.spec.ts`'s admin-visibility pin).
  */
 export function e2eAdminUser(overrides: Record<string, unknown> = {}) {
   return {
@@ -461,6 +468,7 @@ export function e2eAdminUser(overrides: Record<string, unknown> = {}) {
     listingCount: 0,
     rentalCount: 2,
     flagCount: 0,
+    phoneNumber: null,
     createdAt: '2026-01-15T10:00:00.000Z',
     ...overrides,
   };

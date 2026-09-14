@@ -48,6 +48,14 @@ export const TOY_KITCHEN = {
   pricePerDay: 3_500,
   exactLatitude: 40.1776,
   exactLongitude: 44.5126,
+  /**
+   * `AddressLine` on the seeded listing — gated the same way the owner's
+   * phone number used to be (`BookingsService`: `contactRevealed ?
+   * listing.AddressLine : null`). The phone gate was removed from the
+   * product entirely; the address gate is the one contact-reveal survivor,
+   * so this is now what "Approved+" genuinely unlocks on a booking.
+   */
+  addressLine: '5 Republic Square',
 } as const;
 
 /**
