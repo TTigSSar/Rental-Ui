@@ -53,7 +53,7 @@ test.describe('Create listing — location pin', () => {
     await page.locator('#wz-price').fill('25');
     await page.getByLabel('City').fill('Yerevan');
 
-    await page.getByRole('button', { name: 'Set location on map' }).click();
+    await page.getByRole('button', { name: 'Show on map' }).click();
     await page.getByRole('button', { name: 'Confirm location' }).click();
 
     // Confirming closes the picker and swaps the CTA for the pin preview +

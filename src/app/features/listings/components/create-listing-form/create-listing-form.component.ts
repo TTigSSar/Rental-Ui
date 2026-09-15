@@ -22,7 +22,6 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { AgeRangeSliderComponent } from '../../../../shared/ui/age-range-slider/age-range-slider.component';
 import { CategorySelectorComponent } from '../../../../shared/ui/category-selector/category-selector.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
-import { MapComponent } from '../../../../shared/ui/map/map.component';
 import type { MapLatLng } from '../../../../shared/ui/map/map.component';
 import { LanguageService } from '../../../../shared/services/language.service';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
@@ -32,7 +31,7 @@ import type {
   ListingCategoryOption,
   PriceUnit,
 } from '../../models/create-listing.model';
-import { PRICE_UNITS } from '../../models/create-listing.model';
+import { DELIVERY_TYPES, PRICE_UNITS } from '../../models/create-listing.model';
 import type { ListingDistrict } from '../../models/district.model';
 import { districtDisplayName } from '../../models/district-ui.util';
 import type { ListingImage } from '../../models/listing.model';
@@ -62,8 +61,13 @@ export interface ListingFormPrefill {
   safetyNotes: string | null;
   /** Shortest bookable period, in days. Falls back to the 1-day default. */
   minRentalDays?: number | null;
-  /** How the toy is handed over. Falls back to 'Pickup'. */
+  /** How the toy is handed over. Falls back to 'Pickup'. Legacy single-value
+   *  field — superseded by `deliveryTypes` below but still read as a fallback
+   *  for listings/backends that predate the multi-select. */
   deliveryType?: DeliveryType | null;
+  /** Multi-select handover methods. Falls back to `[deliveryType]` (or
+   *  `['Pickup']`) when absent — see the `prefill` setter below. */
+  deliveryTypes?: DeliveryType[] | null;
 }
 
 /**
@@ -142,7 +146,7 @@ const WIZARD_STEPS: readonly WizardStep[] = [
   },
 ];
 
-const MIN_RENTAL_DAYS = [1, 3, 7, 14] as const;
+const MIN_RENTAL_DAYS = [1, 3, 7, 14, 30, 90, 180, 365] as const;
 
 /** Listings are currently Armenia-only; kept out of the template (no literal). */
 const DEFAULT_COUNTRY = 'Armenia';
@@ -185,7 +189,6 @@ function ageRangeValidator(control: AbstractControl): ValidationErrors | null {
     DramCurrencyPipe,
     InputNumberModule,
     LocationPickerComponent,
-    MapComponent,
     ReactiveFormsModule,
     RouterLink,
     TranslatePipe,
@@ -266,7 +269,11 @@ export class CreateListingFormComponent implements OnInit {
       // Listings created before these fields existed carry null — fall back to
       // the same defaults a fresh wizard starts with.
       minRentalDays: value.minRentalDays ?? 1,
-      deliveryType: value.deliveryType ?? 'Pickup',
+      deliveryTypes: value.deliveryTypes?.length
+        ? value.deliveryTypes
+        : value.deliveryType
+          ? [value.deliveryType]
+          : ['Pickup'],
     });
     if (typeof value.ageFromMonths === 'number' && typeof value.ageToMonths === 'number') {
       this.ageYears.set([Math.round(value.ageFromMonths / 12), Math.round(value.ageToMonths / 12)]);
@@ -413,7 +420,6 @@ export class CreateListingFormComponent implements OnInit {
       ]),
       priceUnit: this.fb.nonNullable.control<PriceUnit>('Daily', [Validators.required]),
       city: this.fb.nonNullable.control('', [Validators.required]),
-      addressLine: this.fb.nonNullable.control(''),
       latitude: this.fb.control<number | null>(null),
       longitude: this.fb.control<number | null>(null),
       // Optional owner override; the backend derives this from the pin when null.
@@ -425,8 +431,8 @@ export class CreateListingFormComponent implements OnInit {
       safetyNotes: this.fb.nonNullable.control(''),
       // Shortest bookable period in days; one of MIN_RENTAL_DAYS.
       minRentalDays: this.fb.nonNullable.control<number>(1),
-      // Single-select: the toy is handed over one way or the other.
-      deliveryType: this.fb.nonNullable.control<DeliveryType>('Pickup'),
+      // Multi-select: at least one handover method is always selected.
+      deliveryTypes: this.fb.nonNullable.control<DeliveryType[]>(['Pickup']),
     },
     { validators: ageRangeValidator },
   );
@@ -576,17 +582,21 @@ export class CreateListingFormComponent implements OnInit {
 
   // ── Chip handlers ─────────────────────────────────────────────
   /**
-   * Delivery is mutually exclusive (the control renders as a radio group), so
-   * picking one replaces the other. There is no "neither" state — 'Pickup' is
-   * the default.
+   * Delivery is a multi-select (the control renders as a checkbox group) — an
+   * owner can offer both handover methods. At least one is always selected,
+   * so toggling off the last remaining type is a no-op.
    */
-  selectDelivery(type: DeliveryType): void {
-    this.createListingForm.controls.deliveryType.setValue(type);
-    this.createListingForm.controls.deliveryType.markAsDirty();
+  toggleDelivery(type: DeliveryType): void {
+    const current = this.createListingForm.controls.deliveryTypes.value;
+    const selected = current.includes(type);
+    if (selected && current.length === 1) return;
+    const next = selected ? current.filter((t) => t !== type) : [...current, type];
+    this.createListingForm.controls.deliveryTypes.setValue(next);
+    this.createListingForm.controls.deliveryTypes.markAsDirty();
   }
 
-  protected selectedDelivery(): DeliveryType {
-    return this.createListingForm.controls.deliveryType.value;
+  isDeliverySelected(type: DeliveryType): boolean {
+    return this.createListingForm.controls.deliveryTypes.value.includes(type);
   }
 
   selectMinDays(days: number): void {
@@ -840,17 +850,26 @@ export class CreateListingFormComponent implements OnInit {
     return this.categories.find((c) => c.id === id)?.name ?? id;
   }
 
+  /**
+   * No address line is collected any more (see `deliveryTypes`/pickup-area
+   * rework — the wizard never asks for a street address). Falls back to the
+   * selected district name, then the city alone.
+   */
   protected getPickupSummary(): string {
-    const area = this.createListingForm.controls.addressLine.value.trim();
     const city = this.createListingForm.controls.city.value.trim();
-    if (area && city) return `${area}, ${city}`;
-    return area || city || '—';
+    const districtId = this.createListingForm.controls.districtId.value;
+    const district = districtId ? this.districts.find((d) => d.id === districtId) : undefined;
+    const districtLabel = district ? this.districtName(district) : '';
+    if (districtLabel && city) return `${districtLabel}, ${city}`;
+    return districtLabel || city || '—';
   }
 
   protected getDeliverySummaryKey(): string {
-    return this.selectedDelivery() === 'Pickup'
-      ? 'listings.createForm.delivery.pickupShort'
-      : 'listings.createForm.delivery.deliverShort';
+    const types = this.createListingForm.controls.deliveryTypes.value;
+    if (types.length >= 2) return 'listings.createForm.delivery.bothShort';
+    return types[0] === 'Courier'
+      ? 'listings.createForm.delivery.deliverShort'
+      : 'listings.createForm.delivery.pickupShort';
   }
 
   protected getStepNameKey(): string {
@@ -924,6 +943,10 @@ export class CreateListingFormComponent implements OnInit {
         : checks.join(', ')
       : rawHygiene || null;
 
+    // Always ordered [Pickup, Courier] regardless of the order the owner
+    // toggled them in, so the payload shape is deterministic.
+    const deliveryTypes = DELIVERY_TYPES.filter((t) => raw.deliveryTypes.includes(t));
+
     const payload: CreateListingRequest = {
       title: raw.title.trim(),
       description: raw.description.trim(),
@@ -932,7 +955,7 @@ export class CreateListingFormComponent implements OnInit {
       priceUnit: raw.priceUnit,
       country: DEFAULT_COUNTRY,
       city: raw.city.trim(),
-      addressLine: this.toNullStr(raw.addressLine),
+      addressLine: null,
       latitude: raw.latitude,
       longitude: raw.longitude,
       districtId: raw.districtId,
@@ -942,7 +965,10 @@ export class CreateListingFormComponent implements OnInit {
       hygieneNotes,
       safetyNotes: this.toNullStr(raw.safetyNotes),
       minRentalDays: raw.minRentalDays,
-      deliveryType: raw.deliveryType,
+      // Legacy mirror — always the first entry once `deliveryTypes` is ordered
+      // [Pickup, Courier], i.e. 'Pickup' whenever it's offered at all.
+      deliveryType: deliveryTypes.includes('Pickup') ? 'Pickup' : 'Courier',
+      deliveryTypes,
     };
 
     if (this.mode === 'edit') {

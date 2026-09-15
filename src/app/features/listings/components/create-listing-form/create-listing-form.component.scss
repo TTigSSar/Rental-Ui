@@ -275,6 +275,16 @@
   text-align: right;
 }
 
+/* Pickup-area "pin set" confirmation note — success tone instead of the
+   default muted hint colour. */
+.wizard-field__note--success {
+  color: var(--ui-color-success, var(--ui-color-primary));
+
+  .pi {
+    color: var(--ui-color-success, var(--ui-color-primary));
+  }
+}
+
 /* Two-column field group (single column on mobile) */
 .wizard-2col {
   display: grid;
@@ -334,6 +344,20 @@
     background: var(--ui-color-secondary);
     color: #fff;
   }
+}
+
+/* Minimum-rental chips: a modifier (not a change to the base `.wizard-chips`
+   used by condition chips elsewhere) so only this group can be styled on its
+   own. The field is its own full-width row now (see the step-3 template —
+   it's no longer a `.wizard-2col` half), so chips wrap onto rows here by
+   default, same as any other chip group. At the ≥1024px desktop breakpoint
+   (create-listing-form.desktop.scss) the chips get slightly tightened
+   padding so they sit on one line at more widths, but they still wrap to a
+   second row whenever the content column (which varies from ~618px at
+   1024px to ~674px+ at 1280px) isn't wide enough for all 8 — forcing
+   `nowrap` there used to push chips past the card's right edge at 1024px. */
+.wizard-chips--min-rental {
+  flex-wrap: wrap;
 }
 
 /* ── Rate card (price + unit) ────────────────────────────────── */
@@ -868,6 +892,13 @@
   }
 }
 
+/* Pickup-area "Show on map" / "Change" trigger — a single persistent button
+   (text swaps on `hasPin()`, the node itself never swaps) that opens the
+   full-screen `<app-location-picker>`. Previously the CTA half of an
+   `@if/@else` pair sitting over a static map preview (`.location-card`,
+   removed) — that preview is gone (edit mode can't persist coordinates, so a
+   read-only map thumbnail added little), but this button's own look carries
+   over unchanged. */
 .location-card__cta {
   display: flex;
   align-items: center;
@@ -887,99 +918,6 @@
 
   &:hover {
     background: color-mix(in srgb, var(--ui-color-primary-soft) 80%, white);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
-    outline-offset: 2px;
-  }
-}
-
-.location-card {
-  /* FACreatePricing: 168px on mobile, 248px at ≥1024px (desktop.scss). Exposed
-     as a custom property (rather than a literal on `app-map`'s own
-     `[style.height]` binding) so the breakpoint can override it — mirrors
-     `listing-location.component.scss`'s `--listing-location-map-height`. */
-  --wizard-map-height: 168px;
-
-  position: relative;
-  border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-card);
-  overflow: hidden;
-}
-
-/* listing-location.jsx's "Approximate area" chip — floating pill, top-left,
-   over the map preview. */
-.location-card__chip {
-  position: absolute;
-  top: var(--ui-space-12);
-  left: var(--ui-space-12);
-  /* This is a SIBLING of `<app-map>` (see the template), not projected
-     inside it, so it sits outside `.app-map`'s own isolated stacking context
-     (`isolation: isolate`, map.component.scss) — Leaflet's panes/attribution
-     (up to 1000/1001) are sealed inside that context and no longer
-     participate in this comparison. This only needs to clear `.app-map`'s
-     own implicit (~0) paint level to read as "on top of" the map, so 1002 is
-     over-specified now (kept as-is — still works, just isn't load-bearing
-     against Leaflet's specific numbers the way it used to be). */
-  z-index: 1002;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px var(--ui-space-12) 7px 9px;
-  border-radius: var(--ui-radius-pill);
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(4px);
-  /* Same warm-black shadow ink used by `.wizard-preview` below — this repo has
-     no separate "shadow colour" token, just this literal across every card
-     shadow in this stylesheet. */
-  box-shadow: 0 3px 10px -3px rgba(20, 15, 5, 0.28);
-}
-
-.location-card__chip-icon {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 22px;
-  height: 22px;
-  border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary);
-  font-size: 0.75rem;
-}
-
-.location-card__chip-label {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--ui-color-text-primary);
-  white-space: nowrap;
-}
-
-.location-card__change-btn {
-  position: absolute;
-  bottom: var(--ui-space-8);
-  right: var(--ui-space-8);
-  /* Sibling of `<app-map>`, outside its isolated stacking context — see the
-     matching comment on `.location-card__chip` above. Only needs to clear
-     `.app-map`'s own implicit paint level now, not Leaflet's literal 1000;
-     1001 is over-specified but left as-is. */
-  z-index: 1001;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ui-space-6);
-  height: 2rem;
-  padding: 0 var(--ui-space-12);
-  border: none;
-  border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-surface);
-  color: var(--ui-color-primary);
-  font-size: 0.75rem;
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-  box-shadow: var(--ui-shadow-card);
-
-  &:hover {
-    background: var(--ui-color-primary-wash);
   }
   &:focus-visible {
     outline: 2px solid var(--ui-color-primary);
@@ -1018,17 +956,30 @@
   background: var(--ui-color-surface);
 }
 
-.wizard-delivery__radio {
-  width: 18px;
-  height: 18px;
-  border-radius: var(--ui-radius-pill);
+/* Checkbox square (mirrors `.wizard-check-row__box` in the Safety step) —
+   multi-select replaces the old single-select radio dot. */
+.wizard-delivery__checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
   border: 2px solid var(--ui-color-border);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ui-color-surface);
+  transition:
+    border-color 150ms ease,
+    background 150ms ease;
 
   .wizard-delivery--selected & {
     border-color: var(--ui-color-primary);
     background: var(--ui-color-primary);
-    box-shadow: inset 0 0 0 3px white;
+  }
+
+  .pi {
+    font-size: 0.7rem;
+    color: #fff;
   }
 }
 

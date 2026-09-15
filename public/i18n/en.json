@@ -484,6 +484,7 @@
         "pickupOnlyTitle": "Pickup only",
         "pickupOnlySub": "Meet the owner to collect",
         "minStayTitle": "{{count}}-day minimum",
+        "minStayPeriodTitle": "Min. {{period}}",
         "minStaySub": "Shorter requests aren't accepted"
       },
       "badges": {
@@ -707,16 +708,13 @@
         "notFoundError": "That district couldn't be found. Please pick another one."
       },
       "locationPicker": {
-        "cta": "Set location on map",
+        "showOnMap": "Show on map",
         "change": "Change",
         "title": "Set your toy's location",
         "confirm": "Confirm location",
         "cancel": "Cancel",
         "privacyNote": "We publish only the approximate area on the map — your exact address is never shown to renters.",
-        "pinSetHint": "Pin set. Only the approximate area is ever shown to renters.",
-        "mapLabel": "Where the toy is",
-        "mapHelper": "Renters see this map with an approximate circle — your exact address stays private until a booking is confirmed.",
-        "approximateChip": "Approximate area"
+        "pinSetHint": "Pin set. Only the approximate area is ever shown to renters."
       },
       "images": "Toy photos",
       "imagesSelected": "photos selected",
@@ -755,6 +753,10 @@
         "d3": "3 days",
         "d7": "1 week",
         "d14": "2 weeks",
+        "d30": "1 month",
+        "d90": "3 months",
+        "d180": "6 months",
+        "d365": "1 year",
         "hint": "Shortest booking a renter can make.",
         "preview": "min {{period}}"
       },
@@ -765,7 +767,10 @@
         "deliver": "Courier delivery",
         "deliverHint": "Renter pays · delivered in Yerevan",
         "pickupShort": "pickup",
-        "deliverShort": "delivery"
+        "deliverShort": "delivery",
+        "bothShort": "pickup or delivery",
+        "both": "Pickup or courier",
+        "bothHint": "Free pickup or courier delivery in Yerevan"
       },
       "photos": {
         "addCover": "Add cover photo",

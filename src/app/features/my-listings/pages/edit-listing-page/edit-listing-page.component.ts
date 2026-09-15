@@ -137,6 +137,7 @@ export class EditListingPageComponent implements OnInit {
       safetyNotes:   listing.safetyNotes,
       minRentalDays: listing.minRentalDays ?? null,
       deliveryType:  listing.deliveryType ?? null,
+      deliveryTypes: listing.deliveryTypes ?? null,
     });
 
     // Cover from the store list serves until the full image set arrives.
@@ -201,6 +202,7 @@ export class EditListingPageComponent implements OnInit {
       safetyNotes:   p.safetyNotes ?? null,
       minRentalDays: p.minRentalDays ?? null,
       deliveryType:  p.deliveryType ?? null,
+      deliveryTypes: p.deliveryTypes ?? null,
     };
 
     this.isSubmitting.set(true);

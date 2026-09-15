@@ -10,7 +10,7 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LangChangeEvent, TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';
@@ -149,6 +149,19 @@ export function resolveAgeRangeDisplay(
   return null;
 }
 
+/**
+ * Values the create/edit wizard's minimum-rental chips offer (see
+ * `MIN_RENTAL_DAYS` in `create-listing-form.component.ts`). When a listing's
+ * `minRentalDays` is one of these, the readable chip label
+ * (`listings.createForm.minRental.d{n}`, e.g. "1 month") reads better in the
+ * pickup/delivery row than the raw "N nights" count.
+ */
+const MIN_RENTAL_CHIP_DAYS: readonly number[] = [1, 3, 7, 14, 30, 90, 180, 365];
+
+function minRentalChipLabelKey(days: number): string | null {
+  return MIN_RENTAL_CHIP_DAYS.includes(days) ? `listings.createForm.minRental.d${days}` : null;
+}
+
 /** Re-exported for `owner-listing-page` (my-listings feature, out of scope
  *  for this rebuild) which still imports this helper directly. */
 export function hasAnyToyDetail(listing: ListingDetails): boolean {
@@ -193,6 +206,18 @@ function deliveryHintKey(type: DeliveryType): string {
     : 'listings.createForm.delivery.pickupHint';
 }
 
+/**
+ * `deliveryTypes` is additive — falls back to the legacy scalar `deliveryType`
+ * (wrapped in a single-item array) for listings/backends that predate it, and
+ * to `[]` when the listing has neither (never happened historically, but keeps
+ * this total).
+ */
+function resolveDeliveryTypes(listing: ListingDetails): DeliveryType[] {
+  if (listing.deliveryTypes && listing.deliveryTypes.length > 0) return listing.deliveryTypes;
+  if (listing.deliveryType) return [listing.deliveryType];
+  return [];
+}
+
 @Component({
   selector: 'app-listing-details-page',
   standalone: true,
@@ -231,6 +256,14 @@ export class ListingDetailsPageComponent {
   private readonly messageService = inject(MessageService);
   private readonly translate = inject(TranslateService);
   private readonly dramPipe = inject(DramCurrencyPipe);
+
+  /** Read (not otherwise used) inside `highlightTiles` so that computed re-runs
+   *  `translate.instant()` for the min-stay chip label on language switch —
+   *  `translate.instant` itself is a one-shot call and won't re-trigger the
+   *  computed on its own the way the template's `| translate` pipe does. */
+  private readonly langChange = toSignal<LangChangeEvent | null>(this.translate.onLangChange, {
+    initialValue: null,
+  });
 
   protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
   private readonly currentUser = this.store.selectSignal(selectAuthUser);
@@ -511,6 +544,7 @@ export class ListingDetailsPageComponent {
   protected readonly highlightTiles = computed<DetailTile[]>(() => {
     const listing = this.displayListing();
     if (!listing) return [];
+    this.langChange(); // dependency only — re-run translate.instant() below on lang switch
     const tiles: DetailTile[] = [];
 
     if (listing.hygieneNotes) {
@@ -529,9 +563,13 @@ export class ListingDetailsPageComponent {
         subKey: 'listings.details.highlights.verifiedSub',
       });
     }
-    if (listing.deliveryType) {
+    const deliveryTypes = resolveDeliveryTypes(listing);
+    if (deliveryTypes.length > 0) {
+      // Courier availability (whether offered alone or alongside Pickup) is
+      // the headline-worthy fact here — the delivery-available tile covers
+      // both cases; pickup-only gets its own, less exciting tile.
       tiles.push(
-        listing.deliveryType === 'Courier'
+        deliveryTypes.includes('Courier')
           ? {
               id: 'delivery',
               icon: 'pi pi-truck',
@@ -548,13 +586,27 @@ export class ListingDetailsPageComponent {
     }
     // Only worth a highlight when it's a real constraint above the default.
     if (typeof listing.minRentalDays === 'number' && listing.minRentalDays > 1) {
-      tiles.push({
-        id: 'minRental',
-        icon: 'pi pi-calendar-clock',
-        titleKey: 'listings.details.highlights.minStayTitle',
-        titleParams: { count: listing.minRentalDays },
-        subKey: 'listings.details.highlights.minStaySub',
-      });
+      // One of the create/edit wizard's chip values reads better as "Min. 1
+      // year" than the raw "365-day minimum" — same readability upgrade the
+      // pickup/delivery row already applies via `minRentalChipLabelKey`.
+      const chipKey = minRentalChipLabelKey(listing.minRentalDays);
+      tiles.push(
+        chipKey
+          ? {
+              id: 'minRental',
+              icon: 'pi pi-calendar-clock',
+              titleKey: 'listings.details.highlights.minStayPeriodTitle',
+              titleParams: { period: this.translate.instant(chipKey) },
+              subKey: 'listings.details.highlights.minStaySub',
+            }
+          : {
+              id: 'minRental',
+              icon: 'pi pi-calendar-clock',
+              titleKey: 'listings.details.highlights.minStayTitle',
+              titleParams: { count: listing.minRentalDays },
+              subKey: 'listings.details.highlights.minStaySub',
+            },
+      );
     }
 
     // The design only ever draws 2–4 tiles in one even row; a lone tile has
@@ -600,12 +652,14 @@ export class ListingDetailsPageComponent {
         subParams: { amount: this.formatDram(listing.depositAmount) },
       });
     }
-    if (listing.deliveryType) {
+    const deliveryTypes = resolveDeliveryTypes(listing);
+    if (deliveryTypes.length > 0) {
+      const both = deliveryTypes.length >= 2;
       tiles.push({
         id: 'delivery',
-        icon: listing.deliveryType === 'Courier' ? 'pi pi-truck' : 'pi pi-map-marker',
+        icon: deliveryTypes.includes('Courier') ? 'pi pi-truck' : 'pi pi-map-marker',
         titleKey: 'listings.details.handoverLabel',
-        subKey: deliveryLabelKey(listing.deliveryType),
+        subKey: both ? 'listings.createForm.delivery.both' : deliveryLabelKey(deliveryTypes[0]),
       });
     }
     return tiles;
@@ -619,22 +673,26 @@ export class ListingDetailsPageComponent {
     if (!listing) return [];
     const rows: DetailRow[] = [];
 
-    if (listing.deliveryType) {
+    const deliveryTypes = resolveDeliveryTypes(listing);
+    if (deliveryTypes.length > 0) {
+      const both = deliveryTypes.length >= 2;
       rows.push({
         id: 'handover',
-        icon: listing.deliveryType === 'Courier' ? 'pi pi-truck' : 'pi pi-map-marker',
+        icon: deliveryTypes.includes('Courier') ? 'pi pi-truck' : 'pi pi-map-marker',
         labelKey: 'listings.details.handoverLabel',
-        valueKey: deliveryHintKey(listing.deliveryType),
+        valueKey: both ? 'listings.createForm.delivery.bothHint' : deliveryHintKey(deliveryTypes[0]),
       });
     }
     if (typeof listing.minRentalDays === 'number' && listing.minRentalDays > 0) {
+      const chipKey = minRentalChipLabelKey(listing.minRentalDays);
       rows.push({
         id: 'minRental',
         icon: 'pi pi-calendar',
         labelKey: 'listings.createForm.minRental.label',
         valueKey:
-          listing.minRentalDays === 1 ? 'listings.booking.night' : 'listings.booking.nights',
-        valueParams: { count: listing.minRentalDays },
+          chipKey ??
+          (listing.minRentalDays === 1 ? 'listings.booking.night' : 'listings.booking.nights'),
+        valueParams: chipKey ? undefined : { count: listing.minRentalDays },
       });
     }
     if (typeof listing.depositAmount === 'number' && listing.depositAmount > 0) {

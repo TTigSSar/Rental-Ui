@@ -55,8 +55,18 @@ export interface CreateListingRequest {
 
   // Optional: shortest number of days a renter may book for (1-365).
   minRentalDays?: number | null;
-  // Optional: how the toy is handed over (Pickup/Courier).
+  // Optional: how the toy is handed over (Pickup/Courier). Mirrors the first
+  // entry of `deliveryTypes` for backward compatibility — kept in sync by the
+  // caller, never sent out of step with it.
   deliveryType?: DeliveryType | null;
+  /**
+   * Additive multi-select replacement for `deliveryType` — an owner can now
+   * offer both handover methods on the same listing. Always sent alongside
+   * `deliveryType` (which mirrors `deliveryTypes.includes('Pickup') ? 'Pickup'
+   * : 'Courier'`) so older backend/UI code paths that only know the legacy
+   * scalar field keep working unchanged.
+   */
+  deliveryTypes?: DeliveryType[] | null;
 }
 
 export interface CreateListingResponse {

@@ -221,10 +221,17 @@
     grid-template-columns: 1fr 1fr;
   }
 
-  /* Step 3 map: DLPricing's LocationMap uses height={248} (mobile default is
-     168px, FACreatePricing's height={168}, in the base sheet). */
-  .location-card {
-    --wizard-map-height: 248px;
+  /* Minimum-rental chips (step 3): the field is a full-width row at this
+     breakpoint, but the content column's width varies (~618px at 1024px up
+     to ~674px at 1280px+), and at the narrow end the 8 chips don't all fit
+     on one line in every locale (ru needs ~663px). Forcing `nowrap` here
+     used to push chips past the card's right edge at 1024px — so this stays
+     `wrap` (the base sheet's default for this modifier): chips sit on one
+     line whenever they fit, and drop to a second row only when they don't.
+     The tightened chip padding is kept because it still helps more widths
+     fit on one line before wrapping. */
+  .wizard-chips--min-rental .wizard-chip {
+    padding: 0 var(--ui-space-12);
   }
 
   /* Step 1 photos: cover beside grid. align-items:start keeps the cover at its

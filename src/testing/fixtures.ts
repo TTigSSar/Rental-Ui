@@ -91,6 +91,7 @@ export function makeListingDetails(overrides: Partial<ListingDetails> = {}): Lis
     depositAmount: null,
     minRentalDays: null,
     deliveryType: null,
+    deliveryTypes: null,
     latitude: null,
     longitude: null,
     district: null,

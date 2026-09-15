@@ -25,6 +25,7 @@ export interface UpdateListingRequest {
   depositAmount?: number | null;
   minRentalDays?: number | null;
   deliveryType?: DeliveryType | null;
+  deliveryTypes?: DeliveryType[] | null;
 }
 
 export type MyListingStatus =
@@ -63,4 +64,5 @@ export interface MyListing {
   // Null on listings created before these fields existed.
   minRentalDays?: number | null;
   deliveryType?: DeliveryType | null;
+  deliveryTypes?: DeliveryType[] | null;
 }

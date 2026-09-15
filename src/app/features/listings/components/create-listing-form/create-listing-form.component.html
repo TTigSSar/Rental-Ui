@@ -660,54 +660,9 @@
 
             <div class="wizard-divider"></div>
 
-            <!-- Minimum rental + Pickup area (2-col on desktop) — DLPricing
-                 order: rate card, divider, then this pair. -->
-            <div class="wizard-2col">
-              <div class="wizard-field">
-                <span class="wizard-field__label">{{
-                  'listings.createForm.minRental.label' | translate
-                }}</span>
-                <div
-                  class="wizard-chips"
-                  role="group"
-                  [attr.aria-label]="'listings.createForm.minRental.label' | translate"
-                >
-                  @for (days of minRentalDays; track days) {
-                    <button
-                      type="button"
-                      class="wizard-chip"
-                      [class.wizard-chip--active]="selectedMinDays() === days"
-                      [attr.aria-pressed]="selectedMinDays() === days"
-                      (click)="selectMinDays(days)"
-                    >
-                      {{ 'listings.createForm.minRental.d' + days | translate }}
-                    </button>
-                  }
-                </div>
-                <p class="wizard-field__note">
-                  {{ 'listings.createForm.minRental.hint' | translate }}
-                </p>
-              </div>
-              <div class="wizard-field">
-                <app-ui-input
-                  type="text"
-                  formControlName="addressLine"
-                  [label]="'listings.createForm.pickupArea' | translate"
-                  [placeholder]="'listings.createForm.addressLinePlaceholder' | translate"
-                />
-                <p class="wizard-field__note">
-                  <i class="pi pi-lock" aria-hidden="true"></i>
-                  {{ 'listings.createForm.locationPrivacyNote' | translate }}
-                </p>
-              </div>
-            </div>
-
-            <!-- City + District (2-col on desktop). Neither has a slot in the
-                 design's own DLPricing (its "Pickup area" mock is a single
-                 district/city display) — both are real backend fields, so
-                 pairing them here is the closest faithful arrangement.
-                 District only applies to the create flow (see the map block
-                 below for why edit stays without it), so in edit mode City
+            <!-- Row A: City + District (2-col on desktop). District only
+                 applies to the create flow (the backend derives it from the
+                 pin, which the edit flow can't set yet), so in edit mode City
                  renders alone in this row. -->
             <div class="wizard-2col">
               <div class="wizard-field">
@@ -746,41 +701,53 @@
               }
             </div>
 
-            <!-- Pin location on a map, full width (create flow only — the
-                 separate edit page can't persist coordinates yet; see
-                 create-listing-form's class doc / P1-6). -->
+            <!-- Row B: Minimum rental, full width on its own row (not in a
+                 `.wizard-2col`) — the half column at ≥1024px was only ~326px,
+                 too narrow for the 8 chips (`.wizard-chips--min-rental`) to
+                 sit on one line, which forced a hidden horizontal scroll that
+                 read as broken. The full content column fits all 8 on one
+                 line at wider desktop widths (e.g. ~674px at 1280px); at the
+                 narrow end of the desktop range (~618px at 1024px) the chips
+                 wrap to a second row instead of overflowing the card. -->
+            <div class="wizard-field">
+              <span class="wizard-field__label">{{
+                'listings.createForm.minRental.label' | translate
+              }}</span>
+              <div
+                class="wizard-chips wizard-chips--min-rental"
+                role="group"
+                [attr.aria-label]="'listings.createForm.minRental.label' | translate"
+              >
+                @for (days of minRentalDays; track days) {
+                  <button
+                    type="button"
+                    class="wizard-chip"
+                    [class.wizard-chip--active]="selectedMinDays() === days"
+                    [attr.aria-pressed]="selectedMinDays() === days"
+                    (click)="selectMinDays(days)"
+                  >
+                    {{ 'listings.createForm.minRental.d' + days | translate }}
+                  </button>
+                }
+              </div>
+              <p class="wizard-field__note">
+                {{ 'listings.createForm.minRental.hint' | translate }}
+              </p>
+            </div>
+
+            <!-- Row C: Pickup area (create-only — pin picker; the edit flow
+                 can't persist coordinates yet, see P1-6). Reuses `.wizard-2col`
+                 with a single cell so the dashed CTA is capped to one column's
+                 width at ≥1024px (grid auto-placement leaves the second cell
+                 empty rather than stretching this one across it) while
+                 staying full width below that, where `.wizard-2col` collapses
+                 to a single column. -->
             @if (mode !== 'edit') {
-              <div class="wizard-field">
-                <span class="wizard-field__label">{{
-                  'listings.createForm.locationPicker.mapLabel' | translate
-                }}</span>
-                @if (hasPin()) {
-                  <div class="location-card">
-                    <div class="location-card__chip">
-                      <span class="location-card__chip-icon"
-                        ><i class="pi pi-shield" aria-hidden="true"></i
-                      ></span>
-                      <span class="location-card__chip-label">{{
-                        'listings.createForm.locationPicker.approximateChip' | translate
-                      }}</span>
-                    </div>
-                    <app-map
-                      [center]="pinCenter()!"
-                      [pin]="pinCenter()"
-                      [zoom]="15"
-                      height="var(--wizard-map-height)"
-                    />
-                    <button
-                      type="button"
-                      #locationPickerTrigger
-                      class="location-card__change-btn"
-                      (click)="openLocationPicker()"
-                    >
-                      <i class="pi pi-map-marker" aria-hidden="true"></i>
-                      {{ 'listings.createForm.locationPicker.change' | translate }}
-                    </button>
-                  </div>
-                } @else {
+              <div class="wizard-2col">
+                <div class="wizard-field">
+                  <span class="wizard-field__label">{{
+                    'listings.createForm.pickupArea' | translate
+                  }}</span>
                   <button
                     type="button"
                     #locationPickerTrigger
@@ -788,13 +755,24 @@
                     (click)="openLocationPicker()"
                   >
                     <i class="pi pi-map" aria-hidden="true"></i>
-                    {{ 'listings.createForm.locationPicker.cta' | translate }}
+                    {{
+                      (hasPin()
+                        ? 'listings.createForm.locationPicker.change'
+                        : 'listings.createForm.locationPicker.showOnMap'
+                      ) | translate
+                    }}
                   </button>
-                }
-                <p class="wizard-field__note">
-                  <i class="pi pi-lock" aria-hidden="true"></i>
-                  {{ 'listings.createForm.locationPicker.mapHelper' | translate }}
-                </p>
+                  @if (hasPin()) {
+                    <p class="wizard-field__note wizard-field__note--success">
+                      <i class="pi pi-check-circle" aria-hidden="true"></i>
+                      {{ 'listings.createForm.locationPicker.pinSetHint' | translate }}
+                    </p>
+                  }
+                  <p class="wizard-field__note">
+                    <i class="pi pi-lock" aria-hidden="true"></i>
+                    {{ 'listings.createForm.locationPrivacyNote' | translate }}
+                  </p>
+                </div>
               </div>
 
               <app-location-picker
@@ -810,21 +788,25 @@
               <span class="wizard-field__label">{{
                 'listings.createForm.delivery.label' | translate
               }}</span>
-              <!-- Mutually exclusive: exactly one of Pickup / Courier is always set. -->
+              <!-- Multi-select: at least one of Pickup / Courier is always set. -->
               <div
                 class="wizard-delivery-list"
-                role="radiogroup"
+                role="group"
                 [attr.aria-label]="'listings.createForm.delivery.label' | translate"
               >
                 <button
                   type="button"
-                  role="radio"
+                  role="checkbox"
                   class="wizard-delivery"
-                  [class.wizard-delivery--selected]="selectedDelivery() === 'Pickup'"
-                  [attr.aria-checked]="selectedDelivery() === 'Pickup'"
-                  (click)="selectDelivery('Pickup')"
+                  [class.wizard-delivery--selected]="isDeliverySelected('Pickup')"
+                  [attr.aria-checked]="isDeliverySelected('Pickup')"
+                  (click)="toggleDelivery('Pickup')"
                 >
-                  <span class="wizard-delivery__radio" aria-hidden="true"></span>
+                  <span class="wizard-delivery__checkbox" aria-hidden="true">
+                    @if (isDeliverySelected('Pickup')) {
+                      <i class="pi pi-check" aria-hidden="true"></i>
+                    }
+                  </span>
                   <div class="wizard-delivery__text">
                     <span class="wizard-delivery__title">{{
                       'listings.createForm.delivery.pickup' | translate
@@ -836,13 +818,17 @@
                 </button>
                 <button
                   type="button"
-                  role="radio"
+                  role="checkbox"
                   class="wizard-delivery"
-                  [class.wizard-delivery--selected]="selectedDelivery() === 'Courier'"
-                  [attr.aria-checked]="selectedDelivery() === 'Courier'"
-                  (click)="selectDelivery('Courier')"
+                  [class.wizard-delivery--selected]="isDeliverySelected('Courier')"
+                  [attr.aria-checked]="isDeliverySelected('Courier')"
+                  (click)="toggleDelivery('Courier')"
                 >
-                  <span class="wizard-delivery__radio" aria-hidden="true"></span>
+                  <span class="wizard-delivery__checkbox" aria-hidden="true">
+                    @if (isDeliverySelected('Courier')) {
+                      <i class="pi pi-check" aria-hidden="true"></i>
+                    }
+                  </span>
                   <div class="wizard-delivery__text">
                     <span class="wizard-delivery__title">{{
                       'listings.createForm.delivery.deliver' | translate

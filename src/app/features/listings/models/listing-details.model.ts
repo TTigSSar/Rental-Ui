@@ -50,6 +50,9 @@ export interface ListingDetails {
   depositAmount?: number | null;
   minRentalDays?: number | null;
   deliveryType?: DeliveryType | null;
+  /** Additive multi-select handover methods; falls back to `[deliveryType]`
+   *  (or `[]`) when the backend/listing predates this field. */
+  deliveryTypes?: DeliveryType[] | null;
 
   /**
    * !! PRIVACY-SENSITIVE — READ BEFORE USING !!

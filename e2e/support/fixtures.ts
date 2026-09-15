@@ -66,7 +66,7 @@ export function e2eDistrict(overrides: Record<string, unknown> = {}) {
  * assert on; pass `{ latitude: null, longitude: null }` for the no-pin state.
  */
 export function e2eListingDetails(overrides: Record<string, unknown> = {}) {
-  return {
+  const merged = {
     id: 'listing-e2e-1',
     title: 'E2E Wooden Train Set',
     description: 'A sturdy wooden train set, gently used and freshly cleaned.',
@@ -93,7 +93,16 @@ export function e2eListingDetails(overrides: Record<string, unknown> = {}) {
     latitude: 40.1872,
     longitude: 44.5152,
     ...overrides,
-  };
+  } as Record<string, unknown>;
+  // `deliveryTypes` mirrors the (possibly overridden) legacy `deliveryType`
+  // unless a caller passes `deliveryTypes` explicitly (e.g. to test both
+  // handover methods offered together) — keeps every existing call site that
+  // only overrides `deliveryType` (including `deliveryType: null`) behaving
+  // exactly as before.
+  if (!('deliveryTypes' in overrides)) {
+    merged['deliveryTypes'] = merged['deliveryType'] ? [merged['deliveryType']] : null;
+  }
+  return merged;
 }
 
 /**

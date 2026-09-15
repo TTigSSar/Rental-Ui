@@ -36,16 +36,19 @@ vi.mock('leaflet', () => ({
 
 /**
  * Regression net for the create-listing wizard's Step-3 payload (confirmed
- * data-loss bug, fixed 2026-07-17).
+ * data-loss bug, fixed 2026-07-17; delivery upgraded from single-select to a
+ * multi-select `deliveryTypes` array afterwards).
  *
- * The wizard collects a minimum rental period and a delivery method, but
- * `onSubmit()` used to build `CreateListingRequest` WITHOUT them: both values
- * were silently dropped at submit and never reached the API. These tests pin the
- * contract that matters — the emitted `submitted` payload MUST carry:
- *   - `minRentalDays` as the chosen day-count NUMBER, and
- *   - `deliveryType` as the STRING union 'Pickup' | 'Courier' (never a number,
- *     never a Set — the API serializes the enum from a string via its global
- *     JsonStringEnumConverter).
+ * The wizard collects a minimum rental period and one or more delivery
+ * methods. These tests pin the contract that matters — the emitted
+ * `submitted` payload MUST carry:
+ *   - `minRentalDays` as the chosen day-count NUMBER,
+ *   - `deliveryTypes` as an array of the STRING union 'Pickup' | 'Courier',
+ *     ordered [Pickup, Courier] regardless of toggle order, and
+ *   - `deliveryType` as a legacy scalar mirror (`Pickup` whenever Pickup is
+ *     among the selected types, `Courier` otherwise) — the API's
+ *     JsonStringEnumConverter still expects the old field name too, and older
+ *     backend/UI code paths read it.
  *
  * This is the cheapest reliable layer for a payload-construction bug: it targets
  * `onSubmit()` directly, needs no browser/DB, and would have gone red the moment
@@ -108,42 +111,92 @@ function submitAndCapture(component: CreateListingFormComponent): SubmitEvent | 
 }
 
 describe('CreateListingFormComponent — Step-3 payload (min rental + delivery)', () => {
-  it('includes the chosen minRentalDays and deliveryType in the create payload', () => {
+  it('includes the chosen minRentalDays and deliveryTypes (+ legacy mirror) in the create payload', () => {
     const { component } = createComponent('create');
     fillValidBasics(component);
     seedThreePhotos(component);
 
-    // Owner picks a 7-day minimum and courier delivery on Step 3.
+    // Owner picks a 7-day minimum and switches from the Pickup default to
+    // courier-only delivery on Step 3.
     component.selectMinDays(7);
-    component.selectDelivery('Courier');
+    component.toggleDelivery('Courier');
+    component.toggleDelivery('Pickup');
 
     const event = submitAndCapture(component);
 
     expect(event).not.toBeNull();
     const payload = event!.payload;
 
-    // The regression: these two used to be absent from the payload entirely.
     expect(payload.minRentalDays).toBe(7);
+    expect(payload.deliveryTypes).toEqual(['Courier']);
     expect(payload.deliveryType).toBe('Courier');
 
-    // Type discipline — deliveryType is the STRING union, never a number or Set.
+    // Type discipline — deliveryTypes is an array of the STRING union, never a
+    // number or Set; deliveryType stays a plain string mirror.
     expect(typeof payload.minRentalDays).toBe('number');
+    expect(Array.isArray(payload.deliveryTypes)).toBe(true);
     expect(typeof payload.deliveryType).toBe('string');
-    expect((payload.deliveryType as unknown) instanceof Set).toBe(false);
+    expect((payload.deliveryTypes as unknown) instanceof Set).toBe(false);
   });
 
-  it('carries the wizard defaults (1 day / Pickup) when the owner leaves Step 3 untouched', () => {
+  it('carries the wizard defaults (1 day / Pickup only) when the owner leaves Step 3 untouched', () => {
     const { component } = createComponent('create');
     fillValidBasics(component);
     seedThreePhotos(component);
 
-    // No selectMinDays / selectDelivery calls: defaults must still be emitted,
-    // not dropped (the bug emitted neither field regardless of selection).
+    // No selectMinDays / toggleDelivery calls: defaults must still be
+    // emitted, not dropped.
     const event = submitAndCapture(component);
 
     expect(event).not.toBeNull();
     expect(event!.payload.minRentalDays).toBe(1);
+    expect(event!.payload.deliveryTypes).toEqual(['Pickup']);
     expect(event!.payload.deliveryType).toBe('Pickup');
+  });
+
+  it('selecting both delivery types sends them ordered [Pickup, Courier] with deliveryType mirroring Pickup', () => {
+    const { component } = createComponent('create');
+    fillValidBasics(component);
+    seedThreePhotos(component);
+
+    // Toggle Courier on top of the Pickup default — both now active.
+    component.toggleDelivery('Courier');
+
+    expect(component.isDeliverySelected('Pickup')).toBe(true);
+    expect(component.isDeliverySelected('Courier')).toBe(true);
+
+    const event = submitAndCapture(component);
+
+    expect(event).not.toBeNull();
+    // Ordered [Pickup, Courier] regardless of toggle order.
+    expect(event!.payload.deliveryTypes).toEqual(['Pickup', 'Courier']);
+    expect(event!.payload.deliveryType).toBe('Pickup');
+  });
+
+  it('never removes the last remaining delivery type', () => {
+    const { component } = createComponent('create');
+
+    expect(component.isDeliverySelected('Pickup')).toBe(true);
+    expect(component.isDeliverySelected('Courier')).toBe(false);
+
+    // Only Pickup is selected — toggling it off must be a no-op.
+    component.toggleDelivery('Pickup');
+
+    expect(component.isDeliverySelected('Pickup')).toBe(true);
+    expect(component.createListingForm.controls.deliveryTypes.value).toEqual(['Pickup']);
+  });
+
+  it('a 365-day minimum rental reaches the payload', () => {
+    const { component } = createComponent('create');
+    fillValidBasics(component);
+    seedThreePhotos(component);
+
+    component.selectMinDays(365);
+
+    const event = submitAndCapture(component);
+
+    expect(event).not.toBeNull();
+    expect(event!.payload.minRentalDays).toBe(365);
   });
 
   it('round-trips both fields back out in edit mode from a prefilled listing', () => {
@@ -163,16 +216,46 @@ describe('CreateListingFormComponent — Step-3 payload (min rental + delivery)'
       hygieneNotes: null,
       safetyNotes: null,
       minRentalDays: 14,
-      deliveryType: 'Courier',
+      deliveryTypes: ['Pickup', 'Courier'],
     };
 
     const event = submitAndCapture(component);
 
     expect(event).not.toBeNull();
     expect(event!.payload.minRentalDays).toBe(14);
-    expect(event!.payload.deliveryType).toBe('Courier');
+    expect(event!.payload.deliveryTypes).toEqual(['Pickup', 'Courier']);
+    expect(event!.payload.deliveryType).toBe('Pickup');
     // Edit mode emits an image order; sanity-check the field survived alongside it.
     expect(event!.imageOrder).not.toBeNull();
+  });
+
+  it('prefills deliveryTypes from the legacy scalar deliveryType when deliveryTypes is absent', () => {
+    const { component } = createComponent('edit');
+    component.existingImageUrls = [{ id: 'img-1', url: 'https://x/img-1.jpg' } as never];
+    component.prefill = {
+      title: 'Older Listing',
+      description: 'A listing saved back when delivery was still a single choice.',
+      categoryId: 'cat-123',
+      pricePerDay: 8,
+      priceUnit: 'Daily',
+      city: 'Yerevan',
+      ageFromMonths: 24,
+      ageToMonths: 60,
+      condition: 'Good',
+      hygieneNotes: null,
+      safetyNotes: null,
+      minRentalDays: 3,
+      deliveryType: 'Courier',
+      // deliveryTypes intentionally omitted — the legacy shape.
+    };
+
+    expect(component.createListingForm.controls.deliveryTypes.value).toEqual(['Courier']);
+
+    const event = submitAndCapture(component);
+
+    expect(event).not.toBeNull();
+    expect(event!.payload.deliveryTypes).toEqual(['Courier']);
+    expect(event!.payload.deliveryType).toBe('Courier');
   });
 
   it('falls back to 1 day / Pickup when editing a legacy listing that predates the fields', () => {
@@ -200,7 +283,49 @@ describe('CreateListingFormComponent — Step-3 payload (min rental + delivery)'
     expect(event).not.toBeNull();
     // Must not emit null (which would re-introduce a different data-loss shape).
     expect(event!.payload.minRentalDays).toBe(1);
+    expect(event!.payload.deliveryTypes).toEqual(['Pickup']);
     expect(event!.payload.deliveryType).toBe('Pickup');
+  });
+});
+
+describe('CreateListingFormComponent — Step 3 pickup area (no address line)', () => {
+  function goToStep3(fixture: ReturnType<typeof createComponent>['fixture'], component: CreateListingFormComponent) {
+    component.currentStep.set(3);
+    fixture.detectChanges();
+  }
+
+  it('renders no address-line input', () => {
+    const { fixture, component } = createComponent('create');
+    goToStep3(fixture, component);
+
+    expect(fixture.nativeElement.querySelector('[formcontrolname="addressLine"]')).toBeNull();
+    expect((component.createListingForm.controls as Record<string, unknown>)['addressLine']).toBeUndefined();
+  });
+
+  it('always sends addressLine: null in the payload', () => {
+    const { component } = createComponent('create');
+    fillValidBasics(component);
+    seedThreePhotos(component);
+
+    const event = submitAndCapture(component);
+
+    expect(event).not.toBeNull();
+    expect(event!.payload.addressLine).toBeNull();
+  });
+
+  it('the "Show on map" trigger opens the full-screen location picker', () => {
+    const { fixture, component } = createComponent('create');
+    goToStep3(fixture, component);
+
+    expect(component.showLocationPicker()).toBe(false);
+    expect(component.hasPin()).toBe(false);
+    const trigger = fixture.nativeElement.querySelector('.location-card__cta') as HTMLButtonElement;
+    expect(trigger).toBeTruthy();
+
+    trigger.click();
+    fixture.detectChanges();
+
+    expect(component.showLocationPicker()).toBe(true);
   });
 });
 
@@ -276,23 +401,22 @@ describe('CreateListingFormComponent — pin picker → payload (P1-6)', () => {
 
 /**
  * a11y regression (verifier-confirmed, P1-6): closing the location picker via
- * Confirm left `document.activeElement` on `<body>` forever, because
- * `onLocationConfirmed` flips `hasPin()` — which swaps the template's
- * `@if/@else` between `.location-card__cta` and `.location-card__change-btn`
- * — in the SAME tick as the old `queueMicrotask`-based focus call. The
- * microtask ran before Angular re-rendered the swap, so it focused the
- * outgoing (about-to-be-destroyed) CTA node; the instant that node was
- * removed, focus reverted to `<body>`. Cancel/Escape never touch `hasPin()`,
- * so the trigger node never gets swapped out from under them — that's why
- * only the Confirm path was broken.
+ * Confirm left `document.activeElement` on `<body>` forever. The fix moves
+ * the focus call into an `afterRenderEffect` (the same post-render primitive
+ * `conversation-details-page.component.ts` uses to scroll after new messages
+ * render), gated by a `focusReturnPending` flag set right before the picker
+ * closes — see `openLocationPicker`/`closeLocationPicker` in the component.
  *
- * The fix moves the focus call into an `afterRenderEffect` (the same
- * post-render primitive `conversation-details-page.component.ts` uses to
- * scroll after new messages render), gated by a `focusReturnPending` flag set
- * right before the picker closes. These tests render the real Step-3 DOM
- * (not the direct-method-call style used by the P1-6 payload tests above) so
- * they exercise the actual `@if/@else` swap and query `document.activeElement`
- * the same way the verifier's manual repro did.
+ * The step-3 redesign (pricing/location layout rework) collapsed the CTA and
+ * the post-confirm "Change" affordance into a SINGLE persistent
+ * `.location-card__cta` button whose text swaps on `hasPin()` instead of an
+ * `@if/@else` pair of different buttons — so there is no DOM node swap to
+ * race any more, but the trigger still needs focus explicitly returned to it
+ * once the full-screen picker dialog closes (opening it moves focus away).
+ * These tests render the real Step-3 DOM (not the direct-method-call style
+ * used by the P1-6 payload tests above) so they exercise the actual template
+ * and query `document.activeElement` the same way the verifier's manual
+ * repro did.
  */
 describe('CreateListingFormComponent — location picker focus return (a11y)', () => {
   function goToStep3(fixture: ReturnType<typeof createComponent>['fixture'], component: CreateListingFormComponent) {
@@ -300,14 +424,14 @@ describe('CreateListingFormComponent — location picker focus return (a11y)', (
     fixture.detectChanges();
   }
 
-  it('Confirm: focus lands on the "change" button once the CTA→change-button swap has rendered (regression)', async () => {
+  it('Confirm: focus returns to the trigger button once the post-render effect has run (regression)', async () => {
     const { fixture, component } = createComponent('create');
     goToStep3(fixture, component);
 
-    const cta = fixture.nativeElement.querySelector('.location-card__cta') as HTMLButtonElement;
-    expect(cta).toBeTruthy();
-    cta.focus();
-    expect(document.activeElement).toBe(cta);
+    const trigger = fixture.nativeElement.querySelector('.location-card__cta') as HTMLButtonElement;
+    expect(trigger).toBeTruthy();
+    trigger.focus();
+    expect(document.activeElement).toBe(trigger);
 
     (component as unknown as LocationWireable).onLocationConfirmed({ lat: 40.1776, lng: 44.5126 });
     // Let a microtask-scheduled callback registered synchronously during the
@@ -318,12 +442,11 @@ describe('CreateListingFormComponent — location picker focus return (a11y)', (
     fixture.detectChanges();
     await fixture.whenStable();
 
-    const changeBtn = fixture.nativeElement.querySelector('.location-card__change-btn') as HTMLButtonElement;
-    expect(changeBtn).toBeTruthy();
-    // The old CTA node must actually be gone (the `@else` branch un-rendered) —
-    // otherwise this test wouldn't be exercising the swap at all.
-    expect(fixture.nativeElement.querySelector('.location-card__cta')).toBeNull();
-    expect(document.activeElement).toBe(changeBtn);
+    // Same node throughout — the button's text switches to "Change" but it
+    // never gets destroyed/recreated, unlike the old @if/@else pair.
+    const sameTrigger = fixture.nativeElement.querySelector('.location-card__cta') as HTMLButtonElement;
+    expect(sameTrigger).toBe(trigger);
+    expect(document.activeElement).toBe(sameTrigger);
   });
 
   it('Cancel: focus returns to the CTA button (same node persists — no template swap)', async () => {
