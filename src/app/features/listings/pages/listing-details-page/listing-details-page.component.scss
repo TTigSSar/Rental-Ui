@@ -9,7 +9,7 @@
   /* Top gutter comes from `.page-container` on `.detail-page__container`
      inside. The old ≥1100px `padding-block-start: 28px` here was removed when
      that gutter was introduced — keeping both stacked 60px above the header. */
-  padding-block: 0 var(--ui-space-64);
+  // padding-block: 0 var(--ui-space-64);
 }
 
 .detail-page__container {
@@ -1078,35 +1078,35 @@
   @media (min-width: 1100px) {
     position: sticky;
     top: calc(4.25rem + 20px);
-    /* Both the CTA card and the protection card below it must stay
-       reachable AND pinned together — `position: sticky` only pins the
-       *top* of this wrapper; once the two cards' combined height exceeds
-       the viewport, sticky can't help and the protection card was hanging
-       off the bottom of the screen with nothing to reveal it (worst case:
-       hy, existing-booking hint shown, long assurance copy wrapped to
-       multiple lines). Cap the wrapper to the space actually available
-       below the sticky offset and let it scroll internally as a last
-       resort — the card-level spacing trims below have already reduced how
-       often this triggers, and when it does, the browser's default
-       scrollbar is replaced below with a slim, low-contrast one so a rare
-       fallback doesn't read as a chunk of stray UI chrome. */
-    max-height: calc(100dvh - 4.25rem - 40px);
-    overflow-y: auto;
-    /* `overflow-y: auto` forces the used value of `overflow-x` to a
-       non-visible value too (per spec, browsers can't leave one axis
-       `visible` once the other clips) — without this padding, that clips
-       the cards' box-shadow and, in a tight corner case, their own border,
-       flush at the wrapper's edge, and leaves the scrollbar thumb sitting
-       right against the card border with no breathing room. The right side
-       gets slightly more so the thumb has clear space of its own. */
-    overflow-x: hidden;
-    padding: 6px 10px 6px 4px;
+    // /* Both the CTA card and the protection card below it must stay
+    //    reachable AND pinned together — `position: sticky` only pins the
+    //    *top* of this wrapper; once the two cards' combined height exceeds
+    //    the viewport, sticky can't help and the protection card was hanging
+    //    off the bottom of the screen with nothing to reveal it (worst case:
+    //    hy, existing-booking hint shown, long assurance copy wrapped to
+    //    multiple lines). Cap the wrapper to the space actually available
+    //    below the sticky offset and let it scroll internally as a last
+    //    resort — the card-level spacing trims below have already reduced how
+    //    often this triggers, and when it does, the browser's default
+    //    scrollbar is replaced below with a slim, low-contrast one so a rare
+    //    fallback doesn't read as a chunk of stray UI chrome. */
+    // max-height: calc(100dvh - 4.25rem - 40px);
+    // overflow-y: auto;
+    // /* `overflow-y: auto` forces the used value of `overflow-x` to a
+    //    non-visible value too (per spec, browsers can't leave one axis
+    //    `visible` once the other clips) — without this padding, that clips
+    //    the cards' box-shadow and, in a tight corner case, their own border,
+    //    flush at the wrapper's edge, and leaves the scrollbar thumb sitting
+    //    right against the card border with no breathing room. The right side
+    //    gets slightly more so the thumb has clear space of its own. */
+    // overflow-x: hidden;
+    // padding: 6px 10px 6px 4px;
 
-    /* Slim, low-contrast scrollbar — this was the actual complaint before
-       (not that a scrollbar could appear at all, just that the default one
-       was visually heavy). Firefox/standards track: */
-    scrollbar-width: thin;
-    scrollbar-color: var(--ui-color-border-strong) transparent;
+    // /* Slim, low-contrast scrollbar — this was the actual complaint before
+    //    (not that a scrollbar could appear at all, just that the default one
+    //    was visually heavy). Firefox/standards track: */
+    // scrollbar-width: thin;
+    // scrollbar-color: var(--ui-color-border-strong) transparent;
 
     /* WebKit/Blink track — 6px, transparent track, pill thumb using the
        same border-strong token as above so both engines land on the same
@@ -1322,9 +1322,6 @@
   background: var(--ui-color-surface);
   border: 1px solid var(--ui-color-border);
   border-radius: var(--ui-radius-lg);
-  box-shadow:
-    0 1px 2px rgba(20, 15, 5, 0.04),
-    0 16px 40px rgba(20, 15, 5, 0.09);
 }
 
 .detail-page__cta-price-row {
