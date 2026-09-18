@@ -165,10 +165,35 @@ export async function releaseListingForRenter(
 }
 
 /**
- * Determinism self-heal for `real/language-persistence.spec.ts`: sets an
- * account's server-side `preferredLanguage` directly through the real PUT
- * endpoint before a journey starts, so the test's starting state never
- * depends on what a previous (possibly crashed) run left behind.
+ * Determinism self-heal: sets an account's server-side `preferredLanguage`
+ * directly through the real PUT endpoint before a journey starts, so the
+ * test's starting state never depends on what a previous (possibly crashed
+ * or intentionally language-switching) run left behind.
+ *
+ * Used by `real/language-persistence.spec.ts` itself (its own baseline, and
+ * its cleanup — wrapped in try/finally there so it runs even if an assertion
+ * above it throws) AND, separately, by `booking-lifecycle.spec.ts`'s own
+ * guard step to reset `renter@` before its journey starts: that spec asserts
+ * English locators throughout ('Request to rent', 'Cancel request', …), and
+ * `language-persistence.spec.ts` deliberately drives `renter@` to `hy`
+ * mid-test. A run that is killed outright (not just a failed assertion)
+ * skips even a `finally`, and the dev DB is persistent — so a prior,
+ * unrelated real-tier run can leave `renter@` on `hy` and silently break
+ * every English locator in a completely different spec. Rather than trust
+ * the previous run's cleanup, the spec that depends on the account being
+ * English resets it itself, in its own guard step — the same self-heal
+ * pattern as `releaseListingForRenter` for booking state.
+ *
+ * This is deliberately called per-spec (only where the risk is real — only
+ * `renter@` is ever driven to a non-English language by any real spec today,
+ * grep the call sites below), not once for every account from
+ * `global-setup.ts` for the whole real-tier run: that was tried and
+ * reverted. A global self-heal pays its login cost on every `--project=real`
+ * invocation, including single-file runs, and stacks against the shared
+ * `AuthPolicy` rate limit (5 logins/IP/min, partitioned by remote IP — see
+ * `RateLimiterExtensions.cs`) hard enough that two back-to-back solo runs of
+ * `booking-lifecycle.spec.ts` started 429ing purely from that self-heal's
+ * own logins.
  */
 export async function apiSetPreferredLanguage(
   request: APIRequestContext,

@@ -2,7 +2,9 @@ import { expect, test, type Page } from '@playwright/test';
 
 import {
   ACCOUNTS,
+  API_URL,
   TOY_KITCHEN,
+  apiSetPreferredLanguage,
   assertDockerStack,
   loginViaDialog,
   releaseListingForRenter,
@@ -12,9 +14,29 @@ import {
  * Real-stack booking lifecycle — the signature journey of the real tier.
  *
  * Renter authenticates -> books the seeded "Wooden Toy Kitchen Set" (owned by
- * owner@rental.local) -> owner sees the request and approves -> owner hands
- * the toy over (Approved -> Active, owner-only) -> owner completes the rental
- * (Active -> Completed, owner-only) -> renter is offered a review.
+ * owner@rental.local) -> owner sees the request and approves -> owner reaches
+ * the handover CTA through My Listings (not a direct URL — see below) and
+ * hands the toy over (Approved -> Active, owner-only) -> owner completes the
+ * rental (Active -> Completed, owner-only) and is offered a review with no
+ * reload -> renter is offered a review.
+ *
+ * Also pins three just-fixed frontend bugs directly against the real stack:
+ *  - My Listings' owner request card used to collapse Approved/Active/
+ *    Completed into one generic "Accepted" pill with no way back into the
+ *    booking. The handover step below drives the actual regression path:
+ *    My Listings -> "Awaiting handover" pill -> "View booking" ->
+ *    /bookings/{id} -> "Mark as handed over".
+ *  - the renter's cancel button used to stay labelled "Cancel request" once
+ *    a booking was Approved; it must read "Cancel booking" from Approved on
+ *    (asserted after approval), while Pending keeps "Cancel request"
+ *    (asserted earlier, at request time).
+ *  - the owner's "Leave a review" CTA used to require a manual reload after
+ *    "Mark as completed" (an optimistic Completed flip racing the
+ *    review-eligibility fetch) — asserted below with an auto-retrying
+ *    expect and NO reload in between.
+ * A separate, API-driven test.step at the end additionally pins the cancel
+ * rule's other branch: an Approved booking whose start date is today (UTC)
+ * hides the cancel button entirely and shows a hint instead.
  *
  * Also pins the post-phone-removal contact model end to end against the real
  * API: `ListingOwnerResponse.PhoneNumber` and
@@ -240,6 +262,16 @@ test.describe('Booking lifecycle (real stack)', () => {
       await assertDockerStack(request);
     });
 
+    await test.step('self-heal: renter@ is English (this journey asserts English locators throughout)', async () => {
+      // `language-persistence.spec.ts` deliberately switches renter@ to hy mid-test and
+      // restores it in a try/finally — but a run that's killed outright (not just a failed
+      // assertion) skips that finally, and the dev DB is persistent. A prior, unrelated
+      // real-tier run can leave renter@ on hy, silently breaking every English locator in
+      // THIS journey ('Request to rent', 'Cancel request', …) for a reason that looks like a
+      // real defect here. Reset it ourselves rather than trust the previous run's cleanup.
+      await apiSetPreferredLanguage(request, ACCOUNTS.renter, 'en');
+    });
+
     await test.step('self-heal: release leftover bookings from crashed runs', async () => {
       await releaseListingForRenter(request, TOY_KITCHEN.id);
     });
@@ -365,32 +397,99 @@ test.describe('Booking lifecycle (real stack)', () => {
         // The phone number does not — the reveal rule that used to cover both
         // was narrowed to the address alone.
         await assertPhoneNeverExposed(renterPage);
-        // Approved-but-not-started bookings are still cancellable by the renter.
-        await expect(renterPage.getByRole('button', { name: 'Cancel request' })).toBeVisible();
+        // Approved-but-not-started bookings are still cancellable by the renter —
+        // but the label switches from "Cancel request" (Pending) to "Cancel booking"
+        // (Approved+), matching the backend rule it now mirrors (cancelLabelKey()).
+        // Regression pin: this used to stay "Cancel request" even once Approved.
+        await expect(renterPage.getByRole('button', { name: 'Cancel booking' })).toBeVisible();
+        await expect(renterPage.getByRole('button', { name: 'Cancel request' })).toHaveCount(0);
+      });
+
+      await test.step('owner reaches the handover CTA via My Listings (regression: this used to be a dead end)', async () => {
+        // Previously the owner's My Listings request card collapsed Approved/
+        // Active/Completed into one generic "Accepted" pill with no way back
+        // into the booking — "Mark as handed over" was only reachable by
+        // guessing the /bookings/{id} URL. Drive the actual UI path: My
+        // Listings -> status pill -> "View booking" -> the booking details
+        // page's owner-only CTA.
+        await ownerPage.goto(`/my-listings/${TOY_KITCHEN.id}`);
+
+        // Self-heal at the top of this test already drove any leftover
+        // non-terminal renter@ booking on this listing to a terminal state, so
+        // exactly one request card can show "Awaiting handover" at this point
+        // in the run: the one this test just approved.
+        const requestCard = ownerPage
+          .locator('article.orc')
+          .filter({ hasText: 'Awaiting handover' });
+        await expect(requestCard).toHaveCount(1);
+
+        await Promise.all([
+          ownerPage.waitForURL(`**/bookings/${bookingId}`),
+          requestCard.getByRole('button', { name: 'View booking' }).click(),
+        ]);
+        await expect(statusBadge(ownerPage)).toHaveText('Approved');
       });
 
       await test.step('owner hands the toy over: Approved -> Active', async () => {
-        await ownerPage.goto(`/bookings/${bookingId}`);
-        await expect(statusBadge(ownerPage)).toHaveText('Approved');
-
-        await ownerPage.getByRole('button', { name: 'Mark as handed over' }).click();
+        // markActive is optimistic client-side (bookings.reducer flips the detail to
+        // Active on dispatch, before the POST resolves — see bookings.reducer.spec.ts).
+        // The very next step navigates ownerPage away to My Listings; without waiting
+        // for the real POST /activate response here first, that navigation can cancel
+        // the still-in-flight request, leaving the server at Approved while the
+        // (about-to-be-discarded) client state briefly claimed Active — a false pass
+        // on this assertion and a real failure one step later. Wait for the actual
+        // response, not just the optimistic client flip.
+        await Promise.all([
+          ownerPage.waitForResponse(
+            (res) =>
+              res.url().endsWith(`/api/bookings/${bookingId}/activate`) &&
+              res.request().method() === 'POST' &&
+              res.ok(),
+          ),
+          ownerPage.getByRole('button', { name: 'Mark as handed over' }).click(),
+        ]);
         await expect(statusBadge(ownerPage)).toHaveText('Active');
+      });
+
+      await test.step('My Listings reflects the handover: pill now reads "Picked up"', async () => {
+        await ownerPage.goto(`/my-listings/${TOY_KITCHEN.id}`);
+        await expect(
+          ownerPage.locator('article.orc').filter({ hasText: 'Picked up' }),
+        ).toHaveCount(1);
       });
 
       await test.step('renter sees Active and has no lifecycle actions', async () => {
         await renterPage.reload();
         await expect(statusBadge(renterPage)).toHaveText('Active');
         await expect(renterPage.getByRole('button', { name: 'Mark as completed' })).toHaveCount(0);
-        // Active bookings are no longer cancellable by the renter.
+        // Active bookings are no longer cancellable by the renter, under either label.
         await expect(renterPage.getByRole('button', { name: 'Cancel request' })).toHaveCount(0);
+        await expect(renterPage.getByRole('button', { name: 'Cancel booking' })).toHaveCount(0);
         // Address stays revealed (Approved+ still covers Active); phone still never appears.
         await expect(pickupLine(renterPage)).toContainText(TOY_KITCHEN.addressLine);
         await assertPhoneNeverExposed(renterPage);
       });
 
-      await test.step('owner completes the rental: Active -> Completed', async () => {
+      await test.step('owner completes the rental: Active -> Completed, and sees Leave a review with NO reload', async () => {
+        // My Listings navigation above moved ownerPage away from the booking
+        // details page — back to the same page "Mark as handed over" was
+        // clicked on.
+        await ownerPage.goto(`/bookings/${bookingId}`);
+        await expect(statusBadge(ownerPage)).toHaveText('Active');
+
         await ownerPage.getByRole('button', { name: 'Mark as completed' }).click();
         await expect(statusBadge(ownerPage)).toHaveText('Completed');
+
+        // Regression pin: the review-eligibility fetch used to race the
+        // optimistic Completed flip in the reducer (completeBooking sets
+        // status: 'Completed' before the POST /complete request actually
+        // commits), which could fetch canReviewRenter against a booking that
+        // wasn't really Completed yet, cache `false`, and never show this
+        // button without a manual reload. No reload here — the auto-retrying
+        // expect below is the actual regression check; it must resolve on its
+        // own once BookingsService's authoritative Completed state lands and
+        // the (now correctly-gated) effect re-fetches eligibility.
+        await expect(ownerPage.getByRole('button', { name: 'Leave a review' })).toBeVisible();
       });
 
       await test.step('renter sees Completed and is offered a review', async () => {
@@ -409,6 +508,65 @@ test.describe('Booking lifecycle (real stack)', () => {
             .filter({ visible: true })
             .first(),
         ).toBeEnabled();
+      });
+
+      // Regression coverage for the renter-cancel rule's OTHER branch: an Approved
+      // booking whose start date has already arrived (UTC) is no longer cancellable,
+      // and the UI must hide the cancel button and show a hint instead of just letting
+      // the click 409 (booking.not_cancellable). booking-details-page.cancel.spec.ts
+      // already pins the branch logic in isolation; this proves the same rule against a
+      // real Approved booking. Created and driven entirely through the real API (no
+      // second UI calendar walk needed) — the main journey's window starts two months
+      // out, so a today-start window can never collide with it on this listing, and the
+      // booking is driven to Completed in a `finally` regardless of assertion outcome so
+      // a failure here can never leave the listing blocked for the next run.
+      //
+      // Reuses renterPage's/ownerPage's already-established sessions' JWTs (read out of
+      // localStorage, same technique as create-listing-photo-upload.spec.ts's "Login
+      // budget" note) instead of two more apiLogin() calls — AuthController's login
+      // endpoint is rate-limited at 5 requests/min/IP, shared across every real-stack
+      // spec file in a run, and this test already spends several logins of its own.
+      await test.step('a same-day Approved booking hides the cancel button and shows the "rental started" hint', async () => {
+        const todayIso = new Date().toISOString().slice(0, 10); // UTC calendar date, YYYY-MM-DD
+
+        const renterToken = await renterPage.evaluate(() => localStorage.getItem('auth_token'));
+        expect(renterToken, 'renter JWT must still be in localStorage from earlier in this test').toBeTruthy();
+        const createRes = await request.post(`${API_URL}/api/bookings`, {
+          headers: { Authorization: `Bearer ${renterToken}` },
+          data: { listingId: TOY_KITCHEN.id, startDate: todayIso, endDate: todayIso },
+        });
+        expect(createRes.ok(), 'same-day booking create must succeed').toBe(true);
+        const todayBooking = (await createRes.json()) as { id: string };
+
+        const ownerToken = await ownerPage.evaluate(() => localStorage.getItem('auth_token'));
+        expect(ownerToken, 'owner JWT must still be in localStorage from earlier in this test').toBeTruthy();
+        const approveRes = await request.post(
+          `${API_URL}/api/bookings/${todayBooking.id}/approve`,
+          { headers: { Authorization: `Bearer ${ownerToken}` } },
+        );
+        expect(approveRes.ok(), 'same-day booking approve must succeed').toBe(true);
+
+        try {
+          await renterPage.goto(`/bookings/${todayBooking.id}`);
+          await expect(statusBadge(renterPage)).toHaveText('Approved');
+          await expect(renterPage.locator('button.booking-details__cancel')).toHaveCount(0);
+          await expect(
+            renterPage.getByText(
+              'The rental has started — message the owner to change plans.',
+            ),
+          ).toBeVisible();
+        } finally {
+          // Drive to a terminal state unconditionally so this booking can never block a
+          // future run's date ranges, even if an assertion above threw.
+          await request.post(`${API_URL}/api/bookings/${todayBooking.id}/activate`, {
+            headers: { Authorization: `Bearer ${ownerToken}` },
+            failOnStatusCode: false,
+          });
+          await request.post(`${API_URL}/api/bookings/${todayBooking.id}/complete`, {
+            headers: { Authorization: `Bearer ${ownerToken}` },
+            failOnStatusCode: false,
+          });
+        }
       });
     } finally {
       await ownerContext.close();
