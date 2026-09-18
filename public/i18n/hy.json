@@ -1167,6 +1167,10 @@
         "decline": "Մերժել",
         "accepted": "Ընդունված",
         "declined": "Մերժված",
+        "awaitingHandover": "Սպասում է հանձնման",
+        "pickedUp": "Վերցված",
+        "returned": "Վերադարձված",
+        "viewBooking": "Դիտել ամրագրումը",
         "message": "Գրել {{name}}-ին"
       }
     },
@@ -1289,7 +1293,9 @@
       "message": "Գրել {{name}}-ին",
       "rejectionReason": "Մերժման պատճառը",
       "cancelRequest": "Հրաժարվել հարցումից",
-      "cancelling": "Հրաժարվում..."
+      "cancelBooking": "Չեղարկել ամրագրումը",
+      "cancelling": "Հրաժարվում...",
+      "rentalStartedHint": "Վարձույթը սկսվել է — գրեք սեփականատիրոջը՝ ծրագրերը փոխելու համար։"
     },
     "timeline": {
       "requested": "Ամրագրումը հարցված է",

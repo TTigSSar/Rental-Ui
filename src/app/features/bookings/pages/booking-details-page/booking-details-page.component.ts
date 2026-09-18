@@ -20,6 +20,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { BookingProgressComponent } from '../../../../shared/ui/booking-progress/booking-progress.component';
 import { BookingStatusBadgeComponent } from '../../../../shared/ui/booking-status-badge/booking-status-badge.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
+import { todayUtcDateString } from '../../../../shared/utils/date.utils';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import * as ChatActions from '../../../chat/store/chat.actions';
 import { selectOpeningConversationFromBooking } from '../../../chat/store/chat.selectors';
@@ -170,9 +171,36 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
     },
   );
 
+  // Mirrors the backend cancel rule exactly (rental-api BookingsService.CancelBooking):
+  // Pending is always cancellable; Approved is cancellable only while the UTC calendar date
+  // is still strictly before the rental's start date. Both `startDate` and the computed
+  // "today" are `YYYY-MM-DD` strings, so a lexicographic comparison is a calendar-date
+  // comparison — no Date-object timezone arithmetic to get wrong.
   protected readonly canCancel = computed(() => {
     const d = this.detail();
-    return d !== null && d.role === 'renter' && (d.status === 'Pending' || d.status === 'Approved');
+    if (d === null || d.role !== 'renter') return false;
+    if (d.status === 'Pending') return true;
+    if (d.status === 'Approved') return d.startDate > todayUtcDateString();
+    return false;
+  });
+
+  // Approved, but the cancel window has already closed (rental starts today-or-earlier in
+  // UTC) — show a hint instead of a cancel button that would just 400 from the backend.
+  protected readonly showRentalStartedHint = computed(() => {
+    const d = this.detail();
+    return (
+      d !== null &&
+      d.role === 'renter' &&
+      d.status === 'Approved' &&
+      d.startDate <= todayUtcDateString()
+    );
+  });
+
+  protected readonly cancelLabelKey = computed(() => {
+    if (this.cancelPending()) return 'bookings.details.cancelling';
+    return this.detail()?.status === 'Approved'
+      ? 'bookings.details.cancelBooking'
+      : 'bookings.details.cancelRequest';
   });
 
   protected readonly canLeaveReview = computed(() => {
@@ -204,9 +232,22 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
     });
 
     // Once a booking is completed, load the review eligibility for this caller.
+    //
+    // `bookingActionPending` is read (and gates the fetch) so this never fires against the
+    // optimistic flip in the reducer: `completeBooking` sets `status: 'Completed'` on the
+    // detail immediately, before the POST /complete request has actually committed on the
+    // server. Without this guard, the effect fired eagerly, `GET
+    // /reviews/booking/{id}/status` answered `canReviewRenter: false` for a booking that
+    // wasn't really Completed yet, and that `false` got cached under this booking's id
+    // forever — the review CTA never appeared without a manual reload. `completeBooking()`
+    // below also resets `reviewStatus` at dispatch time, so a failed complete (which reloads
+    // the authoritative detail via `bookingActionFailure` → `loadBookingDetail`) can't leave
+    // a stale cached status behind either — the next genuine Completed state always finds a
+    // clean cache and fetches exactly once.
     effect(() => {
       const d = this.detail();
-      if (!d || d.status !== 'Completed') return;
+      const pending = this.actionPending();
+      if (!d || d.status !== 'Completed' || pending) return;
       const current = untracked(() => this.reviewStatus());
       if (current?.bookingId === d.id) return;
       this.reviewsApi.getBookingStatus(d.id).subscribe({
@@ -239,6 +280,10 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
   }
 
   protected completeBooking(): void {
+    // Invalidate any cached review-eligibility result up front — see the constructor's
+    // review-eligibility effect for why this matters (the race it fixes and the retry-after-
+    // failure case this reset covers).
+    this.reviewStatus.set(null);
     this.store.dispatch(BookingsActions.completeBooking({ bookingId: this.bookingId }));
   }
 

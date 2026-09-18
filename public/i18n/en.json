@@ -1172,6 +1172,10 @@
         "decline": "Decline",
         "accepted": "Accepted",
         "declined": "Declined",
+        "awaitingHandover": "Awaiting handover",
+        "pickedUp": "Picked up",
+        "returned": "Returned",
+        "viewBooking": "View booking",
         "message": "Message {{name}}"
       }
     }
@@ -1289,7 +1293,9 @@
       "message": "Message {{name}}",
       "rejectionReason": "Reason for decline",
       "cancelRequest": "Cancel request",
-      "cancelling": "Cancelling..."
+      "cancelBooking": "Cancel booking",
+      "cancelling": "Cancelling...",
+      "rentalStartedHint": "The rental has started — message the owner to change plans."
     },
     "timeline": {
       "requested": "Booking requested",

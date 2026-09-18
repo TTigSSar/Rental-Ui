@@ -1166,6 +1166,10 @@
         "decline": "Отклонить",
         "accepted": "Принято",
         "declined": "Отклонено",
+        "awaitingHandover": "Ожидает передачи",
+        "pickedUp": "Получено",
+        "returned": "Возвращено",
+        "viewBooking": "Просмотреть бронирование",
         "message": "Написать {{name}}"
       }
     },
@@ -1288,7 +1292,9 @@
       "message": "Написать {{name}}",
       "rejectionReason": "Причина отклонения",
       "cancelRequest": "Отменить заявку",
-      "cancelling": "Отмена..."
+      "cancelBooking": "Отменить бронирование",
+      "cancelling": "Отмена...",
+      "rentalStartedHint": "Аренда уже началась — напишите владельцу, чтобы изменить планы."
     },
     "timeline": {
       "requested": "Запрос отправлен",

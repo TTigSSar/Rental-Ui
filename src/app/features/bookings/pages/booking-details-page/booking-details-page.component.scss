@@ -254,6 +254,15 @@
   }
 }
 
+.booking-details__cancel-hint {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 14px 16px;
+  color: var(--ui-color-text-secondary);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
 .booking-details__primary {
   display: block;
   width: 100%;

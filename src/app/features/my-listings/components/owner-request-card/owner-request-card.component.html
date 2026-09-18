@@ -39,7 +39,9 @@
     </span>
     <span class="orc__earnings">
       <strong>{{ request().ownerEarnings | dram }}</strong>
-      <span class="orc__earnings-label">{{ 'myListings.ownerView.requests.youEarn' | translate }}</span>
+      <span class="orc__earnings-label">{{
+        'myListings.ownerView.requests.youEarn' | translate
+      }}</span>
     </span>
   </div>
 
@@ -66,28 +68,46 @@
         />
       </div>
     }
-    @case ('accepted') {
-      <div class="orc__decided">
-        <span class="orc__status orc__status--accepted" role="status">
-          <i class="pi pi-check-circle" aria-hidden="true"></i>
-          {{ 'myListings.ownerView.requests.accepted' | translate }}
-        </span>
-        <p-button
-          type="button"
-          severity="secondary"
-          [outlined]="true"
-          styleClass="orc__btn"
-          icon="pi pi-comment"
-          [label]="'myListings.ownerView.requests.message' | translate: { name: request().renter.firstName }"
-          (onClick)="message()"
-        />
-      </div>
-    }
     @case ('declined') {
       <span class="orc__status orc__status--declined" role="status">
         <i class="pi pi-times-circle" aria-hidden="true"></i>
         {{ 'myListings.ownerView.requests.declined' | translate }}
       </span>
+    }
+    @default {
+      <!-- Approved / Active / Completed: their own status pill + a way back into the
+           booking (owner otherwise has no path to "Mark as handed over" from here). -->
+      @if (decidedStatus(); as decided) {
+        <div class="orc__decided">
+          <span class="orc__status" [class]="'orc__status--' + decided.tone" role="status">
+            <i class="pi {{ decided.icon }}" aria-hidden="true"></i>
+            {{ decided.labelKey | translate }}
+          </span>
+          <div class="orc__decided-actions">
+            <p-button
+              type="button"
+              severity="secondary"
+              [outlined]="true"
+              styleClass="orc__btn"
+              icon="pi pi-external-link"
+              [label]="'myListings.ownerView.requests.viewBooking' | translate"
+              (onClick)="viewBooking()"
+            />
+            <p-button
+              type="button"
+              severity="secondary"
+              [outlined]="true"
+              styleClass="orc__btn"
+              icon="pi pi-comment"
+              [label]="
+                'myListings.ownerView.requests.message'
+                  | translate: { name: request().renter.firstName }
+              "
+              (onClick)="message()"
+            />
+          </div>
+        </div>
+      }
     }
   }
 </article>

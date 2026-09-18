@@ -210,11 +210,14 @@
           [disabled]="cancelPending()"
           (click)="cancelBooking()"
         >
-          {{
-            (cancelPending() ? 'bookings.details.cancelling' : 'bookings.details.cancelRequest')
-              | translate
-          }}
+          {{ cancelLabelKey() | translate }}
         </button>
+      </div>
+    } @else if (showRentalStartedHint()) {
+      <div class="booking-details__footer">
+        <p class="booking-details__cancel-hint">
+          {{ 'bookings.details.rentalStartedHint' | translate }}
+        </p>
       </div>
     }
   }

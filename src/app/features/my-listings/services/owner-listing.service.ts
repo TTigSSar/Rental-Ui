@@ -74,36 +74,44 @@ export class OwnerListingService {
       // A missing/failed profile must not drop the request — fall back to the
       // identity already present on the booking request.
       catchError(() => of(null)),
-      map((profile): OwnerBookingRequest => ({
-        id: request.id,
-        renter: {
-          id: request.renterId,
-          firstName: request.renterFirstName,
-          lastName: request.renterLastName,
-          avatarUrl: profile?.avatarUrl ?? null,
-          rating: profile?.renterRating ?? null,
-          rentalsCount: profile?.completedRentalsAsRenter ?? 0,
-        },
-        requestedAt: request.createdAt ?? '',
-        startDate: request.startDate,
-        endDate: request.endDate,
-        ownerEarnings: request.totalPrice,
-        decision: toDecision(request.status),
-      })),
+      map(
+        (profile): OwnerBookingRequest => ({
+          id: request.id,
+          renter: {
+            id: request.renterId,
+            firstName: request.renterFirstName,
+            lastName: request.renterLastName,
+            avatarUrl: profile?.avatarUrl ?? null,
+            rating: profile?.renterRating ?? null,
+            rentalsCount: profile?.completedRentalsAsRenter ?? 0,
+          },
+          requestedAt: request.createdAt ?? '',
+          startDate: request.startDate,
+          endDate: request.endDate,
+          ownerEarnings: request.totalPrice,
+          decision: toDecision(request.status),
+        }),
+      ),
     );
   }
 }
 
-function toDecision(status: BookingStatus): OwnerRequestDecision {
+// 'PendingApproval' and 'ReturnMarked' are stale BookingStatus members the backend never
+// actually sends (see Rental-Ui/CLAUDE.md's status vocabulary: Pending / Approved / Active /
+// Completed / Rejected / Cancelled / Expired) — dropped here rather than mapped, since the
+// switch has a `default` and doesn't need to stay exhaustive over the wider (still-shared)
+// BookingStatus type. Exported for direct unit testing (mirrors the pattern in
+// listing-details-page.component.ts's resolveConditionLabelKey/resolveAgeRangeDisplay).
+export function toDecision(status: BookingStatus): OwnerRequestDecision {
   switch (status) {
-    case 'PendingApproval':
     case 'Pending':
       return 'pending';
     case 'Approved':
+      return 'approved';
     case 'Active':
-    case 'ReturnMarked':
+      return 'active';
     case 'Completed':
-      return 'accepted';
+      return 'completed';
     default:
       return 'declined';
   }
