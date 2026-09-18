@@ -26,6 +26,7 @@ import type {
 import type { ListingImage } from '../../../listings/models/listing.model';
 import { ListingsApiService } from '../../../listings/services/listings-api.service';
 import { toApiErrorMessage } from '../../../../api/http-error-message.util';
+import { isCompensationAmountSet } from '../../../../shared/utils/compensation-amount.utils';
 import type {
   MyListing,
   MyListingStatus,
@@ -71,6 +72,12 @@ export class EditListingPageComponent implements OnInit {
   protected readonly listingRejection = signal<RejectionInfo | null>(null);
 
   protected readonly isRejected = computed(() => this.listingStatus() === 'Rejected');
+  /** Listings created before loss & damage compensation existed carry `null`
+   *  — the wizard starts that field empty (see `prefill`) and this drives the
+   *  amber "now required" notice at the top of the page. Save itself stays
+   *  enabled; the requirement is enforced on submit via the field's own
+   *  validator (never trap an owner behind a disabled button). */
+  protected readonly showCompensationNotice = signal(false);
   protected readonly submitLabelKey = computed(() =>
     this.isRejected()
       ? 'myListings.editPage.wizard.saveAndResubmit'
@@ -123,6 +130,17 @@ export class EditListingPageComponent implements OnInit {
     this.listingStatus.set(listing.status);
     this.listingRejection.set(listing.rejection);
     this.wasRejected = listing.status === 'Rejected';
+    // A stored `0` is legacy data (the old optional-deposit validator
+    // allowed it, and the depositAmount -> compensationAmount rename
+    // preserved values) — not a real amount the owner ever entered, so it's
+    // treated the same as null: the notice shows, and the field below
+    // prefills empty rather than as "0" (a 0 that survives to submit would
+    // fail the 1,000 minimum with a confusing range error instead of the
+    // honest "Required").
+    const compensationAmount = isCompensationAmountSet(listing.compensationAmount)
+      ? listing.compensationAmount
+      : null;
+    this.showCompensationNotice.set(compensationAmount === null);
 
     this.prefill.set({
       title:         listing.title,
@@ -135,6 +153,7 @@ export class EditListingPageComponent implements OnInit {
       condition:     listing.condition,
       hygieneNotes:  listing.hygieneNotes,
       safetyNotes:   listing.safetyNotes,
+      compensationAmount,
       minRentalDays: listing.minRentalDays ?? null,
       deliveryType:  listing.deliveryType ?? null,
       deliveryTypes: listing.deliveryTypes ?? null,
@@ -200,6 +219,7 @@ export class EditListingPageComponent implements OnInit {
       condition:     p.condition ?? null,
       hygieneNotes:  p.hygieneNotes ?? null,
       safetyNotes:   p.safetyNotes ?? null,
+      compensationAmount: p.compensationAmount ?? null,
       minRentalDays: p.minRentalDays ?? null,
       deliveryType:  p.deliveryType ?? null,
       deliveryTypes: p.deliveryTypes ?? null,

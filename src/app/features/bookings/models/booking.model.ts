@@ -64,7 +64,7 @@ export interface BookingDetail {
   addressLine: string | null;
   currency: string;
   pricePerDay: number;
-  depositAmount: number | null;
+  compensationAmount: number | null;
   totalPrice: number;
   startDate: string;
   endDate: string;

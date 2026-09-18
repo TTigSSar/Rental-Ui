@@ -24,7 +24,8 @@ import { CategorySelectorComponent } from '../../../../shared/ui/category-select
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import type { MapLatLng } from '../../../../shared/ui/map/map.component';
 import { LanguageService } from '../../../../shared/services/language.service';
-import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
+import { DRAM_SYMBOL, DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
+import { isCompensationAmountSet } from '../../../../shared/utils/compensation-amount.utils';
 import type {
   CreateListingRequest,
   DeliveryType,
@@ -54,6 +55,9 @@ export interface ListingFormPrefill {
   pricePerDay: number | null;
   priceUnit?: PriceUnit;
   city: string;
+  /** `null` on listings created before this field existed — the edit page
+   *  shows an amber notice and starts the field empty in that case. */
+  compensationAmount?: number | null;
   ageFromMonths: number | null;
   ageToMonths: number | null;
   condition: string | null;
@@ -158,6 +162,23 @@ const DEFAULT_COUNTRY = 'Armenia';
  */
 const MIN_PRICE_PER_DAY = 1;
 
+/** Loss & damage compensation range — whole AMD, 1,000–10,000,000. */
+const MIN_COMPENSATION = 1_000;
+const MAX_COMPENSATION = 10_000_000;
+/**
+ * Character cap on the `p-inputNumber` itself (digits + thousands
+ * separators), NOT the same thing as `MAX_COMPENSATION` — deliberately no
+ * `[min]`/`[max]` binding on that control (PrimeNG clamps silently on blur,
+ * which made the "1,000–10,000,000" error unreachable: type 20000000, it
+ * became 10,000,000 on blur and Continue just succeeded). Angular's
+ * `Validators.min`/`max` below are what actually reject an out-of-range
+ * value and surface the error. This cap only stops a pasted wall of digits
+ * from growing unbounded — generous enough that any in-range OR clearly
+ * out-of-range value (e.g. `20,000,000`, 10 chars) is typed in full, not
+ * truncated into a different number.
+ */
+const MAX_COMPENSATION_INPUT_LENGTH = String(MAX_COMPENSATION).length + 4;
+
 const MIN_PHOTOS = 3;
 const MAX_PHOTOS = 8;
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
@@ -166,7 +187,7 @@ const AGE_MAX_YEARS = 12;
 const STEP_CONTROLS: readonly string[][] = [
   [], // 1 Photos (gated on photo count)
   ['title', 'categoryId', 'description'], // 2 Basics
-  ['pricePerDay', 'priceUnit', 'city'], // 3 Pricing & Location
+  ['pricePerDay', 'priceUnit', 'city', 'compensationAmount'], // 3 Pricing & Location
   [], // 4 Safety
   [], // 5 Preview
 ];
@@ -194,9 +215,16 @@ function ageRangeValidator(control: AbstractControl): ValidationErrors | null {
     TranslatePipe,
     UiInputComponent,
   ],
+  // `DramCurrencyPipe` is injected directly (compensationDisplay()) as well as
+  // used from the template — standalone pipes aren't auto-providable via
+  // `inject()` just by being in `imports`, so it must be listed here too or
+  // the component throws NG0201 on construction (see the same pattern/note
+  // in `listing-details-page.component.ts`).
+  providers: [DramCurrencyPipe],
   templateUrl: './create-listing-form.component.html',
   styleUrls: [
     './create-listing-form.component.scss',
+    './create-listing-form.compensation.scss',
     './create-listing-form.menu.scss',
     './create-listing-form.step5.scss',
     './create-listing-form.desktop.scss',
@@ -207,6 +235,7 @@ export class CreateListingFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly location = inject(Location);
   private readonly languageService = inject(LanguageService);
+  private readonly dramPipe = inject(DramCurrencyPipe);
 
   constructor() {
     // The location-picker trigger's post-close focus return (see
@@ -221,6 +250,20 @@ export class CreateListingFormComponent implements OnInit {
       }
       this.locationPickerTrigger()?.nativeElement.focus();
       this.focusReturnPending.set(false);
+    });
+
+    // Edit-mode "Save with an invalid field" (see `onSubmit()`/`canSubmit()`
+    // below): `jumpToFirstInvalidStep()` flips `pendingInvalidFocus` and sets
+    // `currentStep`, but the target field's `@if (currentStep() === N)`
+    // block hasn't rendered yet in the same tick — same ordering problem
+    // `focusReturnPending` above solves, same fix.
+    afterRenderEffect(() => {
+      const name = this.pendingInvalidFocus();
+      if (!name) {
+        return;
+      }
+      this.focusFieldByControlName(name);
+      this.pendingInvalidFocus.set(null);
     });
   }
 
@@ -266,6 +309,10 @@ export class CreateListingFormComponent implements OnInit {
       condition: (value.condition as ConditionChip['value'] | null) ?? '',
       hygieneNotes: value.hygieneNotes ?? '',
       safetyNotes: value.safetyNotes ?? '',
+      // Listings created before this field existed carry null — start the
+      // field empty (the edit page shows an amber notice in that case) rather
+      // than defaulting to some fabricated amount.
+      compensationAmount: value.compensationAmount ?? null,
       // Listings created before these fields existed carry null — fall back to
       // the same defaults a fresh wizard starts with.
       minRentalDays: value.minRentalDays ?? 1,
@@ -303,6 +350,11 @@ export class CreateListingFormComponent implements OnInit {
 
   // ── Constants exposed to template ─────────────────────────────
   readonly minPrice = MIN_PRICE_PER_DAY;
+  // No `minCompensation`/`maxCompensation` template bindings — see
+  // `MAX_COMPENSATION_INPUT_LENGTH`'s comment above for why the input isn't
+  // bound to PrimeNG's own `[min]`/`[max]` clamping.
+  readonly compensationMaxLength = MAX_COMPENSATION_INPUT_LENGTH;
+  readonly dramSymbol = DRAM_SYMBOL;
   readonly minPhotos = MIN_PHOTOS;
   readonly maxPhotos = MAX_PHOTOS;
   readonly steps = WIZARD_STEPS;
@@ -420,6 +472,14 @@ export class CreateListingFormComponent implements OnInit {
       ]),
       priceUnit: this.fb.nonNullable.control<PriceUnit>('Daily', [Validators.required]),
       city: this.fb.nonNullable.control('', [Validators.required]),
+      // Maximum the renter owes the owner if the toy is lost, seriously
+      // damaged or not returned. Required on both create and edit (ADR: Loss
+      // & damage compensation) — 1,000–10,000,000 ֏.
+      compensationAmount: this.fb.control<number | null>(null, [
+        Validators.required,
+        Validators.min(MIN_COMPENSATION),
+        Validators.max(MAX_COMPENSATION),
+      ]),
       latitude: this.fb.control<number | null>(null),
       longitude: this.fb.control<number | null>(null),
       // Optional owner override; the backend derives this from the pin when null.
@@ -522,6 +582,70 @@ export class CreateListingFormComponent implements OnInit {
 
   protected priceUnitNounKey(unit: PriceUnit): string {
     return `listings.createForm.priceUnitNoun.${unit.toLowerCase()}`;
+  }
+
+  // ── Edit-mode "Save with an invalid field" focus (see `onSubmit()`) ────
+  /** `app-ui-input` generates its own internal id, so `title`/`city` (the
+   *  only two fields using it) can't be focused via `document.getElementById`
+   *  like the plain/PrimeNG-input fields below — go through the component's
+   *  own `focusInput()` instead. */
+  private readonly titleInputRef = viewChild<UiInputComponent>('titleInputRef');
+  private readonly cityInputRef = viewChild<UiInputComponent>('cityInputRef');
+  /** Set by `jumpToFirstInvalidStep()`; consumed by the `afterRenderEffect`
+   *  in the constructor once the target step's fields have rendered. */
+  private readonly pendingInvalidFocus = signal<string | null>(null);
+
+  /** Best-effort: `categoryId` (category selector), `priceUnit` (custom
+   *  dropdown) and `districtId` (plain select, always valid — optional) have
+   *  no single natural focus target, so those fall through to a no-op —
+   *  the step navigation alone still brings their error text into view. */
+  private focusFieldByControlName(name: string): void {
+    switch (name) {
+      case 'title':
+        this.titleInputRef()?.focusInput();
+        return;
+      case 'city':
+        this.cityInputRef()?.focusInput();
+        return;
+      case 'description':
+        document.getElementById('wz-desc')?.focus();
+        return;
+      case 'pricePerDay':
+        document.getElementById('wz-price')?.focus();
+        return;
+      case 'compensationAmount':
+        document.getElementById('wz-compensation')?.focus();
+        return;
+      default:
+        return;
+    }
+  }
+
+  /**
+   * Edit mode only (see `canSubmit()`): Save is never disabled there, so an
+   * owner can click it while a required field is still invalid — e.g. a
+   * pre-existing listing with a null loss & damage compensation amount,
+   * reached directly via the desktop stepper rail (`jumpToStep`, which skips
+   * per-step validation) rather than the usual Continue-by-Continue flow.
+   * Returns to the step owning the FIRST invalid field (photos, then step
+   * order) and focuses it, instead of leaving the click looking like it did
+   * nothing.
+   */
+  private jumpToFirstInvalidStep(): void {
+    if (!this.photosValid()) {
+      this.photoError.set('listings.createForm.validation.photoTooFew');
+      this.jumpToStep(1);
+      return;
+    }
+    for (let step = 2; step <= 4; step++) {
+      const names = STEP_CONTROLS[step - 1] ?? [];
+      const firstInvalid = names.find((n) => this.createListingForm.get(n)?.invalid);
+      if (firstInvalid) {
+        this.jumpToStep(step);
+        this.pendingInvalidFocus.set(firstInvalid);
+        return;
+      }
+    }
   }
 
   // ── Location pin picker ───────────────────────────────────────
@@ -916,7 +1040,31 @@ export class CreateListingFormComponent implements OnInit {
     return 'listings.createForm.validation.titleTooLong';
   }
 
+  /** Pre-formatted "Up to X ֏" amount for the preview note / summary row — a
+   *  translate param is a plain string substitution, it can't apply the
+   *  `dram` pipe itself (same reasoning as `listing-details-page`'s
+   *  `formatDram`). Empty until a valid (per `isCompensationAmountSet`)
+   *  amount is entered — e.g. while the owner is mid-typing "0". */
+  protected compensationDisplay(): string {
+    const amount = this.createListingForm.controls.compensationAmount.value;
+    return isCompensationAmountSet(amount) ? (this.dramPipe.transform(amount) ?? '') : '';
+  }
+
+  protected compensationErrorKey(): string {
+    const ctrl = this.createListingForm.controls.compensationAmount;
+    if (ctrl.hasError('required')) return 'listings.createForm.validation.required';
+    return 'listings.createForm.validation.compensationRange';
+  }
+
   protected canSubmit(): boolean {
+    if (this.mode === 'edit') {
+      // Edit mode: Save must never be disabled by field validity — an owner
+      // must not be trapped behind a greyed-out button with no visible
+      // reason (e.g. a pre-existing listing with a null compensation
+      // amount). `onSubmit()` below enforces the requirement instead, by
+      // jumping to and focusing the offending field.
+      return this.photosValid() && !this.isSubmitting;
+    }
     return this.createListingForm.valid && this.photosValid() && !this.isSubmitting;
   }
 
@@ -926,6 +1074,14 @@ export class CreateListingFormComponent implements OnInit {
       this.createListingForm.markAllAsTouched();
       if (!this.photosValid()) {
         this.photoError.set('listings.createForm.validation.photoTooFew');
+      }
+      // Create mode's Save is gated by `canSubmit()` (which requires
+      // `createListingForm.valid`), so this branch is effectively
+      // unreachable there in normal use — left untouched. Edit mode's Save
+      // is never disabled (see `canSubmit()` above), so this IS reachable
+      // there; surface the problem instead of silently doing nothing.
+      if (this.mode === 'edit') {
+        this.jumpToFirstInvalidStep();
       }
       return;
     }
@@ -953,6 +1109,7 @@ export class CreateListingFormComponent implements OnInit {
       categoryId: raw.categoryId.trim(),
       pricePerDay: raw.pricePerDay,
       priceUnit: raw.priceUnit,
+      compensationAmount: raw.compensationAmount,
       country: DEFAULT_COUNTRY,
       city: raw.city.trim(),
       addressLine: null,

@@ -102,7 +102,7 @@ function normalizeAdminListingSummary(
     condition: isToyCondition(raw['condition']) ? raw['condition'] : null,
     hygieneNotes: toNullableString(raw['hygieneNotes']),
     safetyNotes: toNullableString(raw['safetyNotes']),
-    depositAmount: toNullableNumber(raw['depositAmount']),
+    compensationAmount: toNullableNumber(raw['compensationAmount']),
 
     images: normalizeAdminListingImages(raw['images']),
 

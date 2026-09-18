@@ -451,6 +451,7 @@
             <div class="wizard-2col">
               <div class="wizard-field">
                 <app-ui-input
+                  #titleInputRef
                   type="text"
                   formControlName="title"
                   [label]="'listings.createForm.title' | translate"
@@ -658,6 +659,79 @@
               }
             </div>
 
+            <!-- Loss & damage compensation: its own bordered sub-card so it
+                 never reads as part of the owner's earnings above. -->
+            <div
+              class="comp-card"
+              [class.comp-card--error]="hasError('compensationAmount')"
+            >
+              <div class="comp-card__header">
+                <span class="comp-card__icon" aria-hidden="true">
+                  <i class="pi pi-shield"></i>
+                </span>
+                <div class="comp-card__heading">
+                  <strong class="comp-card__title">{{
+                    'listings.createForm.compensation.title' | translate
+                  }}</strong>
+                  <span class="comp-card__kicker">{{
+                    'listings.createForm.compensation.kicker' | translate
+                  }}</span>
+                </div>
+              </div>
+
+              <div class="wizard-field">
+                <label class="wizard-field__label" for="wz-compensation">
+                  {{ 'listings.createForm.compensation.label' | translate }}
+                  <span class="wizard-field__req" aria-hidden="true">*</span>
+                </label>
+                <div
+                  class="comp-card__input-row"
+                  [class.comp-card__input-row--error]="hasError('compensationAmount')"
+                >
+                  <p-inputNumber
+                    inputId="wz-compensation"
+                    formControlName="compensationAmount"
+                    mode="decimal"
+                    locale="en-US"
+                    [minFractionDigits]="0"
+                    [maxFractionDigits]="0"
+                    [useGrouping]="true"
+                    [maxlength]="compensationMaxLength"
+                    inputmode="numeric"
+                    [placeholder]="'listings.createForm.compensation.placeholder' | translate"
+                    styleClass="comp-card__input"
+                    [pt]="{
+                      pcInputText: {
+                        root: {
+                          'aria-invalid': hasError('compensationAmount') ? 'true' : null,
+                          'aria-describedby': 'wz-compensation-desc',
+                        },
+                      },
+                    }"
+                  />
+                  <span class="comp-card__suffix" aria-hidden="true">{{ dramSymbol }}</span>
+                </div>
+                @if (hasError('compensationAmount')) {
+                  <small class="wizard-field__error" id="wz-compensation-desc" role="alert">
+                    {{ compensationErrorKey() | translate }}
+                  </small>
+                } @else {
+                  <p class="wizard-field__note" id="wz-compensation-desc">
+                    {{ 'listings.createForm.compensation.helper' | translate }}
+                  </p>
+                }
+              </div>
+
+              <div class="comp-card__tip">
+                <i class="pi pi-sparkles" aria-hidden="true"></i>
+                <span>{{ 'listings.createForm.compensation.tip' | translate }}</span>
+              </div>
+
+              <p class="comp-card__footnote">
+                {{ 'listings.createForm.compensation.footnote' | translate }}
+              </p>
+            </div>
+
             <div class="wizard-divider"></div>
 
             <!-- Row A: City + District (2-col on desktop). District only
@@ -667,6 +741,7 @@
             <div class="wizard-2col">
               <div class="wizard-field">
                 <app-ui-input
+                  #cityInputRef
                   type="text"
                   formControlName="city"
                   [label]="'listings.createForm.city' | translate"
@@ -1016,6 +1091,14 @@
                         }}
                       </span>
                     </p>
+                    <div class="wizard-preview__comp-rule" aria-hidden="true"></div>
+                    <p class="wizard-preview__comp-note">
+                      <i class="pi pi-shield" aria-hidden="true"></i>
+                      {{
+                        'listings.createPage.wizard.compensationPreviewNote'
+                          | translate: { amount: compensationDisplay() }
+                      }}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1075,6 +1158,20 @@
                     <dd class="wizard-summary__value wizard-summary__value--price">
                       {{ createListingForm.controls.pricePerDay.value | dram }}
                       {{ priceUnitSuffixKey() | translate }}
+                    </dd>
+                    <button type="button" class="wizard-summary__edit" (click)="jumpToStep(3)">
+                      {{ 'listings.createPage.wizard.edit' | translate }}
+                    </button>
+                  </div>
+                  <div class="wizard-summary__row">
+                    <dt class="wizard-summary__label">
+                      {{ 'listings.createPage.wizard.summaryCompensation' | translate }}
+                    </dt>
+                    <dd class="wizard-summary__value">
+                      {{
+                        'listings.createPage.wizard.compensationUpTo'
+                          | translate: { amount: compensationDisplay() }
+                      }}
                     </dd>
                     <button type="button" class="wizard-summary__edit" (click)="jumpToStep(3)">
                       {{ 'listings.createPage.wizard.edit' | translate }}

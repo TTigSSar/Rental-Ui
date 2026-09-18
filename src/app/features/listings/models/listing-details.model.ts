@@ -47,7 +47,13 @@ export interface ListingDetails {
   condition?: ToyCondition | null;
   hygieneNotes?: string | null;
   safetyNotes?: string | null;
-  depositAmount?: number | null;
+  /**
+   * Maximum amount the renter owes the owner if the toy is lost, seriously
+   * damaged or not returned — nothing is ever paid upfront, and DoRent never
+   * collects, holds or refunds it (ADR-014). `null` on listings created
+   * before this field existed.
+   */
+  compensationAmount?: number | null;
   minRentalDays?: number | null;
   deliveryType?: DeliveryType | null;
   /** Additive multi-select handover methods; falls back to `[deliveryType]`

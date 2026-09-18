@@ -132,6 +132,13 @@ test.describe('Create listing — photo upload (real stack)', () => {
       // create payload requires.
       await page.getByRole('checkbox', { name: /Pickup from me/i }).click();
 
+      // Loss & damage compensation is required on create (1,000–10,000,000
+      // ֏) — without it `goToNextStep()` (STEP_CONTROLS for step 3 includes
+      // `compensationAmount`) leaves the wizard stuck on step 3 and every
+      // step after this silently never happens, the same "looks like a
+      // hang" failure mode as the MIN_PHOTOS gotcha noted above.
+      await page.locator('#wz-compensation').fill('25000');
+
       await page.getByRole('button', { name: 'Continue to safety' }).click();
     });
 
@@ -183,9 +190,19 @@ test.describe('Create listing — photo upload (real stack)', () => {
         headers: { Authorization: `Bearer ${ownerToken}` },
       });
       expect(detailRes.ok(), 'GET /api/listings/{id} as owner must succeed').toBe(true);
-      const detail = (await detailRes.json()) as { images: ListingImageResponse[] };
+      const detail = (await detailRes.json()) as {
+        images: ListingImageResponse[];
+        compensationAmount: number | null;
+      };
       expect(detail.images, 'listing must have exactly the 3 photos picked in the wizard').toHaveLength(
         3,
+      );
+      // Round-trips the `DepositAmount` → `CompensationAmount` column rename
+      // (migration `20260917052338_RenameDepositAmountToCompensationAmount`)
+      // through the REAL SQL Server-backed column, not SQLite or a mocked
+      // network layer — the one thing no unit or mocked-e2e test can prove.
+      expect(detail.compensationAmount, 'compensationAmount must round-trip through the real DB').toBe(
+        25000,
       );
 
       const imageRes = await request.get(`${API_URL}${detail.images[0].url}`);

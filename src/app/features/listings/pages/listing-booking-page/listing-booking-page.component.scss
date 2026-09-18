@@ -526,15 +526,30 @@
     font-size: 0.8125rem;
   }
 
-  /* Refundable deposit — visually distinct from the charged subtotal above it,
-     and explicitly NOT part of the total below (product decision). */
-  &--deposit {
+  /* Loss & damage compensation — the only dashed row in the breakdown, always
+     muted (never bold), and explicitly NOT part of the total below (product
+     decision — nothing is ever paid upfront, DoRent never collects it). */
+  &--compensation {
+    align-items: flex-start;
+    padding: var(--ui-space-10) var(--ui-space-12);
+    margin: 2px 0;
+    border: 1px dashed var(--ui-color-border);
+    border-radius: var(--ui-radius-sm);
+
     dt {
-      color: var(--ui-color-text-primary);
-      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-weight: 400;
+      color: var(--ui-color-text-secondary);
     }
 
     dd {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+      font-weight: 500;
       color: var(--ui-color-text-secondary);
     }
   }
@@ -543,6 +558,97 @@
 .booking-page__breakdown-note {
   font-weight: 400;
   font-style: italic;
+  color: var(--ui-color-text-secondary);
+}
+
+.booking-page__comp-label-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+  color: var(--ui-color-text-primary);
+}
+
+.booking-page__comp-info-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.booking-page__comp-info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ui-color-text-hint);
+  cursor: pointer;
+  border-radius: 50%;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--ui-color-primary);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary);
+    outline-offset: 1px;
+  }
+
+  i {
+    font-size: 0.8125rem;
+  }
+}
+
+.booking-page__comp-popover {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 17.5rem;
+  max-width: 80vw;
+  padding: var(--ui-space-12) var(--ui-space-16);
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  box-shadow: var(--ui-shadow-card);
+  text-align: left;
+}
+
+.booking-page__comp-popover-title {
+  display: block;
+  margin-bottom: var(--ui-space-8);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ui-color-text-primary);
+}
+
+.booking-page__comp-popover-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--ui-color-text-secondary);
+}
+
+.booking-page__comp-value {
+  white-space: nowrap;
+}
+
+.booking-page__comp-not-total {
+  font-size: 0.6875rem;
+  font-weight: 400;
+  color: var(--ui-color-text-hint);
+}
+
+.booking-page__breakdown-total-note {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
   color: var(--ui-color-text-secondary);
 }
 

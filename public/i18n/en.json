@@ -173,11 +173,11 @@
         },
         "q3": {
           "question": "How are toys cleaned between rentals?",
-          "answer": "Owners describe how each toy is cleaned in the listing. Many also charge a small refundable deposit to cover damage or excessive wear."
+          "answer": "Owners describe how each toy is cleaned in the listing. Every listing also sets a loss & damage compensation amount — what the renter would owe the owner for damage or excessive wear."
         },
         "q4": {
           "question": "What if my child loses a part of the toy?",
-          "answer": "Report it to the owner as soon as possible. If a deposit was set, it can be used to cover damage or replacement."
+          "answer": "Report it to the owner as soon as possible. The listing's loss & damage compensation amount is the most the owner can ask you for — agree the details directly with them."
         },
         "q5": {
           "question": "Can I cancel a rental?",
@@ -185,7 +185,7 @@
         },
         "q6": {
           "question": "What do I need to list a toy?",
-          "answer": "Create an account, add at least one clear photo, choose a toy category, add a description and a daily price. Optionally add an age range and a refundable deposit."
+          "answer": "Create an account, add at least one clear photo, choose a toy category, add a description and a daily price. You'll also add an optional age range and set a loss & damage compensation amount — what the renter would owe you if the toy is lost, seriously damaged or not returned."
         }
       }
     },
@@ -398,7 +398,17 @@
       "return": "Return",
       "discount": "discount",
       "serviceFee": "Service fee",
-      "deposit": "Refundable deposit",
+      "compensationLabel": "Loss & damage compensation",
+      "compensationSubline": "only if lost, damaged or not returned",
+      "compensationInfoAria": "How loss & damage compensation works",
+      "compensationNotPartOfTotal": "Not part of your total",
+      "totalExcludesCompensation": "Total is what you pay for the rental. The compensation amount is not included.",
+      "howThisWorks": {
+        "title": "How this works",
+        "point1": "Nothing is paid upfront. No money is taken at booking or handed over at pickup.",
+        "point2": "This is a maximum. Lost or not returned: the full amount. Damaged: a sum you agree with the owner, never higher.",
+        "point3": "You and the owner settle it between yourselves. DoRent doesn't collect, hold or refund it — support can help if you get stuck."
+      },
       "noteTooLongError": "Your note is too long — please keep it to {{max}} characters or fewer."
     },
     "page": {
@@ -511,8 +521,9 @@
         "condition": "Condition",
         "hygieneNotes": "Hygiene & cleaning",
         "safetyNotes": "Safety notes",
-        "deposit": "Refundable deposit",
-        "depositValue": "{{amount}} deposit"
+        "compensation": "Loss & damage compensation",
+        "compensationValue": "Up to {{amount}}",
+        "compensationNotSpecified": "Not specified"
       },
       "conditionValues": {
         "new": "New",
@@ -521,15 +532,17 @@
         "fair": "Fair"
       },
       "protection": {
-        "title": "Rental Deposit & Coverage",
-        "intro": "Some owners ask for a small refundable deposit — the amount and refund terms are set by each owner.",
-        "whatIncluded": "What the deposit covers",
-        "forAllRentals": "For all toy rentals",
-        "bullet1": "The deposit can be used to cover damage, missing parts, or excessive wear",
-        "bullet2": "The deposit is fully refunded when the toy is returned in the agreed condition",
-        "bullet3": "Each owner describes how the toy is cleaned between rentals",
-        "bullet4": "Please follow the owner's age and safety guidance",
-        "bullet5": "If an issue comes up, contact the owner first — DoRent support is also here to help."
+        "eyebrow": "If something goes wrong",
+        "title": "Loss & damage compensation",
+        "pillNoUpfront": "Nothing charged upfront",
+        "intro": "The owner sets this amount. You pay nothing upfront.",
+        "introNoAmount": "The owner has not set an amount for this toy. Agree with the owner what happens if the toy is lost or damaged before you book.",
+        "bullet1": "Lost or not returned: up to the full amount",
+        "bullet2": "Serious damage: an amount you agree with the owner, never more than this",
+        "bullet3": "Settled directly between you and the owner",
+        "bullet4": "Each owner describes how the toy is cleaned between rentals",
+        "bullet5": "Follow the owner's age and safety guidance",
+        "bullet6": "If an issue comes up, contact the owner first — DoRent support is also here to help"
       },
       "reviews": {
         "heading": "Reviews",
@@ -540,7 +553,9 @@
       },
       "pickupDelivery": {
         "heading": "Pickup & delivery",
-        "hygieneValue": "Provided by owner"
+        "hygieneValue": "Provided by owner",
+        "compensationLabel": "Loss & damage compensation",
+        "compensationSubline": "only if lost, damaged or not returned · nothing upfront"
       },
       "ownerStats": {
         "rating": "Rating",
@@ -669,6 +684,9 @@
         "summaryAge": "Age",
         "summaryPhotos": "Photos",
         "summaryPrice": "Price",
+        "summaryCompensation": "Loss & damage compensation",
+        "compensationUpTo": "Up to {{amount}}",
+        "compensationPreviewNote": "Loss & damage compensation · Up to {{amount}} — only if lost, damaged or not returned",
         "summaryPickup": "Pickup",
         "summarySafety": "Safety",
         "summarySafetyValue": "{{done}} of {{total}} cleaning steps"
@@ -738,8 +756,15 @@
       "hygieneNotesPlaceholder": "How is the toy cleaned between rentals?",
       "safetyNotes": "Safety notes",
       "safetyNotesPlaceholder": "Small parts, age warnings, supervision required, etc.",
-      "depositAmount": "Refundable deposit",
-      "depositAmountPlaceholder": "Optional deposit amount",
+      "compensation": {
+        "title": "Loss & damage compensation",
+        "kicker": "Protects you — not income",
+        "label": "Loss & damage compensation (֏)",
+        "placeholder": "e.g. 45,000",
+        "helper": "What the renter pays you if the toy is lost, seriously damaged or not returned. Nothing is charged upfront.",
+        "tip": "Tip: use roughly what it would cost to buy this toy new.",
+        "footnote": "Kept separate from the price you earn. DoRent never collects or holds this money."
+      },
       "pickupArea": "Pickup area",
       "age": {
         "y02": "0–2 yr",
@@ -806,7 +831,7 @@
         "descriptionTooLong": "Description must be at most 4000 characters.",
         "priceGreaterThanZero": "Price must be greater than 0.",
         "ageRangeInvalid": "Max age must be greater than or equal to min age.",
-        "depositNonNegative": "Deposit cannot be negative.",
+        "compensationRange": "Enter an amount between 1,000 ֏ and 10,000,000 ֏",
         "ageNonNegative": "Age cannot be negative.",
         "photoTooFew": "Please add at least {{min}} photos.",
         "photoTooLarge": "Each photo must be smaller than 10 MB.",
@@ -908,7 +933,6 @@
       "summaryTotal": "Total",
       "selectDatesHint": "Choose dates to see the total price",
       "daysLabel": "days",
-      "depositNotCharged": "not charged now",
       "submitCta": "Send booking request",
       "submitting": "Submitting…",
       "confirmTitle": "Request sent to {{name}}!",
@@ -1075,7 +1099,8 @@
         "saveAndResubmit": "Save & resubmit for review",
         "resubmitNote": "Your changes will be saved and the listing sent back for review.",
         "fixItTitle": "Changes needed",
-        "fixItReviewedBy": "Reviewed by {{name}}"
+        "fixItReviewedBy": "Reviewed by {{name}}",
+        "compensationNotice": "Add a loss & damage compensation amount. It's now required to save changes."
       },
       "fields": {
         "title": "Title",
@@ -1087,8 +1112,7 @@
         "condition": "Condition",
         "conditionNone": "Not specified",
         "hygieneNotes": "Hygiene notes",
-        "safetyNotes": "Safety notes",
-        "depositAmount": "Deposit amount (AMD)"
+        "safetyNotes": "Safety notes"
       },
       "conditions": {
         "new": "New",
@@ -1256,7 +1280,6 @@
       "duration": "Duration",
       "days": "{{count}} days",
       "total": "Total price",
-      "deposit": "Deposit",
       "pickupReturn": "Pickup & return",
       "timeline": "Timeline",
       "owner": "Owner",
@@ -1309,7 +1332,6 @@
         "location": "Location",
         "priceLabel": "Price",
         "pricePerDay": "{{amount}} / day",
-        "depositAmount": "deposit {{amount}}",
         "createdAt": "Created",
         "toyDetails": "Toy details",
         "ageRange": "Age",
@@ -1541,8 +1563,8 @@
         "photos": "Photos",
         "photosValue": "{{count}} uploaded",
         "condition": "Condition",
-        "deposit": "Deposit",
-        "noDeposit": "No deposit"
+        "compensation": "Loss & damage compensation",
+        "noCompensation": "Not specified"
       },
       "owner": {
         "label": "Owner",

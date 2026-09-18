@@ -483,6 +483,10 @@
   }
 }
 
+/* The loss & damage compensation card styles (`.comp-card*`) live in
+   `create-listing-form.compensation.scss` — split out to stay under the
+   per-component style budget. */
+
 /* ── Photos — Step 1 ─────────────────────────────────────────── */
 .wizard-photo {
   display: flex;
@@ -1198,6 +1202,10 @@
   font-weight: 400;
   color: var(--ui-color-text-secondary);
 }
+
+/* `.wizard-preview__comp-rule` / `.wizard-preview__comp-note` live in
+   `create-listing-form.compensation.scss` (see the step-3 comp-card note
+   above). */
 
 /* Summary rows */
 .wizard-summary {

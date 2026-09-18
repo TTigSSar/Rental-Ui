@@ -51,7 +51,15 @@ export interface CreateListingRequest {
   condition?: ToyCondition | null;
   hygieneNotes?: string | null;
   safetyNotes?: string | null;
-  depositAmount?: number | null;
+  /**
+   * Maximum amount the renter owes the owner if the toy is lost, seriously
+   * damaged or not returned — never paid upfront, never collected/held/
+   * refunded by DoRent (ADR-014). Required by the wizard (1,000–10,000,000
+   * ֏); still nullable in the type because pre-existing listings (created
+   * before this field existed) carry `null` until their owner edits and
+   * fills it in.
+   */
+  compensationAmount?: number | null;
 
   // Optional: shortest number of days a renter may book for (1-365).
   minRentalDays?: number | null;

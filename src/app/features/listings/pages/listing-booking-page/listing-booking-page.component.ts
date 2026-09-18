@@ -5,6 +5,7 @@ import {
   computed,
   effect,
   ElementRef,
+  HostListener,
   inject,
   signal,
   viewChild,
@@ -26,6 +27,7 @@ import { distinctUntilChanged, map, of, switchMap } from 'rxjs';
 import { BookingCalendarComponent } from '../../components/booking-calendar/booking-calendar.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
+import { isCompensationAmountSet } from '../../../../shared/utils/compensation-amount.utils';
 import * as BookingsActions from '../../../bookings/store/bookings.actions';
 import {
   selectCreateBookingError,
@@ -98,12 +100,18 @@ interface BookingForm {
     ReactiveFormsModule,
     TranslatePipe,
   ],
+  // `DramCurrencyPipe` is injected directly (compensationDisplay()) as well
+  // as used from the template — must be listed here too or the component
+  // throws NG0201 on construction (same pattern/note as
+  // `listing-details-page.component.ts` and `create-listing-form.component.ts`).
+  providers: [DramCurrencyPipe],
   templateUrl: './listing-booking-page.component.html',
   styleUrl: './listing-booking-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListingBookingPageComponent {
   private readonly store = inject(Store);
+  private readonly dramPipe = inject(DramCurrencyPipe);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
@@ -218,9 +226,64 @@ export class ListingBookingPageComponent {
     return days * price;
   });
 
-  // Shown as its own breakdown row — refundable, collected by the owner off-platform,
-  // and deliberately NOT folded into totalPrice()/Total above (product decision).
-  protected readonly depositAmount = computed(() => this.listing()?.depositAmount ?? null);
+  // Shown as its own breakdown row — a MAXIMUM the renter owes the owner if
+  // the toy is lost, seriously damaged or not returned. Nothing is ever paid
+  // upfront and DoRent never collects/holds/refunds it (ADR-014); the row is
+  // deliberately NOT folded into totalPrice()/Total above (product decision).
+  // `null` here means "not set" per the shared rule (finite number > 0) — a
+  // stored `0` (legacy data) collapses to `null` too, see
+  // `isCompensationAmountSet`'s doc comment.
+  protected readonly compensationAmount = computed(() => {
+    const amount = this.listing()?.compensationAmount ?? null;
+    return isCompensationAmountSet(amount) ? amount : null;
+  });
+
+  /** Pre-formatted "Up to X ֏" — a translate param is a plain string
+   *  substitution, it can't apply the `dram` pipe itself (see
+   *  `listing-details-page`'s `formatDram`). Empty when there's no amount. */
+  protected readonly compensationDisplay = computed(() => {
+    const amount = this.compensationAmount();
+    return amount !== null ? (this.dramPipe.transform(amount) ?? '') : '';
+  });
+
+  // "How this works" info popover on the compensation row.
+  protected readonly compInfoOpen = signal(false);
+  private readonly compInfoTrigger = viewChild<ElementRef<HTMLButtonElement>>('compInfoTrigger');
+  /** Wraps BOTH the trigger button and the popover itself — containment is
+   *  checked against this, not the whole routed page (a previous version
+   *  compared against the component's own host element, so clicking the
+   *  calendar, the note field, or blank space anywhere on the page left the
+   *  popover open — only the header/footer, outside the host, ever closed
+   *  it). Only a click on the trigger or inside the popover counts as
+   *  "inside" now. */
+  private readonly compInfoWrap = viewChild<ElementRef<HTMLElement>>('compInfoWrap');
+
+  protected toggleCompInfo(): void {
+    this.compInfoOpen.update((open) => !open);
+  }
+
+  @HostListener('document:mousedown', ['$event'])
+  protected onDocumentMouseDown(event: MouseEvent): void {
+    if (!this.compInfoOpen()) return;
+    const target = event.target as Node | null;
+    const wrap = this.compInfoWrap()?.nativeElement ?? null;
+    if (target !== null && wrap !== null && !wrap.contains(target)) {
+      this.closeCompInfo(false);
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  protected onEscape(): void {
+    this.closeCompInfo(true);
+  }
+
+  protected closeCompInfo(returnFocus: boolean): void {
+    if (!this.compInfoOpen()) return;
+    this.compInfoOpen.set(false);
+    if (returnFocus) {
+      this.compInfoTrigger()?.nativeElement.focus();
+    }
+  }
 
   protected readonly primaryImageUrl = computed(() => {
     const images = this.listing()?.images;

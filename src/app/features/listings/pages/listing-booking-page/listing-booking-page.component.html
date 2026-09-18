@@ -155,21 +155,69 @@
                     <dt>{{ item.pricePerDay | dram }} × {{ rentalDays() }} {{ 'listings.bookingPage.daysLabel' | translate }}</dt>
                     <dd>{{ totalPrice() | dram }}</dd>
                   </div>
-                  @if (depositAmount(); as deposit) {
-                    <div class="booking-page__breakdown-row booking-page__breakdown-row--deposit">
-                      <dt>
-                        {{ 'listings.booking.deposit' | translate }}
-                        <span class="booking-page__breakdown-note">
-                          ({{ 'listings.bookingPage.depositNotCharged' | translate }})
+                  <div
+                    class="booking-page__breakdown-row booking-page__breakdown-row--compensation"
+                  >
+                    <dt>
+                      <span class="booking-page__comp-label-row">
+                        {{ 'listings.booking.compensationLabel' | translate }}
+                        <span class="booking-page__comp-info-wrap" #compInfoWrap>
+                          <button
+                            #compInfoTrigger
+                            type="button"
+                            class="booking-page__comp-info-btn"
+                            (click)="toggleCompInfo()"
+                            aria-haspopup="dialog"
+                            [attr.aria-expanded]="compInfoOpen()"
+                            [attr.aria-label]="'listings.booking.compensationInfoAria' | translate"
+                          >
+                            <i class="pi pi-info-circle" aria-hidden="true"></i>
+                          </button>
+                          @if (compInfoOpen()) {
+                            <div
+                              class="booking-page__comp-popover"
+                              role="dialog"
+                              [attr.aria-label]="'listings.booking.howThisWorks.title' | translate"
+                            >
+                              <strong class="booking-page__comp-popover-title">{{
+                                'listings.booking.howThisWorks.title' | translate
+                              }}</strong>
+                              <ol class="booking-page__comp-popover-list">
+                                <li>{{ 'listings.booking.howThisWorks.point1' | translate }}</li>
+                                <li>{{ 'listings.booking.howThisWorks.point2' | translate }}</li>
+                                <li>{{ 'listings.booking.howThisWorks.point3' | translate }}</li>
+                              </ol>
+                            </div>
+                          }
                         </span>
-                      </dt>
-                      <dd>{{ deposit | dram }}</dd>
-                    </div>
-                  }
+                      </span>
+                      <span class="booking-page__breakdown-note">
+                        {{ 'listings.booking.compensationSubline' | translate }}
+                      </span>
+                    </dt>
+                    <dd>
+                      <span class="booking-page__comp-value">
+                        @if (compensationAmount() !== null) {
+                          {{
+                            'listings.createPage.wizard.compensationUpTo'
+                              | translate: { amount: compensationDisplay() }
+                          }}
+                        } @else {
+                          {{ 'listings.details.toyDetails.compensationNotSpecified' | translate }}
+                        }
+                      </span>
+                      <span class="booking-page__comp-not-total">
+                        {{ 'listings.booking.compensationNotPartOfTotal' | translate }}
+                      </span>
+                    </dd>
+                  </div>
                   <div class="booking-page__breakdown-row booking-page__breakdown-row--total">
                     <dt>{{ 'listings.bookingPage.summaryTotal' | translate }}</dt>
                     <dd>{{ totalPrice() | dram }}</dd>
                   </div>
+                  <p class="booking-page__breakdown-total-note">
+                    {{ 'listings.booking.totalExcludesCompensation' | translate }}
+                  </p>
                 } @else {
                   <div class="booking-page__breakdown-row booking-page__breakdown-row--hint">
                     <dt>{{ 'listings.bookingPage.selectDatesHint' | translate }}</dt>

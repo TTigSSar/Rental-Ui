@@ -93,7 +93,7 @@ function normalizeBookingDetail(item: Partial<BookingDetail> & { id: string }): 
     addressLine: toNullableStr(item.addressLine),
     currency: toStr(item.currency),
     pricePerDay: toFiniteNumber(item.pricePerDay),
-    depositAmount: toNullableNumber(item.depositAmount),
+    compensationAmount: toNullableNumber(item.compensationAmount),
     totalPrice: toFiniteNumber(item.totalPrice),
     startDate: toStr(item.startDate),
     endDate: toStr(item.endDate),

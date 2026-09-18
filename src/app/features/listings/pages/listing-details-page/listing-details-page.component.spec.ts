@@ -395,3 +395,124 @@ describe('ListingDetailsPageComponent — delivery types & min-rental labels', (
     expect(highlightTitles(fixture)).toContain('5-day minimum');
   });
 });
+
+/**
+ * Loss & damage compensation: the specs tile, the pickup & delivery row and
+ * the protection card all decide "set vs. not specified" the same way now
+ * (`isCompensationAmountSet` — finite number > 0). `0` gets its own case
+ * because it's a real, reachable legacy value (the old optional-deposit
+ * validator allowed it, and the depositAmount -> compensationAmount rename
+ * preserved values) — before the shared helper existed, the tile/row treated
+ * `0` as "not specified" while the protection card rendered "Up to 0 ֏"
+ * (confirmed bug).
+ */
+describe('ListingDetailsPageComponent — loss & damage compensation amount', () => {
+  function setup(compensationAmount: number | null) {
+    const listing = makeListingDetails({
+      id: 'listing-1',
+      owner: { id: 'owner-1', firstName: 'Owen', lastName: 'Owner' },
+      compensationAmount,
+    });
+    TestBed.configureTestingModule({
+      imports: [ListingDetailsPageComponent, TranslateModule.forRoot()],
+      providers: [
+        provideRouter([{ path: 'my-listings/:id', children: [] }]),
+        MessageService,
+        provideMockStore({
+          initialState: {
+            [listingsFeatureKey]: {
+              ...initialListingsState,
+              selectedListing: listing,
+              isDetailsLoading: false,
+            },
+            [bookingsFeatureKey]: initialBookingsState,
+            [reviewsFeatureKey]: initialReviewsState,
+            [publicProfilesFeatureKey]: initialPublicProfilesState,
+            [favoritesFeatureKey]: initialFavoritesState,
+            [authFeatureKey]: initialAuthState,
+          },
+        }),
+        {
+          provide: ActivatedRoute,
+          useValue: { paramMap: of(convertToParamMap({ id: listing.id })) },
+        },
+      ],
+    });
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation(
+      'en',
+      {
+        listings: {
+          details: {
+            toyDetails: {
+              compensation: 'Loss & damage compensation',
+              compensationValue: 'Up to {{amount}}',
+              compensationNotSpecified: 'Not specified',
+            },
+            pickupDelivery: {
+              compensationLabel: 'Loss & damage compensation',
+              compensationSubline: 'only if lost, damaged or not returned',
+            },
+            protection: {
+              eyebrow: 'If something goes wrong',
+              title: 'Loss & damage compensation',
+              pillNoUpfront: 'Nothing charged upfront',
+              intro: 'The owner sets this amount. You pay nothing upfront.',
+              introNoAmount: 'The owner has not set an amount for this toy.',
+            },
+          },
+        },
+      },
+      true,
+    );
+    translate.use('en');
+    const fixture = TestBed.createComponent(ListingDetailsPageComponent);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  function text(fixture: ReturnType<typeof setup>, selector: string): string | undefined {
+    return (fixture.nativeElement as HTMLElement).querySelector(selector)?.textContent?.trim();
+  }
+
+  it('renders "Up to 45,000 ֏" in the specs tile, the pickup row and the protection card when an amount is set', () => {
+    const fixture = setup(45000);
+
+    // No other spec-tile-worthy fields are set on this fixture (age/condition/
+    // delivery all null), so the compensation tile — always pushed regardless
+    // of amount — is the only one rendered, making this selector unambiguous.
+    expect(text(fixture, '.detail-page__specquad-value')).toBe('Up to 45,000 ֏');
+    expect(text(fixture, '.detail-page__pickup-row-value')).toBe('Up to 45,000 ֏');
+    expect(
+      text(
+        fixture,
+        '.detail-page__protection-card--mobile .detail-page__protection-amount',
+      ),
+    ).toBe('Up to 45,000 ֏');
+  });
+
+  it.each([
+    ['null (never set)', null],
+    ['0 (legacy data from the old optional-deposit validator)', 0],
+  ])(
+    'renders "Not specified" and the no-amount intro everywhere when the amount is %s',
+    (_label, amount) => {
+      const fixture = setup(amount);
+
+      expect(text(fixture, '.detail-page__specquad-value')).toBe('Not specified');
+      expect(text(fixture, '.detail-page__pickup-row-value')).toBe('Not specified');
+      expect(
+        text(
+          fixture,
+          '.detail-page__protection-card--mobile .detail-page__protection-amount',
+        ),
+      ).toBe('Not specified');
+      expect(
+        text(
+          fixture,
+          '.detail-page__protection-card--mobile .detail-page__protection-intro',
+        ),
+      ).toBe('The owner has not set an amount for this toy.');
+    },
+  );
+});

@@ -526,7 +526,7 @@ export class ListingsApiService {
       condition: normalizeToyCondition(listing.condition),
       hygieneNotes: normalizeNonEmptyString(listing.hygieneNotes),
       safetyNotes: normalizeNonEmptyString(listing.safetyNotes),
-      depositAmount: normalizeFiniteNumber(listing.depositAmount),
+      compensationAmount: normalizeFiniteNumber(listing.compensationAmount),
     };
   }
 }

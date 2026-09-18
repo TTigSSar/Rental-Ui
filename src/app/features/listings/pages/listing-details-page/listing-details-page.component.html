@@ -272,7 +272,7 @@
             }
 
             <div class="detail-page__sections">
-              <!-- 1. Specs quad: best age / condition / deposit / handover -->
+              <!-- 1. Specs quad: best age / condition / compensation / handover -->
               @if (specTiles().length > 0) {
                 <section class="detail-page__section" aria-labelledby="detail-specs-heading">
                   <h2 id="detail-specs-heading" class="detail-page__section-title">
@@ -351,10 +351,20 @@
                           <span class="detail-page__pickup-row-icon">
                             <i [class]="row.icon" aria-hidden="true"></i>
                           </span>
-                          <span class="detail-page__pickup-row-label">{{
-                            row.labelKey | translate
-                          }}</span>
-                          <span class="detail-page__pickup-row-value">
+                          <span class="detail-page__pickup-row-label-wrap">
+                            <span class="detail-page__pickup-row-label">{{
+                              row.labelKey | translate
+                            }}</span>
+                            @if (row.subLabelKey) {
+                              <span class="detail-page__pickup-row-sublabel">{{
+                                row.subLabelKey | translate
+                              }}</span>
+                            }
+                          </span>
+                          <span
+                            class="detail-page__pickup-row-value"
+                            [class.detail-page__pickup-row-value--nowrap]="row.id === 'compensation'"
+                          >
                             @if (row.valueText) {
                               {{ row.valueText }}
                             } @else {
@@ -660,18 +670,42 @@
 
         <ng-template #protectionCardTpl>
           <div class="detail-page__protection-card">
-            <span class="detail-page__protection-icon" aria-hidden="true">
-              <i class="pi pi-shield"></i>
-            </span>
-            <div class="detail-page__protection-body">
-              <strong>{{ protectionTitleKey | translate }}</strong>
-              <p>{{ protectionIntroKey | translate }}</p>
-              <ul class="detail-page__protection-bullets">
-                @for (key of protectionBullets; track key) {
-                  <li>{{ key | translate }}</li>
-                }
-              </ul>
+            <span class="detail-page__protection-eyebrow">{{
+              protectionEyebrowKey | translate
+            }}</span>
+            <div class="detail-page__protection-head">
+              <span class="detail-page__protection-icon" aria-hidden="true">
+                <i class="pi pi-shield"></i>
+              </span>
+              <strong class="detail-page__protection-title">{{
+                protectionTitleKey | translate
+              }}</strong>
             </div>
+            <div class="detail-page__protection-amount-row">
+              <span class="detail-page__protection-amount">
+                @if (protectionAmountDisplay(); as amount) {
+                  {{
+                    'listings.details.toyDetails.compensationValue' | translate: { amount: amount }
+                  }}
+                } @else {
+                  {{ 'listings.details.toyDetails.compensationNotSpecified' | translate }}
+                }
+              </span>
+              <span class="detail-page__protection-pill">
+                <i class="pi pi-lock" aria-hidden="true"></i>
+                {{ protectionPillKey | translate }}
+              </span>
+            </div>
+            <p class="detail-page__protection-intro">{{ protectionIntroKey() | translate }}</p>
+            <div class="detail-page__protection-divider" aria-hidden="true"></div>
+            <ul class="detail-page__protection-bullets">
+              @for (key of protectionBullets; track key) {
+                <li>
+                  <i class="pi pi-check" aria-hidden="true"></i>
+                  <span>{{ key | translate }}</span>
+                </li>
+              }
+            </ul>
           </div>
         </ng-template>
 

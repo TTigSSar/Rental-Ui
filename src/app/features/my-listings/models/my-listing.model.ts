@@ -22,7 +22,8 @@ export interface UpdateListingRequest {
   condition?: string | null;
   hygieneNotes?: string | null;
   safetyNotes?: string | null;
-  depositAmount?: number | null;
+  /** See `CreateListingRequest.compensationAmount` — same field, update payload. */
+  compensationAmount?: number | null;
   minRentalDays?: number | null;
   deliveryType?: DeliveryType | null;
   deliveryTypes?: DeliveryType[] | null;
@@ -60,7 +61,7 @@ export interface MyListing {
   condition: string | null;
   hygieneNotes: string | null;
   safetyNotes: string | null;
-  depositAmount: number | null;
+  compensationAmount: number | null;
   // Null on listings created before these fields existed.
   minRentalDays?: number | null;
   deliveryType?: DeliveryType | null;

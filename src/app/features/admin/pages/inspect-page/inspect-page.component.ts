@@ -20,6 +20,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { distinctUntilChanged, filter, map } from 'rxjs';
 
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
+import { isCompensationAmountSet } from '../../../../shared/utils/compensation-amount.utils';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import * as ListingsActions from '../../../listings/store/listings.actions';
 import { selectListingCategories } from '../../../listings/store/listings.selectors';
@@ -54,7 +55,7 @@ import { AdminBreakpointService } from '../../utils/admin-breakpoint.service';
  *
  * One backend gap: the design's third attribute tile is "Handover: Pickup ·
  * Courier", which has no backing field — substituted with the listing's real
- * deposit amount instead of fabricating a value.
+ * loss & damage compensation amount instead of fabricating a value.
  */
 @Component({
   selector: 'app-inspect-page',
@@ -94,6 +95,8 @@ export class InspectPageComponent implements OnInit, OnDestroy {
     ),
     { initialValue: null as string | null },
   );
+
+  protected readonly isCompensationAmountSet = isCompensationAmountSet;
 
   protected readonly detail = this.store.selectSignal(selectListingDetail);
   protected readonly detailListingId = this.store.selectSignal(selectListingDetailListingId);

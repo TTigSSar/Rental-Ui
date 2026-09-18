@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { provideRouter } from '@angular/router';
 import { provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule } from '@ngx-translate/core';
+import { InputNumber } from 'primeng/inputnumber';
 
 import { CreateListingFormComponent } from './create-listing-form.component';
 import type {
@@ -64,12 +66,16 @@ type SubmitEvent = {
 /** Access the protected submit handler without loosening component visibility. */
 interface Submittable {
   onSubmit(): void;
+  canSubmit(): boolean;
 }
 
 function createComponent(mode: ListingFormMode = 'create') {
   TestBed.configureTestingModule({
     imports: [CreateListingFormComponent, TranslateModule.forRoot()],
-    providers: [provideMockStore()],
+    // `provideRouter([])` is required for step 5's `routerLink="/terms"` (the
+    // community-rules link) — only exercised by tests that actually render
+    // step 5, but harmless to provide unconditionally for every test here.
+    providers: [provideMockStore(), provideRouter([])],
   });
   const fixture = TestBed.createComponent(CreateListingFormComponent);
   const component = fixture.componentInstance;
@@ -88,6 +94,9 @@ function fillValidBasics(component: CreateListingFormComponent): void {
     categoryId: 'cat-123',
     pricePerDay: 9,
     city: 'Yerevan',
+    // Loss & damage compensation is required (1,000–10,000,000 ֏) — see the
+    // dedicated describe block below for the field's own validation tests.
+    compensationAmount: 10000,
   });
 }
 
@@ -215,6 +224,7 @@ describe('CreateListingFormComponent — Step-3 payload (min rental + delivery)'
       condition: 'Good',
       hygieneNotes: null,
       safetyNotes: null,
+      compensationAmount: 10000,
       minRentalDays: 14,
       deliveryTypes: ['Pickup', 'Courier'],
     };
@@ -244,6 +254,7 @@ describe('CreateListingFormComponent — Step-3 payload (min rental + delivery)'
       condition: 'Good',
       hygieneNotes: null,
       safetyNotes: null,
+      compensationAmount: 10000,
       minRentalDays: 3,
       deliveryType: 'Courier',
       // deliveryTypes intentionally omitted — the legacy shape.
@@ -274,6 +285,9 @@ describe('CreateListingFormComponent — Step-3 payload (min rental + delivery)'
       condition: null,
       hygieneNotes: null,
       safetyNotes: null,
+      // Required for submit to proceed at all; this test is about the
+      // minRentalDays/deliveryType fallback defaults, not this field.
+      compensationAmount: 10000,
       minRentalDays: null,
       deliveryType: null,
     };
@@ -483,5 +497,241 @@ describe('CreateListingFormComponent — location picker focus return (a11y)', (
     await fixture.whenStable();
 
     expect(document.activeElement).toBe(fixture.nativeElement.querySelector('.location-card__cta'));
+  });
+});
+
+/**
+ * Loss & damage compensation (step 3): required, whole AMD, 1,000–10,000,000.
+ * Redefines the old optional `depositAmount` — the renter's maximum liability
+ * if the toy is lost, seriously damaged or not returned. Nothing is paid
+ * upfront and DoRent never collects/holds/refunds it (ADR-014).
+ */
+describe('CreateListingFormComponent — loss & damage compensation (step 3)', () => {
+  function fillBasicsExceptCompensation(component: CreateListingFormComponent): void {
+    component.createListingForm.patchValue({
+      title: 'Wooden Train Set',
+      description: 'A lovely wooden train set in great condition for toddlers.',
+      categoryId: 'cat-123',
+      pricePerDay: 9,
+      city: 'Yerevan',
+    });
+  }
+
+  it('blocks submit when the amount is empty (required)', () => {
+    const { component } = createComponent('create');
+    fillBasicsExceptCompensation(component);
+    seedThreePhotos(component);
+
+    const event = submitAndCapture(component);
+
+    expect(event).toBeNull();
+    expect(component.createListingForm.controls.compensationAmount.hasError('required')).toBe(
+      true,
+    );
+  });
+
+  it('blocks submit when the amount is below the 1,000 ֏ minimum', () => {
+    const { component } = createComponent('create');
+    fillBasicsExceptCompensation(component);
+    seedThreePhotos(component);
+    component.createListingForm.patchValue({ compensationAmount: 500 });
+
+    const event = submitAndCapture(component);
+
+    expect(event).toBeNull();
+    expect(component.createListingForm.controls.compensationAmount.hasError('min')).toBe(true);
+  });
+
+  it('blocks submit when the amount is above the 10,000,000 ֏ maximum', () => {
+    const { component } = createComponent('create');
+    fillBasicsExceptCompensation(component);
+    seedThreePhotos(component);
+    component.createListingForm.patchValue({ compensationAmount: 10_000_001 });
+
+    const event = submitAndCapture(component);
+
+    expect(event).toBeNull();
+    expect(component.createListingForm.controls.compensationAmount.hasError('max')).toBe(true);
+  });
+
+  it('includes a valid amount in the submitted payload', () => {
+    const { component } = createComponent('create');
+    fillBasicsExceptCompensation(component);
+    seedThreePhotos(component);
+    component.createListingForm.patchValue({ compensationAmount: 45000 });
+
+    const event = submitAndCapture(component);
+
+    expect(event).not.toBeNull();
+    expect(event!.payload.compensationAmount).toBe(45000);
+  });
+
+  it('starts the field empty in edit mode when the listing predates this field (null)', () => {
+    const { component } = createComponent('edit');
+    component.existingImageUrls = [{ id: 'img-1', url: 'https://x/img-1.jpg' } as never];
+    component.prefill = {
+      title: 'Legacy Listing',
+      description: 'An older listing created before this field existed.',
+      categoryId: 'cat-123',
+      pricePerDay: 5,
+      priceUnit: 'Daily',
+      city: 'Yerevan',
+      ageFromMonths: 24,
+      ageToMonths: 60,
+      condition: null,
+      hygieneNotes: null,
+      safetyNotes: null,
+      compensationAmount: null,
+    };
+
+    expect(component.createListingForm.controls.compensationAmount.value).toBeNull();
+
+    // Save stays enabled — the requirement is enforced on submit, not by
+    // disabling the button (an owner must not be trapped).
+    const event = submitAndCapture(component);
+    expect(event).toBeNull();
+    expect(component.createListingForm.controls.compensationAmount.hasError('required')).toBe(
+      true,
+    );
+  });
+
+  /**
+   * Regression for a bug found in verification: edit mode's Save button was
+   * bound to the same `[disabled]="!canSubmit()"` as create mode, so a
+   * pre-existing listing with a null compensation amount — reachable at step
+   * 5 directly via the desktop stepper rail's `jumpToStep`, which skips the
+   * per-step `goToNextStep` validation — showed a greyed-out, inert Save
+   * button. The owner had only the top-of-page amber banner as a clue, and a
+   * click did nothing. Fixed: edit-mode Save is never disabled; clicking it
+   * with an invalid field runs `markAllAsTouched()`, does not submit, and
+   * jumps back to the step owning the first invalid control (compensation
+   * lives on step 3) with the field focused so the "Required" error is
+   * actually visible.
+   */
+  it('edit mode: Save stays enabled with a null amount, and clicking it does not submit — it jumps to step 3 and surfaces "Required"', () => {
+    const { fixture, component } = createComponent('edit');
+    component.existingImageUrls = [{ id: 'img-1', url: 'https://x/img-1.jpg' } as never];
+    component.prefill = {
+      title: 'Legacy Listing',
+      description: 'An older listing created before this field existed.',
+      categoryId: 'cat-123',
+      pricePerDay: 5,
+      priceUnit: 'Daily',
+      city: 'Yerevan',
+      ageFromMonths: 24,
+      ageToMonths: 60,
+      condition: null,
+      hygieneNotes: null,
+      safetyNotes: null,
+      compensationAmount: null,
+    };
+    // Reached directly via the stepper rail, same as in real use — not by
+    // Continue-ing through steps 1–4 (which would have already surfaced the
+    // error at step 3).
+    component.currentStep.set(5);
+    fixture.detectChanges();
+
+    expect((component as unknown as Submittable).canSubmit()).toBe(true);
+    const submitBtn = fixture.nativeElement.querySelector(
+      'button[type="submit"]',
+    ) as HTMLButtonElement;
+    expect(submitBtn).toBeTruthy();
+    expect(submitBtn.disabled).toBe(false);
+
+    let submitted = false;
+    const sub = component.submitted.subscribe(() => {
+      submitted = true;
+    });
+    submitBtn.click();
+    sub.unsubscribe();
+
+    expect(submitted).toBe(false);
+    expect(component.currentStep()).toBe(3);
+
+    fixture.detectChanges();
+    const errorEl = fixture.nativeElement.querySelector('.comp-card .wizard-field__error');
+    expect(errorEl).toBeTruthy();
+    expect(component.createListingForm.controls.compensationAmount.hasError('required')).toBe(
+      true,
+    );
+  });
+});
+
+/**
+ * Regression for a second bug found in the same verification pass: the
+ * `p-inputNumber` for `compensationAmount` was bound with `[min]`/`[max]`,
+ * which makes PrimeNG silently CLAMP the value on blur (20000000 → 10,000,000)
+ * instead of leaving it as typed — so the "Enter an amount between 1,000 ֏
+ * and 10,000,000 ֏" error was unreachable and Continue just succeeded. Fixed
+ * by dropping the `[min]`/`[max]` bindings and relying solely on the
+ * `Validators.min`/`max` already on the FormControl. These tests drive the
+ * real rendered `p-inputNumber` (not `patchValue`, which would bypass
+ * PrimeNG's clamping entirely and defeat the point of the regression test).
+ */
+describe('CreateListingFormComponent — compensation amount is not clamped by the input (regression)', () => {
+  function goToStep3(
+    fixture: ReturnType<typeof createComponent>['fixture'],
+    component: CreateListingFormComponent,
+  ) {
+    component.currentStep.set(3);
+    fixture.detectChanges();
+  }
+
+  /** Simulates the real blur path PrimeNG uses to commit a typed value,
+   *  without needing full keystroke-by-keystroke input simulation. */
+  function typeAndBlurCompensationInput(
+    fixture: ReturnType<typeof createComponent>['fixture'],
+    raw: string,
+  ): void {
+    const inputEl = fixture.nativeElement.querySelector('#wz-compensation') as HTMLInputElement;
+    expect(inputEl).toBeTruthy();
+    const instance = fixture.debugElement
+      .queryAll(By.directive(InputNumber))
+      .map((debugEl) => debugEl.componentInstance as InputNumber)
+      .find((c) => c.inputId === 'wz-compensation');
+    expect(instance).toBeTruthy();
+
+    inputEl.value = raw;
+    instance!.onInputBlur({ target: inputEl } as unknown as FocusEvent);
+    fixture.detectChanges();
+  }
+
+  it('keeps a value above the 10,000,000 ֏ maximum exactly as typed (not clamped down)', () => {
+    const { fixture, component } = createComponent('create');
+    fillValidBasics(component);
+    goToStep3(fixture, component);
+
+    typeAndBlurCompensationInput(fixture, '20000000');
+
+    expect(component.createListingForm.controls.compensationAmount.value).toBe(20000000);
+    expect(component.createListingForm.controls.compensationAmount.hasError('max')).toBe(true);
+  });
+
+  it('keeps a value below the 1,000 ֏ minimum exactly as typed (not clamped up), and blocks Continue', () => {
+    const { fixture, component } = createComponent('create');
+    fillValidBasics(component);
+    goToStep3(fixture, component);
+
+    typeAndBlurCompensationInput(fixture, '500');
+
+    expect(component.createListingForm.controls.compensationAmount.value).toBe(500);
+    expect(component.createListingForm.controls.compensationAmount.hasError('min')).toBe(true);
+
+    component.goToNextStep();
+    expect(component.currentStep()).toBe(3);
+  });
+
+  it('an out-of-range amount blocks Continue at step 3 (the range error is reachable)', () => {
+    const { fixture, component } = createComponent('create');
+    fillValidBasics(component);
+    goToStep3(fixture, component);
+
+    typeAndBlurCompensationInput(fixture, '20000000');
+    component.goToNextStep();
+
+    expect(component.currentStep()).toBe(3);
+    fixture.detectChanges();
+    const errorEl = fixture.nativeElement.querySelector('.comp-card .wizard-field__error');
+    expect(errorEl).toBeTruthy();
   });
 });

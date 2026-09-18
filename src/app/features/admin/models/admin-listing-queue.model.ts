@@ -53,7 +53,7 @@ export interface AdminListingSummary {
   condition: ToyCondition | null;
   hygieneNotes: string | null;
   safetyNotes: string | null;
-  depositAmount: number | null;
+  compensationAmount: number | null;
 
   images: AdminListingImage[];
 

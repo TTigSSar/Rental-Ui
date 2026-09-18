@@ -60,6 +60,15 @@ test.describe('Create listing — location pin', () => {
     // "Change" affordance — proof the confirmed coordinate landed in the form.
     await expect(page.getByRole('button', { name: 'Change' })).toBeVisible();
 
+    // Loss & damage compensation is required on create (1,000–10,000,000 ֏,
+    // see ListingCompensationAmountValidationTests.cs and
+    // create-listing-form.component.ts's STEP_CONTROLS for step 3). Without
+    // this fill, `goToNextStep()` silently refuses to advance past step 3 and
+    // "Continue to preview" below never appears — a regression this test
+    // caught when the field was added (it hung on the click below instead of
+    // failing fast, the same "looks like a hang" trap MIN_PHOTOS sets).
+    await page.locator('#wz-compensation').fill('45000');
+
     await page.getByRole('button', { name: 'Continue to safety' }).click();
 
     // ── Step 4 — Safety (nothing required) ──
@@ -72,7 +81,11 @@ test.describe('Create listing — location pin', () => {
       page.getByRole('button', { name: 'Submit for review' }).click(),
     ]);
 
-    const body = request.postDataJSON() as { latitude: number | null; longitude: number | null };
+    const body = request.postDataJSON() as {
+      latitude: number | null;
+      longitude: number | null;
+      compensationAmount: number | null;
+    };
     // The picker's default centre (Republic Square, Yerevan — see
     // `YEREVAN_CENTER` in location-picker.component.ts) is a real, confirmable
     // coordinate: `confirm()` reads off whatever sits under the crosshair, and
@@ -82,5 +95,9 @@ test.describe('Create listing — location pin', () => {
     // assertion doesn't already prove.
     expect(body.latitude).toBeCloseTo(40.1776, 3);
     expect(body.longitude).toBeCloseTo(44.5126, 3);
+    // Wire-shape regression for the DepositAmount → CompensationAmount rename
+    // (migration 20260917052338): the field typed at step 3 must reach the
+    // request under its new wire name.
+    expect(body.compensationAmount).toBe(45000);
   });
 });

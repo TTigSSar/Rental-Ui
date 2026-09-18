@@ -116,8 +116,8 @@ function normalizeMyListing(raw: Record<string, unknown> & { id: string }): MyLi
     safetyNotes: typeof raw['safetyNotes'] === 'string' && raw['safetyNotes'].length > 0
       ? raw['safetyNotes']
       : null,
-    depositAmount:
-      typeof raw['depositAmount'] === 'number' ? (raw['depositAmount'] as number) : null,
+    compensationAmount:
+      typeof raw['compensationAmount'] === 'number' ? (raw['compensationAmount'] as number) : null,
     minRentalDays:
       typeof raw['minRentalDays'] === 'number' ? (raw['minRentalDays'] as number) : null,
     deliveryType: coerceDeliveryType(raw['deliveryType']),

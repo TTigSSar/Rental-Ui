@@ -1,0 +1,167 @@
+/* ── Loss & damage compensation card (step 3) ────────────────── */
+/* Its own bordered sub-card, deliberately separate from the rate card above
+   it — the copy/footnote both stress this money is never earnings. Split
+   into its own stylesheet to stay under the per-component style budget. */
+.comp-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-12);
+  padding: var(--ui-space-16);
+  border: 1.5px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface);
+}
+
+.comp-card--error {
+  border-color: var(--ui-color-error);
+}
+
+.comp-card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-12);
+}
+
+.comp-card__icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-12);
+  color: var(--ui-color-text-secondary);
+
+  i {
+    font-size: 1rem;
+  }
+}
+
+.comp-card__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.comp-card__title {
+  font-size: var(--ui-font-size-body);
+  font-weight: 700;
+  color: var(--ui-color-text-primary);
+}
+
+.comp-card__kicker {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ui-color-text-hint);
+}
+
+/* Input + ֏ suffix cell, same bordered-card pattern as `.rate-card` but
+   without the dropdown trigger. */
+.comp-card__input-row {
+  display: flex;
+  align-items: stretch;
+  border: 1.5px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface);
+  overflow: hidden;
+}
+
+.comp-card__input-row:focus-within {
+  border-color: var(--ui-color-primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--ui-color-primary) 10%, transparent);
+}
+
+.comp-card__input-row--error {
+  border-color: var(--ui-color-error);
+
+  &:focus-within {
+    border-color: var(--ui-color-error);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--ui-color-error) 12%, transparent);
+  }
+}
+
+:host ::ng-deep .comp-card__input {
+  flex: 1;
+  display: flex;
+}
+:host ::ng-deep .comp-card__input .p-inputtext {
+  width: 100%;
+  height: 3rem;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  padding: 0 var(--ui-space-16);
+}
+:host ::ng-deep .comp-card__input .p-inputtext:enabled:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+.comp-card__suffix {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--ui-space-16);
+  border-left: 1px solid var(--ui-color-border);
+  background: var(--ui-color-background);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--ui-color-text-secondary);
+}
+
+.comp-card__tip {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-8);
+  padding: var(--ui-space-10) var(--ui-space-12);
+  border: 1px dashed var(--ui-color-border-strong);
+  border-radius: var(--ui-radius-sm);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--ui-color-text-secondary);
+
+  .pi {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 0.8rem;
+    color: var(--ui-color-primary);
+  }
+}
+
+.comp-card__footnote {
+  margin: 0;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: var(--ui-color-text-hint);
+}
+
+/* ── Compensation note below the preview price (step 5) ─────────── */
+/* Deliberately muted, never the orange price type, so it never reads as
+   part of the owner's earnings. */
+.wizard-preview__comp-rule {
+  margin: var(--ui-space-4) 0 0;
+  border-top: 1px dashed var(--ui-color-border);
+}
+
+.wizard-preview__comp-note {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-6);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--ui-color-text-secondary);
+
+  .pi {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 0.75rem;
+    color: var(--ui-color-text-hint);
+  }
+}

@@ -16,6 +16,17 @@
 
 <!-- ── Wizard (same component as Create, in edit mode) ───────── -->
 @else {
+  <!-- Amber notice: listings created before loss & damage compensation
+       existed have no amount on file. Save stays enabled either way — this
+       is a heads-up, not a gate (the field's own "Required" error enforces
+       it on submit). -->
+  @if (showCompensationNotice()) {
+    <div class="edit-compensation-notice" role="status">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <span>{{ 'myListings.editPage.wizard.compensationNotice' | translate }}</span>
+    </div>
+  }
+
   <!-- Fix-it banner for rejected listings -->
   @if (isRejected()) {
     <div class="edit-fixup-banner" role="alert">

@@ -21,6 +21,7 @@ import { ReportDialogComponent } from '../../../reports/components/report-dialog
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
+import { isCompensationAmountSet } from '../../../../shared/utils/compensation-amount.utils';
 import { selectAuthUser, selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 import * as FavoritesActions from '../../../favorites/store/favorites.actions';
 import { selectFavoriteIds } from '../../../favorites/store/favorites.selectors';
@@ -69,26 +70,27 @@ const BOOKING_DISPLAY_PRIORITY: Partial<Record<MyBooking['status'], number>> = {
  *  ladder used everywhere else on it (DESIGN_RULES §3). */
 const REVIEWS_PREVIEW_COUNT = 3;
 
+const PROTECTION_EYEBROW_KEY = 'listings.details.protection.eyebrow';
 const PROTECTION_TITLE_KEY = 'listings.details.protection.title';
+const PROTECTION_PILL_KEY = 'listings.details.protection.pillNoUpfront';
 const PROTECTION_INTRO_KEY = 'listings.details.protection.intro';
+const PROTECTION_INTRO_NO_AMOUNT_KEY = 'listings.details.protection.introNoAmount';
 
 /**
- * The design mocks 5 protection bullets. Two of them (damage/wear claims
- * against the deposit, and an automatic "fully refunded" promise) describe a
- * claims/refund process DoRent does not actually run — deposits are agreed
- * and exchanged directly between owner and renter, off-platform, with no
- * backend dispute/claim/refund mechanism at all (verified against
- * `BookingsService`/`BookingStatus` — no such step exists). Rendering them
- * would promise something the platform can't back up, so only the 3 bullets
- * that describe real, backend-verifiable or platform-neutral facts are kept:
- * hygiene notes are a real owner-authored field, safety guidance is neutral
- * advice, and DoRent support email is a real, working contact channel
- * (`support@dorent.am`, see the FAQ page).
+ * Loss & damage compensation (ADR-014, redesigned): a maximum the renter owes
+ * the owner if the toy is lost, seriously damaged or not returned — nothing
+ * is ever paid upfront, and DoRent never collects/holds/refunds it. All 6
+ * bullets describe this real, platform-neutral mechanism (no claims/refund
+ * process DoRent doesn't actually run), unlike the old 5-bullet refundable-
+ * guarantee copy this replaces.
  */
 const PROTECTION_BULLET_KEYS: readonly string[] = [
+  'listings.details.protection.bullet1',
+  'listings.details.protection.bullet2',
   'listings.details.protection.bullet3',
   'listings.details.protection.bullet4',
   'listings.details.protection.bullet5',
+  'listings.details.protection.bullet6',
 ];
 
 export function resolveConditionLabelKey(value: string | null | undefined): string | null {
@@ -188,6 +190,9 @@ export interface DetailRow {
   readonly id: string;
   readonly icon: string;
   readonly labelKey: string;
+  /** Optional small muted line under the label (e.g. the compensation row's
+   *  "only if lost, damaged or not returned · nothing upfront"). */
+  readonly subLabelKey?: string;
   readonly valueKey?: string;
   readonly valueParams?: Record<string, unknown>;
   /** Pre-formatted value (e.g. currency via `dram`) instead of an i18n key. */
@@ -246,7 +251,10 @@ function resolveDeliveryTypes(listing: ListingDetails): DeliveryType[] {
   // `listing-details-page.component.spec.ts`, "DI construction").
   providers: [DramCurrencyPipe],
   templateUrl: './listing-details-page.component.html',
-  styleUrl: './listing-details-page.component.scss',
+  styleUrls: [
+    './listing-details-page.component.scss',
+    './listing-details-page.protection.scss',
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListingDetailsPageComponent {
@@ -289,9 +297,26 @@ export class ListingDetailsPageComponent {
 
   protected readonly resolveConditionLabelKey = resolveConditionLabelKey;
   protected readonly resolveAgeRangeDisplay = resolveAgeRangeDisplay;
+  protected readonly protectionEyebrowKey = PROTECTION_EYEBROW_KEY;
   protected readonly protectionTitleKey = PROTECTION_TITLE_KEY;
-  protected readonly protectionIntroKey = PROTECTION_INTRO_KEY;
+  protected readonly protectionPillKey = PROTECTION_PILL_KEY;
   protected readonly protectionBullets = PROTECTION_BULLET_KEYS;
+  // Intro copy differs depending on whether the owner set an amount.
+  protected readonly protectionIntroKey = computed(() =>
+    this.protectionAmount() !== null ? PROTECTION_INTRO_KEY : PROTECTION_INTRO_NO_AMOUNT_KEY,
+  );
+  // `null` here means "not set" per the shared rule (finite number > 0) —
+  // a stored `0` (legacy data, see `isCompensationAmountSet`'s doc comment)
+  // collapses to `null` too, so `protectionIntroKey`/`protectionAmountDisplay`
+  // below don't need their own >0 check.
+  protected readonly protectionAmount = computed(() => {
+    const amount = this.displayListing()?.compensationAmount ?? null;
+    return isCompensationAmountSet(amount) ? amount : null;
+  });
+  protected readonly protectionAmountDisplay = computed(() => {
+    const amount = this.protectionAmount();
+    return amount !== null ? this.formatDram(amount) : null;
+  });
 
   // ── Route ────────────────────────────────────────────────────────────────
   private readonly routeId$ = this.route.paramMap.pipe(
@@ -616,7 +641,7 @@ export class ListingDetailsPageComponent {
 
   protected readonly highlightColumns = computed(() => this.highlightTiles().length);
 
-  // ── Specs quad (best age / condition / deposit / handover) ─────────────
+  // ── Specs quad (best age / condition / compensation / handover) ────────
   protected readonly specTiles = computed<DetailTile[]>(() => {
     const listing = this.displayListing();
     if (!listing) return [];
@@ -641,17 +666,27 @@ export class ListingDetailsPageComponent {
         subKey: conditionKey ?? undefined,
       });
     }
-    if (typeof listing.depositAmount === 'number' && listing.depositAmount > 0) {
-      tiles.push({
-        id: 'deposit',
-        icon: 'pi pi-wallet',
-        titleKey: 'listings.details.toyDetails.deposit',
-        subKey: 'listings.details.toyDetails.depositValue',
-        // Pre-formatted (not the raw number) — a translate param is a plain
-        // string substitution, it can't apply the `dram` pipe itself.
-        subParams: { amount: this.formatDram(listing.depositAmount) },
-      });
-    }
+    // Always rendered (unlike the other conditional tiles above) — a missing
+    // amount is itself meaningful information ("Not specified"), not an
+    // absent field to hide.
+    tiles.push(
+      isCompensationAmountSet(listing.compensationAmount)
+        ? {
+            id: 'compensation',
+            icon: 'pi pi-shield',
+            titleKey: 'listings.details.toyDetails.compensation',
+            subKey: 'listings.details.toyDetails.compensationValue',
+            // Pre-formatted (not the raw number) — a translate param is a
+            // plain string substitution, it can't apply the `dram` pipe itself.
+            subParams: { amount: this.formatDram(listing.compensationAmount) },
+          }
+        : {
+            id: 'compensation',
+            icon: 'pi pi-shield',
+            titleKey: 'listings.details.toyDetails.compensation',
+            subKey: 'listings.details.toyDetails.compensationNotSpecified',
+          },
+    );
     const deliveryTypes = resolveDeliveryTypes(listing);
     if (deliveryTypes.length > 0) {
       const both = deliveryTypes.length >= 2;
@@ -695,18 +730,33 @@ export class ListingDetailsPageComponent {
         valueParams: chipKey ? undefined : { count: listing.minRentalDays },
       });
     }
-    if (typeof listing.depositAmount === 'number' && listing.depositAmount > 0) {
-      rows.push({
-        id: 'deposit',
-        icon: 'pi pi-wallet',
-        labelKey: 'listings.details.toyDetails.deposit',
-        valueText: this.formatDram(listing.depositAmount),
-      });
-    }
+    // Always shown (unlike the other conditional rows above) — a hidden row
+    // would read as "nothing to pay, ever", which isn't true; "Not specified"
+    // is itself meaningful.
+    rows.push(
+      isCompensationAmountSet(listing.compensationAmount)
+        ? {
+            id: 'compensation',
+            icon: 'pi pi-shield',
+            labelKey: 'listings.details.pickupDelivery.compensationLabel',
+            subLabelKey: 'listings.details.pickupDelivery.compensationSubline',
+            valueKey: 'listings.details.toyDetails.compensationValue',
+            valueParams: { amount: this.formatDram(listing.compensationAmount) },
+          }
+        : {
+            id: 'compensation',
+            icon: 'pi pi-shield',
+            labelKey: 'listings.details.pickupDelivery.compensationLabel',
+            subLabelKey: 'listings.details.pickupDelivery.compensationSubline',
+            valueKey: 'listings.details.toyDetails.compensationNotSpecified',
+          },
+    );
     if (listing.hygieneNotes) {
       rows.push({
         id: 'hygiene',
-        icon: 'pi pi-shield',
+        // pi-shield is now used by the compensation row above — pi-sparkles
+        // keeps the two visually distinct.
+        icon: 'pi pi-sparkles',
         labelKey: 'listings.card.hygieneProvided',
         valueKey: 'listings.details.pickupDelivery.hygieneValue',
       });

@@ -585,7 +585,7 @@
   }
 }
 
-/* ── Specs quad: best age / condition / deposit / handover ──────────── */
+/* ── Specs quad: best age / condition / compensation / handover ─────── */
 .detail-page__specquad {
   display: grid;
   /* 2-up by default (also covers ≤1099px, unchanged/verified clean). 4-up
@@ -673,13 +673,14 @@
   font-weight: 800;
   color: var(--ui-color-text-primary);
   line-height: 1.25;
-  /* Was `white-space: nowrap` + ellipsis, which truncated the deposit
-     amount itself mid-number in hy/ru ("Գրավ՝ 16,0…") — a clipped value is
-     worse than a wrapped one here since it's the actual data, not
-     decoration. Wrap instead; the cell (`align-items: center`, `min-width:
-     0` on its column) grows to fit. */
-  overflow-wrap: break-word;
-  word-break: break-word;
+  /* The compensation tile's label ("Կորստի և վնասի փոխհատուցում" /
+     "Компенсация за утрату и порчу") is what needs the room now — it's
+     allowed to wrap to two lines (`.detail-page__specquad-label` above). The
+     value ("Մինչև 16,000 ֏") stays short and single-line by design, so it's
+     pinned to `nowrap` rather than wrapped — that's what keeps both hy/ru
+     labels fitting the 4-up desktop / 2-up mobile grid without either one
+     overflowing the cell. */
+  white-space: nowrap;
 }
 
 .detail-page__safety-note {
@@ -756,8 +757,15 @@
   }
 }
 
-.detail-page__pickup-row-label {
+.detail-page__pickup-row-label-wrap {
   flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-page__pickup-row-label {
   min-width: 0;
   overflow-wrap: break-word;
   word-break: break-word;
@@ -765,6 +773,16 @@
   font-weight: 700;
   line-height: 1.3;
   color: var(--ui-color-text-primary);
+}
+
+.detail-page__pickup-row-sublabel {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  font-size: 11.5px;
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--ui-color-text-secondary);
 }
 
 /* The design draws this as a short, unshrinkable English value ("Free",
@@ -786,6 +804,13 @@
   line-height: 1.3;
   color: var(--ui-color-text-secondary);
   text-align: right;
+}
+
+/* Compensation row only — the amount must never wrap mid-number ("До 12,0…"
+   / "00 ֏" in hy/ru). Scoped to this one row (not the shared class above) so
+   the other pickup/delivery rows keep wrapping their longer hy/ru phrases. */
+.detail-page__pickup-row-value--nowrap {
+  white-space: nowrap;
 }
 
 /* ── Owner / contact section ──────────────────────────── */
@@ -1142,89 +1167,9 @@
   }
 }
 
-/* ── Protection card ──────────────────────────────────── */
-.detail-page__protection-card {
-  display: flex;
-  gap: 13px;
-  padding: var(--ui-space-16) 18px;
-  background: var(--ui-color-surface);
-  border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-lg);
-}
-
-.detail-page__protection-icon {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 11px;
-  background: var(--ui-color-success-surface);
-  color: var(--ui-color-success);
-
-  i {
-    font-size: 1rem;
-  }
-}
-
-.detail-page__protection-body {
-  min-width: 0;
-
-  strong {
-    display: block;
-    font-size: 13.5px;
-    font-weight: 700;
-    color: var(--ui-color-text-primary);
-    margin-bottom: 4px;
-  }
-
-  p {
-    margin: 0;
-    font-size: 12px;
-    line-height: 1.5;
-    color: var(--ui-color-text-secondary);
-  }
-}
-
-.detail-page__protection-bullets {
-  list-style: none;
-  margin: 8px 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-
-  li {
-    position: relative;
-    padding-left: 14px;
-    font-size: 12px;
-    line-height: 1.5;
-    color: var(--ui-color-text-secondary);
-
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 7px;
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: var(--ui-color-success);
-    }
-  }
-}
-
-/* Mobile/tablet copy of the protection card (the sidebar it normally lives
-   in is desktop-only) — same content, rendered in the main content flow. */
-.detail-page__protection-card--mobile {
-  display: none;
-
-  @media (max-width: 1099px) {
-    display: block;
-    margin-top: var(--ui-space-24);
-  }
-}
+/* The protection card (`.detail-page__protection-card*`) styles live in
+   `listing-details-page.protection.scss` — split out to stay under the
+   per-component style budget. */
 
 /* ── Reviews ──────────────────────────────────────────── */
 .detail-page__reviews-summary-panel {
