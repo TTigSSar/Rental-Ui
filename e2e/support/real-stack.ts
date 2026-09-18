@@ -35,12 +35,18 @@ export interface Credentials {
  * `DevelopmentSeedData.Listings` (`40.1776m, 44.5126m` — 5 Republic Square,
  * Yerevan). `ListingLocationBackfillExtensions.BackfillListingLocationsAsync`
  * runs unconditionally on every API startup and derives `PublicLatitude`/
- * `PublicLongitude` (the geohash-6 cell centroid, ADR-008) from that exact
- * pair deterministically, so the fuzzed public pair never drifts between
- * runs either — confirmed live: `40.179749, 44.511108`. Do not hand-derive
- * that value from geohash math in a test; treat it as an opaque, currently-
- * stable seed fact and assert the *relationship* (differs from exact, same
- * across callers) rather than recomputing it.
+ * `PublicLongitude` (the geohash-7 cell centroid, ADR-008 as amended
+ * 2026-07-25, `GeohashSnapper.Precision = 7`) from that exact pair
+ * deterministically, so the fuzzed public pair never drifts between runs
+ * either.
+ *
+ * `publicLatitude`/`publicLongitude` are that geohash-7 centroid —
+ * confirmed live: `40.177689, 44.513168`. This is a deliberate tripwire, not
+ * a magic number: it is the actual centroid of the geohash-7 cell containing
+ * the exact seed point, rounded to 6dp the same way `GeohashSnapper` does
+ * (`MidpointRounding.AwayFromZero`). If `GeohashSnapper.Precision` ever
+ * changes again, recompute these two values and update the ADR-008
+ * amendment note alongside them — don't hand-wave a new number in.
  */
 export const TOY_KITCHEN = {
   id: '77777777-0007-4000-9000-000000000007',
@@ -48,6 +54,8 @@ export const TOY_KITCHEN = {
   pricePerDay: 3_500,
   exactLatitude: 40.1776,
   exactLongitude: 44.5126,
+  publicLatitude: 40.177689,
+  publicLongitude: 44.513168,
   /**
    * `AddressLine` on the seeded listing — gated the same way the owner's
    * phone number used to be (`BookingsService`: `contactRevealed ?
