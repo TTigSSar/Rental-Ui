@@ -635,8 +635,22 @@
   color: var(--ui-color-text-secondary);
 }
 
+/* The amount ("10,000,000 ֏") must never break mid-number, but at narrow
+   widths in Armenian the "Մինչև"-prefixed value is the widest piece of the
+   whole dashed row and — same overflow shape as
+   `listing-details-page.component.scss`'s `.detail-page__pickup-row-value
+   --compensation` — a blanket `white-space: nowrap` here (this span's
+   previous rule) pinned the ENTIRE "Մինչև 10,000,000 ֏" line, including the
+   prefix word, to one unbreakable width that neither this span nor its
+   ancestor `dd`/row (neither sets `min-width: 0`, so both already floor at
+   their content's natural minimum) could shrink below, overflowing past the
+   row's dashed border at ~360px. `DramCurrencyPipe`
+   (`shared/utils/dram-currency.pipe.ts`) now joins the number and the ֏
+   symbol with a non-breaking space, so that pair alone is still unbreakable
+   without forcing the whole line to be — normal wrapping here just lets the
+   line break between the prefix word and the amount when space is tight. */
 .booking-page__comp-value {
-  white-space: nowrap;
+  text-align: right;
 }
 
 .booking-page__comp-not-total {

@@ -1,5 +1,9 @@
 import { DRAM_SYMBOL, DramCurrencyPipe } from './dram-currency.pipe';
 
+/** Non-breaking space — see the pipe's doc comment for why the amount and
+ *  the symbol are joined with this instead of a plain ' '. */
+const NBSP = ' ';
+
 describe('DramCurrencyPipe', () => {
   const pipe = new DramCurrencyPipe();
 
@@ -10,18 +14,18 @@ describe('DramCurrencyPipe', () => {
     expect(DRAM_SYMBOL).toBe('֏');
   });
 
-  it('formats a whole number with grouping and a trailing dram symbol', () => {
-    expect(pipe.transform(2500)).toBe(`2,500 ${DRAM_SYMBOL}`);
-    expect(pipe.transform(12500)).toBe(`12,500 ${DRAM_SYMBOL}`);
+  it('formats a whole number with grouping and a trailing dram symbol, joined by a non-breaking space', () => {
+    expect(pipe.transform(2500)).toBe(`2,500${NBSP}${DRAM_SYMBOL}`);
+    expect(pipe.transform(12500)).toBe(`12,500${NBSP}${DRAM_SYMBOL}`);
   });
 
   it('rounds fractional amounts — dram has no minor unit', () => {
-    expect(pipe.transform(2500.5)).toBe('2,501 ֏');
-    expect(pipe.transform(2500.4)).toBe('2,500 ֏');
+    expect(pipe.transform(2500.5)).toBe(`2,501${NBSP}֏`);
+    expect(pipe.transform(2500.4)).toBe(`2,500${NBSP}֏`);
   });
 
   it('accepts numeric strings', () => {
-    expect(pipe.transform('3000')).toBe('3,000 ֏');
+    expect(pipe.transform('3000')).toBe(`3,000${NBSP}֏`);
   });
 
   it('returns null for null, undefined, empty string, or non-numeric input', () => {
@@ -32,6 +36,6 @@ describe('DramCurrencyPipe', () => {
   });
 
   it('formats zero', () => {
-    expect(pipe.transform(0)).toBe('0 ֏');
+    expect(pipe.transform(0)).toBe(`0${NBSP}֏`);
   });
 });

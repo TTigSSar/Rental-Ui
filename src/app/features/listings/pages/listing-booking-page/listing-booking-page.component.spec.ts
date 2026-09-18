@@ -239,12 +239,15 @@ describe('ListingBookingPageComponent — loss & damage compensation row + popov
     fixture.detectChanges();
 
     const root = fixture.nativeElement as HTMLElement;
+    // The amount and the ֏ symbol are joined by a non-breaking space (see
+    // `DramCurrencyPipe`), so these expectations use ` ` there — a plain
+    // space would never match the rendered `textContent`.
     expect(root.querySelector('.booking-page__comp-value')?.textContent?.trim()).toBe(
-      'Up to 5,000 ֏',
+      'Up to 5,000 ֏',
     );
     expect(
       root.querySelector('.booking-page__breakdown-row--total dd')?.textContent?.trim(),
-    ).toBe('2,000 ֏');
+    ).toBe('2,000 ֏');
   });
 
   it('opens the "How this works" popover on the info button', () => {

@@ -478,17 +478,22 @@ describe('ListingDetailsPageComponent — loss & damage compensation amount', ()
   it('renders "Up to 45,000 ֏" in the specs tile, the pickup row and the protection card when an amount is set', () => {
     const fixture = setup(45000);
 
+    // The amount and the ֏ symbol are joined by a non-breaking space (see
+    // `DramCurrencyPipe`), so the expected string uses ` ` there — a
+    // plain space would never match the rendered `textContent`.
+    const upTo45000 = 'Up to 45,000 ֏';
+
     // No other spec-tile-worthy fields are set on this fixture (age/condition/
     // delivery all null), so the compensation tile — always pushed regardless
     // of amount — is the only one rendered, making this selector unambiguous.
-    expect(text(fixture, '.detail-page__specquad-value')).toBe('Up to 45,000 ֏');
-    expect(text(fixture, '.detail-page__pickup-row-value')).toBe('Up to 45,000 ֏');
+    expect(text(fixture, '.detail-page__specquad-value')).toBe(upTo45000);
+    expect(text(fixture, '.detail-page__pickup-row-value')).toBe(upTo45000);
     expect(
       text(
         fixture,
         '.detail-page__protection-card--mobile .detail-page__protection-amount',
       ),
-    ).toBe('Up to 45,000 ֏');
+    ).toBe(upTo45000);
   });
 
   it.each([

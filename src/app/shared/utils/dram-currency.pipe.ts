@@ -30,6 +30,14 @@ export const DRAM_SYMBOL = '֏';
  * appending the symbol as a literal suffix keeps the Armenian convention
  * (symbol after the amount) while staying visually consistent with the rest
  * of the UI.
+ *
+ * The amount and the symbol are joined with a NON-BREAKING space (` `),
+ * not a plain one, so "10,000 ֏" can never split across a line break by
+ * itself — a plain space there let a compensation amount wrap mid-value
+ * (number on one line, "֏" on the next) wherever its container got tight
+ * (see `listing-details-page.component.scss`'s
+ * `.detail-page__pickup-row-value--compensation`). Every price render site
+ * gets this for free since they all go through this one pipe.
  */
 @Pipe({ name: 'dram', standalone: true })
 export class DramCurrencyPipe implements PipeTransform {
@@ -41,6 +49,6 @@ export class DramCurrencyPipe implements PipeTransform {
     if (!Number.isFinite(num)) {
       return null;
     }
-    return `${formatNumber(num, 'en-US', DRAM_DIGITS_INFO)} ${DRAM_SYMBOL}`;
+    return `${formatNumber(num, 'en-US', DRAM_DIGITS_INFO)} ${DRAM_SYMBOL}`;
   }
 }
