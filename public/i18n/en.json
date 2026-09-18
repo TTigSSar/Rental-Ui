@@ -325,6 +325,8 @@
         "originManualTitle": "From the chosen point",
         "originManualSubtitle": "Chosen point on the map",
         "change": "change",
+        "clearOrigin": "Remove",
+        "clearOriginAria": "Remove location filter",
         "originDeniedTitle": "Location unavailable",
         "originDeniedSubtitle": "Access is off in the browser",
         "originDeniedMessage": "No problem — set a point manually and the radius will work.",

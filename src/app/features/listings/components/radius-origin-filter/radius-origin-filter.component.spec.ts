@@ -214,4 +214,101 @@ describe('RadiusOriginFilterComponent', () => {
 
     expect(emitted).toBe(3000);
   });
+
+  // Trello #80: the origin (reference point) had no way to be unset — a
+  // "Remove" action next to "Change" fixes that. These tests cover the
+  // button's visibility across states and its dispatch/emit behaviour.
+  describe('clearing the origin (Trello #80)', () => {
+    it('renders the Remove button in the "geo" state', async () => {
+      const { fixture, store } = await createHarness();
+      store.overrideSelector(selectListingsOriginCoords, { lat: 40.18, lng: 44.51 });
+      store.overrideSelector(selectListingsOriginSource, 'geo');
+      store.refreshState();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.rof__edit--remove')).not.toBeNull();
+    });
+
+    it('renders the Remove button in the "manual" state', async () => {
+      const { fixture, store } = await createHarness();
+      store.overrideSelector(selectListingsOriginCoords, { lat: 40.18, lng: 44.51 });
+      store.overrideSelector(selectListingsOriginSource, 'manual');
+      store.refreshState();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.rof__edit--remove')).not.toBeNull();
+    });
+
+    it('does NOT render the Remove button in the "unset" state', async () => {
+      const { fixture } = await createHarness();
+      expect(fixture.nativeElement.querySelector('.rof__edit--remove')).toBeNull();
+    });
+
+    it('does NOT render the Remove button in the "denied" state', async () => {
+      const { fixture, store } = await createHarness();
+      store.overrideSelector(selectListingsOriginDenied, true);
+      store.refreshState();
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.rof__edit--remove')).toBeNull();
+    });
+
+    it('clicking Remove dispatches clearOrigin and emits originCleared', async () => {
+      const { fixture, store } = await createHarness();
+      store.overrideSelector(selectListingsOriginCoords, { lat: 40.18, lng: 44.51 });
+      store.overrideSelector(selectListingsOriginSource, 'manual');
+      store.refreshState();
+      fixture.detectChanges();
+
+      let clearedCount = 0;
+      (fixture.componentInstance as unknown as RadiusOriginFilterComponent).originCleared.subscribe(
+        () => clearedCount++,
+      );
+
+      const removeBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.rof__edit--remove');
+      removeBtn.click();
+
+      expect(store.dispatch).toHaveBeenCalledWith(ListingsActions.clearOrigin());
+      expect(clearedCount).toBe(1);
+    });
+
+    it('re-emits the 1 km default when the origin is set again after being cleared', async () => {
+      const { fixture, component, store } = await createHarness(null);
+      let emitted: number | null = null;
+      (fixture.componentInstance as unknown as RadiusOriginFilterComponent).radiusMetersChange.subscribe(
+        (m) => (emitted = m),
+      );
+
+      // First time the origin becomes set — default fires.
+      store.overrideSelector(selectListingsOriginCoords, { lat: 40.18, lng: 44.51 });
+      store.overrideSelector(selectListingsOriginSource, 'geo');
+      store.refreshState();
+      fixture.detectChanges();
+      await Promise.resolve();
+      fixture.detectChanges();
+      expect(emitted).toBe(1000);
+
+      // Clear it, and confirm the radius input echoes back to null like a
+      // real parent would (the radius chip disappears, the slider locks).
+      emitted = null;
+      store.overrideSelector(selectListingsOriginCoords, null);
+      store.overrideSelector(selectListingsOriginSource, null);
+      store.refreshState();
+      fixture.componentRef.setInput('radiusMeters', null);
+      fixture.detectChanges();
+      expect(component.locked()).toBe(true);
+      expect(emitted).toBeNull();
+
+      // Set the origin again — the default must fire again, not stay
+      // suppressed by the guard from the first transition.
+      store.overrideSelector(selectListingsOriginCoords, { lat: 40.2, lng: 44.55 });
+      store.overrideSelector(selectListingsOriginSource, 'manual');
+      store.refreshState();
+      fixture.detectChanges();
+      await Promise.resolve();
+      fixture.detectChanges();
+
+      expect(emitted).toBe(1000);
+    });
+  });
 });

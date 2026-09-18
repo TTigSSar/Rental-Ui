@@ -112,6 +112,7 @@
         <app-radius-origin-filter
           [radiusMeters]="activeRadiusMeters()"
           (radiusMetersChange)="onRadiusMetersChange($event)"
+          (originCleared)="onOriginCleared()"
         />
       </div>
 

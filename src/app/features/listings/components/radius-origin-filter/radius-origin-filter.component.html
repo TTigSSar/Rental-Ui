@@ -48,8 +48,18 @@
             <p class="rof__origin-title">{{ 'listings.filters.distance.originGeoTitle' | translate }}</p>
             <p class="rof__origin-sub">{{ 'listings.filters.distance.originGeoSubtitle' | translate }}</p>
           </div>
+        </div>
+        <div class="rof__origin-actions">
           <button type="button" class="rof__edit" (click)="openPicker()">
             {{ 'listings.filters.distance.change' | translate }}
+          </button>
+          <button
+            type="button"
+            class="rof__edit rof__edit--remove"
+            [attr.aria-label]="'listings.filters.distance.clearOriginAria' | translate"
+            (click)="clearOrigin()"
+          >
+            {{ 'listings.filters.distance.clearOrigin' | translate }}
           </button>
         </div>
       </div>
@@ -62,8 +72,18 @@
             <p class="rof__origin-title">{{ 'listings.filters.distance.originManualTitle' | translate }}</p>
             <p class="rof__origin-sub">{{ 'listings.filters.distance.originManualSubtitle' | translate }}</p>
           </div>
+        </div>
+        <div class="rof__origin-actions">
           <button type="button" class="rof__edit" (click)="openPicker()">
             {{ 'listings.filters.distance.change' | translate }}
+          </button>
+          <button
+            type="button"
+            class="rof__edit rof__edit--remove"
+            [attr.aria-label]="'listings.filters.distance.clearOriginAria' | translate"
+            (click)="clearOrigin()"
+          >
+            {{ 'listings.filters.distance.clearOrigin' | translate }}
           </button>
         </div>
         @if (originCoords(); as coords) {

@@ -172,6 +172,35 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     this.draftForm.controls.radiusKm.setValue(metersToKm(meters));
   }
 
+  /**
+   * `RadiusOriginFilterComponent`'s `(originCleared)` — the widget already
+   * dispatched `ListingsActions.clearOrigin()` itself. Unlike every other
+   * draft field here, this commits `radiusKm` to `filterForm` (and therefore
+   * the URL) IMMEDIATELY instead of waiting for "Apply": the origin removal
+   * it rides along with is itself immediate and can't be cancelled, so
+   * staging just the radius would leave an inert `radiusKm` in the URL with
+   * no origin behind it if the sheet were then dismissed with "Cancel"
+   * (Trello #80).
+   */
+  protected onDraftOriginCleared(): void {
+    this.draftForm.controls.radiusKm.setValue(null);
+    this.filterForm.patchValue({ radiusKm: null });
+  }
+
+  /**
+   * `p-multiSelect`'s `(onClear)` — PrimeNG 21.1.6's `MultiSelect.clear()`
+   * calls `updateModel(null, event)` BEFORE it emits `onClear`, so the "×"
+   * on the districts field writes a raw `null` into `draftForm.controls.
+   * districtIds` (typed `string[]`, nonNullable) for one tick. Left alone,
+   * that `null` survives into `applySheet()`/`activeChips`/
+   * `serializeDistrictIdsParam` and throws. This normalizes it back to `[]`
+   * the moment PrimeNG's clear fires, before anything else reads the
+   * control.
+   */
+  protected onDraftDistrictsCleared(): void {
+    this.draftForm.controls.districtIds.setValue([]);
+  }
+
   private readonly localeTag = computed(() =>
     localeTagForLanguage(this.languageService.current().code),
   );
@@ -310,12 +339,17 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
       minPrice: draft.minPrice,
       maxPrice: draft.maxPrice,
       radiusKm: draft.radiusKm,
-      districtIds: draft.districtIds,
+      // Defensive: `(onClear)` above should already have normalized a
+      // PrimeNG multiselect clear back to `[]`, but a raw `null` here would
+      // otherwise reach `serializeDistrictIdsParam()` (which throws on
+      // anything but an array) and `activeChips`'s iteration.
+      districtIds: draft.districtIds ?? [],
     });
     this.closeSheet();
   }
 
   protected clearSheet(): void {
+    this.store.dispatch(ListingsActions.clearOrigin());
     const currentQuery = this.filterForm.getRawValue().query;
     this.filterForm.setValue({
       query: currentQuery,
@@ -344,6 +378,9 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
         this.filterForm.patchValue({ maxPrice: null });
         break;
       case 'radiusKm':
+        // The chip reads "1 km · from you" — its × removes the whole
+        // location filter, not just the radius number (Trello #80).
+        this.store.dispatch(ListingsActions.clearOrigin());
         this.filterForm.patchValue({ radiusKm: null });
         break;
       case 'districtId': {

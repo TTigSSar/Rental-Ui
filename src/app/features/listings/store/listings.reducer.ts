@@ -121,6 +121,15 @@ export const listingsReducer = createReducer(
     }),
   ),
   on(
+    ListingsActions.clearOrigin,
+    (state): ListingsState => ({
+      ...state,
+      originCoords: null,
+      originSource: null,
+      originDenied: false,
+    }),
+  ),
+  on(
     ListingsActions.loadListingDetails,
     (state): ListingsState => ({
       ...state,

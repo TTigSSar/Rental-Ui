@@ -88,10 +88,12 @@
           display="chip"
           [filter]="true"
           [showToggleAll]="false"
+          [showClear]="true"
           [placeholder]="'listings.filters.districtsPlaceholder' | translate"
           [ariaLabelledBy]="'lf-districts-label'"
           styleClass="lf-field__input lf-field__multiselect"
           appendTo="body"
+          (onClear)="onDraftDistrictsCleared()"
         />
       </div>
 
@@ -141,6 +143,7 @@
         <app-radius-origin-filter
           [radiusMeters]="draftRadiusMeters()"
           (radiusMetersChange)="onDraftRadiusMetersChange($event)"
+          (originCleared)="onDraftOriginCleared()"
         />
       </div>
 

@@ -325,6 +325,8 @@
         "originManualTitle": "Ընտրված կետից",
         "originManualSubtitle": "Կետը նշված է քարտեզի վրա",
         "change": "փոխել",
+        "clearOrigin": "Հեռացնել",
+        "clearOriginAria": "Հեռացնել տեղանքի ֆիլտրը",
         "originDeniedTitle": "Տեղորոշումն անհասանելի է",
         "originDeniedSubtitle": "Մուտքն անջատված է դիտարկիչում",
         "originDeniedMessage": "Ոչինչ — նշեք կետը ձեռքով, և շառավիղը կաշխատի։",

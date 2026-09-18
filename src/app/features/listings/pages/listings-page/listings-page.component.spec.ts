@@ -28,6 +28,7 @@ import {
   selectMapPinsLoading,
   selectMapPinsTruncated,
 } from '../../store/listings.selectors';
+import type { ListingsFilter } from '../../models/listings-filter.model';
 import { ListingsApiService } from '../../services/listings-api.service';
 import { ListingsPageComponent } from './listings-page.component';
 
@@ -131,7 +132,7 @@ class FakeIntersectionObserver {
 }
 vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver);
 
-const BASE_FILTERS = {
+const BASE_FILTERS: ListingsFilter = {
   query: null,
   city: null,
   categoryId: null,
@@ -146,6 +147,9 @@ interface ListingsPageSelectorOverrides {
   readonly hasMore?: boolean;
   readonly loading?: boolean;
   readonly error?: string | null;
+  readonly filters?: ListingsFilter;
+  readonly originCoords?: { lat: number; lng: number } | null;
+  readonly originSource?: 'geo' | 'manual' | null;
 }
 
 async function navigateToListings(url: string, overrides: ListingsPageSelectorOverrides = {}) {
@@ -162,11 +166,11 @@ async function navigateToListings(url: string, overrides: ListingsPageSelectorOv
           { selector: selectListingCategories, value: [] },
           { selector: selectListingItems, value: [makeListingPreview()] },
           { selector: selectListingsError, value: overrides.error ?? null },
-          { selector: selectListingsFilters, value: BASE_FILTERS },
+          { selector: selectListingsFilters, value: overrides.filters ?? BASE_FILTERS },
           { selector: selectListingsHasMore, value: overrides.hasMore ?? false },
           { selector: selectListingsLoading, value: overrides.loading ?? false },
-          { selector: selectListingsOriginCoords, value: null },
-          { selector: selectListingsOriginSource, value: null },
+          { selector: selectListingsOriginCoords, value: overrides.originCoords ?? null },
+          { selector: selectListingsOriginSource, value: overrides.originSource ?? null },
           { selector: selectListingsOriginDenied, value: false },
           { selector: selectListingsPageSize, value: 20 },
           { selector: selectMyBookings, value: [] },
@@ -357,5 +361,75 @@ describe('ListingsPageComponent — infinite scroll', () => {
     await flush(harness);
 
     expect(loadNextPageDispatches(store)).toHaveLength(0);
+  });
+});
+
+/**
+ * Trello #80: "Clear all", the radius chip's ×, and the widget's own
+ * "Remove" button must all unset the session-only origin, not just
+ * `radiusKm` — otherwise the widget keeps looking active after every other
+ * filter is gone. Reuses `navigateToListings` (now accepting `filters`/
+ * `originCoords`/`originSource` overrides) rather than a new harness.
+ */
+describe('ListingsPageComponent — clearing the origin (Trello #80)', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  function clearOriginDispatches(store: MockStore) {
+    return (store.dispatch as ReturnType<typeof vi.fn>).mock.calls
+      .map((call) => call[0])
+      .filter((action) => action.type === ListingsActions.clearOrigin.type);
+  }
+
+  it('clearFilters() dispatches clearOrigin and preserves `view=map` while dropping other filters', async () => {
+    const { el, router, store } = await navigateToListings('/listings?view=map&categoryId=abc-123', {
+      filters: { ...BASE_FILTERS, categoryId: 'abc-123' },
+    });
+
+    const clearBtn = el.querySelector<HTMLButtonElement>('.lp-sidebar__clear');
+    expect(clearBtn).not.toBeNull();
+    clearBtn!.click();
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(clearOriginDispatches(store)).toHaveLength(1);
+    expect(router.url).toContain('view=map');
+    expect(router.url).not.toContain('categoryId');
+  });
+
+  it('removing the radius chip dispatches clearOrigin and navigates radiusKm: null with merge', async () => {
+    const { el, router, store } = await navigateToListings('/listings?radiusKm=1&categoryId=abc-123', {
+      filters: { ...BASE_FILTERS, radiusKm: 1, categoryId: 'abc-123' },
+      originCoords: { lat: 40.18, lng: 44.51 },
+      originSource: 'manual',
+    });
+
+    // Two chips render here (categoryId, radiusKm — in that order, per
+    // `activeFilterChips()`); the radius chip is the second one.
+    const chips = el.querySelectorAll<HTMLButtonElement>('.lp-active-chip');
+    expect(chips).toHaveLength(2);
+    const radiusChip = chips[1];
+    radiusChip.click();
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(clearOriginDispatches(store)).toHaveLength(1);
+    expect(router.url).not.toContain('radiusKm');
+    // 'merge' — the sibling filter this control has no concept of survives.
+    expect(router.url).toContain('categoryId=abc-123');
+  });
+
+  it('onOriginCleared() (via the widget\'s own Remove button) navigates radiusKm: null with merge', async () => {
+    const { el, router } = await navigateToListings('/listings?radiusKm=1&categoryId=abc-123', {
+      filters: { ...BASE_FILTERS, radiusKm: 1, categoryId: 'abc-123' },
+      originCoords: { lat: 40.18, lng: 44.51 },
+      originSource: 'manual',
+    });
+
+    const removeBtn = el.querySelector<HTMLButtonElement>('.rof__edit--remove');
+    expect(removeBtn).not.toBeNull();
+    removeBtn!.click();
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(router.url).not.toContain('radiusKm');
+    expect(router.url).toContain('categoryId=abc-123');
   });
 });
