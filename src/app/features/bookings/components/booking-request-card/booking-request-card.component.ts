@@ -11,16 +11,18 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
 
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import type { BookingRequest } from '../../models/booking.model';
+import {
+  BookingRejectDialogComponent,
+  type BookingRejectResult,
+} from '../booking-reject-dialog/booking-reject-dialog.component';
 
 @Component({
   selector: 'app-booking-request-card',
   standalone: true,
-  imports: [ButtonModule, DialogModule, DramCurrencyPipe, DatePipe, TranslatePipe],
+  imports: [BookingRejectDialogComponent, DramCurrencyPipe, DatePipe, TranslatePipe],
   templateUrl: './booking-request-card.component.html',
   styleUrl: './booking-request-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,11 +36,7 @@ export class BookingRequestCardComponent {
   @Output() readonly approved = new EventEmitter<string>();
   @Output() readonly rejected = new EventEmitter<{ bookingId: string; reason: string | null }>();
 
-  protected readonly reasonCodes = ['dates_unavailable', 'item_unavailable', 'not_a_fit', 'other'] as const;
-
   protected readonly rejectDialogVisible = signal(false);
-  protected readonly selectedReason = signal<string>('dates_unavailable');
-  protected readonly otherText = signal('');
 
   protected readonly canDecide = computed(
     () => this.request().status === 'PendingApproval' || this.request().status === 'Pending',
@@ -73,8 +71,6 @@ export class BookingRequestCardComponent {
 
   protected openRejectDialog(event: Event): void {
     event.stopPropagation();
-    this.selectedReason.set('dates_unavailable');
-    this.otherText.set('');
     this.rejectDialogVisible.set(true);
   }
 
@@ -82,19 +78,9 @@ export class BookingRequestCardComponent {
     this.rejectDialogVisible.set(false);
   }
 
-  protected confirmReject(): void {
-    const code = this.selectedReason();
-    const reason = code === 'other' ? this.otherText().trim() || null : code;
+  protected confirmReject({ reason }: BookingRejectResult): void {
     this.rejected.emit({ bookingId: this.request().id, reason });
     this.rejectDialogVisible.set(false);
-  }
-
-  protected onReasonChange(code: string): void {
-    this.selectedReason.set(code);
-  }
-
-  protected onOtherInput(event: Event): void {
-    this.otherText.set((event.target as HTMLTextAreaElement).value);
   }
 
   protected openDetails(): void {

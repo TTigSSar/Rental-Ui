@@ -36,8 +36,14 @@ import {
  *    expect and NO reload in between.
  * A separate, API-driven test.step at the end additionally pins the cancel
  * rule's other branch: an Approved booking whose start date is today (UTC)
- * hides the cancel button entirely and shows a hint instead.
+ * hides the cancel button entirely and shows a hint instead. A further
+ * API-driven test.step pins Defect A (M-043): an owner who reaches a Pending
+ * booking through its OWN url (/bookings/:id) — not through /bookings/requests
+ * or My Listings, the only two paths that ever worked before this fix — can
+ * now approve it right there, and the page swaps to the markActive footer
+ * with no reload.
  *
+
  * Also pins the post-phone-removal contact model end to end against the real
  * API: `ListingOwnerResponse.PhoneNumber` and
  * `BookingDetailResponse.CounterpartyPhoneNumber` were deleted from the
@@ -563,6 +569,89 @@ test.describe('Booking lifecycle (real stack)', () => {
             failOnStatusCode: false,
           });
           await request.post(`${API_URL}/api/bookings/${todayBooking.id}/complete`, {
+            headers: { Authorization: `Bearer ${ownerToken}` },
+            failOnStatusCode: false,
+          });
+        }
+      });
+
+      // Regression coverage for Defect A (M-043): before this fix, an owner who reached a
+      // Pending booking through its OWN url (/bookings/:id — e.g. a bookmark, a shared link, a
+      // notification) rather than through /bookings/requests or My Listings had no way to
+      // approve or decline it at all — the sticky footer only ever covered
+      // markActive/complete/review, and the page rendered 0 `.booking-details__footer` nodes for
+      // a Pending owner view. The main journey above approves via /bookings/requests (the
+      // pre-existing, always-worked path); this step drives the actual dead-end path instead:
+      // create a Pending booking, land the owner directly on /bookings/:id with NO detour through
+      // /bookings/requests, and approve from there.
+      //
+      // A distinct fixed date window (5 months out, fixed days) that can never collide with the
+      // main journey's window (2 months out, a day derived from the run timestamp) or the
+      // same-day step just above — created and driven entirely through the real API, reusing the
+      // already-authenticated renter/owner JWTs for the same login-budget reason as the same-day
+      // step (AuthController's login endpoint is rate-limited at 5/min/IP, shared across every
+      // real-stack spec file in a run).
+      await test.step('owner approves a Pending request directly from /bookings/:id (regression: this used to be a dead end — Defect A)', async () => {
+        const target = new Date();
+        target.setDate(1);
+        target.setMonth(target.getMonth() + 5);
+        const y = target.getFullYear();
+        const m = String(target.getMonth() + 1).padStart(2, '0');
+        const directStart = `${y}-${m}-10`;
+        const directEnd = `${y}-${m}-12`;
+
+        const renterToken = await renterPage.evaluate(() => localStorage.getItem('auth_token'));
+        expect(renterToken, 'renter JWT must still be in localStorage from earlier in this test').toBeTruthy();
+        const createRes = await request.post(`${API_URL}/api/bookings`, {
+          headers: { Authorization: `Bearer ${renterToken}` },
+          data: { listingId: TOY_KITCHEN.id, startDate: directStart, endDate: directEnd },
+        });
+        expect(createRes.ok(), 'direct-approval booking create must succeed').toBe(true);
+        const directBooking = (await createRes.json()) as { id: string };
+
+        const ownerToken = await ownerPage.evaluate(() => localStorage.getItem('auth_token'));
+        expect(ownerToken, 'owner JWT must still be in localStorage from earlier in this test').toBeTruthy();
+
+        try {
+          // Straight to the booking's own URL — no detour through /bookings/requests or My
+          // Listings, which is exactly the path that used to be a dead end.
+          await ownerPage.goto(`/bookings/${directBooking.id}`);
+          await expect(statusBadge(ownerPage)).toHaveText('Pending approval');
+
+          // Regression pin: previously 0 `.booking-details__footer` nodes rendered here at all.
+          const decisionFooter = ownerPage.locator('.booking-details__footer-row');
+          await expect(decisionFooter).toHaveCount(1);
+          const approveBtn = decisionFooter.getByRole('button', { name: 'Approve' });
+          const declineBtn = decisionFooter.getByRole('button', { name: 'Decline' });
+          await expect(approveBtn).toBeVisible();
+          await expect(declineBtn).toBeVisible();
+
+          await Promise.all([
+            ownerPage.waitForResponse(
+              (res) =>
+                res.url().endsWith(`/api/bookings/${directBooking.id}/approve`) &&
+                res.request().method() === 'POST' &&
+                res.ok(),
+            ),
+            approveBtn.click(),
+          ]);
+
+          // The reducer patches bookingDetail.status in place on the server-confirmed
+          // response — the page must reflect Approved, and swap to the markActive footer,
+          // with NO reload/navigation in between.
+          await expect(statusBadge(ownerPage)).toHaveText('Approved');
+          await expect(decisionFooter).toHaveCount(0);
+          await expect(
+            ownerPage.getByRole('button', { name: 'Mark as handed over' }),
+          ).toBeVisible();
+        } finally {
+          // Drive to a terminal state unconditionally so this booking can never block a future
+          // run's date ranges, even if an assertion above threw.
+          await request.post(`${API_URL}/api/bookings/${directBooking.id}/activate`, {
+            headers: { Authorization: `Bearer ${ownerToken}` },
+            failOnStatusCode: false,
+          });
+          await request.post(`${API_URL}/api/bookings/${directBooking.id}/complete`, {
             headers: { Authorization: `Bearer ${ownerToken}` },
             failOnStatusCode: false,
           });

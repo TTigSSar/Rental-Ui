@@ -179,6 +179,47 @@ export function e2eMyBooking(overrides: Record<string, unknown> = {}) {
 }
 
 /**
+ * `GET /api/bookings/:id` (`BookingDetail` wire shape, see
+ * `normalizeBookingDetail` in `bookings-api.service.ts`). Defaults to a Pending
+ * booking viewed by the owner — the shape the booking-details page's
+ * Approve/Decline footer (Defect A) needs — override `role`/`status` for the
+ * renter-cancel / markActive / complete / review views of the same page.
+ */
+export function e2eBookingDetail(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'booking-e2e-1',
+    status: 'Pending',
+    role: 'owner',
+    listingId: 'listing-e2e-1',
+    listingTitle: 'E2E Wooden Train Set',
+    listingPrimaryImageUrl: null,
+    categoryName: 'Toys',
+    condition: 'Good',
+    city: 'Yerevan',
+    country: 'Armenia',
+    addressLine: null,
+    currency: 'AMD',
+    pricePerDay: 5,
+    compensationAmount: null,
+    totalPrice: 15,
+    startDate: '2026-09-10',
+    endDate: '2026-09-12',
+    createdAt: '2026-08-01T10:00:00.000Z',
+    approvedAt: null,
+    activeAt: null,
+    completedAt: null,
+    expiresAt: null,
+    rejectionReason: null,
+    note: null,
+    counterpartyId: 'renter-e2e-1',
+    counterpartyFirstName: 'Renata',
+    counterpartyLastName: 'Renter',
+    counterpartyAvatarUrl: null,
+    ...overrides,
+  };
+}
+
+/**
  * POST /api/chat/conversations/from-booking/:id response, also the general
  * `ChatConversationDetails` wire shape for a BOOKING-kind conversation (`kind: 'booking'`) — see
  * `e2eModerationConversationDetails` below for the Moderation-kind counterpart, which nulls out

@@ -74,7 +74,7 @@ export const rejectBookingRequest = createAction(
 
 export const rejectBookingRequestSuccess = createAction(
   '[Bookings] Reject Booking Request Success',
-  props<{ bookingId: string; status: BookingStatus }>(),
+  props<{ bookingId: string; status: BookingStatus; reason: string | null }>(),
 );
 
 export const rejectBookingRequestFailure = createAction(

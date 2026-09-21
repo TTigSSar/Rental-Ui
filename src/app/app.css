@@ -611,7 +611,9 @@
 
 /* ── Item-details & booking flow own their bottom action bar, so the
       global bottom nav is suppressed and its reserved space removed.
-      (Mirrors the create-listing wizard behaviour.) ─────────────── */
+      (Mirrors the create-listing wizard behaviour.) `--booking` now also
+      covers /bookings/:id and its /review, /review/renter sub-routes — see
+      `isBookingDetailsUrl` in app.ts for why. ─────────────────────────── */
 .app-shell--details .app-bottom-nav,
 .app-shell--booking .app-bottom-nav {
   display: none;

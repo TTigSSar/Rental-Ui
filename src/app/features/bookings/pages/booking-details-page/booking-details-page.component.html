@@ -166,6 +166,34 @@
       <p-message severity="error" [text]="cerr" />
     }
 
+    @if (decisionAttempted() && requestActionError(); as rqerr) {
+      <p-message severity="error" [text]="rqerr" />
+    }
+
+    <!-- Sticky action footer: owner approve/decline a Pending request (Defect A) -->
+    @if (ownerMayDecide()) {
+      <div class="booking-details__footer">
+        <div class="booking-details__footer-row">
+          <button
+            type="button"
+            class="booking-details__decline"
+            [disabled]="decisionPending()"
+            (click)="openRejectDialog()"
+          >
+            {{ 'bookings.actions.reject' | translate }}
+          </button>
+          <button
+            type="button"
+            class="booking-details__primary booking-details__primary--split"
+            [disabled]="decisionPending()"
+            (click)="approveRequest()"
+          >
+            {{ 'bookings.actions.approve' | translate }}
+          </button>
+        </div>
+      </div>
+    }
+
     <!-- Sticky action footer: owner lifecycle actions -->
     @if (completion(); as c) {
       @if (
@@ -221,4 +249,11 @@
       </div>
     }
   }
+
+  <!-- Reject dialog (shared across every owner surface — see M-042) -->
+  <app-booking-reject-dialog
+    [visible]="rejectDialogVisible()"
+    (confirmed)="confirmRejectDialog($event)"
+    (cancelled)="cancelRejectDialog()"
+  />
 </section>

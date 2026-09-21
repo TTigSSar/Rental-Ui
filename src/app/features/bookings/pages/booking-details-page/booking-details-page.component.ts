@@ -26,6 +26,10 @@ import * as ChatActions from '../../../chat/store/chat.actions';
 import { selectOpeningConversationFromBooking } from '../../../chat/store/chat.selectors';
 import type { BookingReviewStatus } from '../../../reviews/models/review.model';
 import { ReviewsApiService } from '../../../reviews/services/reviews-api.service';
+import {
+  BookingRejectDialogComponent,
+  type BookingRejectResult,
+} from '../../components/booking-reject-dialog/booking-reject-dialog.component';
 import * as BookingsActions from '../../store/bookings.actions';
 import {
   selectBookingActionError,
@@ -33,6 +37,8 @@ import {
   selectBookingDetail,
   selectBookingDetailError,
   selectBookingDetailLoading,
+  selectBookingRequestActionIds,
+  selectBookingRequestsError,
   selectCancelBookingError,
   selectCancelBookingPending,
   selectCancelBookingSuccessId,
@@ -63,6 +69,7 @@ interface TimelineItem {
     MessageModule,
     SkeletonModule,
     BookingProgressComponent,
+    BookingRejectDialogComponent,
     BookingStatusBadgeComponent,
     PageHeaderComponent,
   ],
@@ -90,6 +97,23 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
     selectOpeningConversationFromBooking,
   );
 
+  // Owner approve/decline on a Pending request — same actions/effects as
+  // /profile/requests and the My Listings owner-request-card (see bookings.effects.ts);
+  // this page only adds the CTAs and reuses selectBookingRequestActionIds to know
+  // whether THIS booking's decision is currently in flight.
+  private readonly bookingRequestActionIds = this.store.selectSignal(
+    selectBookingRequestActionIds,
+  );
+  protected readonly requestActionError = this.store.selectSignal(selectBookingRequestsError);
+  protected readonly rejectDialogVisible = signal(false);
+
+  // `bookingRequestsError` is a global field shared with the /profile/requests list
+  // (it also carries loadBookingRequestsFailure there) — showing it unconditionally here
+  // could flash an unrelated, stale error the instant this page loads. This page only
+  // shows it once THIS page has actually attempted a decision; reset whenever the page
+  // (re)loads a booking so navigating away and back — or retrying — starts clean.
+  protected readonly decisionAttempted = signal(false);
+
   protected readonly reviewStatus = signal<BookingReviewStatus | null>(null);
 
   protected readonly showSkeleton = computed(() => this.loading() && this.detail() === null);
@@ -102,6 +126,22 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
     if (Number.isNaN(start) || Number.isNaN(end)) return 0;
     return Math.round((end - start) / 86_400_000) + 1;
   });
+
+  // Defect A fix: an owner viewing a Pending request via /bookings/:id (rather than
+  // /profile/requests or My Listings) had no way to approve/decline it — the footer
+  // only ever covered markActive/complete/review. One transition earlier than M-042.
+  protected readonly ownerMayDecide = computed(() => {
+    const d = this.detail();
+    return (
+      d !== null &&
+      d.role === 'owner' &&
+      (d.status === 'Pending' || d.status === 'PendingApproval')
+    );
+  });
+
+  protected readonly decisionPending = computed(() =>
+    this.bookingRequestActionIds().includes(this.bookingId),
+  );
 
   protected readonly action = computed<PrimaryAction>(() => {
     const d = this.detail();
@@ -259,6 +299,7 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.bookingId) {
+      this.decisionAttempted.set(false);
       this.store.dispatch(BookingsActions.loadBookingDetail({ bookingId: this.bookingId }));
       this.store.dispatch(BookingsActions.clearCancelBookingState());
     }
@@ -271,6 +312,7 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
 
   protected retry(): void {
     if (this.bookingId) {
+      this.decisionAttempted.set(false);
       this.store.dispatch(BookingsActions.loadBookingDetail({ bookingId: this.bookingId }));
     }
   }
@@ -294,6 +336,29 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
   protected cancelBooking(): void {
     if (this.bookingId && !this.cancelPending()) {
       this.store.dispatch(BookingsActions.cancelBooking({ bookingId: this.bookingId }));
+    }
+  }
+
+  protected approveRequest(): void {
+    if (this.bookingId && !this.decisionPending()) {
+      this.decisionAttempted.set(true);
+      this.store.dispatch(BookingsActions.approveBookingRequest({ bookingId: this.bookingId }));
+    }
+  }
+
+  protected openRejectDialog(): void {
+    this.rejectDialogVisible.set(true);
+  }
+
+  protected cancelRejectDialog(): void {
+    this.rejectDialogVisible.set(false);
+  }
+
+  protected confirmRejectDialog({ reason }: BookingRejectResult): void {
+    this.rejectDialogVisible.set(false);
+    if (this.bookingId) {
+      this.decisionAttempted.set(true);
+      this.store.dispatch(BookingsActions.rejectBookingRequest({ bookingId: this.bookingId, reason }));
     }
   }
 

@@ -101,6 +101,23 @@
           </a>
         </div>
 
+        <!-- Incoming requests → owner's rental requests -->
+        <div class="nh__notif">
+          <a
+            class="nh__notif-btn"
+            routerLink="/profile/requests"
+            routerLinkActive="nh__notif-btn--active"
+            [attr.aria-label]="'bookings.requests.headerAria' | translate"
+          >
+            <i class="pi pi-inbox" aria-hidden="true"></i>
+            @if (requestsCount() > 0) {
+              <span class="nh__notif-badge" aria-hidden="true">
+                {{ requestsCount() > 99 ? '99+' : requestsCount() }}
+              </span>
+            }
+          </a>
+        </div>
+
         <!-- User pill with hover dropdown ──────────────────────────── -->
         <div
           class="nh__user"
