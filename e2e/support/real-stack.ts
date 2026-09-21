@@ -96,8 +96,68 @@ export async function assertDockerStack(request: APIRequestContext): Promise<voi
   }
 }
 
-/** Logs in through the real API and returns the JWT. */
+/**
+ * Module-level JWT cache, keyed by account email.
+ *
+ * `AuthController`'s login endpoint carries `AuthPolicy` (5 requests/min,
+ * partitioned by remote IP — see `RateLimiterExtensions.cs`), and because
+ * every Playwright request reaches the docker API as one client IP, that
+ * budget is shared by the ENTIRE `--project=real` run, not per spec file.
+ * Before this cache, `apiSetPreferredLanguage`, `releaseListingForRenter`
+ * and several specs each called `apiLogin` again for accounts an earlier
+ * step — sometimes an earlier spec file in the same run — had already
+ * logged in as moments before, and the suite routinely spent its whole
+ * 5/min budget re-authenticating the same handful of demo accounts.
+ *
+ * Reuse is safe: the access token is a bearer string whose claims are
+ * `Sub`/`NameIdentifier`/`Email`/`Role`/`Jti` only (see
+ * `JwtTokenService.GenerateAccessToken`) — nothing mutable like preferred
+ * language is baked in, so a cached token stays valid across e.g.
+ * `language-persistence.spec.ts` changing `renter@`'s language mid-run.
+ * `AccessTokenExpirationMinutes` is 60 in both dev configs, so `TOKEN_TTL_MS`
+ * below (55 min) never actually gets hit by a normal test run and exists
+ * purely as a defensive backstop, not because runs get anywhere near it.
+ *
+ * This only pays off with the `real` Playwright project pinned to
+ * `workers: 1` (see playwright.config.ts): Playwright workers are separate
+ * OS processes, so this module-level Map does not exist across workers —
+ * under the old `fullyParallel` default each worker rebuilt its own cache
+ * and the aggregate login count across the run was unchanged. Serialization
+ * and caching are a package deal here, not two independent fixes.
+ *
+ * Also shared by `loginViaDialog` (below), deliberately: the first
+ * `loginViaDialog` call for a given account per run still drives the real
+ * dialog end to end (fill, submit, wait for the session to hydrate) and
+ * caches the resulting token here, same as `apiLogin`. Every LATER call for
+ * that same account in the same run — whether from `apiLogin` or
+ * `loginViaDialog`, in whichever spec file asks first — reuses it. This
+ * was proven necessary, not just tidy: with only `apiLogin` cached and
+ * `workers: 1`, a repeat full `--project=real` run still hit 429s on the
+ * *dialog* logins alone (`renter`/`owner`/`owner` across
+ * booking-lifecycle.spec.ts, create-listing-photo-upload.spec.ts and
+ * language-persistence.spec.ts — 3-4 real dialog submits per run is on its
+ * own enough to exhaust the budget across two back-to-back runs). Re-
+ * submitting the real login form more than once per account per run buys no
+ * incremental regression protection either: the dialog's own mechanics
+ * (validation, error states, success) are already pinned cheaply against
+ * the mocked backend in `e2e/auth.spec.ts`; what the real tier uniquely
+ * needs proven is the real backend round trip PLUS the Angular hydration
+ * wiring (`AuthTokenService` -> `authInitStarted` -> `GET /api/auth/me`) —
+ * and that only needs proving once per account, not once per spec file.
+ */
+const tokenCache = new Map<string, { token: string; loggedInAt: number }>();
+const TOKEN_TTL_MS = 55 * 60 * 1000;
+
+/**
+ * Logs in through the real API and returns the JWT, reusing a cached token
+ * for the same account when one is still fresh (see `tokenCache` doc above).
+ */
 export async function apiLogin(request: APIRequestContext, account: Credentials): Promise<string> {
+  const cached = tokenCache.get(account.email);
+  if (cached && Date.now() - cached.loggedInAt < TOKEN_TTL_MS) {
+    return cached.token;
+  }
+
   const res = await request.post(`${API_URL}/api/auth/login`, { data: account });
   if (!res.ok()) {
     throw new Error(`API login failed for ${account.email}: ${res.status()} ${await res.text()}`);
@@ -107,6 +167,7 @@ export async function apiLogin(request: APIRequestContext, account: Credentials)
   const body = (await res.json()) as { token?: string; accessToken?: string };
   const token = body.accessToken ?? body.token;
   if (!token) throw new Error(`API login for ${account.email} returned no token.`);
+  tokenCache.set(account.email, { token, loggedInAt: Date.now() });
   return token;
 }
 
@@ -216,8 +277,37 @@ export async function apiSetPreferredLanguage(
 /**
  * Logs in through the real auth dialog (header "Log in" button). Mirrors the
  * mocked-tier flow in auth.spec.ts, but against the real API.
+ *
+ * Shares `tokenCache` (see its doc above `apiLogin`) with every other login
+ * path: the FIRST call for a given account in a run drives the real dialog
+ * (fill, submit, wait for the hydration-driven close) exactly as before and
+ * caches the resulting token. Every later call for that same account, this
+ * run, from any spec file, instead seeds the cached token straight into
+ * `localStorage` and reloads — the app's own bootstrap (`authInitStarted` in
+ * `auth.effects.ts`) picks it up and hydrates via `GET /api/auth/me`, which
+ * is NOT covered by `AuthPolicy` (only POST /login and /register are — see
+ * `AuthController.cs`), so this path spends none of the shared login budget.
+ * The resulting session is real and fully hydrated either way; only a
+ * redundant re-submission of the password form is skipped.
  */
 export async function loginViaDialog(page: Page, account: Credentials): Promise<void> {
+  const cached = tokenCache.get(account.email);
+  if (cached && Date.now() - cached.loggedInAt < TOKEN_TTL_MS) {
+    await page.goto('/');
+    await page.evaluate((token) => localStorage.setItem('auth_token', token), cached.token);
+    const [meResponse] = await Promise.all([
+      page.waitForResponse(
+        (res) => res.url().endsWith('/api/auth/me') && res.request().method() === 'GET',
+      ),
+      page.reload(),
+    ]);
+    expect(
+      meResponse.ok(),
+      `session hydration from cached token failed for ${account.email}: ${meResponse.status()}`,
+    ).toBe(true);
+    return;
+  }
+
   await page.goto('/');
   await page.getByRole('button', { name: 'Log in' }).click();
 
@@ -229,4 +319,7 @@ export async function loginViaDialog(page: Page, account: Credentials): Promise<
   // The dialog closes once /auth/me hydrates the session — the real API round
   // trip (BCrypt verify + JWT) is why this timeout is explicit.
   await expect(form).toBeHidden({ timeout: 20_000 });
+
+  const token = await page.evaluate(() => localStorage.getItem('auth_token'));
+  if (token) tokenCache.set(account.email, { token, loggedInAt: Date.now() });
 }
