@@ -77,61 +77,6 @@ describe('AppHeaderComponent search visibility', () => {
   });
 });
 
-describe('AppHeaderComponent requests badge', () => {
-  function requestsLink(host: HTMLElement): HTMLElement | null {
-    return (
-      Array.from(host.querySelectorAll<HTMLElement>('.nh__notif-btn')).find((el) =>
-        el.querySelector('.pi-inbox'),
-      ) ?? null
-    );
-  }
-
-  it('renders the Requests icon link once authenticated', () => {
-    const fixture = createFixture();
-    fixture.componentRef.setInput('isAuthenticated', true);
-    fixture.detectChanges();
-
-    const host: HTMLElement = fixture.nativeElement;
-    const link = requestsLink(host);
-    expect(link).not.toBeNull();
-    expect(link!.getAttribute('href')).toBe('/profile/requests');
-  });
-
-  it('hides the badge when requestsCount is 0', () => {
-    const fixture = createFixture();
-    fixture.componentRef.setInput('isAuthenticated', true);
-    fixture.detectChanges();
-
-    const host: HTMLElement = fixture.nativeElement;
-    const link = requestsLink(host)!;
-    expect(link.querySelector('.nh__notif-badge')).toBeNull();
-  });
-
-  it('shows the badge with the count when requestsCount > 0', () => {
-    const fixture = createFixture();
-    fixture.componentRef.setInput('isAuthenticated', true);
-    fixture.componentRef.setInput('requestsCount', 4);
-    fixture.detectChanges();
-
-    const host: HTMLElement = fixture.nativeElement;
-    const link = requestsLink(host)!;
-    const badge = link.querySelector('.nh__notif-badge');
-    expect(badge).not.toBeNull();
-    expect(badge!.textContent!.trim()).toBe('4');
-  });
-
-  it('caps the displayed badge at "99+"', () => {
-    const fixture = createFixture();
-    fixture.componentRef.setInput('isAuthenticated', true);
-    fixture.componentRef.setInput('requestsCount', 150);
-    fixture.detectChanges();
-
-    const host: HTMLElement = fixture.nativeElement;
-    const badge = requestsLink(host)!.querySelector('.nh__notif-badge');
-    expect(badge!.textContent!.trim()).toBe('99+');
-  });
-});
-
 describe('HeaderSearchVisibilityService', () => {
   beforeEach(() => TestBed.configureTestingModule({}));
 

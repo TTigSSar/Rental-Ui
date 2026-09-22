@@ -1249,7 +1249,6 @@
     "requests": {
       "title": "Rental Requests",
       "subtitle": "Review and respond to rental requests for your toys.",
-      "headerAria": "Open incoming requests",
       "errorTitle": "Unable to load rental requests",
       "emptyTitle": "No rental requests yet",
       "empty": "When a parent requests one of your toys, it will appear here.",
