@@ -31,7 +31,7 @@ export const DRAM_SYMBOL = '֏';
  * (symbol after the amount) while staying visually consistent with the rest
  * of the UI.
  *
- * The amount and the symbol are joined with a NON-BREAKING space (` `),
+ * The amount and the symbol are joined with a NON-BREAKING space (U+00A0),
  * not a plain one, so "10,000 ֏" can never split across a line break by
  * itself — a plain space there let a compensation amount wrap mid-value
  * (number on one line, "֏" on the next) wherever its container got tight
@@ -49,6 +49,6 @@ export class DramCurrencyPipe implements PipeTransform {
     if (!Number.isFinite(num)) {
       return null;
     }
-    return `${formatNumber(num, 'en-US', DRAM_DIGITS_INFO)} ${DRAM_SYMBOL}`;
+    return `${formatNumber(num, 'en-US', DRAM_DIGITS_INFO)}\u00A0${DRAM_SYMBOL}`;
   }
 }

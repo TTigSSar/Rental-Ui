@@ -2,7 +2,7 @@ import { DRAM_SYMBOL, DramCurrencyPipe } from './dram-currency.pipe';
 
 /** Non-breaking space — see the pipe's doc comment for why the amount and
  *  the symbol are joined with this instead of a plain ' '. */
-const NBSP = ' ';
+const NBSP = '\u00A0';
 
 describe('DramCurrencyPipe', () => {
   const pipe = new DramCurrencyPipe();
