@@ -300,6 +300,10 @@
       "districtIds": "Районы",
       "districtsPlaceholder": "Все районы",
       "filterBtn": "Фильтры",
+      "chips": {
+        "minPrice": "От {{amount}}",
+        "maxPrice": "До {{amount}}"
+      },
       "sidebar": {
         "title": "Фильтры",
         "clearAll": "Сбросить все",
@@ -1101,7 +1105,7 @@
       "fields": {
         "title": "Название",
         "description": "Описание",
-        "pricePerDay": "Цена за день (AMD)",
+        "pricePerDay": "Цена за день (֏)",
         "city": "Город",
         "ageFromMonths": "Возраст от (мес.)",
         "ageToMonths": "Возраст до (мес.)",

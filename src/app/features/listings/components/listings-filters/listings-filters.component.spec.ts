@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService, type TranslationObject } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { ListingsApiService } from '../../services/listings-api.service';
@@ -25,6 +25,11 @@ interface SheetAccess {
   onDraftOriginCleared(): void;
   onDraftDistrictsCleared(): void;
   removeChip(chip: { key: string; label: string; districtId?: string }): void;
+  readonly activeChips: () => ReadonlyArray<{
+    key: string;
+    label: string;
+    districtId?: string;
+  }>;
   readonly draftForm: {
     getRawValue(): {
       city: string;
@@ -59,7 +64,16 @@ interface SheetAccess {
  * change can't quietly re-introduce the M-021 shape by giving the sheet a
  * field it silently doesn't round-trip.
  */
-async function navigateToListings(url: string): Promise<{
+async function navigateToListings(
+  url: string,
+  // Loaded BEFORE the first `harness.detectChanges()` so the `activeChips`
+  // computed's initial evaluation (triggered by the template's chip row)
+  // already sees these strings — setting them afterwards would be silently
+  // ignored, since `computed()` only re-runs when one of ITS OWN tracked
+  // signals changes, and `translate.instant()` isn't one (same idiom as
+  // `listing-details-page.component.spec.ts`'s `setTranslation` calls).
+  options?: { translations?: TranslationObject },
+): Promise<{
   component: ListingsFiltersComponent & SheetAccess;
   router: Router;
   store: MockStore;
@@ -83,6 +97,12 @@ async function navigateToListings(url: string): Promise<{
 
   const store = TestBed.inject(MockStore);
   vi.spyOn(store, 'dispatch');
+
+  if (options?.translations) {
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('en', options.translations, true);
+    translate.use('en');
+  }
 
   const harness = await RouterTestingHarness.create();
   const component = await harness.navigateByUrl(url, ListingsFiltersComponent);
@@ -284,5 +304,57 @@ describe('ListingsFiltersComponent — districts multiselect clear (PrimeNG null
     const url = router.url;
     expect(url).not.toContain('districtIds=');
     expect(url).toContain('ageGroup=0-12');
+  });
+});
+
+/**
+ * The price chips used to be raw hardcoded English (`Min ${v.minPrice}` /
+ * `Max ${v.maxPrice}`) with no currency symbol or grouping — the only
+ * price-related strings in the UI that bypassed both `DramCurrencyPipe` and
+ * ngx-translate. Now routed through `listings.filters.chips.minPrice` /
+ * `.maxPrice` with a pre-formatted `amount` param, mirroring the
+ * `radiusKm` chip's existing `translate.instant()` pattern.
+ */
+describe('ListingsFiltersComponent — price chip labels (dram formatting + i18n)', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  const chipTranslations = {
+    listings: {
+      filters: {
+        chips: {
+          minPrice: 'From {{amount}}',
+          maxPrice: 'Up to {{amount}}',
+        },
+      },
+    },
+  };
+
+  it('renders the minPrice chip with a grouped, NBSP-joined dram amount', async () => {
+    const { component } = await navigateToListings('/listings?minPrice=7500', {
+      translations: chipTranslations,
+    });
+
+    const chip = component.activeChips().find((c) => c.key === 'minPrice');
+    expect(chip?.label).toBe(`From 7,500\u00A0֏`);
+  });
+
+  it('renders the maxPrice chip with a grouped, NBSP-joined dram amount', async () => {
+    const { component } = await navigateToListings('/listings?maxPrice=120000', {
+      translations: chipTranslations,
+    });
+
+    const chip = component.activeChips().find((c) => c.key === 'maxPrice');
+    expect(chip?.label).toBe(`Up to 120,000\u00A0֏`);
+  });
+
+  it('renders both chips together, each formatted independently', async () => {
+    const { component } = await navigateToListings('/listings?minPrice=1000&maxPrice=25000', {
+      translations: chipTranslations,
+    });
+
+    const chips = component.activeChips();
+    expect(chips.find((c) => c.key === 'minPrice')?.label).toBe(`From 1,000\u00A0֏`);
+    expect(chips.find((c) => c.key === 'maxPrice')?.label).toBe(`Up to 25,000\u00A0֏`);
   });
 });

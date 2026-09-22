@@ -27,6 +27,7 @@ import {
   type CategoryOption,
 } from '../../../../shared/ui/category-selector/category-selector.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
+import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import type { ListingCategoryOption } from '../../models/create-listing.model';
 import { districtDisplayName } from '../../models/district-ui.util';
 import type { ListingDistrict } from '../../models/district.model';
@@ -76,6 +77,14 @@ interface ActiveChip {
     TranslatePipe,
     UiInputComponent,
   ],
+  // `DramCurrencyPipe` is also `inject()`-ed directly below (for the price
+  // chip labels, formatted outside the template — see `activeChips`).
+  // Listing it in `imports` only makes `| dram` resolvable in the template;
+  // it does NOT register it as an injectable, so it must be listed here too
+  // or the component throws NG0201 on construction (see
+  // `listing-details-page.component.ts`'s identical `providers` note and
+  // `knowledge/mistakes.md` M-028 for the exact failure mode).
+  providers: [DramCurrencyPipe],
   templateUrl: './listings-filters.component.html',
   styleUrl: './listings-filters.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -90,6 +99,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
   private readonly listingsApi = inject(ListingsApiService);
   private readonly languageService = inject(LanguageService);
   private readonly translate = inject(TranslateService);
+  private readonly dramPipe = inject(DramCurrencyPipe);
 
   @Output() readonly filtersChanged = new EventEmitter<ListingsFilter>();
 
@@ -205,6 +215,15 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     localeTagForLanguage(this.languageService.current().code),
   );
 
+  /**
+   * `DramCurrencyPipe` invoked directly (not via the `| dram` template pipe)
+   * because the price chip labels are built as plain strings for
+   * `translate.instant()`'s `amount` param — see `activeChips` below.
+   */
+  private formatDram(amount: number): string {
+    return this.dramPipe.transform(amount) ?? '';
+  }
+
   protected readonly activeChips = computed((): readonly ActiveChip[] => {
     const v = this.formValues();
     const chips: ActiveChip[] = [];
@@ -213,10 +232,20 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
       chips.push({ key: 'categoryId', label: cat?.name ?? v.categoryId });
     }
     if (v.minPrice != null) {
-      chips.push({ key: 'minPrice', label: `Min ${v.minPrice}` });
+      chips.push({
+        key: 'minPrice',
+        label: this.translate.instant('listings.filters.chips.minPrice', {
+          amount: this.formatDram(v.minPrice),
+        }),
+      });
     }
     if (v.maxPrice != null) {
-      chips.push({ key: 'maxPrice', label: `Max ${v.maxPrice}` });
+      chips.push({
+        key: 'maxPrice',
+        label: this.translate.instant('listings.filters.chips.maxPrice', {
+          amount: this.formatDram(v.maxPrice),
+        }),
+      });
     }
     // Gated on `originCoords()`, not just `v.radiusKm` — see
     // `ListingsPageComponent.activeFilterChips`'s identical reasoning.

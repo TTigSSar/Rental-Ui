@@ -301,6 +301,10 @@
       "districtIds": "Թաղամասեր",
       "districtsPlaceholder": "Բոլոր թաղամասերը",
       "filterBtn": "Ֆիլտրներ",
+      "chips": {
+        "minPrice": "Սկսած {{amount}}-ից",
+        "maxPrice": "Մինչև {{amount}}"
+      },
       "sidebar": {
         "title": "Ֆիլտրներ",
         "clearAll": "Մաքրել բոլոր",
@@ -1102,7 +1106,7 @@
       "fields": {
         "title": "Վերնագիր",
         "description": "Նկարագրություն",
-        "pricePerDay": "Օրական գին (AMD)",
+        "pricePerDay": "Օրական գին (֏)",
         "city": "Քաղաք",
         "ageFromMonths": "Տարիք (ամիս, սկսած)",
         "ageToMonths": "Տարիք (ամիս, մինչև)",

@@ -355,6 +355,7 @@ export class CreateListingFormComponent implements OnInit {
   // bound to PrimeNG's own `[min]`/`[max]` clamping.
   readonly compensationMaxLength = MAX_COMPENSATION_INPUT_LENGTH;
   readonly dramSymbol = DRAM_SYMBOL;
+  readonly dramSuffix = `\u00A0${DRAM_SYMBOL}`;
   readonly minPhotos = MIN_PHOTOS;
   readonly maxPhotos = MAX_PHOTOS;
   readonly steps = WIZARD_STEPS;

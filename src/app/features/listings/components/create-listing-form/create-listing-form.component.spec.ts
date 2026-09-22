@@ -501,6 +501,38 @@ describe('CreateListingFormComponent — location picker focus return (a11y)', (
 });
 
 /**
+ * The price input's `suffix` used to be the hardcoded literal `' ֏'` (a
+ * plain space, not the NBSP `DramCurrencyPipe`/`DRAM_SYMBOL` convention uses
+ * elsewhere) — the only place in the UI duplicating the glyph instead of
+ * importing `DRAM_SYMBOL`. Now bound to `[suffix]="dramSuffix"`, built from
+ * `DRAM_SYMBOL` with a `\u00A0` prefix, matching the sibling compensation
+ * input's `{{ dramSymbol }}` suffix span.
+ */
+describe('CreateListingFormComponent — price input dram suffix', () => {
+  function goToStep3(
+    fixture: ReturnType<typeof createComponent>['fixture'],
+    component: CreateListingFormComponent,
+  ) {
+    component.currentStep.set(3);
+    fixture.detectChanges();
+  }
+
+  it('renders the price p-inputNumber with an NBSP-joined dram suffix, not a plain-space literal', () => {
+    const { fixture, component } = createComponent('create');
+    goToStep3(fixture, component);
+
+    const instance = fixture.debugElement
+      .queryAll(By.directive(InputNumber))
+      .map((debugEl) => debugEl.componentInstance as InputNumber)
+      .find((c) => c.inputId === 'wz-price');
+
+    expect(instance).toBeTruthy();
+    expect(instance!.suffix).toBe('\u00A0֏');
+    expect(instance!.suffix).not.toBe(' ֏');
+  });
+});
+
+/**
  * Loss & damage compensation (step 3): required, whole AMD, 1,000–10,000,000.
  * Redefines the old optional `depositAmount` — the renter's maximum liability
  * if the toy is lost, seriously damaged or not returned. Nothing is paid

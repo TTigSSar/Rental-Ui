@@ -111,6 +111,28 @@ function expectedTotalPattern(amount: number): RegExp {
   return new RegExp(`^${grouped}[ \\u00A0\\u202F]?֏$`);
 }
 
+/**
+ * Matches the notification "meta" line built server-side by
+ * NotificationEmitter.BuildMeta (rental-api/.../Services/NotificationEmitter.cs)
+ * — e.g. "4 days · 14,000 ֏". BuildMeta is a wholly separate implementation
+ * from DramCurrencyPipe (TypeScript) that is DELIBERATELY kept in lockstep
+ * with it (see BuildMeta's doc comment and ADR-019 in knowledge/decisions.md)
+ * but nothing mechanically stops the two from drifting — a bug fixed
+ * 2026-09 had BuildMeta emitting "7500 AMD" (raw ISO code, no grouping, no
+ * NBSP) while every other price on the page read "7,500 ֏".
+ *
+ * Reuses expectedTotalPattern's amount+symbol contract (the same one that
+ * verifies the booking total rendered by DramCurrencyPipe earlier in this
+ * spec) instead of pinning an independent literal here — this assertion
+ * fails exactly when the notification's price shape disagrees with the rest
+ * of the app's price rendering, which is the actual risk worth guarding.
+ */
+function expectedMetaPattern(days: number, amount: number): RegExp {
+  const dayLabel = days === 1 ? 'day' : 'days';
+  const amountSource = expectedTotalPattern(amount).source.slice(1, -1); // strip ^ and $
+  return new RegExp(`^${days} ${dayLabel} \\u00B7 ${amountSource}$`);
+}
+
 interface BookingWindow {
   readonly startDay: number;
   readonly endDay: number;
@@ -381,8 +403,24 @@ test.describe('Booking lifecycle (real stack)', () => {
     const ownerPage = await ownerContext.newPage();
 
     try {
-      await test.step('owner sees the request and approves it', async () => {
+      await test.step('owner logs in and sees the booking-request notification with a correctly formatted dram price (regression: server used to emit "7500 AMD", not "7,500 ֏")', async () => {
         await loginViaDialog(ownerPage, ACCOUNTS.owner);
+        await ownerPage.goto('/notifications');
+
+        // Newest-first feed (NotificationsStore orders by CreatedAt desc) — the
+        // request this test just sent is the freshest notification mentioning
+        // this listing, regardless of what earlier runs left behind.
+        const notificationCard = ownerPage
+          .locator('.notif-card')
+          .filter({ hasText: TOY_KITCHEN.title })
+          .first();
+        await expect(notificationCard).toBeVisible();
+        await expect(notificationCard.locator('.notif-card__meta > span').first()).toHaveText(
+          expectedMetaPattern(4, TOY_KITCHEN.pricePerDay * 4),
+        );
+      });
+
+      await test.step('owner sees the request and approves it', async () => {
         await ownerPage.goto('/bookings/requests');
 
         const requestCard = ownerPage
