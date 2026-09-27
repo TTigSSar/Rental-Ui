@@ -220,6 +220,7 @@
       "emailInvalid": "Enter a valid email address.",
       "passwordRequired": "Password is required.",
       "passwordMinLength": "Password must be at least 8 characters.",
+      "passwordTooLong": "Password is too long. Use up to 72 Latin characters, or fewer if you use Armenian or Russian letters.",
       "firstNameRequired": "First name is required.",
       "lastNameRequired": "Last name is required.",
       "phoneNumberRequired": "Phone number is required.",
@@ -971,6 +972,7 @@
       "language": "Language",
       "notifications": "Notifications",
       "helpCenter": "Help center",
+      "security": "Security",
       "logout": "Sign out"
     },
     "actions": {
@@ -1016,6 +1018,44 @@
       "listings": "Listings",
       "rentals": "Rentals",
       "reviews": "Reviews"
+    },
+    "security": {
+      "page": {
+        "title": "Security",
+        "subtitle": "Change your password to keep your account secure."
+      },
+      "form": {
+        "currentPassword": "Current password",
+        "currentPasswordPlaceholder": "Enter your current password",
+        "newPassword": "New password",
+        "newPasswordPlaceholder": "Enter your new password",
+        "confirmPassword": "Confirm new password",
+        "confirmPasswordPlaceholder": "Re-enter your new password",
+        "submit": "Change password"
+      },
+      "validation": {
+        "currentPasswordRequired": "Current password is required.",
+        "newPasswordRequired": "New password is required.",
+        "newPasswordMinLength": "New password must be at least 8 characters.",
+        "newPasswordTooLong": "New password is too long. Use up to 72 Latin characters, or fewer if you use Armenian or Russian letters.",
+        "confirmPasswordRequired": "Please confirm your new password.",
+        "passwordsMismatch": "Passwords do not match."
+      },
+      "errors": {
+        "invalidCurrentPassword": "Current password is incorrect.",
+        "passwordUnchanged": "New password must be different from your current one.",
+        "passwordTooLong": "New password is too long. Use up to 72 Latin characters, or fewer if you use Armenian or Russian letters.",
+        "passwordNotSet": "Your account signs in with Google and has no password to change.",
+        "userBlocked": "Your account has been blocked. Contact support for help.",
+        "tooManyAttempts": "Too many attempts, try again in a minute.",
+        "sessionExpired": "Your session has expired. Please log in again.",
+        "serverError": "Something went wrong. Please try again."
+      },
+      "success": {
+        "title": "Password updated",
+        "text": "Your password has been updated.",
+        "announcement": "Password updated. Your password has been updated."
+      }
     }
   },
   "myListings": {

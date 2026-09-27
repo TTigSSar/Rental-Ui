@@ -174,6 +174,11 @@
               <span class="profile-page__sidebar-settings-label">{{ 'profile.nav.notifications' | translate }}</span>
               <app-icon name="chevron-right" [size]="14" />
             </button>
+            <a class="profile-page__sidebar-settings-item" routerLink="/profile/security">
+              <app-icon name="lock" [size]="15" />
+              <span class="profile-page__sidebar-settings-label">{{ 'profile.nav.security' | translate }}</span>
+              <app-icon name="chevron-right" [size]="14" />
+            </a>
             <button type="button" class="profile-page__sidebar-signout" (click)="logout()">
               <app-icon name="log-out" [size]="15" />
               {{ 'profile.nav.logout' | translate }}
@@ -344,7 +349,7 @@
                     </div>
                   }
 
-                  <button type="button" class="profile-page__m-item profile-page__m-item--last" disabled>
+                  <button type="button" class="profile-page__m-item" disabled>
                     <span class="profile-page__m-icon profile-page__m-icon--gray">
                       <app-icon name="bell" [size]="17" />
                     </span>
@@ -353,6 +358,16 @@
                     </div>
                     <app-icon name="chevron-right" [size]="16" class="profile-page__m-chevron" />
                   </button>
+
+                  <a class="profile-page__m-item profile-page__m-item--last" routerLink="/profile/security">
+                    <span class="profile-page__m-icon profile-page__m-icon--gray">
+                      <app-icon name="lock" [size]="17" />
+                    </span>
+                    <div class="profile-page__m-item-body">
+                      <span class="profile-page__m-item-label">{{ 'profile.nav.security' | translate }}</span>
+                    </div>
+                    <app-icon name="chevron-right" [size]="16" class="profile-page__m-chevron" />
+                  </a>
                 </div>
               </div>
 
@@ -430,11 +445,18 @@
                   <span class="profile-page__menu-label">{{ 'profile.nav.notifications' | translate }}</span>
                   <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
                 </button>
-                <a class="profile-page__menu-row profile-page__menu-row--last" routerLink="/faq">
+                <a class="profile-page__menu-row" routerLink="/faq">
                   <span class="profile-page__menu-icon-wrap">
                     <i class="pi pi-question-circle" aria-hidden="true"></i>
                   </span>
                   <span class="profile-page__menu-label">{{ 'profile.nav.helpCenter' | translate }}</span>
+                  <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
+                </a>
+                <a class="profile-page__menu-row profile-page__menu-row--last" routerLink="/profile/security">
+                  <span class="profile-page__menu-icon-wrap">
+                    <i class="pi pi-lock" aria-hidden="true"></i>
+                  </span>
+                  <span class="profile-page__menu-label">{{ 'profile.nav.security' | translate }}</span>
                   <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
                 </a>
               </div>

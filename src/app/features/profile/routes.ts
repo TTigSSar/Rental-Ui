@@ -63,6 +63,13 @@ export const profileRoutes: Routes = [
             (m) => m.FavoritesPageComponent,
           ),
       },
+      {
+        path: 'security',
+        loadComponent: () =>
+          import('./pages/security-page/security-page.component').then(
+            (m) => m.SecurityPageComponent,
+          ),
+      },
     ],
   },
 ];

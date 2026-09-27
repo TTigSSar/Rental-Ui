@@ -1,0 +1,81 @@
+<section class="security-page page-container section-stack">
+  <app-ui-page-header
+    [title]="'profile.security.page.title' | translate"
+    [subtitle]="'profile.security.page.subtitle' | translate"
+    backLink="/profile"
+    [hideOnDesktop]="true"
+  />
+
+  <!-- Persistent live region: an `@if`-inserted `role="status"` block that already
+       contains its text when it lands in the DOM is not reliably announced (a screen
+       reader needs a MUTATION inside a region that was already present). This region
+       stays mounted from the first render — the `@if` below only fills its text node —
+       so the phase() flip to 'success' is a genuine change to announce. -->
+  <div class="security-page__visually-hidden" role="status" aria-live="polite">
+    @if (phase() === 'success') {
+      {{ 'profile.security.success.announcement' | translate }}
+    }
+  </div>
+
+  @if (phase() === 'success') {
+    <div class="security-page__success">
+      <span class="security-page__success-icon" aria-hidden="true">
+        <i class="pi pi-check-circle"></i>
+      </span>
+      <p class="security-page__success-title" #successHeading tabindex="-1">
+        {{ 'profile.security.success.title' | translate }}
+      </p>
+      <p class="security-page__success-text">{{ 'profile.security.success.text' | translate }}</p>
+    </div>
+  } @else {
+    @if (bannerMessageKey(); as key) {
+      <p-message severity="error" styleClass="security-page__banner">
+        <span>{{ key | translate }}</span>
+      </p-message>
+    } @else if (bannerMessage(); as message) {
+      <p-message severity="error" styleClass="security-page__banner">
+        <span>{{ message }}</span>
+      </p-message>
+    }
+
+    <form class="security-page__form" [formGroup]="form" (ngSubmit)="submit()">
+      <app-ui-input
+        type="password"
+        formControlName="currentPassword"
+        [label]="'profile.security.form.currentPassword' | translate"
+        [placeholder]="'profile.security.form.currentPasswordPlaceholder' | translate"
+        autocomplete="current-password"
+        [disabled]="isSubmitting()"
+        [errorMessage]="currentPasswordErrorKey() ? (currentPasswordErrorKey() | translate) : null"
+      />
+
+      <app-ui-input
+        type="password"
+        formControlName="newPassword"
+        [label]="'profile.security.form.newPassword' | translate"
+        [placeholder]="'profile.security.form.newPasswordPlaceholder' | translate"
+        autocomplete="new-password"
+        [disabled]="isSubmitting()"
+        [errorMessage]="newPasswordErrorKey() ? (newPasswordErrorKey() | translate) : null"
+      />
+
+      <app-ui-input
+        type="password"
+        formControlName="confirmPassword"
+        [label]="'profile.security.form.confirmPassword' | translate"
+        [placeholder]="'profile.security.form.confirmPasswordPlaceholder' | translate"
+        autocomplete="new-password"
+        [disabled]="isSubmitting()"
+        [errorMessage]="confirmPasswordErrorKey() ? (confirmPasswordErrorKey() | translate) : null"
+      />
+
+      <p-button
+        type="submit"
+        styleClass="security-page__submit-button"
+        [loading]="isSubmitting()"
+        [disabled]="isSubmitting()"
+        [label]="'profile.security.form.submit' | translate"
+      />
+    </form>
+  }
+</section>

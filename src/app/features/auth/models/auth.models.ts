@@ -10,6 +10,11 @@ export interface ExternalAuthRequest {
   idToken: string;
 }
 
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface RegisterRequest {
   email: string;
   password: string;

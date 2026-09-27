@@ -14,6 +14,7 @@ export const ApiContract = {
     register: '/api/auth/register',
     currentUser: '/api/auth/me',
     updatePreferredLanguage: '/api/auth/me/preferred-language',
+    changePassword: '/api/auth/me/password',
     external: '/api/auth/external',
   },
   listings: {
