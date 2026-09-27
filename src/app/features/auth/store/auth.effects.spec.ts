@@ -4,17 +4,19 @@ import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { of, throwError } from 'rxjs';
 
 import { actionsHarness } from '../../../../testing/ngrx.helpers';
-import { makeUser } from '../../../../testing/fixtures';
+import { makeAdmin, makeUser } from '../../../../testing/fixtures';
 import { LanguageService } from '../../../shared/services/language.service';
 import { AuthApiService } from '../services/auth-api.service';
+import { AuthRedirectService } from '../services/auth-redirect.service';
 import * as AuthActions from './auth.actions';
 import { AuthEffects } from './auth.effects';
 import { selectIsAuthenticated } from './auth.selectors';
 
-function setup(api: Partial<AuthApiService> = {}) {
+function setup(api: Partial<AuthApiService> = {}, authRedirect: Partial<AuthRedirectService> = {}) {
   const harness = actionsHarness();
   const languageService = { applyFromUser: vi.fn() };
   const router = { navigateByUrl: vi.fn() };
+  const authRedirectService = { consume: vi.fn().mockReturnValue(null), ...authRedirect };
   TestBed.configureTestingModule({
     providers: [
       AuthEffects,
@@ -23,10 +25,18 @@ function setup(api: Partial<AuthApiService> = {}) {
       { provide: AuthApiService, useValue: api },
       { provide: Router, useValue: router },
       { provide: LanguageService, useValue: languageService },
+      { provide: AuthRedirectService, useValue: authRedirectService },
     ],
   });
   const store = TestBed.inject(MockStore);
-  return { harness, store, languageService, effects: TestBed.inject(AuthEffects) };
+  return {
+    harness,
+    store,
+    languageService,
+    router,
+    authRedirectService,
+    effects: TestBed.inject(AuthEffects),
+  };
 }
 
 describe('AuthEffects — per-user language persistence', () => {
@@ -108,11 +118,63 @@ describe('AuthEffects — per-user language persistence', () => {
         },
       });
 
-      expect(() =>
-        harness.send(AuthActions.updatePreferredLanguage({ code: 'ru' })),
-      ).not.toThrow();
+      expect(() => harness.send(AuthActions.updatePreferredLanguage({ code: 'ru' }))).not.toThrow();
       expect(errored).toBe(false);
       expect(emissions).toEqual([]);
+    });
+  });
+});
+
+describe('AuthEffects — post-auth landing navigation', () => {
+  describe('navigateAfterAuthenticated$', () => {
+    it('navigates an admin with no pending returnUrl to /admin', () => {
+      const { harness, effects, router, authRedirectService } = setup(
+        {},
+        { consume: vi.fn().mockReturnValue(null) },
+      );
+      effects.navigateAfterAuthenticated$.subscribe();
+
+      harness.send(AuthActions.loginSuccess({ token: 'tok' }));
+      harness.send(AuthActions.loadCurrentUserSuccess({ user: makeAdmin() }));
+
+      expect(authRedirectService.consume).toHaveBeenCalled();
+      expect(router.navigateByUrl).toHaveBeenCalledWith('/admin');
+    });
+
+    it('navigates an admin with a pending returnUrl to that URL, not /admin', () => {
+      const { harness, effects, router } = setup(
+        {},
+        { consume: vi.fn().mockReturnValue('/listings/42') },
+      );
+      effects.navigateAfterAuthenticated$.subscribe();
+
+      harness.send(AuthActions.loginSuccess({ token: 'tok' }));
+      harness.send(AuthActions.loadCurrentUserSuccess({ user: makeAdmin() }));
+
+      expect(router.navigateByUrl).toHaveBeenCalledWith('/listings/42');
+      expect(router.navigateByUrl).not.toHaveBeenCalledWith('/admin');
+    });
+
+    it('does not navigate a non-admin login with no pending returnUrl', () => {
+      const { harness, effects, router } = setup({}, { consume: vi.fn().mockReturnValue(null) });
+      effects.navigateAfterAuthenticated$.subscribe();
+
+      harness.send(AuthActions.loginSuccess({ token: 'tok' }));
+      harness.send(AuthActions.loadCurrentUserSuccess({ user: makeUser() }));
+
+      expect(router.navigateByUrl).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate on a bootstrap/session-restore loadCurrentUserSuccess for an admin (not preceded by an explicit login)', () => {
+      const { harness, effects, router } = setup({}, { consume: vi.fn().mockReturnValue(null) });
+      effects.navigateAfterAuthenticated$.subscribe();
+
+      // Simulates authInitStarted -> initAuth$ -> loadCurrentUser -> loadCurrentUserSuccess,
+      // i.e. app bootstrap/session restore, with no loginSuccess/registerSuccess/
+      // externalAuthSuccess preceding it.
+      harness.send(AuthActions.loadCurrentUserSuccess({ user: makeAdmin() }));
+
+      expect(router.navigateByUrl).not.toHaveBeenCalled();
     });
   });
 });

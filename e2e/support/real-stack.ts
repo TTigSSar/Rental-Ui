@@ -15,6 +15,15 @@ export const ACCOUNTS = {
   owner: { email: 'owner@rental.local', password: 'Demo1234' },
   renter: { email: 'renter@rental.local', password: 'Demo1234' },
   admin: { email: 'admin@rental.local', password: 'Demo1234' },
+  /**
+   * The deliberately spare account (`DevelopmentSeedCredentials.SecondUserEmail`) — no other
+   * real spec touches it (grep the other files under `e2e/real/` before adding a new
+   * dependency). Reserved for journeys that must MUTATE the account's own credential, such as
+   * `change-password.spec.ts`, where reusing `owner`/`renter`/`admin` would risk leaving a
+   * password change behind for every other spec's `loginViaDialog`/`apiLogin` calls to trip
+   * over.
+   */
+  user2: { email: 'user2@rental.local', password: 'Demo1234' },
 } as const;
 
 export interface Credentials {
@@ -35,12 +44,18 @@ export interface Credentials {
  * `DevelopmentSeedData.Listings` (`40.1776m, 44.5126m` — 5 Republic Square,
  * Yerevan). `ListingLocationBackfillExtensions.BackfillListingLocationsAsync`
  * runs unconditionally on every API startup and derives `PublicLatitude`/
- * `PublicLongitude` (the geohash-6 cell centroid, ADR-008) from that exact
- * pair deterministically, so the fuzzed public pair never drifts between
- * runs either — confirmed live: `40.179749, 44.511108`. Do not hand-derive
- * that value from geohash math in a test; treat it as an opaque, currently-
- * stable seed fact and assert the *relationship* (differs from exact, same
- * across callers) rather than recomputing it.
+ * `PublicLongitude` (the geohash-7 cell centroid, ADR-008 as amended
+ * 2026-07-25, `GeohashSnapper.Precision = 7`) from that exact pair
+ * deterministically, so the fuzzed public pair never drifts between runs
+ * either.
+ *
+ * `publicLatitude`/`publicLongitude` are that geohash-7 centroid —
+ * confirmed live: `40.177689, 44.513168`. This is a deliberate tripwire, not
+ * a magic number: it is the actual centroid of the geohash-7 cell containing
+ * the exact seed point, rounded to 6dp the same way `GeohashSnapper` does
+ * (`MidpointRounding.AwayFromZero`). If `GeohashSnapper.Precision` ever
+ * changes again, recompute these two values and update the ADR-008
+ * amendment note alongside them — don't hand-wave a new number in.
  */
 export const TOY_KITCHEN = {
   id: '77777777-0007-4000-9000-000000000007',
@@ -48,6 +63,16 @@ export const TOY_KITCHEN = {
   pricePerDay: 3_500,
   exactLatitude: 40.1776,
   exactLongitude: 44.5126,
+  publicLatitude: 40.177689,
+  publicLongitude: 44.513168,
+  /**
+   * `AddressLine` on the seeded listing — gated the same way the owner's
+   * phone number used to be (`BookingsService`: `contactRevealed ?
+   * listing.AddressLine : null`). The phone gate was removed from the
+   * product entirely; the address gate is the one contact-reveal survivor,
+   * so this is now what "Approved+" genuinely unlocks on a booking.
+   */
+  addressLine: '5 Republic Square',
 } as const;
 
 /**
@@ -80,9 +105,135 @@ export async function assertDockerStack(request: APIRequestContext): Promise<voi
   }
 }
 
-/** Logs in through the real API and returns the JWT. */
+/**
+ * Module-level JWT cache, keyed by account email.
+ *
+ * `AuthController`'s login endpoint carries `AuthPolicy` (5 requests/min,
+ * partitioned by remote IP — see `RateLimiterExtensions.cs`), and because
+ * every Playwright request reaches the docker API as one client IP, that
+ * budget is shared by the ENTIRE `--project=real` run, not per spec file.
+ * Before this cache, `apiSetPreferredLanguage`, `releaseListingForRenter`
+ * and several specs each called `apiLogin` again for accounts an earlier
+ * step — sometimes an earlier spec file in the same run — had already
+ * logged in as moments before, and the suite routinely spent its whole
+ * 5/min budget re-authenticating the same handful of demo accounts.
+ *
+ * Reuse is safe: the access token is a bearer string whose claims are
+ * `Sub`/`NameIdentifier`/`Email`/`Role`/`Jti` only (see
+ * `JwtTokenService.GenerateAccessToken`) — nothing mutable like preferred
+ * language is baked in, so a cached token stays valid across e.g.
+ * `language-persistence.spec.ts` changing `renter@`'s language mid-run.
+ * `AccessTokenExpirationMinutes` is 60 in both dev configs, so `TOKEN_TTL_MS`
+ * below (55 min) never actually gets hit by a normal test run and exists
+ * purely as a defensive backstop, not because runs get anywhere near it.
+ *
+ * This only pays off with the `real` Playwright project pinned to
+ * `workers: 1` (see playwright.config.ts): Playwright workers are separate
+ * OS processes, so this module-level Map does not exist across workers —
+ * under the old `fullyParallel` default each worker rebuilt its own cache
+ * and the aggregate login count across the run was unchanged. Serialization
+ * and caching are a package deal here, not two independent fixes.
+ *
+ * Also shared by `loginViaDialog` (below), deliberately: the first
+ * `loginViaDialog` call for a given account per run still drives the real
+ * dialog end to end (fill, submit, wait for the session to hydrate) and
+ * caches the resulting token here, same as `apiLogin`. Every LATER call for
+ * that same account in the same run — whether from `apiLogin` or
+ * `loginViaDialog`, in whichever spec file asks first — reuses it. This
+ * was proven necessary, not just tidy: with only `apiLogin` cached and
+ * `workers: 1`, a repeat full `--project=real` run still hit 429s on the
+ * *dialog* logins alone (`renter`/`owner`/`owner` across
+ * booking-lifecycle.spec.ts, create-listing-photo-upload.spec.ts and
+ * language-persistence.spec.ts — 3-4 real dialog submits per run is on its
+ * own enough to exhaust the budget across two back-to-back runs). Re-
+ * submitting the real login form more than once per account per run buys no
+ * incremental regression protection either: the dialog's own mechanics
+ * (validation, error states, success) are already pinned cheaply against
+ * the mocked backend in `e2e/auth.spec.ts`; what the real tier uniquely
+ * needs proven is the real backend round trip PLUS the Angular hydration
+ * wiring (`AuthTokenService` -> `authInitStarted` -> `GET /api/auth/me`) —
+ * and that only needs proving once per account, not once per spec file.
+ */
+const tokenCache = new Map<string, { token: string; loggedInAt: number }>();
+const TOKEN_TTL_MS = 55 * 60 * 1000;
+
+/**
+ * Self-diagnosis for the shared login budget (M-044, amended 2026-09-26 for suite growth — see
+ * `e2e/README.md`'s "Real-tier login budget" section and the M-044 entry in
+ * `knowledge/mistakes.md`).
+ *
+ * A 429 on `POST /api/auth/login` here means the suite's OWN demand (~6 real logins/full run)
+ * outran `AuthController`'s `auth` policy (5/minute, one shared IP-partitioned bucket for the
+ * whole run — see `RateLimiterExtensions.cs`), almost always because this is the second (or
+ * later) full `--project=real` run inside the same ~60s fixed window. Without this check, that
+ * shows up as a generic timeout or a wrong-looking assertion failure in whichever spec happened
+ * to need a login next — e.g. a booking-lifecycle CTA that "never becomes clickable" because the
+ * session never hydrated — which is exactly the shape of bug M-044 already spent a full
+ * investigation diagnosing once. Failing loudly HERE, naming the real cause, is meant to make
+ * sure nobody re-diagnoses it a third time.
+ */
+export function assertLoginNotRateLimited(status: number, email: string): void {
+  if (status !== 429) return;
+  throw new Error(
+    `Real-stack login budget exhausted while signing in as ${email} (429 from ` +
+      `POST /api/auth/login). This is NOT a flake and NOT a code regression: AuthController's ` +
+      `"auth" rate-limit policy allows 5 logins/minute for the WHOLE real-tier run (one shared ` +
+      `client IP — RateLimiterExtensions.cs), and this suite now needs ~6 per full run (M-044, ` +
+      `amended 2026-09-26). A single "npx playwright test --project=real" run fits; a second ` +
+      `one started right after it does not. Fix: wait ~60 seconds for the fixed window to ` +
+      `clear, then re-run — do not retry immediately and do not add sleeps/retries to code ` +
+      `around this. See e2e/README.md's "Real-tier login budget" section.`,
+  );
+}
+
+/**
+ * Self-diagnosis for the OTHER shared budget a real-tier spec can lean on:
+ * `PUT /api/auth/me/password`'s own `password-change` rate-limit policy (5/minute, ALSO
+ * partitioned by remote IP — see `RateLimiterExtensions.cs` — but a bucket entirely separate
+ * from `auth`, which is exactly why a spec that needs to restore/verify a mutated credential
+ * routes through this endpoint instead of spending more of the scarce login budget).
+ *
+ * A 429 here does NOT mean the call it guarded failed its own check (e.g. "restore did not take
+ * effect") — it means that call never ran at all, so whatever it was meant to prove is UNKNOWN,
+ * not disproven. Callers must check this BEFORE asserting on the response, or a rate limit gets
+ * misreported as a real failure of the thing being tested.
+ *
+ * Critically, even the worst case here is self-healing: `DevelopmentSeedRunner` re-hashes every
+ * demo account's password back to `DevelopmentSeedCredentials.Password` (`Demo1234`) on every API
+ * startup, whenever the stored hash no longer matches it. So if a restore genuinely never
+ * completed and a demo account is left on a temporary password, the next `docker compose ...
+ * restart api` (or any redeploy) fixes it with no manual DB work — this is the fact a scary-
+ * looking 429 in a `finally` block most needs to carry, so it doesn't read as data loss.
+ */
+export function assertPasswordChangeNotRateLimited(status: number, email: string, step: string): void {
+  if (status !== 429) return;
+  throw new Error(
+    `Real-stack password-change budget exhausted while ${step} for ${email} (429 from ` +
+      `PUT /api/auth/me/password). This does NOT mean the restore failed — it means this call ` +
+      `never ran, so ${email}'s current password is UNKNOWN rather than confirmed wrong. ` +
+      `AuthController's "password-change" rate-limit policy allows 5/minute for the WHOLE ` +
+      `real-tier run (one shared client IP, a bucket separate from "auth" — ` +
+      `RateLimiterExtensions.cs). Self-heal: even if ${email} is genuinely still on a temporary ` +
+      `password, DevelopmentSeedRunner resets every demo account's password hash back to ` +
+      `Demo1234 on the next API startup whenever it no longer matches — restart the docker ` +
+      `"api" service (or redeploy) to restore it, no manual DB fix needed. Otherwise: wait ~60 ` +
+      `seconds for the fixed window to clear and re-run. See e2e/README.md's "Real-tier login ` +
+      `budget" section.`,
+  );
+}
+
+/**
+ * Logs in through the real API and returns the JWT, reusing a cached token
+ * for the same account when one is still fresh (see `tokenCache` doc above).
+ */
 export async function apiLogin(request: APIRequestContext, account: Credentials): Promise<string> {
+  const cached = tokenCache.get(account.email);
+  if (cached && Date.now() - cached.loggedInAt < TOKEN_TTL_MS) {
+    return cached.token;
+  }
+
   const res = await request.post(`${API_URL}/api/auth/login`, { data: account });
+  assertLoginNotRateLimited(res.status(), account.email);
   if (!res.ok()) {
     throw new Error(`API login failed for ${account.email}: ${res.status()} ${await res.text()}`);
   }
@@ -91,6 +242,7 @@ export async function apiLogin(request: APIRequestContext, account: Credentials)
   const body = (await res.json()) as { token?: string; accessToken?: string };
   const token = body.accessToken ?? body.token;
   if (!token) throw new Error(`API login for ${account.email} returned no token.`);
+  tokenCache.set(account.email, { token, loggedInAt: Date.now() });
   return token;
 }
 
@@ -149,10 +301,35 @@ export async function releaseListingForRenter(
 }
 
 /**
- * Determinism self-heal for `real/language-persistence.spec.ts`: sets an
- * account's server-side `preferredLanguage` directly through the real PUT
- * endpoint before a journey starts, so the test's starting state never
- * depends on what a previous (possibly crashed) run left behind.
+ * Determinism self-heal: sets an account's server-side `preferredLanguage`
+ * directly through the real PUT endpoint before a journey starts, so the
+ * test's starting state never depends on what a previous (possibly crashed
+ * or intentionally language-switching) run left behind.
+ *
+ * Used by `real/language-persistence.spec.ts` itself (its own baseline, and
+ * its cleanup — wrapped in try/finally there so it runs even if an assertion
+ * above it throws) AND, separately, by `booking-lifecycle.spec.ts`'s own
+ * guard step to reset `renter@` before its journey starts: that spec asserts
+ * English locators throughout ('Request to rent', 'Cancel request', …), and
+ * `language-persistence.spec.ts` deliberately drives `renter@` to `hy`
+ * mid-test. A run that is killed outright (not just a failed assertion)
+ * skips even a `finally`, and the dev DB is persistent — so a prior,
+ * unrelated real-tier run can leave `renter@` on `hy` and silently break
+ * every English locator in a completely different spec. Rather than trust
+ * the previous run's cleanup, the spec that depends on the account being
+ * English resets it itself, in its own guard step — the same self-heal
+ * pattern as `releaseListingForRenter` for booking state.
+ *
+ * This is deliberately called per-spec (only where the risk is real — only
+ * `renter@` is ever driven to a non-English language by any real spec today,
+ * grep the call sites below), not once for every account from
+ * `global-setup.ts` for the whole real-tier run: that was tried and
+ * reverted. A global self-heal pays its login cost on every `--project=real`
+ * invocation, including single-file runs, and stacks against the shared
+ * `AuthPolicy` rate limit (5 logins/IP/min, partitioned by remote IP — see
+ * `RateLimiterExtensions.cs`) hard enough that two back-to-back solo runs of
+ * `booking-lifecycle.spec.ts` started 429ing purely from that self-heal's
+ * own logins.
  */
 export async function apiSetPreferredLanguage(
   request: APIRequestContext,
@@ -175,17 +352,60 @@ export async function apiSetPreferredLanguage(
 /**
  * Logs in through the real auth dialog (header "Log in" button). Mirrors the
  * mocked-tier flow in auth.spec.ts, but against the real API.
+ *
+ * Shares `tokenCache` (see its doc above `apiLogin`) with every other login
+ * path: the FIRST call for a given account in a run drives the real dialog
+ * (fill, submit, wait for the hydration-driven close) exactly as before and
+ * caches the resulting token. Every later call for that same account, this
+ * run, from any spec file, instead seeds the cached token straight into
+ * `localStorage` and reloads — the app's own bootstrap (`authInitStarted` in
+ * `auth.effects.ts`) picks it up and hydrates via `GET /api/auth/me`, which
+ * is NOT covered by `AuthPolicy` (only POST /login and /register are — see
+ * `AuthController.cs`), so this path spends none of the shared login budget.
+ * The resulting session is real and fully hydrated either way; only a
+ * redundant re-submission of the password form is skipped.
  */
 export async function loginViaDialog(page: Page, account: Credentials): Promise<void> {
+  const cached = tokenCache.get(account.email);
+  if (cached && Date.now() - cached.loggedInAt < TOKEN_TTL_MS) {
+    await page.goto('/');
+    await page.evaluate((token) => localStorage.setItem('auth_token', token), cached.token);
+    const [meResponse] = await Promise.all([
+      page.waitForResponse(
+        (res) => res.url().endsWith('/api/auth/me') && res.request().method() === 'GET',
+      ),
+      page.reload(),
+    ]);
+    expect(
+      meResponse.ok(),
+      `session hydration from cached token failed for ${account.email}: ${meResponse.status()}`,
+    ).toBe(true);
+    return;
+  }
+
   await page.goto('/');
   await page.getByRole('button', { name: 'Log in' }).click();
 
   const form = page.locator('form.auth-form');
   await form.locator('input.uii-native').nth(0).fill(account.email);
   await form.locator('input.uii-native').nth(1).fill(account.password);
-  await form.locator('button[type="submit"]').click();
+
+  // Capture the actual POST /api/auth/login response so a 429 (shared login budget exhausted —
+  // see assertLoginNotRateLimited above) fails immediately with an explicit cause instead of the
+  // dialog just sitting there until the generic 20s "form never closed" timeout below, which
+  // looks identical to a real app bug.
+  const [loginRes] = await Promise.all([
+    page.waitForResponse(
+      (res) => res.url().endsWith('/api/auth/login') && res.request().method() === 'POST',
+    ),
+    form.locator('button[type="submit"]').click(),
+  ]);
+  assertLoginNotRateLimited(loginRes.status(), account.email);
 
   // The dialog closes once /auth/me hydrates the session — the real API round
   // trip (BCrypt verify + JWT) is why this timeout is explicit.
   await expect(form).toBeHidden({ timeout: 20_000 });
+
+  const token = await page.evaluate(() => localStorage.getItem('auth_token'));
+  if (token) tokenCache.set(account.email, { token, loggedInAt: Date.now() });
 }

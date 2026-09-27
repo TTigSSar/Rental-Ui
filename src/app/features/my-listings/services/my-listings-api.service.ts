@@ -34,6 +34,21 @@ function coerceDeliveryType(value: unknown): DeliveryType | null {
     : null;
 }
 
+/**
+ * `deliveryTypes` is additive — older listings/backends never send it. Falls
+ * back to the legacy scalar `deliveryType` (wrapped in a single-item array)
+ * when the array is missing or empty, mirroring `coerceDeliveryType` above.
+ */
+function coerceDeliveryTypes(value: unknown, legacyType: DeliveryType | null): DeliveryType[] | null {
+  if (Array.isArray(value)) {
+    const filtered = value.filter((v): v is DeliveryType =>
+      typeof v === 'string' && (DELIVERY_TYPES as readonly string[]).includes(v),
+    );
+    if (filtered.length > 0) return filtered;
+  }
+  return legacyType ? [legacyType] : null;
+}
+
 function toNullableString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
 }
@@ -101,11 +116,12 @@ function normalizeMyListing(raw: Record<string, unknown> & { id: string }): MyLi
     safetyNotes: typeof raw['safetyNotes'] === 'string' && raw['safetyNotes'].length > 0
       ? raw['safetyNotes']
       : null,
-    depositAmount:
-      typeof raw['depositAmount'] === 'number' ? (raw['depositAmount'] as number) : null,
+    compensationAmount:
+      typeof raw['compensationAmount'] === 'number' ? (raw['compensationAmount'] as number) : null,
     minRentalDays:
       typeof raw['minRentalDays'] === 'number' ? (raw['minRentalDays'] as number) : null,
     deliveryType: coerceDeliveryType(raw['deliveryType']),
+    deliveryTypes: coerceDeliveryTypes(raw['deliveryTypes'], coerceDeliveryType(raw['deliveryType'])),
   };
 }
 

@@ -7,8 +7,13 @@
 /** Whether the listing is visible to renters (`Active`) or hidden (`Paused`). */
 export type OwnerListingStatus = 'Active' | 'Paused';
 
-/** Lifecycle of a single incoming booking request from the owner's side. */
-export type OwnerRequestDecision = 'pending' | 'accepted' | 'declined';
+/**
+ * Lifecycle of a single incoming booking request from the owner's side. Mirrors the
+ * backend `BookingStatus` states this card can actually show: `pending` (Pending),
+ * `approved` (Approved — awaiting handover), `active` (Active — picked up), `completed`
+ * (Completed — returned), `declined` (Rejected/Cancelled/Expired).
+ */
+export type OwnerRequestDecision = 'pending' | 'approved' | 'active' | 'completed' | 'declined';
 
 /**
  * The renter behind a booking request. Identity comes from the booking request;

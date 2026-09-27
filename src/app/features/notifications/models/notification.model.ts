@@ -77,7 +77,7 @@ export interface NotificationItem {
   readonly category: NotificationCategory;
   readonly title: string;
   readonly body: string;
-  /** Secondary context line, e.g. "4 days · ֏6,000" or "Booking #4821". */
+  /** Secondary context line, e.g. "3 days · 7,500 ֏" or "Booking #4821". */
   readonly meta: string | null;
   /** ISO-8601 timestamp; drives Today / Earlier grouping and relative time. */
   readonly createdAt: string;

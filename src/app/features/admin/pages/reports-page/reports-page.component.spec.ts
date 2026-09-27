@@ -240,6 +240,40 @@ describe('ReportsPageComponent', () => {
     expect(fixture.nativeElement.querySelector('app-admin-report-detail-dialog')).not.toBeNull();
   });
 
+  it('navigates to /admin/messages?userId=<id> and closes the dialog when a contact button in the detail dialog is clicked', async () => {
+    await setup({
+      items: [
+        makeAdminReportRow({
+          id: 'r1',
+          targetType: 'User',
+          targetId: 'user-9',
+          targetLabel: 'Narek Sargsyan',
+          reporterId: 'user-2',
+        }),
+      ],
+    });
+    const openBtn: HTMLButtonElement = fixture.nativeElement.querySelector(
+      '.reports-page__action-btn--open',
+    );
+    openBtn.click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-admin-report-detail-dialog')).not.toBeNull();
+
+    // Two contact buttons render (reporter + reported member, since targetType is User) — the
+    // second is the reported member (`user-9`), matching `messageableContacts`' order.
+    const contactButtons: HTMLButtonElement[] = Array.from(
+      fixture.nativeElement.querySelectorAll('.admin-report-detail-dialog__contact-btn'),
+    );
+    expect(contactButtons.length).toBe(2);
+    contactButtons[1].click();
+    fixture.detectChanges();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/admin/messages'], {
+      queryParams: { userId: 'user-9' },
+    });
+    expect(fixture.nativeElement.querySelector('app-admin-report-detail-dialog')).toBeNull();
+  });
+
   it('dispatches setReportStatusFilter when a tab is selected', async () => {
     await setup({ counts: { open: 1, resolved: 2, dismissed: 0, all: 3 } });
     const dispatchSpy = vi.spyOn(store, 'dispatch');

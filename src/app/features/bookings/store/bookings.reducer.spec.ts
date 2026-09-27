@@ -58,6 +58,86 @@ describe('bookingsReducer', () => {
       expect(next.bookingRequestActionIds).toEqual([]);
       expect(next.bookingRequestsError).toBe('boom');
     });
+
+    it('also patches the in-view bookingDetail when it is the decided booking (approve)', () => {
+      const start = stateWith({
+        bookingRequests: [makeBookingRequest({ id: 'b1', status: 'PendingApproval' })],
+        bookingRequestActionIds: ['b1'],
+        bookingDetail: makeBookingDetail({ id: 'b1', status: 'Pending' }),
+      });
+      const next = bookingsReducer(
+        start,
+        BookingsActions.approveBookingRequestSuccess({ bookingId: 'b1', status: 'Approved' }),
+      );
+      expect(next.bookingDetail?.status).toBe('Approved');
+      expect(next.bookingDetail?.approvedAt).not.toBeNull();
+      expect(next.bookingDetail?.approvedAt).not.toBe(start.bookingDetail?.approvedAt);
+    });
+
+    it('also patches the in-view bookingDetail when it is the decided booking (reject)', () => {
+      const start = stateWith({
+        bookingRequests: [makeBookingRequest({ id: 'b1', status: 'PendingApproval' })],
+        bookingRequestActionIds: ['b1'],
+        bookingDetail: makeBookingDetail({ id: 'b1', status: 'Pending', rejectionReason: null }),
+      });
+      const next = bookingsReducer(
+        start,
+        BookingsActions.rejectBookingRequestSuccess({
+          bookingId: 'b1',
+          status: 'Rejected',
+          reason: 'dates_unavailable',
+        }),
+      );
+      expect(next.bookingDetail?.status).toBe('Rejected');
+      expect(next.bookingDetail?.rejectionReason).toBe('dates_unavailable');
+    });
+
+    it('leaves bookingDetail untouched when it is a different booking', () => {
+      const otherDetail = makeBookingDetail({ id: 'b2', status: 'Pending' });
+      const start = stateWith({
+        bookingRequests: [makeBookingRequest({ id: 'b1', status: 'PendingApproval' })],
+        bookingRequestActionIds: ['b1'],
+        bookingDetail: otherDetail,
+      });
+      const next = bookingsReducer(
+        start,
+        BookingsActions.approveBookingRequestSuccess({ bookingId: 'b1', status: 'Approved' }),
+      );
+      expect(next.bookingDetail).toBe(otherDetail);
+      expect(next.bookingDetail?.status).toBe('Pending');
+    });
+
+    it('leaves a different booking\'s bookingDetail untouched on reject', () => {
+      const otherDetail = makeBookingDetail({ id: 'b2', status: 'Pending', rejectionReason: null });
+      const start = stateWith({
+        bookingRequests: [makeBookingRequest({ id: 'b1', status: 'PendingApproval' })],
+        bookingRequestActionIds: ['b1'],
+        bookingDetail: otherDetail,
+      });
+      const next = bookingsReducer(
+        start,
+        BookingsActions.rejectBookingRequestSuccess({
+          bookingId: 'b1',
+          status: 'Rejected',
+          reason: 'dates_unavailable',
+        }),
+      );
+      expect(next.bookingDetail).toBe(otherDetail);
+      expect(next.bookingDetail?.rejectionReason).toBeNull();
+    });
+
+    it('leaves a null bookingDetail untouched', () => {
+      const start = stateWith({
+        bookingRequests: [makeBookingRequest({ id: 'b1', status: 'PendingApproval' })],
+        bookingRequestActionIds: ['b1'],
+        bookingDetail: null,
+      });
+      const next = bookingsReducer(
+        start,
+        BookingsActions.approveBookingRequestSuccess({ bookingId: 'b1', status: 'Approved' }),
+      );
+      expect(next.bookingDetail).toBeNull();
+    });
   });
 
   describe('loadBookingDetail', () => {

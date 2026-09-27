@@ -93,6 +93,23 @@ describe('AdminUserActionsPanelComponent', () => {
     expect(verifySpy).toHaveBeenCalled();
   });
 
+  it('always shows a Message item, last, and emits message on click', async () => {
+    await setup({ status: 'Active' });
+    const labels = menuItemLabels();
+    expect(labels.some((l) => l.includes('admin.users.actions.message'))).toBe(true);
+    expect(labels[labels.length - 1]).toContain('admin.users.actions.message');
+
+    const messageSpy = vi.fn();
+    fixture.componentInstance.message.subscribe(messageSpy);
+    const messageBtn = Array.from(
+      fixture.nativeElement.querySelectorAll('.admin-user-actions-panel__item'),
+    ).find((el) =>
+      (el as HTMLElement).textContent?.includes('admin.users.actions.message'),
+    ) as HTMLButtonElement;
+    messageBtn.click();
+    expect(messageSpy).toHaveBeenCalled();
+  });
+
   it('emits cancel and restores focus to the previously-focused element on Escape', async () => {
     const trigger = document.createElement('button');
     document.body.appendChild(trigger);

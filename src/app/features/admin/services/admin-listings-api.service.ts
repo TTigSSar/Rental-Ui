@@ -102,7 +102,7 @@ function normalizeAdminListingSummary(
     condition: isToyCondition(raw['condition']) ? raw['condition'] : null,
     hygieneNotes: toNullableString(raw['hygieneNotes']),
     safetyNotes: toNullableString(raw['safetyNotes']),
-    depositAmount: toNullableNumber(raw['depositAmount']),
+    compensationAmount: toNullableNumber(raw['compensationAmount']),
 
     images: normalizeAdminListingImages(raw['images']),
 
@@ -146,6 +146,7 @@ function normalizeAdminListingDetail(
     status: coerceListingModerationStatus(raw['status']),
     // Real count as of phase 4 (`AdminListingsService.BuildDetailAsync` -> `stats?.OpenReportCount`).
     ownerOpenReportCount: toNonNegativeInteger(raw['ownerOpenReportCount']),
+    ownerPhoneNumber: toNullableString(raw['ownerPhoneNumber']),
   };
 }
 

@@ -1,11 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { TranslateService } from '@ngx-translate/core';
-import { catchError, concatMap, map, of, switchMap } from 'rxjs';
+import { catchError, concatMap, map, of, switchMap, tap } from 'rxjs';
 
 import { type ApiErrorCode, getApiErrorCode } from '../../../api/api-error.model';
 import { toApiErrorMessage } from '../../../api/http-error-message.util';
 import { BookingsApiService } from '../services/bookings-api.service';
+import { OwnerRequestsBadgeService } from '../services/owner-requests-badge.service';
 import * as BookingsActions from './bookings.actions';
 
 /**
@@ -23,6 +24,7 @@ export class BookingsEffects {
   private readonly actions$ = inject(Actions);
   private readonly bookingsApi = inject(BookingsApiService);
   private readonly translate = inject(TranslateService);
+  private readonly ownerRequestsBadge = inject(OwnerRequestsBadgeService);
 
   private toErrorMessage(error: unknown): string {
     const key = BOOKING_ERROR_MESSAGE_KEYS[getApiErrorCode(error) ?? ''];
@@ -128,6 +130,7 @@ export class BookingsEffects {
             BookingsActions.rejectBookingRequestSuccess({
               bookingId,
               status: 'Rejected',
+              reason,
             }),
           ),
           catchError((error: unknown) =>
@@ -142,6 +145,28 @@ export class BookingsEffects {
       ),
     ),
   );
+
+  // Keep the global header "Requests" badge in sync the moment a decision lands, rather
+  // than waiting up to 60s for OwnerRequestsBadgeService's poll — most visible now that
+  // approve/reject can happen from the booking-details page. Mirrors
+  // NotificationsEffects.syncBadgeMarkRead$ / ChatEffects.syncNavBadge$: badge refresh
+  // logic for this feature lives in exactly one place, here.
+  readonly syncOwnerRequestsBadge$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(
+          BookingsActions.approveBookingRequestSuccess,
+          BookingsActions.rejectBookingRequestSuccess,
+        ),
+        tap(() => this.ownerRequestsBadge.refresh()),
+      ),
+    { dispatch: false },
+  );
+
+  // A decision made from /bookings/:id patches the in-view detail locally instead of
+  // refetching — see bookings.reducer.ts. A refetch was tried first and reverted:
+  // `e2e/booking-details-mobile-tap.spec.ts` asserts the footer flips with no reload,
+  // and a follow-up GET raced the mocked tier's static fixture back to Pending.
 
   readonly loadBookingDetail$ = createEffect(() =>
     this.actions$.pipe(

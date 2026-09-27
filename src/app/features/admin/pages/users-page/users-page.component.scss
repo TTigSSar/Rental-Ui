@@ -320,6 +320,24 @@
   white-space: nowrap;
 }
 
+.users-page__phone {
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: var(--ui-color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  a {
+    color: var(--ui-color-primary);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
 .users-page__flags-btn,
 .users-page__flags-pill {
   display: inline-flex;

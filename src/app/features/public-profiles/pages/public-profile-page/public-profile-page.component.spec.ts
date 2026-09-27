@@ -53,14 +53,16 @@ function makeProfile(overrides: Partial<PublicUserProfile> = {}): PublicUserProf
 describe('PublicProfilePageComponent — report affordance', () => {
   function setup(options: { authenticated: boolean; userId?: string; profileId?: string }) {
     const profileId = options.profileId ?? 'profile-1';
-    // Each `it()` below calls `setup()` once, so Angular's automatic post-test
-    // teardown (registered as a global afterEach by the test environment)
-    // normally resets TestBed before the next `configureTestingModule()`
-    // runs. Under the full suite's parallel vitest workers that teardown is
-    // not guaranteed to have settled yet, so — same fix already applied to
-    // `review-card.component.spec.ts` / `owner-trust-panel.component.spec.ts`
-    // for the same defect — reset explicitly first. A no-op the first time.
-    TestBed.resetTestingModule();
+    // Each `it()` below calls `setup()` exactly once, so no explicit
+    // `TestBed.resetTestingModule()` is needed here — Angular's own automatic
+    // post-test teardown handles that between tests. (A prior version of this
+    // comment attributed a full-suite-only flake to a TestBed teardown race and
+    // "fixed" it with a resetTestingModule() call here; that diagnosis was wrong
+    // — see knowledge/mistakes.md. The real cause was `admin.guard.spec.ts` /
+    // `auth.guard.spec.ts` / `guest.guard.spec.ts` leaving `selectIsAuthenticated`
+    // / `selectAuthUser` permanently overridden via `MockStore.overrideSelector()`,
+    // which mutates the shared selector object itself and survives TestBed resets
+    // entirely. Fixed globally in `src/testing/reset-mock-store-selectors.ts`.)
     TestBed.configureTestingModule({
       imports: [PublicProfilePageComponent, TranslateModule.forRoot()],
       providers: [

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { provideMockStore } from '@ngrx/store/testing';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import { of } from 'rxjs';
 
@@ -34,7 +34,7 @@ function baseListing(overrides: Partial<ListingDetails> = {}): ListingDetails {
     city: 'Yerevan',
     pricePerDay: 1500,
     images: [],
-    owner: { id: 'u1', firstName: 'Anna', lastName: 'K', phoneNumber: null },
+    owner: { id: 'u1', firstName: 'Anna', lastName: 'K' },
     bookedDateRanges: [],
     isFavorite: false,
     ...overrides,
@@ -179,7 +179,6 @@ describe('ListingDetailsPageComponent — report affordance', () => {
         id: options.ownerId ?? 'owner-1',
         firstName: 'Owen',
         lastName: 'Owner',
-        phoneNumber: null,
       },
     });
     TestBed.configureTestingModule({
@@ -245,4 +244,280 @@ describe('ListingDetailsPageComponent — report affordance', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('app-report-dialog')).not.toBeNull();
   });
+});
+
+/**
+ * `deliveryTypes` (additive multi-select) and the minimum-rental chip labels
+ * (extended to include month/year values) both need real-DOM coverage — the
+ * `deliveryType`-only path is exercised by the older tests above via
+ * `makeListingDetails`' defaults, so these focus specifically on the "both
+ * handover methods offered" case and the new long-period chip labels.
+ */
+describe('ListingDetailsPageComponent — delivery types & min-rental labels', () => {
+  function setup(listingOverrides: Partial<ListingDetails>) {
+    const listing = makeListingDetails({
+      id: 'listing-1',
+      owner: { id: 'owner-1', firstName: 'Owen', lastName: 'Owner' },
+      ageFromMonths: 24,
+      ageToMonths: 60,
+      condition: 'Good',
+      ...listingOverrides,
+    });
+    TestBed.configureTestingModule({
+      imports: [ListingDetailsPageComponent, TranslateModule.forRoot()],
+      providers: [
+        provideRouter([{ path: 'my-listings/:id', children: [] }]),
+        MessageService,
+        provideMockStore({
+          initialState: {
+            [listingsFeatureKey]: {
+              ...initialListingsState,
+              selectedListing: listing,
+              isDetailsLoading: false,
+            },
+            [bookingsFeatureKey]: initialBookingsState,
+            [reviewsFeatureKey]: initialReviewsState,
+            [publicProfilesFeatureKey]: initialPublicProfilesState,
+            [favoritesFeatureKey]: initialFavoritesState,
+            [authFeatureKey]: initialAuthState,
+          },
+        }),
+        {
+          provide: ActivatedRoute,
+          useValue: { paramMap: of(convertToParamMap({ id: listing.id })) },
+        },
+      ],
+    });
+    // Load just the strings these tests assert on — the real bundle
+    // (public/i18n/*.json) isn't wired into unit tests, so ngx-translate
+    // would otherwise render the bare key (same idiom as
+    // listing-location.component.spec.ts).
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation(
+      'en',
+      {
+        listings: {
+          details: {
+            handoverLabel: 'Handover',
+            highlights: {
+              pickupOnlyTitle: 'Pickup only',
+              pickupOnlySub: 'Meet the owner to collect',
+              minStayTitle: '{{count}}-day minimum',
+              minStayPeriodTitle: 'Min. {{period}}',
+              minStaySub: "Shorter requests aren't accepted",
+            },
+          },
+          createForm: {
+            delivery: {
+              both: 'Pickup or courier',
+              bothHint: 'Free pickup or courier delivery in Yerevan',
+              pickup: 'Pickup from me',
+              pickupHint: 'Free · Meet at agreed spot',
+            },
+            minRental: {
+              label: 'Minimum rental',
+              d365: '1 year',
+            },
+          },
+        },
+      },
+      true,
+    );
+    translate.use('en');
+    return TestBed.createComponent(ListingDetailsPageComponent);
+  }
+
+  function specValues(fixture: ReturnType<typeof setup>): string[] {
+    const root = fixture.nativeElement as HTMLElement;
+    return Array.from(root.querySelectorAll<HTMLElement>('.detail-page__specquad-value')).map(
+      (el) => el.textContent?.trim() ?? '',
+    );
+  }
+
+  function pickupRowValues(fixture: ReturnType<typeof setup>): string[] {
+    const root = fixture.nativeElement as HTMLElement;
+    return Array.from(root.querySelectorAll<HTMLElement>('.detail-page__pickup-row-value')).map(
+      (el) => el.textContent?.trim() ?? '',
+    );
+  }
+
+  function highlightTitles(fixture: ReturnType<typeof setup>): string[] {
+    const root = fixture.nativeElement as HTMLElement;
+    return Array.from(
+      root.querySelectorAll<HTMLElement>('.detail-page__highlight-cell strong'),
+    ).map((el) => el.textContent?.trim() ?? '');
+  }
+
+  it('renders the "both" handover label in the specs quad when Pickup and Courier are both offered', () => {
+    const fixture = setup({ deliveryTypes: ['Pickup', 'Courier'], deliveryType: 'Pickup' });
+    fixture.detectChanges();
+
+    expect(specValues(fixture)).toContain('Pickup or courier');
+  });
+
+  it('renders the "both" hint in the pickup & delivery row when both handover methods are offered', () => {
+    const fixture = setup({ deliveryTypes: ['Pickup', 'Courier'], deliveryType: 'Pickup' });
+    fixture.detectChanges();
+
+    expect(pickupRowValues(fixture)).toContain('Free pickup or courier delivery in Yerevan');
+  });
+
+  it('still renders the single-type label when only deliveryType (legacy) is set', () => {
+    const fixture = setup({ deliveryTypes: null, deliveryType: 'Pickup' });
+    fixture.detectChanges();
+
+    expect(pickupRowValues(fixture)).toContain('Free · Meet at agreed spot');
+    expect(pickupRowValues(fixture)).not.toContain('Free pickup or courier delivery in Yerevan');
+  });
+
+  it('shows the "1 year" chip label (not "365 nights") for a 365-day minimum rental', () => {
+    const fixture = setup({ minRentalDays: 365, deliveryType: 'Pickup' });
+    fixture.detectChanges();
+
+    const rows = pickupRowValues(fixture);
+    expect(rows).toContain('1 year');
+    expect(rows.some((t) => t.includes('365'))).toBe(false);
+  });
+
+  it('shows the "Min. 1 year" highlight tile (not the raw day count) for a 365-day minimum rental', () => {
+    const fixture = setup({ minRentalDays: 365, deliveryType: 'Pickup' });
+    fixture.detectChanges();
+
+    const titles = highlightTitles(fixture);
+    expect(titles).toContain('Min. 1 year');
+    expect(titles.some((t) => t.includes('365'))).toBe(false);
+  });
+
+  it('falls back to the day-count highlight copy for a non-chip minimum rental', () => {
+    const fixture = setup({ minRentalDays: 5, deliveryType: 'Pickup' });
+    fixture.detectChanges();
+
+    expect(highlightTitles(fixture)).toContain('5-day minimum');
+  });
+});
+
+/**
+ * Loss & damage compensation: the specs tile, the pickup & delivery row and
+ * the protection card all decide "set vs. not specified" the same way now
+ * (`isCompensationAmountSet` — finite number > 0). `0` gets its own case
+ * because it's a real, reachable legacy value (the old optional-deposit
+ * validator allowed it, and the depositAmount -> compensationAmount rename
+ * preserved values) — before the shared helper existed, the tile/row treated
+ * `0` as "not specified" while the protection card rendered "Up to 0 ֏"
+ * (confirmed bug).
+ */
+describe('ListingDetailsPageComponent — loss & damage compensation amount', () => {
+  function setup(compensationAmount: number | null) {
+    const listing = makeListingDetails({
+      id: 'listing-1',
+      owner: { id: 'owner-1', firstName: 'Owen', lastName: 'Owner' },
+      compensationAmount,
+    });
+    TestBed.configureTestingModule({
+      imports: [ListingDetailsPageComponent, TranslateModule.forRoot()],
+      providers: [
+        provideRouter([{ path: 'my-listings/:id', children: [] }]),
+        MessageService,
+        provideMockStore({
+          initialState: {
+            [listingsFeatureKey]: {
+              ...initialListingsState,
+              selectedListing: listing,
+              isDetailsLoading: false,
+            },
+            [bookingsFeatureKey]: initialBookingsState,
+            [reviewsFeatureKey]: initialReviewsState,
+            [publicProfilesFeatureKey]: initialPublicProfilesState,
+            [favoritesFeatureKey]: initialFavoritesState,
+            [authFeatureKey]: initialAuthState,
+          },
+        }),
+        {
+          provide: ActivatedRoute,
+          useValue: { paramMap: of(convertToParamMap({ id: listing.id })) },
+        },
+      ],
+    });
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation(
+      'en',
+      {
+        listings: {
+          details: {
+            toyDetails: {
+              compensation: 'Loss & damage compensation',
+              compensationValue: 'Up to {{amount}}',
+              compensationNotSpecified: 'Not specified',
+            },
+            pickupDelivery: {
+              compensationLabel: 'Loss & damage compensation',
+              compensationSubline: 'only if lost, damaged or not returned',
+            },
+            protection: {
+              eyebrow: 'If something goes wrong',
+              title: 'Loss & damage compensation',
+              pillNoUpfront: 'Nothing charged upfront',
+              intro: 'The owner sets this amount. You pay nothing upfront.',
+              introNoAmount: 'The owner has not set an amount for this toy.',
+            },
+          },
+        },
+      },
+      true,
+    );
+    translate.use('en');
+    const fixture = TestBed.createComponent(ListingDetailsPageComponent);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  function text(fixture: ReturnType<typeof setup>, selector: string): string | undefined {
+    return (fixture.nativeElement as HTMLElement).querySelector(selector)?.textContent?.trim();
+  }
+
+  it('renders "Up to 45,000 ֏" in the specs tile, the pickup row and the protection card when an amount is set', () => {
+    const fixture = setup(45000);
+
+    // The amount and the ֏ symbol are joined by a non-breaking space (see
+    // `DramCurrencyPipe`), so the expected string uses ` ` there — a
+    // plain space would never match the rendered `textContent`.
+    const upTo45000 = 'Up to 45,000 ֏';
+
+    // No other spec-tile-worthy fields are set on this fixture (age/condition/
+    // delivery all null), so the compensation tile — always pushed regardless
+    // of amount — is the only one rendered, making this selector unambiguous.
+    expect(text(fixture, '.detail-page__specquad-value')).toBe(upTo45000);
+    expect(text(fixture, '.detail-page__pickup-row-value')).toBe(upTo45000);
+    expect(
+      text(
+        fixture,
+        '.detail-page__protection-card--mobile .detail-page__protection-amount',
+      ),
+    ).toBe(upTo45000);
+  });
+
+  it.each([
+    ['null (never set)', null],
+    ['0 (legacy data from the old optional-deposit validator)', 0],
+  ])(
+    'renders "Not specified" and the no-amount intro everywhere when the amount is %s',
+    (_label, amount) => {
+      const fixture = setup(amount);
+
+      expect(text(fixture, '.detail-page__specquad-value')).toBe('Not specified');
+      expect(text(fixture, '.detail-page__pickup-row-value')).toBe('Not specified');
+      expect(
+        text(
+          fixture,
+          '.detail-page__protection-card--mobile .detail-page__protection-amount',
+        ),
+      ).toBe('Not specified');
+      expect(
+        text(
+          fixture,
+          '.detail-page__protection-card--mobile .detail-page__protection-intro',
+        ),
+      ).toBe('The owner has not set an amount for this toy.');
+    },
+  );
 });

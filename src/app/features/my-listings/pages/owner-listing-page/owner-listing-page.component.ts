@@ -228,7 +228,7 @@ export class OwnerListingPageComponent {
     this.setActionLoading(bookingId, true);
     this.ownerService.acceptRequest(bookingId).subscribe({
       next: () => {
-        this.patchDecision(bookingId, 'accepted');
+        this.patchDecision(bookingId, 'approved');
         this.setActionLoading(bookingId, false);
       },
       error: () => this.setActionLoading(bookingId, false),

@@ -28,7 +28,11 @@
   width: 2.5rem;
   height: 2.5rem;
   border-radius: var(--ui-radius-pill);
-  background: linear-gradient(135deg, var(--ui-color-primary-soft) 0%, var(--ui-color-primary) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--ui-color-primary-soft) 0%,
+    var(--ui-color-primary) 100%
+  );
   color: var(--ui-color-on-primary);
   font-size: 0.875rem;
   font-weight: var(--ui-font-weight-bold);
@@ -151,10 +155,18 @@
 
 .orc__decided {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--ui-space-12);
+  flex-direction: column;
+  gap: var(--ui-space-10);
+}
+
+.orc__decided-actions {
+  display: flex;
+  gap: var(--ui-space-8);
   flex-wrap: wrap;
+}
+
+:host ::ng-deep .orc__decided-actions .orc__btn {
+  min-width: 8rem;
 }
 
 .orc__status {
@@ -164,7 +176,15 @@
   font-size: var(--ui-font-size-caption);
   font-weight: var(--ui-font-weight-semibold);
 
-  &--accepted {
+  &--approved {
+    color: var(--ui-color-warning);
+  }
+
+  &--active {
+    color: var(--ui-color-info);
+  }
+
+  &--completed {
     color: var(--ui-color-success);
   }
 

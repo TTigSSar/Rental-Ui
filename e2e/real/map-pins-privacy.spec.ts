@@ -5,7 +5,7 @@ import { ACCOUNTS, API_URL, TOY_KITCHEN, apiLogin, assertDockerStack } from '../
 /**
  * Regression coverage for the ADR-008 privacy gate as it applies to
  * `GET /api/listings/map-pins` (Maps P2-1): a map pin must always carry the
- * public, geohash-6-fuzzed coordinate (`Listing.PublicLatitude/Longitude`),
+ * public, geohash-7-fuzzed coordinate (`Listing.PublicLatitude/Longitude`),
  * never the exact pin the owner dropped (`Listing.Latitude/Longitude`) — and,
  * unlike `GET /api/listings/{id}`, there is NO privileged variant: an
  * authenticated owner or admin gets the identical fuzzed pair an anonymous
@@ -94,15 +94,27 @@ test.describe('Map pins coordinate privacy (real stack)', () => {
     const anonPin = await test.step('fetch TOY_KITCHEN pin anonymously', () =>
       getToyKitchenPin(request));
 
-    // The core ADR-008 property: the pin is not the exact owner-dropped coordinate.
+    // The positive, strong property: the pin is exactly the geohash-7 cell
+    // centroid of the exact seed point — not merely "some distance away" from
+    // it (a per-axis distance check is structurally wrong here: at precision
+    // 7 the centroid can legitimately land within 0.0005° of the exact point
+    // on either axis, see ADR-008 amendment and TOY_KITCHEN's doc comment in
+    // real-stack.ts).
+    expect(anonPin.latitude, 'map pin latitude must equal the geohash-7 cell centroid').toBeCloseTo(
+      TOY_KITCHEN.publicLatitude,
+      6,
+    );
+    expect(anonPin.longitude, 'map pin longitude must equal the geohash-7 cell centroid').toBeCloseTo(
+      TOY_KITCHEN.publicLongitude,
+      6,
+    );
+
+    // The core ADR-008 leak check, kept explicit even though it's implied by
+    // the equality above: the pin must never be the exact owner-dropped pair.
     expect(
-      anonPin.latitude,
-      'map pin must not leak the exact owner-dropped latitude',
-    ).not.toBeCloseTo(TOY_KITCHEN.exactLatitude, 3);
-    expect(
-      anonPin.longitude,
-      'map pin must not leak the exact owner-dropped longitude',
-    ).not.toBeCloseTo(TOY_KITCHEN.exactLongitude, 3);
+      { latitude: anonPin.latitude, longitude: anonPin.longitude },
+      'map pin must not leak the exact owner-dropped coordinate',
+    ).not.toEqual({ latitude: TOY_KITCHEN.exactLatitude, longitude: TOY_KITCHEN.exactLongitude });
 
     const ownerToken = await apiLogin(request, ACCOUNTS.owner);
     const ownerHeaders = { Authorization: `Bearer ${ownerToken}` };

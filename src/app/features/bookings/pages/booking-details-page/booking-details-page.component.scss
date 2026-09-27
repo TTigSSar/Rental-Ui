@@ -125,6 +125,10 @@
   }
 }
 
+::ng-deep .booking-details__message-btn.p-button {
+  margin-top: var(--ui-space-12, 12px);
+}
+
 // --- Timeline ---
 .booking-timeline {
   list-style: none;
@@ -250,6 +254,15 @@
   }
 }
 
+.booking-details__cancel-hint {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 14px 16px;
+  color: var(--ui-color-text-secondary);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
 .booking-details__primary {
   display: block;
   width: 100%;
@@ -271,6 +284,47 @@
 
   &:focus-visible {
     outline: 2px solid var(--ui-color-primary-strong, var(--ui-color-primary));
+    outline-offset: 2px;
+  }
+}
+
+// --- Owner approve/decline row (Defect A) ---
+// Two CTAs side by side in the same sticky footer: reuses `.booking-details__primary`
+// for Approve (same look as markActive/complete elsewhere on this page) and a
+// decline style consistent with the renter's `.booking-details__cancel`.
+.booking-details__footer-row {
+  display: flex;
+  gap: var(--ui-space-12, 12px);
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.booking-details__footer-row .booking-details__primary--split {
+  width: auto;
+  max-width: none;
+  margin: 0;
+  flex: 1;
+}
+
+.booking-details__decline {
+  display: block;
+  flex: 1;
+  padding: 14px 16px;
+  border: 1.5px solid var(--ui-color-error, #dc2626);
+  border-radius: var(--ui-radius-pill, 999px);
+  background: transparent;
+  color: var(--ui-color-error, #dc2626);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-error, #dc2626);
     outline-offset: 2px;
   }
 }

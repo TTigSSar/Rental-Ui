@@ -1,0 +1,679 @@
+@if (isDesktop() || !showMobileThreadScreen()) {
+  <app-admin-page-header
+    [title]="'admin.messages.page.title' | translate"
+    [subtitle]="'admin.messages.page.subtitle' | translate"
+  />
+}
+
+@if (isDesktop()) {
+  <div class="messages-page__desktop">
+    <!-- ══════════════════════ Conversation list ══════════════════════ -->
+    <aside
+      class="messages-page__list-panel"
+      [attr.aria-label]="'admin.messages.page.listAria' | translate"
+    >
+      <div class="messages-page__list-header">
+        <div class="messages-page__search" role="search">
+          <app-icon name="search" [size]="15" />
+          <input
+            type="search"
+            class="messages-page__search-input"
+            [value]="searchInput()"
+            [placeholder]="'admin.messages.page.searchPlaceholder' | translate"
+            [attr.aria-label]="'admin.messages.page.searchPlaceholder' | translate"
+            (input)="onSearchInput($event)"
+          />
+        </div>
+        <div
+          class="messages-page__filters"
+          role="group"
+          [attr.aria-label]="'admin.messages.filters.ariaLabel' | translate"
+        >
+          @for (f of filters; track f.id) {
+            <button
+              type="button"
+              class="messages-page__filter-btn"
+              [class.messages-page__filter-btn--active]="filter() === f.id"
+              [attr.aria-pressed]="filter() === f.id"
+              (click)="selectFilter(f.id)"
+            >
+              {{ f.labelKey | translate }}
+              <span class="messages-page__filter-count">{{ pillCount(f.id) }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="messages-page__list-body">
+        @if (error() !== null) {
+          <div class="messages-page__list-error" role="alert">
+            <p-message severity="error" styleClass="messages-page__list-error-message">
+              <div class="messages-page__list-error-content">
+                <strong>{{ 'admin.messages.page.errorTitle' | translate }}</strong>
+                <span>{{ error() }}</span>
+              </div>
+            </p-message>
+            <button type="button" class="messages-page__retry-btn" (click)="retryQueue()">
+              {{ 'listings.common.retry' | translate }}
+            </button>
+          </div>
+        }
+
+        @if (showListSkeleton()) {
+          <div class="messages-page__skeleton-list" aria-busy="true">
+            @for (i of [0, 1, 2, 3]; track i) {
+              <div class="messages-page__skeleton-row">
+                <p-skeleton shape="circle" size="2.625rem" />
+                <div class="messages-page__skeleton-lines">
+                  <p-skeleton width="55%" height="0.85rem" />
+                  <p-skeleton width="80%" height="0.75rem" />
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        @if (showListEmpty()) {
+          <div class="messages-page__list-empty" role="status">
+            {{ 'admin.messages.list.empty' | translate }}
+          </div>
+        }
+
+        @if (!showListSkeleton() && items().length > 0) {
+          <ul class="messages-page__list" role="list">
+            @for (thread of items(); track thread.conversationId) {
+              <li>
+                <div
+                  class="messages-page__row"
+                  [class.messages-page__row--active]="selectedThreadId() === thread.conversationId"
+                >
+                  <button
+                    type="button"
+                    class="messages-page__avatar-btn"
+                    [attr.aria-label]="
+                      'admin.users.table.viewProfileAria' | translate: { name: displayName(thread) }
+                    "
+                    (click)="openProfile(thread.memberId)"
+                  >
+                    @if (thread.memberAvatarUrl; as avatarUrl) {
+                      <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
+                    } @else {
+                      <app-ui-avatar [name]="displayName(thread)" size="md" />
+                    }
+                  </button>
+                  <button
+                    type="button"
+                    class="messages-page__row-main"
+                    (click)="openThread(thread)"
+                  >
+                    <div class="messages-page__row-top">
+                      <span class="messages-page__row-name">{{ displayName(thread) }}</span>
+                      @if (thread.memberIsIdConfirmed) {
+                        <app-icon
+                          name="verified"
+                          [size]="13"
+                          class="messages-page__verified"
+                          [attr.aria-label]="'chat.details.verifiedAria' | translate"
+                        />
+                      }
+                      @if (thread.unreadCount > 0) {
+                        <span
+                          class="messages-page__unread-badge"
+                          [attr.aria-label]="
+                            'chat.conversations.unreadAria'
+                              | translate: { count: thread.unreadCount }
+                          "
+                        >
+                          {{ thread.unreadCount }}
+                        </span>
+                      }
+                    </div>
+                    <div class="messages-page__row-preview">{{ previewText(thread) }}</div>
+                    <app-admin-user-status-pill [status]="thread.memberStatus" size="sm" />
+                  </button>
+                </div>
+              </li>
+            }
+          </ul>
+
+          @if (totalPages() > 1) {
+            <nav
+              class="messages-page__pager"
+              [attr.aria-label]="'admin.messages.page.pagerAria' | translate"
+            >
+              <button
+                type="button"
+                class="messages-page__pager-btn"
+                [disabled]="page() <= 1"
+                (click)="goToPage(page() - 1)"
+              >
+                {{ 'admin.messages.page.pagerPrev' | translate }}
+              </button>
+              <span class="messages-page__pager-status">
+                {{
+                  'admin.messages.page.pagerStatus'
+                    | translate: { page: page(), total: totalPages() }
+                }}
+              </span>
+              <button
+                type="button"
+                class="messages-page__pager-btn"
+                [disabled]="page() >= totalPages()"
+                (click)="goToPage(page() + 1)"
+              >
+                {{ 'admin.messages.page.pagerNext' | translate }}
+              </button>
+            </nav>
+          }
+        }
+      </div>
+    </aside>
+
+    <!-- ══════════════════════ Chat panel ══════════════════════ -->
+    <section class="messages-page__chat-panel">
+      @if (showDetailIdle()) {
+        <div class="messages-page__idle">
+          <app-icon name="message" [size]="26" />
+          <h2 class="messages-page__idle-title">{{ 'chat.shell.emptyTitle' | translate }}</h2>
+          <p class="messages-page__idle-text">{{ 'chat.shell.emptyText' | translate }}</p>
+        </div>
+      } @else {
+        <div class="messages-page__chat-header">
+          @if (selectedThreadDetail(); as detail) {
+            <button
+              type="button"
+              class="messages-page__avatar-btn"
+              [attr.aria-label]="
+                'admin.users.table.viewProfileAria' | translate: { name: detail.counterpartName }
+              "
+              [disabled]="!selectedThreadRow()"
+              (click)="selectedThreadRow() && openProfile(selectedThreadRow()!.memberId)"
+            >
+              @if (detail.counterpartAvatarUrl; as avatarUrl) {
+                <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
+              } @else {
+                <app-ui-avatar [name]="detail.counterpartName" size="md" />
+              }
+            </button>
+            <div class="messages-page__chat-header-text">
+              <div class="messages-page__chat-header-name">
+                {{ detail.counterpartName }}
+                @if (detail.counterpartVerified) {
+                  <app-icon
+                    name="verified"
+                    [size]="14"
+                    [attr.aria-label]="'chat.details.verifiedAria' | translate"
+                  />
+                }
+              </div>
+              @if (selectedThreadRow(); as row) {
+                <div class="messages-page__chat-header-meta">{{ roleStatusText(row) }}</div>
+              }
+            </div>
+          } @else {
+            <p-skeleton shape="circle" size="2.5rem" />
+            <div class="messages-page__skeleton-lines">
+              <p-skeleton width="7rem" height="0.9rem" />
+              <p-skeleton width="5rem" height="0.75rem" />
+            </div>
+          }
+        </div>
+
+        <div
+          class="messages-page__messages"
+          #messagesPane
+          aria-live="polite"
+          aria-relevant="additions"
+        >
+          @if (showDetailSkeleton()) {
+            <div class="messages-page__messages-skeleton" aria-busy="true">
+              @for (i of [0, 1, 2]; track i) {
+                <p-skeleton width="60%" height="2.25rem" borderRadius="14px" />
+              }
+            </div>
+          }
+
+          @if (showDetailError()) {
+            <div class="messages-page__detail-error" role="alert">
+              <p-message severity="error" styleClass="messages-page__detail-error-message">
+                <div class="messages-page__list-error-content">
+                  <strong>{{ 'admin.messages.thread.errorTitle' | translate }}</strong>
+                  <span>{{ detailError() }}</span>
+                </div>
+              </p-message>
+              <button type="button" class="messages-page__retry-btn" (click)="retryDetail()">
+                {{ 'listings.common.retry' | translate }}
+              </button>
+            </div>
+          }
+
+          @if (showDetailReady()) {
+            @let detail = selectedThreadDetail()!;
+            @if (detail.messages.length === 0) {
+              <div class="messages-page__thread-empty">
+                {{
+                  'admin.messages.thread.emptyStart'
+                    | translate: { name: firstName(detail.counterpartName) }
+                }}
+              </div>
+            }
+            @for (message of detail.messages; track message.id) {
+              @if (isNote(message)) {
+                <app-moderation-note-card [message]="message" audience="moderator" />
+              } @else {
+                <div
+                  class="messages-page__bubble-row"
+                  [class.messages-page__bubble-row--mine]="message.isMine"
+                >
+                  <div class="messages-page__bubble-wrap">
+                    <div class="messages-page__bubble">
+                      @if (message.attachmentUrl) {
+                        <img
+                          class="messages-page__bubble-image"
+                          [src]="message.attachmentUrl"
+                          [alt]="'chat.details.imageAlt' | translate"
+                        />
+                      }
+                      @if (message.body) {
+                        <p class="messages-page__bubble-text">{{ message.body }}</p>
+                      }
+                    </div>
+                    <span class="messages-page__bubble-time">{{
+                      message.sentAt | date: 'shortTime'
+                    }}</span>
+                  </div>
+                </div>
+              }
+            }
+          }
+        </div>
+
+        <div class="messages-page__composer">
+          <label class="messages-page__visually-hidden" for="admin-messages-composer">
+            {{ 'admin.messages.composer.label' | translate }}
+          </label>
+          <textarea
+            #composerInput
+            id="admin-messages-composer"
+            class="messages-page__composer-input"
+            rows="1"
+            [attr.maxlength]="maxMessageLength"
+            [value]="draft()"
+            [placeholder]="
+              selectedThreadDetail()
+                ? ('chat.details.messagePlaceholder'
+                  | translate: { name: firstName(selectedThreadDetail()!.counterpartName) })
+                : ''
+            "
+            [attr.aria-label]="'admin.messages.composer.label' | translate"
+            (input)="onComposerInput($event)"
+            (keydown)="onComposerKeydown($event)"
+          ></textarea>
+          <button
+            type="button"
+            class="messages-page__send-btn"
+            [disabled]="!canSend()"
+            [attr.aria-label]="'chat.details.send' | translate"
+            (click)="send()"
+          >
+            <app-icon name="arrow" [size]="17" />
+          </button>
+        </div>
+      }
+    </section>
+  </div>
+} @else {
+  <!-- ══════════════════════ Mobile ══════════════════════ -->
+  @if (showMobileThreadScreen()) {
+    <div class="messages-page__mobile-thread">
+      <div class="messages-page__mobile-thread-header">
+        <button
+          type="button"
+          class="messages-page__back-btn"
+          [attr.aria-label]="'chat.details.backToConversations' | translate"
+          (click)="closeThread()"
+        >
+          <app-icon name="chevronL" [size]="18" />
+        </button>
+
+        @if (selectedThreadDetail(); as detail) {
+          <button
+            type="button"
+            class="messages-page__avatar-btn"
+            [attr.aria-label]="
+              'admin.users.table.viewProfileAria' | translate: { name: detail.counterpartName }
+            "
+            [disabled]="!selectedThreadRow()"
+            (click)="selectedThreadRow() && openProfile(selectedThreadRow()!.memberId)"
+          >
+            @if (detail.counterpartAvatarUrl; as avatarUrl) {
+              <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
+            } @else {
+              <app-ui-avatar [name]="detail.counterpartName" size="md" />
+            }
+          </button>
+          <div class="messages-page__chat-header-text">
+            <div class="messages-page__chat-header-name">
+              {{ detail.counterpartName }}
+              @if (detail.counterpartVerified) {
+                <app-icon
+                  name="verified"
+                  [size]="13"
+                  [attr.aria-label]="'chat.details.verifiedAria' | translate"
+                />
+              }
+            </div>
+            @if (selectedThreadRow(); as row) {
+              <div class="messages-page__chat-header-meta">{{ roleStatusText(row) }}</div>
+            }
+          </div>
+        } @else {
+          <p-skeleton shape="circle" size="2.25rem" />
+          <div class="messages-page__skeleton-lines">
+            <p-skeleton width="6rem" height="0.85rem" />
+            <p-skeleton width="4rem" height="0.7rem" />
+          </div>
+        }
+      </div>
+
+      <div
+        class="messages-page__messages"
+        #messagesPane
+        aria-live="polite"
+        aria-relevant="additions"
+      >
+        @if (showDetailSkeleton()) {
+          <div class="messages-page__messages-skeleton" aria-busy="true">
+            @for (i of [0, 1, 2]; track i) {
+              <p-skeleton width="65%" height="2.25rem" borderRadius="15px" />
+            }
+          </div>
+        }
+
+        @if (showDetailError()) {
+          <div class="messages-page__detail-error" role="alert">
+            <p-message severity="error" styleClass="messages-page__detail-error-message">
+              <div class="messages-page__list-error-content">
+                <strong>{{ 'admin.messages.thread.errorTitle' | translate }}</strong>
+                <span>{{ detailError() }}</span>
+              </div>
+            </p-message>
+            <button type="button" class="messages-page__retry-btn" (click)="retryDetail()">
+              {{ 'listings.common.retry' | translate }}
+            </button>
+          </div>
+        }
+
+        @if (showDetailReady()) {
+          @let mobileDetail = selectedThreadDetail()!;
+          @if (mobileDetail.messages.length === 0) {
+            <div class="messages-page__thread-empty">
+              {{
+                'admin.messages.thread.emptyStart'
+                  | translate: { name: firstName(mobileDetail.counterpartName) }
+              }}
+            </div>
+          }
+          @for (message of mobileDetail.messages; track message.id) {
+            @if (isNote(message)) {
+              <app-moderation-note-card [message]="message" audience="moderator" />
+            } @else {
+              <div
+                class="messages-page__bubble-row"
+                [class.messages-page__bubble-row--mine]="message.isMine"
+              >
+                <div class="messages-page__bubble-wrap">
+                  <div class="messages-page__bubble">
+                    @if (message.attachmentUrl) {
+                      <img
+                        class="messages-page__bubble-image"
+                        [src]="message.attachmentUrl"
+                        [alt]="'chat.details.imageAlt' | translate"
+                      />
+                    }
+                    @if (message.body) {
+                      <p class="messages-page__bubble-text">{{ message.body }}</p>
+                    }
+                  </div>
+                  <span class="messages-page__bubble-time">{{
+                    message.sentAt | date: 'shortTime'
+                  }}</span>
+                </div>
+              </div>
+            }
+          }
+        }
+      </div>
+
+      <div class="messages-page__composer">
+        <label class="messages-page__visually-hidden" for="admin-messages-composer-mobile">
+          {{ 'admin.messages.composer.label' | translate }}
+        </label>
+        <textarea
+          #composerInput
+          id="admin-messages-composer-mobile"
+          class="messages-page__composer-input"
+          rows="1"
+          [attr.maxlength]="maxMessageLength"
+          [value]="draft()"
+          [placeholder]="
+            selectedThreadDetail()
+              ? ('chat.details.messagePlaceholder'
+                | translate: { name: firstName(selectedThreadDetail()!.counterpartName) })
+              : ''
+          "
+          [attr.aria-label]="'admin.messages.composer.label' | translate"
+          (input)="onComposerInput($event)"
+          (keydown)="onComposerKeydown($event)"
+        ></textarea>
+        <button
+          type="button"
+          class="messages-page__send-btn"
+          [disabled]="!canSend()"
+          [attr.aria-label]="'chat.details.send' | translate"
+          (click)="send()"
+        >
+          <app-icon name="arrow" [size]="17" />
+        </button>
+      </div>
+    </div>
+  } @else {
+    <div class="messages-page__mobile-list">
+      <div class="messages-page__search messages-page__search--mobile" role="search">
+        <app-icon name="search" [size]="15" />
+        <input
+          type="search"
+          class="messages-page__search-input"
+          [value]="searchInput()"
+          [placeholder]="'admin.messages.page.searchPlaceholder' | translate"
+          [attr.aria-label]="'admin.messages.page.searchPlaceholder' | translate"
+          (input)="onSearchInput($event)"
+        />
+      </div>
+      <div
+        class="messages-page__filters messages-page__filters--mobile"
+        role="group"
+        [attr.aria-label]="'admin.messages.filters.ariaLabel' | translate"
+      >
+        @for (f of filters; track f.id) {
+          <button
+            type="button"
+            class="messages-page__filter-btn"
+            [class.messages-page__filter-btn--active]="filter() === f.id"
+            [attr.aria-pressed]="filter() === f.id"
+            (click)="selectFilter(f.id)"
+          >
+            {{ f.labelKey | translate }}
+            <span class="messages-page__filter-count">{{ pillCount(f.id) }}</span>
+          </button>
+        }
+      </div>
+
+      @if (error() !== null) {
+        <div class="messages-page__list-error" role="alert">
+          <p-message severity="error" styleClass="messages-page__list-error-message">
+            <div class="messages-page__list-error-content">
+              <strong>{{ 'admin.messages.page.errorTitle' | translate }}</strong>
+              <span>{{ error() }}</span>
+            </div>
+          </p-message>
+          <button type="button" class="messages-page__retry-btn" (click)="retryQueue()">
+            {{ 'listings.common.retry' | translate }}
+          </button>
+        </div>
+      }
+
+      @if (showListSkeleton()) {
+        <div class="messages-page__skeleton-list" aria-busy="true">
+          @for (i of [0, 1, 2, 3]; track i) {
+            <div class="messages-page__skeleton-row">
+              <p-skeleton shape="circle" size="2.875rem" />
+              <div class="messages-page__skeleton-lines">
+                <p-skeleton width="55%" height="0.85rem" />
+                <p-skeleton width="80%" height="0.75rem" />
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      @if (showListEmpty()) {
+        <div class="messages-page__list-empty" role="status">
+          {{ 'admin.messages.list.empty' | translate }}
+        </div>
+      }
+
+      @if (!showListSkeleton() && items().length > 0) {
+        <ul class="messages-page__list" role="list">
+          @for (thread of items(); track thread.conversationId) {
+            <li>
+              <div class="messages-page__row">
+                <button
+                  type="button"
+                  class="messages-page__avatar-btn"
+                  [attr.aria-label]="
+                    'admin.users.table.viewProfileAria' | translate: { name: displayName(thread) }
+                  "
+                  (click)="openProfile(thread.memberId)"
+                >
+                  @if (thread.memberAvatarUrl; as avatarUrl) {
+                    <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
+                  } @else {
+                    <app-ui-avatar [name]="displayName(thread)" size="md" />
+                  }
+                </button>
+                <button type="button" class="messages-page__row-main" (click)="openThread(thread)">
+                  <div class="messages-page__row-top">
+                    <span class="messages-page__row-name">{{ displayName(thread) }}</span>
+                    @if (thread.memberIsIdConfirmed) {
+                      <app-icon
+                        name="verified"
+                        [size]="13"
+                        class="messages-page__verified"
+                        [attr.aria-label]="'chat.details.verifiedAria' | translate"
+                      />
+                    }
+                    @if (thread.unreadCount > 0) {
+                      <span
+                        class="messages-page__unread-badge"
+                        [attr.aria-label]="
+                          'chat.conversations.unreadAria' | translate: { count: thread.unreadCount }
+                        "
+                      >
+                        {{ thread.unreadCount }}
+                      </span>
+                    }
+                  </div>
+                  <div class="messages-page__row-preview">{{ previewText(thread) }}</div>
+                  <app-admin-user-status-pill [status]="thread.memberStatus" size="sm" />
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+
+        @if (totalPages() > 1) {
+          <nav
+            class="messages-page__pager"
+            [attr.aria-label]="'admin.messages.page.pagerAria' | translate"
+          >
+            <button
+              type="button"
+              class="messages-page__pager-btn"
+              [disabled]="page() <= 1"
+              (click)="goToPage(page() - 1)"
+            >
+              {{ 'admin.messages.page.pagerPrev' | translate }}
+            </button>
+            <span class="messages-page__pager-status">
+              {{
+                'admin.messages.page.pagerStatus' | translate: { page: page(), total: totalPages() }
+              }}
+            </span>
+            <button
+              type="button"
+              class="messages-page__pager-btn"
+              [disabled]="page() >= totalPages()"
+              (click)="goToPage(page() + 1)"
+            >
+              {{ 'admin.messages.page.pagerNext' | translate }}
+            </button>
+          </nav>
+        }
+      }
+    </div>
+  }
+}
+
+@if (profileOpen()) {
+  @if (profileUser(); as pu) {
+    <app-admin-user-profile-dialog
+      [user]="pu"
+      [isDesktop]="isDesktop()"
+      [busy]="profileBusy()"
+      [canSuspend]="profileCanSuspend()"
+      [suspendDisabledReasonKey]="profileSuspendReasonKey()"
+      (close)="closeProfile()"
+      (verify)="verifyProfile()"
+      (suspend)="suspendProfile()"
+      (reactivate)="reactivateProfile()"
+      (viewReports)="viewReportsForProfile(pu.id)"
+    />
+  } @else {
+    <div
+      class="messages-page__profile-status-backdrop"
+      (click)="closeProfile()"
+      aria-hidden="true"
+    ></div>
+    <div
+      class="messages-page__profile-status"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="'admin.messages.profile.statusAria' | translate"
+    >
+      <button
+        type="button"
+        class="messages-page__profile-status-close"
+        [attr.aria-label]="'admin.users.profile.closeAria' | translate"
+        (click)="closeProfile()"
+      >
+        <app-icon name="x" [size]="16" />
+      </button>
+      @if (profileLoading()) {
+        <p-skeleton shape="circle" size="3.5rem" />
+        <p-skeleton width="70%" height="1rem" />
+        <p-skeleton width="45%" height="0.85rem" />
+      } @else if (profileError(); as error) {
+        <p-message severity="error" styleClass="messages-page__profile-status-error">
+          <div class="messages-page__list-error-content">
+            <strong>{{ 'admin.messages.profile.errorTitle' | translate }}</strong>
+            <span>{{ error }}</span>
+          </div>
+        </p-message>
+        <button type="button" class="messages-page__retry-btn" (click)="retryProfile()">
+          {{ 'listings.common.retry' | translate }}
+        </button>
+      }
+    </div>
+  }
+}

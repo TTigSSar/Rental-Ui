@@ -27,6 +27,9 @@ function makeRealtimeMessage(overrides: Partial<ChatRealtimeMessage> = {}): Chat
     senderName: 'Owner',
     type: 'text',
     systemKind: null,
+    noteKind: null,
+    noteSubject: null,
+    noteReason: null,
     body: 'Hello',
     attachmentUrl: null,
     sentAt: '2026-07-08T10:00:00.000Z',
@@ -39,6 +42,7 @@ function makeActiveConversation(
 ): ChatConversationDetails {
   return {
     id: 'c1',
+    kind: 'booking',
     bookingId: 'b1',
     counterpartId: 'owner-1',
     counterpartName: 'Owner',
@@ -125,6 +129,9 @@ describe('ChatEffects', () => {
         senderName: 'Ada',
         type: 'image',
         systemKind: null,
+        noteKind: null,
+        noteSubject: null,
+        noteReason: null,
         body: 'Hi',
         attachmentUrl: '/uploads/chat/c1/photo.jpg',
         sentAt: '2026-07-08T10:00:00.000Z',

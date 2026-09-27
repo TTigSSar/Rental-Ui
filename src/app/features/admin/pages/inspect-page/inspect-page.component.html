@@ -189,13 +189,13 @@
             <div class="inspect-desktop__attribute">
               <app-icon name="tag" [size]="16" />
               <div class="inspect-desktop__attribute-label">
-                {{ 'admin.inspect.attributes.deposit' | translate }}
+                {{ 'admin.inspect.attributes.compensation' | translate }}
               </div>
               <div class="inspect-desktop__attribute-value">
                 {{
-                  listing.depositAmount !== null
-                    ? (listing.depositAmount | dram)
-                    : ('admin.inspect.attributes.noDeposit' | translate)
+                  isCompensationAmountSet(listing.compensationAmount)
+                    ? (listing.compensationAmount | dram)
+                    : ('admin.inspect.attributes.noCompensation' | translate)
                 }}
               </div>
             </div>

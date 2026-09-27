@@ -39,7 +39,6 @@ export interface ListingOwner {
   id: string;
   firstName: string;
   lastName: string;
-  phoneNumber: string | null;
 }
 
 export interface BookedDateRange {

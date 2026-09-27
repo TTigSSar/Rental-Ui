@@ -96,7 +96,7 @@
               type="number"
               class="lp-sidebar__price-input"
               [value]="activeMaxPrice() ?? ''"
-              placeholder="10 000"
+              placeholder="10,000"
               min="0"
               (change)="setMaxPrice($event)"
             />
@@ -112,6 +112,7 @@
         <app-radius-origin-filter
           [radiusMeters]="activeRadiusMeters()"
           (radiusMetersChange)="onRadiusMetersChange($event)"
+          (originCleared)="onOriginCleared()"
         />
       </div>
 

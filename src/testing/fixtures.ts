@@ -30,6 +30,11 @@ import type {
   AdminReportRow,
 } from '../app/features/admin/models/admin-report.model';
 import type {
+  AdminMessageThread,
+  AdminMessageThreadCounts,
+  AdminMessageThreadQueue,
+} from '../app/features/admin/models/admin-message-thread.model';
+import type {
   AdminActivityItem,
   AdminOverview,
 } from '../app/features/admin/models/admin-overview.model';
@@ -74,7 +79,6 @@ export function makeListingDetails(overrides: Partial<ListingDetails> = {}): Lis
       id: 'owner-1',
       firstName: 'Owen',
       lastName: 'Owner',
-      phoneNumber: null,
     },
     bookedDateRanges: [],
     isFavorite: false,
@@ -84,9 +88,10 @@ export function makeListingDetails(overrides: Partial<ListingDetails> = {}): Lis
     condition: null,
     hygieneNotes: null,
     safetyNotes: null,
-    depositAmount: null,
+    compensationAmount: null,
     minRentalDays: null,
     deliveryType: null,
+    deliveryTypes: null,
     latitude: null,
     longitude: null,
     district: null,
@@ -136,7 +141,6 @@ export function makeBookingRequest(overrides: Partial<BookingRequest> = {}): Boo
     renterFirstName: 'Rena',
     renterLastName: 'Renter',
     renterEmail: 'rena@example.com',
-    renterPhoneNumber: null,
     startDate: '2026-07-01',
     endDate: '2026-07-03',
     totalPrice: 15,
@@ -162,7 +166,7 @@ export function makeBookingDetail(overrides: Partial<BookingDetail> = {}): Booki
     addressLine: null,
     currency: 'AMD',
     pricePerDay: 5,
-    depositAmount: null,
+    compensationAmount: null,
     totalPrice: 15,
     startDate: '2026-07-01',
     endDate: '2026-07-03',
@@ -177,7 +181,6 @@ export function makeBookingDetail(overrides: Partial<BookingDetail> = {}): Booki
     counterpartyFirstName: 'Rena',
     counterpartyLastName: 'Renter',
     counterpartyAvatarUrl: null,
-    counterpartyPhoneNumber: null,
     ...overrides,
   };
 }
@@ -205,7 +208,7 @@ export function makeAdminListingSummary(
     condition: 'Good',
     hygieneNotes: 'Wiped down between rentals.',
     safetyNotes: 'No small parts.',
-    depositAmount: null,
+    compensationAmount: null,
     images: [],
     createdAt: '2026-06-20T10:00:00.000Z',
     photoCount: 3,
@@ -233,6 +236,7 @@ export function makeAdminListingDetail(
     ...makeAdminListingSummary(),
     status: 'PendingApproval',
     ownerOpenReportCount: 0,
+    ownerPhoneNumber: null,
     ...overrides,
   };
 }
@@ -289,6 +293,7 @@ export function makeAdminUser(overrides: Partial<AdminUser> = {}): AdminUser {
   return {
     id: 'user-1',
     email: 'anahit@toyrent.am',
+    phoneNumber: null,
     firstName: 'Anahit',
     lastName: 'Grigoryan',
     avatarUrl: null,
@@ -371,6 +376,55 @@ export function makeAdminReportQueue(overrides: Partial<AdminReportQueue> = {}):
     totalCount: 0,
     totalPages: 0,
     counts: makeAdminReportQueueCounts(),
+    ...overrides,
+  };
+}
+
+export function makeAdminMessageThread(
+  overrides: Partial<AdminMessageThread> = {},
+): AdminMessageThread {
+  return {
+    conversationId: 'conv-1',
+    memberId: 'user-2',
+    memberFirstName: 'Anahit',
+    memberLastName: 'Grigoryan',
+    memberAvatarUrl: null,
+    memberStatus: 'Active',
+    memberIsIdConfirmed: true,
+    memberMarketplaceRole: 'Owner',
+    memberOpenFlagCount: 0,
+    unreadCount: 0,
+    lastMessageSnippet: 'Hello, thanks for reaching out.',
+    lastMessageAt: '2026-08-13T00:00:00Z',
+    lastMessageType: 'text',
+    lastMessageNoteSubject: null,
+    needsReply: false,
+    createdAt: '2026-08-01T00:00:00Z',
+    ...overrides,
+  };
+}
+
+export function makeAdminMessageThreadCounts(
+  overrides: Partial<AdminMessageThreadCounts> = {},
+): AdminMessageThreadCounts {
+  return {
+    all: 0,
+    unread: 0,
+    needsReply: 0,
+    ...overrides,
+  };
+}
+
+export function makeAdminMessageThreadQueue(
+  overrides: Partial<AdminMessageThreadQueue> = {},
+): AdminMessageThreadQueue {
+  return {
+    items: [],
+    page: 1,
+    pageSize: 20,
+    totalCount: 0,
+    totalPages: 0,
+    counts: makeAdminMessageThreadCounts(),
     ...overrides,
   };
 }

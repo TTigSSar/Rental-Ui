@@ -82,3 +82,37 @@ describe('AuthApiService.updatePreferredLanguage', () => {
     });
   });
 });
+
+describe('AuthApiService.changePassword', () => {
+  let service: AuthApiService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(AuthApiService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  it('PUTs { currentPassword, newPassword } to the contract endpoint and flushes a 204', () => {
+    let completed = false;
+    service
+      .changePassword({ currentPassword: 'OldPass123', newPassword: 'NewPass456' })
+      .subscribe({ complete: () => (completed = true) });
+
+    const req = httpMock.expectOne(toApiUrl(ApiContract.auth.changePassword));
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({
+      currentPassword: 'OldPass123',
+      newPassword: 'NewPass456',
+    });
+
+    req.flush(null, { status: 204, statusText: 'No Content' });
+    expect(completed).toBe(true);
+  });
+});

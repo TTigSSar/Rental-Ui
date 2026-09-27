@@ -173,11 +173,11 @@
         },
         "q3": {
           "question": "How are toys cleaned between rentals?",
-          "answer": "Owners describe how each toy is cleaned in the listing. Many also charge a small refundable deposit to cover damage or excessive wear."
+          "answer": "Owners describe how each toy is cleaned in the listing. Every listing also sets a loss & damage compensation amount — what the renter would owe the owner for damage or excessive wear."
         },
         "q4": {
           "question": "What if my child loses a part of the toy?",
-          "answer": "Report it to the owner as soon as possible. If a deposit was set, it can be used to cover damage or replacement."
+          "answer": "Report it to the owner as soon as possible. The listing's loss & damage compensation amount is the most the owner can ask you for — agree the details directly with them."
         },
         "q5": {
           "question": "Can I cancel a rental?",
@@ -185,7 +185,7 @@
         },
         "q6": {
           "question": "What do I need to list a toy?",
-          "answer": "Create an account, add at least one clear photo, choose a toy category, add a description and a daily price. Optionally add an age range and a refundable deposit."
+          "answer": "Create an account, add at least one clear photo, choose a toy category, add a description and a daily price. You'll also add an optional age range and set a loss & damage compensation amount — what the renter would owe you if the toy is lost, seriously damaged or not returned."
         }
       }
     },
@@ -220,6 +220,7 @@
       "emailInvalid": "Enter a valid email address.",
       "passwordRequired": "Password is required.",
       "passwordMinLength": "Password must be at least 8 characters.",
+      "passwordTooLong": "Password is too long. Use up to 72 Latin characters, or fewer if you use Armenian or Russian letters.",
       "firstNameRequired": "First name is required.",
       "lastNameRequired": "Last name is required.",
       "phoneNumberRequired": "Phone number is required.",
@@ -301,6 +302,10 @@
       "districtIds": "Districts",
       "districtsPlaceholder": "All districts",
       "filterBtn": "Filters",
+      "chips": {
+        "minPrice": "From {{amount}}",
+        "maxPrice": "Up to {{amount}}"
+      },
       "sidebar": {
         "title": "Filters",
         "clearAll": "Clear all",
@@ -325,6 +330,8 @@
         "originManualTitle": "From the chosen point",
         "originManualSubtitle": "Chosen point on the map",
         "change": "change",
+        "clearOrigin": "Remove",
+        "clearOriginAria": "Remove location filter",
         "originDeniedTitle": "Location unavailable",
         "originDeniedSubtitle": "Access is off in the browser",
         "originDeniedMessage": "No problem — set a point manually and the radius will work.",
@@ -398,7 +405,17 @@
       "return": "Return",
       "discount": "discount",
       "serviceFee": "Service fee",
-      "deposit": "Refundable deposit",
+      "compensationLabel": "Loss & damage compensation",
+      "compensationSubline": "only if lost, damaged or not returned",
+      "compensationInfoAria": "How loss & damage compensation works",
+      "compensationNotPartOfTotal": "Not part of your total",
+      "totalExcludesCompensation": "Total is what you pay for the rental. The compensation amount is not included.",
+      "howThisWorks": {
+        "title": "How this works",
+        "point1": "Nothing is paid upfront. No money is taken at booking or handed over at pickup.",
+        "point2": "This is a maximum. Lost or not returned: the full amount. Damaged: a sum you agree with the owner, never higher.",
+        "point3": "You and the owner settle it between yourselves. DoRent doesn't collect, hold or refund it — support can help if you get stuck."
+      },
       "noteTooLongError": "Your note is too long — please keep it to {{max}} characters or fewer."
     },
     "page": {
@@ -447,7 +464,6 @@
       "assurance": "Owner-managed toy rentals with transparent pricing.",
       "descriptionHeading": "About this toy",
       "hostHeading": "Meet the owner",
-      "contactLabel": "Contact details become available once the booking is approved.",
       "viewOwnerProfile": "View owner profile",
       "ownerMemberSince": "Member since {{year}}",
       "shareLabel": "Share",
@@ -455,7 +471,6 @@
       "savedLabel": "Saved",
       "reportLabel": "Report",
       "linkCopied": "Link copied to clipboard",
-      "messageOwner": "Message owner",
       "handoverLabel": "Handover",
       "bookingHeading": "Check availability",
       "bookingSubtitle": "Pick your rental dates and see the total before you send a rental request.",
@@ -486,6 +501,7 @@
         "pickupOnlyTitle": "Pickup only",
         "pickupOnlySub": "Meet the owner to collect",
         "minStayTitle": "{{count}}-day minimum",
+        "minStayPeriodTitle": "Min. {{period}}",
         "minStaySub": "Shorter requests aren't accepted"
       },
       "badges": {
@@ -512,8 +528,9 @@
         "condition": "Condition",
         "hygieneNotes": "Hygiene & cleaning",
         "safetyNotes": "Safety notes",
-        "deposit": "Refundable deposit",
-        "depositValue": "{{amount}} deposit"
+        "compensation": "Loss & damage compensation",
+        "compensationValue": "Up to {{amount}}",
+        "compensationNotSpecified": "Not specified"
       },
       "conditionValues": {
         "new": "New",
@@ -522,15 +539,17 @@
         "fair": "Fair"
       },
       "protection": {
-        "title": "Rental Deposit & Coverage",
-        "intro": "Some owners ask for a small refundable deposit — the amount and refund terms are set by each owner.",
-        "whatIncluded": "What the deposit covers",
-        "forAllRentals": "For all toy rentals",
-        "bullet1": "The deposit can be used to cover damage, missing parts, or excessive wear",
-        "bullet2": "The deposit is fully refunded when the toy is returned in the agreed condition",
-        "bullet3": "Each owner describes how the toy is cleaned between rentals",
-        "bullet4": "Please follow the owner's age and safety guidance",
-        "bullet5": "If an issue comes up, contact the owner first — DoRent support is also here to help."
+        "eyebrow": "If something goes wrong",
+        "title": "Loss & damage compensation",
+        "pillNoUpfront": "Nothing charged upfront",
+        "intro": "The owner sets this amount. You pay nothing upfront.",
+        "introNoAmount": "The owner has not set an amount for this toy. Agree with the owner what happens if the toy is lost or damaged before you book.",
+        "bullet1": "Lost or not returned: up to the full amount",
+        "bullet2": "Serious damage: an amount you agree with the owner, never more than this",
+        "bullet3": "Settled directly between you and the owner",
+        "bullet4": "Each owner describes how the toy is cleaned between rentals",
+        "bullet5": "Follow the owner's age and safety guidance",
+        "bullet6": "If an issue comes up, contact the owner first — DoRent support is also here to help"
       },
       "reviews": {
         "heading": "Reviews",
@@ -541,7 +560,9 @@
       },
       "pickupDelivery": {
         "heading": "Pickup & delivery",
-        "hygieneValue": "Provided by owner"
+        "hygieneValue": "Provided by owner",
+        "compensationLabel": "Loss & damage compensation",
+        "compensationSubline": "only if lost, damaged or not returned · nothing upfront"
       },
       "ownerStats": {
         "rating": "Rating",
@@ -549,10 +570,7 @@
         "completed": "Completed rentals"
       },
       "ownerToySuffix": "toys",
-      "ownerCardTitle": "Owner / contact card",
-      "ownerCardSubtitle": "Locked phone before booking, revealed after.",
-      "contactLabelPre": "Contact details become available ",
-      "contactLabelBold": "once the booking is approved.",
+      "chatAfterRequest": "You can message the owner in chat once your rental request is sent.",
       "relationship": {
         "rentalRequested": "Rental requested",
         "approved": "Booking approved",
@@ -673,6 +691,9 @@
         "summaryAge": "Age",
         "summaryPhotos": "Photos",
         "summaryPrice": "Price",
+        "summaryCompensation": "Loss & damage compensation",
+        "compensationUpTo": "Up to {{amount}}",
+        "compensationPreviewNote": "Loss & damage compensation · Up to {{amount}} — only if lost, damaged or not returned",
         "summaryPickup": "Pickup",
         "summarySafety": "Safety",
         "summarySafetyValue": "{{done}} of {{total}} cleaning steps"
@@ -712,16 +733,13 @@
         "notFoundError": "That district couldn't be found. Please pick another one."
       },
       "locationPicker": {
-        "cta": "Set location on map",
+        "showOnMap": "Show on map",
         "change": "Change",
         "title": "Set your toy's location",
         "confirm": "Confirm location",
         "cancel": "Cancel",
         "privacyNote": "We publish only the approximate area on the map — your exact address is never shown to renters.",
-        "pinSetHint": "Pin set. Only the approximate area is ever shown to renters.",
-        "mapLabel": "Where the toy is",
-        "mapHelper": "Renters see this map with an approximate circle — your exact address stays private until a booking is confirmed.",
-        "approximateChip": "Approximate area"
+        "pinSetHint": "Pin set. Only the approximate area is ever shown to renters."
       },
       "images": "Toy photos",
       "imagesSelected": "photos selected",
@@ -745,8 +763,15 @@
       "hygieneNotesPlaceholder": "How is the toy cleaned between rentals?",
       "safetyNotes": "Safety notes",
       "safetyNotesPlaceholder": "Small parts, age warnings, supervision required, etc.",
-      "depositAmount": "Refundable deposit",
-      "depositAmountPlaceholder": "Optional deposit amount",
+      "compensation": {
+        "title": "Loss & damage compensation",
+        "kicker": "Protects you — not income",
+        "label": "Loss & damage compensation (֏)",
+        "placeholder": "e.g. 45,000",
+        "helper": "What the renter pays you if the toy is lost, seriously damaged or not returned. Nothing is charged upfront.",
+        "tip": "Tip: use roughly what it would cost to buy this toy new.",
+        "footnote": "Kept separate from the price you earn. DoRent never collects or holds this money."
+      },
       "pickupArea": "Pickup area",
       "age": {
         "y02": "0–2 yr",
@@ -760,6 +785,10 @@
         "d3": "3 days",
         "d7": "1 week",
         "d14": "2 weeks",
+        "d30": "1 month",
+        "d90": "3 months",
+        "d180": "6 months",
+        "d365": "1 year",
         "hint": "Shortest booking a renter can make.",
         "preview": "min {{period}}"
       },
@@ -770,7 +799,10 @@
         "deliver": "Courier delivery",
         "deliverHint": "Renter pays · delivered in Yerevan",
         "pickupShort": "pickup",
-        "deliverShort": "delivery"
+        "deliverShort": "delivery",
+        "bothShort": "pickup or delivery",
+        "both": "Pickup or courier",
+        "bothHint": "Free pickup or courier delivery in Yerevan"
       },
       "photos": {
         "addCover": "Add cover photo",
@@ -806,7 +838,7 @@
         "descriptionTooLong": "Description must be at most 4000 characters.",
         "priceGreaterThanZero": "Price must be greater than 0.",
         "ageRangeInvalid": "Max age must be greater than or equal to min age.",
-        "depositNonNegative": "Deposit cannot be negative.",
+        "compensationRange": "Enter an amount between 1,000 ֏ and 10,000,000 ֏",
         "ageNonNegative": "Age cannot be negative.",
         "photoTooFew": "Please add at least {{min}} photos.",
         "photoTooLarge": "Each photo must be smaller than 10 MB.",
@@ -901,14 +933,13 @@
         "chip4": "First time renting — any tips welcome!"
       },
       "yourRequestEyebrow": "Your request",
-      "phoneUnlockLead": "{{name}}'s contact details unlock",
-      "phoneUnlockEmphasis": "once they approve your booking.",
+      "chatAfterRequest": "Send the request to open a chat with {{name}} — agree pickup and contact details there.",
+      "chatAfterRequestSent": "Your request has been sent — chat with {{name}} to agree pickup and contact details.",
       "notCharged": "You won't be charged until {{name}} confirms.",
       "notChargedShort": "You're not charged yet",
       "summaryTotal": "Total",
       "selectDatesHint": "Choose dates to see the total price",
       "daysLabel": "days",
-      "depositNotCharged": "not charged now",
       "submitCta": "Send booking request",
       "submitting": "Submitting…",
       "confirmTitle": "Request sent to {{name}}!",
@@ -941,6 +972,7 @@
       "language": "Language",
       "notifications": "Notifications",
       "helpCenter": "Help center",
+      "security": "Security",
       "logout": "Sign out"
     },
     "actions": {
@@ -950,7 +982,6 @@
       "firstName": "First name",
       "lastName": "Last name",
       "email": "Email",
-      "phoneNumber": "Phone number",
       "preferredLanguage": "Preferred language"
     },
     "account": {
@@ -987,6 +1018,44 @@
       "listings": "Listings",
       "rentals": "Rentals",
       "reviews": "Reviews"
+    },
+    "security": {
+      "page": {
+        "title": "Security",
+        "subtitle": "Change your password to keep your account secure."
+      },
+      "form": {
+        "currentPassword": "Current password",
+        "currentPasswordPlaceholder": "Enter your current password",
+        "newPassword": "New password",
+        "newPasswordPlaceholder": "Enter your new password",
+        "confirmPassword": "Confirm new password",
+        "confirmPasswordPlaceholder": "Re-enter your new password",
+        "submit": "Change password"
+      },
+      "validation": {
+        "currentPasswordRequired": "Current password is required.",
+        "newPasswordRequired": "New password is required.",
+        "newPasswordMinLength": "New password must be at least 8 characters.",
+        "newPasswordTooLong": "New password is too long. Use up to 72 Latin characters, or fewer if you use Armenian or Russian letters.",
+        "confirmPasswordRequired": "Please confirm your new password.",
+        "passwordsMismatch": "Passwords do not match."
+      },
+      "errors": {
+        "invalidCurrentPassword": "Current password is incorrect.",
+        "passwordUnchanged": "New password must be different from your current one.",
+        "passwordTooLong": "New password is too long. Use up to 72 Latin characters, or fewer if you use Armenian or Russian letters.",
+        "passwordNotSet": "Your account signs in with Google and has no password to change.",
+        "userBlocked": "Your account has been blocked. Contact support for help.",
+        "tooManyAttempts": "Too many attempts, try again in a minute.",
+        "sessionExpired": "Your session has expired. Please log in again.",
+        "serverError": "Something went wrong. Please try again."
+      },
+      "success": {
+        "title": "Password updated",
+        "text": "Your password has been updated.",
+        "announcement": "Password updated. Your password has been updated."
+      }
     }
   },
   "myListings": {
@@ -1076,20 +1145,20 @@
         "saveAndResubmit": "Save & resubmit for review",
         "resubmitNote": "Your changes will be saved and the listing sent back for review.",
         "fixItTitle": "Changes needed",
-        "fixItReviewedBy": "Reviewed by {{name}}"
+        "fixItReviewedBy": "Reviewed by {{name}}",
+        "compensationNotice": "Add a loss & damage compensation amount. It's now required to save changes."
       },
       "fields": {
         "title": "Title",
         "description": "Description",
-        "pricePerDay": "Price per day (AMD)",
+        "pricePerDay": "Price per day (֏)",
         "city": "City",
         "ageFromMonths": "Age from (months)",
         "ageToMonths": "Age to (months)",
         "condition": "Condition",
         "conditionNone": "Not specified",
         "hygieneNotes": "Hygiene notes",
-        "safetyNotes": "Safety notes",
-        "depositAmount": "Deposit amount (AMD)"
+        "safetyNotes": "Safety notes"
       },
       "conditions": {
         "new": "New",
@@ -1147,6 +1216,10 @@
         "decline": "Decline",
         "accepted": "Accepted",
         "declined": "Declined",
+        "awaitingHandover": "Awaiting handover",
+        "pickedUp": "Picked up",
+        "returned": "Returned",
+        "viewBooking": "View booking",
         "message": "Message {{name}}"
       }
     }
@@ -1257,15 +1330,16 @@
       "duration": "Duration",
       "days": "{{count}} days",
       "total": "Total price",
-      "deposit": "Deposit",
       "pickupReturn": "Pickup & return",
-      "contactAfterApproval": "Contact details become available once the booking is approved.",
       "timeline": "Timeline",
       "owner": "Owner",
       "renter": "Renter",
+      "message": "Message {{name}}",
       "rejectionReason": "Reason for decline",
       "cancelRequest": "Cancel request",
-      "cancelling": "Cancelling..."
+      "cancelBooking": "Cancel booking",
+      "cancelling": "Cancelling...",
+      "rentalStartedHint": "The rental has started — message the owner to change plans."
     },
     "timeline": {
       "requested": "Booking requested",
@@ -1281,7 +1355,9 @@
     "reject": {
       "title": "Decline this request",
       "description": "Let the renter know why so they can plan their next steps.",
+      "reasonLabel": "Reason",
       "otherPlaceholder": "Add a short note…",
+      "otherLabel": "Add a note",
       "confirm": "Decline request",
       "cancel": "Cancel"
     },
@@ -1310,7 +1386,6 @@
         "location": "Location",
         "priceLabel": "Price",
         "pricePerDay": "{{amount}} / day",
-        "depositAmount": "deposit {{amount}}",
         "createdAt": "Created",
         "toyDetails": "Toy details",
         "ageRange": "Age",
@@ -1542,11 +1617,12 @@
         "photos": "Photos",
         "photosValue": "{{count}} uploaded",
         "condition": "Condition",
-        "deposit": "Deposit",
-        "noDeposit": "No deposit"
+        "compensation": "Loss & damage compensation",
+        "noCompensation": "Not specified"
       },
       "owner": {
         "label": "Owner",
+        "phone": "Phone",
         "rating": "Rating",
         "listings": "Listings",
         "rentals": "Rentals",
@@ -1556,6 +1632,7 @@
         "identityUnverified": "Not verified",
         "flags": "Flags",
         "flagsCount": "{{count}} open report(s)",
+        "messageOwner": "Message owner",
         "viewProfile": "View public profile"
       },
       "checklist": {
@@ -1708,6 +1785,7 @@
         "verify": "Verify user",
         "suspend": "Suspend",
         "reactivate": "Reactivate",
+        "message": "Message",
         "cancel": "Cancel",
         "suspendDisabledSelf": "You can't suspend your own account.",
         "suspendDisabledAdmin": "Admin accounts can't be suspended from here."
@@ -1716,6 +1794,7 @@
         "dialogAria": "{{name}}'s profile",
         "closeAria": "Close",
         "verifiedAria": "Identity verified",
+        "phone": "Phone",
         "listings": "Listings",
         "rentals": "Rentals",
         "flags": "Flags",
@@ -1815,6 +1894,9 @@
         "targetType": "Report type",
         "whatWasReported": "What was reported",
         "reporterNote": "Reporter's note",
+        "contacts": "Contacts",
+        "messageContact": "Message {{name}}",
+        "messageContactAria": "Open a moderation chat with {{name}}",
         "resolutionNote": "Resolution note",
         "noteLabel": "Add a note (optional)",
         "notePlaceholder": "E.g. Confirmed with the owner — item pulled from listing."
@@ -1832,12 +1914,53 @@
         "reportNotFound": "This report no longer exists."
       }
     },
+    "messages": {
+      "page": {
+        "title": "Messages",
+        "subtitle": "Reach out to members directly. Every moderation note you send appears here in the conversation.",
+        "searchPlaceholder": "Search members",
+        "listAria": "Conversations",
+        "errorTitle": "Unable to load conversations",
+        "pagerAria": "Conversation pages",
+        "pagerPrev": "Previous",
+        "pagerNext": "Next",
+        "pagerStatus": "Page {{page}} of {{total}}"
+      },
+      "filters": {
+        "ariaLabel": "Filter conversations",
+        "all": "All",
+        "unread": "Unread",
+        "reply": "Needs reply"
+      },
+      "list": {
+        "empty": "No conversations here.",
+        "noMessagesYet": "No messages yet — say hello",
+        "notePreview": "Note: {{subject}}",
+        "noteNoSubject": "Moderation note"
+      },
+      "thread": {
+        "emptyStart": "Start of your conversation with {{name}}. Any note you send here reaches them directly.",
+        "errorTitle": "Unable to load conversation"
+      },
+      "composer": {
+        "label": "Message"
+      },
+      "profile": {
+        "statusAria": "Member profile",
+        "errorTitle": "Unable to load member profile"
+      },
+      "toast": {
+        "sendFailureTitle": "Message not sent",
+        "openFailureTitle": "Couldn't open conversation"
+      }
+    },
     "console": {
       "nav": {
         "overview": "Overview",
         "review": "Listing review",
         "categories": "Categories",
         "users": "Users",
+        "messages": "Messages",
         "reports": "Reports & flags"
       },
       "chrome": {
@@ -1855,6 +1978,13 @@
           "avgReview": "Avg. review time",
           "flagged": "Flagged",
           "hoursValue": "{{hours}} h"
+        },
+        "account": {
+          "triggerAria": "Account menu",
+          "menuAria": "Account",
+          "profile": "Profile",
+          "backToSite": "Back to site",
+          "logout": "Log out"
         }
       },
       "comingSoon": {
@@ -1944,7 +2074,8 @@
       "unreadAria": "{{count}} unread messages",
       "searchPlaceholder": "Search conversations",
       "noResultsTitle": "No matches",
-      "noResults": "No conversations match “{{query}}”."
+      "noResults": "No conversations match “{{query}}”.",
+      "moderationLabel": "DoRent moderation"
     },
     "details": {
       "backToConversations": "Back to conversations",
@@ -1973,7 +2104,9 @@
       "closedBannerTitle": "This conversation is closed",
       "closedBannerSubtitle": "The rental is complete and both reviews are in — it's now read-only.",
       "charCounter": "{{count}} / {{max}}",
-      "limitReached": "Message limit of {{max}} characters reached"
+      "limitReached": "Message limit of {{max}} characters reached",
+      "moderationTitle": "DoRent moderation",
+      "moderationSubtitle": "Direct messages from the DoRent team"
     },
     "status": {
       "requested": "Requested",
@@ -1981,7 +2114,8 @@
       "active": "Active",
       "returnDue": "Return due",
       "completed": "Completed",
-      "closed": "Closed"
+      "closed": "Closed",
+      "moderation": "Moderation"
     },
     "system": {
       "request": "Booking requested",
@@ -1991,6 +2125,19 @@
       "return": "Toy returned",
       "closed": "Conversation closed",
       "default": "Update"
+    },
+    "note": {
+      "kind": {
+        "reject": "Listing rejected",
+        "warn": "Warning issued",
+        "suspend": "Account suspended",
+        "category": "Category changed",
+        "info": "Moderation note"
+      },
+      "by": "by {{name}}",
+      "reason": "Reason",
+      "footerMember": "From DoRent moderation",
+      "footerModerator": "Sent to member"
     },
     "time": {
       "justNow": "Just now",

@@ -2,19 +2,28 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import type { MenuItem } from 'primeng/api';
+import { MenuModule } from 'primeng/menu';
 import { filter } from 'rxjs';
 
+import * as AuthActions from '../../../auth/store/auth.actions';
 import { selectAuthUser } from '../../../auth/store/auth.selectors';
+import { LanguageService } from '../../../../shared/services/language.service';
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
+import * as AdminMessagesActions from '../../store/admin-messages.actions';
+import {
+  selectAdminMessagesTotalUnreadCount,
+  selectMessageThreadsLoading,
+} from '../../store/admin-messages.selectors';
 import * as AdminModerationActions from '../../store/admin-moderation.actions';
 import { selectQueueCounts, selectQueueLoading } from '../../store/admin-moderation.selectors';
 import * as AdminOverviewActions from '../../store/admin-overview.actions';
 import { selectOverview } from '../../store/admin-overview.selectors';
 import { AdminBreakpointService } from '../../utils/admin-breakpoint.service';
 
-type AdminNavId = 'overview' | 'review' | 'categories' | 'users' | 'reports';
+type AdminNavId = 'overview' | 'review' | 'categories' | 'users' | 'messages' | 'reports';
 
 interface AdminNavItem {
   readonly id: AdminNavId;
@@ -62,6 +71,14 @@ const NAV_ITEMS: readonly AdminNavItem[] = [
   },
   { id: 'users', path: '/admin/users', labelKey: 'admin.console.nav.users', icon: 'user' },
   {
+    id: 'messages',
+    path: '/admin/messages',
+    labelKey: 'admin.console.nav.messages',
+    icon: 'message',
+    hasMeta: true,
+    badge: true,
+  },
+  {
     id: 'reports',
     path: '/admin/reports',
     labelKey: 'admin.console.nav.reports',
@@ -98,6 +115,7 @@ const NAV_ITEMS: readonly AdminNavItem[] = [
   imports: [
     AvatarComponent,
     IconComponent,
+    MenuModule,
     RouterLink,
     RouterLinkActive,
     RouterOutlet,
@@ -126,6 +144,44 @@ export class AdminShellComponent {
     return ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || null;
   });
 
+  // ── Account menu (ADR-016 §1 follow-up): the topbar/mobile-header user
+  // chip is the only way a moderator can reach Profile, get back to the
+  // member-facing site, or log out — the global header/footer that carry
+  // those elsewhere are suppressed under `/admin/**`. `p-menu` (popup mode)
+  // is used here rather than a hand-rolled dropdown (see the site header's
+  // `nh__dropdown` for that alternative) because it ships keyboard nav and
+  // Escape-closes-and-refocuses-trigger for free — no existing `features/`
+  // code uses `p-menu`/`p-popover` yet, so this is the first.
+  private readonly translate = inject(TranslateService);
+  private readonly languageService = inject(LanguageService);
+
+  protected readonly accountMenuOpen = signal(false);
+
+  protected readonly accountMenuItems = computed<MenuItem[]>(() => {
+    // Reactivity trigger only — see `ListingsFiltersComponent`'s identical
+    // idiom for translating a computed's strings on language switch (the
+    // `TranslatePipe` can't reach into `p-menu`'s `model` input for us).
+    this.languageService.current();
+    return [
+      {
+        label: this.translate.instant('admin.console.chrome.account.profile'),
+        icon: 'pi pi-user',
+        routerLink: '/profile',
+      },
+      {
+        label: this.translate.instant('admin.console.chrome.account.backToSite'),
+        icon: 'pi pi-arrow-left',
+        routerLink: '/',
+      },
+      { separator: true },
+      {
+        label: this.translate.instant('admin.console.chrome.account.logout'),
+        icon: 'pi pi-sign-out',
+        command: () => this.store.dispatch(AuthActions.logout()),
+      },
+    ];
+  });
+
   // ── Responsive branch: desktop rail chrome vs. mobile header+bottom-nav.
   // Decided reactively (not once at construction, unlike App's boot-screen
   // flag) because the admin shell is a persistent layout a moderator can
@@ -149,6 +205,14 @@ export class AdminShellComponent {
   private readonly queueCounts = this.store.selectSignal(selectQueueCounts);
   private readonly queueLoading = this.store.selectSignal(selectQueueLoading);
   private readonly overview = this.store.selectSignal(selectOverview);
+  // `adminMessages`'s badge reads `counts.unread` — a true, filter-independent total computed
+  // server-side (`AdminMessageThreadQueueResponse.counts`), not a sum over the currently-loaded
+  // page — loaded below via `loadMessageThreads()` so the badge is populated regardless of which
+  // admin tab is active, same idiom as `queueCounts`/`overview`.
+  private readonly messagesUnreadCount = this.store.selectSignal(
+    selectAdminMessagesTotalUnreadCount,
+  );
+  private readonly messagesLoading = this.store.selectSignal(selectMessageThreadsLoading);
 
   protected readonly navCounts = computed<Record<AdminNavId, number | null>>(() => {
     const overview = this.overview();
@@ -157,6 +221,7 @@ export class AdminShellComponent {
       review: this.queueLoading() ? null : this.queueCounts().pending,
       categories: overview !== null ? overview.categoryCount : null,
       users: null,
+      messages: this.messagesLoading() ? null : this.messagesUnreadCount(),
       reports: overview !== null ? overview.openReportCount : null,
     };
   });
@@ -220,6 +285,10 @@ export class AdminShellComponent {
     // dispatches its own `loadOverview()` when the store doesn't already have (or isn't already
     // fetching) the data — see that component's constructor doc comment.
     this.store.dispatch(AdminOverviewActions.loadOverview());
+
+    // Same idiom for `adminMessages` — loads once per shell mount so the Messages nav badge is
+    // accurate regardless of which admin tab is active.
+    this.store.dispatch(AdminMessagesActions.loadMessageThreads());
   }
 
   private findActiveNavItem(url: string): AdminNavItem | null {

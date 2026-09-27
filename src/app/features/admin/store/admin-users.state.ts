@@ -15,6 +15,21 @@ export interface AdminUsersRollbackEntry {
   readonly index: number;
 }
 
+/**
+ * Single-user fetch by id, independent of the queue's `items` page — used by the Messages
+ * screen's avatar → profile dialog, since `AdminMessageThreadResponse` carries no
+ * email/listingCount/rentalCount and building an `AdminUser` from it would fabricate zeros (see
+ * `messages-page.component.ts`'s doc comment / ADR-014). `userId` gates a stale success/failure
+ * from a superseded request (belt-and-braces alongside the effect's `switchMap`) and doubles as
+ * "is a lookup in flight or showing" for the page to key its dialog visibility off of.
+ */
+export interface AdminUserLookupState {
+  readonly userId: string | null;
+  readonly user: AdminUser | null;
+  readonly loading: boolean;
+  readonly error: string | null;
+}
+
 export interface AdminUsersState {
   // ── Queue (users-page) ──
   readonly items: AdminUser[];
@@ -36,6 +51,9 @@ export interface AdminUsersState {
   /** User ids with an in-flight verify/suspend/reactivate mutation. */
   readonly actionIds: string[];
   readonly rollbacks: Record<string, AdminUsersRollbackEntry>;
+
+  // ── Single-user lookup (Messages screen profile dialog) ──
+  readonly lookup: AdminUserLookupState;
 }
 
 export const initialAdminUsersState: AdminUsersState = {
@@ -52,4 +70,5 @@ export const initialAdminUsersState: AdminUsersState = {
   error: null,
   actionIds: [],
   rollbacks: {},
+  lookup: { userId: null, user: null, loading: false, error: null },
 };

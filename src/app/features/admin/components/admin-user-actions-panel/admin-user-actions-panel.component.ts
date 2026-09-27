@@ -35,6 +35,8 @@ const FOCUSABLE_SELECTOR =
  * design's `u.status !== 'active'` / `u.status === 'suspended'` ternaries). Suspend is
  * additionally disabled (with a translated reason) when `canSuspend` is false — the page
  * computes that from `utils/admin-user-guards.util.ts` before it even offers this action.
+ * Message is unconditional and always last (`admin-desktop.jsx:762`'s `onMessage &&` item),
+ * routing the page to `/admin/messages?userId=<id>`.
  */
 @Component({
   selector: 'app-admin-user-actions-panel',
@@ -58,6 +60,7 @@ export class AdminUserActionsPanelComponent implements OnInit, OnDestroy {
   readonly verify = output<void>();
   readonly suspend = output<void>();
   readonly reactivate = output<void>();
+  readonly message = output<void>();
 
   /** Drives the backdrop's dimming (mobile sheet dims the app behind it; the desktop popover's
    *  backdrop is an invisible click-catcher) via a `:host(.is-desktop)` CSS selector — a plain

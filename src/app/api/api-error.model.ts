@@ -68,6 +68,19 @@ export type KnownApiErrorCode =
   | 'auth.external_invalid_token'
   | 'auth.external_email_missing'
   | 'auth.external_link_conflict'
+  // PUT /api/auth/me/password (password-change form). invalid_current_password /
+  // password_unchanged are 400 for a normal current-password mismatch / no-op new
+  // password; password_not_set is 400 for an external-only account with no local
+  // password to change against — AuthController.FromError.
+  | 'auth.invalid_current_password'
+  | 'auth.password_not_set'
+  | 'auth.password_unchanged'
+  // 400. Raised where a password is CREATED (register's Password, change-password's
+  // NewPassword) when it exceeds PasswordPolicy.MaxPasswordBytes (72 UTF-8 bytes) — BCrypt
+  // silently truncates past that length. Deliberately NOT raised on the verification side
+  // (login's Password, change-password's CurrentPassword) — see ADR-021's 2026-09-27
+  // amendment for why that asymmetry is intentional.
+  | 'auth.password_too_long'
   // booking.* — BookingsService
   | 'booking.unauthenticated'
   | 'booking.user_blocked'

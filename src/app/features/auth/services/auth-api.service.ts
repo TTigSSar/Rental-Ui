@@ -6,6 +6,7 @@ import { ApiContract, toApiUrl } from '../../../api/api-contract';
 import type {
   AuthResponse,
   BackendAuthResponse,
+  ChangePasswordRequest,
   CurrentUser,
   ExternalAuthRequest,
   LoginRequest,
@@ -75,6 +76,11 @@ export class AuthApiService {
         preferredLanguage: code,
       })
       .pipe(map((raw) => this.normalizeCurrentUser(raw)));
+  }
+
+  /** `PUT /api/auth/me/password` — 204 No Content on success, nothing to normalise. */
+  changePassword(request: ChangePasswordRequest): Observable<void> {
+    return this.http.put<void>(toApiUrl(ApiContract.auth.changePassword), request);
   }
 
   private normalizeCurrentUser(raw: Record<string, unknown>): CurrentUser {

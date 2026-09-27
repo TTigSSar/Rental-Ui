@@ -84,47 +84,70 @@
 
     @if (vm.conversation; as conversation) {
       <div class="chat-thread__panel">
-        <!-- Pinned booking-context header -->
-        <header class="chat-thread__context">
-          @if (conversation.toyImageUrl) {
-            <img
-              class="chat-thread__toy-img"
-              [src]="conversation.toyImageUrl"
-              [alt]="conversation.toyTitle"
-              loading="lazy"
-            />
-          } @else {
-            <span class="chat-thread__toy-img chat-thread__toy-img--placeholder" aria-hidden="true">
-              <i class="pi pi-image"></i>
+        <!-- Pinned context header: a booking's toy strip, or — for a Moderation
+             conversation (`kind === 'moderation'`, no linked booking; bookingId /
+             toyTitle / bookingDates / bookingPrice are all null) — a moderation
+             banner instead. The "View booking" link is never rendered for a
+             Moderation thread, so it can never navigate to `/bookings/null`. -->
+        @if (conversation.kind === 'moderation') {
+          <header class="chat-thread__context chat-thread__context--moderation">
+            <span class="chat-thread__moderation-icon" aria-hidden="true">
+              <app-icon name="shield" [size]="20" />
             </span>
-          }
-
-          <div class="chat-thread__context-body">
-            <h2 class="chat-thread__toy-title">{{ conversation.toyTitle }}</h2>
-            <p class="chat-thread__context-meta">
-              <i class="pi pi-calendar" aria-hidden="true"></i>
-              <span>{{ conversation.bookingDates }}</span>
-              <span class="chat-thread__dot" aria-hidden="true"></span>
-              <span class="chat-thread__price">
-                {{ conversation.bookingPrice | dram }}
+            <div class="chat-thread__context-body">
+              <h2 class="chat-thread__toy-title">
+                {{ 'chat.details.moderationTitle' | translate }}
+              </h2>
+              <p class="chat-thread__context-meta">
+                {{ 'chat.details.moderationSubtitle' | translate }}
+              </p>
+            </div>
+          </header>
+        } @else {
+          <header class="chat-thread__context">
+            @if (conversation.toyImageUrl) {
+              <img
+                class="chat-thread__toy-img"
+                [src]="conversation.toyImageUrl"
+                [alt]="conversation.toyTitle"
+                loading="lazy"
+              />
+            } @else {
+              <span
+                class="chat-thread__toy-img chat-thread__toy-img--placeholder"
+                aria-hidden="true"
+              >
+                <i class="pi pi-image"></i>
               </span>
-            </p>
-          </div>
+            }
 
-          <div class="chat-thread__context-actions">
-            <span [class]="'chat-status chat-status--' + statusTone(conversation.status)">
-              <i [class]="statusIcon(conversation.status)" aria-hidden="true"></i>
-              <span>{{ statusLabelKey(conversation.status) | translate }}</span>
-            </span>
-            <a
-              class="chat-thread__view-booking"
-              [routerLink]="['/bookings', conversation.bookingId]"
-            >
-              {{ 'chat.details.viewBooking' | translate }}
-              <i class="pi pi-chevron-right" aria-hidden="true"></i>
-            </a>
-          </div>
-        </header>
+            <div class="chat-thread__context-body">
+              <h2 class="chat-thread__toy-title">{{ conversation.toyTitle }}</h2>
+              <p class="chat-thread__context-meta">
+                <i class="pi pi-calendar" aria-hidden="true"></i>
+                <span>{{ conversation.bookingDates }}</span>
+                <span class="chat-thread__dot" aria-hidden="true"></span>
+                <span class="chat-thread__price">
+                  {{ conversation.bookingPrice | dram }}
+                </span>
+              </p>
+            </div>
+
+            <div class="chat-thread__context-actions">
+              <span [class]="'chat-status chat-status--' + statusTone(conversation.status)">
+                <i [class]="statusIcon(conversation.status)" aria-hidden="true"></i>
+                <span>{{ statusLabelKey(conversation.status) | translate }}</span>
+              </span>
+              <a
+                class="chat-thread__view-booking"
+                [routerLink]="['/bookings', conversation.bookingId]"
+              >
+                {{ 'chat.details.viewBooking' | translate }}
+                <i class="pi pi-chevron-right" aria-hidden="true"></i>
+              </a>
+            </div>
+          </header>
+        }
 
         <!-- Message list -->
         <div class="chat-thread__messages" #messagesPane>
@@ -181,6 +204,8 @@
                     </span>
                   }
                 </div>
+              } @else if (item.kind === 'note') {
+                <app-moderation-note-card [message]="item.message" />
               } @else {
                 <div class="chat-group" [class.chat-group--mine]="item.isMine">
                   @if (!item.isMine && item.senderName) {

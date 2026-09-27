@@ -14,6 +14,7 @@ export const ApiContract = {
     register: '/api/auth/register',
     currentUser: '/api/auth/me',
     updatePreferredLanguage: '/api/auth/me/preferred-language',
+    changePassword: '/api/auth/me/password',
     external: '/api/auth/external',
   },
   listings: {
@@ -96,6 +97,15 @@ export const ApiContract = {
     suspend: (userId: string): ApiPath => `/api/admin/users/${encodeURIComponent(userId)}/suspend`,
     reactivate: (userId: string): ApiPath =>
       `/api/admin/users/${encodeURIComponent(userId)}/reactivate`,
+  },
+  // Admin console: the Messages screen (moderation-only conversations — see ADR-016 §4 /
+  // Conversation.Kind == Moderation). All routes [Authorize(Roles = "Admin")] — see
+  // AdminMessagesController. Query params (filter/search/page/pageSize) are appended via
+  // HttpParams by the caller, same convention as `adminListings.queue`, see
+  // AdminMessagesApiService. Everything else (send/read/detail) reuses the existing `chat`
+  // surface below, unchanged.
+  adminMessages: {
+    threads: '/api/admin/messages/threads',
   },
   // Admin console Phase 4: user-facing report submission — see ReportsController.
   // [Authorize], any authenticated non-blocked user. NOT under /api/admin — this is the

@@ -65,6 +65,13 @@ export type RadiusOriginState = 'unset' | 'geo' | 'manual' | 'denied';
  * it in a draft until "Show N" is tapped (like every other sheet field) —
  * see `listings-filters.component.ts`'s M-021 doc comment for why that
  * component is careful about which fields it owns and how it commits them.
+ *
+ * Clear path (Trello #80): a "Remove" action next to "Change" on the `geo`/
+ * `manual` cards dispatches `ListingsActions.clearOrigin()` then emits
+ * `originCleared` — the parent reacts by nulling `radiusKm` in the URL
+ * (again with its own commit timing). The dispatch-before-emit order lets
+ * the auto-default effect below observe `hasOrigin === false` and reset
+ * `defaultRequested`, so picking a point again re-selects the 1 km default.
  */
 @Component({
   selector: 'app-radius-origin-filter',
@@ -87,6 +94,11 @@ export class RadiusOriginFilterComponent {
    *  boundary via `metersToKm`/`kmToMeters`. */
   readonly radiusMeters = input<number | null>(null);
   readonly radiusMetersChange = output<number>();
+
+  /** Emitted AFTER `clearOrigin()` dispatches `ListingsActions.clearOrigin()`
+   *  — tells the parent to also null `radiusKm` in its own owned URL/draft
+   *  state (Trello #80). The widget itself never touches the radius value. */
+  readonly originCleared = output<void>();
 
   protected readonly originCoords = this.store.selectSignal(selectListingsOriginCoords);
   protected readonly originSource = this.store.selectSignal(selectListingsOriginSource);
@@ -235,6 +247,14 @@ export class RadiusOriginFilterComponent {
     this.store.dispatch(
       ListingsActions.setOriginCoords({ coords: center, source: 'manual' }),
     );
+  }
+
+  /** "Remove" button on the `geo`/`manual` cards — dispatches first so the
+   *  auto-default effect's `hasOrigin` read sees the cleared state before
+   *  the parent's own `originCleared` handler runs (see class doc comment). */
+  protected clearOrigin(): void {
+    this.store.dispatch(ListingsActions.clearOrigin());
+    this.originCleared.emit();
   }
 
 }

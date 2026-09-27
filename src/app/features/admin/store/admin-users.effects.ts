@@ -144,6 +144,28 @@ export class AdminUsersEffects {
     ),
   );
 
+  // ── Single-user lookup (Messages screen profile dialog) — switchMap: only one lookup dialog
+  // can be open at a time, so a click on a different avatar should cancel the prior in-flight
+  // request rather than risk it resolving after and clobbering the newer one. ──
+  readonly loadUserLookup$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminUsersActions.loadAdminUserLookup),
+      switchMap(({ userId }) =>
+        this.usersApi.getUserById(userId).pipe(
+          map((user) => AdminUsersActions.loadAdminUserLookupSuccess({ userId, user })),
+          catchError((error: unknown) =>
+            of(
+              AdminUsersActions.loadAdminUserLookupFailure({
+                userId,
+                error: toErrorMessage(error),
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
   // ── Toasts ──
   readonly verifySuccessToast$ = createEffect(
     () =>

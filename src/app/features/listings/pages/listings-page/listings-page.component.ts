@@ -476,8 +476,35 @@ export class ListingsPageComponent {
     this.store.dispatch(ListingsActions.loadListings());
   }
 
+  /**
+   * Also clears the session-only origin point (Trello #80 — previously
+   * nothing ever unset it, so the radius widget kept looking "active" after
+   * every other filter was gone). Navigates WITHOUT `queryParamsHandling:
+   * 'merge'` on purpose — "Clear all" must drop every filter param this page
+   * doesn't explicitly keep, unlike the merge-navigate pattern the rest of
+   * this component uses for single-field edits — but still preserves `view`
+   * so "Clear all" in map view doesn't silently bounce back to list view. A
+   * `null` `view` (not in the URL) is simply dropped, same as any other
+   * explicit-null param.
+   */
   protected clearFilters(): void {
-    void this.router.navigate([], { relativeTo: this.route, queryParams: {} });
+    this.store.dispatch(ListingsActions.clearOrigin());
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { view: this.route.snapshot.queryParamMap.get('view') },
+    });
+  }
+
+  /** `RadiusOriginFilterComponent`'s `(originCleared)` — the widget already
+   *  dispatched `ListingsActions.clearOrigin()` itself; this only owns the
+   *  radius half of the filter (merge-navigate, same commit pattern as
+   *  `onRadiusMetersChange`). */
+  protected onOriginCleared(): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { radiusKm: null },
+      queryParamsHandling: 'merge',
+    });
   }
 
   protected onNotifyMe(): void {
@@ -585,6 +612,12 @@ export class ListingsPageComponent {
         queryParamsHandling: 'merge',
       });
       return;
+    }
+
+    // The chip reads "1 km · from you" — its × removes the whole location
+    // filter, not just the radius number (Trello #80).
+    if (chip.key === 'radiusKm') {
+      this.store.dispatch(ListingsActions.clearOrigin());
     }
 
     const paramKey =

@@ -1,5 +1,6 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 
@@ -10,6 +11,35 @@ interface RequestedAgoI18n {
   readonly key: string;
   readonly params: Record<string, number>;
 }
+
+interface DecidedStatusMeta {
+  readonly labelKey: string;
+  readonly icon: string;
+  readonly tone: 'approved' | 'active' | 'completed';
+}
+
+// Post-approval status pill per decision — Approved/Active/Completed each get their own
+// wording so an owner can tell "awaiting handover" apart from "already picked up" at a
+// glance (previously they all collapsed into one generic "Accepted" pill).
+const DECIDED_STATUS_META: Readonly<
+  Record<'approved' | 'active' | 'completed', DecidedStatusMeta>
+> = {
+  approved: {
+    labelKey: 'myListings.ownerView.requests.awaitingHandover',
+    icon: 'pi-clock',
+    tone: 'approved',
+  },
+  active: {
+    labelKey: 'myListings.ownerView.requests.pickedUp',
+    icon: 'pi-box',
+    tone: 'active',
+  },
+  completed: {
+    labelKey: 'myListings.ownerView.requests.returned',
+    icon: 'pi-check-circle',
+    tone: 'completed',
+  },
+};
 
 /**
  * Incoming booking-request card for the owner view: renter identity + social
@@ -25,12 +55,22 @@ interface RequestedAgoI18n {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OwnerRequestCardComponent {
+  private readonly router = inject(Router);
+
   readonly request = input.required<OwnerBookingRequest>();
   readonly actionLoading = input<boolean>(false);
 
   readonly accepted = output<string>();
   readonly declined = output<string>();
   readonly messaged = output<OwnerBookingRequest>();
+
+  /** Status pill content for the three post-approval states; null for pending/declined. */
+  protected readonly decidedStatus = computed((): DecidedStatusMeta | null => {
+    const decision = this.request().decision;
+    return decision === 'approved' || decision === 'active' || decision === 'completed'
+      ? DECIDED_STATUS_META[decision]
+      : null;
+  });
 
   protected readonly renterName = computed(() => {
     const r = this.request().renter;
@@ -52,7 +92,10 @@ export class OwnerRequestCardComponent {
     if (diffH < 24) {
       return { key: 'myListings.ownerView.requests.hoursAgo', params: { count: diffH } };
     }
-    return { key: 'myListings.ownerView.requests.daysAgo', params: { count: Math.floor(diffH / 24) } };
+    return {
+      key: 'myListings.ownerView.requests.daysAgo',
+      params: { count: Math.floor(diffH / 24) },
+    };
   });
 
   protected accept(): void {
@@ -65,5 +108,9 @@ export class OwnerRequestCardComponent {
 
   protected message(): void {
     this.messaged.emit(this.request());
+  }
+
+  protected viewBooking(): void {
+    void this.router.navigate(['/bookings', this.request().id]);
   }
 }

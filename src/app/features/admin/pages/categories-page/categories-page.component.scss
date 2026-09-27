@@ -186,11 +186,12 @@
   cursor: pointer;
   padding: 0;
   color: var(--ui-color-text-secondary);
-  transform: rotate(180deg);
 }
 
+// Both buttons render the same `chevronD` glyph (which points down), so the
+// move-up button is the one that gets flipped.
 .categories-page__reorder-btn--up {
-  transform: none;
+  transform: rotate(180deg);
 }
 
 .categories-page__reorder-btn:disabled {

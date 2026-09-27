@@ -101,7 +101,10 @@ function rollbackMutation(state: AdminUsersState, userId: string, error: string)
 
 /** Shared shape for verify/suspend/reactivate success — applies the server's authoritative
  *  row (fresh `flagCount`/`status`/etc.) rather than trusting the optimistic guess, same
- *  idiom as `AdminModerationActions.updateListingCategorySuccess`. */
+ *  idiom as `AdminModerationActions.updateListingCategorySuccess`. Also refreshes the
+ *  single-user lookup slice when it's showing this same user (the Messages screen's profile
+ *  dialog dispatches these same mutations but has no row in `items` to patch) so that dialog
+ *  reflects the new status instead of going stale. */
 function settleMutationSuccess(
   state: AdminUsersState,
   userId: string,
@@ -114,11 +117,13 @@ function settleMutationSuccess(
       : matchesStatusFilter(user, state.statusFilter)
         ? state.items.map((item, i) => (i === index ? user : item))
         : removeAt(state.items, index);
+  const lookup = state.lookup.userId === userId ? { ...state.lookup, user } : state.lookup;
   return {
     ...state,
     items,
     actionIds: removeActionId(state.actionIds, userId),
     rollbacks: withoutRollback(state.rollbacks, userId),
+    lookup,
   };
 }
 
@@ -210,5 +215,35 @@ export const adminUsersReducer = createReducer(
   on(
     AdminUsersActions.reactivateUserFailure,
     (state, { userId, error }): AdminUsersState => rollbackMutation(state, userId, error),
+  ),
+
+  // ── Single-user lookup (Messages screen profile dialog) ──
+  on(
+    AdminUsersActions.loadAdminUserLookup,
+    (state, { userId }): AdminUsersState => ({
+      ...state,
+      lookup: { userId, user: null, loading: true, error: null },
+    }),
+  ),
+  on(
+    AdminUsersActions.loadAdminUserLookupSuccess,
+    (state, { userId, user }): AdminUsersState =>
+      state.lookup.userId === userId
+        ? { ...state, lookup: { userId, user, loading: false, error: null } }
+        : state,
+  ),
+  on(
+    AdminUsersActions.loadAdminUserLookupFailure,
+    (state, { userId, error }): AdminUsersState =>
+      state.lookup.userId === userId
+        ? { ...state, lookup: { userId, user: null, loading: false, error } }
+        : state,
+  ),
+  on(
+    AdminUsersActions.clearAdminUserLookup,
+    (state): AdminUsersState => ({
+      ...state,
+      lookup: { userId: null, user: null, loading: false, error: null },
+    }),
   ),
 );

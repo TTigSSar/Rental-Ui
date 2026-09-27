@@ -8,7 +8,7 @@ import type {
   AdminUserStatusFilter,
 } from '../models/admin-user.model';
 import { adminUsersFeatureKey } from './admin-users.reducer';
-import type { AdminUsersState } from './admin-users.state';
+import type { AdminUserLookupState, AdminUsersState } from './admin-users.state';
 
 export const selectAdminUsersState = createFeatureSelector<AdminUsersState>(adminUsersFeatureKey);
 
@@ -88,4 +88,30 @@ export const selectUserRequestParams = createSelector(
     page,
     pageSize,
   }),
+);
+
+// ── Single-user lookup (Messages screen profile dialog) ──
+export const selectUserLookup = createSelector(
+  selectAdminUsersState,
+  (state: AdminUsersState): AdminUserLookupState => state.lookup,
+);
+
+export const selectUserLookupUserId = createSelector(
+  selectUserLookup,
+  (lookup: AdminUserLookupState): string | null => lookup.userId,
+);
+
+export const selectUserLookupUser = createSelector(
+  selectUserLookup,
+  (lookup: AdminUserLookupState): AdminUser | null => lookup.user,
+);
+
+export const selectUserLookupLoading = createSelector(
+  selectUserLookup,
+  (lookup: AdminUserLookupState): boolean => lookup.loading,
+);
+
+export const selectUserLookupError = createSelector(
+  selectUserLookup,
+  (lookup: AdminUserLookupState): string | null => lookup.error,
 );

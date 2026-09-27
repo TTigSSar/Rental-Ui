@@ -62,6 +62,18 @@ export const setOriginCoords = createAction(
  */
 export const setOriginDenied = createAction('[Listings] Set Origin Denied');
 
+/**
+ * Unsets the renter's reference point entirely (Trello #80 — the radius
+ * filter had no way to be fully cleared: `radiusKm` lives in the URL, but
+ * the point lived only in this session-only slice with no reset path).
+ * Dispatched by `RadiusOriginFilterComponent.clearOrigin()` BEFORE it emits
+ * `originCleared`, so the parent's radius-nulling navigation and this
+ * dispatch race harmlessly — either order leaves `originCoords: null`. Does
+ * NOT touch `filters.radiusKm`; the parent (desktop sidebar / mobile sheet)
+ * owns that commit.
+ */
+export const clearOrigin = createAction('[Listings] Clear Origin');
+
 export const loadListingDetails = createAction(
   '[Listings] Load Listing Details',
   props<{ id: string }>(),

@@ -309,4 +309,9 @@ export class UsersPageComponent implements OnInit {
   protected viewReports(userId: string): void {
     void this.router.navigate(['/admin/reports'], { queryParams: { userId } });
   }
+
+  // ── Messages deep link (`admin-desktop.jsx:762`'s row-menu "Message" item) ──
+  protected messageUser(userId: string): void {
+    void this.router.navigate(['/admin/messages'], { queryParams: { userId } });
+  }
 }

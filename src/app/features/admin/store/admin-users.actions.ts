@@ -75,3 +75,22 @@ export const reactivateUserFailure = createAction(
   '[Admin Users] Reactivate User Failure',
   props<{ userId: string; error: string; errorCode: string | null }>(),
 );
+
+// ── Single-user lookup (Messages screen's avatar → profile dialog — see
+// `AdminUserLookupState`'s doc comment on why this exists separately from the queue) ──
+export const loadAdminUserLookup = createAction(
+  '[Admin Users] Load User Lookup',
+  props<{ userId: string }>(),
+);
+
+export const loadAdminUserLookupSuccess = createAction(
+  '[Admin Users] Load User Lookup Success',
+  props<{ userId: string; user: AdminUser }>(),
+);
+
+export const loadAdminUserLookupFailure = createAction(
+  '[Admin Users] Load User Lookup Failure',
+  props<{ userId: string; error: string }>(),
+);
+
+export const clearAdminUserLookup = createAction('[Admin Users] Clear User Lookup');

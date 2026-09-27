@@ -42,6 +42,8 @@ export type AdminUserSystemRole = 'User' | 'Admin';
 export interface AdminUser {
   id: string;
   email: string;
+  /** Admin-only: surfaced so moderators can call the user directly. Never shown to renters. */
+  phoneNumber: string | null;
   firstName: string;
   lastName: string;
   avatarUrl: string | null;

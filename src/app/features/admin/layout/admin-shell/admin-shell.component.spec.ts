@@ -1,9 +1,15 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { provideMockStore } from '@ngrx/store/testing';
+import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule } from '@ngx-translate/core';
 
-import { makeAdminOverview } from '../../../../../testing/fixtures';
+import * as AuthActions from '../../../auth/store/auth.actions';
+import { makeAdminMessageThread, makeAdminOverview } from '../../../../../testing/fixtures';
+import { adminMessagesFeatureKey } from '../../store/admin-messages.reducer';
+import {
+  initialAdminMessagesState,
+  type AdminMessagesState,
+} from '../../store/admin-messages.state';
 import { adminModerationFeatureKey } from '../../store/admin-moderation.reducer';
 import { initialAdminModerationState } from '../../store/admin-moderation.state';
 import { adminOverviewFeatureKey } from '../../store/admin-overview.reducer';
@@ -29,6 +35,7 @@ function mockMatchMedia(matchesDesktop: boolean): void {
 function createFixture(
   adminModerationOverrides: Partial<typeof initialAdminModerationState> = {},
   adminOverviewOverrides: Partial<AdminOverviewState> = {},
+  adminMessagesOverrides: Partial<AdminMessagesState> = {},
 ): ComponentFixture<AdminShellComponent> {
   TestBed.configureTestingModule({
     imports: [AdminShellComponent, TranslateModule.forRoot()],
@@ -43,6 +50,10 @@ function createFixture(
           [adminOverviewFeatureKey]: {
             ...initialAdminOverviewState,
             ...adminOverviewOverrides,
+          },
+          [adminMessagesFeatureKey]: {
+            ...initialAdminMessagesState,
+            ...adminMessagesOverrides,
           },
         },
       }),
@@ -90,27 +101,97 @@ describe('AdminShellComponent — responsive branch selection', () => {
     expect(fixture.nativeElement.querySelector('.admin-mobile-header')).not.toBeNull();
   });
 
-  it('renders all five nav destinations on desktop', () => {
+  it('renders all six nav destinations on desktop', () => {
     mockMatchMedia(true);
     const fixture = createFixture();
     fixture.detectChanges();
 
     const links = fixture.nativeElement.querySelectorAll('.admin-rail__link');
-    expect(links.length).toBe(5);
+    expect(links.length).toBe(6);
   });
 
-  it('renders a loading-skeleton (not a hardcoded number) for nav counts and queue health while both queue and overview are loading', () => {
-    mockMatchMedia(true);
-    const fixture = createFixture({ isLoading: true });
+  it('renders all six nav destinations on mobile, one per bottom-nav column (no wrap)', () => {
+    mockMatchMedia(false);
+    const fixture = createFixture();
     fixture.detectChanges();
 
     const host: HTMLElement = fixture.nativeElement;
-    // Only Review/Categories/Reports show a meta value at all (Overview and
-    // Users have none, matching the design) — Review is mid-load (adminModeration
-    // slice) and Categories/Reports depend on the still-unloaded adminOverview
-    // slice (default state: overview === null).
-    expect(host.querySelectorAll('.admin-rail__meta-skeleton').length).toBe(3);
+    const nav = host.querySelector<HTMLElement>('.admin-mobile-nav');
+    const items = host.querySelectorAll('.admin-mobile-nav__item');
+    expect(items.length).toBe(6);
+    // The grid's column count is driven by `--admin-mobile-nav-count`, set from
+    // `navItems.length` — not a hardcoded `repeat(N, 1fr)` — so it tracks the real
+    // number of destinations and can't silently drift out of sync again (see the
+    // six-tab wrap regression this test guards against).
+    expect(nav?.style.getPropertyValue('--admin-mobile-nav-count').trim()).toBe(
+      String(fixture.componentInstance['navItems'].length),
+    );
+  });
+
+  it('renders a loading-skeleton (not a hardcoded number) for nav counts and queue health while queue/overview/messages are all loading', () => {
+    mockMatchMedia(true);
+    const fixture = createFixture({ isLoading: true }, {}, { isLoading: true });
+    fixture.detectChanges();
+
+    const host: HTMLElement = fixture.nativeElement;
+    // Only Review/Categories/Messages/Reports show a meta value at all (Overview and
+    // Users have none, matching the design) — Review/Messages are mid-load (their own
+    // slices) and Categories/Reports depend on the still-unloaded adminOverview slice
+    // (default state: overview === null).
+    expect(host.querySelectorAll('.admin-rail__meta-skeleton').length).toBe(4);
     expect(host.querySelectorAll('.admin-rail__queue-health-skeleton').length).toBe(3);
+  });
+
+  it('shows the true unread total (counts.unread, not a sum over the loaded page) once the Messages queue has finished loading', () => {
+    mockMatchMedia(true);
+    const fixture = createFixture(
+      {},
+      {},
+      {
+        isLoading: false,
+        // Only 2 rows loaded, but `counts.unread` is the server's true total across every
+        // thread the admin has — the badge must read that, not sum `items`.
+        items: [
+          makeAdminMessageThread({ conversationId: 'c1', unreadCount: 2 }),
+          makeAdminMessageThread({ conversationId: 'c2', unreadCount: 1 }),
+        ],
+        counts: { all: 40, unread: 17, needsReply: 5 },
+      },
+    );
+    fixture.detectChanges();
+
+    const host: HTMLElement = fixture.nativeElement;
+    const messagesLink = Array.from(
+      host.querySelectorAll<HTMLAnchorElement>('.admin-rail__link'),
+    ).find((link) => link.getAttribute('href') === '/admin/messages');
+    expect(messagesLink?.querySelector('.admin-rail__meta--badge')?.textContent?.trim()).toBe(
+      '17',
+    );
+  });
+
+  it('dispatches loadMessageThreads() once per shell mount', () => {
+    mockMatchMedia(true);
+    TestBed.configureTestingModule({
+      imports: [AdminShellComponent, TranslateModule.forRoot()],
+      providers: [
+        provideRouter([]),
+        provideMockStore({
+          initialState: {
+            [adminModerationFeatureKey]: initialAdminModerationState,
+            [adminOverviewFeatureKey]: initialAdminOverviewState,
+            [adminMessagesFeatureKey]: initialAdminMessagesState,
+          },
+        }),
+      ],
+    });
+    const store = TestBed.inject(MockStore);
+    const dispatchSpy = vi.spyOn(store, 'dispatch');
+    const fixture = TestBed.createComponent(AdminShellComponent);
+    fixture.detectChanges();
+
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ type: '[Admin Messages] Load Message Threads' }),
+    );
   });
 
   it('shows the live review count once the queue has finished loading', () => {
@@ -187,5 +268,100 @@ describe('AdminShellComponent — responsive branch selection', () => {
     const queueHealth = fixture.componentInstance['queueHealth']();
     expect(queueHealth.avgReviewHours).toBe(0);
     expect(queueHealth.hasAvgReviewData).toBe(true);
+  });
+});
+
+describe('AdminShellComponent — account menu (ADR-016 §1 follow-up)', () => {
+  // The topbar/mobile-header user chip is the only way a moderator can reach
+  // Profile, get back to the member-facing site, or log out while under
+  // `/admin/**` — the global header/footer that carry those everywhere else
+  // are suppressed there (see `isAdminConsolePage()` in `app.ts`).
+
+  it('turns the desktop chip into a real, labelled popup-menu trigger', () => {
+    mockMatchMedia(true);
+    const fixture = createFixture();
+    fixture.detectChanges();
+
+    const host: HTMLElement = fixture.nativeElement;
+    const trigger = host.querySelector<HTMLButtonElement>('.admin-topbar__user');
+    expect(trigger?.tagName).toBe('BUTTON');
+    expect(trigger?.getAttribute('aria-haspopup')).toBe('true');
+    expect(trigger?.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('adds an avatar trigger to the mobile header action slot, alongside where a projected action would sit', () => {
+    mockMatchMedia(false);
+    const fixture = createFixture();
+    fixture.detectChanges();
+
+    const host: HTMLElement = fixture.nativeElement;
+    const action = host.querySelector('.admin-mobile-header__action');
+    const trigger = action?.querySelector<HTMLButtonElement>('.admin-mobile-header__account');
+    expect(trigger?.tagName).toBe('BUTTON');
+    expect(trigger?.getAttribute('aria-haspopup')).toBe('true');
+  });
+
+  it('opens the popup menu with Profile / Back to site / Log out when the desktop trigger is clicked', () => {
+    mockMatchMedia(true);
+    const fixture = createFixture();
+    fixture.detectChanges();
+
+    const host: HTMLElement = fixture.nativeElement;
+    const trigger = host.querySelector<HTMLButtonElement>('.admin-topbar__user');
+    trigger?.click();
+    fixture.detectChanges();
+
+    // `p-menu`'s popup portals to `document.body` via `appendTo="body"` — not
+    // `fixture.nativeElement` — same reasoning as `location-picker`'s
+    // `p-dialog` usage (see that spec's identical comment).
+    const items = document.body.querySelectorAll('.p-menu-item-content');
+    expect(items.length).toBe(3);
+    expect(trigger?.getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('opens the same popup menu from the mobile trigger', () => {
+    mockMatchMedia(false);
+    const fixture = createFixture();
+    fixture.detectChanges();
+
+    const host: HTMLElement = fixture.nativeElement;
+    const trigger = host.querySelector<HTMLButtonElement>('.admin-mobile-header__account');
+    trigger?.click();
+    fixture.detectChanges();
+
+    expect(document.body.querySelectorAll('.p-menu-item-content').length).toBe(3);
+  });
+
+  it('dispatches AuthActions.logout() — the same action the profile page dispatches — when Log out is activated', () => {
+    mockMatchMedia(true);
+    const fixture = createFixture();
+    fixture.detectChanges();
+
+    const store = TestBed.inject(MockStore);
+    const dispatchSpy = vi.spyOn(store, 'dispatch');
+
+    const host: HTMLElement = fixture.nativeElement;
+    const trigger = host.querySelector<HTMLButtonElement>('.admin-topbar__user');
+    trigger?.click();
+    fixture.detectChanges();
+
+    const items = document.body.querySelectorAll<HTMLElement>('.p-menu-item-content');
+    // Model order is [Profile, Back to site, Log out] — the separator between
+    // "Back to site" and "Log out" doesn't render its own itemContent.
+    items[items.length - 1].click();
+
+    expect(dispatchSpy).toHaveBeenCalledWith(AuthActions.logout());
+  });
+
+  it('builds Profile and Back-to-site as routerLink items (not commands) to /profile and /', () => {
+    mockMatchMedia(true);
+    const fixture = createFixture();
+    fixture.detectChanges();
+
+    const items = fixture.componentInstance['accountMenuItems']();
+    expect(items[0].routerLink).toBe('/profile');
+    expect(items[1].routerLink).toBe('/');
+    expect(items[2].separator).toBe(true);
+    expect(typeof items[3].command).toBe('function');
   });
 });

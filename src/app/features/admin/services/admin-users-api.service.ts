@@ -76,6 +76,7 @@ function normalizeAdminUser(raw: Record<string, unknown> & { id: string }): Admi
   return {
     id: raw['id'],
     email: typeof raw['email'] === 'string' ? raw['email'] : '',
+    phoneNumber: toNullableString(raw['phoneNumber']),
     firstName: typeof raw['firstName'] === 'string' ? raw['firstName'] : '',
     lastName: typeof raw['lastName'] === 'string' ? raw['lastName'] : '',
     avatarUrl: toNullableString(raw['avatarUrl']),
@@ -165,9 +166,11 @@ export class AdminUsersApiService {
       .pipe(map((raw) => normalizeAdminUser(toAdminUserRecord(raw, userId))));
   }
 
-  suspendUser(userId: string): Observable<AdminUser> {
+  // `reason` is optional (server: SuspendUserRequest.Reason, <=200 chars) — an omitted/undefined
+  // reason posts `{}`, same bodyless-suspend behaviour existing callers already rely on.
+  suspendUser(userId: string, reason?: string): Observable<AdminUser> {
     return this.http
-      .post<unknown>(toApiUrl(ApiContract.adminUsers.suspend(userId)), {})
+      .post<unknown>(toApiUrl(ApiContract.adminUsers.suspend(userId)), reason ? { reason } : {})
       .pipe(map((raw) => normalizeAdminUser(toAdminUserRecord(raw, userId))));
   }
 

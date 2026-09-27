@@ -66,14 +66,19 @@ export function e2eDistrict(overrides: Record<string, unknown> = {}) {
  * assert on; pass `{ latitude: null, longitude: null }` for the no-pin state.
  */
 export function e2eListingDetails(overrides: Record<string, unknown> = {}) {
-  return {
+  const merged = {
     id: 'listing-e2e-1',
     title: 'E2E Wooden Train Set',
     description: 'A sturdy wooden train set, gently used and freshly cleaned.',
     city: 'Yerevan',
     pricePerDay: 5,
     images: [],
-    owner: { id: 'owner-e2e-1', firstName: 'Olive', lastName: 'Owner', phoneNumber: null },
+    // `phoneNumber` is deliberately absent: `ListingOwnerResponse.PhoneNumber`
+    // was removed from the API entirely (chat replaced the contact-reveal
+    // gate — see `listing-contact-privacy.spec.ts`). A mock that still
+    // carried this field would hide a regression if the UI ever re-bound to
+    // it, since a real API response would never send it.
+    owner: { id: 'owner-e2e-1', firstName: 'Olive', lastName: 'Owner' },
     bookedDates: [],
     isFavorite: false,
     ageFromMonths: 24,
@@ -81,14 +86,23 @@ export function e2eListingDetails(overrides: Record<string, unknown> = {}) {
     condition: 'Good',
     hygieneNotes: null,
     safetyNotes: null,
-    depositAmount: null,
+    compensationAmount: null,
     minRentalDays: 1,
     deliveryType: 'Pickup',
     district: e2eDistrict(),
     latitude: 40.1872,
     longitude: 44.5152,
     ...overrides,
-  };
+  } as Record<string, unknown>;
+  // `deliveryTypes` mirrors the (possibly overridden) legacy `deliveryType`
+  // unless a caller passes `deliveryTypes` explicitly (e.g. to test both
+  // handover methods offered together) — keeps every existing call site that
+  // only overrides `deliveryType` (including `deliveryType: null`) behaving
+  // exactly as before.
+  if (!('deliveryTypes' in overrides)) {
+    merged['deliveryTypes'] = merged['deliveryType'] ? [merged['deliveryType']] : null;
+  }
+  return merged;
 }
 
 /**
@@ -164,10 +178,57 @@ export function e2eMyBooking(overrides: Record<string, unknown> = {}) {
   };
 }
 
-/** POST /api/chat/conversations/from-booking/:id response (`ChatConversationDetails`). */
+/**
+ * `GET /api/bookings/:id` (`BookingDetail` wire shape, see
+ * `normalizeBookingDetail` in `bookings-api.service.ts`). Defaults to a Pending
+ * booking viewed by the owner — the shape the booking-details page's
+ * Approve/Decline footer (Defect A) needs — override `role`/`status` for the
+ * renter-cancel / markActive / complete / review views of the same page.
+ */
+export function e2eBookingDetail(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'booking-e2e-1',
+    status: 'Pending',
+    role: 'owner',
+    listingId: 'listing-e2e-1',
+    listingTitle: 'E2E Wooden Train Set',
+    listingPrimaryImageUrl: null,
+    categoryName: 'Toys',
+    condition: 'Good',
+    city: 'Yerevan',
+    country: 'Armenia',
+    addressLine: null,
+    currency: 'AMD',
+    pricePerDay: 5,
+    compensationAmount: null,
+    totalPrice: 15,
+    startDate: '2026-09-10',
+    endDate: '2026-09-12',
+    createdAt: '2026-08-01T10:00:00.000Z',
+    approvedAt: null,
+    activeAt: null,
+    completedAt: null,
+    expiresAt: null,
+    rejectionReason: null,
+    note: null,
+    counterpartyId: 'renter-e2e-1',
+    counterpartyFirstName: 'Renata',
+    counterpartyLastName: 'Renter',
+    counterpartyAvatarUrl: null,
+    ...overrides,
+  };
+}
+
+/**
+ * POST /api/chat/conversations/from-booking/:id response, also the general
+ * `ChatConversationDetails` wire shape for a BOOKING-kind conversation (`kind: 'booking'`) — see
+ * `e2eModerationConversationDetails` below for the Moderation-kind counterpart, which nulls out
+ * every booking-only field instead of defaulting them.
+ */
 export function e2eChatConversation(overrides: Record<string, unknown> = {}) {
   return {
     id: 'chat-e2e-1',
+    kind: 'booking',
     bookingId: 'booking-e2e-1',
     counterpartId: 'owner-e2e-1',
     counterpartName: 'Olive Owner',
@@ -180,6 +241,126 @@ export function e2eChatConversation(overrides: Record<string, unknown> = {}) {
     bookingPrice: 15,
     isClosed: false,
     messages: [],
+    ...overrides,
+  };
+}
+
+/**
+ * One `GET /api/chat/conversations` item (`ChatConversationPreview` wire shape) — the inbox
+ * row list. Defaults to a booking-kind row; pass `kind: 'moderation'` + the booking-only fields
+ * nulled out for a Moderation row (see `e2eModerationConversationDetails`'s doc comment for why
+ * those are null rather than defaulted for that kind).
+ */
+export function e2eChatConversationPreview(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'chat-e2e-1',
+    kind: 'booking',
+    bookingId: 'booking-e2e-1',
+    counterpartName: 'Olive Owner',
+    counterpartAvatarUrl: null,
+    toyTitle: 'E2E Wooden Train Set',
+    toyImageUrl: null,
+    status: 'requested',
+    lastMessageSnippet: null,
+    lastMessageAt: null,
+    lastMessageType: null,
+    lastMessageIsMine: false,
+    unreadCount: 0,
+    ...overrides,
+  };
+}
+
+/**
+ * A Moderation-kind `ChatConversationDetails` — a moderator's direct thread with a member, no
+ * linked booking. Every booking-only field is explicitly `null` (not defaulted) per the model's
+ * contract (`bookingId`/`toyTitle`/`toyImageUrl`/`bookingDates`/`bookingPrice` are all `| null`
+ * for `kind === 'moderation'` — see `chat.model.ts`).
+ */
+export function e2eModerationConversationDetails(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'admin-thread-e2e-1',
+    kind: 'moderation',
+    bookingId: null,
+    counterpartId: 'member-e2e-1',
+    counterpartName: 'Renata Renter',
+    counterpartAvatarUrl: null,
+    counterpartVerified: false,
+    toyTitle: null,
+    toyImageUrl: null,
+    status: 'moderation',
+    bookingDates: null,
+    bookingPrice: null,
+    isClosed: false,
+    messages: [],
+    ...overrides,
+  };
+}
+
+/** One `ChatMessage` — also the response shape of `POST /api/chat/messages` and every item of
+ *  `ChatConversationDetails.messages`. */
+export function e2eChatMessage(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'chat-message-e2e-1',
+    conversationId: 'chat-e2e-1',
+    senderId: 'owner-e2e-1',
+    senderName: 'Olive Owner',
+    type: 'text',
+    systemKind: null,
+    noteKind: null,
+    noteSubject: null,
+    noteReason: null,
+    body: 'Hello!',
+    attachmentUrl: null,
+    sentAt: '2026-08-01T10:00:00.000Z',
+    isMine: false,
+    seen: false,
+    ...overrides,
+  };
+}
+
+/**
+ * A `type: 'moderationNote'` `ChatMessage` — renders as the distinct `app-moderation-note-card`
+ * (never a chat bubble). Defaults to a "warn" note sent by the moderator (`isMine: true` from
+ * the admin Messages screen's point of view).
+ */
+export function e2eModerationNoteMessage(overrides: Record<string, unknown> = {}) {
+  return e2eChatMessage({
+    id: 'chat-note-e2e-1',
+    senderId: 'admin-e2e-1',
+    senderName: 'Ann Admin',
+    type: 'moderationNote',
+    noteKind: 'warn',
+    noteSubject: 'Listing photos flagged',
+    noteReason: 'Photos did not match the listing description.',
+    body: null,
+    isMine: true,
+    ...overrides,
+  });
+}
+
+/**
+ * One row of the admin console Messages screen's thread queue — `GET
+ * /api/admin/messages/threads` item (`AdminMessageThread` wire shape, mirrored by the model of
+ * the same name in `features/admin/models/admin-message-thread.model.ts`).
+ */
+export function e2eAdminMessageThread(overrides: Record<string, unknown> = {}) {
+  return {
+    conversationId: 'admin-thread-e2e-1',
+    memberId: 'member-e2e-1',
+    memberFirstName: 'Renata',
+    memberLastName: 'Renter',
+    memberAvatarUrl: null,
+    memberStatus: 'Active',
+    memberIsIdConfirmed: true,
+    memberMarketplaceRole: 'Renter',
+    memberOpenFlagCount: 0,
+    unreadCount: 0,
+    lastMessageSnippet: 'Thanks, that clears it up!',
+    lastMessageAt: '2026-08-01T10:00:00.000Z',
+    lastMessageType: 'text',
+    lastMessageNoteSubject: null,
+    needsReply: false,
+    createdAt: '2026-07-15T10:00:00.000Z',
     ...overrides,
   };
 }
@@ -227,7 +408,7 @@ export function e2ePendingListing(overrides: Record<string, unknown> = {}) {
     country: 'Armenia',
     categoryName: 'Toys',
     pricePerDay: 4,
-    depositAmount: null,
+    compensationAmount: null,
     imageUrl: null,
     createdAt: '2026-06-20T10:00:00.000Z',
     owner: null,
@@ -274,7 +455,7 @@ export function e2eAdminListing(overrides: Record<string, unknown> = {}) {
     condition: 'Good',
     hygieneNotes: 'Washed with baby-safe detergent before every rental.',
     safetyNotes: 'No small detachable parts.',
-    depositAmount: null,
+    compensationAmount: null,
     createdAt: '2026-06-20T10:00:00.000Z',
     rejectionReasonCode: null,
     rejectionNote: null,
@@ -319,7 +500,9 @@ export function e2eAdminCategory(overrides: Record<string, unknown> = {}) {
  * One row of the admin console Users screen (Phase 3) — `GET /api/admin/users`
  * (`AdminUserSummaryResponse` wire shape, mirrored by `AdminUser` in
  * `features/admin/models/admin-user.model.ts`). All enums are PascalCase strings on the wire
- * (`role`/`status`/`marketplaceRole`).
+ * (`role`/`status`/`marketplaceRole`). `phoneNumber` is the one place this field is still on the
+ * wire at all — admin-only, added alongside the renter/owner-facing phone-reveal removal (see
+ * `listing-contact-privacy.spec.ts` and `admin-users.spec.ts`'s admin-visibility pin).
  */
 export function e2eAdminUser(overrides: Record<string, unknown> = {}) {
   return {
@@ -335,6 +518,7 @@ export function e2eAdminUser(overrides: Record<string, unknown> = {}) {
     listingCount: 0,
     rentalCount: 2,
     flagCount: 0,
+    phoneNumber: null,
     createdAt: '2026-01-15T10:00:00.000Z',
     ...overrides,
   };

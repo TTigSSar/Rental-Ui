@@ -14,6 +14,7 @@ import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
+import { maxByteLengthValidator, MAX_PASSWORD_BYTES } from '../../../../shared/validators/max-byte-length.validator';
 import * as AuthActions from '../../store/auth.actions';
 import { selectAuthError, selectAuthLoading } from '../../store/auth.selectors';
 
@@ -49,7 +50,10 @@ export class RegisterFormComponent {
     firstName: ['', [Validators.required]],
     lastName: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(8)]],
+    password: [
+      '',
+      [Validators.required, Validators.minLength(8), maxByteLengthValidator(MAX_PASSWORD_BYTES)],
+    ],
     phoneNumber: ['', [Validators.required, Validators.pattern(RegisterFormComponent.PHONE_PATTERN)]],
   });
 
@@ -79,6 +83,13 @@ export class RegisterFormComponent {
   protected phoneErrorKey(): string {
     if (this.hasError('phoneNumber', 'required')) return 'auth.validation.phoneNumberRequired';
     if (this.hasError('phoneNumber', 'pattern')) return 'auth.validation.phoneNumberInvalid';
+    return '';
+  }
+
+  protected passwordErrorKey(): string {
+    if (this.hasError('password', 'required')) return 'auth.validation.passwordRequired';
+    if (this.hasError('password', 'minlength')) return 'auth.validation.passwordMinLength';
+    if (this.hasError('password', 'maxByteLength')) return 'auth.validation.passwordTooLong';
     return '';
   }
 }

@@ -56,7 +56,7 @@
     autocomplete="new-password"
     [disabled]="(isLoading$ | async) ?? false"
     [hint]="'auth.register.passwordHint' | translate"
-    [errorMessage]="hasError('password', 'required') ? ('auth.validation.passwordRequired' | translate) : hasError('password', 'minlength') ? ('auth.validation.passwordMinLength' | translate) : null"
+    [errorMessage]="passwordErrorKey() ? (passwordErrorKey() | translate) : null"
   />
 
   <p-button

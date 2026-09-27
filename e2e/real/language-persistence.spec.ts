@@ -55,72 +55,82 @@ test.describe('Per-user language persistence (real stack)', () => {
       await apiSetPreferredLanguage(request, ACCOUNTS.renter, 'en');
     });
 
-    await test.step('log in and open the profile Settings language menu', async () => {
-      await loginViaDialog(page, ACCOUNTS.renter);
-      await page.goto('/profile');
-      await expect(page.locator('.profile-page__desktop-only .profile-page__menu-meta')).toHaveText('English');
-    });
+    // try/finally (not a final test.step) so the account is restored to English even if
+    // an assertion throws partway through — a plain trailing "cleanup" step never runs
+    // once something above it fails, and the dev DB is persistent, so a failed run would
+    // otherwise leave renter@ on `hy` for every other real spec that assumes English
+    // locators. This is the within-run guard; `booking-lifecycle.spec.ts` additionally
+    // self-heals renter@ back to English in its own guard step (see
+    // `apiSetPreferredLanguage` in support/real-stack.ts) so it never has to trust that
+    // THIS spec's own run — possibly a prior, already-finished one — actually got here.
+    try {
+      await test.step('log in and open the profile Settings language menu', async () => {
+        await loginViaDialog(page, ACCOUNTS.renter);
+        await page.goto('/profile');
+        await expect(page.locator('.profile-page__desktop-only .profile-page__menu-meta')).toHaveText('English');
+      });
 
-    await test.step('switch to Armenian: UI translates immediately and a real PUT persists it', async () => {
-      await page.locator('.profile-page__desktop-only .profile-page__menu-row').first().click();
+      await test.step('switch to Armenian: UI translates immediately and a real PUT persists it', async () => {
+        await page.locator('.profile-page__desktop-only .profile-page__menu-row').first().click();
 
-      // The docker UI build is a same-origin bundle (environment.prod.ts apiBaseUrl: '')
-      // routed through nginx's /api/ proxy_pass (nginx.conf) — browser-originated traffic
-      // hits UI_URL (:4200), never the API container's :8080 directly. API_URL is only
-      // for Node-side APIRequestContext calls (apiLogin, apiSetPreferredLanguage) that
-      // bypass the proxy on purpose.
-      const [putResponse] = await Promise.all([
-        page.waitForResponse(
-          (res) =>
-            res.url() === `${UI_URL}${ApiContract.auth.updatePreferredLanguage}` &&
-            res.request().method() === 'PUT',
-        ),
-        page
-          .locator('.profile-page__desktop-only .profile-page__lang-option', { hasText: HY_NATIVE })
-          .click(),
-      ]);
+        // The docker UI build is a same-origin bundle (environment.prod.ts apiBaseUrl: '')
+        // routed through nginx's /api/ proxy_pass (nginx.conf) — browser-originated traffic
+        // hits UI_URL (:4200), never the API container's :8080 directly. API_URL is only
+        // for Node-side APIRequestContext calls (apiLogin, apiSetPreferredLanguage) that
+        // bypass the proxy on purpose.
+        const [putResponse] = await Promise.all([
+          page.waitForResponse(
+            (res) =>
+              res.url() === `${UI_URL}${ApiContract.auth.updatePreferredLanguage}` &&
+              res.request().method() === 'PUT',
+          ),
+          page
+            .locator('.profile-page__desktop-only .profile-page__lang-option', { hasText: HY_NATIVE })
+            .click(),
+        ]);
 
-      expect(putResponse.ok(), 'PUT /api/auth/me/preferred-language must succeed').toBe(true);
-      const putBody = (await putResponse.json()) as { preferredLanguage?: string };
-      expect(putBody.preferredLanguage).toBe('hy');
+        expect(putResponse.ok(), 'PUT /api/auth/me/preferred-language must succeed').toBe(true);
+        const putBody = (await putResponse.json()) as { preferredLanguage?: string };
+        expect(putBody.preferredLanguage).toBe('hy');
 
-      // UI/localStorage apply immediately (LanguageService.use), independent of the PUT.
-      await expect(page.locator('.profile-page__menu-row--danger')).toHaveText(HY_LOGOUT_TEXT);
-      await expect
-        .poll(() => page.evaluate((key) => localStorage.getItem(key), LANGUAGE_STORAGE_KEY))
-        .toBe('hy');
-    });
+        // UI/localStorage apply immediately (LanguageService.use), independent of the PUT.
+        await expect(page.locator('.profile-page__menu-row--danger')).toHaveText(HY_LOGOUT_TEXT);
+        await expect
+          .poll(() => page.evaluate((key) => localStorage.getItem(key), LANGUAGE_STORAGE_KEY))
+          .toBe('hy');
+      });
 
-    await test.step('reload with the local language cache wiped: the app re-derives hy from the server', async () => {
-      const tokenBefore = await page.evaluate(() => localStorage.getItem('auth_token'));
-      expect(tokenBefore, 'auth token must survive so the reload still hydrates a logged-in user').toBeTruthy();
+      await test.step('reload with the local language cache wiped: the app re-derives hy from the server', async () => {
+        const tokenBefore = await page.evaluate(() => localStorage.getItem('auth_token'));
+        expect(tokenBefore, 'auth token must survive so the reload still hydrates a logged-in user').toBeTruthy();
 
-      await page.evaluate((key) => localStorage.removeItem(key), LANGUAGE_STORAGE_KEY);
-      await expect
-        .poll(() => page.evaluate((key) => localStorage.getItem(key), LANGUAGE_STORAGE_KEY))
-        .toBeNull();
+        await page.evaluate((key) => localStorage.removeItem(key), LANGUAGE_STORAGE_KEY);
+        await expect
+          .poll(() => page.evaluate((key) => localStorage.getItem(key), LANGUAGE_STORAGE_KEY))
+          .toBeNull();
 
-      const [meResponse] = await Promise.all([
-        page.waitForResponse(
-          (res) => res.url() === `${UI_URL}${ApiContract.auth.currentUser}` && res.request().method() === 'GET',
-        ),
-        page.reload(),
-      ]);
-      expect(meResponse.ok(), 'GET /api/auth/me must succeed on reload').toBe(true);
-      const meBody = (await meResponse.json()) as { preferredLanguage?: string | null };
-      expect(meBody.preferredLanguage, 'sanity check: the server must actually hold hy').toBe('hy');
+        const [meResponse] = await Promise.all([
+          page.waitForResponse(
+            (res) => res.url() === `${UI_URL}${ApiContract.auth.currentUser}` && res.request().method() === 'GET',
+          ),
+          page.reload(),
+        ]);
+        expect(meResponse.ok(), 'GET /api/auth/me must succeed on reload').toBe(true);
+        const meBody = (await meResponse.json()) as { preferredLanguage?: string | null };
+        expect(meBody.preferredLanguage, 'sanity check: the server must actually hold hy').toBe('hy');
 
-      // If this came from localStorage it would be English (cache was wiped above) —
-      // seeing hy here proves loadCurrentUserSuccess -> applyServerLanguage$ -> applyFromUser fired.
-      await expect(page.locator('.profile-page__menu-row--danger')).toHaveText(HY_LOGOUT_TEXT);
-      await expect
-        .poll(() => page.evaluate((key) => localStorage.getItem(key), LANGUAGE_STORAGE_KEY))
-        .toBe('hy');
-    });
-
-    await test.step('cleanup: restore the seeded baseline for the next run', async () => {
-      await apiSetPreferredLanguage(request, ACCOUNTS.renter, 'en');
-    });
+        // If this came from localStorage it would be English (cache was wiped above) —
+        // seeing hy here proves loadCurrentUserSuccess -> applyServerLanguage$ -> applyFromUser fired.
+        await expect(page.locator('.profile-page__menu-row--danger')).toHaveText(HY_LOGOUT_TEXT);
+        await expect
+          .poll(() => page.evaluate((key) => localStorage.getItem(key), LANGUAGE_STORAGE_KEY))
+          .toBe('hy');
+      });
+    } finally {
+      await test.step('cleanup: restore the seeded baseline for the next run (always, even on failure)', async () => {
+        await apiSetPreferredLanguage(request, ACCOUNTS.renter, 'en');
+      });
+    }
   });
 
   test('guest switch is localStorage-only: no PUT to the backend', async ({ page }) => {

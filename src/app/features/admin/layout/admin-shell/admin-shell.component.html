@@ -38,7 +38,14 @@
           <span class="admin-topbar__bell-dot" aria-hidden="true"></span>
         </button>
 
-        <div class="admin-topbar__user">
+        <button
+          type="button"
+          class="admin-topbar__user"
+          (click)="accountMenu.toggle($event)"
+          aria-haspopup="true"
+          [attr.aria-expanded]="accountMenuOpen()"
+          [attr.aria-label]="'admin.console.chrome.account.triggerAria' | translate"
+        >
           <app-ui-avatar [name]="userDisplayName()" size="md" />
           <div class="admin-topbar__user-meta">
             <span class="admin-topbar__user-name">{{ userDisplayName() }}</span>
@@ -46,7 +53,22 @@
               'admin.console.chrome.moderatorRole' | translate
             }}</span>
           </div>
-        </div>
+          <app-icon
+            name="chevronD"
+            [size]="14"
+            class="admin-topbar__user-chevron"
+            [class.admin-topbar__user-chevron--open]="accountMenuOpen()"
+          />
+        </button>
+        <p-menu
+          #accountMenu
+          [popup]="true"
+          [model]="accountMenuItems()"
+          appendTo="body"
+          [ariaLabel]="'admin.console.chrome.account.menuAria' | translate"
+          (onShow)="accountMenuOpen.set(true)"
+          (onHide)="accountMenuOpen.set(false)"
+        />
       </div>
     </header>
 
@@ -148,7 +170,30 @@
         }}</span>
       </div>
       <div class="admin-mobile-header__action">
+        <!-- Room for a page-specific action (e.g. review's filter button) to
+             sit alongside the account trigger — nothing projects here today
+             (checked: no `admin-mobile-action` usage anywhere in `features/admin/`),
+             but the account button doesn't assume it owns the slot alone. -->
         <ng-content select="[admin-mobile-action]" />
+        <button
+          type="button"
+          class="admin-mobile-header__account"
+          (click)="accountMenu.toggle($event)"
+          aria-haspopup="true"
+          [attr.aria-expanded]="accountMenuOpen()"
+          [attr.aria-label]="'admin.console.chrome.account.triggerAria' | translate"
+        >
+          <app-ui-avatar [name]="userDisplayName()" size="sm" />
+        </button>
+        <p-menu
+          #accountMenu
+          [popup]="true"
+          [model]="accountMenuItems()"
+          appendTo="body"
+          [ariaLabel]="'admin.console.chrome.account.menuAria' | translate"
+          (onShow)="accountMenuOpen.set(true)"
+          (onHide)="accountMenuOpen.set(false)"
+        />
       </div>
     </header>
 
@@ -156,7 +201,11 @@
       <router-outlet />
     </main>
 
-    <nav class="admin-mobile-nav" [attr.aria-label]="'admin.console.chrome.navAria' | translate">
+    <nav
+      class="admin-mobile-nav"
+      [style.--admin-mobile-nav-count]="navItems.length"
+      [attr.aria-label]="'admin.console.chrome.navAria' | translate"
+    >
       @for (item of navItems; track item.id) {
         <a
           [routerLink]="item.path"

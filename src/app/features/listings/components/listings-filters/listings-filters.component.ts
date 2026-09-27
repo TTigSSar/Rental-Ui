@@ -27,6 +27,7 @@ import {
   type CategoryOption,
 } from '../../../../shared/ui/category-selector/category-selector.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
+import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import type { ListingCategoryOption } from '../../models/create-listing.model';
 import { districtDisplayName } from '../../models/district-ui.util';
 import type { ListingDistrict } from '../../models/district.model';
@@ -76,6 +77,14 @@ interface ActiveChip {
     TranslatePipe,
     UiInputComponent,
   ],
+  // `DramCurrencyPipe` is also `inject()`-ed directly below (for the price
+  // chip labels, formatted outside the template — see `activeChips`).
+  // Listing it in `imports` only makes `| dram` resolvable in the template;
+  // it does NOT register it as an injectable, so it must be listed here too
+  // or the component throws NG0201 on construction (see
+  // `listing-details-page.component.ts`'s identical `providers` note and
+  // `knowledge/mistakes.md` M-028 for the exact failure mode).
+  providers: [DramCurrencyPipe],
   templateUrl: './listings-filters.component.html',
   styleUrl: './listings-filters.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -90,6 +99,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
   private readonly listingsApi = inject(ListingsApiService);
   private readonly languageService = inject(LanguageService);
   private readonly translate = inject(TranslateService);
+  private readonly dramPipe = inject(DramCurrencyPipe);
 
   @Output() readonly filtersChanged = new EventEmitter<ListingsFilter>();
 
@@ -172,9 +182,47 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     this.draftForm.controls.radiusKm.setValue(metersToKm(meters));
   }
 
+  /**
+   * `RadiusOriginFilterComponent`'s `(originCleared)` — the widget already
+   * dispatched `ListingsActions.clearOrigin()` itself. Unlike every other
+   * draft field here, this commits `radiusKm` to `filterForm` (and therefore
+   * the URL) IMMEDIATELY instead of waiting for "Apply": the origin removal
+   * it rides along with is itself immediate and can't be cancelled, so
+   * staging just the radius would leave an inert `radiusKm` in the URL with
+   * no origin behind it if the sheet were then dismissed with "Cancel"
+   * (Trello #80).
+   */
+  protected onDraftOriginCleared(): void {
+    this.draftForm.controls.radiusKm.setValue(null);
+    this.filterForm.patchValue({ radiusKm: null });
+  }
+
+  /**
+   * `p-multiSelect`'s `(onClear)` — PrimeNG 21.1.6's `MultiSelect.clear()`
+   * calls `updateModel(null, event)` BEFORE it emits `onClear`, so the "×"
+   * on the districts field writes a raw `null` into `draftForm.controls.
+   * districtIds` (typed `string[]`, nonNullable) for one tick. Left alone,
+   * that `null` survives into `applySheet()`/`activeChips`/
+   * `serializeDistrictIdsParam` and throws. This normalizes it back to `[]`
+   * the moment PrimeNG's clear fires, before anything else reads the
+   * control.
+   */
+  protected onDraftDistrictsCleared(): void {
+    this.draftForm.controls.districtIds.setValue([]);
+  }
+
   private readonly localeTag = computed(() =>
     localeTagForLanguage(this.languageService.current().code),
   );
+
+  /**
+   * `DramCurrencyPipe` invoked directly (not via the `| dram` template pipe)
+   * because the price chip labels are built as plain strings for
+   * `translate.instant()`'s `amount` param — see `activeChips` below.
+   */
+  private formatDram(amount: number): string {
+    return this.dramPipe.transform(amount) ?? '';
+  }
 
   protected readonly activeChips = computed((): readonly ActiveChip[] => {
     const v = this.formValues();
@@ -184,10 +232,20 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
       chips.push({ key: 'categoryId', label: cat?.name ?? v.categoryId });
     }
     if (v.minPrice != null) {
-      chips.push({ key: 'minPrice', label: `Min ${v.minPrice}` });
+      chips.push({
+        key: 'minPrice',
+        label: this.translate.instant('listings.filters.chips.minPrice', {
+          amount: this.formatDram(v.minPrice),
+        }),
+      });
     }
     if (v.maxPrice != null) {
-      chips.push({ key: 'maxPrice', label: `Max ${v.maxPrice}` });
+      chips.push({
+        key: 'maxPrice',
+        label: this.translate.instant('listings.filters.chips.maxPrice', {
+          amount: this.formatDram(v.maxPrice),
+        }),
+      });
     }
     // Gated on `originCoords()`, not just `v.radiusKm` — see
     // `ListingsPageComponent.activeFilterChips`'s identical reasoning.
@@ -310,12 +368,17 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
       minPrice: draft.minPrice,
       maxPrice: draft.maxPrice,
       radiusKm: draft.radiusKm,
-      districtIds: draft.districtIds,
+      // Defensive: `(onClear)` above should already have normalized a
+      // PrimeNG multiselect clear back to `[]`, but a raw `null` here would
+      // otherwise reach `serializeDistrictIdsParam()` (which throws on
+      // anything but an array) and `activeChips`'s iteration.
+      districtIds: draft.districtIds ?? [],
     });
     this.closeSheet();
   }
 
   protected clearSheet(): void {
+    this.store.dispatch(ListingsActions.clearOrigin());
     const currentQuery = this.filterForm.getRawValue().query;
     this.filterForm.setValue({
       query: currentQuery,
@@ -344,6 +407,9 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
         this.filterForm.patchValue({ maxPrice: null });
         break;
       case 'radiusKm':
+        // The chip reads "1 km · from you" — its × removes the whole
+        // location filter, not just the radius number (Trello #80).
+        this.store.dispatch(ListingsActions.clearOrigin());
         this.filterForm.patchValue({ radiusKm: null });
         break;
       case 'districtId': {

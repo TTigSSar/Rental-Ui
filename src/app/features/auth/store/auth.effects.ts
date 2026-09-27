@@ -3,7 +3,18 @@ import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { EMPTY, catchError, filter, map, mergeMap, of, take, tap, withLatestFrom } from 'rxjs';
+import {
+  EMPTY,
+  catchError,
+  filter,
+  map,
+  mergeMap,
+  of,
+  switchMap,
+  take,
+  tap,
+  withLatestFrom,
+} from 'rxjs';
 
 import { toApiErrorMessage } from '../../../api/http-error-message.util';
 import { LanguageService } from '../../../shared/services/language.service';
@@ -136,14 +147,43 @@ export class AuthEffects {
     ),
   );
 
+  /**
+   * Post-auth landing navigation. This must NOT simply key off
+   * `loadCurrentUserSuccess` — that action also fires on every app
+   * bootstrap/session restore (`authInitStarted` → `initAuth$` →
+   * `loadCurrentUser`), and an admin reloading `/listings` (or any other
+   * page) must stay put, not get yanked to `/admin`. So this effect starts
+   * from the explicit-auth actions (`loginSuccess` / `registerSuccess` /
+   * `externalAuthSuccess`) and `switchMap`s to the *next* `loadCurrentUserSuccess`
+   * — the one produced by `loadCurrentUserAfterAuth$` for that same login —
+   * so bootstrap-driven loads are structurally excluded rather than filtered
+   * by a flag.
+   *
+   * This is the single place that decides post-auth navigation, so the
+   * returnUrl and admin-landing rules can't race each other:
+   *   1. A pending `AuthRedirectService` returnUrl (set by the auth guard
+   *      before redirecting a guest to log in) always wins — deep-link intent
+   *      beats role-based landing, for admins too.
+   *   2. Otherwise, an Admin user lands in the admin console.
+   *   3. Otherwise, no navigation — the user stays where they were.
+   */
   readonly navigateAfterAuthenticated$ = createEffect(
     () =>
       this.actions$.pipe(
-        ofType(AuthActions.loadCurrentUserSuccess),
-        tap(() => {
+        ofType(
+          AuthActions.loginSuccess,
+          AuthActions.registerSuccess,
+          AuthActions.externalAuthSuccess,
+        ),
+        switchMap(() => this.actions$.pipe(ofType(AuthActions.loadCurrentUserSuccess), take(1))),
+        tap(({ user }) => {
           const returnUrl = this.authRedirect.consume();
           if (returnUrl !== null) {
             void this.router.navigateByUrl(returnUrl);
+            return;
+          }
+          if (user.roles.includes('Admin')) {
+            void this.router.navigateByUrl('/admin');
           }
         }),
       ),

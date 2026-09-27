@@ -10,7 +10,7 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LangChangeEvent, TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';
@@ -21,6 +21,7 @@ import { ReportDialogComponent } from '../../../reports/components/report-dialog
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
+import { isCompensationAmountSet } from '../../../../shared/utils/compensation-amount.utils';
 import { selectAuthUser, selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 import * as FavoritesActions from '../../../favorites/store/favorites.actions';
 import { selectFavoriteIds } from '../../../favorites/store/favorites.selectors';
@@ -69,26 +70,27 @@ const BOOKING_DISPLAY_PRIORITY: Partial<Record<MyBooking['status'], number>> = {
  *  ladder used everywhere else on it (DESIGN_RULES §3). */
 const REVIEWS_PREVIEW_COUNT = 3;
 
+const PROTECTION_EYEBROW_KEY = 'listings.details.protection.eyebrow';
 const PROTECTION_TITLE_KEY = 'listings.details.protection.title';
+const PROTECTION_PILL_KEY = 'listings.details.protection.pillNoUpfront';
 const PROTECTION_INTRO_KEY = 'listings.details.protection.intro';
+const PROTECTION_INTRO_NO_AMOUNT_KEY = 'listings.details.protection.introNoAmount';
 
 /**
- * The design mocks 5 protection bullets. Two of them (damage/wear claims
- * against the deposit, and an automatic "fully refunded" promise) describe a
- * claims/refund process DoRent does not actually run — deposits are agreed
- * and exchanged directly between owner and renter, off-platform, with no
- * backend dispute/claim/refund mechanism at all (verified against
- * `BookingsService`/`BookingStatus` — no such step exists). Rendering them
- * would promise something the platform can't back up, so only the 3 bullets
- * that describe real, backend-verifiable or platform-neutral facts are kept:
- * hygiene notes are a real owner-authored field, safety guidance is neutral
- * advice, and DoRent support email is a real, working contact channel
- * (`support@dorent.am`, see the FAQ page).
+ * Loss & damage compensation (ADR-014, redesigned): a maximum the renter owes
+ * the owner if the toy is lost, seriously damaged or not returned — nothing
+ * is ever paid upfront, and DoRent never collects/holds/refunds it. All 6
+ * bullets describe this real, platform-neutral mechanism (no claims/refund
+ * process DoRent doesn't actually run), unlike the old 5-bullet refundable-
+ * guarantee copy this replaces.
  */
 const PROTECTION_BULLET_KEYS: readonly string[] = [
+  'listings.details.protection.bullet1',
+  'listings.details.protection.bullet2',
   'listings.details.protection.bullet3',
   'listings.details.protection.bullet4',
   'listings.details.protection.bullet5',
+  'listings.details.protection.bullet6',
 ];
 
 export function resolveConditionLabelKey(value: string | null | undefined): string | null {
@@ -149,6 +151,19 @@ export function resolveAgeRangeDisplay(
   return null;
 }
 
+/**
+ * Values the create/edit wizard's minimum-rental chips offer (see
+ * `MIN_RENTAL_DAYS` in `create-listing-form.component.ts`). When a listing's
+ * `minRentalDays` is one of these, the readable chip label
+ * (`listings.createForm.minRental.d{n}`, e.g. "1 month") reads better in the
+ * pickup/delivery row than the raw "N nights" count.
+ */
+const MIN_RENTAL_CHIP_DAYS: readonly number[] = [1, 3, 7, 14, 30, 90, 180, 365];
+
+function minRentalChipLabelKey(days: number): string | null {
+  return MIN_RENTAL_CHIP_DAYS.includes(days) ? `listings.createForm.minRental.d${days}` : null;
+}
+
 /** Re-exported for `owner-listing-page` (my-listings feature, out of scope
  *  for this rebuild) which still imports this helper directly. */
 export function hasAnyToyDetail(listing: ListingDetails): boolean {
@@ -175,6 +190,9 @@ export interface DetailRow {
   readonly id: string;
   readonly icon: string;
   readonly labelKey: string;
+  /** Optional small muted line under the label (e.g. the compensation row's
+   *  "only if lost, damaged or not returned · nothing upfront"). */
+  readonly subLabelKey?: string;
   readonly valueKey?: string;
   readonly valueParams?: Record<string, unknown>;
   /** Pre-formatted value (e.g. currency via `dram`) instead of an i18n key. */
@@ -191,6 +209,18 @@ function deliveryHintKey(type: DeliveryType): string {
   return type === 'Courier'
     ? 'listings.createForm.delivery.deliverHint'
     : 'listings.createForm.delivery.pickupHint';
+}
+
+/**
+ * `deliveryTypes` is additive — falls back to the legacy scalar `deliveryType`
+ * (wrapped in a single-item array) for listings/backends that predate it, and
+ * to `[]` when the listing has neither (never happened historically, but keeps
+ * this total).
+ */
+function resolveDeliveryTypes(listing: ListingDetails): DeliveryType[] {
+  if (listing.deliveryTypes && listing.deliveryTypes.length > 0) return listing.deliveryTypes;
+  if (listing.deliveryType) return [listing.deliveryType];
+  return [];
 }
 
 @Component({
@@ -221,7 +251,10 @@ function deliveryHintKey(type: DeliveryType): string {
   // `listing-details-page.component.spec.ts`, "DI construction").
   providers: [DramCurrencyPipe],
   templateUrl: './listing-details-page.component.html',
-  styleUrl: './listing-details-page.component.scss',
+  styleUrls: [
+    './listing-details-page.component.scss',
+    './listing-details-page.protection.scss',
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListingDetailsPageComponent {
@@ -231,6 +264,14 @@ export class ListingDetailsPageComponent {
   private readonly messageService = inject(MessageService);
   private readonly translate = inject(TranslateService);
   private readonly dramPipe = inject(DramCurrencyPipe);
+
+  /** Read (not otherwise used) inside `highlightTiles` so that computed re-runs
+   *  `translate.instant()` for the min-stay chip label on language switch —
+   *  `translate.instant` itself is a one-shot call and won't re-trigger the
+   *  computed on its own the way the template's `| translate` pipe does. */
+  private readonly langChange = toSignal<LangChangeEvent | null>(this.translate.onLangChange, {
+    initialValue: null,
+  });
 
   protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
   private readonly currentUser = this.store.selectSignal(selectAuthUser);
@@ -256,9 +297,26 @@ export class ListingDetailsPageComponent {
 
   protected readonly resolveConditionLabelKey = resolveConditionLabelKey;
   protected readonly resolveAgeRangeDisplay = resolveAgeRangeDisplay;
+  protected readonly protectionEyebrowKey = PROTECTION_EYEBROW_KEY;
   protected readonly protectionTitleKey = PROTECTION_TITLE_KEY;
-  protected readonly protectionIntroKey = PROTECTION_INTRO_KEY;
+  protected readonly protectionPillKey = PROTECTION_PILL_KEY;
   protected readonly protectionBullets = PROTECTION_BULLET_KEYS;
+  // Intro copy differs depending on whether the owner set an amount.
+  protected readonly protectionIntroKey = computed(() =>
+    this.protectionAmount() !== null ? PROTECTION_INTRO_KEY : PROTECTION_INTRO_NO_AMOUNT_KEY,
+  );
+  // `null` here means "not set" per the shared rule (finite number > 0) —
+  // a stored `0` (legacy data, see `isCompensationAmountSet`'s doc comment)
+  // collapses to `null` too, so `protectionIntroKey`/`protectionAmountDisplay`
+  // below don't need their own >0 check.
+  protected readonly protectionAmount = computed(() => {
+    const amount = this.displayListing()?.compensationAmount ?? null;
+    return isCompensationAmountSet(amount) ? amount : null;
+  });
+  protected readonly protectionAmountDisplay = computed(() => {
+    const amount = this.protectionAmount();
+    return amount !== null ? this.formatDram(amount) : null;
+  });
 
   // ── Route ────────────────────────────────────────────────────────────────
   private readonly routeId$ = this.route.paramMap.pipe(
@@ -511,6 +569,7 @@ export class ListingDetailsPageComponent {
   protected readonly highlightTiles = computed<DetailTile[]>(() => {
     const listing = this.displayListing();
     if (!listing) return [];
+    this.langChange(); // dependency only — re-run translate.instant() below on lang switch
     const tiles: DetailTile[] = [];
 
     if (listing.hygieneNotes) {
@@ -529,9 +588,13 @@ export class ListingDetailsPageComponent {
         subKey: 'listings.details.highlights.verifiedSub',
       });
     }
-    if (listing.deliveryType) {
+    const deliveryTypes = resolveDeliveryTypes(listing);
+    if (deliveryTypes.length > 0) {
+      // Courier availability (whether offered alone or alongside Pickup) is
+      // the headline-worthy fact here — the delivery-available tile covers
+      // both cases; pickup-only gets its own, less exciting tile.
       tiles.push(
-        listing.deliveryType === 'Courier'
+        deliveryTypes.includes('Courier')
           ? {
               id: 'delivery',
               icon: 'pi pi-truck',
@@ -548,13 +611,27 @@ export class ListingDetailsPageComponent {
     }
     // Only worth a highlight when it's a real constraint above the default.
     if (typeof listing.minRentalDays === 'number' && listing.minRentalDays > 1) {
-      tiles.push({
-        id: 'minRental',
-        icon: 'pi pi-calendar-clock',
-        titleKey: 'listings.details.highlights.minStayTitle',
-        titleParams: { count: listing.minRentalDays },
-        subKey: 'listings.details.highlights.minStaySub',
-      });
+      // One of the create/edit wizard's chip values reads better as "Min. 1
+      // year" than the raw "365-day minimum" — same readability upgrade the
+      // pickup/delivery row already applies via `minRentalChipLabelKey`.
+      const chipKey = minRentalChipLabelKey(listing.minRentalDays);
+      tiles.push(
+        chipKey
+          ? {
+              id: 'minRental',
+              icon: 'pi pi-calendar-clock',
+              titleKey: 'listings.details.highlights.minStayPeriodTitle',
+              titleParams: { period: this.translate.instant(chipKey) },
+              subKey: 'listings.details.highlights.minStaySub',
+            }
+          : {
+              id: 'minRental',
+              icon: 'pi pi-calendar-clock',
+              titleKey: 'listings.details.highlights.minStayTitle',
+              titleParams: { count: listing.minRentalDays },
+              subKey: 'listings.details.highlights.minStaySub',
+            },
+      );
     }
 
     // The design only ever draws 2–4 tiles in one even row; a lone tile has
@@ -564,7 +641,7 @@ export class ListingDetailsPageComponent {
 
   protected readonly highlightColumns = computed(() => this.highlightTiles().length);
 
-  // ── Specs quad (best age / condition / deposit / handover) ─────────────
+  // ── Specs quad (best age / condition / compensation / handover) ────────
   protected readonly specTiles = computed<DetailTile[]>(() => {
     const listing = this.displayListing();
     if (!listing) return [];
@@ -589,23 +666,35 @@ export class ListingDetailsPageComponent {
         subKey: conditionKey ?? undefined,
       });
     }
-    if (typeof listing.depositAmount === 'number' && listing.depositAmount > 0) {
-      tiles.push({
-        id: 'deposit',
-        icon: 'pi pi-wallet',
-        titleKey: 'listings.details.toyDetails.deposit',
-        subKey: 'listings.details.toyDetails.depositValue',
-        // Pre-formatted (not the raw number) — a translate param is a plain
-        // string substitution, it can't apply the `dram` pipe itself.
-        subParams: { amount: this.formatDram(listing.depositAmount) },
-      });
-    }
-    if (listing.deliveryType) {
+    // Always rendered (unlike the other conditional tiles above) — a missing
+    // amount is itself meaningful information ("Not specified"), not an
+    // absent field to hide.
+    tiles.push(
+      isCompensationAmountSet(listing.compensationAmount)
+        ? {
+            id: 'compensation',
+            icon: 'pi pi-shield',
+            titleKey: 'listings.details.toyDetails.compensation',
+            subKey: 'listings.details.toyDetails.compensationValue',
+            // Pre-formatted (not the raw number) — a translate param is a
+            // plain string substitution, it can't apply the `dram` pipe itself.
+            subParams: { amount: this.formatDram(listing.compensationAmount) },
+          }
+        : {
+            id: 'compensation',
+            icon: 'pi pi-shield',
+            titleKey: 'listings.details.toyDetails.compensation',
+            subKey: 'listings.details.toyDetails.compensationNotSpecified',
+          },
+    );
+    const deliveryTypes = resolveDeliveryTypes(listing);
+    if (deliveryTypes.length > 0) {
+      const both = deliveryTypes.length >= 2;
       tiles.push({
         id: 'delivery',
-        icon: listing.deliveryType === 'Courier' ? 'pi pi-truck' : 'pi pi-map-marker',
+        icon: deliveryTypes.includes('Courier') ? 'pi pi-truck' : 'pi pi-map-marker',
         titleKey: 'listings.details.handoverLabel',
-        subKey: deliveryLabelKey(listing.deliveryType),
+        subKey: both ? 'listings.createForm.delivery.both' : deliveryLabelKey(deliveryTypes[0]),
       });
     }
     return tiles;
@@ -619,36 +708,55 @@ export class ListingDetailsPageComponent {
     if (!listing) return [];
     const rows: DetailRow[] = [];
 
-    if (listing.deliveryType) {
+    const deliveryTypes = resolveDeliveryTypes(listing);
+    if (deliveryTypes.length > 0) {
+      const both = deliveryTypes.length >= 2;
       rows.push({
         id: 'handover',
-        icon: listing.deliveryType === 'Courier' ? 'pi pi-truck' : 'pi pi-map-marker',
+        icon: deliveryTypes.includes('Courier') ? 'pi pi-truck' : 'pi pi-map-marker',
         labelKey: 'listings.details.handoverLabel',
-        valueKey: deliveryHintKey(listing.deliveryType),
+        valueKey: both ? 'listings.createForm.delivery.bothHint' : deliveryHintKey(deliveryTypes[0]),
       });
     }
     if (typeof listing.minRentalDays === 'number' && listing.minRentalDays > 0) {
+      const chipKey = minRentalChipLabelKey(listing.minRentalDays);
       rows.push({
         id: 'minRental',
         icon: 'pi pi-calendar',
         labelKey: 'listings.createForm.minRental.label',
         valueKey:
-          listing.minRentalDays === 1 ? 'listings.booking.night' : 'listings.booking.nights',
-        valueParams: { count: listing.minRentalDays },
+          chipKey ??
+          (listing.minRentalDays === 1 ? 'listings.booking.night' : 'listings.booking.nights'),
+        valueParams: chipKey ? undefined : { count: listing.minRentalDays },
       });
     }
-    if (typeof listing.depositAmount === 'number' && listing.depositAmount > 0) {
-      rows.push({
-        id: 'deposit',
-        icon: 'pi pi-wallet',
-        labelKey: 'listings.details.toyDetails.deposit',
-        valueText: this.formatDram(listing.depositAmount),
-      });
-    }
+    // Always shown (unlike the other conditional rows above) — a hidden row
+    // would read as "nothing to pay, ever", which isn't true; "Not specified"
+    // is itself meaningful.
+    rows.push(
+      isCompensationAmountSet(listing.compensationAmount)
+        ? {
+            id: 'compensation',
+            icon: 'pi pi-shield',
+            labelKey: 'listings.details.pickupDelivery.compensationLabel',
+            subLabelKey: 'listings.details.pickupDelivery.compensationSubline',
+            valueKey: 'listings.details.toyDetails.compensationValue',
+            valueParams: { amount: this.formatDram(listing.compensationAmount) },
+          }
+        : {
+            id: 'compensation',
+            icon: 'pi pi-shield',
+            labelKey: 'listings.details.pickupDelivery.compensationLabel',
+            subLabelKey: 'listings.details.pickupDelivery.compensationSubline',
+            valueKey: 'listings.details.toyDetails.compensationNotSpecified',
+          },
+    );
     if (listing.hygieneNotes) {
       rows.push({
         id: 'hygiene',
-        icon: 'pi pi-shield',
+        // pi-shield is now used by the compensation row above — pi-sparkles
+        // keeps the two visually distinct.
+        icon: 'pi pi-sparkles',
         labelKey: 'listings.card.hygieneProvided',
         valueKey: 'listings.details.pickupDelivery.hygieneValue',
       });

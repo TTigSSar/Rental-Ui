@@ -24,6 +24,14 @@
         }
       </div>
       <div class="admin-user-profile-dialog__email">{{ user().email }}</div>
+      <div class="admin-user-profile-dialog__phone">
+        {{ 'admin.users.profile.phone' | translate }}:
+        @if (user().phoneNumber; as phone) {
+          <a [href]="'tel:' + phone">{{ phone }}</a>
+        } @else {
+          {{ 'profile.common.notAvailable' | translate }}
+        }
+      </div>
       <div class="admin-user-profile-dialog__status">
         <app-admin-user-status-pill [status]="user().status" />
       </div>

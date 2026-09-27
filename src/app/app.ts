@@ -21,6 +21,7 @@ import {
   selectIsAuthenticated,
 } from './features/auth/store/auth.selectors';
 import { AuthDialogComponent } from './features/auth/components/auth-dialog/auth-dialog.component';
+import { OwnerRequestsBadgeService } from './features/bookings/services/owner-requests-badge.service';
 import { ChatBadgeService } from './features/chat/services/chat-badge.service';
 import { ChatRealtimeService } from './features/chat/services/chat-realtime.service';
 import { NotificationBadgeService } from './features/notifications/services/notification-badge.service';
@@ -28,12 +29,6 @@ import { LanguageService } from './shared/services/language.service';
 import { AppHeaderComponent } from './shared/ui/app-header/app-header.component';
 import { HeaderSearchVisibilityService } from './shared/ui/app-header/header-search-visibility.service';
 import { BootScreenComponent } from './shared/ui/boot-screen/boot-screen.component';
-
-interface NavItem {
-  readonly path: string;
-  readonly labelKey: string;
-  readonly exactMatch: boolean;
-}
 
 const SCROLL_SHRINK_THRESHOLD = 8;
 
@@ -48,7 +43,6 @@ const MOBILE_BOOT_MEDIA_QUERY = '(max-width: 960px)';
 const MIN_BOOT_DISPLAY_MS = 600;
 
 interface AppShellViewModel {
-  readonly primaryNav: NavItem[];
   readonly isAuthenticated: boolean;
   readonly isGuest: boolean;
   readonly isAuthPending: boolean;
@@ -69,6 +63,30 @@ function isListingDetailsUrl(url: string): boolean {
 function isBookingFlowUrl(url: string): boolean {
   const path = url.split('?')[0];
   return /^\/listings\/[^/]+\/book$/.test(path);
+}
+
+export function isBookingDetailsUrl(url: string): boolean {
+  const path = url.split('?')[0];
+  // /bookings/:id and its review sub-routes /bookings/:id/review and
+  // /bookings/:id/review/renter. All three own a full-bleed sticky footer pinned to the
+  // bottom of the viewport (approve/decline, markActive/complete, cancel, or the review
+  // flow's own submit bar) and, for the review sub-routes, their own compact header — the
+  // same shape as the listing booking flow below. Without this, the global bottom nav sits
+  // on top of that sticky footer and swallows every tap: measured live,
+  // `elementFromPoint` at the Approve button's centre resolved to the bottom nav's
+  // "Messages" link, not the button, at 375px and 768px.
+  //
+  // Excludes the two static list pages `/bookings` and `/bookings/requests` — `requests`
+  // is a reserved route segment matched before `:bookingId` in bookings/routes.ts, not a
+  // booking id, and both list pages keep the ordinary global chrome.
+  return /^\/bookings\/(?!requests(?:\/|$))[^/]+(?:\/review(?:\/renter)?)?$/.test(path);
+}
+
+/** Union of every URL family whose page owns a full-bleed sticky action bar and needs the
+ *  global header (mobile) + bottom nav suppressed via `.app-shell--booking` — see
+ *  `isBookingFlowUrl` and `isBookingDetailsUrl` for what each covers. */
+function isBookingPageUrl(url: string): boolean {
+  return isBookingFlowUrl(url) || isBookingDetailsUrl(url);
 }
 
 function isListingsBrowseUrl(url: string): boolean {
@@ -137,6 +155,7 @@ export class App {
   private readonly notificationBadge = inject(NotificationBadgeService);
   private readonly chatBadge = inject(ChatBadgeService);
   private readonly chatRealtime = inject(ChatRealtimeService);
+  private readonly ownerRequestsBadge = inject(OwnerRequestsBadgeService);
   private readonly headerSearchVisibility = inject(HeaderSearchVisibilityService);
 
   // Decided ONCE, at construction — a resize mid-boot must not flash the
@@ -153,6 +172,10 @@ export class App {
   // Global unread-chat badge: sums unreadCount across conversations, polled
   // while authenticated (see ChatBadgeService).
   protected readonly unreadChatCount = this.chatBadge.unreadCount;
+  // Global owner "incoming requests" badge: counts Pending booking requests, polled
+  // while authenticated (see OwnerRequestsBadgeService). Drives both the header's
+  // Requests icon and the profile dropdown's "Incoming requests" count.
+  protected readonly requestsCount = this.ownerRequestsBadge.count;
   protected readonly scrolled = signal(false);
   protected readonly showFooter = signal(
     !isListingDetailsUrl(this.router.url) &&
@@ -168,7 +191,7 @@ export class App {
   protected readonly isDetailsPage = signal(isListingDetailsUrl(this.router.url));
   protected readonly isProfileChildPage = signal(isProfileChildUrl(this.router.url));
   protected readonly isListingWizardPage = signal(isListingWizardUrl(this.router.url));
-  protected readonly isBookingPage = signal(isBookingFlowUrl(this.router.url));
+  protected readonly isBookingPage = signal(isBookingPageUrl(this.router.url));
   protected readonly isHomePage = signal(isHomeUrl(this.router.url));
   protected readonly isAdminConsolePage = signal(isAdminConsoleUrl(this.router.url));
   protected readonly showAuthDialog = signal(false);
@@ -212,44 +235,10 @@ export class App {
     map(({ isAuthenticated, isAuthInitializing, user }): AppShellViewModel => {
       const isAdmin = user?.roles.includes('Admin') ?? false;
 
-      const primaryNav: NavItem[] = [];
-
-      if (isAuthenticated && isAdmin) {
-        primaryNav.push({
-          path: '/admin/listings/pending',
-          labelKey: 'app.shell.nav.pendingModeration',
-          exactMatch: false,
-        });
-      } else if (isAuthenticated) {
-        primaryNav.push(
-          {
-            path: '/my-listings',
-            labelKey: 'app.shell.nav.myListings',
-            exactMatch: false,
-          },
-          {
-            path: '/favorites',
-            labelKey: 'app.shell.nav.favorites',
-            exactMatch: false,
-          },
-          {
-            path: '/bookings',
-            labelKey: 'app.shell.nav.bookings',
-            exactMatch: true,
-          },
-          {
-            path: '/bookings/requests',
-            labelKey: 'app.shell.nav.bookingRequests',
-            exactMatch: false,
-          },
-        );
-      }
-
       const isAuthPending = isAuthInitializing;
       const isGuest = !isAuthenticated && !isAuthInitializing;
 
       return {
-        primaryNav,
         isAuthenticated,
         isGuest,
         isAuthPending,
@@ -277,10 +266,12 @@ export class App {
           this.notificationBadge.start();
           this.chatBadge.start();
           this.chatRealtime.start();
+          this.ownerRequestsBadge.start();
         } else {
           this.notificationBadge.stop();
           this.chatBadge.stop();
           this.chatRealtime.stop();
+          this.ownerRequestsBadge.stop();
         }
       });
 
@@ -303,7 +294,7 @@ export class App {
         this.isDetailsPage.set(isListingDetailsUrl(url));
         this.isProfileChildPage.set(isProfileChildUrl(url));
         this.isListingWizardPage.set(isListingWizardUrl(url));
-        this.isBookingPage.set(isBookingFlowUrl(url));
+        this.isBookingPage.set(isBookingPageUrl(url));
         this.isHomePage.set(isHomeUrl(url));
         this.isAdminConsolePage.set(isAdminConsoleUrl(url));
       });

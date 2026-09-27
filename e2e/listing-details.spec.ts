@@ -185,10 +185,10 @@ test.describe('Listing details — blocks absent when their data is absent', () 
     await expect(page.locator('.detail-page__highlights')).toHaveCount(0);
   });
 
-  test('deposit spec tile is absent when depositAmount is null', async ({ page }) => {
+  test('compensation spec tile shows "Not specified" when compensationAmount is null', async ({ page }) => {
     await mockApi(page, {
       listingDetails: e2eListingDetails({
-        depositAmount: null,
+        compensationAmount: null,
         ageFromMonths: 24,
         ageToMonths: 60,
         condition: 'Good',
@@ -200,9 +200,11 @@ test.describe('Listing details — blocks absent when their data is absent', () 
 
     const specQuad = page.locator('.detail-page__specquad');
     await expect(specQuad).toBeVisible();
-    // Age + condition + delivery = 3 cells; deposit would make it 4.
-    await expect(specQuad.locator('.detail-page__specquad-cell')).toHaveCount(3);
-    await expect(specQuad).not.toContainText('Refundable deposit');
+    // Age + condition + delivery + compensation (always rendered, even when
+    // the amount is null) = 4 cells.
+    await expect(specQuad.locator('.detail-page__specquad-cell')).toHaveCount(4);
+    await expect(specQuad).toContainText('Loss & damage compensation');
+    await expect(specQuad).toContainText('Not specified');
   });
 
   test('breadcrumb has no category segment when the category is missing', async ({ page }) => {

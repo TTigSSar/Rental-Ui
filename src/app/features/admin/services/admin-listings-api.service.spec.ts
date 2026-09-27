@@ -26,7 +26,7 @@ const FULL_SUMMARY_RAW = {
   condition: 'Good',
   hygieneNotes: 'Wiped down after every rental',
   safetyNotes: 'No sharp edges',
-  depositAmount: 5000,
+  compensationAmount: 5000,
   images: [
     { id: 'img-1', url: '/uploads/img-1.jpg', isPrimary: true, sortOrder: 0 },
     { id: 'img-2', url: '/uploads/img-2.jpg', isPrimary: false, sortOrder: 1 },
@@ -126,7 +126,7 @@ describe('AdminListingsApiService', () => {
         condition: 'Good',
         hygieneNotes: 'Wiped down after every rental',
         safetyNotes: 'No sharp edges',
-        depositAmount: 5000,
+        compensationAmount: 5000,
         images: [
           { id: 'img-1', url: '/uploads/img-1.jpg', isPrimary: true, sortOrder: 0 },
           { id: 'img-2', url: '/uploads/img-2.jpg', isPrimary: false, sortOrder: 1 },

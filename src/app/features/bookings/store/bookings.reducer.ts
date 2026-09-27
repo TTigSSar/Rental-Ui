@@ -135,11 +135,32 @@ export const bookingsReducer = createReducer(
   ),
   on(
     BookingsActions.approveBookingRequestSuccess,
-    BookingsActions.rejectBookingRequestSuccess,
     (state, { bookingId, status }): BookingsState => ({
       ...state,
       bookingRequests: patchRequestStatus(state.bookingRequests, bookingId, status),
       bookingRequestActionIds: removeActionId(state.bookingRequestActionIds, bookingId),
+      // Keeps /bookings/:id in sync with an approve performed from this same page, with
+      // no refetch, when the in-view detail is the booking that was just decided.
+      // approvedAt is a client timestamp — same trade-off already accepted for
+      // activeAt/completedAt in the completion handshake below.
+      bookingDetail:
+        state.bookingDetail && state.bookingDetail.id === bookingId
+          ? { ...state.bookingDetail, status, approvedAt: new Date().toISOString() }
+          : state.bookingDetail,
+    }),
+  ),
+  on(
+    BookingsActions.rejectBookingRequestSuccess,
+    (state, { bookingId, status, reason }): BookingsState => ({
+      ...state,
+      bookingRequests: patchRequestStatus(state.bookingRequests, bookingId, status),
+      bookingRequestActionIds: removeActionId(state.bookingRequestActionIds, bookingId),
+      // Same local-patch approach as approve above; rejectionReason is the reason the
+      // client itself just submitted, not invented.
+      bookingDetail:
+        state.bookingDetail && state.bookingDetail.id === bookingId
+          ? { ...state.bookingDetail, status, rejectionReason: reason }
+          : state.bookingDetail,
     }),
   ),
   on(

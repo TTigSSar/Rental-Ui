@@ -6,6 +6,7 @@ import { of, throwError } from 'rxjs';
 import { actionsHarness, collect } from '../../../../testing/ngrx.helpers';
 import { makeBookingDetail } from '../../../../testing/fixtures';
 import { BookingsApiService } from '../services/bookings-api.service';
+import { OwnerRequestsBadgeService } from '../services/owner-requests-badge.service';
 import * as BookingsActions from './bookings.actions';
 import { BookingsEffects } from './bookings.effects';
 
@@ -33,7 +34,7 @@ function translateStub(): Pick<TranslateService, 'instant'> {
   };
 }
 
-function setup(api: ApiStub) {
+function setup(api: ApiStub, ownerRequestsBadge: Partial<OwnerRequestsBadgeService> = {}) {
   const harness = actionsHarness();
   TestBed.configureTestingModule({
     providers: [
@@ -41,9 +42,16 @@ function setup(api: ApiStub) {
       harness.provider,
       { provide: BookingsApiService, useValue: api },
       { provide: TranslateService, useValue: translateStub() },
+      {
+        provide: OwnerRequestsBadgeService,
+        useValue: { refresh: vi.fn(), ...ownerRequestsBadge },
+      },
     ],
   });
-  return { harness, effects: TestBed.inject(BookingsEffects) };
+  return {
+    harness,
+    effects: TestBed.inject(BookingsEffects),
+  };
 }
 
 describe('BookingsEffects', () => {
@@ -133,16 +141,58 @@ describe('BookingsEffects', () => {
     });
   });
 
-  it('rejectBookingRequest$ forwards the reason and emits a Rejected status', async () => {
+  it('rejectBookingRequest$ forwards the reason and emits a Rejected status with that reason', async () => {
     const api = { rejectBookingRequest: vi.fn().mockReturnValue(of(undefined)) };
     const { harness, effects } = setup(api);
     const result = collect(effects.rejectBookingRequest$);
     harness.send(BookingsActions.rejectBookingRequest({ bookingId: 'b1', reason: 'dates_unavailable' }));
     harness.complete();
     expect(await result).toEqual([
-      BookingsActions.rejectBookingRequestSuccess({ bookingId: 'b1', status: 'Rejected' }),
+      BookingsActions.rejectBookingRequestSuccess({
+        bookingId: 'b1',
+        status: 'Rejected',
+        reason: 'dates_unavailable',
+      }),
     ]);
     expect(api.rejectBookingRequest).toHaveBeenCalledWith('b1', 'dates_unavailable');
+  });
+
+  describe('syncOwnerRequestsBadge$', () => {
+    it('refreshes the badge after an approve success', async () => {
+      const refresh = vi.fn();
+      const { harness, effects } = setup({}, { refresh });
+      const result = collect(effects.syncOwnerRequestsBadge$);
+      harness.send(BookingsActions.approveBookingRequestSuccess({ bookingId: 'b1', status: 'Approved' }));
+      harness.complete();
+      await result;
+      expect(refresh).toHaveBeenCalledOnce();
+    });
+
+    it('refreshes the badge after a reject success', async () => {
+      const refresh = vi.fn();
+      const { harness, effects } = setup({}, { refresh });
+      const result = collect(effects.syncOwnerRequestsBadge$);
+      harness.send(
+        BookingsActions.rejectBookingRequestSuccess({
+          bookingId: 'b1',
+          status: 'Rejected',
+          reason: 'dates_unavailable',
+        }),
+      );
+      harness.complete();
+      await result;
+      expect(refresh).toHaveBeenCalledOnce();
+    });
+
+    it('does not refresh on an unrelated action', async () => {
+      const refresh = vi.fn();
+      const { harness, effects } = setup({}, { refresh });
+      const result = collect(effects.syncOwnerRequestsBadge$);
+      harness.send(BookingsActions.loadBookingRequests());
+      harness.complete();
+      await result;
+      expect(refresh).not.toHaveBeenCalled();
+    });
   });
 
   describe('completion handshake', () => {

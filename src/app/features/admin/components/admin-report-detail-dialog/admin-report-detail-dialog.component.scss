@@ -222,6 +222,38 @@
   font-weight: 700;
 }
 
+.admin-report-detail-dialog__contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space-8);
+  margin-bottom: var(--ui-space-18);
+}
+
+.admin-report-detail-dialog__contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 13px;
+  border-radius: var(--ui-radius-sm);
+  border: 1px solid var(--ui-color-border);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-primary);
+  font-size: 0.78125rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.admin-report-detail-dialog__contact-btn:hover {
+  background: var(--ui-color-surface-muted);
+}
+
+.admin-report-detail-dialog__contact-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
+}
+
 .admin-report-detail-dialog__resolution-text {
   margin: 0;
   padding: 12px 14px;

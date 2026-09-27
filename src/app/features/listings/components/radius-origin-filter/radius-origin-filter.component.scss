@@ -93,9 +93,20 @@
   line-height: 1.3;
 }
 
+// A separate row beneath `.rof__origin-top` (not inline with the title),
+// indented to line up under the copy — the desktop sidebar is a fixed
+// ~220px column, and cramming these two buttons into the same flex row as
+// the icon + title/subtitle left `.rof__origin-copy` only ~34–43px wide,
+// wrapping "From your location" one word per line.
+.rof__origin-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-10);
+  margin-top: var(--ui-space-8);
+  padding-left: calc(32px + var(--ui-space-10)); // icon width + `.rof__origin-top`'s gap
+}
+
 .rof__edit {
-  flex: none;
-  margin-left: auto;
   background: none;
   border: 0;
   padding: 0;
@@ -107,6 +118,15 @@
   &:hover,
   &:focus-visible {
     color: var(--ui-color-primary-strong);
+  }
+}
+
+.rof__edit--remove {
+  color: var(--ui-color-text-secondary);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--ui-color-text-primary);
   }
 }
 
