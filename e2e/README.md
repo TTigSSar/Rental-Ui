@@ -54,6 +54,54 @@ bundle is indistinguishable from a fresh one by eye. Rules:
   instructions if found — one check protects every mocked spec, including
   ones not yet written, instead of relying on remembering this paragraph.
 
+### Real-tier rate-limit budgets (M-044 — read before re-running `--project=real` back-to-back)
+
+Two of `rental-api`'s per-IP rate-limit policies are shared, whole-suite resources for a
+`--project=real` run — every Playwright request reaches the docker API as ONE client IP, so
+"5/minute" means 5 for the entire run, not 5 per spec file:
+
+- **`auth` (login) — `POST /api/auth/login`, 5/minute.** `support/real-stack.ts` caches a JWT per
+  account per run (`apiLogin`/`loginViaDialog`) to keep demand down, but the suite still needs
+  **~6 real logins per full run**: 3 from the first use of each cached account
+  (`owner`/`renter`/`admin`, shared across several spec files) plus 3 from
+  `real/change-password.spec.ts`, which cannot be cached — one is that account's own first
+  sign-in, and the other two (old password rejected, new password accepted) only mean something
+  as genuine, uncached login attempts.
+- **`password-change` — `PUT /api/auth/me/password`, 5/minute, a SEPARATE bucket from `auth`.**
+  Only `real/change-password.spec.ts` uses this endpoint, spending **3 per run**: the change
+  itself (through the real UI), restoring the seeded password afterward, and a verification probe
+  that confirms the restore actually took — both the restore and the probe route through this
+  endpoint specifically so they cost nothing against the scarcer `auth` bucket. 3 of 5 leaves
+  headroom; this bucket is not the tight one.
+
+**One full `npx playwright test --project=real` run fits inside both windows. A second
+back-to-back run does not fit the `auth` window.** Its fixed window is anchored to the first
+login of the run, not to each spec file, so two immediate full runs land more than 5 logins
+inside 60 seconds and the second run 429s partway through — and because the budget is shared, the
+429 can land on ANY spec still needing a fresh login, not just the one that pushed the count over.
+This is a deliberate, accepted property of the suite (see the M-044 entry in
+`knowledge/mistakes.md`), not something to fix with sleeps or retries in the tests.
+
+`support/real-stack.ts` exports a 429 guard for each bucket — `assertLoginNotRateLimited` for
+`POST /api/auth/login` (used by `apiLogin`/`loginViaDialog`) and
+`assertPasswordChangeNotRateLimited` for `PUT /api/auth/me/password` (used by
+`change-password.spec.ts`'s restore/verify calls) — and both fail immediately with an explicit
+message naming the cause instead of surfacing as a generic timeout, or worse, a misleading
+"restore failed" downstream. If you see either message, wait ~60 seconds for the window to clear
+and re-run; it is not a flake and not a code regression. Note that even a genuinely unrestored
+demo password is not data loss: `DevelopmentSeedRunner` resets every demo account's password hash
+back to `Demo1234` on the next API startup whenever it no longer matches, so restarting the docker
+`api` service also fixes it.
+
+Measured (2026-09-26, after `real/change-password.spec.ts` was added — 13 real-tier tests total):
+
+| Run | Result |
+|---|---|
+| 1st (cold budget) | 13/13 passed (25.7s–34.6s) |
+| 2nd (started immediately after the 1st) | 12/13 — `change-password.spec.ts` 429s on its login check |
+| 3rd (started immediately after the 2nd) | 9/13 — cascades into `booking-lifecycle`, `language-persistence`, `map-pins-privacy` too, none of which touch the account `change-password.spec.ts` uses |
+| 4th (started ~65s after the 3rd) | 13/13 passed again (25.7s) |
+
 ## Coverage map — critical journeys (2026-07-24)
 
 Layers: **U** = unit (vitest / xUnit), **M** = mocked Playwright, **R** = real-stack Playwright.
@@ -61,6 +109,7 @@ Layers: **U** = unit (vitest / xUnit), **M** = mocked Playwright, **R** = real-s
 | Journey | Covered today | Gap |
 |---|---|---|
 | Auth (login, session hydrate, blocked user) | U: auth store/guard specs, xUnit auth tests · M: `auth.spec.ts` happy + rejected · R: real BCrypt/JWT login exercised as part of the booking journey | no dedicated R spec for register / blocked@ rejection / expiry |
+| Change password (ADR-021, `PUT /api/auth/me/password`) | U: xUnit `Auth/AuthServiceTests.cs` + `Api/ChangePasswordHttpTests.cs`, `security-page.component.spec.ts` · M: `profile-security.spec.ts` — reaches `/profile/security` from a settings row, forced 400 `auth.invalid_current_password` lands as a field error not a banner, forced 429 lands as the banner · **R: `real/change-password.spec.ts`** — changes the seeded `user2@rental.local` password through the real UI, then proves the pair the mock cannot: the old password is rejected (401) and the new one accepted by a real login, session survives the change (ADR-021 §5/6), seeded credential restored + verified in `finally` | register/blocked-user interaction with this endpoint not e2e-covered (unit-only: `AuthService.ChangePasswordAsync`'s blocked/external-provider branches) |
 | Listing discovery (browse, filter, details) | U: store/selector specs, `listings-api.service.spec.ts` (param serialization) · M: `listings.smoke.spec.ts` render + favorite toggle, **`listing-details.spec.ts`** (review-aggregate 0.0-rating gate, gallery mosaic degradation at 1/7 images, lightbox open/Escape/focus a11y, highlights band / compensation spec tile "Not specified" state / breadcrumb category absence when their data is absent), **`listing-contact-privacy.spec.ts`** (owner phone number never renders at any booking status — Pending/Approved/Active/Completed — on details, the booking page, or the confirmation screen; the chat notice that replaced the old padlock copy is asserted present instead) · **R: `real/listings-search-filter.spec.ts`** — proves `?search=` actually narrows the real backend result set (regression for the search contract-drift bug, sibling of M-020) | age-group and distance filters have backend xUnit coverage (`ListingsQueryServiceFilterTests.cs`) and frontend param-serialization unit coverage, but no R spec — distance depends on `navigator.geolocation` (flaky in CI); pagination not e2e-covered at any layer; lightbox Escape-to-close is a confirmed bug (`closeOnEscape` silently defeated by `closable=false` in PrimeNG's `Dialog.bindGlobalListeners()`) tracked by an intentionally-failing `test.fail()` case in `listing-details.spec.ts` until fixed |
 | Loss & damage compensation (`CompensationAmount`, renamed from `DepositAmount`) | U: `ListingCompensationAmountValidationTests.cs` (create required + range, update optional + range), `ListingsOwnerServiceTests.cs` (update omitted → unchanged, update changed → no re-moderation) · `create-listing-form.component.spec.ts` (required/range on submit, edit-mode Save-stays-enabled-and-jumps-to-step-3 regression, real-`p-inputNumber` not-silently-clamped regression) · M: `listing-details.spec.ts` (null state — spec tile shows "Not specified", still rendered) · **`listing-compensation-journey.spec.ts`** — a set amount renders identically across the details page's specs-quad tile, pickup/delivery row and protection card, then follows the real "Request to rent" CTA into the booking page and checks the compensation row (excluded from the total, "How this works" popover opens/closes) | populated-state rendering has no dedicated component-unit coverage on `listing-details-page.component.ts` / `listing-booking-page.component.ts` themselves (only the mocked e2e above) — a gap for frontend-dev to close, not re-tested here to avoid duplicating the same behaviour at two layers with no stated risk; no R (real-stack) coverage of the display surfaces, only of create-time persistence (see `real/create-listing-photo-upload.spec.ts`, which now also fills the required field and would fail if the real backend stopped round-tripping it) |
 | Listing location (pin picker, approximate-map tap-to-load, districts) | U: `ListingDetailCoordinatePrivacyTests`/`ListingDetailAddressRevealTests` (xUnit, privacy gate) · M: `create-listing-location.spec.ts` (Step 3 pin → request body), `listing-location.spec.ts` (district/city text, tap-to-load map, no-coordinates fallback) | R: no real-stack coverage yet (real geohash fuzzing / district derivation only unit-tested); district-select override in the wizard not e2e-covered |

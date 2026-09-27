@@ -58,6 +58,12 @@ export interface ApiSeed {
   districts?: unknown[];
   /** POST /api/auth/login outcome. */
   login?: { token?: string; status?: number; body?: unknown };
+  /** PUT /api/auth/me/password outcome (ADR-021) — defaults to a successful 204 No Content.
+   *  Set `status`/`body` (e.g. 400 with `body.errorCode: 'auth.invalid_current_password'`, or
+   *  429) to exercise `security-page.component.ts`'s field-level-vs-banner error mapping. Same
+   *  precedent as `submitReport` above: a mutation whose failure statuses a journey needs to
+   *  force. */
+  changePassword?: { status?: number; body?: unknown };
   /** POST /api/listings outcome — defaults to a successful creation. */
   createListing?: { status?: number; body?: unknown };
   /** GET /api/listings/map-pins — items for the catalogue map view (Maps P2-2). */
@@ -77,6 +83,17 @@ export interface ApiSeed {
   bookingDetail?: unknown;
   /** GET /api/reviews/listing/:id — the toy-review aggregate + comments for a listing. */
   listingToyReviews?: unknown;
+  /**
+   * GET /api/reviews/owner/:userId — the profile page's own-rating sidebar summary
+   * (`ProfilePageComponent.ratingSummary`). Defaults to a zeroed "no reviews yet"
+   * `OwnerReviewSummary` shape. Deliberately NOT left to the generic GET catch-all's `[]`: an
+   * empty array is truthy, so `ratingSummary()` (`s ? { average: s.overallAverage, ... } : null`)
+   * would treat it as a loaded, non-null summary and crash rendering `summary.average.toFixed(1)`
+   * against `undefined` — the profile sidebar renders unconditionally (not gated behind
+   * `isChildRouteActive()`), so this broke the very first journey to visit /profile at all
+   * (`profile-security.spec.ts`, reached via the profile settings row).
+   */
+  ownerReviewSummary?: unknown;
   /** POST /api/chat/conversations/from-booking/:bookingId outcome — "Message {owner}" CTA. */
   chatFromBooking?: { status?: number; body?: unknown };
   /** POST /api/reports outcome — defaults to a successful created report. Set `status: 409` +
@@ -253,6 +270,16 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
 
     if (pathname.endsWith('/api/auth/me')) {
       return seed.me ? json(route, 200, seed.me) : json(route, 401, { detail: 'Unauthenticated' });
+    }
+
+    // PUT /api/auth/me/password — change-password (ADR-021). Exact suffix + method match, same
+    // as the /api/auth/me GET above (no id segment, so no ordering conflict with any regex).
+    if (pathname.endsWith('/api/auth/me/password') && method === 'PUT') {
+      const status = seed.changePassword?.status ?? 204;
+      if (status === 204) {
+        return route.fulfill({ status: 204 });
+      }
+      return json(route, status, seed.changePassword?.body ?? {});
     }
 
     if (pathname.endsWith('/api/admin/listings/pending')) {
@@ -692,6 +719,26 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
         distribution: [0, 0, 0, 0, 0],
         comments: [],
       });
+    }
+
+    // GET /api/reviews/owner/{userId} — the profile page's own-rating sidebar summary. See the
+    // `ownerReviewSummary` doc comment on `ApiSeed` for why this must be a well-shaped object,
+    // never left to the generic GET catch-all below.
+    if (/^\/api\/reviews\/owner\/[^/]+$/.test(pathname) && method === 'GET') {
+      return json(
+        route,
+        200,
+        seed.ownerReviewSummary ?? {
+          reviewCount: 0,
+          hasAggregate: false,
+          overallAverage: 0,
+          communicationAverage: 0,
+          pickupHandoverAverage: 0,
+          friendlinessAverage: 0,
+          distribution: [0, 0, 0, 0, 0],
+          comments: [],
+        },
+      );
     }
 
     // ── Chat inbox (member-side `/chat`; also reused by the admin Messages screen's thread

@@ -15,6 +15,15 @@ export const ACCOUNTS = {
   owner: { email: 'owner@rental.local', password: 'Demo1234' },
   renter: { email: 'renter@rental.local', password: 'Demo1234' },
   admin: { email: 'admin@rental.local', password: 'Demo1234' },
+  /**
+   * The deliberately spare account (`DevelopmentSeedCredentials.SecondUserEmail`) — no other
+   * real spec touches it (grep the other files under `e2e/real/` before adding a new
+   * dependency). Reserved for journeys that must MUTATE the account's own credential, such as
+   * `change-password.spec.ts`, where reusing `owner`/`renter`/`admin` would risk leaving a
+   * password change behind for every other spec's `loginViaDialog`/`apiLogin` calls to trip
+   * over.
+   */
+  user2: { email: 'user2@rental.local', password: 'Demo1234' },
 } as const;
 
 export interface Credentials {
@@ -149,6 +158,71 @@ const tokenCache = new Map<string, { token: string; loggedInAt: number }>();
 const TOKEN_TTL_MS = 55 * 60 * 1000;
 
 /**
+ * Self-diagnosis for the shared login budget (M-044, amended 2026-09-26 for suite growth — see
+ * `e2e/README.md`'s "Real-tier login budget" section and the M-044 entry in
+ * `knowledge/mistakes.md`).
+ *
+ * A 429 on `POST /api/auth/login` here means the suite's OWN demand (~6 real logins/full run)
+ * outran `AuthController`'s `auth` policy (5/minute, one shared IP-partitioned bucket for the
+ * whole run — see `RateLimiterExtensions.cs`), almost always because this is the second (or
+ * later) full `--project=real` run inside the same ~60s fixed window. Without this check, that
+ * shows up as a generic timeout or a wrong-looking assertion failure in whichever spec happened
+ * to need a login next — e.g. a booking-lifecycle CTA that "never becomes clickable" because the
+ * session never hydrated — which is exactly the shape of bug M-044 already spent a full
+ * investigation diagnosing once. Failing loudly HERE, naming the real cause, is meant to make
+ * sure nobody re-diagnoses it a third time.
+ */
+export function assertLoginNotRateLimited(status: number, email: string): void {
+  if (status !== 429) return;
+  throw new Error(
+    `Real-stack login budget exhausted while signing in as ${email} (429 from ` +
+      `POST /api/auth/login). This is NOT a flake and NOT a code regression: AuthController's ` +
+      `"auth" rate-limit policy allows 5 logins/minute for the WHOLE real-tier run (one shared ` +
+      `client IP — RateLimiterExtensions.cs), and this suite now needs ~6 per full run (M-044, ` +
+      `amended 2026-09-26). A single "npx playwright test --project=real" run fits; a second ` +
+      `one started right after it does not. Fix: wait ~60 seconds for the fixed window to ` +
+      `clear, then re-run — do not retry immediately and do not add sleeps/retries to code ` +
+      `around this. See e2e/README.md's "Real-tier login budget" section.`,
+  );
+}
+
+/**
+ * Self-diagnosis for the OTHER shared budget a real-tier spec can lean on:
+ * `PUT /api/auth/me/password`'s own `password-change` rate-limit policy (5/minute, ALSO
+ * partitioned by remote IP — see `RateLimiterExtensions.cs` — but a bucket entirely separate
+ * from `auth`, which is exactly why a spec that needs to restore/verify a mutated credential
+ * routes through this endpoint instead of spending more of the scarce login budget).
+ *
+ * A 429 here does NOT mean the call it guarded failed its own check (e.g. "restore did not take
+ * effect") — it means that call never ran at all, so whatever it was meant to prove is UNKNOWN,
+ * not disproven. Callers must check this BEFORE asserting on the response, or a rate limit gets
+ * misreported as a real failure of the thing being tested.
+ *
+ * Critically, even the worst case here is self-healing: `DevelopmentSeedRunner` re-hashes every
+ * demo account's password back to `DevelopmentSeedCredentials.Password` (`Demo1234`) on every API
+ * startup, whenever the stored hash no longer matches it. So if a restore genuinely never
+ * completed and a demo account is left on a temporary password, the next `docker compose ...
+ * restart api` (or any redeploy) fixes it with no manual DB work — this is the fact a scary-
+ * looking 429 in a `finally` block most needs to carry, so it doesn't read as data loss.
+ */
+export function assertPasswordChangeNotRateLimited(status: number, email: string, step: string): void {
+  if (status !== 429) return;
+  throw new Error(
+    `Real-stack password-change budget exhausted while ${step} for ${email} (429 from ` +
+      `PUT /api/auth/me/password). This does NOT mean the restore failed — it means this call ` +
+      `never ran, so ${email}'s current password is UNKNOWN rather than confirmed wrong. ` +
+      `AuthController's "password-change" rate-limit policy allows 5/minute for the WHOLE ` +
+      `real-tier run (one shared client IP, a bucket separate from "auth" — ` +
+      `RateLimiterExtensions.cs). Self-heal: even if ${email} is genuinely still on a temporary ` +
+      `password, DevelopmentSeedRunner resets every demo account's password hash back to ` +
+      `Demo1234 on the next API startup whenever it no longer matches — restart the docker ` +
+      `"api" service (or redeploy) to restore it, no manual DB fix needed. Otherwise: wait ~60 ` +
+      `seconds for the fixed window to clear and re-run. See e2e/README.md's "Real-tier login ` +
+      `budget" section.`,
+  );
+}
+
+/**
  * Logs in through the real API and returns the JWT, reusing a cached token
  * for the same account when one is still fresh (see `tokenCache` doc above).
  */
@@ -159,6 +233,7 @@ export async function apiLogin(request: APIRequestContext, account: Credentials)
   }
 
   const res = await request.post(`${API_URL}/api/auth/login`, { data: account });
+  assertLoginNotRateLimited(res.status(), account.email);
   if (!res.ok()) {
     throw new Error(`API login failed for ${account.email}: ${res.status()} ${await res.text()}`);
   }
@@ -314,7 +389,18 @@ export async function loginViaDialog(page: Page, account: Credentials): Promise<
   const form = page.locator('form.auth-form');
   await form.locator('input.uii-native').nth(0).fill(account.email);
   await form.locator('input.uii-native').nth(1).fill(account.password);
-  await form.locator('button[type="submit"]').click();
+
+  // Capture the actual POST /api/auth/login response so a 429 (shared login budget exhausted —
+  // see assertLoginNotRateLimited above) fails immediately with an explicit cause instead of the
+  // dialog just sitting there until the generic 20s "form never closed" timeout below, which
+  // looks identical to a real app bug.
+  const [loginRes] = await Promise.all([
+    page.waitForResponse(
+      (res) => res.url().endsWith('/api/auth/login') && res.request().method() === 'POST',
+    ),
+    form.locator('button[type="submit"]').click(),
+  ]);
+  assertLoginNotRateLimited(loginRes.status(), account.email);
 
   // The dialog closes once /auth/me hydrates the session — the real API round
   // trip (BCrypt verify + JWT) is why this timeout is explicit.
