@@ -10,15 +10,14 @@ import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
-import { catchError, combineLatest, map, of, startWith } from 'rxjs';
+import { combineLatest, map } from 'rxjs';
 
 import { CreateListingFormComponent } from '../../components/create-listing-form/create-listing-form.component';
 import type { CreateListingRequest } from '../../models/create-listing.model';
-import type { ListingDistrict } from '../../models/district.model';
-import { ListingsApiService } from '../../services/listings-api.service';
 import * as ListingsActions from '../../store/listings.actions';
 import {
   selectCreateListingError,
+  selectCreateListingHomePointRequired,
   selectCreateListingImageUploadError,
   selectCreateListingImageUploadProgress,
   selectCreateListingLoading,
@@ -40,7 +39,6 @@ export class CreateListingPageComponent implements OnInit {
   private readonly router         = inject(Router);
   private readonly messageService = inject(MessageService);
   private readonly translate      = inject(TranslateService);
-  private readonly listingsApi    = inject(ListingsApiService);
 
   private readonly createListingSuccessId = this.store.selectSignal(
     selectCreateListingSuccessId,
@@ -56,16 +54,11 @@ export class CreateListingPageComponent implements OnInit {
     categoriesLoading:    this.store.select(selectListingCategoriesLoading),
     createListingLoading: this.store.select(selectCreateListingLoading),
     createListingError:   this.store.select(selectCreateListingError),
+    // 409 `listing.home_point_required` — the wizard re-raises its gate rather
+    // than showing the generic banner (which said nothing actionable).
+    homePointRequired:    this.store.select(selectCreateListingHomePointRequired),
     imageUploadError:     this.store.select(selectCreateListingImageUploadError),
     uploadProgress:       this.store.select(selectCreateListingImageUploadProgress),
-    // Anonymous, unchanging reference data — no NgRx slice needed (same
-    // treatment as `ListingsApiService.getDistricts()`'s own doc comment). The
-    // district field stays optional, so a failed fetch just means an empty
-    // select — never a blocking error for the wizard.
-    districts: this.listingsApi.getDistricts().pipe(
-      startWith<ListingDistrict[]>([]),
-      catchError(() => of<ListingDistrict[]>([])),
-    ),
   }).pipe(map(vm => vm));
 
   constructor() {

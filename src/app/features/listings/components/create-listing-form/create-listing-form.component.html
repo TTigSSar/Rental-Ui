@@ -1,4 +1,96 @@
-<form class="wizard" [formGroup]="createListingForm" (ngSubmit)="onSubmit()" novalidate>
+<!-- ══════════════ HOME-POINT GATE (before step 1) ══════════════
+     Shown instead of the wizard when the owner has no home point. It wears the
+     wizard's own header and footer with an EMPTY progress bar, because it is
+     not a sixth step — it is the thing that has to be true before step 1 can
+     mean anything. The map is the same `app-home-point-map` the picker and the
+     sign-up dialog use, inlined here so there is no extra screen to travel to
+     and back from. -->
+@if (showHomePointGate()) {
+  <section class="wizard wizard--gate">
+    <header class="wizard__header">
+      <div class="wizard__header-row">
+        <button
+          type="button"
+          class="wizard__back-btn"
+          (click)="dismissHomePointGate()"
+          [attr.aria-label]="'listings.createForm.backAria' | translate"
+        >
+          <i class="pi pi-times" aria-hidden="true"></i>
+        </button>
+        <div class="wizard__header-center">
+          <span class="wizard__step-name">{{
+            'listings.createPage.wizard.sidebarTitle' | translate
+          }}</span>
+          <span class="wizard__step-of">{{
+            'listings.createForm.homeGate.eyebrow' | translate
+          }}</span>
+        </div>
+        <div class="wizard__header-end" aria-hidden="true"></div>
+      </div>
+
+      <!-- Empty on purpose: no wizard step has been reached yet. -->
+      <div class="wizard__progress" aria-hidden="true">
+        @for (s of stepIndices; track s) {
+          <span class="wizard__progress-seg"></span>
+        }
+      </div>
+    </header>
+
+    <div class="wizard-gate">
+      <div class="wizard-gate__copy">
+        <span class="wizard-gate__icon" aria-hidden="true">
+          <i class="pi pi-home"></i>
+        </span>
+        <h1 class="wizard-gate__title">
+          {{ 'listings.createForm.homeGate.title' | translate }}
+        </h1>
+        <p class="wizard-gate__lead">
+          {{ 'listings.createForm.homeGate.body' | translate }}
+        </p>
+        <app-home-point-status
+          [selection]="gateSelection()"
+          [serverOutsideYerevan]="homePointOutsideYerevan()"
+        />
+      </div>
+
+      <div class="wizard-gate__map">
+        <app-home-point-map
+          [openedOnExistingPoint]="false"
+          height="100%"
+          (selectionChange)="onGateSelectionChange($event)"
+        />
+      </div>
+    </div>
+
+    <div class="wizard__footer">
+      <div class="wizard__footer-inner wizard__footer-inner--gate">
+        <button
+          type="button"
+          class="wizard__btn wizard__btn--primary wizard__btn--full"
+          [disabled]="gateConfirmDisabled()"
+          (click)="saveHomePointFromGate()"
+        >
+          @if (homePointSaving()) {
+            <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+          }
+          {{ 'listings.createForm.homeGate.cta' | translate }}
+        </button>
+        <button type="button" class="wizard-gate__later" (click)="dismissHomePointGate()">
+          {{ 'listings.createForm.homeGate.later' | translate }}
+        </button>
+      </div>
+    </div>
+  </section>
+}
+
+<form
+  class="wizard"
+  [class.wizard--hidden]="showHomePointGate()"
+  [attr.aria-hidden]="showHomePointGate() ? 'true' : null"
+  [formGroup]="createListingForm"
+  (ngSubmit)="onSubmit()"
+  novalidate
+>
   <!-- ── Mobile compact header w/ inline progress (mobile only) ─── -->
   <header class="wizard__header">
     <div class="wizard__header-row">
@@ -734,47 +826,6 @@
 
             <div class="wizard-divider"></div>
 
-            <!-- Row A: City + District (2-col on desktop). District only
-                 applies to the create flow (the backend derives it from the
-                 pin, which the edit flow can't set yet), so in edit mode City
-                 renders alone in this row. -->
-            <div class="wizard-2col">
-              <div class="wizard-field">
-                <app-ui-input
-                  #cityInputRef
-                  type="text"
-                  formControlName="city"
-                  [label]="'listings.createForm.city' | translate"
-                  [required]="true"
-                  [leftIcon]="'pi pi-map-marker'"
-                  [placeholder]="'listings.createForm.cityPlaceholder' | translate"
-                  [errorMessage]="
-                    hasError('city')
-                      ? ('listings.createForm.validation.required' | translate)
-                      : null
-                  "
-                />
-              </div>
-              @if (mode !== 'edit') {
-                <div class="wizard-field">
-                  <label class="wizard-field__label" for="wz-district">
-                    {{ 'listings.createForm.district.label' | translate }}
-                  </label>
-                  <select id="wz-district" class="wizard-select" formControlName="districtId">
-                    <option [ngValue]="null">
-                      {{ 'listings.createForm.district.placeholder' | translate }}
-                    </option>
-                    @for (d of districts; track d.id) {
-                      <option [ngValue]="d.id">{{ districtName(d) }}</option>
-                    }
-                  </select>
-                  <p class="wizard-field__note">
-                    <i class="pi pi-info-circle" aria-hidden="true"></i>
-                    {{ 'listings.createForm.district.derivedHint' | translate }}
-                  </p>
-                </div>
-              }
-            </div>
 
             <!-- Row B: Minimum rental, full width on its own row (not in a
                  `.wizard-2col`) — the half column at ≥1024px was only ~326px,
@@ -810,53 +861,28 @@
               </p>
             </div>
 
-            <!-- Row C: Pickup area (create-only — pin picker; the edit flow
-                 can't persist coordinates yet, see P1-6). Reuses `.wizard-2col`
-                 with a single cell so the dashed CTA is capped to one column's
-                 width at ≥1024px (grid auto-placement leaves the second cell
-                 empty rather than stretching this one across it) while
-                 staying full width below that, where `.wizard-2col` collapses
-                 to a single column. -->
-            @if (mode !== 'edit') {
-              <div class="wizard-2col">
-                <div class="wizard-field">
-                  <span class="wizard-field__label">{{
-                    'listings.createForm.pickupArea' | translate
-                  }}</span>
-                  <button
-                    type="button"
-                    #locationPickerTrigger
-                    class="location-card__cta"
-                    (click)="openLocationPicker()"
-                  >
-                    <i class="pi pi-map" aria-hidden="true"></i>
-                    {{
-                      (hasPin()
-                        ? 'listings.createForm.locationPicker.change'
-                        : 'listings.createForm.locationPicker.showOnMap'
-                      ) | translate
-                    }}
-                  </button>
-                  @if (hasPin()) {
-                    <p class="wizard-field__note wizard-field__note--success">
-                      <i class="pi pi-check-circle" aria-hidden="true"></i>
-                      {{ 'listings.createForm.locationPicker.pinSetHint' | translate }}
-                    </p>
-                  }
-                  <p class="wizard-field__note">
-                    <i class="pi pi-lock" aria-hidden="true"></i>
-                    {{ 'listings.createForm.locationPrivacyNote' | translate }}
-                  </p>
-                </div>
+            <!-- Pickup area — READ-ONLY in both modes (home-point model): a
+                 listing has no location of its own, it is shown from its
+                 owner's home point. Rendered in BOTH create and edit mode now:
+                 the edit page used to hide this row because it had no way to
+                 persist coordinates, and there is nothing left to persist. It
+                 carries no form control and no validation, so it can never
+                 gate Save (M-038). -->
+            <div class="wizard-2col">
+              <div class="wizard-field">
+                <span class="wizard-field__label">{{
+                  'listings.createForm.pickupArea.label' | translate
+                }}</span>
+                <app-pickup-area-card
+                  [mapHeight]="'130px'"
+                  (changeRequested)="openLocationPicker()"
+                />
+                <p class="wizard-field__note">
+                  <i class="pi pi-lock" aria-hidden="true"></i>
+                  {{ 'listings.createForm.locationPrivacyNote' | translate }}
+                </p>
               </div>
-
-              <app-location-picker
-                [open]="showLocationPicker()"
-                [initialCenter]="pinCenter() ?? yerevanCenter"
-                (confirmed)="onLocationConfirmed($event)"
-                (cancelled)="onLocationCancelled()"
-              />
-            }
+            </div>
 
             <!-- Delivery -->
             <div class="wizard-field">
@@ -1305,6 +1331,25 @@
     <!-- /wizard__content -->
   </div>
   <!-- /wizard__layout -->
+
+  <!-- Home-point picker, shared by the Pickup-area card in BOTH modes.
+       Outside the step-3 block on purpose: `@if (currentStep() === 3)`
+       would tear the dialog down the moment anything navigated, and it is
+       the same picker the profile page opens. -->
+  <app-location-picker
+    [open]="showLocationPicker()"
+    [homePointMode]="true"
+    [initialCenter]="pickerCenter()"
+    [openedOnExistingPoint]="hasHomePoint()"
+    [saving]="homePointSaving()"
+    [serverOutsideYerevan]="homePointOutsideYerevan()"
+    headerKey="homePoint.picker.title"
+    subtitleKey="homePoint.picker.subtitle"
+    confirmLabelKey="homePoint.picker.confirm"
+    cancelLabelKey="homePoint.picker.cancel"
+    (confirmed)="onLocationConfirmed($event)"
+    (cancelled)="onLocationCancelled()"
+  />
 
   <!-- Upload progress bar -->
   @if (isSubmitting && uploadProgress !== null) {

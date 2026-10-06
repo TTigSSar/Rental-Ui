@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -12,17 +13,32 @@ import {
 import { TranslatePipe } from '@ngx-translate/core';
 import { DialogModule } from 'primeng/dialog';
 
-import { GeolocationService } from '../../../../shared/services/geolocation.service';
-import { MapComponent } from '../../../../shared/ui/map/map.component';
-import type { MapLatLng } from '../../../../shared/ui/map/map.component';
-
-/** Republic Square, Yerevan — the wizard's default pin location. */
-export const YEREVAN_CENTER: MapLatLng = { lat: 40.1776, lng: 44.5126 };
-/** City-level framing for the initial view. */
-export const DEFAULT_PICKER_ZOOM = 13;
+import { GeolocationService } from '../../services/geolocation.service';
+import { HomePointMapComponent } from '../home-point-map/home-point-map.component';
+import type { HomePointSelection } from '../home-point-map/home-point-map.model';
+import { HomePointStatusComponent } from '../home-point-map/home-point-status.component';
+import { MapComponent } from '../map/map.component';
+import type { MapLatLng } from '../map/map.component';
+import { DEFAULT_PICKER_ZOOM, YEREVAN_CENTER } from '../map/map.constants';
 
 /**
- * Full-screen "drop a pin" picker used by the create-listing wizard's Step 3.
+ * Full-screen "drop a pin" picker.
+ *
+ * TWO modes live here. The default one is the original generic pin picker (the
+ * listing-detail page's "measure from here" fallback and the catalogue's radius
+ * origin). `homePointMode` switches it to the HOME-POINT picker from the
+ * approved boards: a titled header with a subtitle, the live district chip and
+ * accuracy circle of `app-home-point-map`, the privacy note, and a Confirm that
+ * is enabled only when the point is BOTH valid (inside Yerevan) and deliberately
+ * chosen. Both modes share this file because they share everything that is
+ * actually hard — the full-screen dialog shell, the focus trap, the
+ * Escape/close plumbing and the mobile/desktop framing — and differ only in
+ * what fills the body.
+ *
+ * It was moved out of `features/listings/` into `shared/ui/` when the home-point
+ * feature gave it a third and fourth consumer outside that feature (the sign-up
+ * dialog and the profile page); nothing about the generic mode changed in the
+ * move.
  *
  * Rather than a draggable marker (fiddly on touch), the map itself pans under a
  * fixed centre crosshair (`app-map`'s `crosshair` mode) — confirming just reads
@@ -32,13 +48,34 @@ export const DEFAULT_PICKER_ZOOM = 13;
  * `closeOnEscape`/`focusOnShow`), which already gives this a proper
  * `role="dialog"`/`aria-modal`/`aria-labelledby`, a keyboard focus trap, and
  * Escape-to-close — the same primitive `auth-dialog` already uses elsewhere in
- * this codebase. Returning focus to the trigger that opened the picker is the
- * caller's job (it owns that button), via the `confirmed`/`cancelled` outputs.
+ * this codebase. Two things it does NOT give for free, both handled here:
+ *
+ * - **The accessible name.** `p-dialog` binds `aria-labelledby` to an id it only
+ *   renders when you do not supply a header template. Home-point mode does
+ *   supply one, so the template re-homes that id onto its own `<h2>` — see the
+ *   long comment in the template.
+ * - **Returning focus to the trigger on close.** PrimeNG never restores it
+ *   (grep `primeng-dialog.mjs`: `onContainerDestroy` touches z-index, modality
+ *   and body scroll, and nothing else), so Escape used to drop a keyboard user
+ *   on `<body>` at the top of the document. This USED to be documented as the
+ *   caller's job via the `confirmed`/`cancelled` outputs — which exactly one of
+ *   the four call sites actually did. It is now this component's job: the
+ *   picker remembers whatever had focus when `open` flipped true and refocuses
+ *   it from every close path (Confirm, Cancel, Escape, close icon, mask). A
+ *   caller that wants focus somewhere else after a confirm simply moves it —
+ *   anything it focuses later wins, because the restore here is synchronous
+ *   with the output emission while `focusOnShow` on a follow-up dialog is not.
  */
 @Component({
   selector: 'app-location-picker',
   standalone: true,
-  imports: [DialogModule, MapComponent, TranslatePipe],
+  imports: [
+    DialogModule,
+    HomePointMapComponent,
+    HomePointStatusComponent,
+    MapComponent,
+    TranslatePipe,
+  ],
   templateUrl: './location-picker.component.html',
   styleUrl: './location-picker.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -49,11 +86,36 @@ export const DEFAULT_PICKER_ZOOM = 13;
 })
 export class LocationPickerComponent {
   private readonly geolocation = inject(GeolocationService);
+  private readonly document = inject(DOCUMENT);
 
   readonly open = input.required<boolean>();
   /** Re-centres on the already-picked pin when re-opening; else Yerevan. */
   readonly initialCenter = input<MapLatLng>(YEREVAN_CENTER);
   readonly initialZoom = input<number>(DEFAULT_PICKER_ZOOM);
+
+  // ── Home-point mode ───────────────────────────────────────────
+  /**
+   * Switches the body from the generic crosshair map to `app-home-point-map`
+   * (district chip, accuracy circle, "Use my location") and the footer from
+   * "confirm whatever is under the crosshair" to the boards' gated Confirm.
+   */
+  readonly homePointMode = input<boolean>(false);
+  /** Home-point mode only: the line under the dialog title. */
+  readonly subtitleKey = input<string>('homePoint.picker.subtitle');
+  /** Home-point mode only — `true` when `initialCenter` is an ALREADY-SAVED home
+   *  point rather than the default city centre; see the same input on
+   *  `app-home-point-map` for why that decides whether Confirm starts enabled. */
+  readonly openedOnExistingPoint = input<boolean>(false);
+  /** Home-point mode only: a save is in flight, so Confirm spins and is inert. */
+  readonly saving = input<boolean>(false);
+  /**
+   * Home-point mode only: the server refused this point with
+   * `auth.home_point_outside_yerevan`. Read by the host from `getApiErrorCode()`
+   * — the backend sends it as a `ServiceError` code, NOT as a field-level
+   * validation message — and passed down so the same red inline error shows
+   * even if the client-side district lookup happened to disagree.
+   */
+  readonly serverOutsideYerevan = input<boolean>(false);
 
   /**
    * Translate keys for the dialog chrome — all default to the wizard's
@@ -118,7 +180,44 @@ export class LocationPickerComponent {
   readonly confirmDisabledUntilMoved = input<boolean>(false);
 
   readonly confirmed = output<MapLatLng>();
+  /**
+   * Home-point mode only, emitted alongside `confirmed`: the FULL selection,
+   * including the district the map already resolved for that point. The profile
+   * card needs it to show "Kentron → Arabkir" in its change confirmation, and
+   * re-querying `/api/districts/at` for a coordinate this component just looked
+   * up would be a second request for an answer already in hand.
+   */
+  readonly confirmedHomePoint = output<HomePointSelection>();
   readonly cancelled = output<void>();
+
+  /** Home-point mode: the live state of the embedded map, mirrored here so the
+   *  footer can gate Confirm on it. */
+  protected readonly homePointSelection = signal<HomePointSelection | null>(null);
+  /**
+   * Bumped on every (re-)open so `app-home-point-map` re-arms.
+   *
+   * The counter is a PLAIN FIELD, and the signal is written with `set`, never
+   * `update`: this is written from inside the "picker (re)opened" effect below,
+   * and `update()` reads the current value through the reactive graph, so an
+   * effect that updates a signal it owns registers a dependency on its own
+   * write and re-runs forever. That looked like nothing in the component and
+   * everything downstream — the embedded map re-armed on every change-detection
+   * pass, so its district lookup never settled (the chip stayed on "Checking
+   * the district…") and `hasMoved` was wiped, making Confirm submit the
+   * pre-pan coordinate. Found on the live walk, not by any test.
+   */
+  private resetTokenCounter = 0;
+  protected readonly homePointResetToken = signal(0);
+
+  protected onHomePointSelectionChange(selection: HomePointSelection): void {
+    this.homePointSelection.set(selection);
+  }
+
+  protected readonly homePointConfirmDisabled = computed(() => {
+    if (this.saving()) return true;
+    const selection = this.homePointSelection();
+    return selection === null || !selection.canConfirm;
+  });
 
   /**
    * The coordinate currently under the crosshair — updated as the map pans,
@@ -163,14 +262,58 @@ export class LocationPickerComponent {
     () => this.centerOverride() ?? this.initialCenter(),
   );
 
+  /**
+   * Whatever had focus at the instant the picker opened — the button the user
+   * pressed to get here — so every close path can hand focus back to it.
+   *
+   * Captured on the false→true EDGE only (`wasOpen` below), never on every run
+   * of the effect: that effect also reads `initialCenter()`, so a re-run while
+   * the picker is open would capture something *inside* the dialog and then
+   * "restore" focus to a node that is about to be destroyed.
+   */
+  private triggerElement: HTMLElement | null = null;
+  private wasOpen = false;
+
+  /**
+   * Hands focus back to the element that opened the picker. Called from every
+   * close path (Confirm, Cancel, Escape / close icon / mask via
+   * `onVisibleChange`) AFTER the matching output has been emitted, so a caller
+   * that wants focus elsewhere — the profile card opens its change-confirmation
+   * sheet on confirm — still wins: that sheet's own `focusOnShow` runs later,
+   * asynchronously, once its enter transition completes.
+   *
+   * Skips a trigger that is no longer in the document: confirming can re-render
+   * the very card the trigger lived on, and focusing a detached node silently
+   * moves focus to `<body>` — exactly the bug this method exists to prevent.
+   * The create-listing wizard keeps its own `afterRenderEffect` re-focus for
+   * precisely that case (it re-queries the button by view child, so it survives
+   * the node being replaced); the two are complementary, not duplicates.
+   */
+  private restoreFocusToTrigger(): void {
+    const trigger = this.triggerElement;
+    this.triggerElement = null;
+    if (trigger === null || !trigger.isConnected) return;
+    trigger.focus();
+  }
+
   constructor() {
     // Reset the crosshair's starting point every time the picker (re-)opens.
     effect(() => {
       if (this.open()) {
+        if (!this.wasOpen) {
+          this.wasOpen = true;
+          const active = this.document.activeElement;
+          this.triggerElement = active instanceof HTMLElement ? active : null;
+        }
+        this.resetTokenCounter += 1;
+        this.homePointResetToken.set(this.resetTokenCounter);
+        this.homePointSelection.set(null);
         this.currentCenter.set(this.initialCenter());
         this.hasMoved.set(false);
         this.receivedFirstCenter = false;
         this.centerOverride.set(null);
+      } else {
+        this.wasOpen = false;
       }
     });
   }
@@ -220,14 +363,28 @@ export class LocationPickerComponent {
   protected onVisibleChange(visible: boolean): void {
     if (!visible) {
       this.cancelled.emit();
+      this.restoreFocusToTrigger();
     }
   }
 
   protected confirm(): void {
+    if (this.homePointMode()) {
+      const selection = this.homePointSelection();
+      // `homePointConfirmDisabled` already blocks this path, so a null
+      // selection here can only mean the map never reported one — do nothing
+      // rather than emit the stale generic-mode centre.
+      if (selection === null || !selection.canConfirm) return;
+      this.confirmedHomePoint.emit(selection);
+      this.confirmed.emit(selection.center);
+      this.restoreFocusToTrigger();
+      return;
+    }
     this.confirmed.emit(this.currentCenter());
+    this.restoreFocusToTrigger();
   }
 
   protected cancel(): void {
     this.cancelled.emit();
+    this.restoreFocusToTrigger();
   }
 }

@@ -8,7 +8,9 @@ import {
   Output,
   afterRenderEffect,
   computed,
+  effect,
   inject,
+  input,
   signal,
   viewChild,
 } from '@angular/core';
@@ -16,11 +18,22 @@ import { Location } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import type { AbstractControl, ValidationErrors } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
+import { Store } from '@ngrx/store';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { InputNumberModule } from 'primeng/inputnumber';
 
+import * as AuthActions from '../../../auth/store/auth.actions';
+import {
+  selectHasHomePoint,
+  selectHomePoint,
+  selectHomePointOutsideYerevan,
+  selectHomePointSaving,
+} from '../../../auth/store/auth.selectors';
 import { AgeRangeSliderComponent } from '../../../../shared/ui/age-range-slider/age-range-slider.component';
 import { CategorySelectorComponent } from '../../../../shared/ui/category-selector/category-selector.component';
+import { HomePointMapComponent } from '../../../../shared/ui/home-point-map/home-point-map.component';
+import type { HomePointSelection } from '../../../../shared/ui/home-point-map/home-point-map.model';
+import { HomePointStatusComponent } from '../../../../shared/ui/home-point-map/home-point-status.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import type { MapLatLng } from '../../../../shared/ui/map/map.component';
 import { LanguageService } from '../../../../shared/services/language.service';
@@ -36,10 +49,9 @@ import { DELIVERY_TYPES, PRICE_UNITS } from '../../models/create-listing.model';
 import type { ListingDistrict } from '../../models/district.model';
 import { districtDisplayName } from '../../models/district-ui.util';
 import type { ListingImage } from '../../models/listing.model';
-import {
-  LocationPickerComponent,
-  YEREVAN_CENTER,
-} from '../location-picker/location-picker.component';
+import { LocationPickerComponent } from '../../../../shared/ui/location-picker/location-picker.component';
+import { YEREVAN_CENTER } from '../../../../shared/ui/map/map.constants';
+import { PickupAreaCardComponent } from '../pickup-area-card/pickup-area-card.component';
 
 /** Whether the wizard creates a new listing or edits an existing one. */
 export type ListingFormMode = 'create' | 'edit';
@@ -54,7 +66,6 @@ export interface ListingFormPrefill {
   categoryId: string;
   pricePerDay: number | null;
   priceUnit?: PriceUnit;
-  city: string;
   /** `null` on listings created before this field existed — the edit page
    *  shows an amber notice and starts the field empty in that case. */
   compensationAmount?: number | null;
@@ -152,9 +163,6 @@ const WIZARD_STEPS: readonly WizardStep[] = [
 
 const MIN_RENTAL_DAYS = [1, 3, 7, 14, 30, 90, 180, 365] as const;
 
-/** Listings are currently Armenia-only; kept out of the template (no literal). */
-const DEFAULT_COUNTRY = 'Armenia';
-
 /**
  * Smallest allowed price. Dram has no practical minor unit — nobody prices a
  * rental at 2500.50 ֏ — so the floor is a whole 1 ֏ (i.e. "greater than
@@ -187,7 +195,10 @@ const AGE_MAX_YEARS = 12;
 const STEP_CONTROLS: readonly string[][] = [
   [], // 1 Photos (gated on photo count)
   ['title', 'categoryId', 'description'], // 2 Basics
-  ['pricePerDay', 'priceUnit', 'city', 'compensationAmount'], // 3 Pricing & Location
+  // `city` is gone: the home-point model derives a listing's city (and
+  // district, and coordinates) from the owner's home point, so there is
+  // nothing on this step for the owner to type or for validation to gate on.
+  ['pricePerDay', 'priceUnit', 'compensationAmount'], // 3 Pricing & Location
   [], // 4 Safety
   [], // 5 Preview
 ];
@@ -208,8 +219,11 @@ function ageRangeValidator(control: AbstractControl): ValidationErrors | null {
     AgeRangeSliderComponent,
     CategorySelectorComponent,
     DramCurrencyPipe,
+    HomePointMapComponent,
+    HomePointStatusComponent,
     InputNumberModule,
     LocationPickerComponent,
+    PickupAreaCardComponent,
     ReactiveFormsModule,
     RouterLink,
     TranslatePipe,
@@ -224,6 +238,7 @@ function ageRangeValidator(control: AbstractControl): ValidationErrors | null {
   templateUrl: './create-listing-form.component.html',
   styleUrls: [
     './create-listing-form.component.scss',
+    './create-listing-form.gate.scss',
     './create-listing-form.compensation.scss',
     './create-listing-form.menu.scss',
     './create-listing-form.step5.scss',
@@ -236,11 +251,13 @@ export class CreateListingFormComponent implements OnInit {
   private readonly location = inject(Location);
   private readonly languageService = inject(LanguageService);
   private readonly dramPipe = inject(DramCurrencyPipe);
+  private readonly store = inject(Store);
+  private readonly translate = inject(TranslateService);
 
   constructor() {
     // The location-picker trigger's post-close focus return (see
-    // `closeLocationPicker` below) has to wait for the `hasPin()` template
-    // swap to actually land in the DOM before it can query the right node —
+    // `closeLocationPicker` below) has to wait for the template swap to
+    // actually land in the DOM before it can query the right node —
     // `afterRenderEffect` (same primitive `conversation-details-page` uses to
     // scroll after new messages render) guarantees that ordering, unlike a
     // microtask which fires before Angular re-renders.
@@ -248,7 +265,7 @@ export class CreateListingFormComponent implements OnInit {
       if (!this.focusReturnPending()) {
         return;
       }
-      this.locationPickerTrigger()?.nativeElement.focus();
+      this.pickupAreaCard()?.focusChangeButton();
       this.focusReturnPending.set(false);
     });
 
@@ -257,6 +274,21 @@ export class CreateListingFormComponent implements OnInit {
     // `currentStep`, but the target field's `@if (currentStep() === N)`
     // block hasn't rendered yet in the same tick — same ordering problem
     // `focusReturnPending` above solves, same fix.
+    // A gate save only dismisses the gate once the server has ACCEPTED the
+    // point. Watching the `homePointSaving` true→false edge (rather than
+    // dismissing on click) means a refusal — e.g. a pin outside Yerevan the
+    // client-side lookup disagreed about — leaves the owner on the gate with
+    // the error, instead of dropping them into step 1 unable to submit.
+    effect(() => {
+      const saving = this.homePointSaving();
+      if (saving) return;
+      if (!this.gateSaveInFlight) return;
+      this.gateSaveInFlight = false;
+      if (this.hasHomePoint() && !this.homePointOutsideYerevan()) {
+        this.gateSatisfied.set(true);
+      }
+    });
+
     afterRenderEffect(() => {
       const name = this.pendingInvalidFocus();
       if (!name) {
@@ -268,11 +300,6 @@ export class CreateListingFormComponent implements OnInit {
   }
 
   @Input() categories: ListingCategoryOption[] = [];
-  /** The 12 fixed Yerevan districts. Optional owner override for the pin's
-   *  derived district (see `district.id` control below); an empty list just
-   *  means the select has no options yet (still loading, or the call failed —
-   *  the field stays optional either way). */
-  @Input() districts: ListingDistrict[] = [];
   @Input() isSubmitting = false;
   @Input() createError: string | null = null;
   @Input() uploadProgress: number | null = null;
@@ -303,7 +330,6 @@ export class CreateListingFormComponent implements OnInit {
       categoryId: value.categoryId,
       pricePerDay: value.pricePerDay,
       priceUnit: value.priceUnit ?? 'Daily',
-      city: value.city,
       ageFromMonths: value.ageFromMonths,
       ageToMonths: value.ageToMonths,
       condition: (value.condition as ConditionChip['value'] | null) ?? '',
@@ -359,7 +385,6 @@ export class CreateListingFormComponent implements OnInit {
   readonly minPhotos = MIN_PHOTOS;
   readonly maxPhotos = MAX_PHOTOS;
   readonly steps = WIZARD_STEPS;
-  readonly yerevanCenter = YEREVAN_CENTER;
 
   // ── Wizard ───────────────────────────────────────────────────
   readonly currentStep = signal(1);
@@ -472,7 +497,6 @@ export class CreateListingFormComponent implements OnInit {
         Validators.min(MIN_PRICE_PER_DAY),
       ]),
       priceUnit: this.fb.nonNullable.control<PriceUnit>('Daily', [Validators.required]),
-      city: this.fb.nonNullable.control('', [Validators.required]),
       // Maximum the renter owes the owner if the toy is lost, seriously
       // damaged or not returned. Required on both create and edit (ADR: Loss
       // & damage compensation) — 1,000–10,000,000 ֏.
@@ -481,10 +505,12 @@ export class CreateListingFormComponent implements OnInit {
         Validators.min(MIN_COMPENSATION),
         Validators.max(MAX_COMPENSATION),
       ]),
-      latitude: this.fb.control<number | null>(null),
-      longitude: this.fb.control<number | null>(null),
-      // Optional owner override; the backend derives this from the pin when null.
-      districtId: this.fb.control<string | null>(null),
+      // `latitude`/`longitude`/`districtId` are gone with `city` above — a
+      // listing's location IS its owner's home point now, and
+      // `CreateListingRequest` no longer carries any of the five fields. Keeping
+      // dead controls around would let a future edit quietly re-add them to the
+      // payload, where the serializer would ignore them: accepted-looking and
+      // never applied.
       ageFromMonths: this.fb.control<number | null>(24, [Validators.min(0)]),
       ageToMonths: this.fb.control<number | null>(60, [Validators.min(0)]),
       condition: this.fb.nonNullable.control<'' | ConditionChip['value']>(''),
@@ -586,27 +612,23 @@ export class CreateListingFormComponent implements OnInit {
   }
 
   // ── Edit-mode "Save with an invalid field" focus (see `onSubmit()`) ────
-  /** `app-ui-input` generates its own internal id, so `title`/`city` (the
-   *  only two fields using it) can't be focused via `document.getElementById`
+  /** `app-ui-input` generates its own internal id, so `title` (the only
+   *  remaining field using it) can't be focused via `document.getElementById`
    *  like the plain/PrimeNG-input fields below — go through the component's
    *  own `focusInput()` instead. */
   private readonly titleInputRef = viewChild<UiInputComponent>('titleInputRef');
-  private readonly cityInputRef = viewChild<UiInputComponent>('cityInputRef');
   /** Set by `jumpToFirstInvalidStep()`; consumed by the `afterRenderEffect`
    *  in the constructor once the target step's fields have rendered. */
   private readonly pendingInvalidFocus = signal<string | null>(null);
 
-  /** Best-effort: `categoryId` (category selector), `priceUnit` (custom
-   *  dropdown) and `districtId` (plain select, always valid — optional) have
-   *  no single natural focus target, so those fall through to a no-op —
-   *  the step navigation alone still brings their error text into view. */
+  /** Best-effort: `categoryId` (category selector) and `priceUnit` (custom
+   *  dropdown) have no single natural focus target, so those fall through to
+   *  a no-op — the step navigation alone still brings their error text into
+   *  view. */
   private focusFieldByControlName(name: string): void {
     switch (name) {
       case 'title':
         this.titleInputRef()?.focusInput();
-        return;
-      case 'city':
-        this.cityInputRef()?.focusInput();
         return;
       case 'description':
         document.getElementById('wz-desc')?.focus();
@@ -649,44 +671,115 @@ export class CreateListingFormComponent implements OnInit {
     }
   }
 
-  // ── Location pin picker ───────────────────────────────────────
-  /** Trigger button — either the "Set location on map" CTA or the "Change"
-   *  affordance on the static preview, whichever is currently rendered. Focus
-   *  returns here when the full-screen picker closes (a11y requirement). */
-  private readonly locationPickerTrigger =
-    viewChild<ElementRef<HTMLButtonElement>>('locationPickerTrigger');
+  // ── Home point (home-point model) ──────────────────────────────
+  /** The Pickup-area card owns the "Change home point" button that opens the
+   *  picker; focus returns to it when the picker closes (a11y requirement). */
+  private readonly pickupAreaCard = viewChild(PickupAreaCardComponent);
 
   readonly showLocationPicker = signal(false);
 
-  /**
-   * The confirmed pin, or null while none has been set — drives the
-   * CTA-vs-preview switch in the template. Mirrors the (non-signal)
-   * `latitude`/`longitude` form controls, same reasoning as `selectedCond` /
-   * `ageYears` elsewhere in this component: a `computed()` can't react to
-   * plain `FormControl.value` reads (no signal dependency to track), so this
-   * has to be a signal set explicitly wherever those controls are written.
-   */
-  readonly pinCenter = signal<MapLatLng | null>(null);
-  readonly hasPin = computed(() => this.pinCenter() !== null);
-
-  /**
-   * Flipped true right before the picker closes; the `afterRenderEffect` in
-   * the constructor consumes it and flips it back. Confirm changes `hasPin()`
-   * in the same tick as this flag, so both land in the same render pass —
-   * by the time the effect runs, `locationPickerTrigger()` resolves to
-   * whichever button (CTA or "change") is actually visible post-swap.
-   */
   private readonly focusReturnPending = signal(false);
 
+  protected readonly hasHomePoint = this.store.selectSignal(selectHasHomePoint);
+  protected readonly homePoint = this.store.selectSignal(selectHomePoint);
+  protected readonly homePointSaving = this.store.selectSignal(selectHomePointSaving);
+  protected readonly homePointOutsideYerevan = this.store.selectSignal(
+    selectHomePointOutsideYerevan,
+  );
+
+  /** The picker re-opens on the saved point when there is one; a first-ever
+   *  save opens on the city centre, where Confirm starts DISABLED. */
+  protected readonly pickerCenter = computed<MapLatLng>(() => {
+    const point = this.homePoint();
+    return point ? { lat: point.latitude, lng: point.longitude } : YEREVAN_CENTER;
+  });
+
+  /**
+   * Forces the gate back up after the server refused a create with 409
+   * `listing.home_point_required` — the point was removed in another tab, or
+   * never existed. Without this the wizard showed a generic red banner on step
+   * 5 with no way to act on it.
+   *
+   * A SIGNAL input, unlike this component's other `@Input()`s, because
+   * `showHomePointGate` below is a `computed()`: a plain field is invisible to
+   * signal tracking, so the gate would never appear when the flag flipped
+   * mid-session — which is the only way this flag is ever set.
+   */
+  readonly homePointRequiredByServer = input<boolean>(false);
+
+  /**
+   * True once a save started FROM the gate has come back successfully. Without
+   * it the gate would stay up forever in the 409 case: the owner already had a
+   * point (so `hasHomePoint()` was already true and cannot flip), and
+   * `homePointRequiredByServer` reflects a store error this component does not
+   * own and must not reach in to clear.
+   */
+  private readonly gateSatisfied = signal(false);
+  private gateSaveInFlight = false;
+
+  /**
+   * The gate before step 1: the wizard cannot produce a listing without a home
+   * point, because the backend derives the listing's location from it.
+   *
+   * Edit mode never gates — an existing listing is already placed, and blocking
+   * an edit behind a newly introduced requirement is exactly the trap M-038
+   * describes.
+   */
+  protected readonly showHomePointGate = computed(() => {
+    if (this.mode === 'edit') return false;
+    if (this.gateSatisfied()) return false;
+    return !this.hasHomePoint() || this.homePointRequiredByServer();
+  });
+
+  /** Live state of the gate's inline map; gates its primary button. */
+  protected readonly gateSelection = signal<HomePointSelection | null>(null);
+  protected readonly gateConfirmDisabled = computed(() => {
+    if (this.homePointSaving()) return true;
+    const selection = this.gateSelection();
+    return selection === null || !selection.canConfirm;
+  });
+
+  protected onGateSelectionChange(selection: HomePointSelection): void {
+    this.gateSelection.set(selection);
+  }
+
+  /** Gate primary: save the point, then fall through into step 1. Nothing
+   *  navigates — `showHomePointGate()` simply stops being true once the store
+   *  has the point, so the wizard keeps whatever state it already had. */
+  protected saveHomePointFromGate(): void {
+    const selection = this.gateSelection();
+    if (selection === null || !selection.canConfirm || this.homePointSaving()) return;
+    this.gateSaveInFlight = true;
+    this.store.dispatch(
+      AuthActions.updateHomePoint({
+        payload: { latitude: selection.center.lat, longitude: selection.center.lng },
+      }),
+    );
+  }
+
+  /** Gate secondary ("Not now") — closes the wizard. No draft exists yet, so
+   *  there is nothing to lose and nothing to save. */
+  protected dismissHomePointGate(): void {
+    this.goBack();
+  }
+
+  /**
+   * "Change home point" on the read-only Pickup-area card.
+   *
+   * Opens the picker IN PLACE rather than navigating to the profile, which is
+   * what the boards drew. The wizard and the edit page both hold unsaved form
+   * state and neither saves a draft, so navigating away silently throws a
+   * half-filled listing away — not a price worth paying to move a pin.
+   */
   protected openLocationPicker(): void {
+    this.store.dispatch(AuthActions.clearHomePointError());
     this.showLocationPicker.set(true);
   }
 
   protected onLocationConfirmed(coord: MapLatLng): void {
-    this.createListingForm.patchValue({ latitude: coord.lat, longitude: coord.lng });
-    this.createListingForm.controls.latitude.markAsDirty();
-    this.createListingForm.controls.longitude.markAsDirty();
-    this.pinCenter.set(coord);
+    this.store.dispatch(
+      AuthActions.updateHomePoint({ payload: { latitude: coord.lat, longitude: coord.lng } }),
+    );
     this.closeLocationPicker();
   }
 
@@ -696,8 +789,8 @@ export class CreateListingFormComponent implements OnInit {
 
   private closeLocationPicker(): void {
     this.showLocationPicker.set(false);
-    // Return focus to whichever button occupies the trigger spot once the
-    // DOM has caught up (a11y requirement) — see `focusReturnPending` above.
+    // Return focus to the trigger once the DOM has caught up (a11y
+    // requirement) — see `focusReturnPending` above.
     this.focusReturnPending.set(true);
   }
 
@@ -976,17 +1069,22 @@ export class CreateListingFormComponent implements OnInit {
   }
 
   /**
-   * No address line is collected any more (see `deliveryTypes`/pickup-area
-   * rework — the wizard never asks for a street address). Falls back to the
-   * selected district name, then the city alone.
+   * Step 5's one-line pickup summary. There is no address line and no city
+   * input any more (home-point model): the only thing left to summarise is the
+   * owner's home point, i.e. its district. The district name comes from the
+   * backend's own trilingual payload, never an i18n key (see
+   * `districtDisplayName`); the city does come from i18n, because "Yerevan" is
+   * OUR copy while DoRent is Yerevan-only, not a value the API sends.
    */
   protected getPickupSummary(): string {
-    const city = this.createListingForm.controls.city.value.trim();
-    const districtId = this.createListingForm.controls.districtId.value;
-    const district = districtId ? this.districts.find((d) => d.id === districtId) : undefined;
-    const districtLabel = district ? this.districtName(district) : '';
-    if (districtLabel && city) return `${districtLabel}, ${city}`;
-    return districtLabel || city || '—';
+    const district = this.homePoint()?.district ?? null;
+    const city = this.cityLabel();
+    return district ? `${this.districtName(district)}, ${city}` : city;
+  }
+
+  /** Translated "Yerevan", for the summary string above. */
+  private cityLabel(): string {
+    return this.translate.instant('homePoint.city') as string;
   }
 
   protected getDeliverySummaryKey(): string {
@@ -1111,12 +1209,13 @@ export class CreateListingFormComponent implements OnInit {
       pricePerDay: raw.pricePerDay,
       priceUnit: raw.priceUnit,
       compensationAmount: raw.compensationAmount,
-      country: DEFAULT_COUNTRY,
-      city: raw.city.trim(),
       addressLine: null,
-      latitude: raw.latitude,
-      longitude: raw.longitude,
-      districtId: raw.districtId,
+      // country / city / latitude / longitude / districtId are NOT sent
+      // (home-point model): the backend derives all five from the owner's home
+      // point, and a stale client that still sent them would be silently
+      // ignored by the serializer — accepted-looking and never applied. The
+      // form no longer holds those controls either, so there is nothing here to
+      // forget to drop.
       ageFromMonths: raw.ageFromMonths,
       ageToMonths: raw.ageToMonths,
       condition: raw.condition === '' ? null : raw.condition,

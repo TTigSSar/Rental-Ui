@@ -13,6 +13,11 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { GeolocationService } from '../../../../shared/services/geolocation.service';
 import { LanguageService } from '../../../../shared/services/language.service';
+import {
+  selectHasHomePoint,
+  selectHomePoint,
+} from '../../../auth/store/auth.selectors';
+import { districtDisplayName } from '../../models/district-ui.util';
 import { MapComponent } from '../../../../shared/ui/map/map.component';
 import type { MapLatLng } from '../../../../shared/ui/map/map.component';
 import {
@@ -30,7 +35,8 @@ import {
   selectListingsOriginDenied,
   selectListingsOriginSource,
 } from '../../store/listings.selectors';
-import { LocationPickerComponent, YEREVAN_CENTER } from '../location-picker/location-picker.component';
+import { LocationPickerComponent } from '../../../../shared/ui/location-picker/location-picker.component';
+import { YEREVAN_CENTER } from '../../../../shared/ui/map/map.constants';
 
 /** Default radius (metres) auto-selected the moment an origin becomes set
  *  with no radius chosen yet — matches the approved design mockup's own
@@ -45,7 +51,7 @@ const DEFAULT_RADIUS_METERS = 1000;
  *  step size). */
 const PRESET_ACTIVE_TOLERANCE = 25;
 
-export type RadiusOriginState = 'unset' | 'geo' | 'manual' | 'denied';
+export type RadiusOriginState = 'unset' | 'geo' | 'manual' | 'denied' | 'home';
 
 /**
  * Shared "reference point + search radius" filter control (Maps P2
@@ -103,15 +109,60 @@ export class RadiusOriginFilterComponent {
   protected readonly originCoords = this.store.selectSignal(selectListingsOriginCoords);
   protected readonly originSource = this.store.selectSignal(selectListingsOriginSource);
   protected readonly originDenied = this.store.selectSignal(selectListingsOriginDenied);
+  private readonly homePoint = this.store.selectSignal(selectHomePoint);
 
   protected readonly originState = computed((): RadiusOriginState => {
     if (this.originCoords() !== null) {
-      return this.originSource() === 'manual' ? 'manual' : 'geo';
+      const source = this.originSource();
+      if (source === 'home') return 'home';
+      return source === 'manual' ? 'manual' : 'geo';
     }
     return this.originDenied() ? 'denied' : 'unset';
   });
 
   protected readonly locked = computed(() => this.originCoords() === null);
+
+  /**
+   * Home-point model. `true` for a signed-in user who has a home point —
+   * the ONLY gate on the "From your home" option existing at all.
+   *
+   * Hidden, never rendered-disabled, when false (approved design, section
+   * (a) tab "Logged in · no home point"): a disabled row would advertise a
+   * feature with no affordance to reach it from here, and this control is not
+   * where a home point gets set (that is the profile card / sign-up step).
+   * With it false, this filter is byte-for-byte what it has always been —
+   * which is also why anonymous visitors, the overwhelming majority of
+   * catalogue traffic, see zero change from this feature.
+   */
+  protected readonly hasHomePoint = this.store.selectSignal(selectHasHomePoint);
+
+  /** The renter's own home district, for the home row's subtitle
+   *  ("{District} · your home point" — approved design). `null` when there is
+   *  no home point, or when the saved point resolved to no Yerevan district
+   *  (a legal `HomePoint` state the model allows), in which case the subtitle
+   *  falls back to the district-less wording. */
+  protected readonly homeDistrictName = computed<string | null>(() => {
+    const district = this.homePoint()?.district ?? null;
+    return district
+      ? districtDisplayName(district, this.languageService.current().code)
+      : null;
+  });
+
+  /**
+   * `true` while an origin exists but the renter has not chosen a radius —
+   * the approved design's default state for a home origin: the value reads
+   * "Any distance" with the hint "Pick a radius to filter", the slider thumb
+   * sits at the floor in the neutral (grey) treatment, and the presets are
+   * all shown unselected.
+   *
+   * This state is REACHABLE ONLY because `autoDefaultRadius$` below refuses
+   * to fire for a `'home'` origin. It is the user-visible half of the
+   * product decision that nothing is filtered — and no coordinates sent —
+   * until the renter asks: an origin that silently brought a 1 km radius with
+   * it would both narrow results the renter never narrowed and put the home
+   * coordinates on the wire on the very first catalogue request.
+   */
+  protected readonly noRadiusChosen = computed(() => this.radiusMeters() === null);
 
   protected readonly pickerOpen = signal(false);
   protected readonly pickerInitialCenter = computed<MapLatLng>(
@@ -133,6 +184,25 @@ export class RadiusOriginFilterComponent {
 
   protected readonly effectiveMeters = computed(() =>
     sliderValueToMeters(this.effectiveSliderValue()),
+  );
+
+  /**
+   * What the slider thumb/track RENDER at — identical to
+   * `effectiveSliderValue` except in the `noRadiusChosen` state, where it
+   * pins to the scale floor so an unchosen radius doesn't draw a filled
+   * track at the 1 km default and read as a selection.
+   *
+   * Kept separate from `effectiveSliderValue` (which still feeds
+   * `effectiveMeters` → the picker's radius preview) so that dragging the
+   * thumb off the floor commits a real value through the normal path: the
+   * live drag writes `liveSliderValue`, which makes `effectiveSliderValue`
+   * non-null, and `noRadiusChosen` only flips once the parent echoes the
+   * committed radius back.
+   */
+  protected readonly displaySliderValue = computed(() =>
+    this.noRadiusChosen() && this.liveSliderValue() === null
+      ? RADIUS_SLIDER_MIN
+      : this.effectiveSliderValue(),
   );
 
   protected readonly localeTag = computed(() =>
@@ -160,10 +230,28 @@ export class RadiusOriginFilterComponent {
     // slider unlocks already showing a usable value (matches the approved
     // mockup's geo/manual/applied panels, all of which show a preset
     // already selected) instead of an unlocked-but-still-empty control.
+    //
+    // EXCEPT for a `'home'` origin, which is the one origin the renter did
+    // not ask for — it is set for them the moment their profile loads (see
+    // `ListingsEffects.defaultOriginToHomePoint$`). Auto-selecting a radius
+    // there would (a) narrow the catalogue the instant a signed-in user with
+    // a home point opens it, with no action of theirs, and (b) put their home
+    // coordinates on the wire on that first request, since the API seam sends
+    // the origin exactly when a `radiusKm` exists. Both are the thing the
+    // product decision of 2026-10-05 exists to prevent, so the home origin
+    // stays at "Any distance" until the renter picks a radius themselves
+    // (`noRadiusChosen` above renders that state).
+    //
+    // `'geo'` and `'manual'` are unchanged: those arrive only from a
+    // deliberate click, so unlocking the slider on a dead floor value is the
+    // dead-control problem #4 was written about.
     effect(() => {
       const hasOrigin = this.originCoords() !== null;
       if (!hasOrigin) {
         this.defaultRequested = false;
+        return;
+      }
+      if (this.originSource() === 'home') {
         return;
       }
       if (this.radiusMeters() === null && !this.defaultRequested) {
@@ -202,6 +290,32 @@ export class RadiusOriginFilterComponent {
     const meters = sliderValueToMeters(raw);
     this.liveSliderValue.set(null);
     this.radiusMetersChange.emit(meters);
+  }
+
+  /**
+   * "From your home" row — selects the renter's own home point as the origin.
+   *
+   * No permission prompt, no network call, no picker: the coordinate is
+   * already in the auth store (`CurrentUser.homePoint`, self-only per
+   * ADR-008). A no-op when there is no home point, which the template also
+   * guarantees by not rendering the row at all.
+   *
+   * Dispatches the SAME action the auto-default effect does, so switching
+   * back from `'geo'`/`'manual'` lands in exactly the state a fresh page
+   * load would have produced — with one deliberate difference: whatever
+   * radius the renter had already chosen is kept rather than reset to "Any
+   * distance". They picked that radius; changing the point they measure from
+   * is not a reason to un-pick it.
+   */
+  protected selectHomeOrigin(): void {
+    const homePoint = this.homePoint();
+    if (homePoint === null) return;
+    this.store.dispatch(
+      ListingsActions.setOriginCoords({
+        coords: { lat: homePoint.latitude, lng: homePoint.longitude },
+        source: 'home',
+      }),
+    );
   }
 
   protected requestGeolocation(): void {

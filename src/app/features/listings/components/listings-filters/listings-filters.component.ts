@@ -44,10 +44,15 @@ import {
   localeTagForLanguage,
   metersToKm,
 } from '../../models/radius-scale.util';
+import { radiusChipLabel } from '../../models/radius-chip.util';
 import { RadiusOriginFilterComponent } from '../radius-origin-filter/radius-origin-filter.component';
 import { ListingsApiService } from '../../services/listings-api.service';
 import * as ListingsActions from '../../store/listings.actions';
-import { selectListingCategories, selectListingsOriginCoords } from '../../store/listings.selectors';
+import {
+  selectListingCategories,
+  selectListingsOriginCoords,
+  selectListingsOriginSource,
+} from '../../store/listings.selectors';
 
 /** Options fed to `p-multiSelect`: id is the value, `label` is the district's
  *  display name already resolved for the active UI language (see
@@ -134,6 +139,9 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
   /** Read ONLY to gate the radius chip's honesty — see `activeChips` below
    *  and `ListingsPageComponent`'s identical `originCoordsSignal`. */
   protected readonly originCoords = this.store.selectSignal(selectListingsOriginCoords);
+  /** Which origin the radius is measured from — decides the chip's wording
+   *  ("Within 3 km of home" vs "3 km · from you"); see `radiusChipLabel`. */
+  protected readonly originSource = this.store.selectSignal(selectListingsOriginSource);
 
   readonly filterForm = this.fb.group({
     query: this.fb.nonNullable.control(''),
@@ -256,7 +264,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
       });
       chips.push({
         key: 'radiusKm',
-        label: `${distanceLabel} · ${this.translate.instant('listings.filters.distance.chipSuffix')}`,
+        label: radiusChipLabel(distanceLabel, this.originSource(), this.translate),
       });
     }
     for (const districtId of v.districtIds) {

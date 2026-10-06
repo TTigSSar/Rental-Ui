@@ -14,6 +14,7 @@ import type {
   ListingsOriginSource,
 } from '../models/listings-filter.model';
 import type { MapPinsBounds } from '../models/map-pins-bounds.model';
+import type { ApiErrorCode } from '../../../api/api-error.model';
 
 export const loadListings = createAction('[Listings] Load Listings');
 
@@ -44,11 +45,18 @@ export const resetListings = createAction('[Listings] Reset Listings');
 /**
  * Caches the renter's reference point for the session so the radius filter
  * can be honored without re-prompting. Dispatched after the browser grants
- * geolocation permission OR the visitor confirms a point in the location
- * picker (see `RadiusOriginFilterComponent`) — never persisted. Also clears
- * `originDenied`, regardless of `source` — a successful manual pick after a
- * geolocation denial is exactly the recovery path design decision #5
- * describes.
+ * geolocation permission, after the visitor confirms a point in the location
+ * picker (both: `RadiusOriginFilterComponent`), or — for `source: 'home'` —
+ * by `ListingsEffects.defaultOriginToHomePoint$` once a signed-in user's own
+ * home point is known. Never persisted. Also clears `originDenied`,
+ * regardless of `source` — a successful manual pick after a geolocation
+ * denial is exactly the recovery path design decision #5 describes, and a
+ * home point arriving after a denial is the same recovery for free.
+ *
+ * Setting this does NOT cause a request to carry the coordinates: the seam
+ * (`ListingsApiService.buildSharedFilterParams`) sends `originLat`/
+ * `originLng` only alongside a renter-chosen `radiusKm`, and rounds them to
+ * 3 dp when it does.
  */
 export const setOriginCoords = createAction(
   '[Listings] Set Origin Coords',
@@ -123,9 +131,17 @@ export const createListingSuccess = createAction(
   props<{ response: CreateListingResponse; imageUploadError: string | null }>(),
 );
 
+/**
+ * `errorCode` carries the backend `ServiceError` code (via
+ * `getApiErrorCode`) alongside the human-readable message, because one
+ * of them is not an error to print but a state to enter: 409
+ * `listing.home_point_required` means the owner has no home point, and
+ * the wizard answers it by raising its home-point gate rather than by
+ * showing a red banner the owner cannot act on.
+ */
 export const createListingFailure = createAction(
   '[Listings] Create Listing Failure',
-  props<{ error: string }>(),
+  props<{ error: string; errorCode?: ApiErrorCode | null }>(),
 );
 
 export const setImageUploadProgress = createAction(

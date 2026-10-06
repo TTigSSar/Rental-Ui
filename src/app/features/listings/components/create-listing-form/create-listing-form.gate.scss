@@ -1,0 +1,119 @@
+/* ── Home-point gate (before step 1) ──────────────────────────────
+   Wears the wizard's own header/footer chrome (reused verbatim above), so only
+   the body between them is new. The wizard form itself stays in the DOM while
+   the gate is up — `display:none` keeps its controls out of the tab order —
+   because a 409 from create can re-raise the gate mid-flight and the owner's
+   half-filled form must survive that. */
+.wizard--hidden {
+  display: none;
+}
+
+.wizard-gate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-16);
+  padding: var(--ui-space-16);
+  /* Clears the sticky mobile footer below (the wizard's own body does the same
+     via `.wizard__body`). */
+  padding-bottom: 148px;
+}
+
+.wizard-gate__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-12);
+}
+
+.wizard-gate__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--ui-radius-md);
+  display: grid;
+  place-items: center;
+  background: var(--ui-color-primary-soft);
+  color: var(--ui-color-primary);
+
+  .pi {
+    font-size: 1.375rem;
+  }
+}
+
+.wizard-gate__title {
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: var(--ui-font-weight-extrabold);
+  line-height: var(--ui-line-height-tight);
+  letter-spacing: -0.01em;
+  color: var(--ui-color-text-primary);
+}
+
+.wizard-gate__lead {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: var(--ui-line-height-base);
+  color: var(--ui-color-text-secondary);
+}
+
+.wizard-gate__map {
+  height: 270px;
+  border-radius: var(--ui-radius-card);
+  border: 1px solid var(--ui-color-border);
+  overflow: hidden;
+}
+
+.wizard__footer-inner--gate {
+  flex-direction: column;
+  gap: var(--ui-space-8);
+}
+
+.wizard-gate__later {
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--ui-font-size-caption);
+  font-weight: var(--ui-font-weight-bold);
+  color: var(--ui-color-text-primary);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* Desktop: the boards' two-column gate — copy left, map right — inside the
+   same content column the wizard steps use. 1024px is the wizard's own
+   existing desktop breakpoint (create-listing-form.desktop.scss). */
+@media (min-width: 1024px) {
+  .wizard-gate {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+    gap: var(--ui-space-32);
+    align-items: start;
+    padding: var(--ui-space-32);
+    padding-bottom: var(--ui-space-32);
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .wizard-gate__map {
+    height: 440px;
+  }
+
+  .wizard__footer-inner--gate {
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .wizard__footer-inner--gate .wizard__btn--full {
+    width: auto;
+    min-width: 240px;
+    margin-left: auto;
+  }
+
+  .wizard-gate__later {
+    margin-right: auto;
+  }
+}

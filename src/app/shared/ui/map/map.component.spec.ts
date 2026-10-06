@@ -68,11 +68,24 @@ const state = vi.hoisted(() => ({
   // "reassigned per instance" pattern as `lastInvalidateSize` above.
   lastZoomIn: null as ReturnType<typeof vi.fn> | null,
   lastZoomOut: null as ReturnType<typeof vi.fn> | null,
+  // What the fake map reports as its centre once `invalidateSize()` has run —
+  // `null` leaves `fakeCenter` alone. See `makeFakeMap`.
+  centerAfterResize: null as { lat: number; lng: number } | null,
+  lastSetView: null as ReturnType<typeof vi.fn> | null,
 }));
 
 function makeFakeMap(options: Record<string, unknown>) {
   state.mapOptions = options;
-  const invalidateSize = vi.fn();
+  // Mirrors real Leaflet, same reasoning as `fitBounds` below: a size change
+  // fires `move`/`moveend` synchronously, and (because Leaflet keeps the pixel
+  // origin) the recomputed centre is a DIFFERENT geographic point. Without
+  // both halves the double records that `invalidateSize` "was called" with no
+  // observable consequence, and the phantom-pan guard it exists to exercise is
+  // untestable.
+  const invalidateSize = vi.fn(() => {
+    if (state.centerAfterResize !== null) state.fakeCenter = state.centerAfterResize;
+    state.moveendHandlers.forEach((h) => h());
+  });
   state.lastInvalidateSize = invalidateSize;
   const draggingEnable = vi.fn();
   const touchZoomEnable = vi.fn();
@@ -82,8 +95,13 @@ function makeFakeMap(options: Record<string, unknown>) {
   state.lastTouchZoomEnable = touchZoomEnable;
   state.lastZoomIn = zoomIn;
   state.lastZoomOut = zoomOut;
+  const setView = vi.fn((latlng: unknown) => {
+    const c = latlng as { lat: number; lng: number };
+    if (c && typeof c.lat === 'number') state.fakeCenter = { lat: c.lat, lng: c.lng };
+  });
+  state.lastSetView = setView;
   return {
-    setView: vi.fn(),
+    setView,
     on: vi.fn((event: string, handler: () => void) => {
       if (event === 'moveend') state.moveendHandlers.push(handler);
       (state.eventHandlers[event] ??= []).push(handler);
@@ -132,10 +150,11 @@ function makeFakeMap(options: Record<string, unknown>) {
  * reset in `beforeEach` below.
  */
 let resizeObserverInstances: FakeResizeObserver[] = [];
+type FakeResizeEntry = { contentRect: { width: number; height: number } };
 class FakeResizeObserver {
   readonly observed: unknown[] = [];
   disconnected = false;
-  constructor(private readonly callback: () => void) {
+  constructor(private readonly callback: (entries: FakeResizeEntry[]) => void) {
     resizeObserverInstances.push(this);
   }
   observe(target: unknown): void {
@@ -145,9 +164,14 @@ class FakeResizeObserver {
   disconnect(): void {
     this.disconnected = true;
   }
-  /** Simulates the browser reporting a real box-size change. */
-  trigger(): void {
-    this.callback();
+  /**
+   * Simulates the browser reporting a box-size change. The component reads the
+   * reported `contentRect` and skips `invalidateSize()` when the rounded size
+   * has not actually changed (see its ResizeObserver callback), so the size is
+   * a parameter here rather than implied.
+   */
+  trigger(width = 640, height = 480): void {
+    this.callback([{ contentRect: { width, height } }]);
   }
 }
 vi.stubGlobal('ResizeObserver', FakeResizeObserver);
@@ -376,6 +400,8 @@ describe('MapComponent', () => {
     state.mapRemoved = false;
     state.mapThrows = false;
     state.lastInvalidateSize = null;
+    state.lastSetView = null;
+    state.centerAfterResize = null;
     state.pointerCoarse = false;
     state.prefersReducedMotion = false;
     state.lastDraggingEnable = null;
@@ -869,9 +895,73 @@ describe('MapComponent', () => {
     expect(state.lastInvalidateSize).not.toBeNull();
     expect(state.lastInvalidateSize).not.toHaveBeenCalled();
 
-    observer.trigger();
+    observer.trigger(640, 480);
 
     expect(state.lastInvalidateSize).toHaveBeenCalledTimes(1);
+  });
+
+  /**
+   * `invalidateSize()` clears Leaflet's cached centre before it checks whether
+   * the size actually changed, so calling it for a no-op resize makes
+   * `getCenter()` jitter — which crosshair mode reports as a user pan. Found
+   * live: the home-point picker turned that jitter into an endless district
+   * lookup loop.
+   */
+  it('skips invalidateSize() when the reported size has not actually changed', async () => {
+    await createHost();
+    const observer = resizeObserverInstances[0];
+
+    observer.trigger(640, 480);
+    expect(state.lastInvalidateSize).toHaveBeenCalledTimes(1);
+
+    observer.trigger(640, 480);
+    observer.trigger(640.4, 480.2);
+
+    expect(state.lastInvalidateSize).toHaveBeenCalledTimes(1);
+
+    observer.trigger(640, 520);
+    expect(state.lastInvalidateSize).toHaveBeenCalledTimes(2);
+  });
+
+  /**
+   * The other half of the live-walk loop (see the no-op-resize test above): a
+   * resize that DOES change the box must still not be reported as a user pan.
+   * Leaflet keeps the pixel origin across `invalidateSize`, so a taller or
+   * shorter container slides the geographic point under the centre crosshair —
+   * and in crosshair mode that point is the caller's value. Resizing a window
+   * must not move someone's home point.
+   */
+  it('a real resize restores the crosshair centre and emits no phantom pan', async () => {
+    TestBed.configureTestingModule({ imports: [MapHostComponent] });
+    const fixture = TestBed.createComponent(MapHostComponent);
+    fixture.componentInstance.crosshair = true;
+    fixture.componentInstance.interactive = true;
+    fixture.detectChanges();
+    await vi.runAllTimersAsync();
+    fixture.detectChanges();
+
+    state.fakeCenter = { lat: 40.2, lng: 44.55 };
+    state.moveendHandlers.forEach((h) => h());
+    fixture.detectChanges();
+    const afterPan = [
+      { lat: 40.1776, lng: 44.5126 },
+      { lat: 40.2, lng: 44.55 },
+    ];
+    expect(fixture.componentInstance.received).toEqual(afterPan);
+
+    // The box changes, and Leaflet reports a different geographic centre for
+    // it — which this component must undo and must not forward.
+    state.centerAfterResize = { lat: 40.9, lng: 44.9 };
+    const observer = resizeObserverInstances[resizeObserverInstances.length - 1];
+    observer.trigger(640, 480);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.received).toEqual(afterPan);
+    expect(state.lastSetView).toHaveBeenCalledWith(
+      { lat: 40.2, lng: 44.55 },
+      13,
+      { animate: false },
+    );
   });
 
   it('disconnects the ResizeObserver on destroy', async () => {

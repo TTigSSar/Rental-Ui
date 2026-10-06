@@ -1,7 +1,9 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule } from '@ngx-translate/core';
 
+import type { ListingDistrict } from '../../../listings/models/district.model';
 import type { MapLatLng, MapMarkerGroup } from '../../../../shared/ui/map/map.component';
 import { deriveHeroMapZoom, HomeHeroMapComponent } from './hero-map.component';
 
@@ -108,6 +110,9 @@ vi.mock('leaflet', () => ({
       [center]="center"
       [userPin]="userPin"
       [userAccuracyMeters]="userAccuracyMeters"
+      [homePin]="homePin"
+      [homeDistrict]="homeDistrict"
+      [homeRadiusKm]="homeRadiusKm"
       [radiusMeters]="radiusMeters"
       [markers]="markers"
       [nearbyCount]="nearbyCount"
@@ -120,6 +125,9 @@ class HostComponent {
   center: MapLatLng = { lat: 40.1776, lng: 44.5126 };
   userPin: MapLatLng | null = null;
   userAccuracyMeters: number | null = null;
+  homePin: MapLatLng | null = null;
+  homeDistrict: ListingDistrict | null = null;
+  homeRadiusKm: number | null = null;
   radiusMeters: number | null = null;
   markers: MapMarkerGroup[] = [];
   nearbyCount: number | null = null;
@@ -127,8 +135,23 @@ class HostComponent {
   requestMyAreaCount = 0;
 }
 
+/**
+ * `provideMockStore` is required even though this component never reads the
+ * store itself: it injects `LanguageService` (to format the home chip's
+ * radius for the active locale), and that service injects `Store`. Without it
+ * the component cannot be CONSTRUCTED at all — which is how this spec caught
+ * the missing provider the moment the dependency was added, and exactly the
+ * class of failure M-028 exists to remember.
+ */
+function configure(): void {
+  TestBed.configureTestingModule({
+    imports: [HostComponent, TranslateModule.forRoot()],
+    providers: [provideMockStore({ initialState: {} })],
+  });
+}
+
 async function createHost() {
-  TestBed.configureTestingModule({ imports: [HostComponent, TranslateModule.forRoot()] });
+  configure();
   const fixture = TestBed.createComponent(HostComponent);
   fixture.detectChanges();
   await vi.runAllTimersAsync();
@@ -153,7 +176,7 @@ describe('HomeHeroMapComponent', () => {
   });
 
   it('renders the pill once nearbyCount is a real number, including 0', async () => {
-    TestBed.configureTestingModule({ imports: [HostComponent, TranslateModule.forRoot()] });
+    configure();
     const fixture = TestBed.createComponent(HostComponent);
     fixture.componentInstance.nearbyCount = 0;
     fixture.detectChanges();
@@ -169,7 +192,7 @@ describe('HomeHeroMapComponent', () => {
   });
 
   it('draws the radius circle once radiusMeters is set', async () => {
-    TestBed.configureTestingModule({ imports: [HostComponent, TranslateModule.forRoot()] });
+    configure();
     const fixture = TestBed.createComponent(HostComponent);
     fixture.componentInstance.radiusMeters = 1200;
     fixture.detectChanges();
@@ -180,7 +203,7 @@ describe('HomeHeroMapComponent', () => {
   });
 
   it('renders marker dots as non-focusable (never a tab stop) — the frozen map must not trap keyboard focus', async () => {
-    TestBed.configureTestingModule({ imports: [HostComponent, TranslateModule.forRoot()] });
+    configure();
     const fixture = TestBed.createComponent(HostComponent);
     fixture.componentInstance.markers = [
       { key: '40.180000,44.510000', position: { lat: 40.18, lng: 44.51 }, count: 1 },
@@ -203,7 +226,7 @@ describe('HomeHeroMapComponent', () => {
     });
 
     it('hides the button once granted (userPin set) — nothing left to opt into', async () => {
-      TestBed.configureTestingModule({ imports: [HostComponent, TranslateModule.forRoot()] });
+      configure();
       const fixture = TestBed.createComponent(HostComponent);
       fixture.componentInstance.userPin = { lat: 40.2, lng: 44.55 };
       fixture.detectChanges();
@@ -224,7 +247,7 @@ describe('HomeHeroMapComponent', () => {
     });
 
     it('disables the button while locating is true, so a visitor cannot double-dispatch the permission prompt', async () => {
-      TestBed.configureTestingModule({ imports: [HostComponent, TranslateModule.forRoot()] });
+      configure();
       const fixture = TestBed.createComponent(HostComponent);
       fixture.componentInstance.locating = true;
       fixture.detectChanges();
@@ -247,7 +270,7 @@ describe('HomeHeroMapComponent', () => {
 
   describe('pill i18n key — the two branches must never share one string', () => {
     it('renders through the cityCount key while ungranted (userPin null, the default)', async () => {
-      TestBed.configureTestingModule({ imports: [HostComponent, TranslateModule.forRoot()] });
+      configure();
       const fixture = TestBed.createComponent(HostComponent);
       fixture.componentInstance.nearbyCount = 5;
       fixture.detectChanges();
@@ -263,7 +286,7 @@ describe('HomeHeroMapComponent', () => {
     });
 
     it('renders through the nearbyCount key once granted (userPin set)', async () => {
-      TestBed.configureTestingModule({ imports: [HostComponent, TranslateModule.forRoot()] });
+      configure();
       const fixture = TestBed.createComponent(HostComponent);
       fixture.componentInstance.userPin = { lat: 40.2, lng: 44.55 };
       fixture.componentInstance.nearbyCount = 5;
@@ -274,6 +297,89 @@ describe('HomeHeroMapComponent', () => {
       const pill: HTMLElement = fixture.nativeElement.querySelector('.hero-map__pill');
       expect(pill.textContent).toContain('home.heroMap.nearbyCount');
       expect(pill.textContent).not.toContain('home.heroMap.cityCount');
+    });
+  });
+
+  // ── Home-point model: the hero centred on the user's own home point ──
+  describe('home-centred hero (homePin set)', () => {
+    const KENTRON: ListingDistrict = {
+      id: 'd1',
+      code: 'kentron',
+      nameEn: 'Kentron',
+      nameHy: 'Կենտրոն',
+      nameRu: 'Кентрон',
+    };
+
+    async function createHomeHost(
+      overrides: Partial<Pick<HostComponent, 'homeDistrict' | 'homeRadiusKm' | 'nearbyCount'>> = {},
+    ) {
+      configure();
+      const fixture = TestBed.createComponent(HostComponent);
+      const host = fixture.componentInstance;
+      host.homePin = { lat: 40.1834, lng: 44.5156 };
+      host.radiusMeters = 1200;
+      // `??` would turn an EXPLICIT `null` override back into the default —
+      // and `null` is precisely what the "no district" / "count unknown"
+      // cases need to pass in, so the presence of the key is what decides.
+      host.homeDistrict = 'homeDistrict' in overrides ? overrides.homeDistrict! : KENTRON;
+      host.homeRadiusKm = 'homeRadiusKm' in overrides ? overrides.homeRadiusKm! : 1.2;
+      host.nearbyCount = 'nearbyCount' in overrides ? overrides.nearbyCount! : 37;
+      fixture.detectChanges();
+      await vi.runAllTimersAsync();
+      fixture.detectChanges();
+      return fixture;
+    }
+
+    it('renders the two-line "Toys near your home" chip instead of the count pill', async () => {
+      const fixture = await createHomeHost();
+
+      const zone: HTMLElement | null = fixture.nativeElement.querySelector('.hero-map__zone');
+      expect(zone).not.toBeNull();
+      expect(zone!.textContent).toContain('home.heroMap.nearHome');
+      // The two chip forms are mutually exclusive — never both at once.
+      expect(fixture.nativeElement.querySelector('.hero-map__pill')).toBeNull();
+    });
+
+    it('states the district and the radius it actually queried, not a hardcoded "3 km of Kentron"', async () => {
+      const fixture = await createHomeHost();
+
+      const sub: HTMLElement = fixture.nativeElement.querySelector('.hero-map__zone-sub');
+      // With no translations loaded, ngx-translate renders the raw key, so
+      // this asserts WHICH key — the parameterised one.
+      expect(sub.textContent).toContain('home.heroMap.homeCount');
+      expect(sub.textContent).not.toContain('homeCountNoDistrict');
+    });
+
+    it('drops the district clause for a home point that resolves to no district', async () => {
+      const fixture = await createHomeHost({ homeDistrict: null });
+
+      const sub: HTMLElement = fixture.nativeElement.querySelector('.hero-map__zone-sub');
+      expect(sub.textContent).toContain('home.heroMap.homeCountNoDistrict');
+    });
+
+    it('hides the count line until the count is known — never a false "0 toys"', async () => {
+      const fixture = await createHomeHost({ nearbyCount: null });
+
+      expect(fixture.nativeElement.querySelector('.hero-map__zone')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('.hero-map__zone-sub')).toBeNull();
+    });
+
+    it('withholds the opt-in geolocation button — a home-centred hero never offers the prompt (M-031)', async () => {
+      const fixture = await createHomeHost();
+
+      expect(fixture.nativeElement.querySelector('.app-map__btn')).toBeNull();
+    });
+
+    it('draws the home marker, and no blue user dot', async () => {
+      await createHomeHost();
+
+      // The leaflet mock's `divIcon` returns its options flat, so the
+      // marker's icon carries `className` directly.
+      const classNames = state.markerCalls.map(
+        (call) => (call.options['icon'] as { className?: string } | undefined)?.className,
+      );
+      expect(classNames).toContain('app-map__home-marker');
+      expect(classNames).not.toContain('app-map__user-marker');
     });
   });
 });

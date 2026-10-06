@@ -75,7 +75,11 @@
       "ariaLabel": "Map showing toys available near you",
       "markerLabel": "Toy nearby",
       "markerGroupLabel": "{count} toys nearby",
-      "showMyArea": "Show my area"
+      "showMyArea": "Show my area",
+      "nearHome": "Toys near your home",
+      "homeCount": "{{district}} · {{count}} toys within {{radius}}",
+      "homeCountNoDistrict": "{{count}} toys within {{radius}} of your home",
+      "homeCountPlain": "{{count}} toys near your home"
     },
     "featured": {
       "pricePerDay": "{{amount}} per day",
@@ -224,7 +228,8 @@
       "firstNameRequired": "First name is required.",
       "lastNameRequired": "Last name is required.",
       "phoneNumberRequired": "Phone number is required.",
-      "phoneNumberInvalid": "Enter a valid phone number with 7 to 20 digits. Spaces, dashes, and parentheses are allowed."
+      "phoneNumberInvalid": "Enter a valid phone number with 7 to 20 digits. Spaces, dashes, and parentheses are allowed.",
+      "emailTaken": "This email is already registered. Sign in, or use another email."
     },
     "login": {
       "title": "Sign in",
@@ -252,7 +257,16 @@
       "stepVerification": "Verification",
       "stepSuccess": "Success",
       "stepsAriaLabel": "Registration progress",
-      "trustNote": "Your account is secured. We never share your personal information."
+      "trustNote": "Your account is secured. We never share your personal information.",
+      "stepHomePoint": "Home point",
+      "continue": "Continue",
+      "back": "Back",
+      "home": {
+        "title": "Where do your toys live?",
+        "lead": "Renters only see your district and an approximate area, never your address.",
+        "skip": "Skip for now — I just want to rent",
+        "later": "A home point is needed to list toys. You can add it later in your profile."
+      }
     },
     "dialog": {
       "title": "Sign in to continue",
@@ -284,7 +298,9 @@
         "previouslyRented": "Previously rented",
         "requestDeclined": "Request declined",
         "cancelled": "Cancelled"
-      }
+      },
+      "distanceFromHome": "{{distance}} from your home",
+      "distanceFromYou": "{{distance}} from you"
     },
     "filters": {
       "intro": "Filter to find the right toy quickly.",
@@ -341,7 +357,18 @@
         "scaleMax": "20 km",
         "unitMeters": "m",
         "unitKilometers": "km",
-        "chipSuffix": "from you"
+        "chipSuffix": "from you",
+        "originHomeTitle": "From your home",
+        "originHomeSubtitle": "{{district}} · your home point",
+        "originHomeSubtitleNoDistrict": "Your home point",
+        "originLiveTitle": "Use my location",
+        "originLiveSubtitle": "Asks the browser once",
+        "originPickTitle": "Pick on map",
+        "originPickSubtitle": "Choose any point",
+        "originGroupAria": "Measure distance from",
+        "anyDistance": "Any distance",
+        "radiusHint": "Pick a radius to filter",
+        "withinHome": "Within {{distance}} of home"
       },
       "locationPicker": {
         "title": "Measure distance from where?",
@@ -594,7 +621,7 @@
         "mapUnavailableDescription": "But the toy is in {{place}}. We'll show distance once the map loads.",
         "myLocationButton": "My location",
         "myLocationLocating": "Locating...",
-        "distanceFromYou": "≈ {{distance}} away",
+        "distanceFromYou": "≈ {{distance}} from you",
         "distanceLegend": "Blue dot is you, orange is the toy area",
         "accuracyLabel": "± {{accuracy}}",
         "lowAccuracyMessage": "Your location looks approximate. For a more precise distance, pick a point on the map.",
@@ -615,7 +642,9 @@
           "closeLabel": "Close map",
           "backToListing": "To listing",
           "dialogLabel": "Full-screen map"
-        }
+        },
+        "distanceFromHome": "≈ {{distance}} from your home",
+        "measuredFromHome": "Measured from your home point"
       }
     },
     "createPage": {
@@ -772,7 +801,14 @@
         "tip": "Tip: use roughly what it would cost to buy this toy new.",
         "footnote": "Kept separate from the price you earn. DoRent never collects or holds this money."
       },
-      "pickupArea": "Pickup area",
+      "pickupArea": {
+        "label": "Pickup area",
+        "sub": "From your home point · shared by all your toys",
+        "change": "Change home point",
+        "cityLabel": "City",
+        "empty": "No home point set yet.",
+        "savedToast": "Home point updated"
+      },
       "age": {
         "y02": "0–2 yr",
         "y35": "3–5 yr",
@@ -900,6 +936,14 @@
         "weekly": "Per Week",
         "monthly": "Per Month",
         "yearly": "Per Year"
+      },
+      "homeGate": {
+        "eyebrow": "Before you start · 1 minute",
+        "title": "First, where will renters pick up?",
+        "body": "Set your home point once — every toy you list uses it. Renters only see your district.",
+        "cta": "Save and continue",
+        "later": "Not now",
+        "savedToast": "Home point saved — now, photos"
       }
     },
     "bookingPage": {
@@ -1056,6 +1100,38 @@
         "text": "Your password has been updated.",
         "announcement": "Password updated. Your password has been updated."
       }
+    },
+    "homePoint": {
+      "sectionLabel": "Home point",
+      "emptyTitle": "Add your home point",
+      "emptyBody": "It’s where renters pick up your toys, so you need it to list toys. It also makes “distance from you” work when you browse.",
+      "setCta": "Set home point",
+      "change": "Change",
+      "usedBy": "Used for all {{count}} of your toys",
+      "usedByNone": "Toys you list will use it",
+      "usedByUnknown": "Toy count not loaded yet",
+      "remove": "Remove home point",
+      "removeBlocked": "You have toys listed — change the home point instead.",
+      "removeUnknown": "Available once we know how many toys use this point.",
+      "errorInUse": "Your home point can't be removed while you have toys listed — change it instead, or remove your toys first.",
+      "errorGeneric": "We couldn't update your home point. Please try again.",
+      "removeTitle": "Remove your home point?",
+      "removeBody": "You’ll need to set it again before listing a toy.",
+      "removeConfirm": "Remove",
+      "changeTitle": "Move your home point?",
+      "changeBody": "This moves all {{count}} of your toys to the new area. Renters with active or upcoming bookings will be notified.",
+      "changeBodyNone": "You have no toys listed, so nothing else changes.",
+      "changeBodyUnknown": "This moves every toy you have listed to the new area. Renters with active or upcoming bookings will be notified.",
+      "changeConfirm": "Move home point",
+      "changeConfirmNone": "Save home point",
+      "now": "Now",
+      "new": "New",
+      "cancel": "Cancel",
+      "toastTitle": "Home point updated",
+      "toastBody": "{{count}} toys now show {{district}}",
+      "toastBodyNone": "Home point saved",
+      "removedToast": "Home point removed",
+      "noDistrict": "No district"
     }
   },
   "myListings": {
@@ -2001,13 +2077,27 @@
   },
   "reports": {
     "reasons": {
-      "noShow": { "label": "No-show at pickup or handover" },
-      "unsafeItem": { "label": "Unsafe or broken item" },
-      "misleadingPhotos": { "label": "Misleading photos or description" },
-      "offPlatformPayment": { "label": "Asked to pay off-platform" },
-      "rudeMessages": { "label": "Rude or abusive messages" },
-      "spam": { "label": "Spam or scam" },
-      "other": { "label": "Other" }
+      "noShow": {
+        "label": "No-show at pickup or handover"
+      },
+      "unsafeItem": {
+        "label": "Unsafe or broken item"
+      },
+      "misleadingPhotos": {
+        "label": "Misleading photos or description"
+      },
+      "offPlatformPayment": {
+        "label": "Asked to pay off-platform"
+      },
+      "rudeMessages": {
+        "label": "Rude or abusive messages"
+      },
+      "spam": {
+        "label": "Spam or scam"
+      },
+      "other": {
+        "label": "Other"
+      }
     },
     "dialog": {
       "titleListing": "Report this listing",
@@ -2384,7 +2474,7 @@
       "declined": "Declined",
       "listingLive": "Listing live",
       "listingChanges": "Changes needed",
-      "pickup": "Pickup today",
+      "pickup": "Pickup",
       "confirm": "Action needed",
       "return": "Due today",
       "review": "Review",
@@ -2395,6 +2485,36 @@
       "minutes": "{{value}}m ago",
       "hours": "{{value}}h ago",
       "days": "{{value}}d ago"
+    }
+  },
+  "homePoint": {
+    "city": "Yerevan",
+    "privacyNote": "Renters see only the district and a ~100 m circle.",
+    "onlyYou": "Only you see the exact pin.",
+    "map": {
+      "moveHint": "Move the map so the pin sits on your pickup spot",
+      "useMyLocation": "Use my location",
+      "locating": "Finding your location…",
+      "resolving": "Checking the district…",
+      "outsideChip": "Outside Yerevan"
+    },
+    "status": {
+      "outsideTitle": "For now DoRent works only in Yerevan",
+      "outsideBody": "Move the pin inside the city to continue.",
+      "lowAccuracyTitle": "Your location is approximate — check the pin",
+      "lowAccuracyBody": "Accuracy ~{{meters}} m. Move the map if the pin is off.",
+      "deniedTitle": "Location access is off",
+      "deniedBody": "No problem — move the map to your area instead."
+    },
+    "picker": {
+      "title": "Set your home point",
+      "subtitle": "Where renters pick up your toys",
+      "confirm": "Confirm",
+      "cancel": "Cancel"
+    },
+    "approx": {
+      "label": "What renters see",
+      "sub": "Approximate area · ~100 m"
     }
   }
 }

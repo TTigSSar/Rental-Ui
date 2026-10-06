@@ -33,9 +33,21 @@
           {{ 'listings.card.yourListing' | translate }}
         </span>
       } @else if (distanceLabel(); as label) {
-        <span class="listing-card__distance-badge">
-          <span class="pi pi-compass" aria-hidden="true"></span>
-          {{ label }}
+        <!-- Two visually distinct variants (approved design section (b)):
+             orange home icon for "from your home", blue location arrow for
+             "from you". Same pill geometry so they occupy the same slot. -->
+        <span
+          class="listing-card__distance-badge"
+          [class.listing-card__distance-badge--home]="distanceFromHome()"
+          [class.listing-card__distance-badge--live]="!distanceFromHome()"
+        >
+          <span
+            class="pi"
+            [class.pi-home]="distanceFromHome()"
+            [class.pi-compass]="!distanceFromHome()"
+            aria-hidden="true"
+          ></span>
+          {{ distanceLabelKey() | translate: { distance: label } }}
         </span>
       }
 

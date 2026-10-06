@@ -13,16 +13,159 @@
 //   --border        -> --ui-color-border
 //   --r (14px)      -> --ui-radius-md
 //   pill radius     -> --ui-radius-pill
-// The mockup's "denied" card colours (`#fff8f0` bg / `#ffe0c2` border) and the
-// "set" card's border (`#ffd9bd`) have no exact design-system token — no
-// --ui-color-warning-* variant reads as "soft orange" (warning-surface is a
-// yellow), so both are derived from --ui-color-primary via color-mix()
-// instead of a hardcoded hex, flagged here for a design-token audit.
+// The "set" card's border (`#ffd9bd`) is now --ui-color-primary-wash-border,
+// the dedicated token added for it (audit closed; see styles.css for why a
+// color-mix() could not reach that value).
+// The mockup's "denied" card colours (`#fff8f0` bg / `#ffe0c2` border) are a
+// DIFFERENT, still-untokenised warm pair — no --ui-color-warning-* variant
+// reads as "soft orange" (warning-surface is a yellow) — so those two stay
+// color-mix() derivations for now and remain flagged for the design-token
+// audit. Do not fold them into the wash pair above: they are a lighter
+// surface with its own border, not the same object.
 
 .rof {
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-12);
+}
+
+// ── Segmented origin list (home-point model, approved design section (a)) ──
+// Only rendered for a signed-in user who HAS a home point. Geometry is taken
+// from the design's own `hp.css` (`.segrow` / `.orow` / `.rd` / `.ot` /
+// `.os` / `.oi`), with our tokens substituted for its colour variables:
+//   .segrow                -> column, 8px gap (SEPARATE cards, not a divided
+//                             list — each row carries its own border)
+//   .orow                  -> min-height 52px, padding 10px 12px, gap 11px,
+//                             radius 12px, 1px --ui-color-border on surface
+//   .orow.on               -> 1.5px --ui-color-primary on --ui-color-primary-wash
+//   .rd                    -> 20px outer, 2px border; selected shows a 10px
+//                             --ui-color-primary dot
+//   .ot / .os              -> 13.5px/700 and 11.5px/600 (text-secondary)
+//   .oi                    -> margin-left auto, text-secondary by default;
+//                             the board's own markup overrides it per row to
+//                             --primary (home) and --blue (live), which map
+//                             to --ui-color-primary and --ui-color-map-user
+//                             (the ONE token in this app that already means
+//                             "the user's own live position")
+.rof__segrow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-8);
+}
+
+.rof__orow {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  min-height: 52px;
+  padding: var(--ui-space-10) var(--ui-space-12);
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-12);
+  text-align: start;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--ui-color-border-strong);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary-strong);
+    outline-offset: 2px;
+  }
+}
+
+.rof__orow--on {
+  // 1.5px, not 1px — the design thickens the selected row's border rather
+  // than relying on the wash alone, which is what makes the selection
+  // readable for anyone who can't separate the wash from white.
+  border: 1.5px solid var(--ui-color-primary);
+  background: var(--ui-color-primary-wash);
+
+  &:hover {
+    border-color: var(--ui-color-primary);
+  }
+
+  .rof__rd {
+    border-color: var(--ui-color-primary);
+
+    &::after {
+      transform: scale(1);
+    }
+  }
+}
+
+.rof__rd {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--ui-radius-pill);
+  border: 2px solid var(--ui-color-border);
+  background: var(--ui-color-surface);
+
+  &::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: var(--ui-radius-pill);
+    background: var(--ui-color-primary);
+    transform: scale(0);
+    transition: transform 0.12s ease-out;
+  }
+}
+
+.rof__orow-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.rof__orow-title {
+  font-size: 0.84375rem; // 13.5px
+  font-weight: var(--ui-font-weight-bold);
+  line-height: 1.25;
+  color: var(--ui-color-text-primary);
+}
+
+.rof__orow-sub {
+  margin-top: 1px;
+  font-size: 0.71875rem; // 11.5px
+  font-weight: var(--ui-font-weight-semibold);
+  color: var(--ui-color-text-secondary);
+  // Allowed to wrap rather than ellipsise: "Кентрон · домашняя точка" is
+  // truncated to "Кентрон · домашняя ..." in a 300px rail, and the district
+  // name plus "your home point" is the whole content of this line — losing
+  // half of it to an ellipsis defeats the row's purpose. `.orow`'s 52px is a
+  // MIN-height, so a two-line subtitle just makes the row taller.
+  overflow-wrap: anywhere;
+}
+
+.rof__orow-icon {
+  flex: none;
+  margin-left: auto;
+  display: grid;
+  place-items: center;
+  color: var(--ui-color-text-secondary);
+  font-size: 1.125rem;
+}
+
+.rof__orow-icon--home {
+  color: var(--ui-color-primary);
+}
+
+.rof__orow-icon--live {
+  color: var(--ui-color-map-user);
+}
+
+// The segmented list has no icon gutter to align under, unlike the state
+// cards `.rof__origin-actions` was written for.
+.rof__origin-actions--segrow {
+  padding-left: 0;
+  margin-top: 0;
 }
 
 .rof__origin {
@@ -34,7 +177,7 @@
 
 .rof__origin--set {
   background: var(--ui-color-primary-wash);
-  border-color: color-mix(in srgb, var(--ui-color-primary) 35%, white);
+  border-color: var(--ui-color-primary-wash-border);
 }
 
 .rof__origin--denied {
@@ -144,7 +287,9 @@
   cursor: pointer;
   font-family: inherit;
 
-  &--block { width: 100%; }
+  &--block {
+    width: 100%;
+  }
 }
 
 .rof__btn--primary {
@@ -152,7 +297,9 @@
   background: var(--ui-color-primary);
   color: var(--ui-color-on-primary);
 
-  &:hover { background: var(--ui-color-primary-strong); }
+  &:hover {
+    background: var(--ui-color-primary-strong);
+  }
 }
 
 .rof__btn--ghost {
@@ -160,7 +307,9 @@
   color: var(--ui-color-text-primary);
   border: 1.5px solid var(--ui-color-border);
 
-  &:hover { filter: brightness(0.97); }
+  &:hover {
+    filter: brightness(0.97);
+  }
 }
 
 .rof__origin-link-row {
@@ -192,7 +341,11 @@
   line-height: 1.5;
   color: var(--ui-color-text-secondary);
 
-  .pi { color: var(--ui-color-primary); flex: none; margin-top: 1px; }
+  .pi {
+    color: var(--ui-color-primary);
+    flex: none;
+    margin-top: 1px;
+  }
 }
 
 .rof__preview {
@@ -211,7 +364,15 @@
 .rof__radius-val {
   display: flex;
   align-items: baseline;
+  // The design puts the value and its caption on one line, which they do fit
+  // on in English. "Любое расстояние" + "Выберите радиус, чтобы
+  // отфильтровать" do not, inside a 300px desktop rail — they wrapped into
+  // two cramped columns pressed against each other. Letting the caption drop
+  // to its own line instead keeps both readable at every width the rail is
+  // ever rendered at, and changes nothing where the single line fits.
+  flex-wrap: wrap;
   gap: var(--ui-space-8);
+  row-gap: 2px;
   margin-bottom: var(--ui-space-8);
 }
 
@@ -220,6 +381,14 @@
   font-weight: var(--ui-font-weight-extrabold);
   letter-spacing: -0.02em;
   color: var(--ui-color-text-primary);
+}
+
+// "Any distance" is a label, not a measurement — the design sets it at 15px
+// against 22px for a chosen radius, so the eye reads a chosen radius as the
+// prominent value and this as the placeholder it is.
+.rof__radius-val--any .rof__radius-num {
+  font-size: 0.9375rem;
+  letter-spacing: 0;
 }
 
 .rof__radius-caption {
@@ -268,13 +437,33 @@
   &:disabled {
     cursor: not-allowed;
 
-    &::-webkit-slider-thumb { border-color: var(--ui-color-text-muted); box-shadow: none; }
-    &::-moz-range-thumb { border-color: var(--ui-color-text-muted); }
+    &::-webkit-slider-thumb {
+      border-color: var(--ui-color-text-muted);
+      box-shadow: none;
+    }
+    &::-moz-range-thumb {
+      border-color: var(--ui-color-text-muted);
+    }
   }
 
   &:focus-visible::-webkit-slider-thumb {
     outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
+  }
+}
+
+// No radius chosen: the thumb is grey, not orange (design section (a),
+// "Default · from home, no radius"). An orange thumb is this control's
+// "a radius is applied" signal everywhere else; wearing it at the floor
+// while nothing is filtered would be the same lie as printing "1 km".
+.rof__slider--any:not(:disabled) {
+  &::-webkit-slider-thumb {
+    border-color: var(--ui-color-text-muted);
+    box-shadow: none;
+  }
+
+  &::-moz-range-thumb {
+    border-color: var(--ui-color-text-muted);
   }
 }
 
@@ -294,9 +483,15 @@
 }
 
 .rof__preset {
-  padding: 6px 12px;
+  // Geometry from the design's `.fpill` (36px min-height, 6px 13px,
+  // 12.5px/700). The ACTIVE state already matched the board — `--secondary`
+  // with white text, not the orange — so nothing changed there.
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 6px 13px;
   border-radius: var(--ui-radius-pill);
-  font-size: 0.75rem;
+  font-size: 0.78125rem;
   font-weight: var(--ui-font-weight-bold);
   background: var(--ui-color-surface);
   border: 1px solid var(--ui-color-border);
@@ -304,7 +499,9 @@
   cursor: pointer;
   font-family: inherit;
 
-  &:hover { filter: brightness(0.97); }
+  &:hover {
+    filter: brightness(0.97);
+  }
 }
 
 .rof__preset--active {

@@ -9,11 +9,13 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { Store } from '@ngrx/store';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
+import { selectHomePoint } from '../../../auth/store/auth.selectors';
 import { ListingLocationMapComponent } from '../listing-location-map/listing-location-map.component';
 import { ListingsMapComponent } from '../listings-map/listings-map.component';
-import { LocationPickerComponent } from '../location-picker/location-picker.component';
+import { LocationPickerComponent } from '../../../../shared/ui/location-picker/location-picker.component';
 import { GeolocationService } from '../../../../shared/services/geolocation.service';
 import { LanguageService } from '../../../../shared/services/language.service';
 import { haversineDistanceKm } from '../../../../shared/utils/haversine-distance.utils';
@@ -168,6 +170,7 @@ export class ListingLocationComponent {
   private readonly languageService = inject(LanguageService);
   private readonly geolocationService = inject(GeolocationService);
   private readonly translate = inject(TranslateService);
+  private readonly store = inject(Store);
 
   /** Fed to `app-listings-map`'s `[activeListingId]` so THIS listing's own
    *  marker gets the continuous "this is your toy" bounce among all the
@@ -182,6 +185,18 @@ export class ListingLocationComponent {
   readonly title = input.required<string>();
   /** Cover photo for the Screen 2 plaque thumbnail; `null` renders no image. */
   readonly imageUrl = input<string | null>(null);
+  /**
+   * `true` when the signed-in viewer IS this listing's owner — suppresses the
+   * home-point distance row and the home marker entirely.
+   *
+   * The listing is at their own home point, so the row would read "≈ 0 m from
+   * your home / Measured from your home point": a true statement that tells
+   * them nothing and, on a shared or screenshared display, narrates their own
+   * address back at them. The live-location row is unaffected — if an owner
+   * deliberately clicks "My location" while out of the house, "how far am I
+   * from my toys" is a real question with a real answer.
+   */
+  readonly isOwnListing = input<boolean>(false);
 
   protected readonly circleRadiusMeters = APPROXIMATE_AREA_RADIUS_METERS;
   protected readonly mapZoom = DETAIL_MAP_ZOOM;
@@ -277,6 +292,82 @@ export class ListingLocationComponent {
    *  this feature — this component is not an exception to that. */
   protected readonly distanceDisplay = computed<string | null>(() => {
     const km = this.distanceKm();
+    if (km === null) return null;
+    return formatDistanceMeters(
+      kmToMeters(km),
+      localeTagForLanguage(this.languageService.current().code),
+      {
+        meters: this.translate.instant('listings.filters.distance.unitMeters'),
+        kilometers: this.translate.instant('listings.filters.distance.unitKilometers'),
+      },
+    );
+  });
+
+  // ── Home-point distance (approved design section (b), "From your home") ──
+  //
+  // This is the DEFAULT distance for a signed-in renter with a home point:
+  // the page already knows both coordinates, so it renders on arrival with no
+  // permission prompt and no request. The live-location row takes over the
+  // moment the renter asks for it (`userPin` set) — see `distanceMode`.
+  //
+  // **Why this is not gated on a chosen radius, unlike the catalogue cards.**
+  // The product decision of 2026-10-05 ("distance only once a radius is
+  // picked") is about what LEAVES the browser: a card's `distanceKm` is
+  // computed by the API, so showing it means sending the renter's home
+  // coordinates on every catalogue request. Here nothing is sent — both
+  // points are already on the device (the listing's published, already-fuzzed
+  // pin, and the renter's own home point from `/api/auth/me`), and the
+  // haversine runs locally, exactly as the live-location row has always done
+  // with a geolocation fix. Flagged in the delivery report as the one place
+  // the two rules meet.
+  private readonly homePoint = this.store.selectSignal(selectHomePoint);
+
+  /**
+   * The renter's own home point as a map marker — `null` for their own
+   * listing, for an anonymous visitor, and for a signed-in user with no
+   * point.
+   *
+   * Uses the EXACT stored coordinate (`HomePoint.latitude/longitude`), not
+   * the `publicLatitude/publicLongitude` pair. ADR-008's rule is about who
+   * may SEE an exact point, and the only viewer here is its owner; the public
+   * pair exists so other people see a cell centroid instead. Rendering the
+   * fuzzed version of your own home to yourself would misplace the marker by
+   * up to a cell width for no privacy gain, and nothing on this page sends
+   * either value anywhere.
+   */
+  protected readonly homeMarkerPin = computed<MapLatLng | null>(() => {
+    if (this.isOwnListing()) return null;
+    const home = this.homePoint();
+    return home ? { lat: home.latitude, lng: home.longitude } : null;
+  });
+
+  /** Client-side Haversine distance from the renter's home point to the
+   *  listing's published pin — same formula/seam as `distanceKm` above (the
+   *  backend's own, so a card badge and this row can never disagree). */
+  protected readonly homeDistanceKm = computed<number | null>(() => {
+    const p = this.pin();
+    const h = this.homeMarkerPin();
+    return p && h ? haversineDistanceKm(p, h) : null;
+  });
+
+  /**
+   * Which distance row renders, if any. The live fix WINS when present:
+   * asking for your location is a deliberate act with a specific question
+   * behind it ("how far am I, right now"), and answering it with a figure
+   * measured from your house instead would be the wrong answer to the
+   * question actually asked. `'none'` covers anonymous visitors, signed-in
+   * users with no home point, and the owner's own listing.
+   */
+  protected readonly distanceMode = computed<'live' | 'home' | 'none'>(() => {
+    if (this.userPin() !== null) return 'live';
+    return this.homeDistanceKm() !== null ? 'home' : 'none';
+  });
+
+  /** Formatted home distance, through the same locale-aware formatter every
+   *  other distance in this feature uses — one display convention, not two
+   *  (see `distanceDisplay`'s own doc comment). */
+  protected readonly homeDistanceDisplay = computed<string | null>(() => {
+    const km = this.homeDistanceKm();
     if (km === null) return null;
     return formatDistanceMeters(
       kmToMeters(km),

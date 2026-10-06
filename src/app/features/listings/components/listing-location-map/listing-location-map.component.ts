@@ -103,6 +103,11 @@ export class ListingLocationMapComponent {
    *  ONLY place that computes/holds this (same ownership split as `userPin`
    *  itself, per the class doc comment); this component just renders it. */
   readonly userAccuracyMeters = input<number | null>(null);
+  /** The signed-in viewer's OWN home point — passed through to the wrapped
+   *  map's `[homePin]` so this full-screen view shows the same landmarks as
+   *  the card map it expands (its whole premise is "the same place, bigger").
+   *  Never the listing owner's point — ADR-008. */
+  readonly homePin = input<MapLatLng | null>(null);
   /** Pre-formatted (already localized/rounded) distance string for
    *  interpolation into the `distanceFromYou` translation key — computed
    *  once by `ListingLocationComponent` so both map surfaces show the exact

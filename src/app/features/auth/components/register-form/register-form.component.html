@@ -1,81 +1,178 @@
+<!-- Two-step indicator. Both steps are always shown — step 2 is skippable, not
+     conditional, so hiding it would misrepresent how long sign-up is. -->
+<ol
+  class="auth-steps"
+  [attr.aria-label]="'auth.register.stepsAriaLabel' | translate"
+>
+  <li
+    class="auth-steps__step"
+    [class.auth-steps__step--active]="step() === 1"
+    [class.auth-steps__step--done]="step() === 2"
+    [attr.aria-current]="step() === 1 ? 'step' : null"
+  >
+    <span class="auth-steps__num" aria-hidden="true">
+      @if (step() === 2) {
+        <i class="pi pi-check"></i>
+      } @else {
+        1
+      }
+    </span>
+    {{ 'auth.register.stepAccount' | translate }}
+  </li>
+  <span class="auth-steps__sep" aria-hidden="true"></span>
+  <li
+    class="auth-steps__step"
+    [class.auth-steps__step--active]="step() === 2"
+    [attr.aria-current]="step() === 2 ? 'step' : null"
+  >
+    <span class="auth-steps__num" aria-hidden="true">2</span>
+    {{ 'auth.register.stepHomePoint' | translate }}
+  </li>
+</ol>
+
+<!-- The banner is suppressed for the two codes the form handles in place: a
+     duplicate email becomes a field error back on step 1, and a point outside
+     Yerevan becomes the red inline message under the map. Printing both would
+     say the same thing twice, in two voices. -->
 @if (error$ | async; as error) {
-  <p-message severity="error" styleClass="auth-form__message--error">
-    <div class="auth-form__error-content">
-      <strong>{{ 'auth.register.errorTitle' | translate }}</strong>
-      <span>{{ error }}</span>
-    </div>
-  </p-message>
+  @if (!serverOutsideYerevan() && !hasError('email', 'emailTaken')) {
+    <p-message severity="error" styleClass="auth-form__message--error">
+      <div class="auth-form__error-content">
+        <strong>{{ 'auth.register.errorTitle' | translate }}</strong>
+        <span>{{ error }}</span>
+      </div>
+    </p-message>
+  }
 }
 
-<form class="auth-form" [formGroup]="registerForm" (ngSubmit)="submit()">
-  <app-ui-input
-    type="text"
-    formControlName="firstName"
-    [label]="'auth.form.firstName' | translate"
-    [placeholder]="'auth.form.firstNamePlaceholder' | translate"
-    autocomplete="given-name"
-    [disabled]="(isLoading$ | async) ?? false"
-    [errorMessage]="hasError('firstName', 'required') ? ('auth.validation.firstNameRequired' | translate) : null"
-  />
-  <app-ui-input
-    type="text"
-    formControlName="lastName"
-    [label]="'auth.form.lastName' | translate"
-    [placeholder]="'auth.form.lastNamePlaceholder' | translate"
-    autocomplete="family-name"
-    [disabled]="(isLoading$ | async) ?? false"
-    [errorMessage]="hasError('lastName', 'required') ? ('auth.validation.lastNameRequired' | translate) : null"
-  />
+<form class="auth-form" [formGroup]="registerForm" (ngSubmit)="continueToHomePoint()" novalidate>
+  <!-- Step 1 is HIDDEN, not destroyed: a rejected email walks the user back
+       here and every other value has to still be in the form when they arrive. -->
+  <div class="auth-form__step" [class.auth-form__step--hidden]="step() !== 1">
+    <app-ui-input
+      type="text"
+      formControlName="firstName"
+      [label]="'auth.form.firstName' | translate"
+      [placeholder]="'auth.form.firstNamePlaceholder' | translate"
+      autocomplete="given-name"
+      [disabled]="(isLoading$ | async) ?? false"
+      [errorMessage]="hasError('firstName', 'required') ? ('auth.validation.firstNameRequired' | translate) : null"
+    />
+    <app-ui-input
+      type="text"
+      formControlName="lastName"
+      [label]="'auth.form.lastName' | translate"
+      [placeholder]="'auth.form.lastNamePlaceholder' | translate"
+      autocomplete="family-name"
+      [disabled]="(isLoading$ | async) ?? false"
+      [errorMessage]="hasError('lastName', 'required') ? ('auth.validation.lastNameRequired' | translate) : null"
+    />
 
-  <app-ui-input
-    type="tel"
-    formControlName="phoneNumber"
-    [label]="'auth.form.phoneNumber' | translate"
-    [placeholder]="'auth.form.phoneNumberPlaceholder' | translate"
-    autocomplete="tel"
-    [required]="true"
-    [disabled]="(isLoading$ | async) ?? false"
-    [errorMessage]="phoneErrorKey() ? (phoneErrorKey() | translate) : null"
-  />
+    <app-ui-input
+      type="tel"
+      formControlName="phoneNumber"
+      [label]="'auth.form.phoneNumber' | translate"
+      [placeholder]="'auth.form.phoneNumberPlaceholder' | translate"
+      autocomplete="tel"
+      [required]="true"
+      [disabled]="(isLoading$ | async) ?? false"
+      [errorMessage]="phoneErrorKey() ? (phoneErrorKey() | translate) : null"
+    />
 
-  <app-ui-input
-    type="email"
-    formControlName="email"
-    [label]="'auth.form.email' | translate"
-    [placeholder]="'auth.form.emailPlaceholder' | translate"
-    autocomplete="email"
-    [disabled]="(isLoading$ | async) ?? false"
-    [errorMessage]="hasError('email', 'required') ? ('auth.validation.emailRequired' | translate) : hasError('email', 'email') ? ('auth.validation.emailInvalid' | translate) : null"
-  />
+    <div (input)="onEmailInput()">
+      <app-ui-input
+        type="email"
+        formControlName="email"
+        [label]="'auth.form.email' | translate"
+        [placeholder]="'auth.form.emailPlaceholder' | translate"
+        autocomplete="email"
+        [disabled]="(isLoading$ | async) ?? false"
+        [errorMessage]="emailErrorKey() ? (emailErrorKey() | translate) : null"
+      />
+    </div>
 
-  <app-ui-input
-    type="password"
-    formControlName="password"
-    [label]="'auth.form.password' | translate"
-    [placeholder]="'auth.form.passwordPlaceholder' | translate"
-    autocomplete="new-password"
-    [disabled]="(isLoading$ | async) ?? false"
-    [hint]="'auth.register.passwordHint' | translate"
-    [errorMessage]="passwordErrorKey() ? (passwordErrorKey() | translate) : null"
-  />
+    <app-ui-input
+      type="password"
+      formControlName="password"
+      [label]="'auth.form.password' | translate"
+      [placeholder]="'auth.form.passwordPlaceholder' | translate"
+      autocomplete="new-password"
+      [disabled]="(isLoading$ | async) ?? false"
+      [hint]="'auth.register.passwordHint' | translate"
+      [errorMessage]="passwordErrorKey() ? (passwordErrorKey() | translate) : null"
+    />
 
-  <p-button
-    type="submit"
-    styleClass="auth-form__submit-button"
-    [loading]="(isLoading$ | async) ?? false"
-    [disabled]="(isLoading$ | async) ?? false"
-    [label]="'auth.register.submit' | translate"
-  />
+    <p-button
+      type="submit"
+      styleClass="auth-form__submit-button"
+      [disabled]="(isLoading$ | async) ?? false"
+      [label]="'auth.register.continue' | translate"
+    />
+  </div>
+
+  <!-- Step 2 — home point. Rendered only while it is the active step so the
+       map is never mounted (and never asks for a tile) before it is seen. -->
+  @if (step() === 2) {
+    <div class="auth-form__step auth-home">
+      <h3 class="auth-home__title">{{ 'auth.register.home.title' | translate }}</h3>
+      <p class="auth-home__lead">
+        <i class="pi pi-shield" aria-hidden="true"></i>
+        <span>{{ 'auth.register.home.lead' | translate }}</span>
+      </p>
+
+      <div class="auth-home__map">
+        <app-home-point-map height="100%" (selectionChange)="onHomeSelectionChange($event)" />
+      </div>
+
+      <app-home-point-status
+        [selection]="homeSelection()"
+        [serverOutsideYerevan]="serverOutsideYerevan()"
+      />
+
+      <div class="auth-home__actions">
+        <p-button
+          type="button"
+          styleClass="auth-form__submit-button"
+          [loading]="(isLoading$ | async) ?? false"
+          [disabled]="!canCreateWithPoint() || ((isLoading$ | async) ?? false)"
+          [label]="'auth.register.submit' | translate"
+          (onClick)="submitWithHomePoint()"
+        />
+        <!-- Always enabled, even in the error states: renting needs no home
+             point, and refusing to let someone finish because their map pin is
+             in the wrong city would be absurd. -->
+        <button
+          type="button"
+          class="auth-home__skip"
+          [disabled]="(isLoading$ | async) ?? false"
+          (click)="submitWithoutHomePoint()"
+        >
+          {{ 'auth.register.home.skip' | translate }}
+        </button>
+        <button type="button" class="auth-home__back" (click)="backToAccount()">
+          <i class="pi pi-chevron-left" aria-hidden="true"></i>
+          {{ 'auth.register.back' | translate }}
+        </button>
+      </div>
+
+      <p class="auth-home__later">
+        <i class="pi pi-info-circle" aria-hidden="true"></i>
+        <span>{{ 'auth.register.home.later' | translate }}</span>
+      </p>
+    </div>
+  }
 </form>
 
-<p class="auth-form__switch">
-  {{ 'auth.register.haveAccount' | translate }}
-  <button type="button" class="auth-form__switch-btn" (click)="switchMode.emit()">
-    {{ 'auth.register.goToLogin' | translate }}
-  </button>
-</p>
+@if (step() === 1) {
+  <p class="auth-form__switch">
+    {{ 'auth.register.haveAccount' | translate }}
+    <button type="button" class="auth-form__switch-btn" (click)="switchMode.emit()">
+      {{ 'auth.register.goToLogin' | translate }}
+    </button>
+  </p>
 
-<div class="auth-form__trust">
-  <i class="pi pi-shield" aria-hidden="true"></i>
-  <span>{{ 'auth.register.trustNote' | translate }}</span>
-</div>
+  <div class="auth-form__trust">
+    <i class="pi pi-shield" aria-hidden="true"></i>
+    <span>{{ 'auth.register.trustNote' | translate }}</span>
+  </div>
+}

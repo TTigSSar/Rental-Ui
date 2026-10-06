@@ -56,44 +56,82 @@ bundle is indistinguishable from a fresh one by eye. Rules:
 
 ### Real-tier rate-limit budgets (M-044 — read before re-running `--project=real` back-to-back)
 
-Two of `rental-api`'s per-IP rate-limit policies are shared, whole-suite resources for a
-`--project=real` run — every Playwright request reaches the docker API as ONE client IP, so
-"5/minute" means 5 for the entire run, not 5 per spec file:
+`rental-api` rate-limits its sensitive auth endpoints per client IP, and in a `--project=real` run
+those budgets are whole-suite resources: "5/minute" means 5 for the entire run, not 5 per spec
+file.
 
-- **`auth` (login) — `POST /api/auth/login`, 5/minute.** `support/real-stack.ts` caches a JWT per
-  account per run (`apiLogin`/`loginViaDialog`) to keep demand down, but the suite still needs
-  **~6 real logins per full run**: 3 from the first use of each cached account
-  (`owner`/`renter`/`admin`, shared across several spec files) plus 3 from
-  `real/change-password.spec.ts`, which cannot be cached — one is that account's own first
-  sign-in, and the other two (old password rejected, new password accepted) only mean something
-  as genuine, uncached login attempts.
-- **`password-change` — `PUT /api/auth/me/password`, 5/minute, a SEPARATE bucket from `auth`.**
-  Only `real/change-password.spec.ts` uses this endpoint, spending **3 per run**: the change
-  itself (through the real UI), restoring the seeded password afterward, and a verification probe
-  that confirms the restore actually took — both the restore and the probe route through this
-  endpoint specifically so they cost nothing against the scarcer `auth` bucket. 3 of 5 leaves
-  headroom; this bucket is not the tight one.
+**There are TWO `auth` buckets, not one — 5/minute each.** `AuthPolicy` (login AND register)
+partitions on `context.Connection.RemoteIpAddress` (`RateLimiterExtensions.ResolveClientKey`), and
+`ForwardedHeaders` is not enabled in `rental-api/docker-compose.yml` (nginx sets only `X-Real-IP`,
+which nothing reads), so the API sees two different clients:
 
-**One full `npx playwright test --project=real` run fits inside both windows. A second
-back-to-back run does not fit the `auth` window.** Its fixed window is anchored to the first
-login of the run, not to each spec file, so two immediate full runs land more than 5 logins
-inside 60 seconds and the second run 429s partway through — and because the budget is shared, the
-429 can land on ANY spec still needing a fresh login, not just the one that pushed the count over.
-This is a deliberate, accepted property of the suite (see the M-044 entry in
-`knowledge/mistakes.md`), not something to fix with sleeps or retries in the tests.
+| Bucket | Who lands in it | What the API sees |
+|---|---|---|
+| **`direct`** | Node-side `APIRequestContext` calls to `API_URL` (`:8080`) — `apiLogin`, `apiRegister`, a spec's own `request.post('/api/auth/login')` | the host loopback address |
+| **`proxied`** | every browser-originated request: the docker UI bundle is same-origin (`environment.prod.ts` `apiBaseUrl: ''`) and reaches the API through nginx's `location /api/` `proxy_pass` | the **UI container's** address |
 
-`support/real-stack.ts` exports a 429 guard for each bucket — `assertLoginNotRateLimited` for
-`POST /api/auth/login` (used by `apiLogin`/`loginViaDialog`) and
-`assertPasswordChangeNotRateLimited` for `PUT /api/auth/me/password` (used by
-`change-password.spec.ts`'s restore/verify calls) — and both fail immediately with an explicit
-message naming the cause instead of surfacing as a generic timeout, or worse, a misleading
-"restore failed" downstream. If you see either message, wait ~60 seconds for the window to clear
-and re-run; it is not a flake and not a code regression. Note that even a genuinely unrestored
-demo password is not data loss: `DevelopmentSeedRunner` resets every demo account's password hash
-back to `Demo1234` on the next API startup whenever it no longer matches, so restarting the docker
-`api` service also fixes it.
+Measured directly against the running stack (2026-10-05): five `POST /api/auth/login` calls to
+:8080 exhausted that bucket (the 6th answered 429) while the very next login through :4200
+returned 200, and so did the one after it.
 
-Measured (2026-09-26, after `real/change-password.spec.ts` was added — 13 real-tier tests total):
+This supersedes the single-bucket accounting M-044 and this file carried until 2026-10-05, which
+both understated the suite's capacity (5, when it is 10) and hid a real hazard: *which* bucket an
+account's one cached login spent depended on which call site happened to warm the cache first.
+`owner@` was warmed either by `releaseListingForRenter`'s self-heal (`direct`, and only when a
+previous run had left a booking behind) or by `loginViaDialog` (`proxied`) — so the suite's
+per-bucket demand changed with the contents of the dev DB, and the `direct` side could reach 5 of
+5 with no headroom and then 429 in whichever spec needed a login next. `AUTH_BUCKET_BY_EMAIL` in
+`support/real-stack.ts` now fixes the bucket per account in one place, under the rule *"a
+Node-side helper login spends the same bucket that account's own UI login would"*, so warming
+order can no longer move the budget.
+
+**One full run spends 8 auth calls: 4 of 5 in each bucket.** Measured, not derived — run
+`E2E_AUTH_DEBUG=1 npx playwright test --project=real` and `noteAuthSpend` prints every auth call
+with its bucket and that bucket's running total:
+
+| # | Call | Bucket | Why it cannot be cached away |
+|---|---|---|---|
+| 1 | `apiLogin renter@` — booking-lifecycle's language self-heal | `proxied` | first use of the account; `loginViaDialog` later reuses the cached JWT |
+| 2 | `loginViaDialog owner@` — booking-lifecycle | `proxied` | first use of the account |
+| 3 | `loginViaDialog user2@` — change-password | `proxied` | first use of the account |
+| 4 | `POST /api/auth/register` — home-point-journey's throwaway OWNER, through the real sign-up dialog | `proxied` | a register is structurally uncacheable: the account does not exist yet |
+| 5 | `apiLogin admin@` — home-point-journey's approve step | `direct` | first use of the account; no real spec signs the admin in through the dialog |
+| 6 | `apiRegister` — home-point-journey's throwaway RENTER | `direct` | as #4 |
+| 7 | change-password's old-password-rejected probe (expects 401) | `direct` | only means anything as a genuine, uncached login |
+| 8 | change-password's new-password-accepted probe (expects 200) | `direct` | the other half of that pair |
+
+The four seeded demo accounts therefore cost one login each for the whole run — that is the
+per-account JWT cache in `support/real-stack.ts`, which only pays off because the `real` project
+is pinned to `workers: 1` (see `playwright.config.ts`) — and the two registers plus the two
+deliberate probes are the irreducible remainder.
+
+**`password-change` — `PUT /api/auth/me/password`, 5/minute, a THIRD and separate bucket.** Only
+`real/change-password.spec.ts` uses this endpoint, spending **3 per run**: the change itself
+(through the real UI), restoring the seeded password afterward, and a verification probe that
+confirms the restore actually took — both the restore and the probe route through this endpoint
+specifically so they cost nothing against the scarcer `auth` buckets. 3 of 5 leaves headroom; this
+bucket is not the tight one.
+
+**One full `npx playwright test --project=real` run fits inside every window. A second
+back-to-back run does not.** Each window is fixed and ~60s wide, so two immediate full runs land
+more than 5 calls of a bucket inside one window and the second run 429s partway through — and
+because the budget is shared, the 429 can land on ANY spec still needing a fresh login, not just
+the one that pushed the count over. **Leave ~60 seconds between full runs.** This is a
+deliberate, accepted property of the suite (see the M-044 entry in `knowledge/mistakes.md`), not
+something to fix with sleeps or retries in the tests.
+
+`support/real-stack.ts` exports a 429 guard for each bucket — `assertLoginNotRateLimited` for the
+`auth` endpoints (used by `apiLogin`/`apiRegister`/`loginViaDialog` and by change-password's two
+probes) and `assertPasswordChangeNotRateLimited` for `PUT /api/auth/me/password` — and both fail
+immediately with an explicit message naming the cause instead of surfacing as a generic timeout,
+or worse, a misleading "restore failed" downstream. If you see either message, wait ~60 seconds
+for the window to clear and re-run; it is not a flake and not a code regression. Note that even a
+genuinely unrestored demo password is not data loss: `DevelopmentSeedRunner` resets every demo
+account's password hash back to `Demo1234` on the next API startup whenever it no longer matches,
+so restarting the docker `api` service also fixes it.
+
+Measured (2026-09-26, 13 real-tier tests, under the old single-bucket accounting — kept because
+the cascade it shows is still exactly what an exhausted bucket looks like):
 
 | Run | Result |
 |---|---|
@@ -101,6 +139,20 @@ Measured (2026-09-26, after `real/change-password.spec.ts` was added — 13 real
 | 2nd (started immediately after the 1st) | 12/13 — `change-password.spec.ts` 429s on its login check |
 | 3rd (started immediately after the 2nd) | 9/13 — cascades into `booking-lifecycle`, `language-persistence`, `map-pins-privacy` too, none of which touch the account `change-password.spec.ts` uses |
 | 4th (started ~65s after the 3rd) | 13/13 passed again (25.7s) |
+
+Re-measured (2026-10-05, 16 real-tier tests, after `home-point-journey.spec.ts` gained its own
+per-run renter and the two buckets were separated and pinned). Both runs were on the
+**accumulated** docker DB, with the 60-second gap between them as part of the procedure:
+
+| Run | Result | Auth spend |
+|---|---|---|
+| 1st | 16/16 passed (26.9s) | `proxied` 4/5, `direct` 4/5 |
+| 2nd (started ~2.5min after the 1st, with a full `npm run e2e` in between) | 16/16 passed (26.7s) | `proxied` 4/5, `direct` 4/5 |
+
+Both runs were against a docker DB carrying 12 previous runs' worth of state (`renter@` at 33
+notifications, 12 of them `Pickup`; 12 leftover `qa.home.point.*` owner accounts), and `renter@`'s
+`Pickup` count did not move across either of them — the home-point journey now notifies its own
+per-run renter, so that account is no longer an input to any assertion.
 
 ## Coverage map — critical journeys (2026-07-24)
 
@@ -112,7 +164,8 @@ Layers: **U** = unit (vitest / xUnit), **M** = mocked Playwright, **R** = real-s
 | Change password (ADR-021, `PUT /api/auth/me/password`) | U: xUnit `Auth/AuthServiceTests.cs` + `Api/ChangePasswordHttpTests.cs`, `security-page.component.spec.ts` · M: `profile-security.spec.ts` — reaches `/profile/security` from a settings row, forced 400 `auth.invalid_current_password` lands as a field error not a banner, forced 429 lands as the banner · **R: `real/change-password.spec.ts`** — changes the seeded `user2@rental.local` password through the real UI, then proves the pair the mock cannot: the old password is rejected (401) and the new one accepted by a real login, session survives the change (ADR-021 §5/6), seeded credential restored + verified in `finally` | register/blocked-user interaction with this endpoint not e2e-covered (unit-only: `AuthService.ChangePasswordAsync`'s blocked/external-provider branches) |
 | Listing discovery (browse, filter, details) | U: store/selector specs, `listings-api.service.spec.ts` (param serialization) · M: `listings.smoke.spec.ts` render + favorite toggle, **`listing-details.spec.ts`** (review-aggregate 0.0-rating gate, gallery mosaic degradation at 1/7 images, lightbox open/Escape/focus a11y, highlights band / compensation spec tile "Not specified" state / breadcrumb category absence when their data is absent), **`listing-contact-privacy.spec.ts`** (owner phone number never renders at any booking status — Pending/Approved/Active/Completed — on details, the booking page, or the confirmation screen; the chat notice that replaced the old padlock copy is asserted present instead) · **R: `real/listings-search-filter.spec.ts`** — proves `?search=` actually narrows the real backend result set (regression for the search contract-drift bug, sibling of M-020) | age-group and distance filters have backend xUnit coverage (`ListingsQueryServiceFilterTests.cs`) and frontend param-serialization unit coverage, but no R spec — distance depends on `navigator.geolocation` (flaky in CI); pagination not e2e-covered at any layer; lightbox Escape-to-close is a confirmed bug (`closeOnEscape` silently defeated by `closable=false` in PrimeNG's `Dialog.bindGlobalListeners()`) tracked by an intentionally-failing `test.fail()` case in `listing-details.spec.ts` until fixed |
 | Loss & damage compensation (`CompensationAmount`, renamed from `DepositAmount`) | U: `ListingCompensationAmountValidationTests.cs` (create required + range, update optional + range), `ListingsOwnerServiceTests.cs` (update omitted → unchanged, update changed → no re-moderation) · `create-listing-form.component.spec.ts` (required/range on submit, edit-mode Save-stays-enabled-and-jumps-to-step-3 regression, real-`p-inputNumber` not-silently-clamped regression) · M: `listing-details.spec.ts` (null state — spec tile shows "Not specified", still rendered) · **`listing-compensation-journey.spec.ts`** — a set amount renders identically across the details page's specs-quad tile, pickup/delivery row and protection card, then follows the real "Request to rent" CTA into the booking page and checks the compensation row (excluded from the total, "How this works" popover opens/closes) | populated-state rendering has no dedicated component-unit coverage on `listing-details-page.component.ts` / `listing-booking-page.component.ts` themselves (only the mocked e2e above) — a gap for frontend-dev to close, not re-tested here to avoid duplicating the same behaviour at two layers with no stated risk; no R (real-stack) coverage of the display surfaces, only of create-time persistence (see `real/create-listing-photo-upload.spec.ts`, which now also fills the required field and would fail if the real backend stopped round-tripping it) |
-| Listing location (pin picker, approximate-map tap-to-load, districts) | U: `ListingDetailCoordinatePrivacyTests`/`ListingDetailAddressRevealTests` (xUnit, privacy gate) · M: `create-listing-location.spec.ts` (Step 3 pin → request body), `listing-location.spec.ts` (district/city text, tap-to-load map, no-coordinates fallback) | R: no real-stack coverage yet (real geohash fuzzing / district derivation only unit-tested); district-select override in the wizard not e2e-covered |
+| Listing location (approximate-map tap-to-load, districts) | U: `ListingDetailCoordinatePrivacyTests`/`ListingDetailAddressRevealTests` (xUnit, privacy gate) · M: `create-listing-location.spec.ts` (step 3 is a read-only pickup-area card; the create payload carries none of the five removed fields; the no-home-point gate), `listing-location.spec.ts` (district/city text, tap-to-load map, no-coordinates fallback) · **R: `real/home-point-journey.spec.ts`** (see the row below — a listing has no location of its own any more, so this journey IS the listing-location coverage) | the per-listing pin picker no longer exists (home-point model); district override in the wizard is gone with it |
+| **Home point (ADR-008 privacy model, home-point rework)** — one point per user, every listing inherits it | U: xUnit `HomePointServiceTests`, `HomePointRegistrationTests`, `HomePointHttpTests`, `HomePointCoordinatePrivacyTests`, `AddUserHomePointMigrationTests`, `PickupAreaChangedCopyTests` (SQLite) · `home-point-map.component.spec.ts`, `pickup-area-card.component.spec.ts`, auth/listings store specs · M: `auth-register-home.spec.ts` (the point travels in the one register request; Skip sends neither half), `profile-home-point.spec.ts` (Change → picker → "moves N toys" confirmation → PUT body; Cancel sends nothing), `create-listing-location.spec.ts` (the gate, the read-only card, the 409 re-raising the gate) · **R: `real/home-point-journey.spec.ts`** — registers a throwaway owner through the real two-step sign-up, pins the point to a documented constant, publishes through the real wizard, and then proves what no cheaper layer can: the snapped public pair and district are derived by the real `GeohashSnapper` + OSM boundary asset onto real `decimal(9,6)` columns; the anonymous listing payload, the anonymous map pin and the public profile never carry the exact pair; a move relocates BOTH of that owner's listings (Approved and PendingApproval) with no status change; the renter holding an in-flight booking gets a `Pickup` notification rendered in THEIR language while an uninvolved account gets nothing; an out-of-Yerevan write is refused 400 `auth.home_point_outside_yerevan` and changes nothing; an M-038 legacy owner whose stored point is outside Yerevan (constructed in the DB via `runDockerDbSql`, because the API can no longer produce such a row) can still edit and archive; publishing with no home point is 409 `listing.home_point_required`; `GET /api/districts/at` answers anonymously and its `null` agrees with what the write side refuses | the home-point MOVE is driven through `PUT /api/auth/me/home-point`, not the profile card's UI (a drag cannot guarantee a different geohash cell or district, which is what the notification trigger depends on — the card's own wire behaviour is pinned in `profile-home-point.spec.ts`); `DELETE /api/auth/me/home-point` and its 409 `auth.home_point_in_use` are unit-only; the renter-side "From your home" distance origin (ADR-015 3-decimal rounding, nothing sent until a radius is picked) has no R coverage |
 | Map view (catalog, Maps P2-2: List/Map toggle, pin clustering, popups) | U: `listings-map.component.spec.ts` (real `app-map` + mocked Leaflet — grouping, 400ms viewport debounce, fitPins discipline, 150ms popup grace, truncated banner), xUnit `ListingMapPinsQueryServiceTests` + HTTP `ListingMapPinsHttpTests` (query-string binding, 400 on `minLng>maxLng`, wire shape) · **M: `listings-map.spec.ts`** — real Leaflet: toggle/URL/reload, N-coordinates-to-N-balls incl. the same-coordinate collapse (1 ball, 2 stacked popups), real-DOM hover popup + its `/listings/:id` link, the 150ms close-grace reachability, filter query-params re-attached on refetch | no real-stack (R) coverage of the map UI itself (privacy property is R-covered API-side, see `real/map-pins-privacy.spec.ts`); per-group uncertainty circles have no app-owned CSS hook so their render isn't asserted at any browser layer — see that spec's own doc comment |
 | Booking request + lifecycle (Pending→Approved→Active→Completed) | U: xUnit `BookingsService` transition tests (SQLite) · M: **`listing-booking.spec.ts`** — the `note` field actually reaches the `POST /api/bookings` body (trimmed, whitespace-only → `null`), the confirmation echoes it back, `booking.note_too_long` renders translated (not the raw backend title), and a booked day renders disabled and un-selectable in the real calendar (regression for the `bookedDates`/`bookedDateRanges` field-rename bug) · **R: `real/booking-lifecycle.spec.ts` — full journey, both parties; the owner's phone number is asserted absent at every stage (Pending/Approved/Active/Completed), the booking's chat thread is asserted reachable from the confirmation screen, and the pickup address line is asserted to unlock at Approved+ — the one contact-reveal gate the product kept** | Rejected / Cancelled / Expired paths not e2e-covered (unit-only); real-stack coverage of the chat thread stops at "the thread is reachable and named correctly" — sending/receiving messages, SignalR realtime delivery, and the mocked-tier's own "Message {owner}" smoke check (POST fires, URL changes) are the only other chat coverage; the chat feature's messaging itself is still a largely uncovered journey (see the Chat row below) |
 | Role boundaries renter/owner/admin | U: xUnit authorization tests · M: adminGuard admits seeded admin · R: owner-only handover/complete CTAs asserted for both roles | no R coverage for admin vs API (e.g. non-admin hitting /admin), blocked-user writes |
@@ -137,7 +190,13 @@ stays re-runnable because:
 
 1. **Seed invariants only** — fixed listing GUID (`Wooden Toy Kitchen Set`,
    owned by `owner@rental.local`), demo accounts, seeded owner phone. No
-   volatile data.
+   volatile data. Coordinates are a seed invariant too, but they now belong to
+   the OWNER, not the listing: `TOY_KITCHEN.exactLatitude/exactLongitude` in
+   `support/real-stack.ts` is `owner@rental.local`'s seeded home point
+   (`DevelopmentSeedData.HomePoints.Kentron`), and every listing of that owner
+   reads back the same pair. Moving that one seeded point moves all of them, so
+   the constants are documented together with the geohash-7 centroid they
+   derive to.
 2. **Collision-free windows** — the rental window starts two months out on a
    day derived from the run timestamp; and every booking the spec creates is
    driven to `Completed`, which is terminal and never blocks future ranges
@@ -149,6 +208,44 @@ stays re-runnable because:
 
 If a journey ever needs data the seed cannot guarantee, extend the dev seed
 (spec it for backend-dev) — do not build workarounds on volatile state.
+
+**One journey owns its own accounts instead.** `real/home-point-journey.spec.ts`
+registers a throwaway OWNER *and* a throwaway RENTER per run (timestamped
+emails) rather than mutating seeded ones, because its subject IS mutating a
+user:
+
+- the owner, because moving a home point rewrites every listing that user owns,
+  and doing that to `owner@rental.local` would move the `TOY_KITCHEN` pin that
+  `map-pins-privacy.spec.ts` and this file's own documented constants depend on;
+- the renter, because the assertion it exists for is *"the move emitted exactly
+  ONE `Pickup` notification to the renter holding a booking"*, and on a shared
+  seeded account that is a statement about accumulated state. It used to borrow
+  `renter@`, which is a recipient of the dev seed's own home-point fan-out and
+  of every previous run's bookings, so the count had to be a delta — and then
+  the delta silently stopped working: `GET /api/notifications` is cursor-
+  paginated at 20 items, `renter@` crossed 20, and a newly emitted `Pickup`
+  began pushing an older item off the bottom of the page instead of changing
+  the in-page count. The app was right (11 `Pickup` rows existed, 8 were
+  visible) and the test was wrong. A renter registered by the run holds zero
+  notifications, which makes the assertion absolute and immune to accumulation;
+  `getAllNotifications` in that spec additionally walks `nextCursor` to the end
+  and cross-checks the walked count against the feed's own `counts.all`, so a
+  partial read can never again read as a smaller count. Borrowing `renter@`
+  also meant driving it to Russian and restoring English in a `finally` a
+  hard-killed run would skip; a throwaway renter is simply left on `ru`.
+
+Both accounts' listings are archived and the booking cancelled in `afterEach`;
+the account rows are deliberately left behind (owning nothing visible) rather
+than hand-walking FK cascades to delete them.
+
+**One fixture, and only one, bypasses the API.** `runDockerDbSql` in
+`support/real-stack.ts` runs a statement against the docker SQL Server through
+`docker compose exec`. It exists for a single class of fixture: a row the API
+can no longer produce. M-038 keeps pre-existing out-of-Yerevan home points
+working while refusing every new one, so "a legacy owner can still edit and
+archive" is untestable through the API alone. It is a fixture tool, never an
+assertion tool — assertions go through the API, so what is proven is what a
+real client sees — and it writes only to rows the calling spec created itself.
 
 ## Flaky policy
 

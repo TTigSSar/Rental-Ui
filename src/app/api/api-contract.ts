@@ -1,6 +1,9 @@
 import { environment } from '../../environments/environment';
 
-type ApiPath = `/${string}`;
+// Exported so the real-stack conformance spec (e2e/real/api-contract-conformance.spec.ts)
+// can type its path-function invocations — it already imported this type; the missing
+// `export` was a latent type error that only Playwright's transpile-only run hid.
+export type ApiPath = `/${string}`;
 
 const normalizedBaseUrl = environment.apiBaseUrl.replace(/\/+$/, '');
 
@@ -15,6 +18,14 @@ export const ApiContract = {
     currentUser: '/api/auth/me',
     updatePreferredLanguage: '/api/auth/me/preferred-language',
     changePassword: '/api/auth/me/password',
+    // Home-point model: PUT saves/moves the signed-in user's single home point
+    // (and, server-side, relocates every listing they own); DELETE clears it.
+    // Both [Authorize] + per-account rate limited, both return the full
+    // `CurrentUserResponse` — see AuthController.UpdateHomePoint/ClearHomePoint.
+    // DELETE answers 409 `auth.home_point_in_use` while the user still owns
+    // listings; PUT answers 400 `auth.home_point_outside_yerevan` for a pin
+    // outside the 12 Yerevan districts.
+    homePoint: '/api/auth/me/home-point',
     external: '/api/auth/external',
   },
   listings: {
@@ -39,6 +50,15 @@ export const ApiContract = {
   },
   districts: {
     root: '/api/districts',
+    // "Which Yerevan district is this coordinate in?" — the live readout under a
+    // dragging map pin. [AllowAnonymous] by necessity (the sign-up wizard asks
+    // before the account exists) and rate-limited per IP. `lat`/`lng` are
+    // appended as query params via HttpParams by the caller, same convention as
+    // `listings.root`. A point outside every district is a 200 with
+    // `district: null` — that null is the only "this pin cannot be saved"
+    // signal; there is deliberately no `inArmenia` flag. See
+    // DistrictsController.GetAt / DistrictAtResponse.
+    at: '/api/districts/at',
   },
   favorites: {
     root: '/api/favorites',

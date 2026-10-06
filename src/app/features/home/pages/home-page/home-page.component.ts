@@ -23,8 +23,9 @@ import type { MapLatLng, MapMarkerGroup } from '../../../../shared/ui/map/map.co
 import { AuthDialogComponent } from '../../../auth/components/auth-dialog/auth-dialog.component';
 import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 import { selectFavoriteIds } from '../../../favorites/store/favorites.selectors';
-import { YEREVAN_CENTER } from '../../../listings/components/location-picker/location-picker.component';
+import { YEREVAN_CENTER } from '../../../../shared/ui/map/map.constants';
 import type { ListingCategoryOption } from '../../../listings/models/create-listing.model';
+import type { ListingDistrict } from '../../../listings/models/district.model';
 import { kmToMeters } from '../../../listings/models/radius-scale.util';
 import * as ListingsActions from '../../../listings/store/listings.actions';
 import {
@@ -35,7 +36,7 @@ import { ListingCardComponent } from '../../../listings/components/listing-card/
 import { MyListingsApiService } from '../../../my-listings/services/my-listings-api.service';
 import type { HomeSectionResponse } from '../../models/home-section.model';
 import { HomeNearbyActions, HomeSectionsActions } from '../../store/home.actions';
-import type { HomeNearbyState } from '../../store/home.state';
+import { HOME_NEARBY_DEFAULT_RADIUS_KM, type HomeNearbyState } from '../../store/home.state';
 import {
   selectHomeNearby,
   selectHomeSections,
@@ -91,6 +92,15 @@ interface HeroMapViewModel {
   readonly center: MapLatLng;
   readonly userPin: MapLatLng | null;
   readonly userAccuracyMeters: number | null;
+  /** The signed-in user's own home point, when the hero is centred on it —
+   *  the orange house marker, and the switch into the "Toys near your home"
+   *  chip. Mutually exclusive with `userPin` by construction. */
+  readonly homePin: MapLatLng | null;
+  /** The home point's district, for the chip's parameterised
+   *  "{n} toys within {radius} of {district}" line. `null` when the point
+   *  resolves to no district — the chip then drops the district clause
+   *  rather than printing an empty gap. */
+  readonly homeDistrict: ListingDistrict | null;
   readonly radiusMeters: number | null;
   readonly markers: MapMarkerGroup[];
   readonly nearbyCount: number | null;
@@ -148,7 +158,14 @@ const HOME_HERO_ACCURACY_CEILING_METERS = 1400;
  * just without a circle that would otherwise cover the whole panel.
  */
 function deriveHeroMapViewModel(nearby: HomeNearbyState): HeroMapViewModel {
-  const granted = nearby.origin !== null && !nearby.isFallback;
+  // "We are centred on a real point of the user's" — true for BOTH a granted
+  // geolocation fix and a home point, and the thing the radius circle keys
+  // off. `isHomeOrigin` then splits it into which KIND, which decides the
+  // marker (blue dot vs orange house), the accuracy circle (a home point has
+  // none to draw) and the chip's copy.
+  const located = nearby.origin !== null && !nearby.isFallback;
+  const isHome = located && nearby.isHomeOrigin;
+  const granted = located && !nearby.isHomeOrigin;
   const accuracyMeters =
     granted &&
     nearby.accuracyMeters !== null &&
@@ -159,7 +176,9 @@ function deriveHeroMapViewModel(nearby: HomeNearbyState): HeroMapViewModel {
     center: nearby.origin ?? YEREVAN_CENTER,
     userPin: granted ? nearby.origin : null,
     userAccuracyMeters: accuracyMeters,
-    radiusMeters: granted ? kmToMeters(nearby.radiusKm) : null,
+    homePin: isHome ? nearby.origin : null,
+    homeDistrict: isHome ? nearby.homeDistrict : null,
+    radiusMeters: located ? kmToMeters(nearby.radiusKm) : null,
     markers: nearby.pins,
     nearbyCount: nearby.nearbyCount,
     locating: nearby.locating,
@@ -307,6 +326,20 @@ export class HomePageComponent implements OnInit {
 
   private readonly heroSearchRef = viewChild<ElementRef<HTMLElement>>('heroSearch');
   private heroSearchObserver: IntersectionObserver | null = null;
+
+  /**
+   * The radius the hero's "{n} toys within {radius} of {district}" chip
+   * states, in km — the SAME constant the fetch uses
+   * (`HOME_NEARBY_DEFAULT_RADIUS_KM`, 1.2 km), passed through rather than
+   * re-typed in copy. The approved design writes "3 km" into that sentence;
+   * that figure is board copy, and the task was to parameterise it, so the
+   * chip now states whatever the code actually queried. Flagged in the
+   * delivery report: if the product wants the home branch to cover 3 km, the
+   * constant moves and the chip follows it — the one thing that must never
+   * happen again is the number in the sentence and the number in the query
+   * drifting apart (ADR-015's "one string, two meanings" corollary).
+   */
+  protected readonly heroRadiusKm = HOME_NEARBY_DEFAULT_RADIUS_KM;
 
   protected readonly processSteps = PROCESS_STEPS;
   protected readonly faqEntries = FAQ_ENTRIES;

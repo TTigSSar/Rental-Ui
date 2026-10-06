@@ -53,10 +53,26 @@ export interface ListingsOriginCoords {
 /**
  * How `ListingsState.originCoords` was obtained — drives which of the radius
  * filter's origin-summary copy variants (`RadiusOriginFilterComponent`)
- * renders ("From your location" vs "From the chosen point"). Session-only,
- * same treatment as `originCoords` itself (never persisted/URL-serialized).
+ * renders ("From your home" / "From your location" / "From the chosen
+ * point") and which distance-badge treatment the catalogue cards use (orange
+ * home icon vs. blue location arrow — see `ListingCardComponent`).
+ * Session-only, same treatment as `originCoords` itself (never persisted/
+ * URL-serialized).
+ *
+ * `'home'` is the signed-in user's own home point (`CurrentUser.homePoint`,
+ * ADR-008 — self-only, full precision in the store). It is set by
+ * `ListingsEffects.defaultOriginToHomePoint$` the moment the user's profile
+ * lands, but ONLY while no origin exists yet or the existing one is already
+ * `'home'` — a deliberate `'geo'`/`'manual'` choice is never overwritten.
+ *
+ * It is NOT persisted and it does NOT by itself cause anything to be sent to
+ * the API: `buildSharedFilterParams` still emits `originLat`/`originLng` only
+ * alongside a `radiusKm` the renter actually chose (product decision, Tigran
+ * 2026-10-05 — the renter's home coordinates must not ride along on every
+ * catalogue request just because they happen to have a home point), and the
+ * coordinates are rounded to 3 decimals on the way out.
  */
-export type ListingsOriginSource = 'geo' | 'manual';
+export type ListingsOriginSource = 'geo' | 'manual' | 'home';
 
 /** Backend clamp range for `radiusKm` (`rental-api`, commit `d0955e0`) — mirrored
  *  here so the slider/URL never show a value the API would silently reclamp. */

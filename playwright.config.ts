@@ -55,8 +55,12 @@ export default defineConfig({
       // this project only — see testProject.workers). Every real spec logs in
       // through the real API, and AuthController's AuthPolicy rate limit (5
       // logins/min, partitioned by remote IP — RateLimiterExtensions.cs) is
-      // shared by the WHOLE real-tier run, not per file: all Playwright traffic
-      // reaches the docker API as one client IP. With `fullyParallel` across
+      // shared by the WHOLE real-tier run, not per file. Playwright traffic
+      // reaches the docker API as TWO client IPs — Node-side calls to :8080 and
+      // browser traffic through the UI container's nginx — so it is two shared
+      // 5/min buckets rather than one; which bucket each account spends is
+      // fixed in AUTH_BUCKET_BY_EMAIL (e2e/support/real-stack.ts) so it cannot
+      // drift with the dev DB's contents. With `fullyParallel` across
       // ~6 workers, all 7 spec files' logins land in the API within seconds of
       // each other and blow straight through the budget (429s and, once one
       // account's login stalls, knock-on 180s test timeouts elsewhere) — this

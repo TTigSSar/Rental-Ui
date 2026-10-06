@@ -7,6 +7,7 @@ import {
   assertLoginNotRateLimited,
   assertPasswordChangeNotRateLimited,
   loginViaDialog,
+  noteAuthSpend,
 } from '../support/real-stack';
 
 /**
@@ -26,13 +27,17 @@ import {
  * journeys via `real-stack.ts`'s cached-JWT reuse; mutating one of THEIR passwords here would
  * poison every other spec's `loginViaDialog`/`apiLogin` call for the rest of the run.
  *
- * Login-rate-limit budget (M-044 — `AuthController.AuthPolicy`, 5 logins/minute, partitioned by
- * remote IP, SHARED by the entire `--project=real` run, not per file): this spec makes exactly
- * THREE real `POST /api/auth/login` calls, and cannot make fewer without cutting an assertion
- * the task exists to make:
+ * Login-rate-limit budget (M-044, re-measured 2026-10-05 — `AuthController.AuthPolicy`, 5/minute
+ * partitioned by remote IP, and the real tier reaches the API as TWO client IPs, so there are two
+ * such buckets shared by the whole `--project=real` run; see `AUTH_BUCKET_BY_EMAIL` in
+ * support/real-stack.ts): this spec makes exactly THREE real `POST /api/auth/login` calls, and
+ * cannot make fewer without cutting an assertion the task exists to make:
  *   1. `loginViaDialog` — the one genuine sign-in needed to drive the change through the real UI.
+ *      Browser-originated, so it spends the `proxied` bucket.
  *   2. the old-password-rejected check (expected 401) — half of "the pair is the whole point".
  *   3. the new-password-accepted check (expected 200) — the other half.
+ * 2 and 3 are Node-side and spend the `direct` bucket: they are the suite's only uncacheable
+ * logins, and keeping them off the `proxied` side is what balances the run at 4 of 5 per bucket.
  * Restoring the seeded credential afterward, and VERIFYING the restore, both go through
  * `PUT /api/auth/me/password` instead — its own `password-change` rate-limit bucket (also 5/min,
  * completely separate from `auth`) — so neither spends any of the scarce login budget. The
@@ -111,6 +116,11 @@ test.describe('Change password (real stack)', () => {
       // two elements (strict-mode violation). See the same fix in profile-security.spec.ts.
       await expect(page.getByText('Password updated', { exact: true })).toBeVisible();
 
+      // Node-side, straight at :8080 — the `direct` auth bucket, deliberately NOT the `proxied`
+      // one `loginViaDialog` above spent (see AUTH_BUCKET_BY_EMAIL in support/real-stack.ts).
+      // These two probes are the only uncacheable logins in the suite, and putting them on the
+      // other bucket is what keeps both sides at 4 of 5 per full run.
+      noteAuthSpend('direct', `old-password-rejected probe ${account.email}`);
       const oldLoginRes = await request.post(`${API_URL}/api/auth/login`, {
         data: { email: account.email, password: account.password },
         failOnStatusCode: false,
@@ -123,6 +133,7 @@ test.describe('Change password (real stack)', () => {
         'the seeded (pre-change) password must be REJECTED once the change has taken effect',
       ).toBe(401);
 
+      noteAuthSpend('direct', `new-password-accepted probe ${account.email}`);
       const newLoginRes = await request.post(`${API_URL}/api/auth/login`, {
         data: { email: account.email, password: NEW_PASSWORD },
         failOnStatusCode: false,

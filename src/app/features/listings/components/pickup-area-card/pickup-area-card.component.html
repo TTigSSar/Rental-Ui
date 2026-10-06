@@ -1,0 +1,67 @@
+<div class="pickup-card">
+  @if (publicPin(); as pin) {
+    <div class="pickup-card__map">
+      <app-map
+        [center]="pin"
+        [zoom]="15"
+        [pin]="pin"
+        [showPin]="false"
+        [circleRadiusMeters]="approximateRadiusMeters"
+        [interactive]="false"
+        [height]="mapHeight()"
+      />
+      <!-- Hollow positioning box + shrink-wrapping label (M-022): this map is
+           non-interactive, but the split costs nothing and keeps the pattern
+           uniform across every overlay-on-a-map in the app. -->
+      <div class="pickup-card__badge-slot">
+        <span class="pickup-card__badge">
+          <i class="pi pi-shield" aria-hidden="true"></i>
+          <span class="pickup-card__badge-copy">
+            <b>{{ 'homePoint.approx.label' | translate }}</b>
+            <small>{{ 'homePoint.approx.sub' | translate }}</small>
+          </span>
+        </span>
+      </div>
+    </div>
+
+    <div class="pickup-card__row">
+      <span class="pickup-card__icon" aria-hidden="true">
+        <i class="pi pi-home"></i>
+      </span>
+      <span class="pickup-card__text">
+        <b>
+          @if (districtLabel()) {
+            {{ districtLabel() }} · {{ 'homePoint.city' | translate }}
+          } @else {
+            {{ 'homePoint.city' | translate }}
+          }
+        </b>
+        <small>{{ 'listings.createForm.pickupArea.sub' | translate }}</small>
+      </span>
+    </div>
+
+    <!-- The city is READ-ONLY here (home-point model): it is derived from the
+         home point, so there is nothing to choose. The board's city select is
+         deliberately gone rather than disabled — a disabled control invites a
+         "why can't I change this?" that the caption below answers instead. -->
+    <div class="pickup-card__row pickup-card__row--city">
+      <span class="pickup-card__city-label">{{
+        'listings.createForm.pickupArea.cityLabel' | translate
+      }}</span>
+      <span class="pickup-card__city-value">{{ 'homePoint.city' | translate }}</span>
+    </div>
+  } @else {
+    <p class="pickup-card__empty">{{ 'listings.createForm.pickupArea.empty' | translate }}</p>
+  }
+
+  <button
+    #changeButton
+    type="button"
+    class="pickup-card__change"
+    (click)="changeRequested.emit()"
+  >
+    <i class="pi pi-pencil" aria-hidden="true"></i>
+    {{ 'listings.createForm.pickupArea.change' | translate }}
+    <i class="pi pi-arrow-right pickup-card__change-arrow" aria-hidden="true"></i>
+  </button>
+</div>

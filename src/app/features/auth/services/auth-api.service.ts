@@ -9,9 +9,12 @@ import type {
   ChangePasswordRequest,
   CurrentUser,
   ExternalAuthRequest,
+  HomePoint,
   LoginRequest,
   RegisterRequest,
+  UpdateHomePointRequest,
 } from '../models/auth.models';
+import type { ListingDistrict } from '../../listings/models/district.model';
 
 /**
  * Normalises the role field from the backend into a string array.
@@ -40,6 +43,63 @@ export function resolveRoles(raw: Record<string, unknown>): string[] {
   }
 
   return [];
+}
+
+function toFiniteNumber(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function normalizeDistrict(value: unknown): ListingDistrict | null {
+  if (typeof value !== 'object' || value === null) {
+    return null;
+  }
+  const raw = value as Record<string, unknown>;
+  const id = typeof raw['id'] === 'string' ? raw['id'] : '';
+  if (id === '') {
+    return null;
+  }
+  return {
+    id,
+    code: typeof raw['code'] === 'string' ? raw['code'] : '',
+    nameEn: typeof raw['nameEn'] === 'string' ? raw['nameEn'] : '',
+    nameHy: typeof raw['nameHy'] === 'string' ? raw['nameHy'] : '',
+    nameRu: typeof raw['nameRu'] === 'string' ? raw['nameRu'] : '',
+  };
+}
+
+/**
+ * Maps the `homePoint` member of a raw `CurrentUserResponse` payload.
+ *
+ * Shared by BOTH hand-written /api/auth/me normalisers — `normalizeCurrentUser`
+ * here and `normalizeUserProfile` in `profile-api.service.ts` — because a field
+ * mapped in only one of them is silently dropped in the other (M-030). Same
+ * precedent as `resolveRoles` above: one implementation, imported, never copied.
+ *
+ * Returns null for anything that is not an object carrying two finite
+ * coordinates, which covers both "the user has no home point" (`homePoint:
+ * null`) and a malformed payload.
+ */
+export function normalizeHomePoint(value: unknown): HomePoint | null {
+  if (typeof value !== 'object' || value === null) {
+    return null;
+  }
+  const raw = value as Record<string, unknown>;
+  const latitude = toFiniteNumber(raw['latitude']);
+  const longitude = toFiniteNumber(raw['longitude']);
+  if (latitude === null || longitude === null) {
+    return null;
+  }
+  return {
+    latitude,
+    longitude,
+    publicLatitude: toFiniteNumber(raw['publicLatitude']),
+    publicLongitude: toFiniteNumber(raw['publicLongitude']),
+    district: normalizeDistrict(raw['district']),
+    updatedAt:
+      typeof raw['updatedAt'] === 'string' && raw['updatedAt'].length > 0
+        ? raw['updatedAt']
+        : null,
+  };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -78,6 +138,28 @@ export class AuthApiService {
       .pipe(map((raw) => this.normalizeCurrentUser(raw)));
   }
 
+  /**
+   * `PUT /api/auth/me/home-point` — saves/moves the home point and, server-side,
+   * relocates every listing this user owns. Returns the refreshed
+   * `CurrentUserResponse`. 400 `auth.home_point_outside_yerevan` when the pin is
+   * outside the 12 districts (read via `getApiErrorCode`, not `errors.latitude`).
+   */
+  updateHomePoint(request: UpdateHomePointRequest): Observable<CurrentUser> {
+    return this.http
+      .put<Record<string, unknown>>(toApiUrl(ApiContract.auth.homePoint), request)
+      .pipe(map((raw) => this.normalizeCurrentUser(raw)));
+  }
+
+  /**
+   * `DELETE /api/auth/me/home-point` — clears the point. 409
+   * `auth.home_point_in_use` while the user still owns any listing.
+   */
+  clearHomePoint(): Observable<CurrentUser> {
+    return this.http
+      .delete<Record<string, unknown>>(toApiUrl(ApiContract.auth.homePoint))
+      .pipe(map((raw) => this.normalizeCurrentUser(raw)));
+  }
+
   /** `PUT /api/auth/me/password` — 204 No Content on success, nothing to normalise. */
   changePassword(request: ChangePasswordRequest): Observable<void> {
     return this.http.put<void>(toApiUrl(ApiContract.auth.changePassword), request);
@@ -94,6 +176,7 @@ export class AuthApiService {
           ? raw['preferredLanguage']
           : null,
       roles: resolveRoles(raw),
+      homePoint: normalizeHomePoint(raw['homePoint']),
     };
   }
 

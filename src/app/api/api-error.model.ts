@@ -81,6 +81,20 @@ export type KnownApiErrorCode =
   // (login's Password, change-password's CurrentPassword) — see ADR-021's 2026-09-27
   // amendment for why that asymmetry is intentional.
   | 'auth.password_too_long'
+  // Home-point model — HomePointErrorCodes (shared by AuthService.RegisterAsync and
+  // HomePointService), raised by POST /api/auth/register, PUT and DELETE
+  // /api/auth/me/home-point.
+  //
+  // 400. The pin is outside all 12 Yerevan districts. Arrives as a ServiceError in
+  // `errorCode` — NOT as a field-level `errors.homeLatitude`/`errors.latitude`
+  // validation message, so read it with `getApiErrorCode()`. DoRent is Yerevan-only,
+  // and the backend deliberately does NOT distinguish "outside Yerevan" from
+  // "outside Armenia": one code, one meaning.
+  | 'auth.home_point_outside_yerevan'
+  // 409 on DELETE /api/auth/me/home-point while the user still owns ANY listing (any
+  // status) — a listing with no location would be unplaceable, so the owner has to
+  // remove their listings first.
+  | 'auth.home_point_in_use'
   // booking.* — BookingsService
   | 'booking.unauthenticated'
   | 'booking.user_blocked'
@@ -119,7 +133,13 @@ export type KnownApiErrorCode =
   | 'listing.forbidden'
   | 'listing.invalid_status'
   | 'listing.category_not_found'
-  | 'listing.district_not_found'
+  // 409 on POST /api/listings when the owner has no home point set. Every listing's
+  // location comes from the owner's home point (home-point model), so there is
+  // nothing to derive from until one exists.
+  //
+  // REPLACES the removed `listing.district_not_found` — that code no longer exists
+  // on the backend and must not be handled anywhere in the UI.
+  | 'listing.home_point_required'
   | 'listing.invalid_age_range'
   | 'listing.image_empty'
   | 'listing.image_invalid_type'

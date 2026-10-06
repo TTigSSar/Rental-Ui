@@ -95,6 +95,18 @@ export const selectCreateListingError = createSelector(
   (state: ListingsState): string | null => state.createListingError,
 );
 
+/**
+ * `true` when the last create attempt was refused with 409
+ * `listing.home_point_required` — the owner has no home point, so the
+ * backend has nothing to derive the listing's location from. The wizard
+ * re-raises its gate on this instead of printing the message.
+ */
+export const selectCreateListingHomePointRequired = createSelector(
+  selectListingsState,
+  (state: ListingsState): boolean =>
+    state.createListingErrorCode === 'listing.home_point_required',
+);
+
 export const selectCreateListingSuccessId = createSelector(
   selectListingsState,
   (state: ListingsState): string | null => state.createListingSuccessId,

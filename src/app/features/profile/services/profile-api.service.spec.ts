@@ -7,6 +7,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { ApiContract, toApiUrl } from '../../../api/api-contract';
 import { ProfileApiService } from './profile-api.service';
+import type { UserProfile } from '../models/profile.model';
 
 // GET /api/profile/me was never implemented on the backend (M-0xx, 2026-07-22
 // prod 404). ProfileApiService.getMyProfile() now reads from the real,
@@ -147,5 +148,96 @@ describe('ProfileApiService', () => {
 
     expect(result?.phoneNumber).toBeNull();
     expect(result?.preferredLanguage).toBeNull();
+  });
+});
+
+/**
+ * Home-point model: the twin of the `homePoint` block in
+ * `auth-api.service.spec.ts`. Both normalisers read the SAME /api/auth/me
+ * payload, so this raw-wire test is deliberately duplicated here — that is the
+ * only thing that catches a field mapped in one normaliser and forgotten in the
+ * other (M-030).
+ */
+describe('ProfileApiService — homePoint normalisation', () => {
+  let service: ProfileApiService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(ProfileApiService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  function flushMe(homePoint: unknown): UserProfile {
+    let result: UserProfile | undefined;
+    service.getMyProfile().subscribe((profile) => (result = profile));
+    const req = httpMock.expectOne(toApiUrl(ApiContract.auth.currentUser));
+    req.flush({
+      id: 'u1',
+      email: 'owner@rental.local',
+      firstName: 'Ada',
+      lastName: 'Lovelace',
+      phoneNumber: '+37400000000',
+      preferredLanguage: 'hy',
+      avatarUrl: null,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      isBlocked: false,
+      role: 'User',
+      homePoint,
+    });
+    return result!;
+  }
+
+  it('maps a full homePoint onto the profile, exact coordinates included', () => {
+    const profile = flushMe({
+      latitude: 40.183332,
+      longitude: 44.514999,
+      publicLatitude: 40.1835,
+      publicLongitude: 44.5152,
+      district: {
+        id: 'd0000007-0000-4000-9000-000000000007',
+        code: 'kentron',
+        nameEn: 'Kentron',
+        nameHy: 'Կենտրոն',
+        nameRu: 'Кентрон',
+      },
+      updatedAt: '2026-09-27T20:03:21.000Z',
+    });
+
+    expect(profile.homePoint).toEqual({
+      latitude: 40.183332,
+      longitude: 44.514999,
+      publicLatitude: 40.1835,
+      publicLongitude: 44.5152,
+      district: {
+        id: 'd0000007-0000-4000-9000-000000000007',
+        code: 'kentron',
+        nameEn: 'Kentron',
+        nameHy: 'Կենտրոն',
+        nameRu: 'Кентрон',
+      },
+      updatedAt: '2026-09-27T20:03:21.000Z',
+    });
+  });
+
+  it('keeps district null and tolerates missing optional members', () => {
+    expect(flushMe({ latitude: 40, longitude: 45, district: null }).homePoint).toEqual({
+      latitude: 40,
+      longitude: 45,
+      publicLatitude: null,
+      publicLongitude: null,
+      district: null,
+      updatedAt: null,
+    });
+  });
+
+  it('maps homePoint to null when the user has not set one', () => {
+    expect(flushMe(null).homePoint).toBeNull();
   });
 });

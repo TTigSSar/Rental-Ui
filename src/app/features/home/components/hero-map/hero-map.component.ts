@@ -1,8 +1,16 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import { TranslatePipe } from '@ngx-translate/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
+import { LanguageService } from '../../../../shared/services/language.service';
 import { MapComponent } from '../../../../shared/ui/map/map.component';
 import type { MapLatLng, MapMarkerGroup } from '../../../../shared/ui/map/map.component';
+import { districtDisplayName } from '../../../listings/models/district-ui.util';
+import type { ListingDistrict } from '../../../listings/models/district.model';
+import {
+  formatDistanceMeters,
+  kmToMeters,
+  localeTagForLanguage,
+} from '../../../listings/models/radius-scale.util';
 
 /**
  * Zoom derived from the visible radius (Home hero design): a wider radius
@@ -102,6 +110,27 @@ export class HomeHeroMapComponent {
    *  visitor can't double-dispatch the browser permission prompt. */
   readonly locating = input<boolean>(false);
   readonly height = input<string>('330px');
+  /**
+   * The signed-in user's OWN home point (home-point model) — rendered as the
+   * orange house marker and the switch into the two-line "Toys near your
+   * home" chip. `null` (default) is every other case: anonymous visitors,
+   * signed-in users without a point, and the live-geolocation branch.
+   *
+   * Mutually exclusive with `userPin` by construction upstream
+   * (`deriveHeroMapViewModel` derives them from the same origin), and
+   * crucially NOT a geolocation grant: this branch never asks the browser
+   * for anything, which is why it can be the default view on a landing page
+   * at all (M-031 / ADR-015 — the prohibition is on prompting on load).
+   */
+  readonly homePin = input<MapLatLng | null>(null);
+  /** The home point's district, for the chip's second line. `null` → the
+   *  district-less wording (a home point outside every Yerevan district is
+   *  a legal `HomePoint` state the copy has to cover). */
+  readonly homeDistrict = input<ListingDistrict | null>(null);
+  /** Radius (km) the home branch actually queried — stated in the chip. The
+   *  design hardcoded "3 km"; this is parameterised so the sentence can
+   *  never claim a radius the request did not use. */
+  readonly homeRadiusKm = input<number | null>(null);
 
   /** Emitted when the opt-in "show my area" button (`@if (!granted())` in
    *  the template) is clicked — the ONLY place in this component that asks
@@ -111,7 +140,55 @@ export class HomeHeroMapComponent {
    *  as ignorant of the store as `app-map` is of Leaflet's tile URL. */
   readonly requestMyArea = output<void>();
 
+  private readonly translate = inject(TranslateService);
+  private readonly languageService = inject(LanguageService);
+
   protected readonly zoom = computed(() => deriveHeroMapZoom(this.radiusMeters()));
+
+  /** `true` when the hero is centred on the viewer's own home point — the
+   *  chip switches to its two-line "Toys near your home" form, the house
+   *  marker renders, and the opt-in geolocation button is withheld. */
+  protected readonly isHomeCentred = computed(() => this.homePin() !== null);
+
+  /** The home district's name in the active UI language, or `null`. */
+  protected readonly homeDistrictName = computed<string | null>(() => {
+    const district = this.homeDistrict();
+    return district
+      ? districtDisplayName(district, this.languageService.current().code)
+      : null;
+  });
+
+  /** The queried radius, formatted through the SAME locale-aware formatter
+   *  every other distance in the app uses (`formatDistanceMeters`) — "1.2 km"
+   *  in `en`, "1,2 км" in `ru`. Never a hand-written figure in the copy. */
+  protected readonly homeRadiusLabel = computed<string | null>(() => {
+    const km = this.homeRadiusKm();
+    if (km === null) return null;
+    return formatDistanceMeters(
+      kmToMeters(km),
+      localeTagForLanguage(this.languageService.current().code),
+      {
+        meters: this.translate.instant('listings.filters.distance.unitMeters'),
+        kilometers: this.translate.instant('listings.filters.distance.unitKilometers'),
+      },
+    );
+  });
+
+  /**
+   * The home chip's second line. Three keys, not one with optional
+   * interpolation, because a missing district has to change the SENTENCE
+   * rather than leave a hole in it — and a missing radius (no caller passed
+   * one) must not print "within of Kentron" either. ADR-015's corollary
+   * applies: one string covering several meanings is the same defect as one
+   * number with no source.
+   */
+  protected readonly homeCountKey = computed(() => {
+    const hasDistrict = this.homeDistrictName() !== null;
+    const hasRadius = this.homeRadiusLabel() !== null;
+    if (hasDistrict && hasRadius) return 'home.heroMap.homeCount';
+    if (hasRadius) return 'home.heroMap.homeCountNoDistrict';
+    return 'home.heroMap.homeCountPlain';
+  });
 
   /** `true` once the visitor's own position is known — `HomePageComponent`
    *  only ever sets `userPin` for a genuinely resolved geolocation fix,

@@ -1,9 +1,13 @@
 import { TestBed } from '@angular/core/testing';
+import { provideMockStore } from '@ngrx/store/testing';
 import { of, throwError } from 'rxjs';
 
 import { actionsHarness, collect } from '../../../../testing/ngrx.helpers';
-import { makeListingMapPin } from '../../../../testing/fixtures';
+import { makeHomePoint, makeListingMapPin, makeUser } from '../../../../testing/fixtures';
 import { GeolocationService } from '../../../shared/services/geolocation.service';
+import type { HomePoint } from '../../auth/models/auth.models';
+import * as AuthActions from '../../auth/store/auth.actions';
+import { authFeatureKey } from '../../auth/store/auth.reducer';
 import { ListingsApiService } from '../../listings/services/listings-api.service';
 import { initialListingsState } from '../../listings/store/listings.state';
 import { HomeApiService } from '../services/home-api.service';
@@ -15,6 +19,9 @@ function setup(
   overrides: {
     listingsApi?: Partial<ListingsApiService>;
     geolocation?: Partial<GeolocationService>;
+    /** The signed-in user's home point as `selectHomePoint` would report it.
+     *  Omitted means "nobody is signed in". */
+    homePoint?: HomePoint | null;
   } = {},
 ) {
   const harness = actionsHarness();
@@ -22,6 +29,16 @@ function setup(
     providers: [
       HomeEffects,
       harness.provider,
+      provideMockStore({
+        initialState: {
+          [authFeatureKey]: {
+            user:
+              overrides.homePoint === undefined
+                ? null
+                : makeUser({ homePoint: overrides.homePoint }),
+          },
+        },
+      }),
       { provide: HomeApiService, useValue: {} },
       { provide: ListingsApiService, useValue: overrides.listingsApi ?? {} },
       {
@@ -34,12 +51,12 @@ function setup(
 }
 
 describe('HomeEffects — hero map "nearby toys" preview', () => {
-  describe('initToFallback$', () => {
-    it('maps init straight to useFallbackOrigin WITHOUT ever calling GeolocationService', async () => {
+  describe('resolveHomeOrigin$', () => {
+    it('maps init to useFallbackOrigin with no home point, WITHOUT ever calling GeolocationService', async () => {
       const getCurrentPosition = vi.fn();
       const { harness, effects } = setup({ geolocation: { getCurrentPosition } });
 
-      const collected = collect(effects.initToFallback$);
+      const collected = collect(effects.resolveHomeOrigin$);
       harness.send(HomeNearbyActions.init());
       harness.complete();
 
@@ -48,6 +65,121 @@ describe('HomeEffects — hero map "nearby toys" preview', () => {
       // both flagged the old automatic-prompt-on-load behaviour): a page
       // load must NEVER touch the browser geolocation API on its own.
       expect(getCurrentPosition).not.toHaveBeenCalled();
+    });
+
+    it('centres on the home point — and still never calls GeolocationService (M-031)', async () => {
+      const getCurrentPosition = vi.fn();
+      const homePoint = makeHomePoint();
+      const { harness, effects } = setup({
+        geolocation: { getCurrentPosition },
+        homePoint,
+      });
+
+      const collected = collect(effects.resolveHomeOrigin$);
+      harness.send(HomeNearbyActions.init());
+      harness.complete();
+
+      expect(await collected).toEqual([
+        HomeNearbyActions.homeOriginResolved({
+          // The EXACT pair, not the public/fuzzed one: this is the owner's
+          // own point, and it is only ever coarsened on the way OUT, by the
+          // API seam (asserted in `listings-api.service.spec.ts`).
+          origin: { lat: homePoint.latitude, lng: homePoint.longitude },
+          district: homePoint.district,
+        }),
+      ]);
+      // Reading a coordinate the app was already given is not asking the
+      // browser for one. Centring on a home point must never spend the
+      // origin-wide geolocation permission on page load.
+      expect(getCurrentPosition).not.toHaveBeenCalled();
+    });
+
+    it('re-decides the branch when the profile lands after Home already mounted', async () => {
+      const homePoint = makeHomePoint();
+      const { harness, effects } = setup({ homePoint });
+
+      const collected = collect(effects.resolveHomeOrigin$);
+      harness.send(AuthActions.loadCurrentUserSuccess({ user: makeUser({ homePoint }) }));
+      harness.complete();
+
+      expect(await collected).toEqual([
+        HomeNearbyActions.homeOriginResolved({
+          origin: { lat: homePoint.latitude, lng: homePoint.longitude },
+          district: homePoint.district,
+        }),
+      ]);
+    });
+
+    it('falls back to the citywide view on logout', async () => {
+      const { harness, effects } = setup({ homePoint: null });
+
+      const collected = collect(effects.resolveHomeOrigin$);
+      harness.send(AuthActions.logout());
+      harness.complete();
+
+      expect(await collected).toEqual([HomeNearbyActions.useFallbackOrigin()]);
+    });
+  });
+
+  describe('loadNearbyPinsForHome$ (home branch)', () => {
+    it('fetches pins AND the count within HOME_NEARBY_DEFAULT_RADIUS_KM of the home point', async () => {
+      const pin = makeListingMapPin({ latitude: 40.183, longitude: 44.516 });
+      const getMapPins = vi.fn().mockReturnValue(of({ items: [pin], isTruncated: false }));
+      const getListings = vi.fn().mockReturnValue(
+        of({ items: [], totalCount: 37, page: 1, pageSize: 1, hasMore: true }),
+      );
+      const homePoint = makeHomePoint();
+      const { harness, effects } = setup({
+        listingsApi: { getMapPins, getListings },
+        homePoint,
+      });
+
+      const collected = collect(effects.loadNearbyPinsForHome$);
+      harness.send(
+        HomeNearbyActions.homeOriginResolved({
+          origin: { lat: homePoint.latitude, lng: homePoint.longitude },
+          district: homePoint.district,
+        }),
+      );
+      harness.complete();
+
+      expect(await collected).toEqual([
+        HomeNearbyActions.pinsLoadSuccess({
+          pins: [
+            { key: '40.183000,44.516000', position: { lat: 40.183, lng: 44.516 }, count: 1 },
+          ],
+          nearbyCount: 37,
+        }),
+      ]);
+
+      const expectedFilter = {
+        ...initialListingsState.filters,
+        radiusKm: HOME_NEARBY_DEFAULT_RADIUS_KM,
+      };
+      // Full precision out of the effect — the API seam owns the 3-dp
+      // coarsening, the same contract the live-geolocation branch has.
+      const expectedOrigin = { lat: homePoint.latitude, lng: homePoint.longitude };
+      expect(getMapPins).toHaveBeenCalledWith(expectedFilter, null, expectedOrigin);
+      expect(getListings).toHaveBeenCalledWith(expectedFilter, 1, 1, expectedOrigin);
+    });
+
+    it('surfaces a failure as pinsLoadFailure rather than throwing', async () => {
+      const getMapPins = vi.fn().mockReturnValue(throwError(() => new Error('boom')));
+      const getListings = vi.fn().mockReturnValue(throwError(() => new Error('boom')));
+      const { harness, effects } = setup({ listingsApi: { getMapPins, getListings } });
+
+      const collected = collect(effects.loadNearbyPinsForHome$);
+      harness.send(
+        HomeNearbyActions.homeOriginResolved({
+          origin: { lat: 40.18, lng: 44.51 },
+          district: null,
+        }),
+      );
+      harness.complete();
+
+      const emitted = await collected;
+      expect(emitted).toHaveLength(1);
+      expect(emitted[0].type).toBe(HomeNearbyActions.pinsLoadFailure.type);
     });
   });
 
@@ -137,7 +269,14 @@ describe('HomeEffects — hero map "nearby toys" preview', () => {
       );
     });
 
-    it('rounds the coordinates sent to the API to 3 decimal places (~100m) — /security-review, Medium', async () => {
+    // The 3-decimal coarsening itself moved to the ONE seam that serializes
+    // `originLat`/`originLng` (`ListingsApiService.buildSharedFilterParams`,
+    // asserted on the real `HttpParams` in `listings-api.service.spec.ts`) —
+    // this effect used to own a private copy of it. What this effect still
+    // owes is the OTHER half of that contract: it must hand the seam the
+    // PRECISE coordinate and not pre-coarsen it, because the same value also
+    // drives the blue "you are here" dot via the store.
+    it('passes the full-precision origin to the API seam, which owns the rounding', async () => {
       const getMapPins = vi.fn().mockReturnValue(of({ items: [], isTruncated: false }));
       const getListings = vi
         .fn()
@@ -155,9 +294,9 @@ describe('HomeEffects — hero map "nearby toys" preview', () => {
       harness.complete();
       await collected;
 
-      const roundedOrigin = { lat: 40.178, lng: 44.513 };
-      expect(getMapPins).toHaveBeenCalledWith(expect.anything(), null, roundedOrigin);
-      expect(getListings).toHaveBeenCalledWith(expect.anything(), 1, 1, roundedOrigin);
+      const preciseOrigin = { lat: 40.177612345, lng: 44.512698765 };
+      expect(getMapPins).toHaveBeenCalledWith(expect.anything(), null, preciseOrigin);
+      expect(getListings).toHaveBeenCalledWith(expect.anything(), 1, 1, preciseOrigin);
     });
 
     it("never dispatches the listings feature's own loadMapPins — Home must not stomp ListingsState.mapPins", async () => {

@@ -343,6 +343,7 @@
                   [longitude]="listing.longitude ?? null"
                   [title]="listing.title"
                   [imageUrl]="listingHeroImageUrl()"
+                  [isOwnListing]="isOwnListing()"
                 >
                   @if (pickupDeliveryRows().length > 0) {
                     <div sidePanel class="detail-page__pickup-rows">

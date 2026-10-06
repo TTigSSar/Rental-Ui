@@ -115,15 +115,18 @@ test.describe('Create listing — photo upload (real stack)', () => {
       await page.getByRole('button', { name: 'Continue to pricing' }).click();
     });
 
-    await test.step('wizard step 3 — pricing, map pin, delivery', async () => {
+    await test.step('wizard step 3 — pricing, delivery', async () => {
       await page.locator('#wz-price').fill('25');
-      await page.getByLabel('City').fill('Yerevan');
 
-      await page.getByRole('button', { name: 'Show on map' }).click();
-      await page.getByRole('button', { name: 'Confirm location' }).click();
-      // Confirming closes the picker and swaps the CTA for the pin preview +
-      // "Change" affordance — proof the pin landed in the form.
-      await expect(page.getByRole('button', { name: 'Change' })).toBeVisible();
+      // Location is no longer collected here at all (home-point model): the
+      // city input, the "Show on map" picker and the per-listing pin it
+      // confirmed are gone, replaced by the read-only `app-pickup-area-card`
+      // that renders the owner's home point. This step used to fill the city
+      // and confirm a pin; both would now hang on a locator that does not
+      // exist. Where the location comes from instead is covered by
+      // `real/home-point-journey.spec.ts` — not re-asserted here, so this
+      // spec stays about the photo pipeline it exists for.
+      await expect(page.locator('app-pickup-area-card')).toBeVisible();
 
       // ADR-017 multi-select delivery: 'Pickup' is selected by default (the
       // form control never allows an empty selection), so this click is a

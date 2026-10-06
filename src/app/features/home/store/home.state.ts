@@ -1,4 +1,5 @@
 import type { MapLatLng, MapMarkerGroup } from '../../../shared/ui/map/map.component';
+import type { ListingDistrict } from '../../listings/models/district.model';
 import type { HomeSectionResponse } from '../models/home-section.model';
 
 /**
@@ -47,6 +48,32 @@ export interface HomeNearbyState {
    *  pill's two i18n keys renders (`home.heroMap.nearbyCount` vs.
    *  `home.heroMap.cityCount` — see `HomeHeroMapComponent`). */
   readonly isFallback: boolean;
+  /**
+   * `true` when `origin` is the signed-in user's own HOME POINT (home-point
+   * model) rather than a live geolocation fix or the Yerevan fallback.
+   *
+   * A third origin kind needed a third flag because `isFallback` alone can no
+   * longer answer "what is this point": `origin !== null && !isFallback` used
+   * to mean exactly "a geolocation fix was granted", and a home origin
+   * satisfies it too. Everything that branched on that — the blue `userPin`
+   * dot, the accuracy circle, the opt-in button, which count string renders —
+   * now consults this as well (see `HomePageComponent.deriveHeroMapViewModel`
+   * and `HomeHeroMapComponent`). Collapsing the two into one enum would have
+   * been tidier but would have rewritten every existing read site and its
+   * tests for no behavioural gain.
+   *
+   * It is NOT a geolocation grant and must never be treated as one: the home
+   * branch never calls `GeolocationService` (M-031 — a browser permission is
+   * a shared, single-use, origin-wide resource, and the landing page is the
+   * last place that should spend it).
+   */
+  readonly isHomeOrigin: boolean;
+  /** The Yerevan district the home point resolves to, for the hero chip's
+   *  "{n} toys within {radius} of {district}" line — the design hardcoded
+   *  "Kentron" there and it is parameterised here. `null` for every non-home
+   *  branch, and also for a home point that resolves to no district (a legal
+   *  `HomePoint` state), which the chip renders with district-less copy. */
+  readonly homeDistrict: ListingDistrict | null;
   /** `true` while an opt-in `requestMyArea` geolocation call is in flight —
    *  drives the hero map's own opt-in button into a busy/disabled state so
    *  a visitor can't double-dispatch the browser permission prompt.
@@ -86,6 +113,8 @@ export interface HomeNearbyState {
 export const initialHomeNearbyState: HomeNearbyState = {
   origin: null,
   isFallback: false,
+  isHomeOrigin: false,
+  homeDistrict: null,
   locating: false,
   accuracyMeters: null,
   radiusKm: HOME_NEARBY_DEFAULT_RADIUS_KM,

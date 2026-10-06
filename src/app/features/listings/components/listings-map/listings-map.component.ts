@@ -26,7 +26,7 @@ import { APPROXIMATE_AREA_RADIUS_METERS } from '../../models/approximate-area.co
 import type { ListingPinGroup } from '../../models/listing-pin-group.util';
 import { groupPinsByCoordinate } from '../../models/listing-pin-group.util';
 import type { MapPinsBounds } from '../../models/map-pins-bounds.model';
-import { DEFAULT_PICKER_ZOOM, YEREVAN_CENTER } from '../location-picker/location-picker.component';
+import { DEFAULT_PICKER_ZOOM, YEREVAN_CENTER } from '../../../../shared/ui/map/map.constants';
 import * as ListingsActions from '../../store/listings.actions';
 import {
   selectListingsFilters,
@@ -168,6 +168,22 @@ export class ListingsMapComponent {
    *  circle. This component doesn't compute or hold this value itself —
    *  `ListingLocationComponent` does, same ownership split as `userPin`. */
   readonly userAccuracyMeters = input<number | null>(null);
+  /** The SIGNED-IN VIEWER'S OWN home point (listing-detail usage) — passed
+   *  straight through to the wrapped `app-map`'s `[homePin]`, which renders
+   *  the orange house tile. `null` (default, catalogue usage): no home
+   *  marker.
+   *
+   *  Only ever the viewer's own point, never the listing owner's: the
+   *  owner's location is published as a geohash-cell centroid and belongs on
+   *  this map as the approximate circle, not a pin (ADR-008). Like
+   *  `userPin`, this component neither computes nor holds the value —
+   *  `ListingLocationComponent` reads it from the auth store. It is
+   *  deliberately NOT included in the `fitPins` framing (see
+   *  `MapComponent.fitPins`, which frames `pin`+`userPin` only): the detail
+   *  map's job is to frame the TOY, and a home point several km away would
+   *  zoom the toy's own area out of usefulness to fit a landmark the viewer
+   *  already knows the position of. */
+  readonly homePin = input<MapLatLng | null>(null);
   /** The current listing's own coordinate (listing-detail usage) — fed to
    *  the wrapped `app-map` as `[pin]` with `[showPin]="false"` in this
    *  component's OWN template (see `MapComponent.showPin`'s doc comment): a

@@ -54,6 +54,88 @@
   color: var(--ui-color-text-primary);
 }
 
+// Home-centred chip (approved design's two-line `.zone`): house icon tile +
+// title + the measured count. Shares the pill's corner and its separation
+// treatment (white surface, soft shadow) so the two forms read as the same
+// element in two states rather than two different widgets.
+//
+// `right` is set on mobile and dropped at the desktop breakpoint, exactly as
+// the design draws it: at 390 the second line ("37 toys within 1.2 km of
+// Kentron") needs the full width to avoid a one-word orphan line, while at
+// 1200 a full-width chip would stretch a short sentence across a 480px panel.
+// Geometry straight from the design's `.zone`: a PILL (99px radius, not a
+// rounded rect), inline-flex so it only grows to its content, 9px gap,
+// asymmetric 7px/14px/7px/7px padding (the left side is tight because the
+// icon tile is already round), a 28px CIRCULAR icon tile on --primary-soft,
+// and 13px/800 + 11px/600 for the two lines.
+//
+// `max-width` replaces the board's `right:12px` wrapper: the chip must still
+// be able to shrink inside a 390px panel without reaching the licence
+// chrome, but it must not stretch to full width on a 480px desktop panel,
+// which `right` would have forced.
+.hero-map__zone {
+  position: absolute;
+  left: var(--ui-space-12);
+  top: var(--ui-space-12);
+  max-width: calc(100% - var(--ui-space-12) * 2);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 14px 7px 7px;
+  border-radius: var(--ui-radius-pill);
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 3px 10px -3px rgba(20, 15, 5, 0.28);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+@media (min-width: 1024px) {
+  .hero-map__zone {
+    left: var(--ui-space-14);
+    top: var(--ui-space-14);
+    max-width: calc(100% - var(--ui-space-14) * 2);
+  }
+}
+
+.hero-map__zone-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-primary-soft);
+  color: var(--ui-color-primary);
+
+  .pi {
+    font-size: 15px;
+    line-height: 1;
+  }
+}
+
+.hero-map__zone-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.hero-map__zone-title {
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--ui-color-text-primary);
+}
+
+.hero-map__zone-sub {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ui-color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .hero-map__pill-dot {
   flex-shrink: 0;
   width: 8px;

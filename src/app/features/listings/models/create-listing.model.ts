@@ -31,19 +31,18 @@ export interface CreateListingRequest {
   categoryId: string;
   pricePerDay: number;
   priceUnit: PriceUnit;
-  country: string;
-  city: string;
   addressLine: string | null;
-  latitude: number | null;
-  longitude: number | null;
 
-  /**
-   * Optional owner override for the district (`ListingDistrict.id`). When omitted,
-   * the backend derives the district from `latitude`/`longitude` via
-   * point-in-polygon. Currently unused by the wizard — same status as
-   * `latitude`/`longitude` above; P1-6 (pin picker) wires this up together with them.
-   */
-  districtId?: string | null;
+  // BREAKING (home-point model): `latitude`, `longitude`, `districtId`, `city`
+  // and `country` were REMOVED from this payload — the backend deleted them from
+  // CreateListingRequest. All five are now derived from the owner's home point:
+  // ListingsOwnerService.CreateAsync copies Latitude/Longitude/PublicLatitude/
+  // PublicLongitude/DistrictId from User.Home*, sets Country to "Armenia" and
+  // derives City from the resolved home district. Creating a listing with no
+  // home point set fails with 409 `listing.home_point_required` (which REPLACED
+  // `listing.district_not_found`). Do not re-add these fields here: a stale
+  // client that still sends them is silently ignored by the serializer, so the
+  // values would look accepted and never be applied.
 
   // Optional toy-specific fields. Only sent when the owner fills them in.
   ageFromMonths?: number | null;
