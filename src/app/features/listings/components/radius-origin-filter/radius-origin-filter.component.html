@@ -1,5 +1,117 @@
 <div class="rof">
 
+  <!-- Home-point model, approved design section (a): with a home point the
+       origin becomes a THREE-OPTION segmented list (From your home / Use my
+       location / Pick on map), because "From your home" has to be visible
+       and re-selectable from every other state — the design's "Switched to
+       live location" tab still draws the home row, unselected. Without a
+       home point the row does not exist (hidden, never disabled), and the
+       control below is exactly the state-card UI it has always been, so
+       anonymous visitors and signed-in users with no point see no change. -->
+  @if (hasHomePoint()) {
+    <div
+      class="rof__segrow"
+      role="radiogroup"
+      [attr.aria-label]="'listings.filters.distance.originGroupAria' | translate"
+    >
+      <button
+        type="button"
+        class="rof__orow"
+        [class.rof__orow--on]="originState() === 'home'"
+        role="radio"
+        [attr.aria-checked]="originState() === 'home'"
+        (click)="selectHomeOrigin()"
+      >
+        <span class="rof__rd" aria-hidden="true"></span>
+        <span class="rof__orow-copy">
+          <span class="rof__orow-title">
+            {{ 'listings.filters.distance.originHomeTitle' | translate }}
+          </span>
+          <span class="rof__orow-sub">
+            @if (homeDistrictName(); as district) {
+              {{
+                'listings.filters.distance.originHomeSubtitle'
+                  | translate: { district }
+              }}
+            } @else {
+              {{ 'listings.filters.distance.originHomeSubtitleNoDistrict' | translate }}
+            }
+          </span>
+        </span>
+        <span class="rof__orow-icon rof__orow-icon--home" aria-hidden="true">
+          <i class="pi pi-home"></i>
+        </span>
+      </button>
+
+      <button
+        type="button"
+        class="rof__orow"
+        [class.rof__orow--on]="originState() === 'geo'"
+        role="radio"
+        [attr.aria-checked]="originState() === 'geo'"
+        (click)="requestGeolocation()"
+      >
+        <span class="rof__rd" aria-hidden="true"></span>
+        <span class="rof__orow-copy">
+          <span class="rof__orow-title">
+            {{ 'listings.filters.distance.originLiveTitle' | translate }}
+          </span>
+          <span class="rof__orow-sub">
+            {{ 'listings.filters.distance.originLiveSubtitle' | translate }}
+          </span>
+        </span>
+        <span class="rof__orow-icon rof__orow-icon--live" aria-hidden="true">
+          <i class="pi pi-compass"></i>
+        </span>
+      </button>
+
+      <button
+        type="button"
+        class="rof__orow"
+        [class.rof__orow--on]="originState() === 'manual'"
+        role="radio"
+        [attr.aria-checked]="originState() === 'manual'"
+        (click)="openPicker()"
+      >
+        <span class="rof__rd" aria-hidden="true"></span>
+        <span class="rof__orow-copy">
+          <span class="rof__orow-title">
+            {{ 'listings.filters.distance.originPickTitle' | translate }}
+          </span>
+          <span class="rof__orow-sub">
+            {{ 'listings.filters.distance.originPickSubtitle' | translate }}
+          </span>
+        </span>
+        <span class="rof__orow-icon" aria-hidden="true">
+          <i class="pi pi-map-marker"></i>
+        </span>
+      </button>
+    </div>
+
+    <!-- A geolocation denial still has to be disclosed (design decision #5's
+         calm register), but NOT as the full "unset" card the no-home-point
+         path shows — the segmented list above is still on screen and still
+         offers the two working alternatives, so this is the message alone. -->
+    @if (originState() === 'denied') {
+      <p class="rof__softmsg">
+        <i class="pi pi-info-circle" aria-hidden="true"></i>
+        {{ 'listings.filters.distance.originDeniedMessage' | translate }}
+      </p>
+    }
+
+    @if (originCoords() !== null) {
+      <div class="rof__origin-actions rof__origin-actions--segrow">
+        <button
+          type="button"
+          class="rof__edit rof__edit--remove"
+          [attr.aria-label]="'listings.filters.distance.clearOriginAria' | translate"
+          (click)="clearOrigin()"
+        >
+          {{ 'listings.filters.distance.clearOrigin' | translate }}
+        </button>
+      </div>
+    }
+  } @else {
   @switch (originState()) {
     @case ('unset') {
       <div class="rof__origin rof__origin--unset">
@@ -94,13 +206,29 @@
       </div>
     }
   }
+  }
 
   <div class="rof__radius" [class.rof__radius--locked]="locked()">
-    <div class="rof__radius-val">
-      <b class="rof__radius-num">{{ formattedRadius() }}</b>
+    <!-- "No radius chosen yet" reads as "Any distance", never as a number.
+         Showing a figure the API is not filtering by (the old behaviour:
+         the 1 km floor plus "set a point first") is a filter that claims to
+         apply and doesn't — and with a home origin it would also imply the
+         renter's home coordinates were already in play, which they are not
+         until a radius exists. The smaller type is the design's own
+         treatment for this state (15px vs 22px for a chosen radius). -->
+    <div class="rof__radius-val" [class.rof__radius-val--any]="noRadiusChosen()">
+      <b class="rof__radius-num">
+        @if (noRadiusChosen()) {
+          {{ 'listings.filters.distance.anyDistance' | translate }}
+        } @else {
+          {{ formattedRadius() }}
+        }
+      </b>
       <span class="rof__radius-caption">
         @if (locked()) {
           {{ 'listings.filters.distance.setPointFirst' | translate }}
+        } @else if (noRadiusChosen()) {
+          {{ 'listings.filters.distance.radiusHint' | translate }}
         } @else {
           {{ 'listings.filters.distance.searchRadius' | translate }}
         }
@@ -109,15 +237,20 @@
     <input
       type="range"
       class="rof__slider"
+      [class.rof__slider--any]="noRadiusChosen()"
       [attr.min]="sliderMin"
       [attr.max]="sliderMax"
-      [value]="effectiveSliderValue()"
+      [value]="displaySliderValue()"
       [disabled]="locked()"
-      [style.--rof-fill.%]="(effectiveSliderValue() / sliderMax) * 100"
+      [style.--rof-fill.%]="(displaySliderValue() / sliderMax) * 100"
       [attr.aria-valuemin]="sliderMin"
       [attr.aria-valuemax]="sliderMax"
-      [attr.aria-valuenow]="effectiveSliderValue()"
-      [attr.aria-valuetext]="formattedRadius()"
+      [attr.aria-valuenow]="displaySliderValue()"
+      [attr.aria-valuetext]="
+        noRadiusChosen()
+          ? ('listings.filters.distance.anyDistance' | translate)
+          : formattedRadius()
+      "
       [attr.aria-label]="'listings.filters.distance.searchRadius' | translate"
       (input)="onSliderInput($event)"
       (change)="onSliderCommit($event)"
@@ -132,7 +265,7 @@
           <button
             type="button"
             class="rof__preset"
-            [class.rof__preset--active]="isPresetActive(meters)"
+            [class.rof__preset--active]="!noRadiusChosen() && isPresetActive(meters)"
             (click)="selectPreset(meters)"
           >{{ formatPreset(meters) }}</button>
         }

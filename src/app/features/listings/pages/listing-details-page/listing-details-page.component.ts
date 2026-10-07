@@ -293,6 +293,23 @@ export class ListingDetailsPageComponent {
     );
   });
 
+  /**
+   * `true` when the signed-in viewer owns the listing on screen. Fed to
+   * `app-listing-location` so the home-point distance row and home marker
+   * are suppressed for them (see that component's `isOwnListing`).
+   *
+   * An owner is redirected to `/my-listings/:id` by the constructor effect
+   * below, so in steady state this is never true here — but the redirect
+   * takes a navigation, and the one render frame before it lands is exactly
+   * when a "≈ 0 m from your home" row would flash. Same cheap-insurance
+   * reasoning as `canReportListing` right above.
+   */
+  protected readonly isOwnListing = computed(() => {
+    const listing = this.displayListing();
+    const user = this.currentUser();
+    return listing !== null && user !== null && listing.owner.id === user.id;
+  });
+
   private readonly myBookingsSignal = this.store.selectSignal(selectMyBookings);
 
   protected readonly resolveConditionLabelKey = resolveConditionLabelKey;

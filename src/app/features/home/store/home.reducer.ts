@@ -1,6 +1,6 @@
 import { createReducer, on } from '@ngrx/store';
 
-import { YEREVAN_CENTER } from '../../listings/components/location-picker/location-picker.component';
+import { YEREVAN_CENTER } from '../../../shared/ui/map/map.constants';
 import * as ListingsActions from '../../listings/store/listings.actions';
 import { HomeNearbyActions, HomeSectionsActions } from './home.actions';
 import { initialHomeState, type HomeState } from './home.state';
@@ -69,7 +69,41 @@ export const homeReducer = createReducer<HomeState>(
   })),
   on(HomeNearbyActions.originResolved, (state, { origin, accuracyMeters }) => ({
     ...state,
-    nearby: { ...state.nearby, origin, isFallback: false, accuracyMeters, locating: false },
+    nearby: {
+      ...state.nearby,
+      origin,
+      isFallback: false,
+      // A live fix supersedes a home origin: the visitor just asked "where
+      // am I", and leaving `isHomeOrigin` set would keep rendering the home
+      // chip and the house marker over a blue dot somewhere else entirely.
+      isHomeOrigin: false,
+      homeDistrict: null,
+      accuracyMeters,
+      locating: false,
+    },
+  })),
+  on(HomeNearbyActions.homeOriginResolved, (state, { origin, district }) => ({
+    ...state,
+    nearby: {
+      ...state.nearby,
+      origin,
+      isFallback: false,
+      isHomeOrigin: true,
+      homeDistrict: district,
+      // No browser was asked, so there is no confidence radius to carry —
+      // and a home point has no uncertainty worth drawing: the user placed
+      // it themselves. `null` is the honest value, not a small number.
+      accuracyMeters: null,
+      locating: false,
+      // The count on screen belongs to the previous branch (citywide, or a
+      // live-fix radius) and answers a different question than the one about
+      // to resolve. Clearing it re-triggers the pill's own "hidden while
+      // null" state rather than briefly pairing the old number with the new
+      // label — the same reasoning `requestMyArea` documents below.
+      nearbyCount: null,
+      loading: true,
+      error: null,
+    },
   })),
   on(HomeNearbyActions.useFallbackOrigin, (state) => ({
     ...state,
@@ -82,6 +116,8 @@ export const homeReducer = createReducer<HomeState>(
       ...state.nearby,
       origin: YEREVAN_CENTER,
       isFallback: true,
+      isHomeOrigin: false,
+      homeDistrict: null,
       accuracyMeters: null,
       locating: false,
     },

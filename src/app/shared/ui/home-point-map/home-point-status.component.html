@@ -1,0 +1,35 @@
+@if (tone() !== 'none') {
+  <div
+    class="hp-status"
+    [class.hp-status--info]="tone() === 'info'"
+    [class.hp-status--warn]="tone() === 'warn'"
+    [class.hp-status--error]="tone() === 'error'"
+    [attr.role]="tone() === 'error' ? 'alert' : 'status'"
+  >
+    <i
+      class="pi"
+      [class.pi-info-circle]="tone() === 'info'"
+      [class.pi-exclamation-triangle]="tone() !== 'info'"
+      aria-hidden="true"
+    ></i>
+    <span class="hp-status__copy">
+      @if (tone() === 'error') {
+        <b>{{ 'homePoint.status.outsideTitle' | translate }}</b>
+        <span>{{ 'homePoint.status.outsideBody' | translate }}</span>
+      } @else if (tone() === 'warn') {
+        <b>{{ 'homePoint.status.lowAccuracyTitle' | translate }}</b>
+        <span>{{ 'homePoint.status.lowAccuracyBody' | translate: accuracyParam() }}</span>
+      } @else {
+        <b>{{ 'homePoint.status.deniedTitle' | translate }}</b>
+        <span>{{ 'homePoint.status.deniedBody' | translate }}</span>
+      }
+    </span>
+  </div>
+}
+
+@if (showPrivacyNote()) {
+  <p class="hp-status__privacy">
+    <i class="pi pi-shield" aria-hidden="true"></i>
+    <span>{{ 'homePoint.privacyNote' | translate }} {{ 'homePoint.onlyYou' | translate }}</span>
+  </p>
+}

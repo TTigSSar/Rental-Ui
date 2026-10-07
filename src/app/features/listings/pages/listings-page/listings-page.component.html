@@ -312,6 +312,7 @@
                   [isAuthenticated]="v.isAuthenticated"
                   [bookingStatus]="bookingStatusMap().get(listing.id)"
                   [isOwner]="myListingIds().has(listing.id)"
+                  [distanceOrigin]="originSourceSignal()"
                   (favoriteToggled)="onFavoriteToggled($event)"
                 />
               }

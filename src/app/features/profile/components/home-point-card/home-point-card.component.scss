@@ -1,0 +1,633 @@
+/* ViewEncapsulation.None (see the component) — the two `p-dialog` shells
+   below are portalled to <body> by `appendTo`, so their rules must reach
+   unshimmed markup. Every selector here is namespaced `hp-card*` /
+   `hp-sheet*` / `hp-remove*`, so nothing else in the app can collide. */
+
+.hp-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-12);
+  padding: var(--ui-space-16);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-color-surface);
+  box-shadow: var(--ui-shadow-card);
+}
+
+.hp-card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-10);
+}
+
+.hp-card__heading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-8);
+  margin: 0;
+  font-size: 1rem;
+  font-weight: var(--ui-font-weight-extrabold);
+  color: var(--ui-color-text-primary);
+
+  .pi {
+    color: var(--ui-color-primary);
+  }
+}
+
+.hp-card__change-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-6);
+  /* 44px minimum touch target — DESIGN_RULES.md §3. */
+  min-height: 44px;
+  padding: 0 var(--ui-space-14);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface);
+  font-family: inherit;
+  font-size: var(--ui-font-size-caption);
+  font-weight: var(--ui-font-weight-bold);
+  color: var(--ui-color-text-primary);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--ui-color-surface-muted);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary);
+    outline-offset: 2px;
+  }
+}
+
+.hp-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-12);
+}
+
+.hp-card__map {
+  position: relative;
+  border-radius: var(--ui-radius-12);
+  border: 1px solid var(--ui-color-border);
+  overflow: hidden;
+}
+
+.hp-card__badge-slot {
+  position: absolute;
+  top: var(--ui-space-8);
+  left: var(--ui-space-8);
+  right: var(--ui-space-8);
+  z-index: 1003;
+  display: flex;
+  pointer-events: none;
+}
+
+.hp-card__badge {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-8);
+  max-width: 100%;
+  padding: var(--ui-space-6) var(--ui-space-10);
+  border-radius: var(--ui-radius-pill);
+  border: 1px solid var(--ui-color-border);
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 2px 8px -2px rgba(20, 15, 5, 0.18);
+
+  .pi {
+    flex: none;
+    font-size: 0.8125rem;
+    color: var(--ui-color-primary);
+  }
+}
+
+.hp-card__badge-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  b {
+    font-size: 0.75rem;
+    font-weight: var(--ui-font-weight-extrabold);
+    color: var(--ui-color-text-primary);
+    white-space: nowrap;
+  }
+
+  small {
+    font-size: 0.6875rem;
+    font-weight: var(--ui-font-weight-semibold);
+    color: var(--ui-color-text-secondary);
+    white-space: nowrap;
+  }
+}
+
+.hp-card__details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-12);
+}
+
+.hp-card__row {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-10);
+}
+
+.hp-card__icon {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--ui-radius-sm);
+  display: grid;
+  place-items: center;
+  background: var(--ui-color-primary-soft);
+  color: var(--ui-color-primary);
+}
+
+.hp-card__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  b {
+    font-size: 0.9375rem;
+    font-weight: var(--ui-font-weight-extrabold);
+    color: var(--ui-color-text-primary);
+  }
+
+  small {
+    margin-top: 1px;
+    font-size: 0.75rem;
+    font-weight: var(--ui-font-weight-semibold);
+    color: var(--ui-color-text-secondary);
+  }
+}
+
+.hp-card__privacy,
+.hp-card__remove-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-6);
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--ui-color-text-secondary);
+
+  .pi {
+    flex: none;
+    margin-top: 2px;
+  }
+}
+
+.hp-card__privacy .pi {
+  color: var(--ui-color-primary);
+}
+
+.hp-card__error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-8);
+  margin: 0;
+  padding: var(--ui-space-10) var(--ui-space-12);
+  border-radius: var(--ui-radius-12);
+  border: 1px solid var(--ui-color-error-border);
+  background: var(--ui-color-error-surface);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--ui-color-error);
+
+  .pi {
+    flex: none;
+    margin-top: 2px;
+  }
+}
+
+.hp-card__remove {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ui-space-4);
+  padding-top: var(--ui-space-8);
+  border-top: 1px solid var(--ui-color-border);
+}
+
+.hp-card__remove-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-6);
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--ui-font-size-caption);
+  font-weight: var(--ui-font-weight-bold);
+  color: var(--ui-color-danger);
+  cursor: pointer;
+
+  &:disabled {
+    color: var(--ui-color-text-muted);
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary);
+    outline-offset: 2px;
+    border-radius: var(--ui-radius-sm);
+  }
+}
+
+/* ── Empty state ─────────────────────────────────────────────────── */
+.hp-card--empty {
+  align-items: stretch;
+}
+
+.hp-card__empty-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--ui-radius-card);
+  display: grid;
+  place-items: center;
+  background: var(--ui-color-primary-soft);
+  color: var(--ui-color-primary);
+
+  .pi {
+    font-size: 1.5rem;
+  }
+}
+
+.hp-card__empty-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-4);
+}
+
+.hp-card__eyebrow {
+  font-size: 0.6875rem;
+  font-weight: var(--ui-font-weight-extrabold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ui-color-text-secondary);
+}
+
+.hp-card__empty-title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: var(--ui-font-weight-extrabold);
+  color: var(--ui-color-text-primary);
+}
+
+.hp-card__empty-body {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: var(--ui-line-height-base);
+  color: var(--ui-color-text-secondary);
+}
+
+.hp-card__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-space-8);
+  width: 100%;
+  min-height: var(--ui-button-min-height-lg);
+  border: 0;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-primary);
+  color: var(--ui-color-on-primary);
+  box-shadow: var(--ui-shadow-primary-button);
+  font-family: inherit;
+  font-size: var(--ui-button-font-size);
+  font-weight: var(--ui-font-weight-bold);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--ui-color-primary-strong);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary-strong);
+    outline-offset: 3px;
+  }
+}
+
+/* Desktop: the boards put the map beside the details rather than above them,
+   and the empty state becomes one horizontal row. 1100px is the canonical `xl`
+   breakpoint (DESIGN_RULES.md §3). */
+@media (min-width: 1100px) {
+  .hp-card {
+    padding: var(--ui-space-20);
+    gap: var(--ui-space-14);
+  }
+
+  .hp-card__body {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: var(--ui-space-18);
+    align-items: start;
+  }
+
+  .hp-card__map app-map {
+    display: block;
+  }
+
+  .hp-card--empty {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--ui-space-20);
+    padding: var(--ui-space-24);
+  }
+
+  .hp-card__cta {
+    width: auto;
+    padding: 0 var(--ui-space-20);
+  }
+}
+
+/* ── Change confirmation: bottom sheet on mobile, dialog on desktop ──
+   ONE `p-dialog` for both, rather than a `p-drawer`/`p-dialog` pair switched on
+   a media query: the boards call the mobile treatment a sheet, and a dialog
+   pinned to the bottom edge with a grab handle and rounded top corners IS that
+   sheet — while a second portal would mean a second focus trap and a second
+   Escape handler to keep in step, for no visible gain. */
+.p-dialog.hp-sheet {
+  width: 100vw;
+  max-width: 100vw;
+  margin: 0;
+  border-radius: var(--ui-radius-lg) var(--ui-radius-lg) 0 0;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-shadow: 0 -10px 30px -14px rgba(20, 15, 5, 0.35);
+}
+
+/* Both dialogs draw their own title (`.hp-sheet__title`), so PrimeNG's header
+   must not be seen — but it must still be RENDERED, because the span inside it
+   is what `aria-labelledby` points at and therefore what names the dialog.
+   `display: none` would leave the name resolving to a node the accessible-name
+   algorithm only honours through a narrow "directly referenced" carve-out; the
+   visually-hidden treatment below (the same one `.dr-boot__sr-label` uses)
+   needs no carve-out and is exposed by every assistive technology. It is out of
+   flow and 1px clipped, so nothing moves on screen either way.
+   `closable`/`maximizable` are both false, so this box has no focusable child
+   and cannot become a keyboard trap. */
+.p-dialog.hp-sheet .p-dialog-header,
+.p-dialog.hp-remove-dialog .p-dialog-header {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.p-dialog.hp-sheet .p-dialog-content,
+.p-dialog.hp-remove-dialog .p-dialog-content {
+  padding: 0;
+  background: var(--ui-color-surface);
+}
+
+.hp-sheet__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-14);
+  padding: var(--ui-space-8) var(--ui-space-18);
+  padding-bottom: max(var(--ui-space-24), env(safe-area-inset-bottom));
+}
+
+.hp-sheet__grab {
+  align-self: center;
+  width: 36px;
+  height: 4px;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-border);
+}
+
+.hp-sheet__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: var(--ui-font-weight-extrabold);
+  line-height: var(--ui-line-height-tight);
+  color: var(--ui-color-text-primary);
+}
+
+.hp-sheet__lead {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: var(--ui-line-height-base);
+  color: var(--ui-color-text-secondary);
+}
+
+.hp-sheet__move {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-8);
+}
+
+.hp-sheet__move > .pi {
+  flex: none;
+  color: var(--ui-color-text-muted);
+}
+
+.hp-sheet__box {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--ui-space-10) var(--ui-space-12);
+  border-radius: var(--ui-radius-12);
+  border: 1px solid var(--ui-color-border);
+  background: var(--ui-color-background);
+}
+
+.hp-sheet__box small {
+  font-size: 0.65625rem;
+  font-weight: var(--ui-font-weight-extrabold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ui-color-text-secondary);
+}
+
+.hp-sheet__box b {
+  font-size: 0.875rem;
+  font-weight: var(--ui-font-weight-extrabold);
+  color: var(--ui-color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The "new point" box in the change sheet — the boards' own
+   `border:1px solid #ffd9bd` on `var(--primary-wash)`, the same warm pair the
+   detail page's "from your home" distance row and the filter's "set" origin
+   card wear. One token, one object, three places. */
+.hp-sheet__box--new {
+  border-color: var(--ui-color-primary-wash-border);
+  background: var(--ui-color-primary-wash);
+}
+
+.hp-sheet__note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-10);
+  margin: 0;
+  padding: var(--ui-space-10) var(--ui-space-12);
+  border-radius: var(--ui-radius-12);
+  border: 1px solid color-mix(in srgb, var(--ui-color-info) 26%, transparent);
+  background: var(--ui-color-info-surface);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--ui-color-text-primary);
+}
+
+.hp-sheet__note .pi {
+  flex: none;
+  margin-top: 2px;
+  color: var(--ui-color-info);
+}
+
+.hp-sheet__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-6);
+}
+
+.hp-sheet__primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-space-8);
+  width: 100%;
+  min-height: var(--ui-button-min-height-lg);
+  border: 0;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-primary);
+  color: var(--ui-color-on-primary);
+  box-shadow: var(--ui-shadow-primary-button);
+  font-family: inherit;
+  font-size: var(--ui-button-font-size);
+  font-weight: var(--ui-font-weight-bold);
+  cursor: pointer;
+}
+
+.hp-sheet__primary:hover:not(:disabled) {
+  background: var(--ui-color-primary-strong);
+}
+
+.hp-sheet__primary:disabled {
+  background: var(--ui-color-primary-disabled);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.hp-sheet__secondary {
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--ui-font-size-caption);
+  font-weight: var(--ui-font-weight-bold);
+  color: var(--ui-color-text-primary);
+  cursor: pointer;
+}
+
+.hp-sheet__secondary:focus-visible {
+  outline: 2px solid var(--ui-color-primary);
+  outline-offset: 2px;
+  border-radius: var(--ui-radius-sm);
+}
+
+/* ── Remove confirmation (destructive) ──────────────────────────── */
+.p-dialog.hp-remove-dialog {
+  width: min(440px, calc(100vw - 2rem));
+  border-radius: var(--ui-radius-card);
+  overflow: hidden;
+}
+
+.hp-remove__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-12);
+  padding: var(--ui-space-24) var(--ui-space-20) var(--ui-space-18);
+}
+
+.hp-remove__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--ui-radius-md);
+  display: grid;
+  place-items: center;
+  background: var(--ui-color-danger-surface);
+  color: var(--ui-color-danger);
+}
+
+.hp-remove__icon .pi {
+  font-size: 1.25rem;
+}
+
+.hp-remove__actions {
+  display: flex;
+  gap: var(--ui-space-10);
+  margin-top: var(--ui-space-4);
+}
+
+.hp-remove__cancel {
+  flex: 1;
+  border: 1.5px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-pill);
+  min-height: var(--ui-button-min-height-lg);
+  background: var(--ui-color-surface-muted);
+}
+
+.hp-remove__confirm {
+  flex: 1;
+  min-height: var(--ui-button-min-height-lg);
+  border: 0;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-danger);
+  color: #fff;
+  font-family: inherit;
+  font-size: var(--ui-button-font-size);
+  font-weight: var(--ui-font-weight-bold);
+  cursor: pointer;
+}
+
+.hp-remove__confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.hp-remove__confirm:focus-visible {
+  outline: 2px solid var(--ui-color-danger);
+  outline-offset: 3px;
+}
+
+/* Desktop: the sheet becomes a centred dialog. */
+@media (min-width: 768px) {
+  .p-dialog.hp-sheet {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: min(480px, calc(100vw - 2rem));
+    max-width: min(480px, calc(100vw - 2rem));
+    border-radius: var(--ui-radius-card);
+    box-shadow: var(--ui-shadow-card-hover);
+  }
+
+  .hp-sheet__grab {
+    display: none;
+  }
+
+  .hp-sheet__body {
+    padding: var(--ui-space-24) var(--ui-space-24) var(--ui-space-18);
+  }
+}

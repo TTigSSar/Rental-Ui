@@ -1,11 +1,18 @@
+import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule } from '@ngx-translate/core';
+import { of } from 'rxjs';
 
-import { GeolocationService } from '../../../../shared/services/geolocation.service';
-import { LocationPickerComponent, YEREVAN_CENTER } from './location-picker.component';
-import { MapComponent } from '../../../../shared/ui/map/map.component';
-import type { MapLatLng } from '../../../../shared/ui/map/map.component';
+import { ListingsApiService } from '../../../features/listings/services/listings-api.service';
+import type { HomePointSelection } from '../home-point-map/home-point-map.model';
+
+import { GeolocationService } from '../../services/geolocation.service';
+import { LocationPickerComponent } from './location-picker.component';
+import { MapComponent } from '../map/map.component';
+import type { MapLatLng } from '../map/map.component';
+import { YEREVAN_CENTER } from '../map/map.constants';
 
 /**
  * `app-map` (used inside this component's template) dynamic-imports the real
@@ -197,7 +204,7 @@ describe('LocationPickerComponent', () => {
       expect(confirmBtn()?.disabled).toBe(false);
     });
 
-    it('never disables the confirm button when confirmDisabledUntilMoved is left at its default (the wizard\'s own behaviour, unaffected)', async () => {
+    it("never disables the confirm button when confirmDisabledUntilMoved is left at its default (the wizard's own behaviour, unaffected)", async () => {
       await createPicker(true, YEREVAN_CENTER);
       const confirmBtn = document.body.querySelector<HTMLButtonElement>(
         '.location-picker__btn--confirm',
@@ -338,5 +345,334 @@ describe('LocationPickerComponent', () => {
       expect(getComputedStyle(hintBox as HTMLElement).pointerEvents).toBe('none');
       expect(getComputedStyle(hintCard as HTMLElement).pointerEvents).toBe('auto');
     });
+  });
+});
+
+/**
+ * Home-point mode (`homePointMode`) — the same full-screen dialog shell, but the
+ * body is `app-home-point-map` and Confirm is GATED: enabled only when the
+ * point is both valid (inside Yerevan) and deliberately chosen.
+ *
+ * Deviation from the approved boards, decided after they were drawn: a point
+ * outside Yerevan is the ONE blocking state, for everyone. The boards had
+ * "Outside Yerevan" as a neutral, still-confirmable chip and blocked only
+ * "outside Armenia"; that distinction no longer exists anywhere — backend
+ * included, which answers `auth.home_point_outside_yerevan` for both.
+ */
+describe('LocationPickerComponent — home-point mode', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  interface HomePointTestable {
+    onHomePointSelectionChange(selection: HomePointSelection): void;
+    homePointConfirmDisabled(): boolean;
+    confirm(): void;
+  }
+
+  const SELECTION: HomePointSelection = {
+    center: { lat: 40.19, lng: 44.51 },
+    district: {
+      id: 'd1111111-1111-1111-1111-111111111111',
+      code: 'kentron',
+      nameEn: 'Kentron',
+      nameHy: 'Կենտրոն',
+      nameRu: 'Кентрон',
+    },
+    resolving: false,
+    outsideYerevan: false,
+    deliberate: true,
+    geoState: 'idle',
+    lowAccuracyMeters: null,
+    canConfirm: true,
+  };
+
+  async function createHomePointPicker(extraInputs: Record<string, unknown> = {}) {
+    TestBed.configureTestingModule({
+      imports: [LocationPickerComponent, TranslateModule.forRoot()],
+      providers: [
+        // `LanguageService` (via the district chip) injects `Store`.
+        provideMockStore(),
+        { provide: GeolocationService, useValue: { getCurrentPosition: vi.fn() } },
+        { provide: ListingsApiService, useValue: { getDistrictAt: vi.fn(() => of(null)) } },
+      ],
+    });
+    const fixture = TestBed.createComponent(LocationPickerComponent);
+    fixture.componentRef.setInput('open', true);
+    fixture.componentRef.setInput('homePointMode', true);
+    for (const [key, value] of Object.entries(extraInputs)) {
+      fixture.componentRef.setInput(key, value);
+    }
+    fixture.detectChanges();
+    await vi.runAllTimersAsync();
+    fixture.detectChanges();
+    return {
+      fixture,
+      component: fixture.componentInstance as unknown as HomePointTestable,
+      instance: fixture.componentInstance,
+    };
+  }
+
+  it('renders the home-point map and the two-line header instead of the generic crosshair map', async () => {
+    const { fixture } = await createHomePointPicker();
+
+    expect(document.querySelector('app-home-point-map')).toBeTruthy();
+    expect(document.querySelector('.location-picker__subtitle')).toBeTruthy();
+    expect(document.querySelector('.location-picker__hint')).toBeNull();
+    expect(fixture.nativeElement).toBeTruthy();
+  });
+
+  it('Confirm is disabled until the map reports a confirmable selection', async () => {
+    const { component } = await createHomePointPicker();
+
+    expect(component.homePointConfirmDisabled()).toBe(true);
+
+    component.onHomePointSelectionChange(SELECTION);
+
+    expect(component.homePointConfirmDisabled()).toBe(false);
+  });
+
+  it('a point outside Yerevan keeps Confirm disabled and emits nothing', async () => {
+    const { component, instance } = await createHomePointPicker();
+    let emitted = 0;
+    instance.confirmed.subscribe(() => (emitted += 1));
+
+    component.onHomePointSelectionChange({
+      ...SELECTION,
+      district: null,
+      outsideYerevan: true,
+      canConfirm: false,
+    });
+
+    expect(component.homePointConfirmDisabled()).toBe(true);
+    component.confirm();
+    expect(emitted).toBe(0);
+  });
+
+  it('Confirm emits BOTH the coordinate and the resolved district, so the caller need not look it up again', async () => {
+    const { component, instance } = await createHomePointPicker();
+    let coord: MapLatLng | null = null;
+    let selection: HomePointSelection | null = null;
+    instance.confirmed.subscribe((c) => (coord = c));
+    instance.confirmedHomePoint.subscribe((s) => (selection = s));
+
+    component.onHomePointSelectionChange(SELECTION);
+    component.confirm();
+
+    expect(coord).toEqual(SELECTION.center);
+    expect(selection).toEqual(SELECTION);
+  });
+
+  it('a save in flight makes Confirm inert', async () => {
+    const { component, fixture } = await createHomePointPicker();
+    component.onHomePointSelectionChange(SELECTION);
+    expect(component.homePointConfirmDisabled()).toBe(false);
+
+    fixture.componentRef.setInput('saving', true);
+    fixture.detectChanges();
+
+    expect(component.homePointConfirmDisabled()).toBe(true);
+  });
+
+  it('a server-side refusal reaches the inline status message', async () => {
+    const { fixture } = await createHomePointPicker({ serverOutsideYerevan: true });
+    fixture.detectChanges();
+
+    expect(document.querySelector('.hp-status--error')).toBeTruthy();
+  });
+});
+
+/**
+ * A11y regressions found by the verifier on the live home-point picker (F5).
+ *
+ * Both are construction/DOM-level facts, so both go through a real
+ * `TestBed.createComponent` and read the real portalled DOM rather than
+ * asserting on component state (M-028): the first defect was invisible to
+ * every existing test precisely because no test had ever looked at the
+ * dialog element's own attributes, and the second because no test had ever
+ * moved focus.
+ */
+describe('LocationPickerComponent — dialog accessible name (F5.1)', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  /** The portalled dialog root — `appendTo="body"`, so NOT under the fixture. */
+  function dialogRoot(): HTMLElement {
+    const root = document.body.querySelector<HTMLElement>('[role="dialog"]');
+    expect(root).toBeTruthy();
+    return root as HTMLElement;
+  }
+
+  /** Resolves the dialog's `aria-labelledby` exactly as a screen reader would. */
+  function accessibleName(): string {
+    const id = dialogRoot().getAttribute('aria-labelledby');
+    expect(id).toBeTruthy();
+    const labelEl = document.getElementById(id as string);
+    // The defect: this element did not exist at all. `p-dialog` only renders
+    // the default title span carrying this id when NO header template is
+    // supplied, but it binds `aria-labelledby` to the id either way.
+    expect(labelEl).toBeTruthy();
+    return (labelEl?.textContent ?? '').trim();
+  }
+
+  it('home-point mode exposes a NON-EMPTY accessible name from its own two-line header', async () => {
+    TestBed.configureTestingModule({
+      imports: [LocationPickerComponent, TranslateModule.forRoot()],
+      providers: [
+        provideMockStore(),
+        { provide: GeolocationService, useValue: { getCurrentPosition: vi.fn() } },
+        { provide: ListingsApiService, useValue: { getDistrictAt: vi.fn(() => of(null)) } },
+      ],
+    });
+    const fixture = TestBed.createComponent(LocationPickerComponent);
+    fixture.componentRef.setInput('open', true);
+    fixture.componentRef.setInput('homePointMode', true);
+    fixture.componentRef.setInput('headerKey', 'homePoint.picker.title');
+    fixture.detectChanges();
+    await vi.runAllTimersAsync();
+    fixture.detectChanges();
+
+    // No translations are registered in this TestBed, so `| translate` echoes
+    // the key — which is what makes "non-empty" meaningful here: the broken
+    // version resolved to no element at all, not to an untranslated string.
+    expect(accessibleName()).toBe('homePoint.picker.title');
+
+    // ...and the name must come from the visible <h2>, not a hidden duplicate:
+    // two elements sharing the id would let the empty one win on document
+    // order, which is the exact shape of the original bug.
+    const id = dialogRoot().getAttribute('aria-labelledby') as string;
+    // Attribute selector rather than `#id` + `CSS.escape` — jsdom does not
+    // implement `CSS.escape`, and the generated id needs no escaping anyway.
+    expect(document.body.querySelectorAll('[id="' + id + '"]').length).toBe(1);
+    expect(document.getElementById(id)?.tagName).toBe('H2');
+    expect(document.getElementById(id)?.classList.contains('location-picker__title')).toBe(true);
+  });
+
+  it('generic mode (plain [header] string, no header template) keeps its accessible name', async () => {
+    await createPicker(true, YEREVAN_CENTER, {
+      headerKey: 'listings.filters.locationPicker.title',
+    });
+
+    expect(accessibleName()).toBe('listings.filters.locationPicker.title');
+  });
+});
+
+/**
+ * F5.2 — focus must come back to whatever opened the picker. PrimeNG does not
+ * do this (`onContainerDestroy` in `primeng-dialog.mjs` touches z-index,
+ * modality and body scroll and nothing else), and the doc comment used to make
+ * it the caller's job, which exactly one of four call sites actually did.
+ *
+ * The host below is a REAL component with a REAL trigger button, because the
+ * thing under test is `document.activeElement` — there is no way to assert it
+ * from component state.
+ */
+@Component({
+  standalone: true,
+  imports: [LocationPickerComponent],
+  template: `
+    <button type="button" class="spec-trigger" (click)="open.set(true)">open the picker</button>
+    <app-location-picker
+      [open]="open()"
+      [homePointMode]="true"
+      (cancelled)="open.set(false)"
+      (confirmed)="open.set(false)"
+    />
+  `,
+})
+class PickerHostComponent {
+  readonly open = signal(false);
+}
+
+describe('LocationPickerComponent — focus return to the trigger (F5.2)', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  interface CloseTestable {
+    onVisibleChange(visible: boolean): void;
+  }
+
+  async function openFromTrigger() {
+    TestBed.configureTestingModule({
+      imports: [PickerHostComponent, TranslateModule.forRoot()],
+      providers: [
+        provideMockStore(),
+        { provide: GeolocationService, useValue: { getCurrentPosition: vi.fn() } },
+        { provide: ListingsApiService, useValue: { getDistrictAt: vi.fn(() => of(null)) } },
+      ],
+    });
+    const fixture = TestBed.createComponent(PickerHostComponent);
+    fixture.detectChanges();
+
+    const trigger = fixture.nativeElement.querySelector('.spec-trigger') as HTMLButtonElement;
+    trigger.focus();
+    expect(document.activeElement).toBe(trigger);
+
+    trigger.click();
+    fixture.detectChanges();
+    await vi.runAllTimersAsync();
+    fixture.detectChanges();
+
+    // Stand in for `p-dialog`'s own `focusOnShow`, which fires from a motion
+    // callback jsdom never runs. Without this the test would pass against the
+    // BROKEN code too — focus would simply never have left the trigger.
+    const cancelBtn = document.body.querySelector<HTMLButtonElement>(
+      '.location-picker__btn--cancel',
+    );
+    expect(cancelBtn).toBeTruthy();
+    cancelBtn?.focus();
+    expect(document.activeElement).toBe(cancelBtn);
+
+    return {
+      fixture,
+      trigger,
+      cancelBtn: cancelBtn as HTMLButtonElement,
+      picker: fixture.debugElement.query(By.directive(LocationPickerComponent))
+        .componentInstance as unknown as CloseTestable,
+    };
+  }
+
+  it('returns focus to the trigger when the Cancel button is pressed', async () => {
+    const { fixture, trigger, cancelBtn } = await openFromTrigger();
+
+    cancelBtn.click();
+    fixture.detectChanges();
+
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it('returns focus to the trigger on Escape / the header close button', async () => {
+    const { fixture, trigger, picker } = await openFromTrigger();
+
+    // The exact path Escape takes: PrimeNG's document keydown handler calls
+    // `close()` -> `hide()` -> `visibleChange(false)`. The live defect was that
+    // `document.activeElement` became BODY here.
+    picker.onVisibleChange(false);
+    fixture.detectChanges();
+
+    expect(document.activeElement).not.toBe(document.body);
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it('re-captures the trigger on every re-open rather than reusing the first one', async () => {
+    const { fixture, trigger, picker } = await openFromTrigger();
+    picker.onVisibleChange(false);
+    fixture.detectChanges();
+    expect(document.activeElement).toBe(trigger);
+
+    // Second journey, opened from a DIFFERENT control.
+    const other = document.createElement('button');
+    other.type = 'button';
+    fixture.nativeElement.appendChild(other);
+    other.focus();
+    fixture.componentInstance.open.set(true);
+    fixture.detectChanges();
+    await vi.runAllTimersAsync();
+    fixture.detectChanges();
+
+    document.body.querySelector<HTMLButtonElement>('.location-picker__btn--cancel')?.focus();
+    picker.onVisibleChange(false);
+    fixture.detectChanges();
+
+    expect(document.activeElement).toBe(other);
   });
 });

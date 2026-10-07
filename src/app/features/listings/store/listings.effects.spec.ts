@@ -1,9 +1,17 @@
 import { TestBed } from '@angular/core/testing';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
-import { Subject, from, of, throwError } from 'rxjs';
+import { Subject, from, of, throwError, type Observable } from 'rxjs';
+import type { Action } from '@ngrx/store';
 
 import { actionsHarness, collect } from '../../../../testing/ngrx.helpers';
-import { makeListingMapPin, makeListingPreview } from '../../../../testing/fixtures';
+import {
+  makeHomePoint,
+  makeListingMapPin,
+  makeListingPreview,
+  makeUser,
+} from '../../../../testing/fixtures';
+import * as AuthActions from '../../auth/store/auth.actions';
+import { selectHomePoint } from '../../auth/store/auth.selectors';
 import { selectFavoriteIds } from '../../favorites/store/favorites.selectors';
 import type { ListingMapPinsResult } from '../models/listing-map-pin.model';
 import type { ListingsFilter } from '../models/listings-filter.model';
@@ -14,6 +22,7 @@ import {
   selectListingsFilters,
   selectListingsHasMore,
   selectListingsOriginCoords,
+  selectListingsOriginSource,
   selectListingsPage,
   selectListingsPageSize,
 } from './listings.selectors';
@@ -35,6 +44,8 @@ function setup(api: Partial<ListingsApiService> = {}) {
   store.overrideSelector(selectListingsPageSize, 20);
   store.overrideSelector(selectListingsHasMore, true);
   store.overrideSelector(selectListingsOriginCoords, null);
+  store.overrideSelector(selectListingsOriginSource, null);
+  store.overrideSelector(selectHomePoint, null);
   store.overrideSelector(selectFavoriteIds, new Set<string>());
   return { harness, store, effects: TestBed.inject(ListingsEffects) };
 }
@@ -161,7 +172,11 @@ describe('ListingsEffects', () => {
       harness.complete();
 
       expect(await result).toEqual([
-        ListingsActions.createListingFailure({ error: 'invalid listing' }),
+        // `errorCode` is null here: this failure carries no ProblemDetails
+        // body, so `getApiErrorCode` finds nothing. A 409
+        // `listing.home_point_required` is the case where it is populated —
+        // see the wizard's home-point gate.
+        ListingsActions.createListingFailure({ error: 'invalid listing', errorCode: null }),
       ]);
     });
   });
@@ -320,6 +335,174 @@ describe('ListingsEffects', () => {
 
       const result = collect(effects.persistFavoriteToggle$);
       harness.send(ListingsActions.toggleFavoriteOptimistic({ listingId: 'L1' }));
+      harness.complete();
+
+      expect(await result).toEqual([]);
+    });
+  });
+
+  // ── Home-point model: "From your home" as the default radius origin ──
+  //
+  // Driven off the STORE, not off an action, so these tests set up the state
+  // and then simply subscribe — there is no `harness.send()` here, and that
+  // is the point. An earlier action-driven version passed action-shaped tests
+  // while failing on every real cold load of `/listings`, because the auth
+  // action had already fired before these route-scoped effects registered
+  // (found by a live walk, not by this suite). Subscribing to the effect IS
+  // the regression test for that: it only emits if the current store value is
+  // enough on its own.
+  describe('defaultOriginToHomePoint$', () => {
+    const homePoint = makeHomePoint();
+
+    function withState(
+      source: 'geo' | 'manual' | 'home' | null,
+      point: ReturnType<typeof makeHomePoint> | null = homePoint,
+    ) {
+      const ctx = setup();
+      ctx.store.overrideSelector(selectHomePoint, point);
+      ctx.store.overrideSelector(selectListingsOriginSource, source);
+      ctx.store.refreshState();
+      return ctx;
+    }
+
+    /**
+     * `collect()` can't be used here: it relies on `toArray()`, which needs
+     * the SOURCE to complete, and this effect's source is a store selector
+     * that never does. `MockStore` emits synchronously on subscribe and on
+     * `refreshState()`, so a plain subscription collecting into an array is
+     * both sufficient and exact — no timers, no flush.
+     */
+    function collectSync(effect$: Observable<Action>) {
+      const emitted: Action[] = [];
+      const subscription = effect$.subscribe((action) => emitted.push(action));
+      return { emitted, stop: () => subscription.unsubscribe() };
+    }
+
+    it('sets the origin from the store on subscription, with no action needed (cold-load path)', () => {
+      const { effects } = withState(null);
+
+      const { emitted, stop } = collectSync(effects.defaultOriginToHomePoint$);
+      stop();
+
+      expect(emitted).toEqual([
+        ListingsActions.setOriginCoords({
+          // The EXACT pair, never the fuzzed public one — it is the renter's
+          // own point, and the API seam is what coarsens it on the way out.
+          coords: { lat: homePoint.latitude, lng: homePoint.longitude },
+          source: 'home',
+        }),
+      ]);
+    });
+
+    it('re-targets an existing home origin when the user MOVES their home point', () => {
+      const moved = makeHomePoint({ latitude: 40.21, longitude: 44.49, district: null });
+      const { store, effects } = withState('home');
+
+      const { emitted, stop } = collectSync(effects.defaultOriginToHomePoint$);
+      store.overrideSelector(selectHomePoint, moved);
+      store.refreshState();
+      stop();
+
+      expect(emitted.at(-1)).toEqual(
+        ListingsActions.setOriginCoords({
+          coords: { lat: moved.latitude, lng: moved.longitude },
+          source: 'home',
+        }),
+      );
+    });
+
+    // The guard that matters most: the home point is re-read on every boot
+    // and after several mutations, and it must never yank the origin out from
+    // under a renter who deliberately chose one.
+    it('NEVER overrides a geo origin the renter chose', () => {
+      const { effects } = withState('geo');
+
+      const { emitted, stop } = collectSync(effects.defaultOriginToHomePoint$);
+      stop();
+
+      expect(emitted).toEqual([]);
+    });
+
+    it('NEVER overrides a manual origin the renter dropped on the map', () => {
+      const { effects } = withState('manual');
+
+      const { emitted, stop } = collectSync(effects.defaultOriginToHomePoint$);
+      stop();
+
+      expect(emitted).toEqual([]);
+    });
+
+    it('does nothing for a user with no home point', () => {
+      const { effects } = withState(null, null);
+
+      const { emitted, stop } = collectSync(effects.defaultOriginToHomePoint$);
+      stop();
+
+      expect(emitted).toEqual([]);
+    });
+
+    // "Remove" has to stick. Without the `distinctUntilChanged` on the
+    // coordinate pair, the next profile refresh (an equal point in a fresh
+    // object) would silently re-add the origin the renter just removed.
+    it('does not re-add the origin when an unchanged home point is re-read after a clear', () => {
+      const { store, effects } = withState(null);
+
+      const { emitted, stop } = collectSync(effects.defaultOriginToHomePoint$);
+      // The first emission is the legitimate default. Now simulate "Remove"
+      // followed by a profile refresh carrying an EQUAL point in a new object.
+      store.overrideSelector(selectListingsOriginSource, null);
+      store.overrideSelector(selectHomePoint, makeHomePoint());
+      store.refreshState();
+      stop();
+
+      expect(emitted).toHaveLength(1);
+    });
+  });
+
+  describe('clearHomeOrigin$', () => {
+    it('clears a home origin on logout', async () => {
+      const { harness, store, effects } = setup();
+      store.overrideSelector(selectListingsOriginSource, 'home');
+      store.refreshState();
+
+      const result = collect(effects.clearHomeOrigin$);
+      harness.send(AuthActions.logout());
+      harness.complete();
+
+      expect(await result).toEqual([ListingsActions.clearOrigin()]);
+    });
+
+    it('clears a home origin when the home point is deleted', async () => {
+      const { harness, store, effects } = setup();
+      store.overrideSelector(selectListingsOriginSource, 'home');
+      store.refreshState();
+
+      const result = collect(effects.clearHomeOrigin$);
+      harness.send(AuthActions.clearHomePointSuccess({ user: makeUser() }));
+      harness.complete();
+
+      expect(await result).toEqual([ListingsActions.clearOrigin()]);
+    });
+
+    it('leaves a geo origin alone on logout — signing out is not a reason to forget a point the visitor set', async () => {
+      const { harness, store, effects } = setup();
+      store.overrideSelector(selectListingsOriginSource, 'geo');
+      store.refreshState();
+
+      const result = collect(effects.clearHomeOrigin$);
+      harness.send(AuthActions.logout());
+      harness.complete();
+
+      expect(await result).toEqual([]);
+    });
+
+    it('leaves a manual origin alone on logout', async () => {
+      const { harness, store, effects } = setup();
+      store.overrideSelector(selectListingsOriginSource, 'manual');
+      store.refreshState();
+
+      const result = collect(effects.clearHomeOrigin$);
+      harness.send(AuthActions.logout());
       harness.complete();
 
       expect(await result).toEqual([]);

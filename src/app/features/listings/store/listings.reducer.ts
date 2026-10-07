@@ -223,10 +223,11 @@ export const listingsReducer = createReducer(
   ),
   on(
     ListingsActions.createListingFailure,
-    (state, { error }): ListingsState => ({
+    (state, { error, errorCode }): ListingsState => ({
       ...state,
       createListingLoading: false,
       createListingError: error,
+      createListingErrorCode: errorCode ?? null,
       createListingSuccessId: null,
       createListingImageUploadError: null,
       createListingImageUploadProgress: null,
@@ -269,6 +270,7 @@ export const listingsReducer = createReducer(
       ...state,
       createListingLoading: false,
       createListingError: null,
+      createListingErrorCode: null,
       createListingSuccessId: null,
       createListingImageUploadError: null,
       createListingImageUploadProgress: null,

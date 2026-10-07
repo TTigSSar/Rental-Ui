@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, filter, from, map, switchMap } from 'rxjs';
 
 import { ApiContract, toApiUrl } from '../../../api/api-contract';
+import { roundCoordForApi } from '../../../shared/utils/coord-precision.utils';
 import { compressImageFiles } from '../../../shared/utils/image-compression.utils';
 import type {
   CreateListingRequest,
@@ -289,6 +290,38 @@ export class ListingsApiService {
       );
   }
 
+  /**
+   * `GET /api/districts/at?lat=&lng=` — which Yerevan district a coordinate falls
+   * in. Anonymous and rate-limited per IP; meant to be called while a map pin is
+   * being dragged, so callers must debounce.
+   *
+   * `null` means the point is in NO district, which is exactly the set of points
+   * the write side refuses (`auth.home_point_outside_yerevan`). It is the only
+   * "this pin cannot be saved" signal the client gets — there is no `inArmenia`
+   * flag and no second tier for "outside the country".
+   */
+  getDistrictAt(latitude: number, longitude: number): Observable<ListingDistrict | null> {
+    const params = new HttpParams()
+      .set('lat', String(latitude))
+      .set('lng', String(longitude));
+    return this.http
+      .get<{ district?: ListingDistrict | null }>(toApiUrl(ApiContract.districts.at), { params })
+      .pipe(
+        map((response) => {
+          const district = response?.district;
+          return district && typeof district.id === 'string'
+            ? {
+                id: district.id,
+                code: typeof district.code === 'string' ? district.code : '',
+                nameEn: typeof district.nameEn === 'string' ? district.nameEn : '',
+                nameHy: typeof district.nameHy === 'string' ? district.nameHy : '',
+                nameRu: typeof district.nameRu === 'string' ? district.nameRu : '',
+              }
+            : null;
+        }),
+      );
+  }
+
   addToFavorites(listingId: string): Observable<void> {
     return this.http.post<void>(toApiUrl(ApiContract.favorites.byListingId(listingId)), {});
   }
@@ -406,10 +439,28 @@ export class ListingsApiService {
     // origin. `clampRadiusKm` mirrors the backend's own [0.2, 20] clamp
     // (`rental-api` commit `d0955e0`) so this never sends a value the API
     // would silently reclamp anyway.
+    //
+    // **Both conditions are load-bearing, and the `radiusKm` half is now a
+    // privacy guarantee as well as a correctness one.** An origin can be the
+    // signed-in renter's HOME POINT (`ListingsOriginSource` `'home'`, set by
+    // default for anyone who has one), and that coordinate must not ride
+    // along on every catalogue request just because it is known — only on the
+    // requests where the renter asked for a distance filter (product
+    // decision, Tigran 2026-10-05). Having `originCoords` in the store is
+    // therefore never sufficient on its own; a chosen `radiusKm` is what
+    // authorizes the send.
+    //
+    // THIS IS THE SINGLE SEAM where an outbound origin is coarsened
+    // (`roundCoordForApi`, 3 dp ≈ 100 m — ADR-015). Every origin, from every
+    // source (`geo`/`manual`/`home`) and both callers (`getListings`,
+    // `getMapPins`), passes through here, so no caller has to remember to
+    // round and none can forget. Callers keep the PRECISE coordinate for
+    // local display — see `roundCoordForApi`'s own doc comment for why that
+    // split must stay.
     if (filter.radiusKm !== null && originCoords !== null) {
       params = params
-        .set('originLat', String(originCoords.lat))
-        .set('originLng', String(originCoords.lng))
+        .set('originLat', String(roundCoordForApi(originCoords.lat)))
+        .set('originLng', String(roundCoordForApi(originCoords.lng)))
         .set('radiusKm', String(clampRadiusKm(filter.radiusKm)));
     }
 

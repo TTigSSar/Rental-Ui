@@ -5,7 +5,7 @@
  * Keep these in sync with the real model interfaces — a fixture that drifts from
  * the production shape silently weakens every test that depends on it.
  */
-import type { CurrentUser } from '../app/features/auth/models/auth.models';
+import type { CurrentUser, HomePoint } from '../app/features/auth/models/auth.models';
 import type {
   BookingDetail,
   BookingRequest,
@@ -47,6 +47,35 @@ export function makeUser(overrides: Partial<CurrentUser> = {}): CurrentUser {
     firstName: 'Ada',
     lastName: 'Lovelace',
     roles: ['User'],
+    homePoint: null,
+    ...overrides,
+  };
+}
+
+/**
+ * A saved home point (home-point model), Kentron by default.
+ *
+ * `latitude`/`longitude` are the EXACT pair and `publicLatitude`/
+ * `publicLongitude` a deliberately DIFFERENT, coarser pair — not a copy —
+ * so a test that accidentally renders or sends the public value where the
+ * exact one belongs (or vice versa) fails on the number instead of passing
+ * on two identical ones. That is the M-030 lesson applied to a fixture: a
+ * fixture that agrees with the mistake cannot detect it.
+ */
+export function makeHomePoint(overrides: Partial<HomePoint> = {}): HomePoint {
+  return {
+    latitude: 40.183456,
+    longitude: 44.515678,
+    publicLatitude: 40.183,
+    publicLongitude: 44.516,
+    district: {
+      id: '11111111-1111-1111-1111-111111111111',
+      code: 'kentron',
+      nameEn: 'Kentron',
+      nameHy: 'Կենտրոն',
+      nameRu: 'Кентрон',
+    },
+    updatedAt: '2026-10-01T10:00:00Z',
     ...overrides,
   };
 }

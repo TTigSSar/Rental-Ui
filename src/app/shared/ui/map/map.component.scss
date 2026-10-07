@@ -191,6 +191,51 @@
   }
 }
 
+/* ── Home-point marker (`homePin`) ──────────────────────────────────────────
+   The signed-in user's OWN home point — an orange rounded tile with a house
+   glyph, per the approved design's `.homemark`. Deliberately a different
+   SHAPE from both the `pin` teardrop (a toy's approximate area) and the
+   `userPin` dot (a live position): a map can show all three at once, and
+   colour alone would not separate it from `pin`, which is also orange.
+
+   No pulse. `userPin` pulses because a live fix is momentary and the eye
+   needs to find it; a home point is a fixed landmark, and a second animated
+   element on the same map would compete with the one that matters. Like
+   every marker here these are plain global selectors — this DOM is raw
+   Leaflet `divIcon` HTML, so component-scoped attributes never reach it
+   (see the class doc comment in map.component.ts). */
+.app-map__home-marker {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Geometry and the dark fill are both straight from the design's `.homemark`
+   (34px, 12px radius, `--secondary`, a 3px white ring as the first shadow
+   layer). `--ui-color-secondary` is our token for the board's `--secondary`,
+   same hex (#2a2c41). The white ring is a box-shadow rather than a border so
+   it sits OUTSIDE the 34px box and the tile keeps its full size. */
+.app-map__home-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--ui-radius-12);
+  background: var(--ui-color-secondary);
+  color: #fff;
+  box-shadow:
+    0 0 0 3px #fff,
+    0 8px 16px -6px rgba(20, 15, 5, 0.5);
+}
+
+.app-map__home-mark .pi {
+  font-size: 16px;
+  line-height: 1;
+}
+
 @keyframes app-map-user-pulse {
   0% {
     transform: scale(0.6);

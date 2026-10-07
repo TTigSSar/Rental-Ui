@@ -1,6 +1,7 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
 
 import type { MapLatLng, MapMarkerGroup } from '../../../shared/ui/map/map.component';
+import type { ListingDistrict } from '../../listings/models/district.model';
 import type { HomeSectionResponse } from '../models/home-section.model';
 
 export const HomeSectionsActions = createActionGroup({
@@ -35,10 +36,22 @@ export const HomeSectionsActions = createActionGroup({
  *
  * Effect flow (`home.effects.ts`):
  * 1. `init` (dispatched by `HomePageComponent.ngOnInit`, alongside
- *    `HomeSectionsActions.load`) maps DIRECTLY to `useFallbackOrigin` — no
- *    geolocation call. The hero renders Yerevan-centred, pins from
- *    `YEREVAN_FALLBACK_BOUNDS`, a citywide count, no user dot, no radius
- *    circle. This is the default for every visitor, granted or not.
+ *    `HomeSectionsActions.load`) resolves — still with NO geolocation call —
+ *    to one of two branches, decided by whether the signed-in user has a
+ *    home point:
+ *    - **No home point** (every anonymous visitor, and signed-in users who
+ *      skipped the step): `useFallbackOrigin`. Yerevan-centred, pins from
+ *      `YEREVAN_FALLBACK_BOUNDS`, a citywide count, no user dot, no radius
+ *      circle — unchanged, and still the default for the large majority.
+ *    - **Home point present**: `homeOriginResolved`, which centres the hero
+ *      on their own area with the "Toys near your home" chip. Reading a
+ *      coordinate the app was already given is not asking the browser for
+ *      one, so this does not touch the geolocation permission (M-031) — the
+ *      thing ADR-015 forbade was PROMPTING on load, not centring on load.
+ *      The same action also fires on `loadCurrentUserSuccess`/
+ *      `updateHomePointSuccess`/`clearHomePointSuccess`, because the profile
+ *      can land after Home has already mounted and the point can move while
+ *      the visitor is looking at it.
  * 2. `requestMyArea` (the hero map's own opt-in button, the ONLY trigger for
  *    `GeolocationService.getCurrentPosition()`) → granted: `originResolved`
  *    (origin = the visitor's own position, plus the browser's confidence
@@ -55,6 +68,22 @@ export const HomeNearbyActions = createActionGroup({
     Init: emptyProps(),
     'Request My Area': emptyProps(),
     'Origin Resolved': props<{ origin: MapLatLng; accuracyMeters: number | null }>(),
+    /**
+     * Home-point model: the hero centres on the signed-in user's own home
+     * point. Its OWN action, not a reuse of `originResolved`, for two
+     * reasons — it carries the district (for the chip's parameterised
+     * "within {radius} of {district}" line) and it must NOT be mistaken for
+     * a geolocation grant, which is what `originResolved` means everywhere
+     * it is handled (blue dot, accuracy circle, opt-in button hidden).
+     *
+     * Emitted by `HomeEffects.resolveHomeOrigin$` from `init` and from the
+     * auth actions that can change a home point, and never involves
+     * `GeolocationService` — see `init`'s note below and M-031.
+     */
+    'Home Origin Resolved': props<{
+      origin: MapLatLng;
+      district: ListingDistrict | null;
+    }>(),
     'Use Fallback Origin': emptyProps(),
     'Pins Load Success': props<{ pins: MapMarkerGroup[]; nearbyCount: number | null }>(),
     'Pins Load Failure': props<{ error: string }>(),

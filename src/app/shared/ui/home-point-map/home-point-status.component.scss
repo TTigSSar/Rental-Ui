@@ -1,0 +1,86 @@
+:host {
+  display: contents;
+}
+
+.hp-status {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-10);
+  padding: var(--ui-space-10) var(--ui-space-12);
+  border-radius: var(--ui-radius-12);
+  border: 1px solid var(--ui-color-border);
+  background: var(--ui-color-surface-muted);
+
+  .pi {
+    flex: none;
+    margin-top: 2px;
+    font-size: 0.9375rem;
+  }
+}
+
+.hp-status__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+
+  b {
+    font-weight: var(--ui-font-weight-extrabold);
+    color: var(--ui-color-text-primary);
+  }
+
+  span {
+    color: var(--ui-color-text-secondary);
+  }
+}
+
+.hp-status--info {
+  /* No info/warning BORDER token exists; derived from the surface's own
+     colour token rather than inventing a new hex. */
+  border-color: color-mix(in srgb, var(--ui-color-info) 26%, transparent);
+  background: var(--ui-color-info-surface);
+
+  .pi {
+    color: var(--ui-color-info);
+  }
+}
+
+.hp-status--warn {
+  border-color: color-mix(in srgb, var(--ui-color-warning) 26%, transparent);
+  background: var(--ui-color-warning-surface);
+
+  .pi {
+    color: var(--ui-color-warning);
+  }
+}
+
+.hp-status--error {
+  border-color: var(--ui-color-error-border);
+  background: var(--ui-color-error-surface);
+
+  .pi {
+    color: var(--ui-color-error);
+  }
+
+  .hp-status__copy b {
+    color: var(--ui-color-error);
+  }
+}
+
+.hp-status__privacy {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-6);
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--ui-color-text-secondary);
+
+  .pi {
+    flex: none;
+    margin-top: 2px;
+    color: var(--ui-color-primary);
+  }
+}

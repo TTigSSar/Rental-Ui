@@ -1,0 +1,234 @@
+/* ViewEncapsulation.None (see the component) — every selector here is already
+   namespaced `hp-map*`, and the two `.app-map__crosshair-*` overrides at the
+   bottom deliberately reach into `app-map`'s own unshimmed stylesheet. */
+
+:host {
+  /* A custom element defaults to `display: inline`, which makes every height
+     and width below depend on whatever the host happens to sit in. */
+  display: block;
+  height: 100%;
+  min-width: 0;
+}
+
+.hp-map {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+/* ── District chip ───────────────────────────────────────────────
+   Two layers on purpose (M-022): `.hp-map__chip-slot` is a hollow
+   `pointer-events: none` positioning box; `.hp-map__chip` is the visible,
+   shrink-wrapping card. `right` stops short of `app-map`'s top-right zoom
+   stack (44px buttons + 12px inset) so the two can never overlap even with a
+   long Armenian district name. */
+.hp-map__chip-slot {
+  position: absolute;
+  top: var(--ui-space-10);
+  left: var(--ui-space-10);
+  right: 68px;
+  z-index: 1003;
+  display: flex;
+  pointer-events: none;
+}
+
+/* Geometry is the design's `.zone` (hp.css), value for value:
+   `gap:9px`, `padding:7px 14px 7px 7px` (asymmetric — the 28px tile sits
+   nearly flush left, the copy gets breathing room on the right), pill radius,
+   `rgba(255,255,255,.97)`, `box-shadow: var(--shadow-sm)` =
+   `0 2px 8px -2px rgba(20,15,5,.14)`, `max-width:100%`, and NO border — the
+   shadow alone lifts it off the map. There is no `min-height` either: the
+   28px tile plus 7px of padding sets the height, and pinning a smaller
+   minimum only mattered back when the copy could not wrap. */
+.hp-map__chip {
+  max-width: 100%;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 14px 7px 7px;
+  border-radius: var(--ui-radius-pill);
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 2px 8px -2px rgba(20, 15, 5, 0.14);
+}
+
+/* `.zone .zi` — a 28px circular tile. Its DEFAULT tone is the warm one
+   (`background:var(--primary-soft);color:var(--primary)`), which maps onto our
+   tokens exactly (#ffeedc / #ff6008). That default is the state the gate opens
+   in — "move the map" — so it was the most-seen reading of this chip, and it
+   was rendering grey. `--neutral` below is the tone that is genuinely muted in
+   the design (`.zone.neutral .zi`). */
+.hp-map__chip-icon {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--ui-color-primary-soft);
+  color: var(--ui-color-primary);
+
+  .pi {
+    font-size: 0.8125rem;
+  }
+}
+
+/* The copy WRAPS, it never truncates. The two readings this chip carries are
+   not interchangeable in length: the district verdict is one short word
+   ("Kentron"), while the `fresh`/`denied` reading is a full instruction
+   sentence ("Move the map so the pin sits on your pickup spot", and 30–40%
+   longer again in RU/HY). An ellipsis sized for the first silently ate the
+   second at 375px — the chip read "Move the map so the pin sits o…", which is
+   the one state where the chip IS the instruction. DESIGN_RULES §1 ("longer
+   strings must not break cards or buttons") and the design's own `.zone`
+   (`max-width:100%`, no `white-space`) both call for wrapping, so the pill
+   grows to two or three lines on narrow viewports instead. */
+.hp-map__chip-copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--ui-space-6);
+  min-width: 0;
+
+  b {
+    font-size: 0.8125rem;
+    font-weight: var(--ui-font-weight-extrabold);
+    /* `.zone .zt` in the design file: 13px / 800 / 1.2. The line-height only
+       becomes visible now that the text can occupy more than one line. */
+    line-height: 1.2;
+    color: var(--ui-color-text-primary);
+    /* Last-resort guard for a single unbreakable token (a long Armenian
+       district name) that is wider than the chip's own max-width. */
+    overflow-wrap: anywhere;
+  }
+
+  small {
+    font-size: 0.6875rem;
+    font-weight: var(--ui-font-weight-semibold);
+    line-height: 1.3; /* `.zone .zs` */
+    color: var(--ui-color-text-secondary);
+    overflow-wrap: anywhere;
+  }
+}
+
+/* The two VERDICT states tint the whole chip and therefore still carry a
+   border — the base chip dropped its border with the geometry fix above
+   (the design's `.zone` has none), but a tinted surface floating on a map
+   needs an edge the way a white one does not. These keep the exact
+   appearance they had before that change; `border-color` alone would now be
+   a no-op, since there is no longer a `border-style` to colour.
+
+   FLAGGED, not changed: the boards tint only the 28px tile here and leave
+   the chip itself white (`.zone.ok .zi{background:var(--ok-soft)…}`), and
+   their soft fills (#e6f4ee ok, #fdecea error) have no exact token either.
+   Matching that is a state-semantics change plus two more tokens, so it is a
+   decision to take, not one to take quietly. */
+.hp-map__chip--ok {
+  border: 1px solid var(--ui-color-success-border);
+  background: var(--ui-color-success-surface);
+
+  .hp-map__chip-icon {
+    background: var(--ui-color-success);
+    color: #fff;
+  }
+}
+
+.hp-map__chip--error {
+  border: 1px solid var(--ui-color-error-border);
+  background: var(--ui-color-error-surface);
+
+  .hp-map__chip-icon {
+    background: var(--ui-color-error);
+    color: #fff;
+  }
+
+  .hp-map__chip-copy b {
+    color: var(--ui-color-error);
+  }
+}
+
+/* `.zone.neutral .zi` — the genuinely muted tone (the in-flight district
+   lookup). It used to be "the grey base, with a primary-coloured glyph",
+   which was the default tone's colour on the neutral tone's background. */
+.hp-map__chip--neutral .hp-map__chip-icon {
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-secondary);
+}
+
+/* ── "Use my location" pill ───────────────────────────────────── */
+/* Compounded with `.app-map__btn` on purpose: that rule (map.component.scss)
+   sets a fixed `width: 44px`, and both stylesheets ship unshimmed and global,
+   so a single-class selector here wins or loses on nothing more than which
+   component's CSS the bundler happened to emit last — which is how the label
+   ended up overflowing the map's right edge on the wizard gate but not in the
+   picker. */
+.app-map__btn.hp-map__locate {
+  /* `.app-map__btn` gives the 44x44 square shell; this widens it into the
+     boards' labelled pill while keeping the 44px minimum touch target in both
+     axes. */
+  width: auto;
+  min-width: 44px;
+  padding: 0 var(--ui-space-12);
+  gap: var(--ui-space-8);
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--ui-radius-pill);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: var(--ui-font-weight-bold);
+  color: var(--ui-color-text-primary);
+  white-space: nowrap;
+
+  &:disabled {
+    color: var(--ui-color-text-muted);
+    cursor: not-allowed;
+  }
+
+  .pi {
+    font-size: 0.9375rem;
+    color: var(--ui-color-map-user);
+  }
+
+  &:disabled .pi {
+    color: var(--ui-color-text-muted);
+  }
+}
+
+.app-map__btn.hp-map__locate--busy .pi {
+  animation: hp-map-spin 1.1s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-map__btn.hp-map__locate--busy .pi {
+    animation: none;
+  }
+}
+
+@keyframes hp-map-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Crosshair tinting ────────────────────────────────────────────
+   `app-map` paints one orange crosshair. The boards give it three readings:
+   grey while nothing has been chosen on purpose, orange once it has, red when
+   the point cannot be saved. Overriding the two `.app-map__crosshair-*` classes
+   from inside this component's own (also unshimmed) stylesheet keeps `app-map`
+   free of a home-point-specific input. */
+.hp-map--muted .app-map__crosshair-halo {
+  background: color-mix(in srgb, var(--ui-color-text-secondary) 20%, transparent);
+}
+
+.hp-map--muted .app-map__crosshair-dot {
+  background: var(--ui-color-text-secondary);
+}
+
+.hp-map--error .app-map__crosshair-halo {
+  background: color-mix(in srgb, var(--ui-color-error) 22%, transparent);
+}
+
+.hp-map--error .app-map__crosshair-dot {
+  background: var(--ui-color-error);
+}

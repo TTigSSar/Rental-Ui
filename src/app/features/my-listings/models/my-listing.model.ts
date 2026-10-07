@@ -7,16 +7,16 @@ export interface UpdateListingRequest {
   title?: string;
   description?: string;
   pricePerDay?: number;
-  city?: string;
-  country?: string;
-  /**
-   * Optional direct override for the listing's district (`ListingDistrict.id`).
-   * Unlike create, update has no re-derivation path from coordinates — omitting
-   * this leaves the existing district unchanged. Not yet wired up by
-   * edit-listing-page (no location editing UI exists there); left for whichever
-   * card adds district editing to the edit flow.
-   */
-  districtId?: string | null;
+  // BREAKING (home-point model): `country`, `city` and `districtId` were all
+  // REMOVED from this payload — the backend deleted them from
+  // UpdateListingRequest. A listing's country, city and district are always
+  // derived from its owner's home point, and only HomePointService (or create)
+  // ever writes them. `country` went last: it had stayed writable behind nothing
+  // but a length check while HomePointService re-asserts it on every move, so
+  // `{"country":"Neverland"}` stuck forever beside a Yerevan district and pin.
+  // A stale client that still sends any of the three binds harmlessly (unknown
+  // JSON members are ignored), so nothing is applied — which is exactly why
+  // none of them may live here.
   ageFromMonths?: number | null;
   ageToMonths?: number | null;
   condition?: string | null;

@@ -1,3 +1,4 @@
+import type { ApiErrorCode } from '../../../api/api-error.model';
 import type { ListingDetails } from '../models/listing-details.model';
 import type { ListingCategoryOption } from '../models/create-listing.model';
 import type { ListingMapPin } from '../models/listing-map-pin.model';
@@ -39,6 +40,10 @@ export interface ListingsState {
   categoriesLoading: boolean;
   createListingLoading: boolean;
   createListingError: string | null;
+  /** The `ServiceError` code behind `createListingError`, when there was
+   *  one. `listing.home_point_required` is the one the create page
+   *  branches on — see `createListingFailure`. */
+  createListingErrorCode: ApiErrorCode | null;
   createListingSuccessId: string | null;
   createListingImageUploadError: string | null;
   createListingImageUploadProgress: number | null;
@@ -78,6 +83,7 @@ export const initialListingsState: ListingsState = {
   categoriesLoading: false,
   createListingLoading: false,
   createListingError: null,
+  createListingErrorCode: null,
   createListingSuccessId: null,
   createListingImageUploadError: null,
   createListingImageUploadProgress: null,

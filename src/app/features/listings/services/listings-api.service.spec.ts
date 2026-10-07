@@ -117,6 +117,10 @@ describe('ListingsApiService — buildListingsQueryParams', () => {
     req.flush({ items: [], totalCount: 0, page: 1, pageSize: 20, hasMore: false });
   });
 
+  // This is the user-visible half of the product decision of 2026-10-05:
+  // a signed-in renter with a home point HAS an origin from the moment their
+  // profile loads, and their home coordinates must still not be on the wire
+  // until they choose a radius. The assertion below is what enforces it.
   it('sends no distance params when coords are available but radiusKm is null', () => {
     service
       .getListings({ ...BASE_FILTER, radiusKm: null }, 1, 20, { lat: 40.1, lng: 44.5 })
@@ -128,6 +132,50 @@ describe('ListingsApiService — buildListingsQueryParams', () => {
     expect(req.request.params.has('originLat')).toBe(false);
     expect(req.request.params.has('originLng')).toBe(false);
     expect(req.request.params.has('radiusKm')).toBe(false);
+    req.flush({ items: [], totalCount: 0, page: 1, pageSize: 20, hasMore: false });
+  });
+
+  // ── Outbound coordinate precision (ADR-015), asserted at the ONE seam ──
+  // Deliberately checked on the real `HttpParams` rather than on a caller's
+  // argument: the whole point of moving the rounding here is that no caller
+  // can forget it, so the test has to observe what actually goes on the wire.
+  it('rounds the outbound origin to 3 decimals (~100 m) on the paged search', () => {
+    service
+      .getListings({ ...BASE_FILTER, radiusKm: 3 }, 1, 20, {
+        lat: 40.177612345,
+        lng: 44.512698765,
+      })
+      .subscribe();
+
+    const req = httpMock.expectOne((r) => r.url === toApiUrl(ApiContract.listings.root));
+    expect(req.request.params.get('originLat')).toBe('40.178');
+    expect(req.request.params.get('originLng')).toBe('44.513');
+    req.flush({ items: [], totalCount: 0, page: 1, pageSize: 20, hasMore: false });
+  });
+
+  it('rounds the outbound origin to 3 decimals on the map-pins call too — same seam, no second policy', () => {
+    service
+      .getMapPins({ ...BASE_FILTER, radiusKm: 3 }, null, {
+        lat: 40.177612345,
+        lng: 44.512698765,
+      })
+      .subscribe();
+
+    const req = httpMock.expectOne((r) => r.url === toApiUrl(ApiContract.listings.mapPins));
+    expect(req.request.params.get('originLat')).toBe('40.178');
+    expect(req.request.params.get('originLng')).toBe('44.513');
+    req.flush({ items: [], isTruncated: false });
+  });
+
+  it('keeps a negative coordinate rounding toward the nearest value, not toward zero', () => {
+    service
+      .getListings({ ...BASE_FILTER, radiusKm: 3 }, 1, 20, { lat: -40.1239, lng: -44.5671 })
+      .subscribe();
+
+    const req = httpMock.expectOne((r) => r.url === toApiUrl(ApiContract.listings.root));
+    // `Math.round` is half-up, so -40.1239 -> -40.124 and -44.5671 -> -44.567.
+    expect(req.request.params.get('originLat')).toBe('-40.124');
+    expect(req.request.params.get('originLng')).toBe('-44.567');
     req.flush({ items: [], totalCount: 0, page: 1, pageSize: 20, hasMore: false });
   });
 
@@ -402,5 +450,66 @@ describe('ListingsApiService — getListingById', () => {
     });
 
     expect(result?.bookedDateRanges).toEqual([]);
+  });
+});
+
+// Home-point model: GET /api/districts/at?lat=&lng= — the live district readout
+// under a dragging map pin. Anonymous, rate-limited per IP. `district: null` is
+// the ONLY "this pin cannot be saved" signal; the response deliberately carries
+// no `inArmenia` flag, so nothing here may infer a second tier of refusal.
+describe('ListingsApiService — getDistrictAt', () => {
+  let service: ListingsApiService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(ListingsApiService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  it('sends lat/lng as query params and unwraps the district', () => {
+    let result: unknown;
+    service.getDistrictAt(40.183332, 44.514999).subscribe((d) => (result = d));
+
+    const req = httpMock.expectOne(
+      (r) => r.url === toApiUrl(ApiContract.districts.at) && r.method === 'GET',
+    );
+    expect(req.request.params.get('lat')).toBe('40.183332');
+    expect(req.request.params.get('lng')).toBe('44.514999');
+
+    req.flush({
+      district: {
+        id: 'd0000007-0000-4000-9000-000000000007',
+        code: 'kentron',
+        nameEn: 'Kentron',
+        nameHy: 'Կենտրոն',
+        nameRu: 'Кентрон',
+      },
+    });
+
+    expect(result).toEqual({
+      id: 'd0000007-0000-4000-9000-000000000007',
+      code: 'kentron',
+      nameEn: 'Kentron',
+      nameHy: 'Կենտրոն',
+      nameRu: 'Кентрон',
+    });
+  });
+
+  it('maps a point in no district to null (200, not an error)', () => {
+    let result: unknown = 'unset';
+    service.getDistrictAt(0, 0).subscribe((d) => (result = d));
+
+    httpMock
+      .expectOne((r) => r.url === toApiUrl(ApiContract.districts.at))
+      .flush({ district: null });
+
+    expect(result).toBeNull();
   });
 });

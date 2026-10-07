@@ -1,6 +1,6 @@
 import type { Page, Route } from '@playwright/test';
 
-import { e2eDistricts } from './fixtures';
+import { e2eAuthResponse, e2eDistrictAt, e2eDistricts } from './fixtures';
 
 /**
  * Network-level backend stub for E2E journeys. Install once per test with the
@@ -25,6 +25,20 @@ export interface ApiSeed {
    * behaviour unchanged.
    */
   listingsTotalCount?: number;
+  /**
+   * GET /api/listings — `distanceKm` to stamp onto every returned item, but
+   * ONLY on a request that actually carried `originLat`/`originLng`.
+   *
+   * That condition is the whole point of the field, not a convenience: the
+   * real backend populates `ListingPreview.distanceKm` exactly when an origin
+   * was sent (see that field's own doc comment), so a mock that put a
+   * distance on every response would make the "no coordinates on the wire,
+   * and no distance badges, until the renter picks a radius" half of the
+   * home-origin model untestable — the badges would already be there.
+   * Omitted/undefined means no item ever carries a distance, which is what
+   * every pre-existing journey expects.
+   */
+  listingsDistanceKm?: number;
   /** GET /api/listings/:id — a single listing's full detail payload. */
   listingDetails?: unknown;
   /** GET /api/admin/listings/pending — legacy unpaged queue, superseded by `adminListings` below. */
@@ -58,6 +72,51 @@ export interface ApiSeed {
   districts?: unknown[];
   /** POST /api/auth/login outcome. */
   login?: { token?: string; status?: number; body?: unknown };
+  /**
+   * POST /api/auth/register outcome — defaults to a successful `AuthResponse`
+   * (`e2eAuthResponse()`). Deliberately NOT left to the generic `{}` write
+   * fallback: `normalizeAuthResponse` THROWS on a body with no token
+   * ("Authentication token was not returned by the API"), so an unhandled
+   * register turned every sign-up journey into a thrown error rather than a
+   * signed-in user. Set `status`/`body` (e.g. 400 with
+   * `body.errorCode: 'auth.home_point_outside_yerevan'`) to exercise the
+   * sign-up wizard's error mapping.
+   */
+  register?: { status?: number; body?: unknown };
+  /**
+   * PUT /api/auth/me/home-point outcome (home-point model). On success the mock
+   * returns the CURRENT `me` seed with `homePoint` replaced by a point built
+   * from the request body, so a journey that saves a pin then re-reads
+   * /api/auth/me sees the move — same stateful convention as
+   * `adminListingsState`. Set `status`/`body` to force a failure, e.g. 400 with
+   * `body.errorCode: 'auth.home_point_outside_yerevan'`.
+   */
+  updateHomePoint?: { status?: number; body?: unknown };
+  /**
+   * DELETE /api/auth/me/home-point outcome. Success clears the working `me`
+   * payload's `homePoint`. Set `status: 409` with
+   * `body.errorCode: 'auth.home_point_in_use'` for the "you still own listings"
+   * refusal.
+   */
+  clearHomePoint?: { status?: number; body?: unknown };
+  /**
+   * GET /api/districts/at?lat=&lng= — the live district readout under a moving
+   * map pin. Defaults to Kentron. Pass `{ district: null }` for the "outside
+   * Yerevan, this pin cannot be saved" state — that null is the ONLY refusal
+   * signal (there is no `inArmenia` field on this response).
+   */
+  districtAt?: unknown;
+  /** Status for GET /api/districts/at — defaults to 200. 429 is the realistic
+   *  failure (the endpoint is anonymous and rate-limited per IP at 60/min), and
+   *  a failed lookup must leave the picker usable rather than frozen. */
+  districtAtStatus?: number;
+  /**
+   * GET /api/listings/mine — the owner's own listings. Defaults to an empty
+   * list. This is where the profile's home-point card gets its "this moves N
+   * toys" count and its remove-blocked state from, so a journey about either
+   * has to seed it; the generic `[]` fallback silently means "no toys".
+   */
+  myListings?: unknown[];
   /** PUT /api/auth/me/password outcome (ADR-021) — defaults to a successful 204 No Content.
    *  Set `status`/`body` (e.g. 400 with `body.errorCode: 'auth.invalid_current_password'`, or
    *  429) to exercise `security-page.component.ts`'s field-level-vs-banner error mapping. Same
@@ -157,6 +216,14 @@ function json(route: Route, status: number, body: unknown): Promise<void> {
 }
 
 export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
+  // Mutable working copy of the /api/auth/me payload — the home-point routes
+  // rewrite `homePoint` on it so a later GET /api/auth/me reflects the save,
+  // same convention as `adminListingsState` below. Null/omitted stays anonymous.
+  let meState: Record<string, unknown> | null =
+    seed.me && typeof seed.me === 'object'
+      ? { ...(seed.me as Record<string, unknown>) }
+      : (seed.me as Record<string, unknown> | null) ?? null;
+
   // Mutable working copy of the admin moderation queue — a plain array
   // closed over by the route handler below (NOT `seed.adminListings`
   // itself), so approve/reject mutate state that outlives a single request
@@ -269,7 +336,46 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
     }
 
     if (pathname.endsWith('/api/auth/me')) {
-      return seed.me ? json(route, 200, seed.me) : json(route, 401, { detail: 'Unauthenticated' });
+      return meState ? json(route, 200, meState) : json(route, 401, { detail: 'Unauthenticated' });
+    }
+
+    // POST /api/auth/register — must return a real AuthResponse; see the
+    // `register` seed doc for why the generic `{}` fallback is not good enough.
+    if (pathname.endsWith('/api/auth/register') && method === 'POST') {
+      const status = seed.register?.status ?? 200;
+      return json(route, status, seed.register?.body ?? (status < 400 ? e2eAuthResponse() : {}));
+    }
+
+    // PUT / DELETE /api/auth/me/home-point — both answer with the full
+    // CurrentUserResponse, so the mock mutates `meState` and echoes it back.
+    if (pathname.endsWith('/api/auth/me/home-point')) {
+      if (method === 'PUT') {
+        const status = seed.updateHomePoint?.status ?? 200;
+        if (status >= 400) return json(route, status, seed.updateHomePoint?.body ?? {});
+        if (seed.updateHomePoint?.body) return json(route, status, seed.updateHomePoint.body);
+        const body = (request.postDataJSON() ?? {}) as Record<string, unknown>;
+        if (meState) {
+          const previous = (meState['homePoint'] ?? {}) as Record<string, unknown>;
+          meState['homePoint'] = {
+            ...previous,
+            latitude: body['latitude'],
+            longitude: body['longitude'],
+            // The real backend re-derives the public pair; the mock just keeps
+            // it plausible (rounded), never equal to the exact point.
+            publicLatitude: Math.round(Number(body['latitude']) * 1000) / 1000,
+            publicLongitude: Math.round(Number(body['longitude']) * 1000) / 1000,
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        return json(route, 200, meState ?? {});
+      }
+      if (method === 'DELETE') {
+        const status = seed.clearHomePoint?.status ?? 200;
+        if (status >= 400) return json(route, status, seed.clearHomePoint?.body ?? {});
+        if (seed.clearHomePoint?.body) return json(route, status, seed.clearHomePoint.body);
+        if (meState) meState['homePoint'] = null;
+        return json(route, 200, meState ?? {});
+      }
     }
 
     // PUT /api/auth/me/password — change-password (ADR-021). Exact suffix + method match, same
@@ -634,9 +740,19 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
     }
 
     if (pathname.endsWith('/api/listings') && method === 'GET') {
+      const listingsParams = new URL(request.url()).searchParams;
+      // See `listingsDistanceKm`: a distance comes back only for a request
+      // that sent an origin, exactly as the real endpoint behaves.
+      const withOrigin =
+        listingsParams.has('originLat') && listingsParams.has('originLng');
+      const items = (seed.listings ?? []).map((item) =>
+        seed.listingsDistanceKm !== undefined && withOrigin
+          ? { ...(item as Record<string, unknown>), distanceKm: seed.listingsDistanceKm }
+          : item,
+      );
       return json(route, 200, {
-        items: seed.listings ?? [],
-        totalCount: seed.listingsTotalCount ?? (seed.listings ?? []).length,
+        items,
+        totalCount: seed.listingsTotalCount ?? items.length,
         page: 1,
         pageSize: 20,
         hasMore: false,
@@ -650,6 +766,12 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
         status,
         seed.createListing?.body ?? { id: 'listing-created-e2e-1', status: 'PendingApproval' },
       );
+    }
+
+    // GET /api/listings/mine — the owner's own listings. Checked BEFORE the
+    // singleListingId regex below for the same reason "map-pins" is.
+    if (pathname.endsWith('/api/listings/mine') && method === 'GET') {
+      return json(route, 200, seed.myListings ?? []);
     }
 
     // GET /api/listings/map-pins — Maps P2-2 catalogue map view. Must be
@@ -866,6 +988,14 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
           { id: 'cat-e2e-1', name: 'Toys', slug: 'toys', iconName: 'tag', colorHex: '#FFE6CC' },
         ],
       );
+    }
+
+    // GET /api/districts/at — checked before the plain `/api/districts` match
+    // below (different suffix, so no ordering conflict, but kept adjacent).
+    if (pathname.endsWith('/api/districts/at') && method === 'GET') {
+      const status = seed.districtAtStatus ?? 200;
+      if (status >= 400) return json(route, status, {});
+      return json(route, status, seed.districtAt ?? e2eDistrictAt());
     }
 
     if (pathname.endsWith('/api/districts') && method === 'GET') {

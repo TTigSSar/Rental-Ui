@@ -1,0 +1,288 @@
+<section class="hp-card" [class.hp-card--empty]="homePoint() === null">
+  @if (homePoint(); as point) {
+    <header class="hp-card__head">
+      <h2 class="hp-card__heading">
+        <i class="pi pi-home" aria-hidden="true"></i>
+        {{ 'profile.homePoint.sectionLabel' | translate }}
+      </h2>
+      <button type="button" class="hp-card__change-btn" (click)="openPicker()">
+        <i class="pi pi-pencil" aria-hidden="true"></i>
+        {{ 'profile.homePoint.change' | translate }}
+      </button>
+    </header>
+
+    <div class="hp-card__body">
+      <!-- The PUBLIC pair and the ~100 m circle only — labelled as what renters
+           see. The exact pin is deliberately never drawn here. -->
+      @if (publicPin(); as pin) {
+        <div class="hp-card__map">
+          <app-map
+            [center]="pin"
+            [zoom]="15"
+            [pin]="pin"
+            [showPin]="false"
+            [circleRadiusMeters]="approximateRadiusMeters"
+            [interactive]="false"
+            height="150px"
+          />
+          <div class="hp-card__badge-slot">
+            <span class="hp-card__badge">
+              <i class="pi pi-shield" aria-hidden="true"></i>
+              <span class="hp-card__badge-copy">
+                <b>{{ 'homePoint.approx.label' | translate }}</b>
+                <small>{{ 'homePoint.approx.sub' | translate }}</small>
+              </span>
+            </span>
+          </div>
+        </div>
+      }
+
+      <div class="hp-card__details">
+        <div class="hp-card__row">
+          <span class="hp-card__icon" aria-hidden="true">
+            <i class="pi pi-map-marker"></i>
+          </span>
+          <span class="hp-card__text">
+            <b>
+              @if (currentDistrictLabel()) {
+                {{ currentDistrictLabel() }} · {{ 'homePoint.city' | translate }}
+              } @else {
+                {{ 'profile.homePoint.noDistrict' | translate }}
+              }
+            </b>
+            <!-- `toyCountKnown()` first: until `GET /api/listings/mine`
+                 answers, `toyCount()` is 0 because the slice starts empty, and
+                 "Toys you list will use it" is then a statement about an owner
+                 who may well have twelve. -->
+            <small>
+              @if (!toyCountKnown()) {
+                {{ 'profile.homePoint.usedByUnknown' | translate }}
+              } @else if (toyCount() > 0) {
+                {{ 'profile.homePoint.usedBy' | translate: { count: toyCount() } }}
+              } @else {
+                {{ 'profile.homePoint.usedByNone' | translate }}
+              }
+            </small>
+          </span>
+        </div>
+
+        <p class="hp-card__privacy">
+          <i class="pi pi-shield" aria-hidden="true"></i>
+          <span>
+            {{ 'homePoint.privacyNote' | translate }} {{ 'homePoint.onlyYou' | translate }}
+          </span>
+        </p>
+
+        <!-- The copy comes from `errorMessageKey()`, which maps the machine
+             -readable `errorCode` to a translation key and has a real key for
+             EVERY outcome. The store's message string is deliberately not
+             rendered: on this path it is a server-English ProblemDetails title
+             at best and Angular's own "Http failure response for
+             https://…/api/auth/me/home-point: 409 Conflict" at worst. -->
+        @if (saveError()) {
+          <p class="hp-card__error" role="alert">
+            <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+            {{ errorMessageKey() | translate }}
+          </p>
+        }
+
+        <div class="hp-card__remove">
+          <button
+            type="button"
+            class="hp-card__remove-btn"
+            [disabled]="!canRemove() || saving()"
+            (click)="openRemoveConfirm()"
+          >
+            <i class="pi pi-trash" aria-hidden="true"></i>
+            {{ 'profile.homePoint.remove' | translate }}
+          </button>
+          <!-- Two different reasons the button is dead, and they must not wear
+               each other's copy: "You have toys listed" is a claim, and while
+               the count is unknown the card has no business making it. No
+               spinner either — a failed `mine` load leaves this state standing,
+               and an animation would promise progress that is not coming. -->
+          @if (!toyCountKnown()) {
+            <p class="hp-card__remove-note">
+              <i class="pi pi-info-circle" aria-hidden="true"></i>
+              <span>{{ 'profile.homePoint.removeUnknown' | translate }}</span>
+            </p>
+          } @else if (!canRemove()) {
+            <p class="hp-card__remove-note">
+              <i class="pi pi-lock" aria-hidden="true"></i>
+              <span>{{ 'profile.homePoint.removeBlocked' | translate }}</span>
+            </p>
+          }
+        </div>
+      </div>
+    </div>
+  } @else {
+    <!-- Empty state: an invitation, not a warning — it explains the two reasons
+         to set a point and offers exactly one action. -->
+    <span class="hp-card__empty-icon" aria-hidden="true">
+      <i class="pi pi-home"></i>
+    </span>
+    <div class="hp-card__empty-copy">
+      <span class="hp-card__eyebrow">{{ 'profile.homePoint.sectionLabel' | translate }}</span>
+      <h2 class="hp-card__empty-title">{{ 'profile.homePoint.emptyTitle' | translate }}</h2>
+      <p class="hp-card__empty-body">{{ 'profile.homePoint.emptyBody' | translate }}</p>
+    </div>
+    <button type="button" class="hp-card__cta" (click)="openPicker()">
+      <i class="pi pi-map-marker" aria-hidden="true"></i>
+      {{ 'profile.homePoint.setCta' | translate }}
+    </button>
+  }
+</section>
+
+<app-location-picker
+  [open]="pickerOpen()"
+  [homePointMode]="true"
+  [initialCenter]="pickerCenter()"
+  [openedOnExistingPoint]="homePoint() !== null"
+  [saving]="saving()"
+  [serverOutsideYerevan]="outsideYerevan()"
+  headerKey="homePoint.picker.title"
+  subtitleKey="homePoint.picker.subtitle"
+  confirmLabelKey="homePoint.picker.confirm"
+  cancelLabelKey="homePoint.picker.cancel"
+  (confirmedHomePoint)="onPickerConfirmed($event)"
+  (cancelled)="onPickerCancelled()"
+/>
+
+<!-- Change confirmation. One `p-dialog` for both breakpoints, styled as a
+     bottom sheet below 768px and a centred dialog above — the boards call for a
+     sheet on mobile and a dialog on desktop, and this is the same DOM and one
+     focus trap for both.
+     `[closable]="false"` suppresses PrimeNG's default header close icon (this
+     sheet has its own buttons) and, as a side effect nothing in this template
+     can show, disables PrimeNG's Escape AND backdrop-click handling. BOTH are
+     supplied by the component instead — `onWindowKeydown()` for Escape and
+     `onWindowMousedown()` for the backdrop, the latter keyed off
+     `[maskStyleClass]` below — and both route to `cancelChange()`, the same
+     method the Cancel button calls. There is deliberately no
+     `[dismissableMask]` here: PrimeNG would ignore it while `closable` is
+     false, and an input that reads as a request and does nothing is the whole
+     of M-029.
+
+     `[header]` IS LOAD-BEARING — do not remove it because the header looks
+     hidden. `p-dialog` binds the dialog root's `aria-labelledby` to an id it
+     mints whenever `header !== null`, and renders that id on its default title
+     span. With no `[header]` at all the binding still fired (`undefined` is not
+     `null`), so `aria-labelledby` pointed at a span containing nothing and the
+     dialog had NO accessible name — a screen reader announced a bare "dialog"
+     before a confirmation that relocates every toy the owner has. Binding the
+     real title gives that span real text in all three languages. The visible
+     title stays the <h2> below; `.p-dialog-header` is pulled out of view in the
+     stylesheet (visually hidden, NOT `display: none` — see the comment there). -->
+<p-dialog
+  [visible]="changeConfirmOpen()"
+  (visibleChange)="$event === false && cancelChange()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="false"
+  [header]="'profile.homePoint.changeTitle' | translate"
+  styleClass="hp-sheet"
+  [maskStyleClass]="changeMaskClass"
+  appendTo="body"
+>
+  <div class="hp-sheet__body">
+    <span class="hp-sheet__grab" aria-hidden="true"></span>
+    <h2 class="hp-sheet__title">{{ 'profile.homePoint.changeTitle' | translate }}</h2>
+
+    <div class="hp-sheet__move">
+      <span class="hp-sheet__box">
+        <small>{{ 'profile.homePoint.now' | translate }}</small>
+        <b>{{ currentDistrictLabel() || ('profile.homePoint.noDistrict' | translate) }}</b>
+      </span>
+      <i class="pi pi-arrow-right" aria-hidden="true"></i>
+      <span class="hp-sheet__box hp-sheet__box--new">
+        <small>{{ 'profile.homePoint.new' | translate }}</small>
+        <b>{{ pendingDistrictLabel() || ('profile.homePoint.noDistrict' | translate) }}</b>
+      </span>
+    </div>
+
+    <!-- With N unknown the sheet says the count-FREE truth (every listed toy
+         moves, renters get notified) rather than "you have no toys listed, so
+         nothing else changes" — which is what a not-yet-answered
+         `GET /api/listings/mine` used to put in front of an owner whose whole
+         catalogue was about to relocate. -->
+    @if (!toyCountKnown()) {
+      <p class="hp-sheet__note">
+        <i class="pi pi-bell" aria-hidden="true"></i>
+        <span>{{ 'profile.homePoint.changeBodyUnknown' | translate }}</span>
+      </p>
+    } @else if (toyCount() > 0) {
+      <p class="hp-sheet__note">
+        <i class="pi pi-bell" aria-hidden="true"></i>
+        <span>{{ 'profile.homePoint.changeBody' | translate: { count: toyCount() } }}</span>
+      </p>
+    } @else {
+      <p class="hp-sheet__lead">{{ 'profile.homePoint.changeBodyNone' | translate }}</p>
+    }
+
+    <div class="hp-sheet__actions">
+      <button
+        type="button"
+        class="hp-sheet__primary"
+        [disabled]="saving()"
+        (click)="confirmChange()"
+      >
+        @if (saving()) {
+          <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+        }
+        <!-- "Move home point" is true whatever N turns out to be; "Save home
+             point" is the one that quietly asserts there is nothing to move, so
+             it needs the count to be known. -->
+        {{
+          (!toyCountKnown() || toyCount() > 0
+            ? 'profile.homePoint.changeConfirm'
+            : 'profile.homePoint.changeConfirmNone'
+          ) | translate
+        }}
+      </button>
+      <button type="button" class="hp-sheet__secondary" (click)="cancelChange()">
+        {{ 'profile.homePoint.cancel' | translate }}
+      </button>
+    </div>
+  </div>
+</p-dialog>
+
+<!-- Remove confirmation — destructive, so it gets its own red-button dialog
+     rather than reusing the change sheet. `[header]` and `[closable]` carry the
+     same two caveats as the change sheet above: the header string is what gives
+     this dialog an accessible name, and `closable="false"` is why Escape comes
+     from `onWindowKeydown()` and the backdrop from `onWindowMousedown()`
+     (keyed off this dialog's own `[maskStyleClass]`) instead of PrimeNG. -->
+<p-dialog
+  [visible]="removeConfirmOpen()"
+  (visibleChange)="$event === false && cancelRemove()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="false"
+  [header]="'profile.homePoint.removeTitle' | translate"
+  styleClass="hp-remove-dialog"
+  [maskStyleClass]="removeMaskClass"
+  appendTo="body"
+>
+  <div class="hp-remove__body">
+    <span class="hp-remove__icon" aria-hidden="true">
+      <i class="pi pi-trash"></i>
+    </span>
+    <h2 class="hp-sheet__title">{{ 'profile.homePoint.removeTitle' | translate }}</h2>
+    <p class="hp-sheet__lead">{{ 'profile.homePoint.removeBody' | translate }}</p>
+    <div class="hp-remove__actions">
+      <button type="button" class="hp-sheet__secondary hp-remove__cancel" (click)="cancelRemove()">
+        {{ 'profile.homePoint.cancel' | translate }}
+      </button>
+      <button
+        type="button"
+        class="hp-remove__confirm"
+        [disabled]="saving()"
+        (click)="confirmRemove()"
+      >
+        {{ 'profile.homePoint.removeConfirm' | translate }}
+      </button>
+    </div>
+  </div>
+</p-dialog>

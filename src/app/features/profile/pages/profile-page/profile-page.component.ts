@@ -2,6 +2,7 @@ import { AsyncPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   HostListener,
   OnInit,
   computed,
@@ -18,6 +19,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, filter, map, of, startWith, switchMap } from 'rxjs';
 
 import { LanguageOption, LanguageService } from '../../../../shared/services/language.service';
+import { HomePointCardComponent } from '../../components/home-point-card/home-point-card.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 
 import * as AuthActions from '../../../auth/store/auth.actions';
@@ -46,11 +48,16 @@ import {
   selectProfileLoading,
 } from '../../store/profile.selectors';
 
+/** Must stay in step with the `@media (min-width: 961px)` block in
+ *  `profile-page.component.scss` — see `isDesktop` below. */
+const PROFILE_DESKTOP_QUERY = '(min-width: 961px)';
+
 @Component({
   selector: 'app-profile-page',
   standalone: true,
   imports: [
     AsyncPipe,
+    HomePointCardComponent,
     IconComponent,
     MessageModule,
     RatingSummaryComponent,
@@ -78,6 +85,24 @@ export class ProfilePageComponent implements OnInit {
       map(() => this.activatedRoute.firstChild !== null),
     ),
     { initialValue: false },
+  );
+
+  /**
+   * Which of this page's two markup trees is live. The mobile and desktop
+   * layouts here are separate markup hidden from each other with
+   * `display: none`, which is harmless for static content — but the home-point
+   * card owns modals, a store dispatch and a toast, so rendering it in both
+   * trees would run two instances and fire everything twice. 961px is this
+   * page's own existing desktop breakpoint (see the `@media` block in its
+   * stylesheet); the two must move together.
+   *
+   * Written through a listener rather than read per change-detection so a
+   * rotation or window resize swaps the card over instead of stranding it.
+   */
+  protected readonly isDesktop = signal(
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia(PROFILE_DESKTOP_QUERY).matches
+      : false,
   );
 
   protected readonly availableLanguages: readonly LanguageOption[] = this.languageService.languages;
@@ -199,6 +224,13 @@ export class ProfilePageComponent implements OnInit {
   );
 
   constructor() {
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      const query = window.matchMedia(PROFILE_DESKTOP_QUERY);
+      const onChange = (event: MediaQueryListEvent): void => this.isDesktop.set(event.matches);
+      query.addEventListener('change', onChange);
+      inject(DestroyRef).onDestroy(() => query.removeEventListener('change', onChange));
+    }
+
     effect(() => {
       const id = this.profileIdSignal();
       if (id !== null) {

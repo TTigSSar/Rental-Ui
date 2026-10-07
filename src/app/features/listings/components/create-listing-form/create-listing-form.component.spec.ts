@@ -1,19 +1,27 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { provideMockStore } from '@ngrx/store/testing';
+import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { InputNumber } from 'primeng/inputnumber';
 
+import * as AuthActions from '../../../auth/store/auth.actions';
+import { authFeatureKey } from '../../../auth/store/auth.reducer';
+import { initialAuthState } from '../../../auth/store/auth.state';
 import { CreateListingFormComponent } from './create-listing-form.component';
 import type {
   ListingFormMode,
   ListingImageOrderItem,
 } from './create-listing-form.component';
-import { LocationPickerComponent } from '../location-picker/location-picker.component';
+import { LocationPickerComponent } from '../../../../shared/ui/location-picker/location-picker.component';
 import type { CreateListingRequest } from '../../models/create-listing.model';
 import type { ListingDistrict } from '../../models/district.model';
+import type { HomePointSelection } from '../../../../shared/ui/home-point-map/home-point-map.model';
 import type { MapLatLng } from '../../../../shared/ui/map/map.component';
+import {
+  HOME_POINT_DERIVED_FIELDS,
+  homePointDerivedFieldsIn,
+} from '../../../../../testing/listing-write-contract';
 
 /**
  * The focus-return regression tests below advance the wizard to Step 3, which
@@ -69,13 +77,58 @@ interface Submittable {
   canSubmit(): boolean;
 }
 
-function createComponent(mode: ListingFormMode = 'create') {
+/**
+ * The wizard reads the owner's home point from the auth store (home-point
+ * model): with none set it renders its GATE instead of the steps, so every test
+ * below that touches a step has to start from an owner who has one. Tests for
+ * the gate itself override this with `homePoint: null`.
+ */
+const HOME_POINT = {
+  latitude: 40.1834,
+  longitude: 44.515,
+  publicLatitude: 40.1835,
+  publicLongitude: 44.5152,
+  district: {
+    id: 'd1111111-1111-1111-1111-111111111111',
+    code: 'kentron',
+    nameEn: 'Kentron',
+    nameHy: 'Կենտրոն',
+    nameRu: 'Кентрон',
+  },
+  updatedAt: '2026-09-27T20:03:21.000Z',
+};
+
+function authStateWith(homePoint: typeof HOME_POINT | null) {
+  return {
+    [authFeatureKey]: {
+      ...initialAuthState,
+      isAuthenticated: true,
+      isInitializing: false,
+      user: {
+        id: 'u1',
+        email: 'owner@rental.local',
+        firstName: 'Ada',
+        lastName: 'Lovelace',
+        roles: ['User'],
+        homePoint,
+      },
+    },
+  };
+}
+
+function createComponent(
+  mode: ListingFormMode = 'create',
+  homePoint: typeof HOME_POINT | null = HOME_POINT,
+) {
   TestBed.configureTestingModule({
     imports: [CreateListingFormComponent, TranslateModule.forRoot()],
     // `provideRouter([])` is required for step 5's `routerLink="/terms"` (the
     // community-rules link) — only exercised by tests that actually render
     // step 5, but harmless to provide unconditionally for every test here.
-    providers: [provideMockStore(), provideRouter([])],
+    providers: [
+      provideMockStore({ initialState: authStateWith(homePoint) }),
+      provideRouter([]),
+    ],
   });
   const fixture = TestBed.createComponent(CreateListingFormComponent);
   const component = fixture.componentInstance;
@@ -93,7 +146,6 @@ function fillValidBasics(component: CreateListingFormComponent): void {
     description: 'A lovely wooden train set in great condition for toddlers.',
     categoryId: 'cat-123',
     pricePerDay: 9,
-    city: 'Yerevan',
     // Loss & damage compensation is required (1,000–10,000,000 ֏) — see the
     // dedicated describe block below for the field's own validation tests.
     compensationAmount: 10000,
@@ -218,7 +270,6 @@ describe('CreateListingFormComponent — Step-3 payload (min rental + delivery)'
       categoryId: 'cat-123',
       pricePerDay: 9,
       priceUnit: 'Daily',
-      city: 'Yerevan',
       ageFromMonths: 24,
       ageToMonths: 60,
       condition: 'Good',
@@ -248,7 +299,6 @@ describe('CreateListingFormComponent — Step-3 payload (min rental + delivery)'
       categoryId: 'cat-123',
       pricePerDay: 8,
       priceUnit: 'Daily',
-      city: 'Yerevan',
       ageFromMonths: 24,
       ageToMonths: 60,
       condition: 'Good',
@@ -279,7 +329,6 @@ describe('CreateListingFormComponent — Step-3 payload (min rental + delivery)'
       categoryId: 'cat-123',
       pricePerDay: 5,
       priceUnit: 'Daily',
-      city: 'Yerevan',
       ageFromMonths: 24,
       ageToMonths: 60,
       condition: null,
@@ -327,89 +376,186 @@ describe('CreateListingFormComponent — Step 3 pickup area (no address line)', 
     expect(event!.payload.addressLine).toBeNull();
   });
 
-  it('the "Show on map" trigger opens the full-screen location picker', () => {
+  /**
+   * The edit page reuses this component with `mode: 'edit'`. It gets the same
+   * read-only card — a listing cannot have a location of its own any more — and
+   * the card must never be able to block Save: it carries no form control, no
+   * validation and no required state (M-038).
+   */
+  it('edit mode renders the same read-only card and never gates Save on it', () => {
+    const { fixture, component } = createComponent('edit');
+    component.existingImageUrls = [{ id: 'img-1', url: 'https://x/img-1.jpg' } as never];
+    goToStep3(fixture, component);
+
+    expect(fixture.nativeElement.querySelector('app-pickup-area-card')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('[formcontrolname="city"]')).toBeNull();
+    expect((component as unknown as Submittable).canSubmit()).toBe(true);
+  });
+
+  it('edit mode keeps Save enabled even with NO home point at all', () => {
+    const { fixture, component } = createComponent('edit', null);
+    component.existingImageUrls = [{ id: 'img-1', url: 'https://x/img-1.jpg' } as never];
+    goToStep3(fixture, component);
+
+    expect(fixture.nativeElement.querySelector('.wizard--gate')).toBeNull();
+    expect((component as unknown as Submittable).canSubmit()).toBe(true);
+  });
+
+  it('the Pickup-area card is read-only and its "Change home point" row opens the picker in place', () => {
     const { fixture, component } = createComponent('create');
     goToStep3(fixture, component);
 
+    // Read-only: no city input, no district select, no per-listing pin CTA.
+    expect(fixture.nativeElement.querySelector('[formcontrolname="city"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('#wz-district')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.location-card__cta')).toBeNull();
+
     expect(component.showLocationPicker()).toBe(false);
-    expect(component.hasPin()).toBe(false);
-    const trigger = fixture.nativeElement.querySelector('.location-card__cta') as HTMLButtonElement;
+    const trigger = fixture.nativeElement.querySelector(
+      '.pickup-card__change',
+    ) as HTMLButtonElement;
     expect(trigger).toBeTruthy();
 
     trigger.click();
     fixture.detectChanges();
 
+    // Opens IN PLACE — it must not navigate away, or the half-filled wizard
+    // (which saves no draft) would be lost.
     expect(component.showLocationPicker()).toBe(true);
   });
 });
 
 /**
- * P1-6: the full-screen pin picker writes into the existing (previously
- * dead) `latitude`/`longitude` controls, and the optional district override
- * rides along in the same payload. `onLocationConfirmed` is exercised
- * directly here (bypassing the picker's own UI, which is unit-tested in
- * `location-picker.component.spec.ts`) so this stays a fast, DOM-free test of
- * the wiring between the two components.
+ * HOME-POINT MODEL: a listing has no coordinates of its own any more.
+ * `latitude`, `longitude`, `districtId`, `city` and `country` were removed from
+ * `CreateListingRequest`; the backend derives all five from the owner's home
+ * point. The wizard therefore holds no such controls, and the picker it opens
+ * writes the HOME POINT (a `PUT /api/auth/me/home-point` dispatch), not a
+ * per-listing pin.
+ *
+ * Both halves are pinned here: the payload must not carry the five fields (a
+ * stale client that re-added them would be silently ignored by the server, i.e.
+ * accepted-looking and never applied), and confirming the picker must dispatch
+ * the home-point update.
  */
 interface LocationWireable {
   onLocationConfirmed(coord: MapLatLng): void;
-  pinCenter(): MapLatLng | null;
-  hasPin(): boolean;
   showLocationPicker: { set(v: boolean): void };
 }
 
-const SAMPLE_DISTRICT: ListingDistrict = {
-  id: 'd1111111-1111-1111-1111-111111111111',
-  code: 'kentron',
-  nameEn: 'Kentron',
-  nameHy: 'Կենտրոն',
-  nameRu: 'Кентрон',
-};
-
-describe('CreateListingFormComponent — pin picker → payload (P1-6)', () => {
-  it('confirming the picker populates the latitude/longitude form controls', () => {
+describe('CreateListingFormComponent — home point → payload', () => {
+  it('holds no latitude/longitude/districtId/city controls at all', () => {
     const { component } = createComponent('create');
-    const wireable = component as unknown as LocationWireable;
+    const controls = component.createListingForm.controls as Record<string, unknown>;
 
-    expect(wireable.hasPin()).toBe(false);
-    expect(component.createListingForm.controls.latitude.value).toBeNull();
-    expect(component.createListingForm.controls.longitude.value).toBeNull();
-
-    wireable.onLocationConfirmed({ lat: 40.1776, lng: 44.5126 });
-
-    expect(component.createListingForm.controls.latitude.value).toBe(40.1776);
-    expect(component.createListingForm.controls.longitude.value).toBe(44.5126);
-    expect(wireable.hasPin()).toBe(true);
-    expect(wireable.pinCenter()).toEqual({ lat: 40.1776, lng: 44.5126 });
+    for (const field of HOME_POINT_DERIVED_FIELDS) {
+      expect(controls[field]).toBeUndefined();
+    }
   });
 
-  it('carries latitude/longitude/districtId in the create payload once set', () => {
+  it('omits the home-point-derived fields from the create payload', () => {
     const { component } = createComponent('create');
     fillValidBasics(component);
     seedThreePhotos(component);
+
+    const event = submitAndCapture(component);
+
+    expect(event).not.toBeNull();
+    // Key-set check over the shared constant (src/testing/listing-write-contract.ts),
+    // not five hand-written assertions — a sixth derived field added there is
+    // covered here by construction. The same helper guards the update path
+    // (edit-listing-page.component.spec.ts) and both wire-level e2e specs.
+    expect(homePointDerivedFieldsIn(event!.payload)).toEqual([]);
+  });
+
+  it('confirming the picker dispatches a home-point update, not a form patch', () => {
+    const { component } = createComponent('create');
+    const store = TestBed.inject(MockStore);
+    const dispatch = vi.spyOn(store, 'dispatch');
 
     (component as unknown as LocationWireable).onLocationConfirmed({ lat: 40.19, lng: 44.51 });
-    component.createListingForm.controls.districtId.setValue(SAMPLE_DISTRICT.id);
 
-    const event = submitAndCapture(component);
+    expect(dispatch).toHaveBeenCalledWith(
+      AuthActions.updateHomePoint({ payload: { latitude: 40.19, longitude: 44.51 } }),
+    );
+  });
+});
 
-    expect(event).not.toBeNull();
-    expect(event!.payload.latitude).toBe(40.19);
-    expect(event!.payload.longitude).toBe(44.51);
-    expect(event!.payload.districtId).toBe(SAMPLE_DISTRICT.id);
+/**
+ * The gate before step 1. Without a home point the backend refuses to create a
+ * listing (409 `listing.home_point_required`), so the wizard asks for one first
+ * rather than letting the owner fill five steps and fail at the end.
+ */
+describe('CreateListingFormComponent — home-point gate', () => {
+  it('renders the gate instead of the wizard steps when the owner has no home point', () => {
+    const { fixture } = createComponent('create', null);
+
+    expect(fixture.nativeElement.querySelector('.wizard--gate')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.wizard--hidden')).toBeTruthy();
   });
 
-  it('still submits with null latitude/longitude/districtId when the owner never opens the picker (the pin stays optional)', () => {
-    const { component } = createComponent('create');
-    fillValidBasics(component);
-    seedThreePhotos(component);
+  it('renders the wizard, not the gate, once a home point exists', () => {
+    const { fixture } = createComponent('create');
 
-    const event = submitAndCapture(component);
+    expect(fixture.nativeElement.querySelector('.wizard--gate')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.wizard--hidden')).toBeNull();
+  });
 
-    expect(event).not.toBeNull();
-    expect(event!.payload.latitude).toBeNull();
-    expect(event!.payload.longitude).toBeNull();
-    expect(event!.payload.districtId).toBeNull();
+  it('never gates edit mode — an existing listing is already placed (M-038)', () => {
+    const { fixture } = createComponent('edit', null);
+
+    expect(fixture.nativeElement.querySelector('.wizard--gate')).toBeNull();
+  });
+
+  it('re-raises the gate when the server refused a create with listing.home_point_required', () => {
+    const { fixture, component } = createComponent('create');
+    expect(fixture.nativeElement.querySelector('.wizard--gate')).toBeNull();
+
+    fixture.componentRef.setInput('homePointRequiredByServer', true);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.wizard--gate')).toBeTruthy();
+  });
+
+  it("the gate's primary button starts disabled — nobody saves the city centre by accident", () => {
+    const { fixture } = createComponent('create', null);
+
+    const cta = fixture.nativeElement.querySelector(
+      '.wizard__footer-inner--gate .wizard__btn--primary',
+    ) as HTMLButtonElement;
+    expect(cta).toBeTruthy();
+    expect(cta.disabled).toBe(true);
+  });
+
+  it('enables the primary button once the map reports a deliberate, valid point, and saving dispatches the update', () => {
+    const { fixture, component } = createComponent('create', null);
+    const store = TestBed.inject(MockStore);
+    const dispatch = vi.spyOn(store, 'dispatch');
+
+    (
+      component as unknown as { onGateSelectionChange(s: HomePointSelection): void }
+    ).onGateSelectionChange({
+      center: { lat: 40.19, lng: 44.51 },
+      district: HOME_POINT.district,
+      resolving: false,
+      outsideYerevan: false,
+      deliberate: true,
+      geoState: 'idle',
+      lowAccuracyMeters: null,
+      canConfirm: true,
+    });
+    fixture.detectChanges();
+
+    const cta = fixture.nativeElement.querySelector(
+      '.wizard__footer-inner--gate .wizard__btn--primary',
+    ) as HTMLButtonElement;
+    expect(cta.disabled).toBe(false);
+
+    cta.click();
+
+    expect(dispatch).toHaveBeenCalledWith(
+      AuthActions.updateHomePoint({ payload: { latitude: 40.19, longitude: 44.51 } }),
+    );
   });
 });
 
@@ -423,7 +569,7 @@ describe('CreateListingFormComponent — pin picker → payload (P1-6)', () => {
  *
  * The step-3 redesign (pricing/location layout rework) collapsed the CTA and
  * the post-confirm "Change" affordance into a SINGLE persistent
- * `.location-card__cta` button whose text swaps on `hasPin()` instead of an
+ * `.pickup-card__change` button whose text swaps on `hasPin()` instead of an
  * `@if/@else` pair of different buttons — so there is no DOM node swap to
  * race any more, but the trigger still needs focus explicitly returned to it
  * once the full-screen picker dialog closes (opening it moves focus away).
@@ -442,7 +588,7 @@ describe('CreateListingFormComponent — location picker focus return (a11y)', (
     const { fixture, component } = createComponent('create');
     goToStep3(fixture, component);
 
-    const trigger = fixture.nativeElement.querySelector('.location-card__cta') as HTMLButtonElement;
+    const trigger = fixture.nativeElement.querySelector('.pickup-card__change') as HTMLButtonElement;
     expect(trigger).toBeTruthy();
     trigger.focus();
     expect(document.activeElement).toBe(trigger);
@@ -458,7 +604,7 @@ describe('CreateListingFormComponent — location picker focus return (a11y)', (
 
     // Same node throughout — the button's text switches to "Change" but it
     // never gets destroyed/recreated, unlike the old @if/@else pair.
-    const sameTrigger = fixture.nativeElement.querySelector('.location-card__cta') as HTMLButtonElement;
+    const sameTrigger = fixture.nativeElement.querySelector('.pickup-card__change') as HTMLButtonElement;
     expect(sameTrigger).toBe(trigger);
     expect(document.activeElement).toBe(sameTrigger);
   });
@@ -467,7 +613,7 @@ describe('CreateListingFormComponent — location picker focus return (a11y)', (
     const { fixture, component } = createComponent('create');
     goToStep3(fixture, component);
 
-    const cta = fixture.nativeElement.querySelector('.location-card__cta') as HTMLButtonElement;
+    const cta = fixture.nativeElement.querySelector('.pickup-card__change') as HTMLButtonElement;
     cta.focus();
     expect(document.activeElement).toBe(cta);
 
@@ -475,14 +621,14 @@ describe('CreateListingFormComponent — location picker focus return (a11y)', (
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('.location-card__cta'));
+    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('.pickup-card__change'));
   });
 
   it('Escape: the picker maps it to the same cancel path (PrimeNG dialog visibleChange(false)), which returns focus to the CTA button', async () => {
     const { fixture, component } = createComponent('create');
     goToStep3(fixture, component);
 
-    const cta = fixture.nativeElement.querySelector('.location-card__cta') as HTMLButtonElement;
+    const cta = fixture.nativeElement.querySelector('.pickup-card__change') as HTMLButtonElement;
     cta.focus();
     expect(document.activeElement).toBe(cta);
 
@@ -496,7 +642,7 @@ describe('CreateListingFormComponent — location picker focus return (a11y)', (
     fixture.detectChanges();
     await fixture.whenStable();
 
-    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('.location-card__cta'));
+    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('.pickup-card__change'));
   });
 });
 
@@ -545,7 +691,6 @@ describe('CreateListingFormComponent — loss & damage compensation (step 3)', (
       description: 'A lovely wooden train set in great condition for toddlers.',
       categoryId: 'cat-123',
       pricePerDay: 9,
-      city: 'Yerevan',
     });
   }
 
@@ -607,7 +752,6 @@ describe('CreateListingFormComponent — loss & damage compensation (step 3)', (
       categoryId: 'cat-123',
       pricePerDay: 5,
       priceUnit: 'Daily',
-      city: 'Yerevan',
       ageFromMonths: 24,
       ageToMonths: 60,
       condition: null,
@@ -649,7 +793,6 @@ describe('CreateListingFormComponent — loss & damage compensation (step 3)', (
       categoryId: 'cat-123',
       pricePerDay: 5,
       priceUnit: 'Daily',
-      city: 'Yerevan',
       ageFromMonths: 24,
       ageToMonths: 60,
       condition: null,

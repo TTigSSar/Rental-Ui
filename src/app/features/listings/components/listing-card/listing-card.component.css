@@ -178,23 +178,58 @@
    "location + radius" design) — only rendered for non-owner cards, so it
    never collides with `.listing-card__status-badge` (my-listings/user-listings
    only) or `.listing-card__owner-badge` (top-centre, owner cards only). */
+/* Geometry from the design's own `.distbadge`: top/left 8px, padding 5px 9px,
+   pill radius, 11px/800, 5px gap, max-width calc(100% - 16px).
+   The `backdrop-filter` is ours, not the board's — it predates this change
+   and it earns its place, because this pill sits on arbitrary user photos. */
 .listing-card__distance-badge {
   position: absolute;
   top: var(--ui-space-8);
   left: var(--ui-space-8);
+  /* The badge now carries a sentence ("2.4 km from your home"), not a bare
+     figure, so it has to be allowed to run out of room on a 2-up mobile grid
+     instead of pushing past the card edge (M-026 class). */
+  max-width: calc(100% - var(--ui-space-8) * 2);
   z-index: 1;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 9px;
+  gap: 5px;
+  padding: 5px 9px;
   border-radius: var(--ui-radius-pill);
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: var(--ui-font-weight-extrabold);
   line-height: 1.4;
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--ui-color-primary-strong);
+  background: rgba(255, 255, 255, 0.96);
+  /* The TEXT is plain body colour in both variants — only the ICON carries
+     the home/live distinction (`.distbadge{color:var(--text)}` +
+     `.distbadge svg{...}` in the design). Colouring the whole pill, as an
+     earlier pass did, makes a short phrase compete with the price for
+     emphasis and makes the two variants differ far more loudly than the
+     design intends. */
+  color: var(--ui-color-text-primary);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.listing-card__distance-badge .pi {
+  flex: none;
+}
+
+/* "From your home" — orange home icon. */
+.listing-card__distance-badge--home .pi {
+  color: var(--ui-color-primary);
+}
+
+/* "From you" (live location) — blue location arrow. `--ui-color-map-user`
+   (#2f6bff) is this app's single existing token for "the user's own live
+   position" (the map dot, the detail page's distance row) and is the same
+   hex as the board's `--blue`, so the badge inherits that meaning rather
+   than introducing a second blue. */
+.listing-card__distance-badge--live .pi {
+  color: var(--ui-color-map-user);
 }
 
 .listing-card__status-dot {

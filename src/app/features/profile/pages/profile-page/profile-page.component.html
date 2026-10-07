@@ -249,6 +249,19 @@
                 </div>
               </div>
 
+              <!-- Home point (home-point model). Sits above the list rows,
+                   which is where the boards put it: it is a setting the owner
+                   acts on, not a destination to navigate to.
+                   `@if (!isDesktop())` is load-bearing, not an optimisation:
+                   the mobile and desktop layouts in this file are two separate
+                   markup trees hidden from each other by CSS, so an
+                   unconditional card in both would mean TWO live instances —
+                   two pickers portalled to <body>, two confirmation dialogs,
+                   and two success toasts for one save. -->
+              @if (!isDesktop()) {
+                <app-home-point-card />
+              }
+
               <!-- Navigation menu -->
               <div class="profile-page__m-menu">
                 <a class="profile-page__m-item" routerLink="/profile/toys">
@@ -426,6 +439,15 @@
                 </div>
               </div>
             </div>
+
+            <!-- Home point — the desktop placement (above Personal info, as
+                 the boards show). Mutually exclusive with the mobile copy
+                 above; see its comment for why that matters. -->
+            @if (isDesktop()) {
+              <div class="profile-page__desktop-only">
+                <app-home-point-card />
+              </div>
+            }
 
             <!-- Settings (language, notifications, help) — desktop only -->
             <div class="profile-page__menu-section profile-page__desktop-only" data-lang-section>

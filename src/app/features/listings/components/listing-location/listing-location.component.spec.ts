@@ -5,12 +5,15 @@ import { provideRouter } from '@angular/router';
 import { provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
+import type { HomePoint } from '../../../auth/models/auth.models';
+import { selectHomePoint } from '../../../auth/store/auth.selectors';
 import { ListingLocationComponent } from './listing-location.component';
 import { APPROXIMATE_AREA_RADIUS_METERS } from '../../models/approximate-area.const';
 import type { ListingDistrict } from '../../models/district.model';
 import type { ListingsFilter } from '../../models/listings-filter.model';
 import { ListingLocationMapComponent } from '../listing-location-map/listing-location-map.component';
-import { LocationPickerComponent } from '../location-picker/location-picker.component';
+import { ListingsMapComponent } from '../listings-map/listings-map.component';
+import { LocationPickerComponent } from '../../../../shared/ui/location-picker/location-picker.component';
 import { GeolocationService } from '../../../../shared/services/geolocation.service';
 import type { GeolocatedPoint } from '../../../../shared/services/geolocation.service';
 import { LanguageService } from '../../../../shared/services/language.service';
@@ -96,8 +99,13 @@ class FakeGeolocationService {
   // every pre-existing test that doesn't care about accuracy still sees the
   // plain "granted" distance line, not the low-accuracy soft block.
   nextPoint: GeolocatedPoint = { lat: 40.19, lng: 44.52, accuracyMeters: 20 };
+  /** How many times the component asked for a position — the home-point row
+   *  must render with this still at 0 (M-031: a browser permission is a
+   *  shared, single-use, origin-wide resource). */
+  calls = 0;
 
   getCurrentPosition(): Promise<GeolocatedPoint> {
+    this.calls += 1;
     return this.nextResult === 'success'
       ? Promise.resolve(this.nextPoint)
       : Promise.reject(new Error('denied'));
@@ -117,6 +125,12 @@ async function createComponent(inputs: {
    *  to do on its own. Defaults to whatever `LanguageService`'s real
    *  `resolveInitial()` picks (english in this jsdom test environment). */
   languageCode?: 'en' | 'hy' | 'ru';
+  /** The signed-in viewer's own home point (home-point model). `undefined`
+   *  (the default) is the anonymous / no-point case every pre-existing test
+   *  in this file exercises, so none of them see the home distance row. */
+  homePoint?: HomePoint | null;
+  /** `true` when the viewer owns this listing — suppresses the home row. */
+  isOwnListing?: boolean;
 }) {
   const fakeGeo = new FakeGeolocationService();
   const providers = [
@@ -128,6 +142,7 @@ async function createComponent(inputs: {
         { selector: selectMapPinsLoading, value: false },
         { selector: selectMapPinsError, value: null },
         { selector: selectMapPinsTruncated, value: false },
+        { selector: selectHomePoint, value: inputs.homePoint ?? null },
       ],
     }),
     { provide: GeolocationService, useValue: fakeGeo },
@@ -163,7 +178,9 @@ async function createComponent(inputs: {
         details: {
           location: {
             approximateRadius: '~{{radius}} m',
-            distanceFromYou: '≈ {{distance}} away',
+            distanceFromYou: '≈ {{distance}} from you',
+            distanceFromHome: '≈ {{distance}} from your home',
+            measuredFromHome: 'Measured from your home point',
             accuracyLabel: '± {{accuracy}}',
             lowAccuracyMessage: 'Your location looks approximate.',
           },
@@ -187,6 +204,7 @@ async function createComponent(inputs: {
   fixture.componentRef.setInput('longitude', inputs.longitude ?? null);
   fixture.componentRef.setInput('title', inputs.title ?? 'LEGO Duplo Town');
   fixture.componentRef.setInput('imageUrl', inputs.imageUrl ?? null);
+  fixture.componentRef.setInput('isOwnListing', inputs.isOwnListing ?? false);
   fixture.detectChanges();
   await vi.runAllTimersAsync();
   fixture.detectChanges();
@@ -513,6 +531,89 @@ describe('ListingLocationComponent', () => {
       await fixture.whenStable();
 
       expect(el.querySelector('.listing-location__distance')).not.toBeNull();
+    });
+  });
+
+  // ── Home-point model: "From your home" distance row (design section (b)) ──
+  describe('home-point distance row', () => {
+    const HOME: HomePoint = {
+      latitude: 40.2,
+      longitude: 44.5,
+      publicLatitude: 40.2,
+      publicLongitude: 44.5,
+      district: null,
+      updatedAt: '2026-10-01T10:00:00Z',
+    };
+
+    it('renders on arrival for a signed-in renter with a home point — no click, no prompt', async () => {
+      const { el, fakeGeo } = await createComponent({
+        latitude: 40.18,
+        longitude: 44.51,
+        homePoint: HOME,
+      });
+
+      const row = el.querySelector('.listing-location__distance--home');
+      expect(row).not.toBeNull();
+      expect(row!.textContent).toContain('from your home');
+      expect(row!.textContent).toContain('Measured from your home point');
+      expect(row!.querySelector('.pi-home')).not.toBeNull();
+      // Nothing about this row touches the browser's geolocation permission
+      // (M-031): both coordinates were already on the device.
+      expect(fakeGeo.calls).toBe(0);
+    });
+
+    it('is absent for an anonymous visitor / a user with no home point', async () => {
+      const { el } = await createComponent({ latitude: 40.18, longitude: 44.51 });
+
+      expect(el.querySelector('.listing-location__distance--home')).toBeNull();
+    });
+
+    it('is absent on the viewer’s OWN listing — "0 m from your home" is noise', async () => {
+      const { el } = await createComponent({
+        latitude: 40.18,
+        longitude: 44.51,
+        homePoint: HOME,
+        isOwnListing: true,
+      });
+
+      expect(el.querySelector('.listing-location__distance--home')).toBeNull();
+      expect(el.querySelector('.listing-location__distance')).toBeNull();
+    });
+
+    it('yields to the live-location row once the renter asks where they are', async () => {
+      const { fixture, el, fakeGeo } = await createComponent({
+        latitude: 40.18,
+        longitude: 44.51,
+        homePoint: HOME,
+      });
+      expect(el.querySelector('.listing-location__distance--home')).not.toBeNull();
+
+      fakeGeo.nextResult = 'success';
+      fakeGeo.nextPoint = { lat: 40.19, lng: 44.52, accuracyMeters: 20 };
+      el.querySelector<HTMLButtonElement>('.listing-location__locate-btn')!.click();
+      await vi.runAllTimersAsync();
+      fixture.detectChanges();
+
+      // Exactly one row, and it is the live one: two numbers answering
+      // different questions must never stack.
+      expect(el.querySelector('.listing-location__distance--home')).toBeNull();
+      const live = el.querySelector('.listing-location__distance--live');
+      expect(live).not.toBeNull();
+      expect(live!.textContent).toContain('from you');
+    });
+
+    it('passes the viewer’s own home point to the map as a home marker, never as the owner’s pin', async () => {
+      const { fixture } = await createComponent({
+        latitude: 40.18,
+        longitude: 44.51,
+        homePoint: HOME,
+      });
+
+      const map = fixture.debugElement.query(By.directive(ListingsMapComponent));
+      expect(map.componentInstance.homePin()).toEqual({ lat: HOME.latitude, lng: HOME.longitude });
+      // The listing's own coordinate stays the approximate anchor + circle
+      // (ADR-008) — a home marker never replaces or doubles as it.
+      expect(map.componentInstance.anchorPin()).toEqual({ lat: 40.18, lng: 44.51 });
     });
   });
 });

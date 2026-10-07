@@ -509,6 +509,29 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   /** Radius (metres) of the translucent accuracy circle drawn around `userPin`
    *  — see the class doc comment. `null` (default) draws no circle. */
   readonly userAccuracyMeters = input<number | null>(null);
+  /**
+   * A third marker kind: the SIGNED-IN USER'S OWN HOME POINT (home-point
+   * model) — an orange rounded tile with a house glyph, drawn via
+   * `homeIcon()`. `null` (default) draws nothing, which is every caller that
+   * has no reason to show it.
+   *
+   * Deliberately its own input rather than a `userPin` variant, for the same
+   * reason `userPin` is not a `pin` variant: a caller can legitimately show
+   * all three at once (the listing-detail map draws the toy's approximate
+   * area, the renter's home, and — if they then ask — their live position),
+   * and they answer three different questions.
+   *
+   * **Only ever pass the viewer's OWN home point.** This renders an exact
+   * coordinate, which ADR-008 permits for exactly one audience: its owner.
+   * Another user's home point is published only as a geohash-cell centroid
+   * and belongs on a map as the approximate circle (`circleRadiusMeters`),
+   * never as a pin.
+   *
+   * Suppressed in `crosshair` mode on the same grounds as `pin`/`userPin`:
+   * a picker's job is to place ONE point and there is no fixed coordinate
+   * for a second marker to anchor to.
+   */
+  readonly homePin = input<MapLatLng | null>(null);
   /** When both `pin` and `userPin` are set, frame both via `fitBounds()` instead of `center`/`zoom`. */
   readonly fitPins = input<boolean>(false);
   /** When `fitPins` is on, whether `syncFitBounds()` also includes `markers()`
@@ -654,6 +677,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   private leaflet: typeof Leaflet | null = null;
   private markerLayer: Leaflet.Marker | null = null;
   private userMarkerLayer: Leaflet.Marker | null = null;
+  private homeMarkerLayer: Leaflet.Marker | null = null;
   private userAccuracyCircleLayer: Leaflet.Circle | null = null;
   private circleLayer: Leaflet.Circle | null = null;
   // Catalog pins (Maps P2-2), keyed by `MapMarkerGroup.key` — diffed rather
@@ -706,6 +730,13 @@ export class MapComponent implements AfterViewInit, OnDestroy {
    * this flag correctly stops it from ALSO re-triggering a fetch.
    */
   private suppressNextMoveend = false;
+  /**
+   * True only for the synchronous window in which this component resizes its
+   * OWN Leaflet map (the `ResizeObserver` below). Crosshair mode reports the
+   * coordinate under the centre as a user choice, and a resize is not one —
+   * see the observer for the loop this prevents.
+   */
+  private resizingCrosshair = false;
   private resizeObserver: ResizeObserver | null = null;
   private destroyed = false;
   private anyTileLoaded = false;
@@ -792,6 +823,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       this.showPin();
       this.userPin();
       this.userAccuracyMeters();
+      this.homePin();
       this.crosshair();
       this.circleRadiusMeters();
       this.circleDashed();
@@ -800,6 +832,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       this.markers();
       this.syncMarker();
       this.syncUserMarker();
+      this.syncHomeMarker();
       this.syncUserAccuracyCircle();
       this.syncCircle();
       this.syncFitBounds();
@@ -944,6 +977,13 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         const emitCenter = () => {
           const center = map.getCenter();
           const latLng: MapLatLng = { lat: center.lat, lng: center.lng };
+          // A resize is not a pan — see `resizingCrosshair`. The circle still
+          // follows the (restored) centre; only the OUTPUT is withheld.
+          if (this.resizingCrosshair) {
+            this.crosshairCenter = latLng;
+            this.syncCircle();
+            return;
+          }
           // Tracks the crosshair's current geo position for `syncCircle()`
           // (below) — there is no `pin` input in this mode, so the circle
           // must follow the SAME imperative moveend source `centerChange`
@@ -959,6 +999,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       } else {
         this.syncMarker();
         this.syncUserMarker();
+        this.syncHomeMarker();
         this.syncUserAccuracyCircle();
         this.syncCircle();
         this.syncFitBounds();
@@ -981,7 +1022,15 @@ export class MapComponent implements AfterViewInit, OnDestroy {
           this.suppressNextMoveend = false;
           return;
         }
-        this.viewportChanged.emit(this.currentBounds());
+        // `currentBounds()` is null once the map is gone. Leaflet can still
+        // deliver a queued `moveend` after `ngOnDestroy` has run — observed
+        // live when the home-point gate's map was torn down in the same tick a
+        // pan settled (`TypeError: Cannot read properties of null (reading
+        // 'getBounds')`). Harmless to the user, but an uncaught error in the
+        // console is how the next real one gets ignored.
+        const bounds = this.currentBounds();
+        if (bounds === null) return;
+        this.viewportChanged.emit(bounds);
       });
 
       // `markerCircleMinZoom` is compared against the LIVE zoom (`map.
@@ -1031,7 +1080,49 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       // surrounding `catch`, reporting `mapError` for a map that actually
       // rendered fine.
       if (typeof ResizeObserver !== 'undefined') {
-        this.resizeObserver = new ResizeObserver(() => map.invalidateSize());
+        // Only on a REAL, whole-pixel size change. `invalidateSize()` clears
+        // Leaflet's cached centre (`_lastCenter = null`) BEFORE it checks
+        // whether anything actually changed, so calling it on every observer
+        // callback makes `getCenter()` flip between the cached post-drag value
+        // and one recomputed from pixel coordinates — a few metres apart. For
+        // the crosshair map that difference is a `centerChange` emission, i.e.
+        // a phantom "the user panned": the home-point picker turned it into an
+        // endless ~450ms district-lookup loop against a rate-limited public
+        // endpoint, with its chip stuck on "Checking the district…". Found on
+        // the live walk; invisible to jsdom, which has no layout to observe.
+        let lastWidth = -1;
+        let lastHeight = -1;
+        this.resizeObserver = new ResizeObserver((entries) => {
+          const rect = entries[entries.length - 1]?.contentRect;
+          if (!rect) return;
+          const width = Math.round(rect.width);
+          const height = Math.round(rect.height);
+          if (width === lastWidth && height === lastHeight) return;
+          lastWidth = width;
+          lastHeight = height;
+          // Resizing the box must not move the pin. Leaflet keeps the map's
+          // PIXEL origin across `invalidateSize`, so growing or shrinking the
+          // container slides the geographic point under the centre crosshair —
+          // and in crosshair mode that point IS the caller's value. Capturing
+          // the centre and restoring it afterwards makes a resize a no-op for
+          // the user's choice, which is both what they expect (the window got
+          // taller; my pin did not move) and what stops a feedback loop: the
+          // home-point picker renders a status message under the map, so a
+          // reported "pan" could change the message, which changed the map's
+          // height, which reported another "pan" — an endless flicker,
+          // reproduced live by dropping a pin just outside Yerevan.
+          const previousCenter = map.getCenter();
+          const previousZoom = map.getZoom();
+          this.resizingCrosshair = this.crosshair();
+          try {
+            map.invalidateSize({ animate: false, pan: false });
+            if (this.resizingCrosshair) {
+              map.setView(previousCenter, previousZoom, { animate: false });
+            }
+          } finally {
+            this.resizingCrosshair = false;
+          }
+        });
         this.resizeObserver.observe(this.containerRef().nativeElement);
       }
     } catch {
@@ -1142,6 +1233,33 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /** Mirrors `syncUserMarker()` for `homePin` — the signed-in user's own home
+   *  point, as an orange rounded tile with a house glyph (`homeIcon()`),
+   *  distinct from both the orange teardrop `pin` (a toy's approximate area)
+   *  and the blue `userPin` dot (a live position). Non-interactive and never
+   *  a tab stop: it is a label for a place the viewer already knows, not
+   *  something to click. Suppressed in `crosshair` mode — see `homePin`'s own
+   *  doc comment. */
+  private syncHomeMarker(): void {
+    const L = this.leaflet;
+    const map = this.map;
+    if (!L || !map) return;
+
+    if (this.homeMarkerLayer) {
+      map.removeLayer(this.homeMarkerLayer);
+      this.homeMarkerLayer = null;
+    }
+
+    const h = this.homePin();
+    if (h && !this.crosshair()) {
+      this.homeMarkerLayer = L.marker([h.lat, h.lng], {
+        icon: this.homeIcon(L),
+        interactive: false,
+        keyboard: false,
+      }).addTo(map);
+    }
+  }
+
   /** Mirrors `syncCircle()`, for the visitor's OWN confidence radius instead
    *  of the listing's fuzzed-coordinate uncertainty — see `userAccuracyMeters`'
    *  doc comment on the class for why this circle must read in a DIFFERENT
@@ -1223,9 +1341,12 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   /** `Leaflet.Map.getBounds()`, translated to this component's own
    *  `MapBounds` shape — the only place a Leaflet `LatLngBounds` value is
    *  read at all, matching this file's "no Leaflet type crosses the public
-   *  API" rule. */
-  private currentBounds(): MapBounds {
-    const bounds = this.map!.getBounds();
+   *  API" rule. `null` once the map has been destroyed; see the `moveend`
+   *  handler for the one case that reaches this after teardown. */
+  private currentBounds(): MapBounds | null {
+    const map = this.map;
+    if (!map) return null;
+    const bounds = map.getBounds();
     return {
       minLat: bounds.getSouth(),
       maxLat: bounds.getNorth(),
@@ -1657,6 +1778,30 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       html: '<span class="app-map__user-dot"></span>',
       iconSize: [18, 18],
       iconAnchor: [9, 9],
+    });
+  }
+
+  /** The home-point marker (`homePin`): a 34x34 DARK rounded square with a
+   *  primeicons house glyph, matching the approved design's `.homemark`
+   *  (34px, `--secondary`, 12px radius, 3px white ring).
+   *
+   *  The dark fill is load-bearing, not a style preference. This marker can
+   *  share a map with BOTH the orange `pin`/circle (a toy's approximate
+   *  area) and the blue `userPin` dot — an orange home tile would read as
+   *  another toy, which is the one misreading that matters here. Dark is the
+   *  only one of the three that cannot be confused with either.
+   *
+   *  A `divIcon` for the same reason `userIcon()` is one: the markup takes
+   *  its colours from tokens in `map.component.scss` with no JS colour-read,
+   *  and primeicons is loaded globally (`src/styles.css`) so the glyph
+   *  resolves inside Leaflet's marker pane. `aria-hidden` on the glyph — the
+   *  marker is chrome on a map the caller already labels. */
+  private homeIcon(L: typeof Leaflet): Leaflet.DivIcon {
+    return L.divIcon({
+      className: 'app-map__home-marker',
+      html: '<span class="app-map__home-mark"><i class="pi pi-home" aria-hidden="true"></i></span>',
+      iconSize: [34, 34],
+      iconAnchor: [17, 17],
     });
   }
 

@@ -1,0 +1,160 @@
+<p-dialog
+  [visible]="open()"
+  (visibleChange)="onVisibleChange($event)"
+  [modal]="true"
+  [closable]="true"
+  [dismissableMask]="false"
+  [draggable]="false"
+  [resizable]="false"
+  [header]="homePointMode() ? '' : (headerKey() | translate)"
+  [styleClass]="
+    homePointMode()
+      ? 'location-picker-dialog location-picker-dialog--home-point'
+      : 'location-picker-dialog'
+  "
+  appendTo="body"
+>
+  @if (homePointMode()) {
+    <!-- Home-point mode has a two-line header (title + subtitle), which
+         `p-dialog`'s plain `[header]` string cannot express.
+
+         `let-dialogTitleId="ariaLabelledBy"` is load-bearing, not decoration.
+         `p-dialog` mints one id (`pn_id_N_header`) and binds the dialog root's
+         `aria-labelledby` to it UNCONDITIONALLY, but it only renders the
+         default title span carrying that id when no header template is
+         supplied (`*ngIf="!_headerTemplate && !headerTemplate && !headerT"`).
+         Supplying this template therefore left `aria-labelledby` pointing at a
+         node that does not exist — the dialog had no accessible name at all and
+         a screen reader announced a bare "dialog". PrimeNG passes the id into
+         the header template's context precisely so the template can re-home it;
+         putting it on the real <h2> is the supported fix. Two couplings to keep
+         in mind if this is ever edited: `[header]` above must stay bound to ''
+         and never `null` (`getAriaLabelledBy()` returns null for a null header,
+         so the id would vanish), and this <h2> is the ONLY element allowed to
+         carry that id. -->
+    <ng-template pTemplate="header" let-dialogTitleId="ariaLabelledBy">
+      <div class="location-picker__head">
+        <h2 class="location-picker__title" [id]="dialogTitleId">
+          {{ headerKey() | translate }}
+        </h2>
+        <p class="location-picker__subtitle">{{ subtitleKey() | translate }}</p>
+      </div>
+    </ng-template>
+  }
+
+  <div class="location-picker__map-wrap">
+    @if (open()) {
+      @if (homePointMode()) {
+        <app-home-point-map
+          [initialCenter]="initialCenter()"
+          [initialZoom]="initialZoom()"
+          [openedOnExistingPoint]="openedOnExistingPoint()"
+          [resetToken]="homePointResetToken()"
+          height="100%"
+          (selectionChange)="onHomePointSelectionChange($event)"
+        />
+      } @else {
+        <app-map
+          [center]="mapCenter()"
+          [zoom]="initialZoom()"
+          [interactive]="true"
+          [crosshair]="true"
+          [circleRadiusMeters]="effectiveRadiusPreviewMeters()"
+          [circleDashed]="true"
+          height="100%"
+          (centerChange)="onCenterChange($event)"
+        >
+          @if (showMyLocationButton()) {
+            <button
+              type="button"
+              app-map-actions
+              class="app-map__btn"
+              [attr.aria-label]="'listings.filters.locationPicker.myLocation' | translate"
+              (click)="requestMyLocation()"
+            >
+              <i class="pi pi-compass" aria-hidden="true"></i>
+            </button>
+          }
+        </app-map>
+
+        <!-- Floating hint card (approved design's `.pickhint`) — a SIBLING of
+             `app-map`, not projected into it: `app-map` only exposes a
+             bottom-right `[app-map-actions]` dock (used above for "My
+             location"), it has no generic top-of-map slot. Absolutely
+             positioned here instead, same as the radius-preview circle below. -->
+        @if (hintTitleKey()) {
+          <!-- Outer `.location-picker__hint` is a hollow positioning box only —
+               it spans left14→right14 so the card below can sit flush against
+               the left edge on any viewport, but must never itself catch a
+               click/drag (`pointer-events: none`): the visible card is the
+               inner `.location-picker__hint-card`, which shrink-wraps to its
+               own content and is the only part with `pointer-events: auto`.
+               Same hollow-wrapper pattern as app-map's own `[app-map-actions]`
+               slot (map.component.scss's `.app-map__actions`). -->
+          <div class="location-picker__hint">
+            <div class="location-picker__hint-card" role="status">
+              <span class="location-picker__hint-icon" aria-hidden="true">
+                <i class="pi pi-map-marker"></i>
+              </span>
+              <span class="location-picker__hint-copy">
+                <b>{{ hintTitleKey() | translate }}</b>
+                @if (hasMoved()) {
+                  @if (hintSubtitleMovedKey()) {
+                    <small>{{ hintSubtitleMovedKey() | translate }}</small>
+                  }
+                } @else {
+                  @if (hintSubtitleIdleKey()) {
+                    <small>{{ hintSubtitleIdleKey() | translate }}</small>
+                  }
+                }
+              </span>
+            </div>
+          </div>
+        }
+      }
+    }
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="location-picker__footer">
+      @if (homePointMode()) {
+        <app-home-point-status
+          [selection]="homePointSelection()"
+          [serverOutsideYerevan]="serverOutsideYerevan()"
+        />
+      } @else {
+        <p class="location-picker__privacy">
+          <i class="pi pi-shield" aria-hidden="true"></i>
+          {{ privacyNoteKey() | translate }}
+        </p>
+      }
+      <div class="location-picker__actions">
+        <button
+          type="button"
+          class="location-picker__btn location-picker__btn--cancel"
+          [disabled]="saving()"
+          (click)="cancel()"
+        >
+          {{ cancelLabelKey() | translate }}
+        </button>
+        <button
+          type="button"
+          class="location-picker__btn location-picker__btn--confirm"
+          [disabled]="
+            homePointMode()
+              ? homePointConfirmDisabled()
+              : confirmDisabledUntilMoved() && !hasMoved()
+          "
+          (click)="confirm()"
+        >
+          @if (saving()) {
+            <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+          } @else {
+            <i class="pi pi-check" aria-hidden="true"></i>
+          }
+          {{ confirmLabelKey() | translate }}
+        </button>
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>

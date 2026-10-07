@@ -83,3 +83,176 @@
   }
 }
 
+
+/* ── Two-step sign-up (home-point model) ─────────────────────────── */
+.auth-steps {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-8);
+  margin: 0 0 var(--ui-space-16);
+  padding: 0;
+  list-style: none;
+}
+
+.auth-steps__step {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-6);
+  font-size: 0.75rem;
+  font-weight: var(--ui-font-weight-bold);
+  color: var(--ui-color-text-secondary);
+  white-space: nowrap;
+}
+
+.auth-steps__num {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.6875rem;
+  font-weight: var(--ui-font-weight-extrabold);
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-secondary);
+
+  .pi {
+    font-size: 0.625rem;
+  }
+}
+
+.auth-steps__step--active {
+  color: var(--ui-color-text-primary);
+
+  .auth-steps__num {
+    background: var(--ui-color-primary);
+    color: var(--ui-color-on-primary);
+  }
+}
+
+.auth-steps__step--done .auth-steps__num {
+  background: var(--ui-color-success-surface);
+  color: var(--ui-color-success);
+}
+
+.auth-steps__sep {
+  flex: 1;
+  height: 1px;
+  background: var(--ui-color-border);
+}
+
+.auth-form__step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-16);
+}
+
+/* Hidden, not removed — see the template's comment: a duplicate-email
+   rejection walks the user back to step 1 and every value has to still be
+   there. `display:none` also keeps the fields out of the tab order. */
+.auth-form__step--hidden {
+  display: none;
+}
+
+.auth-home {
+  gap: var(--ui-space-12);
+}
+
+.auth-home__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: var(--ui-font-weight-extrabold);
+  line-height: var(--ui-line-height-tight);
+  color: var(--ui-color-text-primary);
+}
+
+.auth-home__lead {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-8);
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: var(--ui-line-height-base);
+  color: var(--ui-color-text-secondary);
+
+  .pi {
+    flex: none;
+    margin-top: 2px;
+    color: var(--ui-color-primary);
+  }
+}
+
+.auth-home__map {
+  height: 250px;
+  border-radius: var(--ui-radius-card);
+  border: 1px solid var(--ui-color-border);
+  overflow: hidden;
+}
+
+.auth-home__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-4);
+}
+
+.auth-home__actions .auth-form__submit-button.p-button {
+  margin-top: var(--ui-space-8);
+}
+
+.auth-home__skip,
+.auth-home__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-space-6);
+  /* 44px minimum touch target — DESIGN_RULES.md §3. */
+  min-height: 44px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--ui-font-size-caption);
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary);
+    outline-offset: 2px;
+    border-radius: var(--ui-radius-sm);
+  }
+
+  &:disabled {
+    color: var(--ui-color-text-muted);
+    cursor: not-allowed;
+  }
+}
+
+.auth-home__skip {
+  font-weight: var(--ui-font-weight-bold);
+  color: var(--ui-color-text-primary);
+}
+
+.auth-home__back {
+  font-weight: var(--ui-font-weight-semibold);
+  color: var(--ui-color-text-secondary);
+}
+
+.auth-home__later {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-6);
+  margin: 0;
+  font-size: 0.71875rem;
+  line-height: 1.45;
+  color: var(--ui-color-text-secondary);
+
+  .pi {
+    flex: none;
+    margin-top: 2px;
+    font-size: 0.75rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .auth-home__map {
+    height: 300px;
+  }
+}

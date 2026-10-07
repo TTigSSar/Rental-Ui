@@ -1,11 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, forkJoin, from, map, of, switchMap } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { catchError, forkJoin, from, map, of, switchMap, withLatestFrom } from 'rxjs';
 
 import { toApiErrorMessage } from '../../../api/http-error-message.util';
+import * as AuthActions from '../../auth/store/auth.actions';
+import { selectHomePoint } from '../../auth/store/auth.selectors';
 import { GeolocationService } from '../../../shared/services/geolocation.service';
 import type { MapMarkerGroup } from '../../../shared/ui/map/map.component';
-import { YEREVAN_CENTER } from '../../listings/components/location-picker/location-picker.component';
+import { YEREVAN_CENTER } from '../../../shared/ui/map/map.constants';
 import type { ListingMapPin } from '../../listings/models/listing-map-pin.model';
 import { groupPinsByCoordinate } from '../../listings/models/listing-pin-group.util';
 import type { MapPinsBounds } from '../../listings/models/map-pins-bounds.model';
@@ -50,26 +53,10 @@ function mapPinsToMarkerGroups(pins: ListingMapPin[]): MapMarkerGroup[] {
   }));
 }
 
-/**
- * Rounds a coordinate to 3 decimal places (~100m at this latitude) — the
- * precision this app already treats as publishable (backend map pins are
- * geohash-7 centroids, a comparable order of magnitude), and plenty for a
- * decorative hero badge/pin cluster. Applied ONLY to what leaves the client
- * as `originLat`/`originLng` query params (`/security-review`, Medium: query
- * params land in server access logs, proxy logs, and browser history, so
- * full-precision coordinates have no business riding along on a request that
- * only needs ~city-block precision to answer "how many toys nearby"). Must
- * NEVER be applied to the coordinate used for local display — see
- * `loadNearbyPinsForOrigin$` below for the precise-vs-rounded split this
- * exists to keep honest.
- */
-function roundCoordForApi(value: number): number {
-  return Math.round(value * 1000) / 1000;
-}
-
 @Injectable()
 export class HomeEffects {
   private readonly actions$ = inject(Actions);
+  private readonly store = inject(Store);
   private readonly homeApi = inject(HomeApiService);
   private readonly listingsApi = inject(ListingsApiService);
   private readonly geolocation = inject(GeolocationService);
@@ -94,17 +81,87 @@ export class HomeEffects {
 
   /**
    * `init` (Home page mount) never calls geolocation — see
-   * `HomeNearbyActions`'s own doc comment for why. A pure, synchronous
-   * re-map to `useFallbackOrigin`, which `loadNearbyPinsForYerevan$` below
-   * turns into the actual pins fetch — kept as its own tiny effect (rather
-   * than inlining the fetch here) so `useFallbackOrigin` has exactly ONE
-   * effect reacting to it regardless of which of its two triggers
-   * (`init` or a denied/failed `requestMyArea`) fired it.
+   * `HomeNearbyActions`'s own doc comment for why. It is still a pure,
+   * synchronous re-map; it now picks between TWO destinations by reading the
+   * signed-in user's home point out of the store:
+   *
+   * - a home point exists → `homeOriginResolved`, the hero centres on their
+   *   own area ("Toys near your home");
+   * - otherwise → `useFallbackOrigin`, the unchanged Yerevan citywide view.
+   *
+   * Reading `selectHomePoint` is a store read, not a permission request: the
+   * coordinate arrived on `/api/auth/me` because the user put it there. What
+   * ADR-015 and M-031 forbid is PROMPTING the browser on page load, and
+   * neither branch here can do that — `GeolocationService` is still reachable
+   * only from `requestMyArea`.
+   *
+   * It also re-fires on the three auth actions that can change the answer,
+   * because Home's own effects are route-scoped and mount independently of
+   * the auth bootstrap: `/api/auth/me` routinely resolves AFTER the hero has
+   * already painted its fallback, the user can move their point from the
+   * profile and come back, and they can delete it. Each of those has to
+   * re-decide the branch rather than leave the hero showing a view that was
+   * correct a moment ago. `logout` is in the same list and needs no special
+   * branch: with the user gone, `selectHomePoint` is `null` and the generic
+   * "no home point" arm already produces exactly the right result — the
+   * citywide fallback an anonymous visitor would have seen.
    */
-  readonly initToFallback$ = createEffect(() =>
+  readonly resolveHomeOrigin$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(HomeNearbyActions.init),
-      map(() => HomeNearbyActions.useFallbackOrigin()),
+      ofType(
+        HomeNearbyActions.init,
+        AuthActions.loadCurrentUserSuccess,
+        AuthActions.updateHomePointSuccess,
+        AuthActions.clearHomePointSuccess,
+        AuthActions.logout,
+      ),
+      withLatestFrom(this.store.select(selectHomePoint)),
+      map(([, homePoint]) =>
+        homePoint === null
+          ? HomeNearbyActions.useFallbackOrigin()
+          : HomeNearbyActions.homeOriginResolved({
+              origin: { lat: homePoint.latitude, lng: homePoint.longitude },
+              district: homePoint.district,
+            }),
+      ),
+    ),
+  );
+
+  /**
+   * Home branch: pins AND the count within `HOME_NEARBY_DEFAULT_RADIUS_KM`
+   * of the user's own home point — the same pair of requests the granted
+   * geolocation branch makes, so the two counts mean the same thing
+   * ("within {radius} of this point") and can share the chip's copy.
+   *
+   * The origin is handed over at FULL precision and coarsened to 3 dp by the
+   * one seam that owns that policy (`ListingsApiService
+   * .buildSharedFilterParams`). That is the same treatment a live fix gets,
+   * and it matters more here, not less: this is the renter's home.
+   */
+  readonly loadNearbyPinsForHome$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(HomeNearbyActions.homeOriginResolved),
+      switchMap(({ origin }) => {
+        const filter: ListingsFilter = {
+          ...initialListingsState.filters,
+          radiusKm: HOME_NEARBY_DEFAULT_RADIUS_KM,
+        };
+        const originCoords: ListingsOriginCoords = { lat: origin.lat, lng: origin.lng };
+        return forkJoin({
+          pins: this.listingsApi.getMapPins(filter, null, originCoords),
+          count: this.listingsApi.getListings(filter, 1, 1, originCoords),
+        }).pipe(
+          map(({ pins, count }) =>
+            HomeNearbyActions.pinsLoadSuccess({
+              pins: mapPinsToMarkerGroups(pins.items),
+              nearbyCount: count.totalCount,
+            }),
+          ),
+          catchError((error: unknown) =>
+            of(HomeNearbyActions.pinsLoadFailure({ error: toApiErrorMessage(error) })),
+          ),
+        );
+      }),
     ),
   );
 
@@ -145,15 +202,18 @@ export class HomeEffects {
    *  must never write into that state either (`ListingsActions.loadMapPins`
    *  is never dispatched here).
    *
-   *  `originCoords` (sent as the `originLat`/`originLng` query params) is
-   *  ROUNDED via `roundCoordForApi` — `origin` itself (full precision, from
-   *  the `originResolved` action payload) is what already reached the
-   *  store and drives `userPin`, so the blue dot still sits exactly where
-   *  the visitor is; only the OUTGOING request is coarsened. Keep this
-   *  split: collapsing it into one rounded value would misplace the user
-   *  dot by up to ~100m for no reason, and un-rounding the request would
-   *  put full-precision coordinates back in server/proxy access logs and
-   *  browser history for a badge that only needs city-block precision. */
+   *  `origin` is passed through at FULL precision and coarsened to 3 dp
+   *  (~100 m) by the one seam that owns that policy —
+   *  `ListingsApiService.buildSharedFilterParams`, via
+   *  `shared/utils/coord-precision.utils.ts`'s `roundCoordForApi`. This
+   *  effect used to own a private copy of that rounding; it no longer does,
+   *  because the home-point work added a second kind of outbound origin (the
+   *  renter's own home point, ADR-008) and a policy applied in two places is
+   *  a policy one of them will eventually forget. The precise-vs-rounded
+   *  split is unchanged and still load-bearing: `origin` (full precision,
+   *  from the `originResolved` payload) is what reached the store and drives
+   *  the blue `userPin` dot, so it still sits exactly where the visitor is;
+   *  only the OUTGOING query params are coarsened. */
   readonly loadNearbyPinsForOrigin$ = createEffect(() =>
     this.actions$.pipe(
       ofType(HomeNearbyActions.originResolved),
@@ -162,10 +222,7 @@ export class HomeEffects {
           ...initialListingsState.filters,
           radiusKm: HOME_NEARBY_DEFAULT_RADIUS_KM,
         };
-        const originCoords: ListingsOriginCoords = {
-          lat: roundCoordForApi(origin.lat),
-          lng: roundCoordForApi(origin.lng),
-        };
+        const originCoords: ListingsOriginCoords = { lat: origin.lat, lng: origin.lng };
         return forkJoin({
           pins: this.listingsApi.getMapPins(filter, null, originCoords),
           count: this.listingsApi.getListings(filter, 1, 1, originCoords),

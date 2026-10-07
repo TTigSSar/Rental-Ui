@@ -18,8 +18,53 @@ export function e2eUser(overrides: Record<string, unknown> = {}) {
     firstName: 'Ada',
     lastName: 'Lovelace',
     roles: ['User'],
+    // Home-point model: `CurrentUserResponse.homePoint`. Defaults to a real
+    // Kentron point so journeys that create a listing behave like a normal
+    // account (no home point = the API refuses create with 409
+    // `listing.home_point_required`). Pass `{ homePoint: null }` for the
+    // "hasn't set one yet" state.
+    homePoint: e2eHomePoint(),
     ...overrides,
   };
+}
+
+/**
+ * `HomePointResponse` wire shape — SELF-ONLY, served exclusively on
+ * `GET/PUT/DELETE /api/auth/me[/home-point]`. `latitude`/`longitude` are the
+ * EXACT point; `publicLatitude`/`publicLongitude` are the approximated pair
+ * every listing of this owner publishes. Never attach this to a public-profile
+ * or listing fixture.
+ */
+export function e2eHomePoint(overrides: Record<string, unknown> = {}) {
+  return {
+    latitude: 40.183332,
+    longitude: 44.514999,
+    publicLatitude: 40.1835,
+    publicLongitude: 44.5152,
+    district: e2eDistrict(),
+    updatedAt: '2026-09-27T20:03:21.000Z',
+    ...overrides,
+  };
+}
+
+/**
+ * `POST /api/auth/register` success body — an `AuthResponse`, NOT an empty
+ * object. `normalizeAuthResponse` throws "Authentication token was not returned
+ * by the API" on a body with no token, so the mock's generic `{}` write
+ * fallback used to turn every register journey into a thrown error.
+ */
+export function e2eAuthResponse(overrides: Record<string, unknown> = {}) {
+  return {
+    token: 'e2e-jwt-token',
+    expiresAt: '2099-01-01T00:00:00.000Z',
+    user: e2eUser(),
+    ...overrides,
+  };
+}
+
+/** `GET /api/districts/at` body. `district: null` = the point is unsaveable. */
+export function e2eDistrictAt(overrides: Record<string, unknown> = {}) {
+  return { district: e2eDistrict(), ...overrides };
 }
 
 export function e2eAdmin(overrides: Record<string, unknown> = {}) {

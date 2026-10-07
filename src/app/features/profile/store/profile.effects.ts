@@ -29,6 +29,10 @@ function mapAuthUserToProfile(user: CurrentUser): UserProfile {
     createdAt: null,
     isBlocked: false,
     roles: [...user.roles],
+    // CurrentUser DOES carry homePoint (same /api/auth/me payload), so it is
+    // carried through rather than nulled — nulling it here would make the
+    // fallback look like "no home point set", which drives a different UI state.
+    homePoint: user.homePoint,
   };
 }
 

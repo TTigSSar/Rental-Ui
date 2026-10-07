@@ -233,24 +233,54 @@
 }
 
 /* ── Distance row (geolocation granted) ──────────────────────────────── */
+/* Two distance rows, two treatments (approved design section (b)). The row
+   used to be a hybrid — the "from your home" WARM background with the
+   "from you" BLUE icon — which was harmless while only one row existed and
+   becomes a bug the moment both do, since the background would stop carrying
+   any meaning. Now the orange/warm pairing means "measured from your home"
+   and the blue/cool pairing means "measured from your live location", and
+   the icon and the surface always agree.
+
+   Token note (audit CLOSED): these four values used to be color-mix()
+   derivations from --ui-color-primary / --ui-color-map-user, which landed
+   visibly short of the boards (#ffc7a9 vs #ffd9bd, #d1deff vs #d5e1ff). They
+   now come from the dedicated pair tokens in styles.css — see the comment
+   there for why a mix cannot reach these hues at any percentage. */
 .listing-location__distance {
   display: flex;
   align-items: center;
   gap: 9px;
   padding: 11px 14px;
-  background: var(--ui-color-primary-wash);
-  border: 1px solid var(--ui-color-primary-soft);
   border-radius: var(--ui-radius-12);
+}
+
+.listing-location__distance--home {
+  background: var(--ui-color-primary-wash);
+  border: 1px solid var(--ui-color-primary-wash-border);
+}
+
+.listing-location__distance--live {
+  background: var(--ui-color-map-user-wash);
+  border: 1px solid var(--ui-color-map-user-wash-border);
 }
 
 .listing-location__distance-icon {
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--ui-radius-pill);
   background: var(--ui-color-surface);
+  color: var(--ui-color-map-user);
+}
+
+.listing-location__distance-icon--home {
+  color: var(--ui-color-primary);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--ui-color-primary) 25%, transparent);
+}
+
+.listing-location__distance-icon--live {
   color: var(--ui-color-map-user);
   box-shadow: 0 1px 3px color-mix(in srgb, var(--ui-color-map-user) 25%, transparent);
 }

@@ -1,9 +1,12 @@
+<!-- A 409 `listing.home_point_required` is NOT printed as the generic error
+     banner: the wizard raises its home-point gate instead, which is the only
+     thing the owner can actually do about it. -->
 @if (vm$ | async; as vm) {
   <app-create-listing-form
     [categories]="vm.categories"
-    [districts]="vm.districts"
     [isSubmitting]="vm.createListingLoading"
-    [createError]="vm.createListingError"
+    [createError]="vm.homePointRequired ? null : vm.createListingError"
+    [homePointRequiredByServer]="vm.homePointRequired"
     [imageUploadError]="vm.imageUploadError"
     [uploadProgress]="vm.uploadProgress"
     (submitted)="onSubmitted($event)"

@@ -11,6 +11,7 @@
     [showPin]="false"
     [userPin]="userPin()"
     [userAccuracyMeters]="userAccuracyMeters()"
+    [homePin]="homePin()"
     [circleRadiusMeters]="radiusMeters()"
     [markers]="markers()"
     [markerVariant]="'twinkle'"
@@ -18,7 +19,38 @@
     [markerGroupLabel]="'home.heroMap.markerGroupLabel' | translate"
     height="100%"
   >
-    @if (nearbyCount() !== null) {
+    <!-- Two chip forms, same top-left slot (the one corner free of the
+         licence-mandated MapTiler logo and Leaflet attribution — see this
+         file's SCSS and ADR-015). The home form is the design's two-line
+         `.zone`: house icon, "Toys near your home", then the count with the
+         radius and district it was actually measured with. Both stay hidden
+         while the count is unknown, so first paint never flashes a false
+         "0 toys nearby". -->
+    @if (isHomeCentred()) {
+      <div app-map-overlay class="hero-map__zone">
+        <span class="hero-map__zone-icon" aria-hidden="true">
+          <i class="pi pi-home"></i>
+        </span>
+        <span class="hero-map__zone-copy">
+          <span class="hero-map__zone-title">
+            {{ 'home.heroMap.nearHome' | translate }}
+          </span>
+          @if (nearbyCount() !== null) {
+            <span class="hero-map__zone-sub">
+              {{
+                homeCountKey()
+                  | translate
+                    : {
+                        count: nearbyCount(),
+                        radius: homeRadiusLabel(),
+                        district: homeDistrictName(),
+                      }
+              }}
+            </span>
+          }
+        </span>
+      </div>
+    } @else if (nearbyCount() !== null) {
       <div app-map-overlay class="hero-map__pill">
         <span class="hero-map__pill-dot" aria-hidden="true"></span>
         {{ nearbyCountKey() | translate: { count: nearbyCount() } }}
@@ -32,7 +64,13 @@
          once `granted()` — nothing left to opt into. The ONE intentional
          tab stop this panel adds (see this component's own class doc
          comment). -->
-    @if (!granted()) {
+    <!-- Also withheld once the hero is home-centred: the design draws no
+         locate control on that view, and offering one would dangle the
+         origin-wide geolocation prompt (M-031) in front of a visitor whose
+         map is already centred on a point they chose themselves. They can
+         still get a live distance where it answers a real question — the
+         listing-detail page's own "My location" button. -->
+    @if (!granted() && !isHomeCentred()) {
       <button
         type="button"
         app-map-actions

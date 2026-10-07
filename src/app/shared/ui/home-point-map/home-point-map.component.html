@@ -1,0 +1,91 @@
+<div
+  class="hp-map"
+  [class.hp-map--muted]="!deliberate() || geoState() === 'locating'"
+  [class.hp-map--error]="outsideYerevan()"
+>
+  <app-map
+    [center]="mapCenter()"
+    [zoom]="initialZoom()"
+    [interactive]="true"
+    [crosshair]="true"
+    [userPin]="userPin()"
+    [userAccuracyMeters]="userAccuracyMeters()"
+    [height]="height()"
+    (centerChange)="onCenterChange($event)"
+  >
+    <!-- Docked to `app-map`'s own bottom-right actions slot rather than
+         positioned by hand: that slot is already raised clear of Leaflet's
+         attribution control and of the MapTiler logo (bottom-left), and it is
+         the pattern M-022 says to reuse instead of hand-rolling another
+         absolutely positioned overlay on top of an interactive surface. -->
+    <button
+      type="button"
+      app-map-actions
+      class="app-map__btn hp-map__locate"
+      [class.hp-map__locate--busy]="geoState() === 'locating'"
+      [disabled]="geoState() === 'locating' || geoState() === 'denied'"
+      (click)="requestMyLocation()"
+    >
+      <i
+        class="pi"
+        [class.pi-compass]="geoState() === 'locating'"
+        [class.pi-map-marker]="geoState() !== 'locating'"
+        aria-hidden="true"
+      ></i>
+      <span class="hp-map__locate-label">{{
+        (geoState() === 'locating' ? 'homePoint.map.locating' : 'homePoint.map.useMyLocation')
+          | translate
+      }}</span>
+    </button>
+  </app-map>
+
+  <!-- Hollow positioning box only — `pointer-events: none`, spans the top strip
+       so the chip can sit flush left, while the VISIBLE chip below shrink-wraps
+       and is the only part that takes pointer events. This is the exact split
+       M-022 exists for: a stretched overlay over a map swallows `mousedown` and
+       kills both the zoom buttons and map dragging, and lowering z-index alone
+       does not fix the drag case. -->
+  <div class="hp-map__chip-slot">
+    <!-- Until the point is a deliberate choice the chip shows the instruction,
+         not a verdict: resolving the district for wherever the map happened to
+         open would read as "ready" while Confirm is still disabled, which is
+         the one combination guaranteed to confuse. This is the boards' `fresh`
+         state. -->
+    <div
+      class="hp-map__chip"
+      [class.hp-map__chip--ok]="deliberate() && district() !== null && !resolving()"
+      [class.hp-map__chip--error]="deliberate() && outsideYerevan()"
+      [class.hp-map__chip--neutral]="deliberate() && resolving()"
+      role="status"
+      aria-live="polite"
+    >
+      <span class="hp-map__chip-icon" aria-hidden="true">
+        @if (!deliberate()) {
+          <i class="pi pi-arrows-alt"></i>
+        } @else if (resolving()) {
+          <i class="pi pi-compass"></i>
+        } @else if (outsideYerevan()) {
+          <i class="pi pi-exclamation-triangle"></i>
+        } @else if (district() !== null) {
+          <i class="pi pi-check"></i>
+        } @else {
+          <i class="pi pi-arrows-alt"></i>
+        }
+      </span>
+      <span class="hp-map__chip-copy">
+        @if (!deliberate()) {
+          <b>{{ 'homePoint.map.moveHint' | translate }}</b>
+        } @else if (resolving()) {
+          <b>{{ 'homePoint.map.resolving' | translate }}</b>
+        } @else if (outsideYerevan()) {
+          <b>{{ 'homePoint.map.outsideChip' | translate }}</b>
+        } @else if (district() !== null) {
+          <b>{{ districtLabel() }}</b>
+          <small>{{ 'homePoint.city' | translate }}</small>
+        } @else {
+          <b>{{ 'homePoint.map.moveHint' | translate }}</b>
+        }
+      </span>
+    </div>
+  </div>
+</div>

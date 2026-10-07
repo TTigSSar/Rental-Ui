@@ -147,7 +147,9 @@ export class EditListingPageComponent implements OnInit {
       description:   listing.description ?? '',
       categoryId:    listing.categoryId,
       pricePerDay:   listing.pricePerDay,
-      city:          listing.city,
+      // `city` is no longer a wizard field (home-point model): a listing's city
+      // is derived from its owner's home point, and `UpdateListingRequest` no
+      // longer carries it, so there is nothing to pre-fill.
       ageFromMonths: listing.ageFromMonths,
       ageToMonths:   listing.ageToMonths,
       condition:     listing.condition,
@@ -212,8 +214,10 @@ export class EditListingPageComponent implements OnInit {
       title:         p.title,
       description:   p.description,
       pricePerDay:   p.pricePerDay,
-      city:          p.city,
-      country:       p.country,
+      // `country`, `city` and `districtId` were all removed from
+      // UpdateListingRequest (home-point model) — a listing's country, city and
+      // district always come from its owner's home point, and update can no
+      // longer change any of them.
       ageFromMonths: p.ageFromMonths ?? null,
       ageToMonths:   p.ageToMonths ?? null,
       condition:     p.condition ?? null,

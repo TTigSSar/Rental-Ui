@@ -16,6 +16,7 @@ import { ImageContainerComponent } from '../../../../shared/ui/image-container/i
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import type { BookingStatus } from '../../../bookings/models/booking.model';
 import type { ListingPreview } from '../../models/listing.model';
+import type { ListingsOriginSource } from '../../models/listings-filter.model';
 import { formatDistanceMeters, kmToMeters, localeTagForLanguage } from '../../models/radius-scale.util';
 
 interface BookingBadgeConfig {
@@ -123,6 +124,23 @@ export class ListingCardComponent {
   readonly bookingStatus = input<BookingStatus | null | undefined>(undefined);
   readonly isOwner = input<boolean>(false);
 
+  /**
+   * Which origin the backend measured `listing.distanceKm` FROM — decides the
+   * badge's whole treatment (approved design section (b)): `'home'` renders
+   * the orange home-icon "{d} km from your home" pill, everything else the
+   * blue location-arrow "{d} km from you" one. The two must stay easy to
+   * tell apart at a glance; a renter who has both a home point and a live
+   * fix needs to know which number they are looking at.
+   *
+   * Set by the catalogue surfaces that actually requested a distance
+   * (`ListingsPageComponent`, `ListingsFiltersComponent`'s result grid) from
+   * `ListingsState.originSource`. Everywhere else it stays `null`, which is
+   * harmless because `distanceKm` is itself only populated on a request that
+   * carried an origin (favorites, my-listings and the Home sections never
+   * send one), so there is no badge to label.
+   */
+  readonly distanceOrigin = input<ListingsOriginSource | null>(null);
+
   @Output() readonly favoriteToggled = new EventEmitter<string>();
 
   /**
@@ -131,8 +149,16 @@ export class ListingCardComponent {
    * (`ListingPreview.distanceKm`'s own doc comment), so this is `null`/hidden
    * everywhere else (favorites, my-listings, unfiltered browse). Distance is
    * never recomputed client-side — always the backend's haversine value.
+   *
+   * **Suppressed for the viewer's OWN listing.** `isOwner` already replaces
+   * this badge with the "Your listing" one in the template, but the
+   * suppression lives here too so the rule holds for any future caller that
+   * renders the badge without that branch: "0.3 km from your home" about a
+   * toy that is AT your home is noise at best, and on a shared screen it is
+   * the owner's own address being narrated back at them.
    */
   protected readonly distanceLabel = computed(() => {
+    if (this.isOwner()) return null;
     const km = this.listing().distanceKm;
     if (km == null) return null;
     return formatDistanceMeters(kmToMeters(km), localeTagForLanguage(this.languageService.current().code), {
@@ -140,6 +166,19 @@ export class ListingCardComponent {
       kilometers: this.translate.instant('listings.filters.distance.unitKilometers'),
     });
   });
+
+  /** `true` when `distanceKm` was measured from the renter's home point —
+   *  the orange home-icon badge variant (approved design section (b)). */
+  protected readonly distanceFromHome = computed(() => this.distanceOrigin() === 'home');
+
+  /** i18n key for the badge text, interpolating the formatted distance.
+   *  Two keys, not one with a swapped noun: "from your home" and "from you"
+   *  are different claims and each language declines them differently. */
+  protected readonly distanceLabelKey = computed(() =>
+    this.distanceFromHome()
+      ? 'listings.card.distanceFromHome'
+      : 'listings.card.distanceFromYou',
+  );
 
   protected readonly cardLink = computed(() =>
     this.isOwner()

@@ -2,7 +2,7 @@ import { expect, test, type ConsoleMessage, type Page } from '@playwright/test';
 
 import { mockApi } from './support/api-mock';
 import { mockTiles } from './support/tile-mock';
-import { e2eMapPin } from './support/fixtures';
+import { e2eHomePoint, e2eMapPin, e2eUser } from './support/fixtures';
 
 /**
  * Home hero map (Home-page hero, Part 1) — the app's most-visited page
@@ -479,5 +479,98 @@ test.describe('Home hero map — keyboard focus', () => {
       }
     }
     expect(escaped).toBe(true);
+  });
+});
+
+/**
+ * Home-point model: for a signed-in renter who HAS a home point, the hero
+ * centres on their own area with the "Toys near your home" chip instead of
+ * the Yerevan citywide fallback.
+ *
+ * The behaviour worth pinning at this tier is the one that is invisible when
+ * it breaks: centring on a home point must NOT go through the browser's
+ * geolocation API. It is a completely different mechanism (a coordinate the
+ * app was already handed on `/api/auth/me`) reaching the same visual result
+ * (a map centred on the user), which is exactly the shape of regression that
+ * passes a visual check — the map would look right either way, while a
+ * reflexive "Block" on an unexplained prompt would have silently disabled
+ * the `/listings` radius filter's own location button for that visitor
+ * (M-031 / ADR-015). The wrapped REAL `getCurrentPosition` is the only
+ * signal that can tell the two apart, and it also catches a regression that
+ * bypassed `GeolocationService` entirely, which the unit spy cannot.
+ */
+test.describe('Home hero map — a signed-in user with a home point', () => {
+  test('centres on the home point and NEVER calls getCurrentPosition', async ({
+    page,
+    context,
+  }) => {
+    // Uncaught exceptions only — deliberately NOT the console-error check the
+    // anonymous test above makes. Signing in starts the SignalR chat hub, and
+    // `mockApi` stubs the REST surface only, so `/hubs/chat` negotiation
+    // answers 401 and the browser logs a bare "Failed to load resource: …
+    // 401 ()" with no URL in the text. That is indistinguishable from a real
+    // app-level 401 by string matching, so filtering it would quietly blind
+    // this test to genuine auth failures — a worse outcome than not asserting
+    // on console output here at all. Console cleanliness on Home stays
+    // covered by the anonymous test, which starts no hub; `pageerror` is kept
+    // strict here because a 401 resource load never produces one.
+    const pageErrors: string[] = [];
+    page.on('pageerror', (err) => pageErrors.push(err.message));
+
+    await trackGeolocationCalls(page);
+    const tiles = await mockTiles(page);
+    await context.clearPermissions();
+    const homePoint = e2eHomePoint();
+    await mockApi(page, {
+      me: e2eUser({ homePoint }),
+      mapPins: [e2eMapPin()],
+      mapPinsTruncated: false,
+    });
+
+    const mapPinsRequests: URL[] = [];
+    await page.route('**/api/listings/map-pins**', async (route) => {
+      mapPinsRequests.push(new URL(route.request().url()));
+      await route.fallback();
+    });
+
+    await page.addInitScript(() => {
+      window.localStorage.setItem('auth_token', 'e2e-jwt-token');
+    });
+    await page.goto('/');
+
+    await expect(page.locator('.hero-map')).toBeVisible();
+    await expect(page.locator('.hero-map .app-map__surface')).toBeVisible();
+    await expect.poll(() => tiles.count()).toBeGreaterThan(0);
+
+    // The home chip replaces the citywide pill — one or the other, never both.
+    await expect(page.locator('.hero-map__zone')).toBeVisible();
+    await expect(page.locator('.hero-map__zone-title')).toHaveText('Toys near your home');
+    await expect(page.locator('.hero-map__pill')).toHaveCount(0);
+
+    // The home marker, and no blue "live location" dot: the hero is centred
+    // on a point the user chose, not on a position the browser reported.
+    await expect(page.locator('.hero-map .app-map__home-marker')).toHaveCount(1);
+    await expect(page.locator('.hero-map .app-map__user-marker')).toHaveCount(0);
+
+    // No opt-in control on a home-centred hero — nothing here offers to
+    // spend the origin-wide geolocation permission.
+    await expect(optInButton(page)).toHaveCount(0);
+
+    // Centred on the HOME point, proven at the data layer: the pins request
+    // carries the origin (not the Yerevan fallback bounds), rounded to 3 dp
+    // by the single seam in `listings-api.service.ts`.
+    await expect.poll(() => mapPinsRequests.length).toBeGreaterThan(0);
+    const params = mapPinsRequests.at(-1)!.searchParams;
+    expect(params.get('originLat')).toBe('40.183');
+    expect(params.get('originLng')).toBe('44.515');
+    expect(params.has('minLat')).toBe(false);
+    // Full precision never leaves the browser.
+    expect(params.get('originLat')).not.toBe(String(homePoint.latitude));
+    expect(params.get('originLng')).not.toBe(String(homePoint.longitude));
+
+    // THE assertion this test exists for.
+    expect(await geolocationCallCount(page)).toBe(0);
+
+    expect(pageErrors).toEqual([]);
   });
 });

@@ -18,6 +18,7 @@ export const authReducer = createReducer(
       ...state,
       isLoading: true,
       error: null,
+      errorCode: null,
     }),
   ),
 
@@ -33,6 +34,7 @@ export const authReducer = createReducer(
       isInitializing: false,
       isLoading: false,
       error: null,
+      errorCode: null,
     }),
   ),
 
@@ -44,17 +46,21 @@ export const authReducer = createReducer(
     isInitializing: false,
     isLoading: false,
     error: null,
+    errorCode: null,
   })),
 
-  // Login / register / external-auth HTTP failure.
+  // Login / register / external-auth HTTP failure. `registerFailure` is the
+  // only one of the three that carries an `errorCode` today; destructuring a
+  // property the other two never set yields `undefined`, normalised to null.
   on(
     AuthActions.loginFailure,
     AuthActions.registerFailure,
     AuthActions.externalAuthFailure,
-    (state, { error }): AuthState => ({
+    (state, action): AuthState => ({
       ...state,
       isLoading: false,
-      error,
+      error: action.error,
+      errorCode: 'errorCode' in action ? (action.errorCode ?? null) : null,
     }),
   ),
 
@@ -71,6 +77,7 @@ export const authReducer = createReducer(
       isInitializing: false,
       isLoading: false,
       error,
+      errorCode: null,
     }),
   ),
 
@@ -82,11 +89,61 @@ export const authReducer = createReducer(
     isInitializing: false,
     isLoading: false,
     error: null,
+    errorCode: null,
+    homePointSaving: false,
+    homePointError: null,
+    homePointErrorCode: null,
   })),
 
   on(AuthActions.clearAuthError, (state): AuthState => ({
     ...state,
     error: null,
+    errorCode: null,
+  })),
+
+  // ── Home point ────────────────────────────────────────────────
+  on(
+    AuthActions.updateHomePoint,
+    AuthActions.clearHomePoint,
+    (state): AuthState => ({
+      ...state,
+      homePointSaving: true,
+      homePointError: null,
+      homePointErrorCode: null,
+    }),
+  ),
+
+  // Both routes answer with the full refreshed CurrentUserResponse, so the
+  // whole user is replaced: the backend re-derives the public pair and the
+  // district, and patching only `homePoint.latitude/longitude` locally would
+  // leave those two stale until the next /auth/me.
+  on(
+    AuthActions.updateHomePointSuccess,
+    AuthActions.clearHomePointSuccess,
+    (state, { user }): AuthState => ({
+      ...state,
+      user,
+      homePointSaving: false,
+      homePointError: null,
+      homePointErrorCode: null,
+    }),
+  ),
+
+  on(
+    AuthActions.updateHomePointFailure,
+    AuthActions.clearHomePointFailure,
+    (state, { error, errorCode }): AuthState => ({
+      ...state,
+      homePointSaving: false,
+      homePointError: error,
+      homePointErrorCode: errorCode ?? null,
+    }),
+  ),
+
+  on(AuthActions.clearHomePointError, (state): AuthState => ({
+    ...state,
+    homePointError: null,
+    homePointErrorCode: null,
   })),
 
   // Logout — explicitly NOT spreading initialAuthState so isInitializing stays false.
@@ -97,5 +154,9 @@ export const authReducer = createReducer(
     isInitializing: false,
     isLoading: false,
     error: null,
+    errorCode: null,
+    homePointSaving: false,
+    homePointError: null,
+    homePointErrorCode: null,
   })),
 );

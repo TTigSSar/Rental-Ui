@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
 import { ApiContract, toApiUrl } from '../../../api/api-contract';
-import { resolveRoles } from '../../auth/services/auth-api.service';
+import { normalizeHomePoint, resolveRoles } from '../../auth/services/auth-api.service';
 import type { UserProfile } from '../models/profile.model';
 
 // There is no dedicated ProfileController on the backend — the current user's
@@ -36,6 +36,11 @@ function normalizeUserProfile(raw: Record<string, unknown>): UserProfile {
         : null,
     isBlocked: raw['isBlocked'] === true,
     roles: resolveRoles(raw),
+    // Must stay in step with `normalizeCurrentUser` in auth-api.service.ts — two
+    // hand-written normalisers read the SAME /api/auth/me payload, so a field
+    // added to only one of them is silently dropped in the other (M-030). Hence
+    // the shared `normalizeHomePoint` rather than a second copy of the mapping.
+    homePoint: normalizeHomePoint(raw['homePoint']),
   };
 }
 

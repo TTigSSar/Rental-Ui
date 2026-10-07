@@ -67,6 +67,27 @@
      this is a dedicated token rather than a hardcoded hex in the component,
      per this file's own "extend tokens here" rule. */
   --ui-color-map-user: #2f6bff;
+  /* Borders for the two "where is this measured from" surfaces in the
+     home-point design — the WARM pair that means "anchored to your home
+     point" (`--ui-color-primary-wash` fill) and the COOL pair that means
+     "measured from your live location" (`--ui-color-map-user` icon). Same
+     reasoning as `--ui-color-map-user` directly above: the boards specify
+     these exact values and nothing in the palette reaches them.
+
+     They are literal hexes rather than `color-mix()` from the token that
+     carries the meaning, because a mix provably cannot produce them:
+     reaching #d5e1ff from `--ui-color-info` (#3d52cc) over #eaedff needs a
+     NEGATIVE alpha on the blue channel, i.e. it is a different hue, not a
+     dilution; and #ffd9bd is off the #ff6008 → #fff2e9 line (the alpha that
+     hits its green channel, 0.17, misses its blue, 0.20). A mix against
+     `transparent` also renders differently over every backdrop it is used
+     on, which is the one thing a token exists to prevent.
+
+     Each `-wash` and its `-border` are a PAIR — change one and change the
+     other, or the surface stops reading as one object. */
+  --ui-color-primary-wash-border: #ffd9bd;
+  --ui-color-map-user-wash: #eef3ff;
+  --ui-color-map-user-wash-border: #d5e1ff;
 
   /* —— Spacing (4px base unit) —— */
   --ui-space-4: 4px;
@@ -160,28 +181,26 @@
   --app-bottom-nav-safe-space: 0px;
 
   /* —— Dashboard page tokens —— */
-  --dash-warn: #D97706;
-  --dash-warn-surface: #FEF3C7;
-  --dash-warn-text: #92400E;
-  --dash-blue: #4A5FE3;
-  --dash-blue-surface: #E0E7FF;
-  --dash-blue-text: #3730A3;
-  --dash-success: #0E8A5F;
-  --dash-success-surface: #D1FAE5;
-  --dash-success-text: #065F46;
-  --dash-mute-surface: #F3F4F6;
-  --dash-mute-text: #6B7280;
-  --dash-active-border: rgba(255,96,8,.25);
-  --dash-active-shadow: 0 0 0 3px rgba(255,96,8,.06), 0 10px 24px rgba(16,18,30,.07);
+  --dash-warn: #d97706;
+  --dash-warn-surface: #fef3c7;
+  --dash-warn-text: #92400e;
+  --dash-blue: #4a5fe3;
+  --dash-blue-surface: #e0e7ff;
+  --dash-blue-text: #3730a3;
+  --dash-success: #0e8a5f;
+  --dash-success-surface: #d1fae5;
+  --dash-success-text: #065f46;
+  --dash-mute-surface: #f3f4f6;
+  --dash-mute-text: #6b7280;
+  --dash-active-border: rgba(255, 96, 8, 0.25);
+  --dash-active-shadow: 0 0 0 3px rgba(255, 96, 8, 0.06), 0 10px 24px rgba(16, 18, 30, 0.07);
 }
 
 @media (max-width: 960px) {
   :root {
     --app-bottom-nav-safe-space: calc(
-      var(--app-bottom-nav-height)
-      + var(--app-bottom-nav-fab-overhang)
-      + var(--app-bottom-nav-extra-space)
-      + env(safe-area-inset-bottom, 0px)
+      var(--app-bottom-nav-height) + var(--app-bottom-nav-fab-overhang) +
+        var(--app-bottom-nav-extra-space) + env(safe-area-inset-bottom, 0px)
     );
   }
 }
@@ -199,12 +218,7 @@ body {
   min-height: 100%;
   background: var(--ui-color-background);
   color: var(--ui-color-text-primary);
-  font-family:
-    'Inter',
-    'Segoe UI',
-    Roboto,
-    Arial,
-    sans-serif;
+  font-family: 'Inter', 'Segoe UI', Roboto, Arial, sans-serif;
   line-height: 1.5;
 }
 
@@ -291,7 +305,9 @@ p {
   border-radius: var(--ui-radius-md);
   background: var(--ui-color-surface);
   color: var(--ui-color-text-primary);
-  transition: border-color 120ms ease, box-shadow 120ms ease;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
 }
 
 .ui-input:focus-visible,

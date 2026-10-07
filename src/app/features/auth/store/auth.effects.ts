@@ -16,6 +16,7 @@ import {
   withLatestFrom,
 } from 'rxjs';
 
+import { getApiErrorCode } from '../../../api/api-error.model';
 import { toApiErrorMessage } from '../../../api/http-error-message.util';
 import { LanguageService } from '../../../shared/services/language.service';
 import { AuthRedirectService } from '../services/auth-redirect.service';
@@ -78,7 +79,14 @@ export class AuthEffects {
         this.authApi.register(payload).pipe(
           map(({ token }) => AuthActions.registerSuccess({ token })),
           catchError((error: unknown) =>
-            of(AuthActions.registerFailure({ error: toErrorMessage(error) })),
+            of(
+              AuthActions.registerFailure({
+                error: toErrorMessage(error),
+                // Sign-up branches on this: `auth.duplicate_email` returns to
+                // step 1, `auth.home_point_outside_yerevan` stays on step 2.
+                errorCode: getApiErrorCode(error),
+              }),
+            ),
           ),
         ),
       ),
@@ -216,6 +224,57 @@ export class AuthEffects {
           ),
         );
       }),
+    ),
+  );
+
+  /**
+   * `PUT /api/auth/me/home-point`. Server-side this also relocates every listing
+   * the user owns, which is why the profile card confirms ("this moves N toys")
+   * BEFORE dispatching — by the time this effect runs the decision is made.
+   *
+   * `mergeMap`, not `switchMap`: a home-point save is a write, and cancelling an
+   * in-flight one because a second was dispatched would leave the first's server
+   * effect (the listing relocation) unobserved rather than undone. The UI
+   * disables the button while `homePointSaving` is true, so overlapping saves
+   * are not a normal path anyway.
+   */
+  readonly updateHomePoint$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.updateHomePoint),
+      mergeMap(({ payload }) =>
+        this.authApi.updateHomePoint(payload).pipe(
+          map((user) => AuthActions.updateHomePointSuccess({ user })),
+          catchError((error: unknown) =>
+            of(
+              AuthActions.updateHomePointFailure({
+                error: toErrorMessage(error),
+                errorCode: getApiErrorCode(error),
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  /** `DELETE /api/auth/me/home-point` — 409 `auth.home_point_in_use` while the
+   *  user still owns any listing. */
+  readonly clearHomePoint$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.clearHomePoint),
+      mergeMap(() =>
+        this.authApi.clearHomePoint().pipe(
+          map((user) => AuthActions.clearHomePointSuccess({ user })),
+          catchError((error: unknown) =>
+            of(
+              AuthActions.clearHomePointFailure({
+                error: toErrorMessage(error),
+                errorCode: getApiErrorCode(error),
+              }),
+            ),
+          ),
+        ),
+      ),
     ),
   );
 

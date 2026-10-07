@@ -43,6 +43,7 @@ import {
 } from '../../models/listings-filter.model';
 import type { ListingsFilter } from '../../models/listings-filter.model';
 import { formatDistanceMeters, kmToMeters, localeTagForLanguage, metersToKm } from '../../models/radius-scale.util';
+import { radiusChipLabel } from '../../models/radius-chip.util';
 import type { ListingPreview } from '../../models/listing.model';
 import { ListingsApiService } from '../../services/listings-api.service';
 import * as ListingsActions from '../../store/listings.actions';
@@ -55,6 +56,7 @@ import {
   selectListingsHasMore,
   selectListingsLoading,
   selectListingsOriginCoords,
+  selectListingsOriginSource,
   selectListingsPageSize,
 } from '../../store/listings.selectors';
 import type { ParamMap } from '@angular/router';
@@ -280,6 +282,14 @@ export class ListingsPageComponent {
    * `activeFilterChips` below), not an error.
    */
   private readonly originCoordsSignal = this.store.selectSignal(selectListingsOriginCoords);
+
+  /** Which origin the current `distanceKm` values were measured from —
+   *  handed to every card so the badge picks the right treatment (orange
+   *  "from your home" vs blue "from you"). See
+   *  `ListingCardComponent.distanceOrigin`. */
+  protected readonly originSourceSignal = this.store.selectSignal(
+    selectListingsOriginSource,
+  );
   protected readonly categoriesSignal = this.store.selectSignal(selectListingCategories);
 
   // Anonymous, unchanging reference data — same treatment as `categoriesSignal`
@@ -366,7 +376,7 @@ export class ListingsPageComponent {
       });
       chips.push({
         key: 'radiusKm',
-        label: `${distanceLabel} · ${this.translate.instant('listings.filters.distance.chipSuffix')}`,
+        label: radiusChipLabel(distanceLabel, this.originSourceSignal(), this.translate),
       });
     }
     for (const districtId of f.districtIds) {
