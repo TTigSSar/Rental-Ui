@@ -68,6 +68,18 @@ export type KnownApiErrorCode =
   | 'auth.external_invalid_token'
   | 'auth.external_email_missing'
   | 'auth.external_link_conflict'
+  // Email verification (ADR-028).
+  // 403 on POST /api/auth/login (checked after invalid_credentials and user_blocked).
+  | 'auth.email_not_verified'
+  // 400 on POST /api/auth/verify-email.
+  | 'auth.verification_token_invalid'
+  | 'auth.verification_token_expired'
+  // 409 on POST /api/auth/verify-email.
+  | 'auth.email_already_verified'
+  // 429 on POST /api/auth/register (Retry-After in seconds).
+  | 'auth.verification_cooldown'
+  // 503 on POST /api/auth/register and /resend-verification (mail transport unavailable).
+  | 'auth.registration_unavailable'
   // PUT /api/auth/me/password (password-change form). invalid_current_password /
   // password_unchanged are 400 for a normal current-password mismatch / no-op new
   // password; password_not_set is 400 for an external-only account with no local

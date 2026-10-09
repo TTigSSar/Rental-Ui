@@ -27,6 +27,11 @@ export const ApiContract = {
     // outside the 12 Yerevan districts.
     homePoint: '/api/auth/me/home-point',
     external: '/api/auth/external',
+    // Email verification (ADR-028). register now answers 201 `RegisterResponse` (no token).
+    // verify-email: anonymous, body { token, password } -> 200 AuthResponse.
+    // resend-verification: anonymous, body { email } -> 202 empty body, always.
+    verifyEmail: '/api/auth/verify-email',
+    resendVerification: '/api/auth/resend-verification',
   },
   listings: {
     root: '/api/listings',

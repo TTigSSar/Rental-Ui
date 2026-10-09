@@ -38,6 +38,27 @@ export interface RegisterRequest {
 }
 
 /**
+ * BREAKING (ADR-028): `POST /api/auth/register` now answers 201 with this body and NO
+ * token (was 200 `AuthResponse`). The account is unverified until `verify-email`.
+ * Mirrors `RegisterResponse`.
+ */
+export interface RegisterResponse {
+  email: string;
+  verificationRequired: boolean;
+}
+
+/** Body of `POST /api/auth/verify-email` — both required. Answers 200 `AuthResponse`. */
+export interface VerifyEmailRequest {
+  token: string;
+  password: string;
+}
+
+/** Body of `POST /api/auth/resend-verification` — answers 202 with an empty body, always. */
+export interface ResendVerificationRequest {
+  email: string;
+}
+
+/**
  * The signed-in user's single home point — the one place every listing they own
  * is shown from (home-point model). Mirrors `HomePointResponse`.
  *
