@@ -19,13 +19,14 @@ export const authReducer = createReducer(
       isLoading: true,
       error: null,
       errorCode: null,
+      pendingVerificationEmail: null,
     }),
   ),
 
-  // Login / register / external-auth HTTP success — token is now known.
+  // Login / verify-email / external-auth HTTP success — token is now known.
   on(
     AuthActions.loginSuccess,
-    AuthActions.registerSuccess,
+    AuthActions.verifyEmailSuccess,
     AuthActions.externalAuthSuccess,
     (state, { token }): AuthState => ({
       ...state,
@@ -35,6 +36,21 @@ export const authReducer = createReducer(
       isLoading: false,
       error: null,
       errorCode: null,
+      pendingVerificationEmail: null,
+    }),
+  ),
+
+  // Register HTTP success (ADR-028) — NO token and NOT authenticated: the account
+  // is unverified. Only remembers the address so the dialog can show the
+  // "check your email" step.
+  on(
+    AuthActions.registerSuccess,
+    (state, { email }): AuthState => ({
+      ...state,
+      isLoading: false,
+      error: null,
+      errorCode: null,
+      pendingVerificationEmail: email,
     }),
   ),
 
@@ -90,15 +106,19 @@ export const authReducer = createReducer(
     isLoading: false,
     error: null,
     errorCode: null,
+    pendingVerificationEmail: null,
     homePointSaving: false,
     homePointError: null,
     homePointErrorCode: null,
   })),
 
+  // Also drops the "check your email" step: the auth dialog dispatches this on
+  // open and on every tab switch, which is exactly when that step must reset.
   on(AuthActions.clearAuthError, (state): AuthState => ({
     ...state,
     error: null,
     errorCode: null,
+    pendingVerificationEmail: null,
   })),
 
   // ── Home point ────────────────────────────────────────────────
@@ -155,6 +175,7 @@ export const authReducer = createReducer(
     isLoading: false,
     error: null,
     errorCode: null,
+    pendingVerificationEmail: null,
     homePointSaving: false,
     homePointError: null,
     homePointErrorCode: null,

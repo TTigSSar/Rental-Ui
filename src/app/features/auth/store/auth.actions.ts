@@ -19,9 +19,11 @@ export const loginSuccess = createAction(
   props<{ token: string }>(),
 );
 
+/** `errorCode` lets the login form tell 403 `auth.email_not_verified` apart from
+ *  403 `auth.user_blocked` (same status, different recovery — ADR-028). */
 export const loginFailure = createAction(
   '[Auth] Login Failure',
-  props<{ error: string }>(),
+  props<{ error: string; errorCode?: ApiErrorCode | null }>(),
 );
 
 export const register = createAction(
@@ -29,8 +31,23 @@ export const register = createAction(
   props<{ payload: RegisterRequest }>(),
 );
 
+/**
+ * ADR-028: registering no longer signs anyone in — there is NO token. The account
+ * is unverified until the emailed link is confirmed (`verifyEmailSuccess`), so this
+ * action must never reach `persistToken$` / `loadCurrentUser` / navigation.
+ */
 export const registerSuccess = createAction(
   '[Auth] Register Success',
+  props<{ email: string }>(),
+);
+
+/**
+ * `POST /api/auth/verify-email` succeeded: the 200 `AuthResponse` token. The verify
+ * page calls the API itself (so the emailed link token stays in component memory
+ * and never passes through an action) and dispatches this with the JWT only.
+ */
+export const verifyEmailSuccess = createAction(
+  '[Auth] Verify Email Success',
   props<{ token: string }>(),
 );
 

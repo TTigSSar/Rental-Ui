@@ -51,7 +51,14 @@ export class AuthEffects {
         this.authApi.login(payload).pipe(
           map(({ token }) => AuthActions.loginSuccess({ token })),
           catchError((error: unknown) =>
-            of(AuthActions.loginFailure({ error: toErrorMessage(error) })),
+            of(
+              AuthActions.loginFailure({
+                error: toErrorMessage(error),
+                // 403 `auth.email_not_verified` vs 403 `auth.user_blocked`: told
+                // apart by code, never by status (ADR-028).
+                errorCode: getApiErrorCode(error),
+              }),
+            ),
           ),
         ),
       ),
@@ -77,7 +84,7 @@ export class AuthEffects {
       ofType(AuthActions.register),
       mergeMap(({ payload }) =>
         this.authApi.register(payload).pipe(
-          map(({ token }) => AuthActions.registerSuccess({ token })),
+          map(({ email }) => AuthActions.registerSuccess({ email })),
           catchError((error: unknown) =>
             of(
               AuthActions.registerFailure({
@@ -134,7 +141,7 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(
           AuthActions.loginSuccess,
-          AuthActions.registerSuccess,
+          AuthActions.verifyEmailSuccess,
           AuthActions.externalAuthSuccess,
         ),
         tap(({ token }) => {
@@ -148,7 +155,7 @@ export class AuthEffects {
     this.actions$.pipe(
       ofType(
         AuthActions.loginSuccess,
-        AuthActions.registerSuccess,
+        AuthActions.verifyEmailSuccess,
         AuthActions.externalAuthSuccess,
       ),
       map(() => AuthActions.loadCurrentUser()),
@@ -161,8 +168,10 @@ export class AuthEffects {
    * bootstrap/session restore (`authInitStarted` → `initAuth$` →
    * `loadCurrentUser`), and an admin reloading `/listings` (or any other
    * page) must stay put, not get yanked to `/admin`. So this effect starts
-   * from the explicit-auth actions (`loginSuccess` / `registerSuccess` /
-   * `externalAuthSuccess`) and `switchMap`s to the *next* `loadCurrentUserSuccess`
+   * from the explicit-auth actions (`loginSuccess` / `externalAuthSuccess`;
+   * NOT `registerSuccess` — ADR-028: register issues no token — and NOT
+   * `verifyEmailSuccess`, whose page navigates to a fixed route itself so a
+   * stale returnUrl can never redirect a link-driven sign-in) and `switchMap`s to the *next* `loadCurrentUserSuccess`
    * — the one produced by `loadCurrentUserAfterAuth$` for that same login —
    * so bootstrap-driven loads are structurally excluded rather than filtered
    * by a flag.
@@ -180,7 +189,6 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(
           AuthActions.loginSuccess,
-          AuthActions.registerSuccess,
           AuthActions.externalAuthSuccess,
         ),
         switchMap(() => this.actions$.pipe(ofType(AuthActions.loadCurrentUserSuccess), take(1))),

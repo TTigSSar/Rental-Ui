@@ -286,3 +286,76 @@ describe('AuthApiService — home-point write routes', () => {
     expect(result!.homePoint).toBeNull();
   });
 });
+
+// ADR-028: register no longer returns a token; verify-email does.
+describe('AuthApiService — email verification (ADR-028)', () => {
+  let service: AuthApiService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(AuthApiService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  const registerPayload = {
+    email: 'ann@example.com',
+    password: 'Password1!',
+    firstName: 'Ann',
+    lastName: 'Doe',
+    phoneNumber: '+37499123456',
+  };
+
+  it('register resolves the token-less 201 body as RegisterResponse (no throw)', () => {
+    let result: unknown;
+    service.register(registerPayload).subscribe((r) => (result = r));
+
+    const req = httpMock.expectOne(toApiUrl(ApiContract.auth.register));
+    expect(req.request.method).toBe('POST');
+    req.flush({ email: 'ann@example.com', verificationRequired: true }, { status: 201, statusText: 'Created' });
+
+    expect(result).toEqual({ email: 'ann@example.com', verificationRequired: true });
+  });
+
+  it('login/external normalisation still THROWS on a body without a token', () => {
+    let error: unknown;
+    service.login({ email: 'a@b.c', password: 'Password1!' }).subscribe({ error: (e) => (error = e) });
+
+    httpMock
+      .expectOne(toApiUrl(ApiContract.auth.login))
+      .flush({ email: 'ann@example.com', verificationRequired: true });
+
+    expect((error as Error).message).toMatch(/token was not returned/i);
+  });
+
+  it('verifyEmail POSTs { token, password } and returns the normalised AuthResponse', () => {
+    let result: unknown;
+    service.verifyEmail({ token: 'tok', password: 'Password1!' }).subscribe((r) => (result = r));
+
+    const req = httpMock.expectOne(toApiUrl(ApiContract.auth.verifyEmail));
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ token: 'tok', password: 'Password1!' });
+    req.flush({ token: ' jwt ', expiresAt: '2099-01-01T00:00:00Z' });
+
+    expect(result).toMatchObject({ token: 'jwt' });
+  });
+
+  it('resendVerification POSTs { email } and accepts an EMPTY 202 body without JSON-parsing', () => {
+    let completed = false;
+    service.resendVerification({ email: 'ann@example.com' }).subscribe({ complete: () => (completed = true) });
+
+    const req = httpMock.expectOne(toApiUrl(ApiContract.auth.resendVerification));
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ email: 'ann@example.com' });
+    expect(req.request.responseType).toBe('text');
+    req.flush('', { status: 202, statusText: 'Accepted' });
+
+    expect(completed).toBe(true);
+  });
+});

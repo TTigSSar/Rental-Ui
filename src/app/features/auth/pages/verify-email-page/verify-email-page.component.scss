@@ -1,0 +1,112 @@
+/* ── Verify-email page (ViewEncapsulation.None) ──
+   Same card surface, pill submit button, spacing and type scale as the auth
+   dialog forms (login-form.component.scss); duplicated under a page prefix so
+   the page is self-contained when LoginFormComponent's styles are not loaded. */
+
+.verify-page {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: var(--ui-space-24) var(--ui-space-16);
+}
+
+.verify-page__card {
+  width: min(100%, 480px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-16);
+  padding: var(--ui-space-24);
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border-subtle);
+  border-radius: var(--ui-radius-lg);
+}
+
+.verify-page__icon {
+  align-self: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-primary);
+  font-size: 1.5rem;
+}
+
+.verify-page__title {
+  margin: 0;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: var(--ui-font-weight-extrabold);
+  line-height: var(--ui-line-height-tight);
+  color: var(--ui-color-text-primary);
+}
+
+.verify-page__lead {
+  margin: 0;
+  text-align: center;
+  font-size: 0.9rem;
+  line-height: var(--ui-line-height-base);
+  color: var(--ui-color-text-secondary);
+}
+
+.verify-page__message-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-4);
+}
+
+.verify-page__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-16);
+}
+
+.verify-page__submit.p-button {
+  width: 100%;
+  border-radius: var(--ui-radius-pill);
+  min-height: var(--ui-button-min-height-lg);
+  background: var(--ui-color-primary);
+  border-color: var(--ui-color-primary);
+  font-weight: 600;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.verify-page__submit.p-button:hover:not(:disabled) {
+  background: var(--ui-color-primary-strong);
+  border-color: var(--ui-color-primary-strong);
+  box-shadow: var(--ui-shadow-primary-button);
+  transform: translateY(-1px);
+}
+
+.verify-page__trust {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-8);
+  padding: var(--ui-space-12) var(--ui-space-16);
+  background: var(--ui-color-surface-muted);
+  border-radius: var(--ui-radius-md);
+  border: 1px solid var(--ui-color-border);
+
+  .pi {
+    flex-shrink: 0;
+    color: var(--ui-color-success);
+    font-size: 1rem;
+  }
+
+  span {
+    font-size: 0.75rem;
+    color: var(--ui-color-text-secondary);
+    line-height: 1.45;
+  }
+}
+
+@media (max-width: 560px) {
+  .verify-page {
+    padding: var(--ui-space-12);
+  }
+
+  .verify-page__card {
+    padding: var(--ui-space-16);
+  }
+}

@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
@@ -8,6 +9,7 @@ import { makeAdmin, makeUser } from '../../../../testing/fixtures';
 import { LanguageService } from '../../../shared/services/language.service';
 import { AuthApiService } from '../services/auth-api.service';
 import { AuthRedirectService } from '../services/auth-redirect.service';
+import { AuthTokenService } from '../services/auth-token.service';
 import * as AuthActions from './auth.actions';
 import { AuthEffects } from './auth.effects';
 import { selectIsAuthenticated } from './auth.selectors';
@@ -176,5 +178,102 @@ describe('AuthEffects — post-auth landing navigation', () => {
 
       expect(router.navigateByUrl).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('AuthEffects — email verification (ADR-028)', () => {
+  function setupWithTokens(api: Partial<AuthApiService> = {}) {
+    const harness = actionsHarness();
+    const tokenService = { saveToken: vi.fn(), getToken: vi.fn(), removeToken: vi.fn() };
+    const router = { navigateByUrl: vi.fn() };
+    TestBed.configureTestingModule({
+      providers: [
+        AuthEffects,
+        harness.provider,
+        provideMockStore(),
+        { provide: AuthApiService, useValue: api },
+        { provide: Router, useValue: router },
+        { provide: LanguageService, useValue: { applyFromUser: vi.fn() } },
+        { provide: AuthRedirectService, useValue: { consume: vi.fn().mockReturnValue('/somewhere') } },
+        { provide: AuthTokenService, useValue: tokenService },
+      ],
+    });
+    return { harness, tokenService, router, effects: TestBed.inject(AuthEffects) };
+  }
+
+  it('register$ maps the token-less 201 to registerSuccess({ email })', () => {
+    const register = vi.fn().mockReturnValue(of({ email: 'a@b.c', verificationRequired: true }));
+    const { harness, effects } = setupWithTokens({ register });
+    const emitted: unknown[] = [];
+    effects.register$.subscribe((a) => emitted.push(a));
+
+    harness.send(
+      AuthActions.register({
+        payload: { email: 'a@b.c', password: 'Password1!', firstName: 'A', lastName: 'B', phoneNumber: '1' },
+      }),
+    );
+
+    expect(emitted).toEqual([AuthActions.registerSuccess({ email: 'a@b.c' })]);
+  });
+
+  it('registerSuccess does NOT persist a token, load the user or navigate', () => {
+    const { harness, effects, tokenService, router } = setupWithTokens();
+    const loads: unknown[] = [];
+    effects.persistToken$.subscribe();
+    effects.loadCurrentUserAfterAuth$.subscribe((a) => loads.push(a));
+    effects.navigateAfterAuthenticated$.subscribe();
+
+    harness.send(AuthActions.registerSuccess({ email: 'a@b.c' }));
+    harness.send(AuthActions.loadCurrentUserSuccess({ user: makeUser() }));
+
+    expect(tokenService.saveToken).not.toHaveBeenCalled();
+    expect(loads).toEqual([]);
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
+  });
+
+  it('verifyEmailSuccess persists the JWT and loads the current user', () => {
+    const { harness, effects, tokenService } = setupWithTokens();
+    const loads: unknown[] = [];
+    effects.persistToken$.subscribe();
+    effects.loadCurrentUserAfterAuth$.subscribe((a) => loads.push(a));
+
+    harness.send(AuthActions.verifyEmailSuccess({ token: 'jwt-1' }));
+
+    expect(tokenService.saveToken).toHaveBeenCalledWith('jwt-1');
+    expect(loads).toEqual([AuthActions.loadCurrentUser()]);
+  });
+
+  it('verifyEmailSuccess never triggers returnUrl navigation (the page uses a fixed route)', () => {
+    const { harness, effects, router } = setupWithTokens();
+    effects.navigateAfterAuthenticated$.subscribe();
+
+    harness.send(AuthActions.verifyEmailSuccess({ token: 'jwt-1' }));
+    harness.send(AuthActions.loadCurrentUserSuccess({ user: makeUser() }));
+
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
+  });
+
+  it('login$ carries the errorCode so 403 email_not_verified is told apart from user_blocked', () => {
+    const login = vi.fn().mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 403,
+            error: { title: 'Email not verified', errorCode: 'auth.email_not_verified' },
+          }),
+      ),
+    );
+    const { harness, effects } = setupWithTokens({ login });
+    const emitted: unknown[] = [];
+    effects.login$.subscribe((a) => emitted.push(a));
+
+    harness.send(AuthActions.login({ payload: { email: 'a@b.c', password: 'Password1!' } }));
+
+    expect(emitted).toEqual([
+      AuthActions.loginFailure({
+        error: 'Email not verified',
+        errorCode: 'auth.email_not_verified',
+      }),
+    ]);
   });
 });

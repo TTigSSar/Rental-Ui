@@ -299,3 +299,36 @@ describe('RegisterFormComponent — two-step sign-up (home-point model)', () => 
     expect(component['step']()).toBe(1);
   });
 });
+
+describe('RegisterFormComponent — email verification (ADR-028)', () => {
+  it('shows the "check your email" step with the address and a resend button once registered', () => {
+    const { fixture } = setup({ pendingVerificationEmail: 'ann@example.com' });
+    const el: HTMLElement = fixture.nativeElement;
+
+    const step = el.querySelector('[data-testid="check-email-step"]');
+    expect(step).not.toBeNull();
+    expect(step!.textContent).toContain('ann@example.com');
+    expect(el.querySelector('app-resend-verification')).not.toBeNull();
+    // The sign-up form is gone: nobody is signed in and nothing more to fill in.
+    expect(el.querySelector('form.auth-form')).toBeNull();
+  });
+
+  it('shows the form (not the verification step) before registering', () => {
+    const { fixture } = setup();
+    const el: HTMLElement = fixture.nativeElement;
+
+    expect(el.querySelector('[data-testid="check-email-step"]')).toBeNull();
+    expect(el.querySelector('form.auth-form')).not.toBeNull();
+  });
+
+  it.each([
+    ['auth.verification_cooldown', 'auth.verification.registerCooldown'],
+    ['auth.registration_unavailable', 'auth.verification.registrationUnavailable'],
+  ])('%s gets a translated message instead of the raw server title', (code, key) => {
+    const { fixture } = setup({ error: 'Raw English title', errorCode: code });
+
+    expect(fixture.componentInstance['errorTranslationKey']()).toBe(key);
+    expect(fixture.nativeElement.textContent).toContain(key);
+    expect(fixture.nativeElement.textContent).not.toContain('Raw English title');
+  });
+});

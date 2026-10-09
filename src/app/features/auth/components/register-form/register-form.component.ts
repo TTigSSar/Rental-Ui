@@ -29,7 +29,9 @@ import {
   selectAuthError,
   selectAuthErrorCode,
   selectAuthLoading,
+  selectPendingVerificationEmail,
 } from '../../store/auth.selectors';
+import { ResendVerificationComponent } from '../resend-verification/resend-verification.component';
 
 /**
  * Sign-up, in two steps inside the existing auth dialog.
@@ -44,10 +46,12 @@ import {
  * to step 1 with the email in error and everything else — including the point
  * they just picked on the map — still there. Creating the account at the end of
  * step 1 would mean either a half-created account or a second, post-registration
- * screen, and there is no room for one: the dialog closes itself the moment
- * authentication succeeds (`AuthDialogComponent`'s own `isAuthenticated`
- * subscription), so the coordinates have to travel in the register payload
- * itself.
+ * screen, so the coordinates travel in the register payload itself.
+ *
+ * ADR-028: a successful register no longer signs anyone in (201, no token). The
+ * form is then replaced by a "check your email" step with a resend button; the
+ * account becomes usable only after the emailed link is confirmed on
+ * `/auth/verify-email`.
  */
 @Component({
   selector: 'app-register-form',
@@ -59,6 +63,7 @@ import {
     HomePointStatusComponent,
     MessageModule,
     ReactiveFormsModule,
+    ResendVerificationComponent,
     TranslatePipe,
     UiInputComponent,
   ],
@@ -102,6 +107,24 @@ export class RegisterFormComponent {
   protected readonly serverOutsideYerevan = computed(
     () => this.errorCode() === 'auth.home_point_outside_yerevan',
   );
+
+  /** ADR-028: set once the account is created — the confirmation link has been
+   *  sent and nobody is signed in. Swaps the whole form for the "check your email"
+   *  step (see `registerSuccess` in the reducer). */
+  protected readonly pendingEmail = this.store.selectSignal(selectPendingVerificationEmail);
+
+  /** Codes that get a purpose-written, translated message instead of the raw
+   *  English `ProblemDetails.title`. */
+  protected readonly errorTranslationKey = computed((): string | null => {
+    switch (this.errorCode()) {
+      case 'auth.verification_cooldown':
+        return 'auth.verification.registerCooldown';
+      case 'auth.registration_unavailable':
+        return 'auth.verification.registrationUnavailable';
+      default:
+        return null;
+    }
+  });
 
   protected readonly registerForm = this.fb.nonNullable.group({
     firstName: ['', [Validators.required]],

@@ -2,15 +2,14 @@ import { expect, test } from '@playwright/test';
 
 import { mockApi } from './support/api-mock';
 import { mockTiles } from './support/tile-mock';
-import { e2eAuthResponse, e2eUser } from './support/fixtures';
 
 /**
  * Critical journey (home-point model): sign-up is now TWO steps, and the home
  * point the second step collects travels in the `POST /api/auth/register` body
- * itself. There is no post-registration screen to fall back on — the auth
- * dialog closes itself the moment authentication succeeds — so if the
- * coordinates do not make it into that one request, they are lost with no
- * second chance. That is the single contract this journey checks.
+ * itself. The only screen after it is the "check your email" step (ADR-028:
+ * register answers 201 with NO token), so if the coordinates do not make it
+ * into that one request, they are lost with no second chance. That is the
+ * single contract this journey checks — plus that registering signs nobody in.
  *
  * Both exits are covered, because they are different payloads, not different
  * copies of one: "Create account" sends `homeLatitude`/`homeLongitude`, and
@@ -42,10 +41,7 @@ test.describe('Sign-up — home point step', () => {
 
   test('creates the account WITH the chosen home point in the register body', async ({ page }) => {
     await mockTiles(page);
-    await mockApi(page, {
-      register: { body: e2eAuthResponse() },
-      me: e2eUser(),
-    });
+    await mockApi(page);
 
     await fillStepOne(page);
 
@@ -103,17 +99,19 @@ test.describe('Sign-up — home point step', () => {
     expect(Number(body['homeLongitude'])).toBeGreaterThan(43);
     expect(Number(body['homeLongitude'])).toBeLessThan(46);
 
-    // Success closes the dialog, which is exactly why there is no later step
-    // to collect the point in.
+    // ADR-028: the account is created but NOT signed in — the dialog swaps the
+    // form for the "check your email" step, naming the address.
+    const checkEmail = page.getByTestId('check-email-step');
+    await expect(checkEmail).toBeVisible();
+    await expect(checkEmail).toContainText('anna.p@gmail.com');
     await expect(page.locator('form.auth-form')).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Log in' })).toBeVisible();
+    expect(await page.evaluate(() => window.localStorage.getItem('auth_token'))).toBeNull();
   });
 
   test('"Skip for now" creates the account with NEITHER coordinate', async ({ page }) => {
     await mockTiles(page);
-    await mockApi(page, {
-      register: { body: e2eAuthResponse({ user: e2eUser({ homePoint: null }) }) },
-      me: e2eUser({ homePoint: null }),
-    });
+    await mockApi(page);
 
     await fillStepOne(page);
     await page.getByRole('button', { name: 'Continue', exact: true }).click();
@@ -138,6 +136,7 @@ test.describe('Sign-up — home point step', () => {
     expect(body).not.toHaveProperty('homeLatitude');
     expect(body).not.toHaveProperty('homeLongitude');
 
+    await expect(page.getByTestId('check-email-step')).toBeVisible();
     await expect(page.locator('form.auth-form')).toBeHidden();
   });
 
@@ -147,11 +146,11 @@ test.describe('Sign-up — home point step', () => {
     await mockTiles(page);
     await mockApi(page, {
       register: {
-        status: 400,
+        status: 409,
         body: {
           type: 'urn:rental:error:auth.duplicate_email',
           title: 'Email already registered',
-          status: 400,
+          status: 409,
           errorCode: 'auth.duplicate_email',
         },
       },
@@ -170,5 +169,66 @@ test.describe('Sign-up — home point step', () => {
     const inputs = page.locator('form.auth-form input.uii-native');
     await expect(inputs.nth(0)).toHaveValue('Anna');
     await expect(inputs.nth(3)).toHaveValue('anna.p@gmail.com');
+  });
+
+  test('a 429 cooldown on register shows a wait-a-minute message and stays on the form', async ({
+    page,
+  }) => {
+    await mockTiles(page);
+    await mockApi(page, {
+      register: {
+        status: 429,
+        body: {
+          type: 'urn:rental:error:auth.verification_cooldown',
+          title: 'Please wait before requesting another email',
+          status: 429,
+          errorCode: 'auth.verification_cooldown',
+        },
+      },
+    });
+
+    await fillStepOne(page);
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
+    await page.getByRole('button', { name: /Skip for now/ }).click();
+
+    await expect(page.getByText('Please wait a minute and try again.')).toBeVisible();
+    await expect(page.getByTestId('check-email-step')).toBeHidden();
+  });
+
+  test('a 503 on register says registration is temporarily unavailable', async ({ page }) => {
+    await mockTiles(page);
+    await mockApi(page, {
+      register: {
+        status: 503,
+        body: {
+          type: 'urn:rental:error:auth.registration_unavailable',
+          title: 'Registration unavailable',
+          status: 503,
+          errorCode: 'auth.registration_unavailable',
+        },
+      },
+    });
+
+    await fillStepOne(page);
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
+    await page.getByRole('button', { name: /Skip for now/ }).click();
+
+    await expect(page.getByText('Registration is temporarily unavailable.')).toBeVisible();
+  });
+
+  test('the check-your-email step has a resend button locked by a 60 s countdown', async ({
+    page,
+  }) => {
+    await mockTiles(page);
+    await mockApi(page);
+
+    await fillStepOne(page);
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
+    await page.getByRole('button', { name: /Skip for now/ }).click();
+
+    const step = page.getByTestId('check-email-step');
+    await expect(step).toBeVisible();
+    // Sent a moment ago, so the button starts locked with the countdown shown.
+    await expect(step.getByRole('button', { name: /Resend in \d+s/ })).toBeDisabled();
   });
 });

@@ -1,3 +1,44 @@
+@if (pendingEmail(); as email) {
+  <!-- ADR-028: registering sends a confirmation link and signs nobody in. -->
+  <ol class="auth-steps" [attr.aria-label]="'auth.register.stepsAriaLabel' | translate">
+    <li class="auth-steps__step auth-steps__step--done">
+      <span class="auth-steps__num" aria-hidden="true"><i class="pi pi-check"></i></span>
+      {{ 'auth.register.stepAccount' | translate }}
+    </li>
+    <span class="auth-steps__sep" aria-hidden="true"></span>
+    <li class="auth-steps__step auth-steps__step--done">
+      <span class="auth-steps__num" aria-hidden="true"><i class="pi pi-check"></i></span>
+      {{ 'auth.register.stepHomePoint' | translate }}
+    </li>
+    <span class="auth-steps__sep" aria-hidden="true"></span>
+    <li class="auth-steps__step auth-steps__step--active" aria-current="step">
+      <span class="auth-steps__num" aria-hidden="true">3</span>
+      {{ 'auth.register.stepVerification' | translate }}
+    </li>
+  </ol>
+
+  <div class="auth-verify" data-testid="check-email-step">
+    <div class="auth-verify__icon" aria-hidden="true"><i class="pi pi-envelope"></i></div>
+    <h3 class="auth-verify__title">{{ 'auth.register.checkEmail.title' | translate }}</h3>
+    <p class="auth-verify__lead">
+      {{ 'auth.register.checkEmail.lead' | translate }}
+      <strong class="auth-verify__email">{{ email }}</strong>
+    </p>
+    <p class="auth-verify__hint">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      <span>{{ 'auth.register.checkEmail.spam' | translate }}</span>
+    </p>
+
+    <app-resend-verification [email]="email" [startCooling]="true" />
+  </div>
+
+  <p class="auth-form__switch">
+    {{ 'auth.register.checkEmail.afterConfirm' | translate }}
+    <button type="button" class="auth-form__switch-btn" (click)="switchMode.emit()">
+      {{ 'auth.register.goToLogin' | translate }}
+    </button>
+  </p>
+} @else {
 <!-- Two-step indicator. Both steps are always shown — step 2 is skippable, not
      conditional, so hiding it would misrepresent how long sign-up is. -->
 <ol
@@ -39,7 +80,11 @@
     <p-message severity="error" styleClass="auth-form__message--error">
       <div class="auth-form__error-content">
         <strong>{{ 'auth.register.errorTitle' | translate }}</strong>
-        <span>{{ error }}</span>
+        @if (errorTranslationKey(); as key) {
+          <span>{{ key | translate }}</span>
+        } @else {
+          <span>{{ error }}</span>
+        }
       </div>
     </p-message>
   }
@@ -175,4 +220,5 @@
     <i class="pi pi-shield" aria-hidden="true"></i>
     <span>{{ 'auth.register.trustNote' | translate }}</span>
   </div>
+}
 }

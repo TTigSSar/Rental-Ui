@@ -5,7 +5,9 @@ import {
   EventEmitter,
   Output,
   ViewEncapsulation,
+  computed,
   inject,
+  signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
@@ -15,7 +17,12 @@ import { MessageModule } from 'primeng/message';
 
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import * as AuthActions from '../../store/auth.actions';
-import { selectAuthError, selectAuthLoading } from '../../store/auth.selectors';
+import {
+  selectAuthError,
+  selectAuthErrorCode,
+  selectAuthLoading,
+} from '../../store/auth.selectors';
+import { ResendVerificationComponent } from '../resend-verification/resend-verification.component';
 
 @Component({
   selector: 'app-login-form',
@@ -25,6 +32,7 @@ import { selectAuthError, selectAuthLoading } from '../../store/auth.selectors';
     ButtonModule,
     MessageModule,
     ReactiveFormsModule,
+    ResendVerificationComponent,
     TranslatePipe,
     UiInputComponent,
   ],
@@ -39,6 +47,17 @@ export class LoginFormComponent {
   private readonly fb = inject(FormBuilder);
   private readonly store = inject(Store);
   private readonly isLoading = this.store.selectSignal(selectAuthLoading);
+  private readonly errorCode = this.store.selectSignal(selectAuthErrorCode);
+
+  /** The address typed on the last submit — what "resend" targets, even if the
+   *  field is edited afterwards. */
+  protected readonly submittedEmail = signal('');
+
+  /** 403 `auth.email_not_verified` (ADR-028) — told apart from 403
+   *  `auth.user_blocked` by code, never by status. */
+  protected readonly emailNotVerified = computed(
+    () => this.errorCode() === 'auth.email_not_verified',
+  );
 
   protected readonly isLoading$ = this.store.select(selectAuthLoading);
   protected readonly error$ = this.store.select(selectAuthError);
@@ -55,6 +74,7 @@ export class LoginFormComponent {
       return;
     }
     const payload = this.loginForm.getRawValue();
+    this.submittedEmail.set(payload.email.trim());
     this.store.dispatch(AuthActions.login({ payload }));
   }
 

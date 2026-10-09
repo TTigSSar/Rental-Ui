@@ -73,16 +73,30 @@ export interface ApiSeed {
   /** POST /api/auth/login outcome. */
   login?: { token?: string; status?: number; body?: unknown };
   /**
-   * POST /api/auth/register outcome — defaults to a successful `AuthResponse`
-   * (`e2eAuthResponse()`). Deliberately NOT left to the generic `{}` write
-   * fallback: `normalizeAuthResponse` THROWS on a body with no token
-   * ("Authentication token was not returned by the API"), so an unhandled
-   * register turned every sign-up journey into a thrown error rather than a
-   * signed-in user. Set `status`/`body` (e.g. 400 with
-   * `body.errorCode: 'auth.home_point_outside_yerevan'`) to exercise the
-   * sign-up wizard's error mapping.
+   * POST /api/auth/register outcome (ADR-028) — defaults to 201
+   * `{ email, verificationRequired: true }` with NO token, echoing the request's
+   * email: registering no longer signs anyone in. Deliberately NOT left to the
+   * generic `{}` write fallback (200, no `email`). Set `status`/`body` to
+   * exercise error mapping, e.g. 409 `auth.duplicate_email`, 429
+   * `auth.verification_cooldown`, 503 `auth.registration_unavailable`, or 400
+   * with `body.errorCode: 'auth.home_point_outside_yerevan'`.
    */
   register?: { status?: number; body?: unknown };
+  /**
+   * POST /api/auth/verify-email outcome (ADR-028). Default: 200 `AuthResponse`
+   * (auto-login). `password`: when set, ONLY that password verifies; any other
+   * gets 401 `auth.invalid_credentials` (the token stays valid, so a retry can
+   * succeed). `status`/`body` force an outcome regardless of the password (400
+   * `auth.verification_token_expired` / `auth.verification_token_invalid`, 409
+   * `auth.email_already_verified`, 403, 429...).
+   */
+  verifyEmail?: { password?: string; status?: number; body?: unknown };
+  /**
+   * POST /api/auth/resend-verification outcome (ADR-028) — defaults to 202 with
+   * an EMPTY body, which is what the real endpoint always answers. Set
+   * `status`/`body` for 429 / 503.
+   */
+  resendVerification?: { status?: number; body?: unknown };
   /**
    * PUT /api/auth/me/home-point outcome (home-point model). On success the mock
    * returns the CURRENT `me` seed with `homePoint` replaced by a point built
@@ -339,11 +353,47 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
       return meState ? json(route, 200, meState) : json(route, 401, { detail: 'Unauthenticated' });
     }
 
-    // POST /api/auth/register — must return a real AuthResponse; see the
-    // `register` seed doc for why the generic `{}` fallback is not good enough.
+    // POST /api/auth/register — 201 { email, verificationRequired } and NO token
+    // (ADR-028); see the `register` seed doc.
     if (pathname.endsWith('/api/auth/register') && method === 'POST') {
-      const status = seed.register?.status ?? 200;
-      return json(route, status, seed.register?.body ?? (status < 400 ? e2eAuthResponse() : {}));
+      const status = seed.register?.status ?? 201;
+      if (seed.register?.body !== undefined || status >= 400) {
+        return json(route, status, seed.register?.body ?? {});
+      }
+      const sent = (request.postDataJSON() ?? {}) as Record<string, unknown>;
+      return json(route, status, { email: sent['email'] ?? '', verificationRequired: true });
+    }
+
+    // POST /api/auth/verify-email — { token, password } -> AuthResponse (ADR-028). A
+    // wrong password is a 401 that leaves the token valid, so a journey can retry.
+    if (pathname.endsWith('/api/auth/verify-email') && method === 'POST') {
+      if (seed.verifyEmail?.status !== undefined && seed.verifyEmail.status >= 400) {
+        return json(route, seed.verifyEmail.status, seed.verifyEmail.body ?? {});
+      }
+      const sent = (request.postDataJSON() ?? {}) as Record<string, unknown>;
+      if (
+        seed.verifyEmail?.password !== undefined &&
+        sent['password'] !== seed.verifyEmail.password
+      ) {
+        return json(route, 401, {
+          type: 'urn:rental:error:auth.invalid_credentials',
+          title: 'Invalid email or password',
+          status: 401,
+          errorCode: 'auth.invalid_credentials',
+        });
+      }
+      return json(
+        route,
+        seed.verifyEmail?.status ?? 200,
+        seed.verifyEmail?.body ?? e2eAuthResponse(),
+      );
+    }
+
+    // POST /api/auth/resend-verification — 202 with an EMPTY body, always (ADR-028).
+    if (pathname.endsWith('/api/auth/resend-verification') && method === 'POST') {
+      const status = seed.resendVerification?.status ?? 202;
+      if (status >= 400) return json(route, status, seed.resendVerification?.body ?? {});
+      return route.fulfill({ status, body: '' });
     }
 
     // PUT / DELETE /api/auth/me/home-point — both answer with the full
