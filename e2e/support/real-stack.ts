@@ -432,7 +432,7 @@ export function assertLoginNotRateLimited(status: number, email: string): void {
       `rate-limit policy (login AND register) allows 5 calls/minute per client IP, and the real ` +
       `tier has TWO such buckets — "direct" (Node-side calls to :8080) and "proxied" ` +
       `(everything through the docker UI on :4200, which the API sees as the nginx container's ` +
-      `IP). One full "npx playwright test --project=real" run spends 4 of 5 in EACH bucket ` +
+      `IP). One full "npx playwright test --project=real" run spends 5 of 5 in EACH bucket ` +
       `(M-044, re-measured 2026-10-05 — see AUTH_BUCKET_BY_EMAIL in this file and ` +
       `e2e/README.md's "Real-tier rate-limit budgets"), so a single run fits and a second one ` +
       `started inside the same ~60s fixed window does not. Fix: wait ~60 seconds for the window ` +
@@ -516,8 +516,110 @@ export interface RegistrationDetails {
 }
 
 /**
- * Registers a THROWAWAY account through the real API and returns its JWT (the register response
- * already carries one, so this costs exactly one `auth` call, not a register plus a login).
+ * Reads the verification link the API "sent" to `email` out of the api container's log.
+ *
+ * ADR-028 forbids a test-only endpoint that hands out tokens, and Production never writes the
+ * link anywhere, so the only place a non-Production stack exposes it is `LoggingEmailSender`'s
+ * `[DEV-EMAIL] TO: <email> | SUBJECT: ...` entry (the full link is in the body). Reading that
+ * entry is the closest the real tier gets to "opening the email" and keeps the real flow
+ * (token issued -> link -> verify-email) under test, instead of a DB shortcut that skips it.
+ *
+ * Selection: the LAST `[DEV-EMAIL] TO: <email>` entry wins (a resend issues a newer token and
+ * invalidates the old one), matched by the full unique address, so earlier runs on a persistent
+ * DB cannot hand back somebody else's link. The write happens inside the register request, but
+ * docker's log driver is asynchronous, hence the short poll. Uses the same compose file (and
+ * `COMPOSE_PROJECT_NAME`, if set) as `runDockerDbSql`.
+ */
+export async function readVerificationToken(email: string): Promise<string> {
+  const marker = `[DEV-EMAIL] TO: ${email} `;
+  let token: string | null = null;
+  await expect
+    .poll(
+      () => {
+        const logs = execFileSync(
+          'docker',
+          ['compose', '-f', DOCKER_COMPOSE_FILE, 'logs', '--no-color', '--no-log-prefix', 'api'],
+          { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 },
+        );
+        const at = logs.lastIndexOf(marker);
+        if (at < 0) return null;
+        const match = /\/auth\/verify-email#token=([A-Za-z0-9_-]+)/.exec(logs.slice(at));
+        token = match ? match[1] : null;
+        return token;
+      },
+      {
+        message:
+          `no verification link for ${email} in the api container log ` +
+          `(is the API running in a non-Production environment?)`,
+        timeout: 15_000,
+      },
+    )
+    .not.toBeNull();
+  return token!;
+}
+
+/**
+ * Registers a THROWAWAY account through the real API WITHOUT verifying it (ADR-028: 201
+ * `{email, verificationRequired}`, no token, no session). Costs one `auth` call.
+ */
+export async function apiRegisterUnverified(
+  request: APIRequestContext,
+  details: RegistrationDetails,
+): Promise<void> {
+  const origin = authOriginFor(details.email);
+  noteAuthSpend(origin === UI_URL ? 'proxied' : 'direct', `apiRegister ${details.email}`);
+  const res = await request.post(`${origin}/api/auth/register`, {
+    data: {
+      firstName: details.firstName,
+      lastName: details.lastName,
+      phoneNumber: details.phone,
+      email: details.email,
+      password: details.password,
+    },
+    failOnStatusCode: false,
+  });
+  assertLoginNotRateLimited(res.status(), details.email);
+  if (res.status() !== 201) {
+    throw new Error(`API register failed for ${details.email}: ${res.status()} ${await res.text()}`);
+  }
+  const body = (await res.json()) as Record<string, unknown>;
+  expect(
+    body['accessToken'] ?? body['token'],
+    'register must NOT hand out a session before the email is verified (ADR-028)',
+  ).toBeUndefined();
+}
+
+/**
+ * Completes verification the way the email link does: token from the api log
+ * (`readVerificationToken`), then `POST /api/auth/verify-email {token, password}`, which answers
+ * with the session. That endpoint has its OWN rate-limit policy (`email-verification`, 10/min), so
+ * it costs nothing against the scarce `auth` buckets.
+ */
+export async function apiVerifyEmail(
+  request: APIRequestContext,
+  details: RegistrationDetails,
+): Promise<string> {
+  const token = await readVerificationToken(details.email);
+  const res = await request.post(`${authOriginFor(details.email)}/api/auth/verify-email`, {
+    data: { token, password: details.password },
+    failOnStatusCode: false,
+  });
+  if (!res.ok()) {
+    throw new Error(
+      `API verify-email failed for ${details.email}: ${res.status()} ${await res.text()}`,
+    );
+  }
+  const body = (await res.json()) as { token?: string; accessToken?: string };
+  const jwt = body.accessToken ?? body.token;
+  if (!jwt) throw new Error(`API verify-email for ${details.email} returned no token.`);
+  tokenCache.set(details.email, { token: jwt, loggedInAt: Date.now() });
+  return jwt;
+}
+
+/**
+ * Registers AND verifies a THROWAWAY account through the real API and returns its JWT. Since
+ * ADR-028 register carries no token, so this is register (one `auth` call) + the log-read
+ * verification above (no `auth` call): the same `auth` budget as before the change.
  *
  * This exists so a journey whose subject is *mutating a user* can own its own account instead of
  * mutating a seeded one. The seeded demo accounts are shared, the dev DB is persistent, and
@@ -539,29 +641,8 @@ export async function apiRegister(
   request: APIRequestContext,
   details: RegistrationDetails,
 ): Promise<string> {
-  const origin = authOriginFor(details.email);
-  noteAuthSpend(origin === UI_URL ? 'proxied' : 'direct', `apiRegister ${details.email}`);
-  const res = await request.post(`${origin}/api/auth/register`, {
-    data: {
-      firstName: details.firstName,
-      lastName: details.lastName,
-      phoneNumber: details.phone,
-      email: details.email,
-      password: details.password,
-    },
-    failOnStatusCode: false,
-  });
-  assertLoginNotRateLimited(res.status(), details.email);
-  if (!res.ok()) {
-    throw new Error(
-      `API register failed for ${details.email}: ${res.status()} ${await res.text()}`,
-    );
-  }
-  const body = (await res.json()) as { token?: string; accessToken?: string };
-  const token = body.accessToken ?? body.token;
-  if (!token) throw new Error(`API register for ${details.email} returned no token.`);
-  tokenCache.set(details.email, { token, loggedInAt: Date.now() });
-  return token;
+  await apiRegisterUnverified(request, details);
+  return apiVerifyEmail(request, details);
 }
 
 interface MineBooking {

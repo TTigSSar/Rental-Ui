@@ -12,6 +12,7 @@ import {
   assertDockerStack,
   assertLoginNotRateLimited,
   noteAuthSpend,
+  readVerificationToken,
   runDockerDbSql,
 } from '../support/real-stack';
 import { STUB_PNG_BUFFER } from '../support/stub-image';
@@ -506,11 +507,30 @@ test.describe('Home point — the single source of every listing location (real 
           `${await registerResponse.text()})`,
       ).toBe(true);
 
-      // Success closes the dialog — there is no later screen that could
-      // collect the point, which is why it has to travel in this one request.
+      // ADR-028: success is NOT a session. The form is replaced by the "check your
+      // email" step — there is no later screen that could collect the point,
+      // which is why it has to travel in this one request.
       await expect(page.locator('form.auth-form')).toBeHidden();
+      await expect(page.getByText('Check your email')).toBeVisible();
 
       return registerRequest.postDataJSON() as Record<string, number | string>;
+    });
+
+    await test.step('confirm the email through the link the API logged, then land signed in', async () => {
+      expect(
+        await page.evaluate(() => localStorage.getItem('auth_token')),
+        'no session may exist before the email is verified',
+      ).toBeNull();
+
+      const token = await readVerificationToken(owner.email);
+      await page.goto(`/auth/verify-email#token=${token}`);
+      await page.locator('app-verify-email-page input[type="password"]').fill(owner.password);
+      await page.getByRole('button', { name: 'Confirm email' }).click();
+      // verify-email (own 10/min policy, not `auth`) answers with the session; the page lands on '/'.
+      await expect(page).toHaveURL(/\/$/);
+      await expect
+        .poll(() => page.evaluate(() => localStorage.getItem('auth_token')))
+        .toBeTruthy();
     });
 
     ownerToken = await page.evaluate(() => localStorage.getItem('auth_token'));
