@@ -119,10 +119,12 @@
       </div>
     }
 
+    @if (showPasswordForm()) {
     <div class="verify-page__trust">
       <i class="pi pi-shield" aria-hidden="true"></i>
       <span>{{ 'auth.verify.trustNote' | translate }}</span>
     </div>
+    }
   </section>
 </main>
 

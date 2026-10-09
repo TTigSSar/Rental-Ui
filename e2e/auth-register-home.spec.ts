@@ -171,7 +171,7 @@ test.describe('Sign-up — home point step', () => {
     await expect(inputs.nth(3)).toHaveValue('anna.p@gmail.com');
   });
 
-  test('a 429 cooldown on register shows a wait-a-minute message and stays on the form', async ({
+  test('a 429 cooldown on register shows a neutral try-later message and stays on the form', async ({
     page,
   }) => {
     await mockTiles(page);
@@ -191,7 +191,7 @@ test.describe('Sign-up — home point step', () => {
     await page.getByRole('button', { name: 'Continue', exact: true }).click();
     await page.getByRole('button', { name: /Skip for now/ }).click();
 
-    await expect(page.getByText('Please wait a minute and try again.')).toBeVisible();
+    await expect(page.getByText('Too many confirmation emails for this address. Please try again later.')).toBeVisible();
     await expect(page.getByTestId('check-email-step')).toBeHidden();
   });
 

@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
@@ -80,6 +80,7 @@ export class VerifyEmailPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly store = inject(Store);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
   private readonly document = inject(DOCUMENT);
   private readonly authApi = inject(AuthApiService);
@@ -129,6 +130,17 @@ export class VerifyEmailPageComponent {
     // Strip the fragment immediately so the token is not left in the address bar
     // or history. `path()` has no hash by default; query is not used by this page.
     this.location.replaceState(this.location.path());
+    // The Router's own state (router.url / UrlTree) still holds the fragment until
+    // the next navigation: replace it with the fragment-less URL. Same route, so the
+    // component is reused (no re-init, no POST).
+    if (this.router.url.includes('#')) {
+      void this.router.navigate([], {
+        relativeTo: this.route,
+        fragment: undefined,
+        replaceUrl: true,
+        queryParamsHandling: 'preserve',
+      });
+    }
   }
 
   protected submit(): void {

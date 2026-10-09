@@ -284,10 +284,10 @@
       "resend": "Resend email",
       "resendIn": "Resend in {{seconds}}s",
       "resendSent": "If this account is waiting for confirmation, a new link is on its way.",
-      "resendCooldown": "A link was sent a moment ago. Please wait before requesting another.",
+      "resendCooldown": "Too many confirmation emails for this address. Please try again later.",
       "resendFailed": "Couldn't send the email. Please try again.",
       "unavailable": "Email sending is temporarily unavailable. Please try again later.",
-      "registerCooldown": "A confirmation email was sent to this address a moment ago. Please wait a minute and try again.",
+      "registerCooldown": "Too many confirmation emails for this address. Please try again later.",
       "registrationUnavailable": "Registration is temporarily unavailable. Please try again later."
     },
     "verify": {

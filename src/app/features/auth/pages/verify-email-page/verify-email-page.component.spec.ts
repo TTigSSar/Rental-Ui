@@ -1,4 +1,5 @@
 import { Location } from '@angular/common';
+import { provideLocationMocks } from '@angular/common/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
@@ -235,5 +236,31 @@ describe('VerifyEmailPageComponent — resend target', () => {
     expect(component['resendTarget']()).toBe('');
     component['resendEmail'].setValue('anna.p@gmail.com');
     expect(component['resendTarget']()).toBe('anna.p@gmail.com');
+  });
+});
+
+describe('VerifyEmailPageComponent — router state', () => {
+  it('leaves no token in router.url once the page has initialised', async () => {
+    window.location.hash = `#token=${TOKEN}`;
+    TestBed.configureTestingModule({
+      imports: [VerifyEmailPageComponent, TranslateModule.forRoot()],
+      providers: [
+        provideRouter([{ path: 'auth/verify-email', component: VerifyEmailPageComponent }]),
+        provideLocationMocks(),
+        provideMockStore({ initialState: { [authFeatureKey]: initialAuthState } }),
+        { provide: AuthApiService, useValue: { verifyEmail: vi.fn(), resendVerification: vi.fn() } },
+      ],
+    });
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl(`/auth/verify-email#token=${TOKEN}`);
+    expect(router.url).toContain(TOKEN);
+
+    const fixture = TestBed.createComponent(VerifyEmailPageComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(router.url).not.toContain(TOKEN);
+    expect(router.url).toBe('/auth/verify-email');
+    expect(TestBed.inject(AuthApiService).verifyEmail).not.toHaveBeenCalled();
   });
 });

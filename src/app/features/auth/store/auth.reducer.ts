@@ -65,9 +65,9 @@ export const authReducer = createReducer(
     errorCode: null,
   })),
 
-  // Login / register / external-auth HTTP failure. `registerFailure` is the
-  // only one of the three that carries an `errorCode` today; destructuring a
-  // property the other two never set yields `undefined`, normalised to null.
+  // Login / register / external-auth HTTP failure. `registerFailure` and
+  // `loginFailure` carry an `errorCode`; `externalAuthFailure` does not, and
+  // destructuring a property an action never set yields `undefined`, normalised to null.
   on(
     AuthActions.loginFailure,
     AuthActions.registerFailure,

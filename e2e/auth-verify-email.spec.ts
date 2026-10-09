@@ -106,6 +106,8 @@ test.describe('Verify email page', () => {
     await expect(page.getByTestId('verify-error')).toContainText('This link has expired');
     // The password form is gone — the link cannot be used any more.
     await expect(passwordInput(page)).toHaveCount(0);
+    // The "password is only used to check it's you" note belongs to the password form.
+    await expect(page.locator('.verify-page__trust')).toHaveCount(0);
 
     await page.locator('app-verify-email-page input[type="email"]').fill('anna.p@gmail.com');
     await page.getByRole('button', { name: 'Resend email' }).click();
