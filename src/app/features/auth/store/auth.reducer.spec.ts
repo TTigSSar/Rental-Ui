@@ -41,6 +41,40 @@ describe('authReducer', () => {
     });
   });
 
+  describe('registerSuccess (ADR-028: no token, not authenticated)', () => {
+    it('records the pending email and leaves the session anonymous', () => {
+      const next = authReducer(
+        stateWith({ isLoading: true, isInitializing: false }),
+        AuthActions.registerSuccess({ email: 'ann@example.com' }),
+      );
+      expect(next.pendingVerificationEmail).toBe('ann@example.com');
+      expect(next.isAuthenticated).toBe(false);
+      expect(next.token).toBeNull();
+      expect(next.isLoading).toBe(false);
+    });
+
+    it('is cleared by clearAuthError (dialog open / tab switch) and by a new register', () => {
+      const pending = stateWith({ pendingVerificationEmail: 'ann@example.com' });
+      expect(authReducer(pending, AuthActions.clearAuthError()).pendingVerificationEmail).toBeNull();
+      expect(
+        authReducer(
+          pending,
+          AuthActions.register({
+            payload: { email: 'a', password: 'b', firstName: 'A', lastName: 'B', phoneNumber: '1' },
+          }),
+        ).pendingVerificationEmail,
+      ).toBeNull();
+    });
+  });
+
+  it('marks authenticated with the JWT on verifyEmailSuccess', () => {
+    const next = authReducer(
+      stateWith({ pendingVerificationEmail: 'ann@example.com' }),
+      AuthActions.verifyEmailSuccess({ token: 'jwt' }),
+    );
+    expect(next).toMatchObject({ token: 'jwt', isAuthenticated: true, pendingVerificationEmail: null });
+  });
+
   it('stores the user and confirms auth on loadCurrentUserSuccess', () => {
     const user = makeUser();
     const next = authReducer(

@@ -1,4 +1,15 @@
-@if (error$ | async; as error) {
+@if (emailNotVerified()) {
+  <!-- ADR-028: correct password, unconfirmed account. -->
+  <p-message severity="warn" styleClass="auth-form__message--error" data-testid="email-not-verified">
+    <div class="auth-form__error-content">
+      <strong>{{ 'auth.login.emailNotVerifiedTitle' | translate }}</strong>
+      <span>{{ 'auth.login.emailNotVerifiedBody' | translate }}</span>
+    </div>
+  </p-message>
+  <div class="auth-form__resend">
+    <app-resend-verification [email]="submittedEmail()" />
+  </div>
+} @else if (error$ | async; as error) {
   <p-message severity="error" styleClass="auth-form__message--error">
     <div class="auth-form__error-content">
       <strong>{{ 'auth.login.errorTitle' | translate }}</strong>

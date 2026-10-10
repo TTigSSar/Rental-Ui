@@ -1,0 +1,135 @@
+<main class="verify-page">
+  <section class="verify-page__card" aria-labelledby="verify-page-title">
+    <div class="verify-page__icon" aria-hidden="true">
+      <i class="pi pi-envelope"></i>
+    </div>
+    <h1 id="verify-page-title" class="verify-page__title">
+      {{ 'auth.verify.title' | translate }}
+    </h1>
+
+    @if (error(); as err) {
+      @switch (err) {
+        @case ('wrongPassword') {
+          <p-message severity="error" styleClass="verify-page__message" data-testid="verify-error">
+            <div class="verify-page__message-content">
+              <strong>{{ 'auth.verify.wrongPasswordTitle' | translate }}</strong>
+              <span>{{ 'auth.verify.wrongPassword' | translate }}</span>
+            </div>
+          </p-message>
+        }
+        @case ('expired') {
+          <p-message severity="warn" styleClass="verify-page__message" data-testid="verify-error">
+            <div class="verify-page__message-content">
+              <strong>{{ 'auth.verify.expiredTitle' | translate }}</strong>
+              <span>{{ 'auth.verify.expired' | translate }}</span>
+            </div>
+          </p-message>
+        }
+        @case ('invalid') {
+          <p-message severity="error" styleClass="verify-page__message" data-testid="verify-error">
+            <div class="verify-page__message-content">
+              <strong>{{ 'auth.verify.invalidTitle' | translate }}</strong>
+              <span>{{ 'auth.verify.invalid' | translate }}</span>
+            </div>
+          </p-message>
+        }
+        @case ('alreadyVerified') {
+          <p-message severity="info" styleClass="verify-page__message" data-testid="verify-error">
+            <div class="verify-page__message-content">
+              <strong>{{ 'auth.verify.alreadyVerifiedTitle' | translate }}</strong>
+              <span>{{ 'auth.verify.alreadyVerified' | translate }}</span>
+            </div>
+          </p-message>
+        }
+        @case ('blocked') {
+          <p-message severity="error" styleClass="verify-page__message" data-testid="verify-error">
+            <div class="verify-page__message-content">
+              <strong>{{ 'auth.login.errorTitle' | translate }}</strong>
+              <span>{{ serverMessage() }}</span>
+            </div>
+          </p-message>
+        }
+        @case ('rateLimited') {
+          <p-message severity="warn" styleClass="verify-page__message" data-testid="verify-error">
+            <div class="verify-page__message-content">
+              <strong>{{ 'auth.verify.rateLimitedTitle' | translate }}</strong>
+              <span>{{ 'auth.verify.rateLimited' | translate }}</span>
+            </div>
+          </p-message>
+        }
+        @default {
+          <p-message severity="error" styleClass="verify-page__message" data-testid="verify-error">
+            <div class="verify-page__message-content">
+              <strong>{{ 'auth.verify.genericTitle' | translate }}</strong>
+              <span>{{ 'auth.verify.generic' | translate }}</span>
+            </div>
+          </p-message>
+        }
+      }
+    }
+
+    @if (showPasswordForm()) {
+      <p class="verify-page__lead">{{ 'auth.verify.lead' | translate }}</p>
+
+      <form class="verify-page__form" [formGroup]="passwordForm" (ngSubmit)="submit()" novalidate>
+        <app-ui-input
+          type="password"
+          formControlName="password"
+          [label]="'auth.form.password' | translate"
+          [placeholder]="'auth.form.passwordPlaceholder' | translate"
+          autocomplete="current-password"
+          [errorMessage]="hasPasswordError() ? ('auth.validation.passwordRequired' | translate) : null"
+        />
+
+        <p-button
+          type="submit"
+          styleClass="verify-page__submit"
+          [loading]="submitting()"
+          [disabled]="submitting()"
+          [label]="'auth.verify.submit' | translate"
+        />
+      </form>
+    } @else if (error() === 'alreadyVerified') {
+      <p-button
+        type="button"
+        styleClass="verify-page__submit"
+        [label]="'auth.verify.goToLogin' | translate"
+        (onClick)="openLogin()"
+      />
+    } @else if (showResend()) {
+      @if (error() === null) {
+        <p-message severity="info" styleClass="verify-page__message" data-testid="verify-no-token">
+          <div class="verify-page__message-content">
+            <strong>{{ 'auth.verify.noTokenTitle' | translate }}</strong>
+            <span>{{ 'auth.verify.noToken' | translate }}</span>
+          </div>
+        </p-message>
+      }
+
+      <p class="verify-page__lead">{{ 'auth.verify.resendLead' | translate }}</p>
+      <div class="verify-page__form">
+        <app-ui-input
+          type="email"
+          [formControl]="resendEmail"
+          [label]="'auth.form.email' | translate"
+          [placeholder]="'auth.form.emailPlaceholder' | translate"
+          autocomplete="email"
+        />
+        <app-resend-verification [email]="resendTarget()" />
+      </div>
+    }
+
+    @if (showPasswordForm()) {
+    <div class="verify-page__trust">
+      <i class="pi pi-shield" aria-hidden="true"></i>
+      <span>{{ 'auth.verify.trustNote' | translate }}</span>
+    </div>
+    }
+  </section>
+</main>
+
+<app-auth-dialog
+  [visible]="showLoginDialog()"
+  mode="login"
+  (closed)="showLoginDialog.set(false)"
+/>

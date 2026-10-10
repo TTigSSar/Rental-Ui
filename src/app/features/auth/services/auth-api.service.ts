@@ -12,7 +12,10 @@ import type {
   HomePoint,
   LoginRequest,
   RegisterRequest,
+  RegisterResponse,
+  ResendVerificationRequest,
   UpdateHomePointRequest,
+  VerifyEmailRequest,
 } from '../models/auth.models';
 import type { ListingDistrict } from '../../listings/models/district.model';
 
@@ -112,10 +115,36 @@ export class AuthApiService {
       .pipe(map((response) => this.normalizeAuthResponse(response)));
   }
 
-  register(payload: RegisterRequest): Observable<AuthResponse> {
+  /**
+   * ADR-028: answers 201 `{ email, verificationRequired }` with NO token — the
+   * account stays unverified until `verifyEmail`. Deliberately NOT routed through
+   * `normalizeAuthResponse`, which must keep throwing on a token-less body.
+   */
+  register(payload: RegisterRequest): Observable<RegisterResponse> {
     return this.http
-      .post<BackendAuthResponse>(toApiUrl(ApiContract.auth.register), payload)
+      .post<Record<string, unknown>>(toApiUrl(ApiContract.auth.register), payload)
+      .pipe(map((response) => this.normalizeRegisterResponse(response, payload.email)));
+  }
+
+  /**
+   * `POST /api/auth/verify-email` — the emailed link token AND the account
+   * password. 200 `AuthResponse` (auto-login). A wrong password is 401
+   * `auth.invalid_credentials` and does not consume the token.
+   */
+  verifyEmail(payload: VerifyEmailRequest): Observable<AuthResponse> {
+    return this.http
+      .post<BackendAuthResponse>(toApiUrl(ApiContract.auth.verifyEmail), payload)
       .pipe(map((response) => this.normalizeAuthResponse(response)));
+  }
+
+  /**
+   * `POST /api/auth/resend-verification` — 202 with an EMPTY body, always (also
+   * for unknown/verified emails). Read as text so an empty body is never JSON-parsed.
+   */
+  resendVerification(payload: ResendVerificationRequest): Observable<void> {
+    return this.http
+      .post(toApiUrl(ApiContract.auth.resendVerification), payload, { responseType: 'text' })
+      .pipe(map(() => undefined));
   }
 
   externalAuth(payload: ExternalAuthRequest): Observable<AuthResponse> {
@@ -177,6 +206,17 @@ export class AuthApiService {
           : null,
       roles: resolveRoles(raw),
       homePoint: normalizeHomePoint(raw['homePoint']),
+    };
+  }
+
+  private normalizeRegisterResponse(
+    response: Record<string, unknown> | null,
+    requestedEmail: string,
+  ): RegisterResponse {
+    const email = typeof response?.['email'] === 'string' ? response['email'].trim() : '';
+    return {
+      email: email !== '' ? email : requestedEmail,
+      verificationRequired: response?.['verificationRequired'] !== false,
     };
   }
 

@@ -240,7 +240,9 @@
       "welcomeTitle": "Welcome back!",
       "welcomeSubtitle": "Sign in to manage your toy rentals and listings.",
       "errorTitle": "Couldn't sign you in",
-      "trustNote": "Your account is secured and your personal data stays private."
+      "trustNote": "Your account is secured and your personal data stays private.",
+      "emailNotVerifiedTitle": "Email not confirmed",
+      "emailNotVerifiedBody": "Check your inbox (and spam folder) for the confirmation link, or send a new one."
     },
     "register": {
       "title": "Create account",
@@ -266,11 +268,49 @@
         "lead": "Renters only see your district and an approximate area, never your address.",
         "skip": "Skip for now — I just want to rent",
         "later": "A home point is needed to list toys. You can add it later in your profile."
+      },
+      "checkEmail": {
+        "title": "Check your email",
+        "lead": "We sent a confirmation link to",
+        "spam": "Can't find it? Check your spam folder. The link works for 24 hours.",
+        "afterConfirm": "Already confirmed your email?"
       }
     },
     "dialog": {
       "title": "Sign in to continue",
       "tabsAria": "Choose authentication method"
+    },
+    "verification": {
+      "resend": "Resend email",
+      "resendIn": "Resend in {{seconds}}s",
+      "resendSent": "If this account is waiting for confirmation, a new link is on its way.",
+      "resendCooldown": "Too many confirmation emails for this address. Please try again later.",
+      "resendFailed": "Couldn't send the email. Please try again.",
+      "unavailable": "Email sending is temporarily unavailable. Please try again later.",
+      "registerCooldown": "Too many confirmation emails for this address. Please try again later.",
+      "registrationUnavailable": "Registration is temporarily unavailable. Please try again later."
+    },
+    "verify": {
+      "title": "Confirm your email",
+      "lead": "Enter your account password to finish confirming your email address.",
+      "submit": "Confirm email",
+      "wrongPasswordTitle": "Wrong password",
+      "wrongPassword": "That password doesn't match this account. Try again — your link is still valid.",
+      "expiredTitle": "This link has expired",
+      "expired": "Confirmation links work for 24 hours. Request a new one below.",
+      "invalidTitle": "This link isn't valid",
+      "invalid": "It may have been replaced by a newer email or copied incompletely. Request a new one below.",
+      "alreadyVerifiedTitle": "Email already confirmed",
+      "alreadyVerified": "Your email is already confirmed. Please log in.",
+      "goToLogin": "Log in",
+      "rateLimitedTitle": "Too many attempts",
+      "rateLimited": "Please try again in a few minutes.",
+      "genericTitle": "Something went wrong",
+      "generic": "We couldn't confirm your email. Please try again.",
+      "noTokenTitle": "Open the link from your email again",
+      "noToken": "This page needs the link from your confirmation email. If you reloaded the page, open the link from the email again.",
+      "resendLead": "Or enter your email and we'll send a new link.",
+      "trustNote": "Your password is only used to check that it is you."
     }
   },
   "listings": {

@@ -1,0 +1,39 @@
+/* ── Resend-confirmation widget (ViewEncapsulation.None — global) ──
+   Same pill buttons, spacing and type scale as the auth dialog forms. */
+
+.resend-verification {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-12);
+}
+
+.resend-verification__button.p-button {
+  width: 100%;
+  border-radius: var(--ui-radius-pill);
+  min-height: var(--ui-button-min-height-lg);
+  font-weight: 600;
+}
+
+.resend-verification__status,
+.resend-verification__error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-8);
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: var(--ui-line-height-base);
+}
+
+.resend-verification__status {
+  color: var(--ui-color-text-secondary);
+
+  .pi {
+    flex: none;
+    margin-top: 2px;
+    color: var(--ui-color-success);
+  }
+}
+
+.resend-verification__error {
+  color: var(--ui-color-error);
+}

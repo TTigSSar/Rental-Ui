@@ -17,6 +17,10 @@
   gap: var(--ui-space-4);
 }
 
+.auth-form__resend {
+  margin-bottom: var(--ui-space-12);
+}
+
 .auth-form__field--row {
   display: grid;
   grid-template-columns: 1fr 1fr;

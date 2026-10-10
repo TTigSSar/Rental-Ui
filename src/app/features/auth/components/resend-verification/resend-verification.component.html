@@ -1,0 +1,39 @@
+<div class="resend-verification">
+  @if (sent() && error() === null) {
+    <p class="resend-verification__status" role="status">
+      <i class="pi pi-check-circle" aria-hidden="true"></i>
+      <span>{{ 'auth.verification.resendSent' | translate }}</span>
+    </p>
+  }
+  @if (error(); as err) {
+    <p class="resend-verification__error" role="alert">
+      @switch (err) {
+        @case ('cooldown') {
+          {{ 'auth.verification.resendCooldown' | translate }}
+        }
+        @case ('unavailable') {
+          {{ 'auth.verification.unavailable' | translate }}
+        }
+        @default {
+          {{ 'auth.verification.resendFailed' | translate }}
+        }
+      }
+    </p>
+  }
+
+  <p-button
+    type="button"
+    severity="secondary"
+    [outlined]="true"
+    styleClass="resend-verification__button"
+    [loading]="sending()"
+    [disabled]="sending() || cooldown() > 0 || email().trim() === ''"
+    (onClick)="resend()"
+  >
+    @if (cooldown() > 0) {
+      {{ 'auth.verification.resendIn' | translate: { seconds: cooldown() } }}
+    } @else {
+      {{ 'auth.verification.resend' | translate }}
+    }
+  </p-button>
+</div>

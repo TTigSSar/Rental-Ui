@@ -15,6 +15,10 @@ export interface AuthState {
    *  home point outside Yerevan → stay on step 2), which a human-readable
    *  message cannot support. Null for network/validation failures. */
   errorCode: ApiErrorCode | null;
+  /** Set by `registerSuccess` (ADR-028): the address the confirmation link was
+   *  sent to, driving the "check your email" step. Not a secret; no token. Cleared
+   *  by `clearAuthError` (dialog open / tab switch), `register`, `logout`. */
+  pendingVerificationEmail: string | null;
   /** A home-point PUT/DELETE is in flight. Separate from `isLoading`, which
    *  means "an authentication request is in flight" — a home-point save must
    *  not put the login/register forms into their loading state. */
@@ -33,6 +37,7 @@ export const initialAuthState: AuthState = {
   isLoading: false,
   error: null,
   errorCode: null,
+  pendingVerificationEmail: null,
   homePointSaving: false,
   homePointError: null,
   homePointErrorCode: null,

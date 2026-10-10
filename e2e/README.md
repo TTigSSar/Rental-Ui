@@ -85,7 +85,7 @@ per-bucket demand changed with the contents of the dev DB, and the `direct` side
 Node-side helper login spends the same bucket that account's own UI login would"*, so warming
 order can no longer move the budget.
 
-**One full run spends 8 auth calls: 4 of 5 in each bucket.** Measured, not derived — run
+**One full run spends 10 auth calls: 5 of 5 in each bucket (ZERO headroom since the email-verification journey, 2026-10-09).** Measured, not derived — run
 `E2E_AUTH_DEBUG=1 npx playwright test --project=real` and `noteAuthSpend` prints every auth call
 with its bucket and that bucket's running total:
 
@@ -95,6 +95,8 @@ with its bucket and that bucket's running total:
 | 2 | `loginViaDialog owner@` — booking-lifecycle | `proxied` | first use of the account |
 | 3 | `loginViaDialog user2@` — change-password | `proxied` | first use of the account |
 | 4 | `POST /api/auth/register` — home-point-journey's throwaway OWNER, through the real sign-up dialog | `proxied` | a register is structurally uncacheable: the account does not exist yet |
+| 4b | login attempt before confirming — email-verification-journey, through the real login dialog (expects 403 `auth.email_not_verified`) | `proxied` | only means anything as a genuine login of an unverified account |
+| 4c | `apiRegisterUnverified` — email-verification-journey's throwaway user | `direct` | as #4 |
 | 5 | `apiLogin admin@` — home-point-journey's approve step | `direct` | first use of the account; no real spec signs the admin in through the dialog |
 | 6 | `apiRegister` — home-point-journey's throwaway RENTER | `direct` | as #4 |
 | 7 | change-password's old-password-rejected probe (expects 401) | `direct` | only means anything as a genuine, uncached login |
@@ -102,8 +104,19 @@ with its bucket and that bucket's running total:
 
 The four seeded demo accounts therefore cost one login each for the whole run — that is the
 per-account JWT cache in `support/real-stack.ts`, which only pays off because the `real` project
-is pinned to `workers: 1` (see `playwright.config.ts`) — and the two registers plus the two
-deliberate probes are the irreducible remainder.
+is pinned to `workers: 1` (see `playwright.config.ts`) — and the three registers plus the three
+deliberate probes/attempts are the irreducible remainder.
+
+**Email verification (ADR-028) costs no extra `auth` calls for the throwaway accounts.** Register no
+longer returns a token, so every spec that registers must also verify. `POST /api/auth/verify-email`
+has its OWN `email-verification` policy (10/min per IP), so `apiRegister` (= `apiRegisterUnverified` +
+`apiVerifyEmail`) and the home-point owner's dialog path spend exactly what they did before. The
+verification token is read from the api container log (`readVerificationToken`, matching the unique
+`[DEV-EMAIL] TO: <email>` entry written by `LoggingEmailSender` outside Production) — ADR-028 forbids
+a test endpoint, and a DB `IsEmailConfirmed = 1` shortcut would skip the flow under test. Needs
+`docker compose` on the host and the api running in a non-Production environment; a custom
+`COMPOSE_PROJECT_NAME` is honoured. **Both buckets are now at 5/5**, so any new spec that registers
+or logs in through the UI needs a budget review (or its own window) before it is added.
 
 **`password-change` — `PUT /api/auth/me/password`, 5/minute, a THIRD and separate bucket.** Only
 `real/change-password.spec.ts` uses this endpoint, spending **3 per run**: the change itself
@@ -160,7 +173,8 @@ Layers: **U** = unit (vitest / xUnit), **M** = mocked Playwright, **R** = real-s
 
 | Journey | Covered today | Gap |
 |---|---|---|
-| Auth (login, session hydrate, blocked user) | U: auth store/guard specs, xUnit auth tests · M: `auth.spec.ts` happy + rejected · R: real BCrypt/JWT login exercised as part of the booking journey | no dedicated R spec for register / blocked@ rejection / expiry |
+| Auth (login, session hydrate, blocked user) | U: auth store/guard specs, xUnit auth tests · M: `auth.spec.ts` happy + rejected + 403 `email_not_verified` notice, `auth-register-home.spec.ts` ("Check your email" step) · R: real BCrypt/JWT login exercised as part of the booking journey | no R spec for blocked@ rejection / token expiry |
+| **Email verification (ADR-028)** — register gives no session, login gated, link is one-shot | U: xUnit email-verification tests (SQLite + SQL Server races), resend/login/register component specs · M: `auth-verify-email.spec.ts` (fragment stripped, nothing posted on load, wrong password retry, expired → resend, already-confirmed) · **R: `real/email-verification-journey.spec.ts`** — Node-side register answers 201 with NO token; a real login dialog attempt is refused 403 `auth.email_not_verified` and shows "Email not confirmed"; the link is read from the api log, opened, the token leaves the URL, a wrong password is refused and the link stays usable, the right one signs in (`/me` answers for the account), re-opening the same link says "Email already confirmed". `home-point-journey` additionally covers the dialog's "Check your email" step and the verify page against the real API | resend (`POST /api/auth/resend-verification`, 60s cooldown, 429) and token expiry (24h TTL) have no R coverage; the real email transport (Resend) is never exercised |
 | Change password (ADR-021, `PUT /api/auth/me/password`) | U: xUnit `Auth/AuthServiceTests.cs` + `Api/ChangePasswordHttpTests.cs`, `security-page.component.spec.ts` · M: `profile-security.spec.ts` — reaches `/profile/security` from a settings row, forced 400 `auth.invalid_current_password` lands as a field error not a banner, forced 429 lands as the banner · **R: `real/change-password.spec.ts`** — changes the seeded `user2@rental.local` password through the real UI, then proves the pair the mock cannot: the old password is rejected (401) and the new one accepted by a real login, session survives the change (ADR-021 §5/6), seeded credential restored + verified in `finally` | register/blocked-user interaction with this endpoint not e2e-covered (unit-only: `AuthService.ChangePasswordAsync`'s blocked/external-provider branches) |
 | Listing discovery (browse, filter, details) | U: store/selector specs, `listings-api.service.spec.ts` (param serialization) · M: `listings.smoke.spec.ts` render + favorite toggle, **`listing-details.spec.ts`** (review-aggregate 0.0-rating gate, gallery mosaic degradation at 1/7 images, lightbox open/Escape/focus a11y, highlights band / compensation spec tile "Not specified" state / breadcrumb category absence when their data is absent), **`listing-contact-privacy.spec.ts`** (owner phone number never renders at any booking status — Pending/Approved/Active/Completed — on details, the booking page, or the confirmation screen; the chat notice that replaced the old padlock copy is asserted present instead) · **R: `real/listings-search-filter.spec.ts`** — proves `?search=` actually narrows the real backend result set (regression for the search contract-drift bug, sibling of M-020) | age-group and distance filters have backend xUnit coverage (`ListingsQueryServiceFilterTests.cs`) and frontend param-serialization unit coverage, but no R spec — distance depends on `navigator.geolocation` (flaky in CI); pagination not e2e-covered at any layer; lightbox Escape-to-close is a confirmed bug (`closeOnEscape` silently defeated by `closable=false` in PrimeNG's `Dialog.bindGlobalListeners()`) tracked by an intentionally-failing `test.fail()` case in `listing-details.spec.ts` until fixed |
 | Loss & damage compensation (`CompensationAmount`, renamed from `DepositAmount`) | U: `ListingCompensationAmountValidationTests.cs` (create required + range, update optional + range), `ListingsOwnerServiceTests.cs` (update omitted → unchanged, update changed → no re-moderation) · `create-listing-form.component.spec.ts` (required/range on submit, edit-mode Save-stays-enabled-and-jumps-to-step-3 regression, real-`p-inputNumber` not-silently-clamped regression) · M: `listing-details.spec.ts` (null state — spec tile shows "Not specified", still rendered) · **`listing-compensation-journey.spec.ts`** — a set amount renders identically across the details page's specs-quad tile, pickup/delivery row and protection card, then follows the real "Request to rent" CTA into the booking page and checks the compensation row (excluded from the total, "How this works" popover opens/closes) | populated-state rendering has no dedicated component-unit coverage on `listing-details-page.component.ts` / `listing-booking-page.component.ts` themselves (only the mocked e2e above) — a gap for frontend-dev to close, not re-tested here to avoid duplicating the same behaviour at two layers with no stated risk; no R (real-stack) coverage of the display surfaces, only of create-time persistence (see `real/create-listing-photo-upload.spec.ts`, which now also fills the required field and would fail if the real backend stopped round-tripping it) |
@@ -208,6 +222,10 @@ stays re-runnable because:
 
 If a journey ever needs data the seed cannot guarantee, extend the dev seed
 (spec it for backend-dev) — do not build workarounds on volatile state.
+
+**Verification is part of every registration.** `apiRegister` registers and then verifies via the link in
+the api log; a spec that registers through the UI dialog does the same (`readVerificationToken` +
+`/auth/verify-email#token=…`). There is no way to mint a session at register any more.
 
 **One journey owns its own accounts instead.** `real/home-point-journey.spec.ts`
 registers a throwaway OWNER *and* a throwaway RENTER per run (timestamped

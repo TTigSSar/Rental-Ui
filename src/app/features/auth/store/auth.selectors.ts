@@ -42,6 +42,11 @@ export const selectAuthErrorCode = createSelector(
   (state: AuthState | undefined): ApiErrorCode | null => state?.errorCode ?? null,
 );
 
+export const selectPendingVerificationEmail = createSelector(
+  selectAuthState,
+  (state: AuthState | undefined): string | null => state?.pendingVerificationEmail ?? null,
+);
+
 /**
  * The signed-in user's home point, or null when they have not set one.
  *

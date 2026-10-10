@@ -251,6 +251,67 @@
   }
 }
 
+/* ── "Check your email" step (ADR-028) ───────────────────────────── */
+.auth-verify {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--ui-space-12);
+  padding: var(--ui-space-8) 0;
+  text-align: center;
+}
+
+.auth-verify__icon {
+  align-self: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-primary);
+  font-size: 1.5rem;
+}
+
+.auth-verify__title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: var(--ui-font-weight-extrabold);
+  line-height: var(--ui-line-height-tight);
+  color: var(--ui-color-text-primary);
+}
+
+.auth-verify__lead {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: var(--ui-line-height-base);
+  color: var(--ui-color-text-secondary);
+}
+
+.auth-verify__email {
+  display: block;
+  margin-top: var(--ui-space-4);
+  color: var(--ui-color-text-primary);
+  overflow-wrap: anywhere;
+}
+
+.auth-verify__hint {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--ui-space-6);
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--ui-color-text-secondary);
+  text-align: left;
+
+  .pi {
+    flex: none;
+    margin-top: 2px;
+  }
+}
+
 @media (min-width: 640px) {
   .auth-home__map {
     height: 300px;
