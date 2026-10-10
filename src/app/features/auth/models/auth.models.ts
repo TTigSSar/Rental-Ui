@@ -35,6 +35,8 @@ export interface RegisterRequest {
    */
   homeLatitude?: number | null;
   homeLongitude?: number | null;
+  /** UI language at sign-up (`en` | `hy` | `ru`); picks the verification-email language. */
+  preferredLanguage?: string | null;
 }
 
 /**

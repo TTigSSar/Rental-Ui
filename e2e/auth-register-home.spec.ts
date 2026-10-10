@@ -89,6 +89,8 @@ test.describe('Sign-up — home point step', () => {
 
     const body = request.postDataJSON() as Record<string, unknown>;
     expect(body['email']).toBe('anna.p@gmail.com');
+    // The verification email is sent in this language (default UI language: English).
+    expect(body['preferredLanguage']).toBe('en');
     // The whole point of the journey: the coordinates travel with the account.
     expect(typeof body['homeLatitude']).toBe('number');
     expect(typeof body['homeLongitude']).toBe('number');
