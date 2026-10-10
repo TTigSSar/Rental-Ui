@@ -180,6 +180,7 @@ export type KnownApiErrorCode =
   | 'review.booking_not_found'
   | 'review.booking_not_completed'
   | 'review.forbidden'
+  | 'review.user_blocked'
   | 'review.already_submitted';
 
 /**
