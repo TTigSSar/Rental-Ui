@@ -3,6 +3,7 @@ import { Store } from '@ngrx/store';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule } from '@ngx-translate/core';
 
+import { LanguageService } from '../../../../shared/services/language.service';
 import * as AuthActions from '../../store/auth.actions';
 import { authFeatureKey } from '../../store/auth.reducer';
 import { initialAuthState } from '../../store/auth.state';
@@ -122,9 +123,27 @@ describe('RegisterFormComponent — account fields', () => {
           email: 'ann@example.com',
           password: 'a'.repeat(72),
           phoneNumber: '+37499123456',
+          preferredLanguage: 'en',
         },
       }),
     );
+  });
+
+  it('sends the UI language switched to hy before submitting', () => {
+    const { fixture, store } = setup();
+    const component = fixture.componentInstance;
+    TestBed.inject(LanguageService).current.set({
+      code: 'hy',
+      flag: '',
+      native: 'Հայերեն',
+      label: 'Armenian',
+    });
+    const dispatchSpy = vi.spyOn(store, 'dispatch');
+
+    fillValidForm(component, 'Password1!');
+    component['submitWithoutHomePoint']();
+
+    expect(dispatchedRegister(dispatchSpy)?.payload['preferredLanguage']).toBe('hy');
   });
 
   // ADR-021's 2026-09-27 amendment: registration used to accept a password of any length, so
@@ -200,6 +219,7 @@ describe('RegisterFormComponent — two-step sign-up (home-point model)', () => 
           email: 'ann@example.com',
           password: 'Password1!',
           phoneNumber: '+37499123456',
+          preferredLanguage: 'en',
           homeLatitude: 40.19,
           homeLongitude: 44.51,
         },

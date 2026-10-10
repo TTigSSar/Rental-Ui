@@ -24,6 +24,7 @@ import {
   maxByteLengthValidator,
   MAX_PASSWORD_BYTES,
 } from '../../../../shared/validators/max-byte-length.validator';
+import { LanguageService } from '../../../../shared/services/language.service';
 import * as AuthActions from '../../store/auth.actions';
 import {
   selectAuthError,
@@ -77,6 +78,7 @@ export class RegisterFormComponent {
 
   private readonly fb = inject(FormBuilder);
   private readonly store = inject(Store);
+  private readonly languageService = inject(LanguageService);
   private readonly isLoading = this.store.selectSignal(selectAuthLoading);
   private readonly errorCode = this.store.selectSignal(selectAuthErrorCode);
 
@@ -192,7 +194,13 @@ export class RegisterFormComponent {
       this.step.set(1);
       return;
     }
-    const payload = { ...this.registerForm.getRawValue(), ...(home ?? {}) };
+    // The backend picks the verification-email language from this; without it the
+    // mail is always English.
+    const payload = {
+      ...this.registerForm.getRawValue(),
+      preferredLanguage: this.languageService.current().code,
+      ...(home ?? {}),
+    };
     this.store.dispatch(AuthActions.register({ payload }));
   }
 
