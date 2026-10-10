@@ -200,6 +200,7 @@ export class AuthApiService {
       email: typeof raw['email'] === 'string' ? raw['email'] : '',
       firstName: typeof raw['firstName'] === 'string' ? raw['firstName'] : '',
       lastName: typeof raw['lastName'] === 'string' ? raw['lastName'] : '',
+      phoneNumber: typeof raw['phoneNumber'] === 'string' ? raw['phoneNumber'] : null,
       preferredLanguage:
         typeof raw['preferredLanguage'] === 'string' && raw['preferredLanguage'].length > 0
           ? raw['preferredLanguage']

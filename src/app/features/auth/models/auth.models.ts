@@ -10,6 +10,26 @@ export type ExternalAuthProvider = 'google' | 'apple';
 export interface ExternalAuthRequest {
   provider: ExternalAuthProvider;
   idToken: string;
+  /** UI language (`en` | `hy` | `ru`); other values are treated as null server-side. No nonce field. */
+  preferredLanguage?: 'en' | 'hy' | 'ru' | null;
+}
+
+/** `POST /api/auth/external/nonce` response — mirrors `ExternalNonceResponse`. */
+export interface ExternalNonceResponse {
+  nonce: string;
+  /** ISO-8601 UTC. */
+  expiresAt: string;
+}
+
+/** Body of `PUT /api/auth/me/name` (204) — mirrors `UpdateNameRequest`. */
+export interface UpdateNameRequest {
+  firstName: string;
+  lastName?: string | null;
+}
+
+/** Body of `PUT /api/auth/me/phone` (204) — mirrors `UpdatePhoneRequest`. */
+export interface UpdatePhoneRequest {
+  phoneNumber: string;
 }
 
 export interface ChangePasswordRequest {
@@ -118,6 +138,8 @@ export interface CurrentUser {
   email: string;
   firstName: string;
   lastName: string;
+  /** Null until set (e.g. Google sign-up); creating a listing/booking then fails 409 `*.phone_required`. */
+  phoneNumber: string | null;
   preferredLanguage?: string | null;
   roles: string[];
   /**
