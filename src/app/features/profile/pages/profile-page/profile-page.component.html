@@ -427,18 +427,6 @@
                   <span class="profile-page__info-label">{{ 'profile.infoLabel.name' | translate }}</span>
                   <span class="profile-page__info-value">{{ profile.firstName }} {{ profile.lastName }}</span>
                 </div>
-                <div class="profile-page__info-row">
-                  <i class="pi pi-phone profile-page__info-icon" aria-hidden="true"></i>
-                  <span class="profile-page__info-label">{{ 'profile.infoLabel.phone' | translate }}</span>
-                  <span class="profile-page__info-value profile-page__info-value--num">
-                    {{ profile.phoneNumber ?? ('profile.common.notAvailable' | translate) }}
-                  </span>
-                </div>
-                <div class="profile-page__info-row">
-                  <i class="pi pi-envelope profile-page__info-icon" aria-hidden="true"></i>
-                  <span class="profile-page__info-label">{{ 'profile.infoLabel.email' | translate }}</span>
-                  <span class="profile-page__info-value profile-page__info-value--truncate">{{ profile.email }}</span>
-                </div>
               </div>
             </div>
 

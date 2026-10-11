@@ -68,10 +68,6 @@ export class PersonalInfoCardComponent {
 
   protected readonly maxLength = NAME_MAX_LENGTH;
 
-  protected readonly displayName = computed(() => {
-    const u = this.user();
-    return u === null ? '' : `${u.firstName} ${u.lastName}`.trim();
-  });
   protected readonly displayPhone = computed(() => (this.user()?.phoneNumber ?? '').trim());
 
   protected readonly form = this.fb.nonNullable.group({

@@ -73,11 +73,13 @@ describe('PersonalInfoCardComponent (ADR-030 board 3)', () => {
   });
 
   describe('view', () => {
-    it('shows the name, the phone with the privacy note, and the read-only email with its note', async () => {
+    it('shows only the phone (with the privacy note) and the read-only email (with its note) - no name row', async () => {
       await settle();
 
       const text = el().textContent ?? '';
-      expect(text).toContain('Anna Petrosyan');
+      expect(text).not.toContain('Anna Petrosyan');
+      expect(text).not.toContain('profile.personal.name');
+      expect(el().querySelectorAll('.pi-card__row')).toHaveLength(2);
       expect(text).toContain('+374 91 234 567');
       expect(text).toContain('anna.p@gmail.com');
       expect(text).toContain('auth.phoneStep.privacy');
@@ -112,7 +114,7 @@ describe('PersonalInfoCardComponent (ADR-030 board 3)', () => {
       await settle();
 
       expect(q('[data-testid="personal-info-edit"]')).not.toBeNull();
-      expect(el().textContent).toContain('Anna Petrosyan');
+      expect(el().textContent).toContain('+374 91 234 567');
       expect(dispatched(AuthActions.updateName.type)).toHaveLength(0);
     });
 

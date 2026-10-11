@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { provideTranslateService } from '@ngx-translate/core';
@@ -12,6 +13,7 @@ import { ExternalAuthConfigService } from '../../services/external-auth-config.s
 import { ExternalAuthProviderService } from '../../services/external-auth-provider.service';
 import { authFeatureKey } from '../../store/auth.reducer';
 import { initialAuthState, type AuthState } from '../../store/auth.state';
+import { RegisterFormComponent } from '../register-form/register-form.component';
 import { AuthDialogComponent } from './auth-dialog.component';
 
 function credential(claims: Record<string, unknown>): string {
@@ -88,6 +90,35 @@ describe('AuthDialogComponent — Google block (ADR-030 §9)', () => {
     await settle();
     expect(document.querySelector('app-google-sign-in-block')).toBeNull();
     expect(nonceCalls).toBe(0);
+  });
+
+  it('Register: the block is on step 1 only - gone on the home-point step and on "check your email"', async () => {
+    open('register');
+    await settle();
+    expect(document.querySelector('app-google-sign-in-block')).not.toBeNull();
+
+    const form = fixture.debugElement.query(By.directive(RegisterFormComponent));
+    // step 2 (home point)
+    (form.componentInstance as { step: { set(v: 1 | 2): void } }).step.set(2);
+    await settle();
+    expect(document.querySelector('app-google-sign-in-block')).toBeNull();
+    expect(document.querySelector('.gsi-block__or')).toBeNull();
+
+    // back to step 1
+    (form.componentInstance as { step: { set(v: 1 | 2): void } }).step.set(1);
+    await settle();
+    expect(document.querySelector('app-google-sign-in-block')).not.toBeNull();
+
+    // "check your email" state
+    store.setState(root({ pendingVerificationEmail: 'a@b.co' }));
+    await settle();
+    expect(document.querySelector('app-google-sign-in-block')).toBeNull();
+  });
+
+  it('Sign in tab keeps the block regardless of the register step', async () => {
+    open('login');
+    await settle();
+    expect(document.querySelector('app-google-sign-in-block')).not.toBeNull();
   });
 
   it('shows the block above the form on BOTH tabs and fetches a nonce on each opening', async () => {

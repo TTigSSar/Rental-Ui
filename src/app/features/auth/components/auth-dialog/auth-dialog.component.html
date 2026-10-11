@@ -44,8 +44,8 @@
       </button>
     </div>
 
-    <!-- Google at the top of BOTH tabs (ADR-030 section 9); only while the dialog is open. -->
-    @if (blockMounted()) {
+    <!-- Google at the top of Sign in and of Register step 1 only (ADR-030 section 9); only while the dialog is open. -->
+    @if (blockMounted() && googleBlockVisible()) {
       @for (epoch of [blockEpoch()]; track epoch) {
         <app-google-sign-in-block
           (linkConflict)="onLinkConflict($event)"
@@ -58,7 +58,7 @@
       <p-message
         severity="info"
         icon="pi pi-user"
-        styleClass="auth-dialog__exists"
+        styleClass="auth-dialog__exists ui-msg ui-msg--info"
         data-testid="google-exists"
       >
         {{ 'auth.google.eExists' | translate }}
@@ -68,7 +68,10 @@
     @if (activeMode() === 'login') {
       <app-login-form [prefill]="loginPrefill()" (switchMode)="switchToRegister()" />
     } @else {
-      <app-register-form (switchMode)="switchToLogin()" />
+      <app-register-form
+        (switchMode)="switchToLogin()"
+        (firstStepChange)="onRegisterFirstStep($event)"
+      />
     }
   </div>
 </p-dialog>

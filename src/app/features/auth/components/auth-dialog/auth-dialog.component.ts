@@ -4,6 +4,7 @@ import {
   EventEmitter,
   Output,
   ViewEncapsulation,
+  computed,
   effect,
   inject,
   input,
@@ -63,6 +64,12 @@ export class AuthDialogComponent {
   protected readonly blockMounted = signal(false);
   protected readonly blockEpoch = signal(0);
 
+  /** Register tab only: false on the home-point step and the "check your email" state. */
+  private readonly registerFirstStep = signal(true);
+  protected readonly googleBlockVisible = computed(
+    () => this.activeMode() === 'login' || this.registerFirstStep(),
+  );
+
   /** 409 `auth.external_link_conflict`: show "an account with this email exists" above the form. */
   protected readonly linkConflictVisible = signal(false);
   /** Display-only prefill for the Sign in form; `seq` re-triggers it for a repeat conflict. */
@@ -96,8 +103,13 @@ export class AuthDialogComponent {
       });
   }
 
+  protected onRegisterFirstStep(first: boolean): void {
+    this.registerFirstStep.set(first);
+  }
+
   protected switchToRegister(): void {
     if (this.isLoading()) return;
+    this.registerFirstStep.set(true);
     this.activeMode.set('register');
     this.linkConflictVisible.set(false);
     this.store.dispatch(AuthActions.clearAuthError());

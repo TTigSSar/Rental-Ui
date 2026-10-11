@@ -43,7 +43,9 @@
       </div>
 
       @if (hasSaveError()) {
-        <p-message severity="error" icon="pi pi-exclamation-circle" data-testid="phone-step-error">
+        <p-message severity="error" icon="pi pi-exclamation-circle"
+          styleClass="ui-msg ui-msg--error"
+          data-testid="phone-step-error">
           {{ 'profile.personal.errServer' | translate }}
         </p-message>
       }

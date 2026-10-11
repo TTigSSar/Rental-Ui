@@ -18,7 +18,12 @@
     </span>
 
     @if (message(); as m) {
-      <p-message [severity]="m.tone" [icon]="m.icon" data-testid="google-error">
+      <p-message
+        [severity]="m.tone"
+        [icon]="m.icon"
+        [styleClass]="'ui-msg ui-msg--' + m.tone"
+        data-testid="google-error"
+      >
         {{ m.key | translate }}
       </p-message>
     }
@@ -29,7 +34,12 @@
   </div>
 } @else if (showOffMessage()) {
   <div class="gsi-block__off">
-    <p-message severity="warn" icon="pi pi-info-circle" data-testid="google-off">
+    <p-message
+      severity="warn"
+      icon="pi pi-info-circle"
+      styleClass="ui-msg ui-msg--warn"
+      data-testid="google-off"
+    >
       {{ 'auth.google.eOff' | translate }}
     </p-message>
   </div>

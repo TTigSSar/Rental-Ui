@@ -11,16 +11,6 @@
 
     <dl class="pi-card__rows">
       <div class="pi-card__row">
-        <i class="pi pi-user pi-card__row-icon" aria-hidden="true"></i>
-        <div class="pi-card__row-body">
-          <dt class="pi-card__label">{{ 'profile.personal.name' | translate }}</dt>
-          <dd class="pi-card__value" [class.pi-card__value--none]="displayName() === ''">
-            {{ displayName() || ('profile.personal.none' | translate) }}
-          </dd>
-        </div>
-      </div>
-
-      <div class="pi-card__row">
         <i class="pi pi-phone pi-card__row-icon" aria-hidden="true"></i>
         <div class="pi-card__row-body">
           <dt class="pi-card__label">{{ 'profile.infoLabel.phone' | translate }}</dt>
@@ -52,7 +42,9 @@
       <h2 class="pi-card__title" id="pi-card-title">{{ 'profile.personal.title' | translate }}</h2>
 
       @if (serverError()) {
-        <p-message severity="error" icon="pi pi-exclamation-circle" data-testid="personal-info-error">
+        <p-message severity="error" icon="pi pi-exclamation-circle"
+          styleClass="ui-msg ui-msg--error"
+          data-testid="personal-info-error">
           {{ 'profile.personal.errServer' | translate }}
         </p-message>
       }

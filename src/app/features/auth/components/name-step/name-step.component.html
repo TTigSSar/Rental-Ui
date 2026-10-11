@@ -27,7 +27,9 @@
     </div>
 
     @if (genericError()) {
-      <p-message severity="error" icon="pi pi-exclamation-circle" data-testid="name-step-error">
+      <p-message severity="error" icon="pi pi-exclamation-circle"
+          styleClass="ui-msg ui-msg--error"
+          data-testid="name-step-error">
         {{ 'profile.personal.errServer' | translate }}
       </p-message>
     }
