@@ -1364,3 +1364,12 @@
     </div>
   }
 </form>
+
+<!-- Phone step (ADR-030 section 8): opens before the first listing is sent when the owner
+     has no phone, and as a fallback on an explicit 409 listing.phone_required. -->
+<app-phone-step
+  context="listing"
+  [visible]="phoneStepOpen()"
+  (saved)="onPhoneSaved()"
+  (dismissed)="onPhoneDismissed()"
+/>

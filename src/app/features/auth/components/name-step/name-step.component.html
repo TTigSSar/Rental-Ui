@@ -38,7 +38,6 @@
         autocomplete="given-name"
         [label]="'auth.form.firstName' | translate"
         [maxLength]="maxLength"
-        [disabled]="saving()"
         [errorMessage]="
           firstNameInvalid() || serverRejectedName() ? ('auth.nameStep.error' | translate) : null
         "
@@ -51,7 +50,6 @@
           ('auth.form.lastName' | translate) + ' · ' + ('auth.nameStep.optional' | translate)
         "
         [maxLength]="maxLength"
-        [disabled]="saving()"
       />
     </div>
 

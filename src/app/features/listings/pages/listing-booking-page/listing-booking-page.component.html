@@ -488,3 +488,12 @@
 
   </div>
 </div>
+
+<!-- Phone step (ADR-030 section 8): opens before the request is sent when the renter has
+     no phone, and as a fallback on an explicit 409 booking.phone_required. -->
+<app-phone-step
+  context="booking"
+  [visible]="phoneStepOpen()"
+  (saved)="onPhoneSaved()"
+  (dismissed)="onPhoneDismissed()"
+/>

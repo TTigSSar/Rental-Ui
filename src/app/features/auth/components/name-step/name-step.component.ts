@@ -93,6 +93,16 @@ export class NameStepComponent {
       }
     });
 
+    // Fields are locked while the PUT is in flight (through the controls, not a `[disabled]`
+    // binding, which would also reach the forms directives and trip their warning).
+    effect(() => {
+      if (this.saving()) {
+        this.form.disable({ emitEvent: false });
+      } else {
+        this.form.enable({ emitEvent: false });
+      }
+    });
+
     // Welcome toast once the server has accepted the name (saving true -> false, no error).
     effect(() => {
       const saving = this.saving();

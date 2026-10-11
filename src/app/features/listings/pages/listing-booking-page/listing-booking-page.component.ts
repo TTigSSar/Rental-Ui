@@ -24,6 +24,8 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
+import { PhoneStepComponent } from '../../../auth/components/phone-step/phone-step.component';
+import { selectPhoneMissing } from '../../../auth/store/auth.selectors';
 import { BookingCalendarComponent } from '../../components/booking-calendar/booking-calendar.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
@@ -32,6 +34,7 @@ import * as BookingsActions from '../../../bookings/store/bookings.actions';
 import {
   selectCreateBookingError,
   selectCreateBookingLoading,
+  selectCreateBookingPhoneRequired,
   selectCreateBookingSuccessId,
 } from '../../../bookings/store/bookings.selectors';
 import * as ListingsActions from '../../store/listings.actions';
@@ -97,6 +100,7 @@ interface BookingForm {
     DramCurrencyPipe,
     DecimalPipe,
     PageHeaderComponent,
+    PhoneStepComponent,
     ReactiveFormsModule,
     TranslatePipe,
   ],
@@ -137,7 +141,22 @@ export class ListingBookingPageComponent {
 
   protected readonly listing = this.store.selectSignal(selectSelectedListing);
   protected readonly submitting = this.store.selectSignal(selectCreateBookingLoading);
-  protected readonly submitError = this.store.selectSignal(selectCreateBookingError);
+  private readonly rawSubmitError = this.store.selectSignal(selectCreateBookingError);
+
+  // ── Phone step (ADR-030 section 8) ────────────────────────────
+  /** A loaded renter with no phone: the server would refuse the request with 409
+   *  `booking.phone_required`, so the step opens BEFORE anything is sent. */
+  private readonly phoneMissing = this.store.selectSignal(selectPhoneMissing);
+  /** Explicit 409 `booking.phone_required` - refused before any write, safe to re-send. */
+  private readonly phoneRequiredByServer = this.store.selectSignal(
+    selectCreateBookingPhoneRequired,
+  );
+  protected readonly phoneStepOpen = signal(false);
+
+  /** The phone-required refusal is answered with the step, never printed as an error. */
+  protected readonly submitError = computed(() =>
+    this.phoneRequiredByServer() ? null : this.rawSubmitError(),
+  );
   private readonly successId = this.store.selectSignal(selectCreateBookingSuccessId);
   protected readonly openingConversation = this.store.selectSignal(
     selectOpeningConversationFromBooking,
@@ -310,6 +329,14 @@ export class ListingBookingPageComponent {
       }
     });
 
+    // Fallback ONLY on an explicit 409 `booking.phone_required` - never on a network
+    // error, a timeout or any other refusal.
+    effect(() => {
+      if (this.phoneRequiredByServer()) {
+        this.phoneStepOpen.set(true);
+      }
+    });
+
     // Load owner trust data once the listing's owner is known.
     effect(() => {
       const ownerId = this.listing()?.owner?.id;
@@ -381,6 +408,13 @@ export class ListingBookingPageComponent {
     // absent (send null, not "") rather than a real note.
     const trimmed = this.form.controls.noteForOwner.value.trim();
     const note = trimmed.length > 0 ? trimmed : null;
+    // ADR-030 section 8: no phone yet -> ask for it first. Nothing is sent;
+    // `onPhoneSaved` re-runs this very method once.
+    if (this.phoneMissing()) {
+      this.phoneStepOpen.set(true);
+      return;
+    }
+
     this.sentNote.set(note);
 
     this.store.dispatch(BookingsActions.clearCreateBookingState());
@@ -394,6 +428,18 @@ export class ListingBookingPageComponent {
         },
       }),
     );
+  }
+
+  /** The phone is saved: close the step and send the original request ONCE, through the
+   *  same path as the submit button (`canSubmit()` still refuses a second one in flight). */
+  protected onPhoneSaved(): void {
+    this.phoneStepOpen.set(false);
+    this.onSubmit();
+  }
+
+  /** "Not now" / X / Esc: dates and the typed message are exactly as the renter left them. */
+  protected onPhoneDismissed(): void {
+    this.phoneStepOpen.set(false);
   }
 
   protected onViewBooking(): void {

@@ -5,8 +5,9 @@
   <app-create-listing-form
     [categories]="vm.categories"
     [isSubmitting]="vm.createListingLoading"
-    [createError]="vm.homePointRequired ? null : vm.createListingError"
+    [createError]="vm.homePointRequired || vm.phoneRequired ? null : vm.createListingError"
     [homePointRequiredByServer]="vm.homePointRequired"
+    [phoneRequiredByServer]="vm.phoneRequired"
     [imageUploadError]="vm.imageUploadError"
     [uploadProgress]="vm.uploadProgress"
     (submitted)="onSubmitted($event)"

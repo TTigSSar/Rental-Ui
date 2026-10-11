@@ -343,7 +343,8 @@
       "saving": "Saving…",
       "saved": "Phone saved",
       "savedListing": "Publishing your toy…",
-      "savedBooking": "Sending your request…"
+      "savedBooking": "Sending your request…",
+      "close": "Close"
     }
   },
   "listings": {

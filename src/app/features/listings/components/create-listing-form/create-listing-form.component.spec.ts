@@ -109,6 +109,7 @@ function authStateWith(homePoint: typeof HOME_POINT | null) {
         email: 'owner@rental.local',
         firstName: 'Ada',
         lastName: 'Lovelace',
+        phoneNumber: '+374 99 123 456',
         roles: ['User'],
         homePoint,
       },
@@ -908,5 +909,125 @@ describe('CreateListingFormComponent — compensation amount is not clamped by t
     fixture.detectChanges();
     const errorEl = fixture.nativeElement.querySelector('.comp-card .wizard-field__error');
     expect(errorEl).toBeTruthy();
+  });
+});
+
+
+/**
+ * ADR-030 section 8: an owner without a phone is asked for it BEFORE the first listing is
+ * sent (create mode only); the original submit then goes out exactly once. Only an explicit
+ * 409 `listing.phone_required` opens the step on its own - never a network error or
+ * any other refusal.
+ */
+describe('CreateListingFormComponent - phone step', () => {
+  const stepOpen = (): boolean => document.querySelector('.dr-step-dialog--phone') !== null;
+
+  function ownerWithoutPhone(mode: ListingFormMode = 'create') {
+    const made = createComponent(mode);
+    const store = TestBed.inject(MockStore);
+    const state = (phoneSaving: boolean, phone: string | null) => ({
+      [authFeatureKey]: {
+        ...initialAuthState,
+        isAuthenticated: true,
+        phoneSaving,
+        user: {
+          id: 'u1',
+          email: 'owner@rental.local',
+          firstName: 'Ada',
+          lastName: 'Lovelace',
+          phoneNumber: phone,
+          roles: ['User'],
+          homePoint: HOME_POINT,
+        },
+      },
+    });
+    store.setState(state(false, null));
+    fillValidBasics(made.component);
+    seedThreePhotos(made.component);
+    return { ...made, store, state };
+  }
+
+  afterEach(() => {
+    document.querySelectorAll('.p-dialog-mask').forEach((el) => el.remove());
+  });
+
+  it('opens the step instead of submitting when the owner has no phone', async () => {
+    const { fixture, component } = ownerWithoutPhone();
+
+    const event = submitAndCapture(component);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(event).toBeNull();
+    expect(stepOpen()).toBe(true);
+  });
+
+  it('submits exactly once after the phone is saved, through the same path', async () => {
+    const { fixture, component, store, state } = ownerWithoutPhone();
+    const submissions: SubmitEvent[] = [];
+    component.submitted.subscribe((e) => submissions.push(e));
+
+    (component as unknown as Submittable).onSubmit();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const input = document.querySelector<HTMLInputElement>('.dr-step-dialog--phone input');
+    input!.value = '+374 99 123 456';
+    input!.dispatchEvent(new Event('input'));
+    document
+      .querySelector<HTMLButtonElement>('.dr-step-dialog--phone button[type="submit"]')!
+      .click();
+
+    store.setState(state(true, null));
+    fixture.detectChanges();
+    store.setState(state(false, '+374 99 123 456'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(submissions).toHaveLength(1);
+    expect(submissions[0].payload.title).toBe('Wooden Train Set');
+    expect(stepOpen()).toBe(false);
+  });
+
+  it('"Not now" closes the step, sends nothing and keeps everything the owner typed', async () => {
+    const { fixture, component } = ownerWithoutPhone();
+    const submissions: SubmitEvent[] = [];
+    component.submitted.subscribe((e) => submissions.push(e));
+
+    (component as unknown as Submittable).onSubmit();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    document.querySelector<HTMLButtonElement>('.dr-step__later')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(stepOpen()).toBe(false);
+    expect(submissions).toHaveLength(0);
+    expect(component.createListingForm.controls.title.value).toBe('Wooden Train Set');
+    expect(component.selectedFiles).toHaveLength(3);
+  });
+
+  it('does not ask an owner who already has a phone', () => {
+    const { component } = createComponent('create');
+    fillValidBasics(component);
+    seedThreePhotos(component);
+
+    expect(submitAndCapture(component)).not.toBeNull();
+    expect(stepOpen()).toBe(false);
+  });
+
+  it('opens on an explicit 409 listing.phone_required only; a plain create error does not', async () => {
+    const { fixture } = createComponent('create');
+
+    fixture.componentRef.setInput('createError', 'Network down');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(stepOpen()).toBe(false);
+
+    fixture.componentRef.setInput('phoneRequiredByServer', true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(stepOpen()).toBe(true);
   });
 });
