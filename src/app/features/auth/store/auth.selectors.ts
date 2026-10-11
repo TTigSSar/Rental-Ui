@@ -139,8 +139,12 @@ export const selectPhoneErrorCode = createSelector(
   (state: AuthState | undefined): ApiErrorCode | null => state?.phoneErrorCode ?? null,
 );
 
-/** The signed-in user's phone, trimmed; `''` when absent. Drives the phone step. */
-export const selectHasPhone = createSelector(
+/**
+ * A LOADED user with no phone number: the phone step opens before a first listing / booking
+ * request (ADR-030 §8). An unloaded user (`null`) is not "missing" — then the server's own
+ * 409 `*.phone_required` is the authority, and the step opens on that instead.
+ */
+export const selectPhoneMissing = createSelector(
   selectAuthUser,
-  (user: CurrentUser | null): boolean => (user?.phoneNumber ?? '').trim() !== '',
+  (user: CurrentUser | null): boolean => user !== null && (user.phoneNumber ?? '').trim() === '',
 );

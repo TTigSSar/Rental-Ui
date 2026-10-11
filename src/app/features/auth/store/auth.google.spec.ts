@@ -18,7 +18,7 @@ import { AuthEffects } from './auth.effects';
 import { authReducer } from './auth.reducer';
 import {
   selectNameStepRequired,
-  selectHasPhone,
+  selectPhoneMissing,
 } from './auth.selectors';
 import { initialAuthState, type AuthState } from './auth.state';
 
@@ -129,12 +129,13 @@ describe('name step / phone selectors', () => {
     expect(selectNameStepRequired(root(stateWith({ isAuthenticated: false, user: empty })))).toBe(false);
   });
 
-  it('treats null and whitespace-only phones as missing', () => {
-    const has = (phoneNumber: string | null) =>
-      selectHasPhone(root(stateWith({ user: makeUser({ phoneNumber }) })));
-    expect(has(null)).toBe(false);
-    expect(has('  ')).toBe(false);
-    expect(has('+374 99 123 456')).toBe(true);
+  it('treats null and whitespace-only phones of a loaded user as missing; an unloaded user is not', () => {
+    const missing = (user: ReturnType<typeof makeUser> | null) =>
+      selectPhoneMissing(root(stateWith({ user })));
+    expect(missing(makeUser({ phoneNumber: null }))).toBe(true);
+    expect(missing(makeUser({ phoneNumber: '  ' }))).toBe(true);
+    expect(missing(makeUser({ phoneNumber: '+374 99 123 456' }))).toBe(false);
+    expect(missing(null)).toBe(false);
   });
 });
 

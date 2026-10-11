@@ -1,0 +1,73 @@
+<!-- Mandatory and non-dismissable (ADR-030 section 5): no close button, no Esc, no mask
+     click. `p-dialog` traps focus and focuses the first field on open. -->
+<p-dialog
+  [visible]="visible()"
+  [modal]="true"
+  [closable]="false"
+  [closeOnEscape]="false"
+  [dismissableMask]="false"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="dr-step-dialog dr-step-dialog--name"
+  appendTo="body"
+>
+  <ng-template pTemplate="header" let-labelledBy="ariaLabelledBy">
+    <div class="dr-step__head dr-step__head--empty">
+      <span class="dr-step__sr" [id]="labelledBy">{{ 'auth.nameStep.title' | translate }}</span>
+      <span class="dr-step__grab" aria-hidden="true"></span>
+    </div>
+  </ng-template>
+
+  <form class="dr-step__body" novalidate (ngSubmit)="submit()" [formGroup]="form">
+    <span class="dr-step__tile" aria-hidden="true"><i class="pi pi-user"></i></span>
+
+    <div>
+      <h2 class="dr-step__title">{{ 'auth.nameStep.title' | translate }}</h2>
+      <p class="dr-step__lead">{{ 'auth.nameStep.subtitle' | translate }}</p>
+    </div>
+
+    @if (genericError()) {
+      <p-message severity="error" icon="pi pi-exclamation-circle" data-testid="name-step-error">
+        {{ 'profile.personal.errServer' | translate }}
+      </p-message>
+    }
+
+    <div class="dr-step__fields">
+      <app-ui-input
+        formControlName="firstName"
+        autocomplete="given-name"
+        [label]="'auth.form.firstName' | translate"
+        [maxLength]="maxLength"
+        [disabled]="saving()"
+        [errorMessage]="
+          firstNameInvalid() || serverRejectedName() ? ('auth.nameStep.error' | translate) : null
+        "
+        (valueChange)="clearFirstNameError()"
+      />
+      <app-ui-input
+        formControlName="lastName"
+        autocomplete="family-name"
+        [label]="
+          ('auth.form.lastName' | translate) + ' · ' + ('auth.nameStep.optional' | translate)
+        "
+        [maxLength]="maxLength"
+        [disabled]="saving()"
+      />
+    </div>
+
+    <p class="dr-step__privnote">
+      <i class="pi pi-envelope" aria-hidden="true"></i>
+      <span>{{ 'auth.nameStep.signedInAs' | translate: { email: user()?.email ?? '' } }}</span>
+    </p>
+
+    <div class="dr-step__actions">
+      <p-button
+        type="submit"
+        styleClass="dr-step__cta"
+        [label]="'auth.register.continue' | translate"
+        [loading]="saving()"
+        [disabled]="saving()"
+      />
+    </div>
+  </form>
+</p-dialog>
