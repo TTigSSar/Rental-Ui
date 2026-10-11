@@ -260,6 +260,8 @@
                    and two success toasts for one save. -->
               @if (!isDesktop()) {
                 <app-home-point-card />
+                <!-- Personal info (ADR-030): same one-instance-only rule as the home point card. -->
+                <app-personal-info-card />
               }
 
               <!-- Navigation menu -->
@@ -446,6 +448,9 @@
             @if (isDesktop()) {
               <div class="profile-page__desktop-only">
                 <app-home-point-card />
+              </div>
+              <div class="profile-page__desktop-only">
+                <app-personal-info-card />
               </div>
             }
 

@@ -20,6 +20,7 @@ import { combineLatest, distinctUntilChanged, filter, map, of, startWith, switch
 
 import { LanguageOption, LanguageService } from '../../../../shared/services/language.service';
 import { HomePointCardComponent } from '../../components/home-point-card/home-point-card.component';
+import { PersonalInfoCardComponent } from '../../components/personal-info-card/personal-info-card.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 
 import * as AuthActions from '../../../auth/store/auth.actions';
@@ -60,6 +61,7 @@ const PROFILE_DESKTOP_QUERY = '(min-width: 961px)';
     HomePointCardComponent,
     IconComponent,
     MessageModule,
+    PersonalInfoCardComponent,
     RatingSummaryComponent,
     ReviewCardComponent,
     RouterLink,
