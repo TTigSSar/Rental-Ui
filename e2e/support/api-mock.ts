@@ -137,14 +137,46 @@ export interface ApiSeed {
    *  precedent as `submitReport` above: a mutation whose failure statuses a journey needs to
    *  force. */
   changePassword?: { status?: number; body?: unknown };
-  /** POST /api/listings outcome — defaults to a successful creation. */
-  createListing?: { status?: number; body?: unknown };
+  /**
+   * POST /api/auth/external/nonce (ADR-030) — defaults to 200 `{ nonce: 'e2e-nonce-N', expiresAt }`
+   * with N counting up from 1, so a journey can tell WHICH nonce a later `initialize()` carried.
+   * Set `status`/`body` to force 503 `auth.external_provider_unavailable` / 429.
+   */
+  externalNonce?: { status?: number; body?: unknown };
+  /**
+   * POST /api/auth/external outcome (ADR-030). Default 200 `{ token }`. On success (status < 400)
+   * the working `/api/auth/me` payload becomes `me` (when given), so the session the Google
+   * sign-in creates hydrates with the seeded user — `seed.me` itself stays the pre-sign-in state
+   * (null = anonymous). Set `status` + `body.errorCode` for 409 `auth.external_link_conflict`,
+   * 503 `auth.external_provider_unavailable`, 400 `auth.external_invalid_token`, ...
+   */
+  external?: { status?: number; body?: unknown; me?: unknown };
+  /**
+   * PUT /api/auth/me/name (ADR-030 section 5) — 204. On success the working `me` payload takes
+   * the request's `firstName`/`lastName` (the SPA re-reads `/auth/me` afterwards; a stale answer
+   * would bring the mandatory name step back). Set `status`/`body` to force a refusal.
+   */
+  updateName?: { status?: number; body?: unknown };
+  /** PUT /api/auth/me/phone (ADR-030 section 8) — 204. On success `me.phoneNumber` is updated. */
+  updatePhone?: { status?: number; body?: unknown };
+  /** POST /api/listings outcome — defaults to a successful creation. `sequence` answers the 1st,
+   *  2nd, ... request in order (the last entry repeats), for "409 phone_required, then success". */
+  createListing?: {
+    status?: number;
+    body?: unknown;
+    sequence?: { status: number; body?: unknown }[];
+  };
   /** GET /api/listings/map-pins — items for the catalogue map view (Maps P2-2). */
   mapPins?: unknown[];
   /** GET /api/listings/map-pins — `isTruncated` flag on the same envelope. */
   mapPinsTruncated?: boolean;
-  /** POST /api/bookings outcome — defaults to a successful Pending booking. */
-  createBooking?: { status?: number; body?: unknown };
+  /** POST /api/bookings outcome — defaults to a successful Pending booking. `sequence` answers
+   *  the 1st, 2nd, ... request in order (the last entry repeats). */
+  createBooking?: {
+    status?: number;
+    body?: unknown;
+    sequence?: { status: number; body?: unknown }[];
+  };
   /** GET /api/bookings/mine — items for "my bookings" (booking-relationship UI). */
   myBookings?: unknown[];
   /**
@@ -335,10 +367,57 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
   );
   let chatMessageCounter = 0;
 
+  let nonceCounter = 0;
+  let createListingCalls = 0;
+  let createBookingCalls = 0;
+
   await page.route('**/api/**', (route) => {
     const request = route.request();
     const { pathname } = new URL(request.url());
     const method = request.method();
+
+    // POST /api/auth/external/nonce — checked before /api/auth/external (distinct suffixes,
+    // kept adjacent for readability).
+    if (pathname.endsWith('/api/auth/external/nonce') && method === 'POST') {
+      const status = seed.externalNonce?.status ?? 200;
+      if (status >= 400 || seed.externalNonce?.body !== undefined) {
+        return json(route, status, seed.externalNonce?.body ?? {});
+      }
+      nonceCounter += 1;
+      return json(route, status, {
+        nonce: `e2e-nonce-${nonceCounter}`,
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+      });
+    }
+
+    // POST /api/auth/external — Google sign-in (ADR-030); see the `external` seed doc.
+    if (pathname.endsWith('/api/auth/external') && method === 'POST') {
+      const status = seed.external?.status ?? 200;
+      if (status >= 400) return json(route, status, seed.external?.body ?? {});
+      if (seed.external?.me !== undefined) {
+        meState = { ...(seed.external.me as Record<string, unknown>) };
+      }
+      return json(route, status, seed.external?.body ?? { token: 'e2e-jwt-token' });
+    }
+
+    // PUT /api/auth/me/name and /api/auth/me/phone — 204, patching the working `me`.
+    if (pathname.endsWith('/api/auth/me/name') && method === 'PUT') {
+      const status = seed.updateName?.status ?? 204;
+      if (status >= 400) return json(route, status, seed.updateName?.body ?? {});
+      const sent = (request.postDataJSON() ?? {}) as Record<string, unknown>;
+      if (meState) {
+        meState['firstName'] = sent['firstName'];
+        meState['lastName'] = sent['lastName'] ?? '';
+      }
+      return route.fulfill({ status: 204 });
+    }
+    if (pathname.endsWith('/api/auth/me/phone') && method === 'PUT') {
+      const status = seed.updatePhone?.status ?? 204;
+      if (status >= 400) return json(route, status, seed.updatePhone?.body ?? {});
+      const sent = (request.postDataJSON() ?? {}) as Record<string, unknown>;
+      if (meState) meState['phoneNumber'] = sent['phoneNumber'];
+      return route.fulfill({ status: 204 });
+    }
 
     if (pathname.endsWith('/api/auth/login')) {
       const status = seed.login?.status ?? 200;
@@ -810,11 +889,18 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
     }
 
     if (pathname.endsWith('/api/listings') && method === 'POST') {
-      const status = seed.createListing?.status ?? 200;
+      const step = seed.createListing?.sequence?.[
+        Math.min(createListingCalls, (seed.createListing?.sequence?.length ?? 1) - 1)
+      ];
+      createListingCalls += 1;
+      const status = step?.status ?? seed.createListing?.status ?? 200;
       return json(
         route,
         status,
-        seed.createListing?.body ?? { id: 'listing-created-e2e-1', status: 'PendingApproval' },
+        (step ? step.body : seed.createListing?.body) ?? {
+          id: 'listing-created-e2e-1',
+          status: 'PendingApproval',
+        },
       );
     }
 
@@ -847,11 +933,15 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
     // suffix match (not a prefix regex) so it never shadows
     // /api/bookings/mine or /api/bookings/requests below.
     if (pathname.endsWith('/api/bookings') && method === 'POST') {
-      const status = seed.createBooking?.status ?? 200;
+      const step = seed.createBooking?.sequence?.[
+        Math.min(createBookingCalls, (seed.createBooking?.sequence?.length ?? 1) - 1)
+      ];
+      createBookingCalls += 1;
+      const status = step?.status ?? seed.createBooking?.status ?? 200;
       return json(
         route,
         status,
-        seed.createBooking?.body ?? {
+        (step ? step.body : seed.createBooking?.body) ?? {
           id: 'booking-e2e-1',
           listingId: 'listing-e2e-1',
           status: 'Pending',
