@@ -1,0 +1,36 @@
+@if (visible()) {
+  <div class="gsi-block">
+    <div #wrap class="gsi-block__wrap" [class.gsi-block__wrap--busy]="busy()">
+      <div #host class="gsi-block__host"></div>
+    </div>
+
+    @if (busy()) {
+      <p class="gsi-block__busy" aria-hidden="true">
+        <span class="gsi-block__spinner"></span>
+        {{ 'auth.google.busy' | translate }}
+      </p>
+    }
+    <!-- Always mounted so the polite announcement fires when the text appears. -->
+    <span class="gsi-block__sr" role="status" aria-live="polite">
+      @if (busy()) {
+        {{ 'auth.google.busy' | translate }}
+      }
+    </span>
+
+    @if (message(); as m) {
+      <p-message [severity]="m.tone" [icon]="m.icon" data-testid="google-error">
+        {{ m.key | translate }}
+      </p-message>
+    }
+  </div>
+
+  <div class="gsi-block__or" role="separator">
+    <span>{{ 'auth.google.or' | translate }}</span>
+  </div>
+} @else if (showOffMessage()) {
+  <div class="gsi-block__off">
+    <p-message severity="warn" icon="pi pi-info-circle" data-testid="google-off">
+      {{ 'auth.google.eOff' | translate }}
+    </p-message>
+  </div>
+}

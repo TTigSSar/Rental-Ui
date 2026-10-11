@@ -21,6 +21,15 @@ export interface GoogleButtonRenderOptions {
   readonly locale?: string;
 }
 
+/**
+ * `renderGoogleButton` options: GIS button configuration plus the single-use server
+ * `nonce` (ADR-030 §2/§3). `nonce` is NOT a button option — it is an `initialize()` one —
+ * so it is split off before the rest reaches `renderButton`.
+ */
+export interface GoogleRenderOptions extends GoogleButtonRenderOptions {
+  readonly nonce?: string;
+}
+
 interface GoogleCredentialResponse {
   credential?: string;
 }
@@ -32,6 +41,7 @@ interface GoogleIdInitializeOptions {
   auto_select?: boolean;
   cancel_on_tap_outside?: boolean;
   itp_support?: boolean;
+  nonce?: string;
 }
 
 interface GoogleIdentityApi {
@@ -69,6 +79,8 @@ export class ExternalAuthProviderService {
 
   private googleScriptReadyPromise: Promise<void> | null = null;
   private googleInitialized = false;
+  /** The nonce the last `initialize()` carried; a different one forces a new initialize. */
+  private googleInitializedNonce: string | undefined;
   private googleCredentialCallback: ((idToken: string) => void) | null = null;
   private googleDevDiagnosticLogged = false;
 
@@ -96,13 +108,17 @@ export class ExternalAuthProviderService {
    * Calls `onCredential` with the ID token once the user completes the popup
    * sign-in flow.
    *
-   * Safe to call multiple times (e.g. on view re-enter). Initialization with
-   * `google.accounts.id.initialize(...)` happens exactly once per page.
+   * NONCE RULE (ADR-030 §3, confirmed against the real GIS on 2026-10-10): a rendered
+   * button keeps the configuration it was rendered with, so a NEW nonce only takes effect
+   * through `initialize({nonce})` + emptying the container + `renderButton`, always
+   * together. This method is therefore the only place `initialize` is called, and it
+   * never calls it without the clear + render that follow. Re-rendering with the SAME
+   * nonce (language switch, resize) skips `initialize` — the button already carries it.
    */
   async renderGoogleButton(
     container: HTMLElement,
     onCredential: (idToken: string) => void,
-    options: GoogleButtonRenderOptions = {},
+    options: GoogleRenderOptions = {},
   ): Promise<void> {
     const clientId = this.authConfig.googleClientId;
     if (clientId === '') {
@@ -119,13 +135,17 @@ export class ExternalAuthProviderService {
 
     this.logDevDiagnostic(clientId);
 
-    if (!this.googleInitialized) {
+    const { nonce, ...buttonOptions } = options;
+    this.googleCredentialCallback = onCredential;
+
+    if (!this.googleInitialized || nonce !== this.googleInitializedNonce) {
       googleAccounts.initialize({
         client_id: clientId,
         ux_mode: 'popup',
         auto_select: false,
         cancel_on_tap_outside: true,
         itp_support: true,
+        ...(nonce !== undefined ? { nonce } : {}),
         callback: (response) => {
           const idToken = (response.credential ?? '').trim();
           if (idToken === '') {
@@ -135,10 +155,10 @@ export class ExternalAuthProviderService {
         },
       });
       this.googleInitialized = true;
+      this.googleInitializedNonce = nonce;
     }
 
-    this.googleCredentialCallback = onCredential;
-
+    container.replaceChildren();
     googleAccounts.renderButton(container, {
       type: 'standard',
       theme: 'outline',
@@ -147,8 +167,18 @@ export class ExternalAuthProviderService {
       text: 'signin_with',
       logo_alignment: 'left',
       width: 320,
-      ...options,
+      ...buttonOptions,
     });
+  }
+
+  /**
+   * Stops delivering credentials to a block that is gone (the auth dialog closed): a
+   * popup still open when the dialog closes must not sign anyone in behind the user's back.
+   */
+  releaseGoogleButton(onCredential: (idToken: string) => void): void {
+    if (this.googleCredentialCallback === onCredential) {
+      this.googleCredentialCallback = null;
+    }
   }
 
   private ensureGoogleScript(): Promise<void> {
