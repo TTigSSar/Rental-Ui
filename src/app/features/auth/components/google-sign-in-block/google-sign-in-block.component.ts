@@ -89,7 +89,7 @@ export class GoogleSignInBlockComponent implements OnInit {
   /** An /external request is in flight (from the credential until the server answers). */
   readonly busy = signal(false);
 
-  // The dedicated /external flag — NOT the shared `isLoading` (login/register/me would
+  // The dedicated /external flag â€” NOT the shared `isLoading` (login/register/me would
   // release the busy lock early).
   private readonly externalPending = this.store.selectSignal(selectExternalAuthPending);
   private readonly externalError = this.store.selectSignal(selectAuthExternalError);

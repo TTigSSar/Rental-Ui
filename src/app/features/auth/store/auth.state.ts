@@ -38,7 +38,7 @@ export interface AuthState {
   homePointErrorCode: ApiErrorCode | null;
   externalError: ExternalAuthError | null;
   /** A `POST /auth/external` is in flight. Separate from `isLoading`, which login / register /
-   *  loadCurrentUser share: the Google block's busy lock keys off this flag only (ADR-030 ง3). */
+   *  loadCurrentUser share: the Google block's busy lock keys off this flag only (ADR-030 ยง3). */
   externalAuthPending: boolean;
   /** A `PUT /me/name` or `PUT /me/phone` is in flight (separate from `isLoading`). */
   nameSaving: boolean;
