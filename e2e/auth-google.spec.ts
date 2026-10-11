@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 
 import { mockApi } from './support/api-mock';
 import { e2eUser } from './support/fixtures';
+import { mockTiles } from './support/tile-mock';
 import {
   callsTo,
   expectRenders,
@@ -213,6 +214,31 @@ test.describe('Google sign-in (ADR-030)', () => {
     await page.getByRole('button', { name: 'Log in' }).click();
     await expect(page.locator('.gsi-block')).toBeVisible();
     await expect(page.getByTestId('google-off')).toHaveCount(0);
+  });
+
+  // Register: the Google block belongs to step 1 only
+  test('on Create account the Google block is on step 1 and absent on the home-point step', async ({
+    page,
+  }) => {
+    await mockTiles(page);
+    await mockApi(page, {});
+
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Sign up' }).click();
+    await expect(page.locator('.auth-dialog__tab--active')).toHaveText('Create account');
+    await expect(page.locator('.gsi-block')).toBeVisible();
+
+    const inputs = page.locator('form.auth-form input.uii-native');
+    await expect(inputs).toHaveCount(5);
+    await inputs.nth(0).fill('Anna');
+    await inputs.nth(1).fill('Petrosyan');
+    await inputs.nth(2).fill('+37491234567');
+    await inputs.nth(3).fill('anna.p@gmail.com');
+    await inputs.nth(4).fill('supersecret');
+    await page.getByRole('button', { name: 'Continue', exact: true }).click();
+
+    await expect(page.locator('app-home-point-map')).toBeVisible();
+    await expect(page.locator('.gsi-block')).toHaveCount(0);
   });
 
   // Journey 10

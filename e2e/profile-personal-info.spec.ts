@@ -29,9 +29,13 @@ test.describe('Profile - Personal info card', () => {
 
     const card = page.getByTestId('personal-info-card');
     await expect(card).toBeVisible();
-    await expect(card).toContainText('Ada Lovelace');
+    // View mode shows only Phone and Email - no Name row; the name lives in the identity header.
+    await expect(card).not.toContainText('Ada');
+    await expect(card).not.toContainText('Lovelace');
     await expect(card).toContainText('+374 99 123 456');
     await expect(card).toContainText('user@example.com');
+    const identityName = page.locator('.profile-page__identity-name');
+    await expect(identityName).toHaveText('Ada Lovelace');
 
     await card.getByTestId('personal-info-edit').click();
     const inputs = card.locator('input.uii-native');
@@ -44,7 +48,8 @@ test.describe('Profile - Personal info card', () => {
     await card.getByRole('button', { name: 'Save', exact: true }).click();
 
     await expect(page.getByText('Personal info saved')).toBeVisible();
-    await expect(card).toContainText('Grace Hopper');
+    await expect(identityName).toHaveText('Grace Hopper');
+    await expect(card).not.toContainText('Grace');
     await expect(card).toContainText('+374 77 000 111');
 
     const names = callsTo(calls, 'PUT', '/api/auth/me/name');
