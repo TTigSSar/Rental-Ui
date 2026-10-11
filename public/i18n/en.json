@@ -311,6 +311,39 @@
       "noToken": "This page needs the link from your confirmation email. If you reloaded the page, open the link from the email again.",
       "resendLead": "Or enter your email and we'll send a new link.",
       "trustNote": "Your password is only used to check that it is you."
+    },
+    "google": {
+      "or": "or",
+      "busy": "Signing you in with Google…",
+      "eExists": "An account with this email already exists. Sign in with your password.",
+      "ePending": "A registration for this email is waiting for confirmation. Open the link in the email to finish it.",
+      "eBlocked": "Your account has been blocked.",
+      "eFail": "Couldn’t sign in with Google. Please try again.",
+      "eRate": "Too many attempts. Wait a minute and try again.",
+      "eOff": "Google sign-in is unavailable right now. Sign in with email and password."
+    },
+    "nameStep": {
+      "title": "What should we call you?",
+      "subtitle": "Owners and renters will see this name",
+      "signedInAs": "Signed in as {{email}}",
+      "optional": "optional",
+      "error": "Enter your first name",
+      "welcome": "Welcome to DoRent, {{name}}"
+    },
+    "phoneStep": {
+      "eyebrowListing": "Before you publish",
+      "eyebrowBooking": "Before you send the request",
+      "title": "Add your phone number",
+      "why": "We need your phone to reach you about rentals.",
+      "privacy": "Only DoRent staff can see it.",
+      "error": "Enter a valid phone number",
+      "placeholder": "+374 99 123 456",
+      "ctaListing": "Save and publish",
+      "ctaBooking": "Save and send request",
+      "saving": "Saving…",
+      "saved": "Phone saved",
+      "savedListing": "Publishing your toy…",
+      "savedBooking": "Sending your request…"
     }
   },
   "listings": {
@@ -1129,7 +1162,7 @@
         "invalidCurrentPassword": "Current password is incorrect.",
         "passwordUnchanged": "New password must be different from your current one.",
         "passwordTooLong": "New password is too long. Use up to 72 Latin characters, or fewer if you use Armenian or Russian letters.",
-        "passwordNotSet": "Your account signs in with Google and has no password to change.",
+        "passwordNotSet": "You sign in with an external provider; no password is set",
         "userBlocked": "Your account has been blocked. Contact support for help.",
         "tooManyAttempts": "Too many attempts, try again in a minute.",
         "sessionExpired": "Your session has expired. Please log in again.",
@@ -1172,6 +1205,16 @@
       "toastBodyNone": "Home point saved",
       "removedToast": "Home point removed",
       "noDistrict": "No district"
+    },
+    "personal": {
+      "title": "Personal info",
+      "name": "Name",
+      "none": "Not added",
+      "emailNote": "Used to sign in. Can’t be changed here.",
+      "saved": "Personal info saved",
+      "errServer": "Couldn’t save changes. Please try again.",
+      "cancel": "Cancel",
+      "save": "Save"
     }
   },
   "myListings": {

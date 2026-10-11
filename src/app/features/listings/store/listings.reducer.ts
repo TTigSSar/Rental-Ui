@@ -205,6 +205,9 @@ export const listingsReducer = createReducer(
       ...state,
       createListingLoading: true,
       createListingError: null,
+      // Reset with the error: the 409 phone-required step is edge-triggered on this
+      // code, so a stale one would swallow the next refusal (ADR-030 §8).
+      createListingErrorCode: null,
       createListingSuccessId: null,
       createListingImageUploadError: null,
       createListingImageUploadProgress: null,
@@ -216,6 +219,7 @@ export const listingsReducer = createReducer(
       ...state,
       createListingLoading: false,
       createListingError: null,
+      createListingErrorCode: null,
       createListingSuccessId: response.id,
       createListingImageUploadError: imageUploadError,
       createListingImageUploadProgress: null,

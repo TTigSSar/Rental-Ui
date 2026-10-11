@@ -105,12 +105,28 @@ export class AuthEffects {
       ofType(AuthActions.externalAuth),
       filter(({ idToken }) => idToken.trim() !== ''),
       mergeMap(({ provider, idToken }) =>
-        this.authApi.externalAuth({ provider, idToken }).pipe(
-          map(({ token }) => AuthActions.externalAuthSuccess({ token })),
-          catchError((error: unknown) =>
-            of(AuthActions.externalAuthFailure({ error: toErrorMessage(error) })),
+        // M-056: the backend reads `preferredLanguage` only when it CREATES the user,
+        // so the UI language must travel with every external sign-in.
+        this.authApi
+          .externalAuth({
+            provider,
+            idToken,
+            preferredLanguage: this.languageService.current().code,
+          })
+          .pipe(
+            map(({ token }) => AuthActions.externalAuthSuccess({ token })),
+            catchError((error: unknown) =>
+              of(
+                AuthActions.externalAuthFailure({
+                  error: toErrorMessage(error),
+                  // 409 conflict / pending / 403 blocked / 503 unavailable are told apart
+                  // by code; the rate limiter's 429 carries none, hence the status.
+                  errorCode: getApiErrorCode(error),
+                  status: error instanceof HttpErrorResponse ? error.status : null,
+                }),
+              ),
+            ),
           ),
-        ),
       ),
     ),
   );
@@ -262,6 +278,62 @@ export class AuthEffects {
           ),
         ),
       ),
+    ),
+  );
+
+  /**
+   * `PUT /api/auth/me/name` (ADR-030 §5). The server trims; the success carries the
+   * trimmed values so the store can patch the user before `/auth/me` is re-read.
+   */
+  readonly updateName$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.updateName),
+      mergeMap(({ payload }) => {
+        const firstName = payload.firstName.trim();
+        const lastName = (payload.lastName ?? '').trim();
+        return this.authApi.updateName({ firstName, lastName }).pipe(
+          map(() => AuthActions.updateNameSuccess({ firstName, lastName })),
+          catchError((error: unknown) =>
+            of(
+              AuthActions.updateNameFailure({
+                error: toErrorMessage(error),
+                errorCode: getApiErrorCode(error),
+              }),
+            ),
+          ),
+        );
+      }),
+    ),
+  );
+
+  /** `PUT /api/auth/me/phone` (ADR-030 §8). The server regex rejects a LEADING space,
+   *  so the value is trimmed here whatever the caller did. */
+  readonly updatePhone$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.updatePhone),
+      mergeMap(({ phoneNumber }) => {
+        const trimmed = phoneNumber.trim();
+        return this.authApi.updatePhone({ phoneNumber: trimmed }).pipe(
+          map(() => AuthActions.updatePhoneSuccess({ phoneNumber: trimmed })),
+          catchError((error: unknown) =>
+            of(
+              AuthActions.updatePhoneFailure({
+                error: toErrorMessage(error),
+                errorCode: getApiErrorCode(error),
+              }),
+            ),
+          ),
+        );
+      }),
+    ),
+  );
+
+  /** Re-reads `/auth/me` after a name/phone write so every consumer of the user agrees
+   *  with the server (the success reducers already patched the same values). */
+  readonly reloadUserAfterProfileWrite$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.updateNameSuccess, AuthActions.updatePhoneSuccess),
+      map(() => AuthActions.loadCurrentUser()),
     ),
   );
 

@@ -44,6 +44,7 @@ export class BookingsEffects {
             of(
               BookingsActions.createBookingFailure({
                 error: this.toErrorMessage(error),
+                errorCode: getApiErrorCode(error),
               }),
             ),
           ),

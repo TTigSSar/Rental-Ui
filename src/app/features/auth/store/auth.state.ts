@@ -1,6 +1,15 @@
 import type { ApiErrorCode } from '../../../api/api-error.model';
 import type { CurrentUser } from '../models/auth.models';
 
+/** The last failed `POST /api/auth/external`. Kept apart from `error`/`errorCode` so the
+ *  password forms (which print `error`) never echo a Google failure in raw English. */
+export interface ExternalAuthError {
+  error: string;
+  errorCode: ApiErrorCode | null;
+  /** HTTP status; 0/null for a network failure. 429 carries no `errorCode`. */
+  status: number | null;
+}
+
 export interface AuthState {
   user: CurrentUser | null;
   token: string | null;
@@ -27,6 +36,14 @@ export interface AuthState {
    *  `clearHomePointError`. */
   homePointError: string | null;
   homePointErrorCode: ApiErrorCode | null;
+  externalError: ExternalAuthError | null;
+  /** A `PUT /me/name` or `PUT /me/phone` is in flight (separate from `isLoading`). */
+  nameSaving: boolean;
+  nameError: string | null;
+  nameErrorCode: ApiErrorCode | null;
+  phoneSaving: boolean;
+  phoneError: string | null;
+  phoneErrorCode: ApiErrorCode | null;
 }
 
 export const initialAuthState: AuthState = {
@@ -41,4 +58,11 @@ export const initialAuthState: AuthState = {
   homePointSaving: false,
   homePointError: null,
   homePointErrorCode: null,
+  externalError: null,
+  nameSaving: false,
+  nameError: null,
+  nameErrorCode: null,
+  phoneSaving: false,
+  phoneError: null,
+  phoneErrorCode: null,
 };
