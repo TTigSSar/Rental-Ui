@@ -11,6 +11,7 @@ import { ExternalAuthProviderService } from './external-auth-provider.service';
  */
 describe('ExternalAuthProviderService.renderGoogleButton — nonce rule', () => {
   let log: string[];
+  let scriptSrcs: string[];
   let initializeOptions: { nonce?: string; callback: (r: { credential?: string }) => void }[];
   let container: HTMLElement;
   let service: ExternalAuthProviderService;
@@ -21,26 +22,31 @@ describe('ExternalAuthProviderService.renderGoogleButton — nonce rule', () => 
     container = document.createElement('div');
     container.appendChild(document.createElement('iframe')); // a previously rendered button
 
-    // The script is already on the page, so no network is involved.
-    const script = document.createElement('script');
-    script.id = 'google-identity-services-script';
-    document.head.appendChild(script);
-
-    (window as unknown as { google: unknown }).google = {
-      accounts: {
-        id: {
-          initialize: (o: { nonce?: string; callback: (r: { credential?: string }) => void }) => {
-            initializeOptions.push(o);
-            log.push(`initialize:${o.nonce ?? 'none'}`);
+    scriptSrcs = [];
+    // No network: "loading" the script records its src and installs a fake GIS.
+    vi.spyOn(document.head, 'appendChild').mockImplementation(<T extends Node>(node: T): T => {
+      const script = node as unknown as HTMLScriptElement;
+      scriptSrcs.push(script.src);
+      (window as unknown as { google: unknown }).google = {
+        accounts: {
+          id: {
+            initialize: (o: { nonce?: string; callback: (r: { credential?: string }) => void }) => {
+              initializeOptions.push(o);
+              log.push(`initialize:${o.nonce ?? 'none'}`);
+            },
+            renderButton: (el: HTMLElement, o: Record<string, unknown>) => {
+              log.push(`render:children=${el.childElementCount}`);
+              log.push(`options:${JSON.stringify(o)}`);
+            },
+            cancel: vi.fn(),
           },
-          renderButton: (el: HTMLElement, o: Record<string, unknown>) => {
-            log.push(`render:children=${el.childElementCount}`);
-            log.push(`options:${JSON.stringify(o)}`);
-          },
-          cancel: vi.fn(),
         },
-      },
-    };
+      };
+      // Like the real tag: it sits in the DOM once appended.
+      Node.prototype.appendChild.call(document.head, node);
+      script.onload?.(new Event('load'));
+      return node;
+    });
 
     TestBed.configureTestingModule({
       providers: [
@@ -52,6 +58,7 @@ describe('ExternalAuthProviderService.renderGoogleButton — nonce rule', () => 
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     document.getElementById('google-identity-services-script')?.remove();
     delete (window as unknown as { google?: unknown }).google;
   });
@@ -84,16 +91,42 @@ describe('ExternalAuthProviderService.renderGoogleButton — nonce rule', () => 
     });
   });
 
-  it('re-rendering with the SAME nonce (language switch, resize) skips initialize but still clears and renders', async () => {
-    await service.renderGoogleButton(container, vi.fn(), { nonce: 'n1', locale: 'en' });
+  it('re-rendering with the SAME nonce and locale (resize) skips initialize but still clears and renders', async () => {
+    await service.renderGoogleButton(container, vi.fn(), { nonce: 'n1', locale: 'en', width: 300 });
     container.appendChild(document.createElement('iframe'));
-    await service.renderGoogleButton(container, vi.fn(), { nonce: 'n1', locale: 'ru' });
+    await service.renderGoogleButton(container, vi.fn(), { nonce: 'n1', locale: 'en', width: 350 });
 
     expect(log.filter((l) => l.startsWith('initialize'))).toEqual(['initialize:n1']);
     expect(log.filter((l) => l.startsWith('render:'))).toEqual([
       'render:children=0',
       'render:children=0',
     ]);
+    expect(scriptSrcs).toHaveLength(1);
+  });
+
+  it('the GIS script is loaded with hl=<locale>', async () => {
+    await service.renderGoogleButton(container, vi.fn(), { nonce: 'n1', locale: 'hy' });
+    expect(scriptSrcs).toEqual(['https://accounts.google.com/gsi/client?hl=hy']);
+  });
+
+  it('a language switch reloads the script with the new hl and re-renders with the SAME nonce, initialize always followed by clear + render', async () => {
+    await service.renderGoogleButton(container, vi.fn(), { nonce: 'n1', locale: 'en' });
+    container.appendChild(document.createElement('iframe'));
+    await service.renderGoogleButton(container, vi.fn(), { nonce: 'n1', locale: 'ru' });
+
+    expect(scriptSrcs).toEqual([
+      'https://accounts.google.com/gsi/client?hl=en',
+      'https://accounts.google.com/gsi/client?hl=ru',
+    ]);
+    expect(document.querySelectorAll('#google-identity-services-script')).toHaveLength(1);
+    // the fresh GIS instance is initialised again — with the same nonce
+    expect(log.filter((l) => l.startsWith('initialize'))).toEqual(['initialize:n1', 'initialize:n1']);
+    log.forEach((entry, i) => {
+      if (entry.startsWith('initialize')) {
+        expect(log[i + 1]).toBe('render:children=0');
+      }
+    });
+    expect(log[log.length - 1]).toContain('"locale":"ru"');
   });
 
   it('delivers credentials to the latest callback and ignores blank ones', async () => {

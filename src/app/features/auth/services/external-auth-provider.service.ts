@@ -30,6 +30,8 @@ export interface GoogleRenderOptions extends GoogleButtonRenderOptions {
   readonly nonce?: string;
 }
 
+const GOOGLE_SCRIPT_ID = 'google-identity-services-script';
+
 interface GoogleCredentialResponse {
   credential?: string;
 }
@@ -78,6 +80,7 @@ export class ExternalAuthProviderService {
   ) {}
 
   private googleScriptReadyPromise: Promise<void> | null = null;
+  private googleScriptLocale: string | undefined;
   private googleInitialized = false;
   /** The nonce the last `initialize()` carried; a different one forces a new initialize. */
   private googleInitializedNonce: string | undefined;
@@ -127,7 +130,7 @@ export class ExternalAuthProviderService {
       );
     }
 
-    await this.ensureGoogleScript();
+    await this.ensureGoogleScript(options.locale);
     const googleAccounts = (window as ExternalAuthWindow).google?.accounts?.id;
     if (!googleAccounts) {
       throw new Error('Google sign-in is unavailable right now. Please try again later.');
@@ -181,17 +184,46 @@ export class ExternalAuthProviderService {
     }
   }
 
-  private ensureGoogleScript(): Promise<void> {
-    if (this.googleScriptReadyPromise) {
+  /**
+   * Loads the GIS client script in the requested language. Google documents that the button
+   * `locale` is only honoured together with `gsi/client?hl=<code>` on the script itself, and
+   * the script fixes its language for the page lifetime — so a language switch removes the
+   * script and the `google.accounts` object, loads it again with the new `hl`, and forces
+   * the next `initialize` (the caller re-initialises with the SAME nonce, then renders).
+   */
+  private ensureGoogleScript(locale: string | undefined): Promise<void> {
+    if (
+      this.googleScriptReadyPromise &&
+      (locale === undefined || locale === this.googleScriptLocale)
+    ) {
       return this.googleScriptReadyPromise;
     }
 
-    this.googleScriptReadyPromise = this.loadScriptOnce(
-      'google-identity-services-script',
-      'https://accounts.google.com/gsi/client',
-    );
+    if (this.googleScriptReadyPromise) {
+      document.getElementById(GOOGLE_SCRIPT_ID)?.remove();
+      const w = window as ExternalAuthWindow;
+      if (w.google) {
+        delete w.google.accounts;
+      }
+      this.googleInitialized = false;
+    }
 
-    return this.googleScriptReadyPromise;
+    this.googleScriptLocale = locale;
+    const query = locale ? `?hl=${encodeURIComponent(locale)}` : '';
+    const promise = this.loadScriptOnce(
+      GOOGLE_SCRIPT_ID,
+      `https://accounts.google.com/gsi/client${query}`,
+    );
+    this.googleScriptReadyPromise = promise;
+    // A failed load must not be cached forever.
+    promise.catch(() => {
+      if (this.googleScriptReadyPromise === promise) {
+        this.googleScriptReadyPromise = null;
+        this.googleScriptLocale = undefined;
+      }
+    });
+
+    return promise;
   }
 
   private loadScriptOnce(scriptId: string, src: string): Promise<void> {
