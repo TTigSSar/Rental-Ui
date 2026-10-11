@@ -13,7 +13,7 @@ import { STUB_PNG_BUFFER } from './support/stub-image';
  * action is then sent exactly once. The server is the authority (409 `*.phone_required`,
  * refused before any write), so the same step is also the fallback for a client that thought
  * the user had a phone. Mocked tier: this pins the FRONTEND's ordering and counts; the server
- * refusal itself is pinned in the real-stack tier (`real/phone-gate.spec.ts`).
+ * refusal itself is pinned by rental-api `NameAndPhoneHttpTests` (no real-stack journey: see e2e/README.md).
  */
 const PHONE = '+374 99 123 456';
 
