@@ -37,6 +37,9 @@ export interface AuthState {
   homePointError: string | null;
   homePointErrorCode: ApiErrorCode | null;
   externalError: ExternalAuthError | null;
+  /** A `POST /auth/external` is in flight. Separate from `isLoading`, which login / register /
+   *  loadCurrentUser share: the Google block's busy lock keys off this flag only (ADR-030 §3). */
+  externalAuthPending: boolean;
   /** A `PUT /me/name` or `PUT /me/phone` is in flight (separate from `isLoading`). */
   nameSaving: boolean;
   nameError: string | null;
@@ -59,6 +62,7 @@ export const initialAuthState: AuthState = {
   homePointError: null,
   homePointErrorCode: null,
   externalError: null,
+  externalAuthPending: false,
   nameSaving: false,
   nameError: null,
   nameErrorCode: null,

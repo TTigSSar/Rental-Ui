@@ -26,7 +26,7 @@ import {
   googleFailureView,
 } from '../../services/google-sign-in.util';
 import * as AuthActions from '../../store/auth.actions';
-import { selectAuthExternalError, selectAuthLoading } from '../../store/auth.selectors';
+import { selectAuthExternalError, selectExternalAuthPending } from '../../store/auth.selectors';
 
 /** A nonce lives 5 min server-side; a window regaining focus swaps one older than this. */
 export const NONCE_STALE_AFTER_MS = 4 * 60 * 1000;
@@ -89,7 +89,9 @@ export class GoogleSignInBlockComponent implements OnInit {
   /** An /external request is in flight (from the credential until the server answers). */
   readonly busy = signal(false);
 
-  private readonly isLoading = this.store.selectSignal(selectAuthLoading);
+  // The dedicated /external flag — NOT the shared `isLoading` (login/register/me would
+  // release the busy lock early).
+  private readonly externalPending = this.store.selectSignal(selectExternalAuthPending);
   private readonly externalError = this.store.selectSignal(selectAuthExternalError);
 
   protected readonly failure = computed(() => {
@@ -130,7 +132,7 @@ export class GoogleSignInBlockComponent implements OnInit {
       if (!this.busy()) {
         return;
       }
-      if (this.isLoading()) {
+      if (this.externalPending()) {
         this.requestSeenLoading = true;
         return;
       }

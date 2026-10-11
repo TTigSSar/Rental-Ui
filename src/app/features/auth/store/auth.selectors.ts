@@ -89,6 +89,12 @@ export const selectHomePointOutsideYerevan = createSelector(
   (code: ApiErrorCode | null): boolean => code === 'auth.home_point_outside_yerevan',
 );
 
+/** A `POST /auth/external` is in flight (dedicated flag, not the shared `isLoading`). */
+export const selectExternalAuthPending = createSelector(
+  selectAuthState,
+  (state: AuthState | undefined): boolean => state?.externalAuthPending ?? false,
+);
+
 /** The last failed Google sign-in (code + HTTP status), or null. */
 export const selectAuthExternalError = createSelector(
   selectAuthState,

@@ -8,6 +8,38 @@ function stateWith(overrides: Partial<AuthState>): AuthState {
 }
 
 describe('authReducer', () => {
+  describe('externalAuthPending (dedicated /external flag)', () => {
+    it('is set only by externalAuth, not by login / register / loadCurrentUser', () => {
+      const started = authReducer(
+        initialAuthState,
+        AuthActions.externalAuth({ provider: 'google', idToken: 't' }),
+      );
+      expect(started.externalAuthPending).toBe(true);
+      const login = authReducer(
+        initialAuthState,
+        AuthActions.login({ payload: { email: 'a', password: 'b' } }),
+      );
+      expect(login.externalAuthPending).toBe(false);
+    });
+
+    it('survives a login failure and is cleared by externalAuthFailure / externalAuthSuccess', () => {
+      const pending = stateWith({ externalAuthPending: true, isLoading: true });
+      const afterLoginFailure = authReducer(
+        pending,
+        AuthActions.loginFailure({ error: 'bad', errorCode: null }),
+      );
+      expect(afterLoginFailure.isLoading).toBe(false);
+      expect(afterLoginFailure.externalAuthPending).toBe(true);
+      expect(
+        authReducer(pending, AuthActions.externalAuthFailure({ error: 'x', status: 400 }))
+          .externalAuthPending,
+      ).toBe(false);
+      expect(
+        authReducer(pending, AuthActions.externalAuthSuccess({ token: 't' })).externalAuthPending,
+      ).toBe(false);
+    });
+  });
+
   describe('request start', () => {
     it.each([
       AuthActions.login({ payload: { email: 'a', password: 'b' } }),

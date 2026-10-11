@@ -13,7 +13,7 @@ import {
   type GoogleRenderOptions,
 } from '../../services/external-auth-provider.service';
 import * as AuthActions from '../../store/auth.actions';
-import { selectAuthExternalError, selectAuthLoading } from '../../store/auth.selectors';
+import { selectAuthExternalError, selectAuthLoading, selectExternalAuthPending } from '../../store/auth.selectors';
 import type { ExternalAuthError } from '../../store/auth.state';
 import {
   GoogleSignInBlockComponent,
@@ -62,7 +62,7 @@ describe('GoogleSignInBlockComponent — nonce lifecycle (ADR-030 §3)', () => {
   }
 
   function setLoading(value: boolean): void {
-    store.overrideSelector(selectAuthLoading, value);
+    store.overrideSelector(selectExternalAuthPending, value);
     store.refreshState();
   }
 
@@ -91,6 +91,7 @@ describe('GoogleSignInBlockComponent — nonce lifecycle (ADR-030 §3)', () => {
         provideMockStore({
           selectors: [
             { selector: selectAuthLoading, value: false },
+            { selector: selectExternalAuthPending, value: false },
             { selector: selectAuthExternalError, value: null },
           ],
         }),
@@ -170,6 +171,38 @@ describe('GoogleSignInBlockComponent — nonce lifecycle (ADR-030 §3)', () => {
     expect(fixture.nativeElement.querySelector('[aria-live="polite"]').textContent).toContain(
       'auth.google.busy',
     );
+  });
+
+  it('a password login failing (global isLoading true -> false) while /external is pending keeps the lock', async () => {
+    nextNonce('n1');
+    create();
+    await settle();
+
+    renders[0].onCredential('tok-1');
+    setLoading(true); // externalAuthPending
+    store.overrideSelector(selectAuthLoading, true);
+    store.refreshState();
+    await settle();
+
+    nextNonce('n2');
+    store.overrideSelector(selectAuthLoading, false); // loginFailure flips the shared flag
+    store.refreshState();
+    renders[0].onCredential('tok-2');
+    await settle();
+
+    const calls = (store.dispatch as ReturnType<typeof vi.fn>).mock.calls.filter(
+      ([a]) => a.type === AuthActions.externalAuth.type,
+    );
+    expect(calls).toHaveLength(1);
+    expect(nonceCalls).toBe(1);
+    expect(renders).toHaveLength(1);
+    expect(fixture.nativeElement.querySelector('.gsi-block__wrap--busy')).not.toBeNull();
+
+    nextNonce('n2');
+    setLoading(false); // externalAuthFailure / externalAuthSuccess
+    await settle();
+    expect(nonceCalls).toBe(2);
+    expect(fixture.nativeElement.querySelector('.gsi-block__wrap--busy')).toBeNull();
   });
 
   it('after EVERY server answer fetches a fresh nonce and re-renders with it', async () => {

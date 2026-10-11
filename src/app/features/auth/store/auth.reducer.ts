@@ -29,6 +29,7 @@ export const authReducer = createReducer(
     (state): AuthState => ({
       ...state,
       isLoading: true,
+      externalAuthPending: true,
       error: null,
       errorCode: null,
       externalError: null,
@@ -43,6 +44,7 @@ export const authReducer = createReducer(
     AuthActions.externalAuthSuccess,
     (state, { token }): AuthState => ({
       ...state,
+      externalAuthPending: false,
       token,
       isAuthenticated: true,
       isInitializing: false,
@@ -100,6 +102,7 @@ export const authReducer = createReducer(
     (state, { error, errorCode, status }): AuthState => ({
       ...state,
       isLoading: false,
+      externalAuthPending: false,
       externalError: { error, errorCode: errorCode ?? null, status: status ?? null },
     }),
   ),
