@@ -1,12 +1,12 @@
 import { DOCUMENT } from '@angular/common';
 import { Injectable, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 
 import { PrimeNG } from 'primeng/config';
 
 import * as AuthActions from '../../features/auth/store/auth.actions';
-import { localeTagForLanguage } from '../../features/listings/models/radius-scale.util';
 
 export type LanguageCode = 'en' | 'hy' | 'ru';
 
@@ -21,34 +21,34 @@ export interface LanguageOption {
 
 const LANGUAGE_STORAGE_KEY = 'stayfinder.lang';
 
-function part(tag: string, options: Intl.DateTimeFormatOptions, date: Date, type: string): string {
-  const parts = new Intl.DateTimeFormat(tag, options).formatToParts(date);
-  const value = parts.find((p) => p.type === type)?.value ?? '';
-  return value.charAt(0).toLocaleUpperCase(tag) + value.slice(1);
-}
+const CALENDAR_KEYS = [
+  ['monthNames', 12],
+  ['monthNamesShort', 12],
+  ['dayNames', 7],
+  ['dayNamesShort', 7],
+  ['dayNamesMin', 7],
+] as const;
 
 /**
- * PrimeNG DatePicker strings from `Intl` (ADR-033). A lone `month`/`weekday` option yields the
- * stand-alone form (ru "октябрь", not the genitive); the first letter is capitalised for the
- * calendar header. `chooseMonth`/`chooseYear` stay empty so the buttons are named by their text.
- * Sunday-first, as PrimeNG expects (2024-01-07 is a Sunday).
+ * The `calendar` block of a loaded translation file (ADR-033), or null when it is missing or
+ * malformed (wrong shape or array length), so a bad file never breaks the DatePicker.
  */
-function primeNgLocale(tag: string) {
-  const months = Array.from({ length: 12 }, (_, m) => new Date(2024, m, 15));
-  const days = Array.from({ length: 7 }, (_, d) => new Date(2024, 0, 7 + d));
-  const dayShort = days.map((d) => part(tag, { weekday: 'short' }, d, 'weekday'));
-  // Two letters like PrimeNG's default, unless that makes days ambiguous (hy: Երկ/Երք -> Եր/Եր).
-  const twoLetter = dayShort.map((s) => s.slice(0, 2));
-  const dayMin = new Set(twoLetter).size === 7 ? twoLetter : dayShort;
-  return {
-    monthNames: months.map((d) => part(tag, { month: 'long' }, d, 'month')),
-    monthNamesShort: months.map((d) => part(tag, { month: 'short' }, d, 'month')),
-    dayNames: days.map((d) => part(tag, { weekday: 'long' }, d, 'weekday')),
-    dayNamesShort: dayShort,
-    dayNamesMin: dayMin,
-    chooseMonth: '',
-    chooseYear: '',
-  };
+function calendarFrom(translations: unknown): Record<string, string[]> | null {
+  const calendar = (translations as { calendar?: unknown } | null | undefined)?.calendar;
+  if (typeof calendar !== 'object' || calendar === null) return null;
+  const result: Record<string, string[]> = {};
+  for (const [key, length] of CALENDAR_KEYS) {
+    const value = (calendar as Record<string, unknown>)[key];
+    if (
+      !Array.isArray(value) ||
+      value.length !== length ||
+      !value.every((s) => typeof s === 'string')
+    ) {
+      return null;
+    }
+    result[key] = value as string[];
+  }
+  return result;
 }
 
 const LANGUAGES: readonly LanguageOption[] = [
@@ -77,6 +77,14 @@ export class LanguageService {
 
   /** The active language. Resolved from storage at construction time. */
   readonly current = signal<LanguageOption>(this.resolveInitial());
+
+  constructor() {
+    // Translations load over HTTP, so PrimeNG's calendar strings (ADR-033) are pushed when a
+    // language's file has arrived (this also covers the first hydrate), not in `use()`.
+    this.translate.onLangChange
+      .pipe(takeUntilDestroyed())
+      .subscribe((event) => this.pushCalendar(event.translations));
+  }
 
   /** Applies the resolved language to ngx-translate. Call once, on app boot. */
   hydrate(): void {
@@ -124,13 +132,20 @@ export class LanguageService {
     }
   }
 
-  /**
-   * Keeps `<html lang>` and PrimeNG's own locale strings (DatePicker month/day names; ADR-033)
-   * in step with the UI language.
-   */
+  /** Keeps `<html lang>` in step with the UI language (screen readers, hyphenation, spellcheck). */
   private setDocumentLang(code: LanguageCode): void {
     this.document.documentElement.lang = code;
-    this.primeng.setTranslation(primeNgLocale(localeTagForLanguage(code)));
+  }
+
+  /**
+   * Pushes the language's DatePicker month/day names to PrimeNG. `chooseMonth`/`chooseYear` stay
+   * empty so the buttons are named by their visible text. A missing or malformed `calendar`
+   * block skips the push (PrimeNG keeps its previous strings) and never throws.
+   */
+  private pushCalendar(translations: unknown): void {
+    const calendar = calendarFrom(translations);
+    if (calendar === null) return;
+    this.primeng.setTranslation({ ...calendar, chooseMonth: '', chooseYear: '' });
   }
 
   private resolveInitial(): LanguageOption {

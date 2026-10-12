@@ -140,44 +140,62 @@ describe('LanguageService', () => {
   });
 
   describe('PrimeNG translation (ADR-033)', () => {
-    function pushed(code: 'en' | 'ru' | 'hy') {
+    const range = (n: number, prefix: string) => Array.from({ length: n }, (_, i) => `${prefix}${i}`);
+    const calendarFor = (prefix: string) => ({
+      monthNames: range(12, `${prefix}-m`),
+      monthNamesShort: range(12, `${prefix}-ms`),
+      dayNames: range(7, `${prefix}-d`),
+      dayNamesShort: range(7, `${prefix}-ds`),
+      dayNamesMin: range(7, `${prefix}-dm`),
+    });
+
+    function setup(translations: Record<string, object>) {
       const service = createService();
-      const setTranslation = vi.spyOn(TestBed.inject(PrimeNG), 'setTranslation');
-      service.use(code);
-      return setTranslation.mock.calls.at(-1)![0];
+      const translate = TestBed.inject(TranslateService);
+      for (const [code, value] of Object.entries(translations)) {
+        translate.setTranslation(code, value as Parameters<TranslateService['setTranslation']>[1]);
+      }
+      return { service, setTranslation: vi.spyOn(TestBed.inject(PrimeNG), 'setTranslation') };
     }
 
-    it.each([
-      ['en', 'october', 'sunday'],
-      ['ru', 'октябрь', 'воскресенье'],
-      ['hy', 'հոկտեմբեր', 'կիրակի'],
-    ] as const)('use(%s) pushes %s and a Sunday-first week', (code, october, sunday) => {
-      const t = pushed(code);
+    it.each(['en', 'ru', 'hy'] as const)(
+      'use(%s) pushes that language file’s calendar, with empty chooseMonth/chooseYear',
+      (code) => {
+        const { service, setTranslation } = setup({ [code]: { calendar: calendarFor(code) } });
 
-      expect(t.monthNames).toHaveLength(12);
-      expect(t.monthNames![9].toLowerCase()).toBe(october);
-      expect(t.dayNames).toHaveLength(7);
-      expect(t.dayNames![0].toLowerCase()).toBe(sunday);
-      expect(t.dayNamesShort).toHaveLength(7);
-      expect(t.dayNamesMin).toHaveLength(7);
-      expect(t.monthNamesShort).toHaveLength(12);
-    });
+        service.use(code);
 
-    it.each(['en', 'ru', 'hy'] as const)('use(%s) keeps chooseMonth/chooseYear empty', (code) => {
-      const t = pushed(code);
+        expect(setTranslation).toHaveBeenCalledTimes(1);
+        expect(setTranslation).toHaveBeenCalledWith({
+          ...calendarFor(code),
+          chooseMonth: '',
+          chooseYear: '',
+        });
+      },
+    );
 
-      expect(t.chooseMonth).toBe('');
-      expect(t.chooseYear).toBe('');
-    });
-
-    it('hydrate() pushes the stored language', () => {
+    it('hydrate() pushes the stored language’s calendar', () => {
       window.localStorage.setItem(STORAGE_KEY, 'ru');
-      const service = createService();
-      const setTranslation = vi.spyOn(TestBed.inject(PrimeNG), 'setTranslation');
+      const { service, setTranslation } = setup({ ru: { calendar: calendarFor('ru') } });
 
       service.hydrate();
 
-      expect(setTranslation.mock.calls.at(-1)![0].monthNames![9].toLowerCase()).toBe('октябрь');
+      expect(setTranslation).toHaveBeenCalledWith(expect.objectContaining(calendarFor('ru')));
+    });
+
+    it('skips the push, without throwing, when calendar is missing or malformed', () => {
+      const { service, setTranslation } = setup({
+        en: {},
+        ru: { calendar: { ...calendarFor('ru'), dayNames: ['only one'] } },
+        hy: { calendar: 'nope' },
+      });
+
+      expect(() => {
+        service.use('en');
+        service.use('ru');
+        service.use('hy');
+      }).not.toThrow();
+      expect(setTranslation).not.toHaveBeenCalled();
     });
   });
 
