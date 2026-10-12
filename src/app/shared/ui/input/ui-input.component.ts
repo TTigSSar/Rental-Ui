@@ -11,13 +11,14 @@ import {
   signal,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { TranslatePipe } from '@ngx-translate/core';
 
 let _idSeed = 0;
 
 @Component({
   selector: 'app-ui-input',
   standalone: true,
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './ui-input.component.html',
   styleUrl: './ui-input.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

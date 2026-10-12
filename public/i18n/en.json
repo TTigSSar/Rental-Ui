@@ -1,6 +1,8 @@
 {
   "common": {
     "back": "Back",
+    "clear": "Clear",
+    "clearCategory": "Clear category",
     "close": "Close",
     "retry": "Try again"
   },
@@ -22,7 +24,6 @@
         "searchPlaceholder": "Search toys, brands, owners...",
         "searchAria": "Search toys, brands, owners",
         "searchButton": "Search",
-        "searchSubmitAria": "Submit search",
         "openMessagesAria": "Open messages",
         "verified": "Verified",
         "accountNavAria": "Account navigation",

@@ -1,6 +1,7 @@
 import { NgClass } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export type PageHeaderAlign = 'start' | 'center';
 export type PageHeaderSpacing = 'compact' | 'comfortable';
@@ -9,7 +10,7 @@ export type PageHeaderMobileTitleAlign = 'center' | 'start';
 @Component({
   selector: 'app-ui-page-header',
   standalone: true,
-  imports: [NgClass, RouterLink],
+  imports: [NgClass, RouterLink, TranslatePipe],
   templateUrl: './page-header.component.html',
   styleUrl: './page-header.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

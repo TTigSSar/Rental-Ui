@@ -1,6 +1,8 @@
 ﻿{
   "common": {
     "back": "Назад",
+    "clear": "Очистить",
+    "clearCategory": "Очистить категорию",
     "close": "Закрыть",
     "retry": "Повторить"
   },
@@ -22,7 +24,6 @@
         "searchPlaceholder": "Поиск игрушек, брендов, владельцев...",
         "searchAria": "Поиск игрушек, брендов, владельцев",
         "searchButton": "Поиск",
-        "searchSubmitAria": "Выполнить поиск",
         "openMessagesAria": "Открыть сообщения",
         "verified": "Подтверждён",
         "accountNavAria": "Навигация по аккаунту",

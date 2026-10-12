@@ -1,6 +1,8 @@
 ﻿{
   "common": {
     "back": "Հետ",
+    "clear": "Մաքրել",
+    "clearCategory": "Մաքրել կատեգորիան",
     "close": "Փակել",
     "retry": "Կրկնել"
   },
@@ -22,7 +24,6 @@
         "searchPlaceholder": "Որոնել խաղալիքներ, բրենդներ, սեփականատերեր...",
         "searchAria": "Որոնել խաղալիքներ, բրենդներ, սեփականատերեր",
         "searchButton": "Որոնել",
-        "searchSubmitAria": "Կատարել որոնում",
         "openMessagesAria": "Բացել հաղորդագրությունները",
         "verified": "Հաստատված",
         "accountNavAria": "Հաշվի նավիգացիա",

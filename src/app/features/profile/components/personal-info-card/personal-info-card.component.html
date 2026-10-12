@@ -9,33 +9,35 @@
       </button>
     </div>
 
-    <dl class="pi-card__rows">
+    <!-- Plain blocks, not a <dl>: each row has an icon plus a wrapper around its label and
+         values, which a description list does not allow (axe definition-list / dlitem). -->
+    <div class="pi-card__rows">
       <div class="pi-card__row">
         <i class="pi pi-phone pi-card__row-icon" aria-hidden="true"></i>
         <div class="pi-card__row-body">
-          <dt class="pi-card__label">{{ 'profile.infoLabel.phone' | translate }}</dt>
-          <dd class="pi-card__value" [class.pi-card__value--none]="displayPhone() === ''">
+          <div class="pi-card__label">{{ 'profile.infoLabel.phone' | translate }}</div>
+          <div class="pi-card__value" [class.pi-card__value--none]="displayPhone() === ''">
             {{ displayPhone() || ('profile.personal.none' | translate) }}
-          </dd>
-          <dd class="pi-card__sub pi-card__sub--accent">
+          </div>
+          <div class="pi-card__sub pi-card__sub--accent">
             <i class="pi pi-shield" aria-hidden="true"></i>
             {{ 'auth.phoneStep.privacy' | translate }}
-          </dd>
+          </div>
         </div>
       </div>
 
       <div class="pi-card__row">
         <i class="pi pi-envelope pi-card__row-icon" aria-hidden="true"></i>
         <div class="pi-card__row-body">
-          <dt class="pi-card__label">{{ 'profile.infoLabel.email' | translate }}</dt>
-          <dd class="pi-card__value pi-card__value--wrap">{{ user()?.email }}</dd>
-          <dd class="pi-card__sub">
+          <div class="pi-card__label">{{ 'profile.infoLabel.email' | translate }}</div>
+          <div class="pi-card__value pi-card__value--wrap">{{ user()?.email }}</div>
+          <div class="pi-card__sub">
             <i class="pi pi-lock" aria-hidden="true"></i>
             {{ 'profile.personal.emailNote' | translate }}
-          </dd>
+          </div>
         </div>
       </div>
-    </dl>
+    </div>
   } @else {
     <!-- Edit in place -->
     <form class="pi-card__form" novalidate (submit)="$event.preventDefault(); save()" [formGroup]="form">

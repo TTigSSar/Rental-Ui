@@ -5,7 +5,7 @@
   <div class="ph__row">
     <div class="ph__row-start">
       @if (backLink()) {
-        <a class="ph__back" [routerLink]="backLink()" aria-label="Go back">
+        <a class="ph__back" [routerLink]="backLink()" [attr.aria-label]="'common.back' | translate">
           <i class="pi pi-chevron-left" aria-hidden="true"></i>
         </a>
       }
