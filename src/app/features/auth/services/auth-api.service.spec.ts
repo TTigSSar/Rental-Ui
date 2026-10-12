@@ -63,6 +63,7 @@ describe('AuthApiService.updatePreferredLanguage', () => {
       email: 'renter@rental.local',
       firstName: 'Anna',
       lastName: 'Renter',
+      phoneNumber: null,
       preferredLanguage: 'ru',
       roles: ['User'],
       // A payload with no `homePoint` member maps to null — the same state as a
@@ -217,6 +218,26 @@ describe('AuthApiService — homePoint normalisation (GET /api/auth/me)', () => 
 
   it('maps homePoint to null when the user has not set one', () => {
     expect(flushMe(null).homePoint).toBeNull();
+  });
+
+  it('passes phoneNumber through when it is a string', () => {
+    expect(flushMe(null).phoneNumber).toBe('+37400000000');
+  });
+
+  it('defaults phoneNumber to null when missing or not a string', () => {
+    for (const phoneNumber of [undefined, null, 123]) {
+      let result: CurrentUser | undefined;
+      service.getCurrentUser().subscribe((user) => (result = user));
+      httpMock.expectOne(toApiUrl(ApiContract.auth.currentUser)).flush({
+        id: 'u1',
+        email: 'a@b.c',
+        firstName: 'A',
+        lastName: 'B',
+        phoneNumber,
+        homePoint: null,
+      });
+      expect(result!.phoneNumber).toBeNull();
+    }
   });
 });
 

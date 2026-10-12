@@ -1,0 +1,297 @@
+/* ── Step dialogs: "What should we call you?" and "Add your phone number" ──────
+   One shell shared by both (ADR-030 §9, board 2): a 448/480 px dialog on desktop, a
+   bottom sheet on mobile, laid out like the home-point gate (icon tile, title, one line
+   of why, the field, a privacy note, one primary button).
+
+   Imported by both components, which are ViewEncapsulation.None: `p-dialog` is portalled
+   to <body>, so its shell never receives an emulated `_ngcontent` attribute. Every
+   selector is namespaced `dr-step*`. */
+
+.p-dialog.dr-step-dialog {
+  width: min(var(--dr-step-width, 480px), calc(100vw - 2rem));
+  border-radius: var(--ui-radius-lg);
+  overflow: hidden;
+}
+
+.p-dialog.dr-step-dialog--name {
+  --dr-step-width: 448px;
+}
+
+.p-dialog.dr-step-dialog .p-dialog-header {
+  padding: 0;
+  background: var(--ui-color-surface);
+  border-bottom: none;
+  min-height: 0;
+}
+
+.p-dialog.dr-step-dialog .p-dialog-content {
+  padding: 0;
+  background: var(--ui-color-surface);
+  overflow-y: auto;
+}
+
+/* ── Header: grab handle (mobile) / close button (desktop, phone step only) ── */
+.dr-step__head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  padding: var(--ui-space-14) var(--ui-space-14) 0 var(--ui-space-24);
+}
+
+.dr-step__head--empty {
+  padding: var(--ui-space-12) 0 0;
+}
+
+.dr-step__grab {
+  display: none;
+  width: 40px;
+  height: 5px;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-border);
+}
+
+.dr-step__x {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--ui-radius-pill);
+  background: transparent;
+  color: var(--ui-color-text-secondary);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--ui-color-surface-muted);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    color: var(--ui-color-text-muted);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary);
+    outline-offset: 2px;
+  }
+}
+
+.dr-step__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Body ─────────────────────────────────────────────────────── */
+.dr-step__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-14);
+  margin: 0;
+  padding: 0 var(--ui-space-24) var(--ui-space-8);
+}
+
+/* The name step has no header row, so it carries its own top padding. */
+.dr-step-dialog--name .dr-step__body {
+  padding: var(--ui-space-24);
+}
+
+.dr-step__tile {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-primary-soft);
+  color: var(--ui-color-primary);
+
+  .pi {
+    font-size: 1.375rem;
+  }
+}
+
+.dr-step__eyebrow {
+  margin: 0 0 var(--ui-space-4);
+  font-size: 0.6875rem;
+  font-weight: var(--ui-font-weight-extrabold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ui-color-text-secondary);
+}
+
+.dr-step__title {
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: var(--ui-font-weight-extrabold);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--ui-color-text-primary);
+}
+
+.dr-step__lead {
+  margin: 6px 0 0;
+  font-size: 0.84375rem;
+  line-height: 1.55;
+  color: var(--ui-color-text-secondary);
+}
+
+.dr-step__fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--ui-space-12);
+}
+
+.dr-step__privnote {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 0;
+  font-size: 0.78125rem;
+  line-height: 1.5;
+  color: var(--ui-color-text-secondary);
+
+  .pi {
+    flex: none;
+    margin-top: 2px;
+    font-size: 0.9375rem;
+    color: var(--ui-color-primary);
+  }
+}
+
+/* ── Actions ──────────────────────────────────────────────────── */
+.dr-step__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px var(--ui-space-24) var(--ui-space-20);
+}
+
+.dr-step-dialog--name .dr-step__actions {
+  padding: 0;
+}
+
+.dr-step__cta.p-button {
+  width: 100%;
+  border-radius: var(--ui-radius-pill);
+  min-height: var(--ui-button-min-height-lg);
+  background: var(--ui-color-primary);
+  border-color: var(--ui-color-primary);
+  font-weight: var(--ui-font-weight-bold);
+}
+
+.dr-step__cta.p-button:hover:not(:disabled) {
+  background: var(--ui-color-primary-strong);
+  border-color: var(--ui-color-primary-strong);
+}
+
+.dr-step__cta.p-button:disabled {
+  opacity: 0.85;
+}
+
+.dr-step__later {
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--ui-font-size-caption);
+  font-weight: var(--ui-font-weight-bold);
+  color: var(--ui-color-text-primary);
+  cursor: pointer;
+
+  &:disabled {
+    color: var(--ui-color-text-muted);
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* ── Mobile: bottom sheet + slide animation (same as the auth dialog) ── */
+@media (max-width: 560px) {
+  @keyframes dr-step-slide-up {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes dr-step-slide-down {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(100%);
+    }
+  }
+
+  .p-dialog-enter-active.dr-step-dialog {
+    animation: dr-step-slide-up 320ms cubic-bezier(0.32, 0.72, 0, 1) both;
+    transition: none;
+  }
+
+  .p-dialog-leave-active.dr-step-dialog {
+    animation: dr-step-slide-down 220ms cubic-bezier(0.4, 0, 1, 1) both;
+    transition: none;
+  }
+
+  .p-dialog.dr-step-dialog {
+    width: 100vw;
+    margin: 0;
+    border-radius: 24px 24px 0 0;
+    max-height: calc(100dvh - 16px);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+  }
+
+  .dr-step__head,
+  .dr-step__head--empty {
+    justify-content: center;
+    padding: 10px 0 4px;
+  }
+
+  .dr-step__grab {
+    display: block;
+  }
+
+  /* The sheet has no X: "Not now" and Esc are its ways out. */
+  .dr-step__head .dr-step__x {
+    display: none;
+  }
+
+  .dr-step__body {
+    padding: 4px var(--ui-space-20) var(--ui-space-8);
+  }
+
+  .dr-step-dialog--name .dr-step__body {
+    padding: 0 var(--ui-space-20) 30px;
+  }
+
+  .dr-step__actions {
+    padding: 10px var(--ui-space-20) 28px;
+  }
+
+  .dr-step__fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .p-dialog-enter-active.dr-step-dialog,
+  .p-dialog-leave-active.dr-step-dialog {
+    animation-duration: 1ms;
+  }
+}

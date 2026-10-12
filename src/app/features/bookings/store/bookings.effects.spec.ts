@@ -76,7 +76,7 @@ describe('BookingsEffects', () => {
       harness.send(BookingsActions.createBooking({ payload: { listingId: 'l1', startDate: 'a', endDate: 'b' } }));
       harness.complete();
 
-      expect(await result).toEqual([BookingsActions.createBookingFailure({ error: 'nope' })]);
+      expect(await result).toEqual([BookingsActions.createBookingFailure({ error: 'nope', errorCode: null })]);
     });
 
     it('maps booking.note_too_long to the translated i18n message, not the raw ProblemDetails title', async () => {
@@ -102,6 +102,29 @@ describe('BookingsEffects', () => {
       expect(await result).toEqual([
         BookingsActions.createBookingFailure({
           error: 'Your note is too long — please keep it to 280 characters or fewer.',
+          errorCode: 'booking.note_too_long',
+        }),
+      ]);
+    });
+
+    it('carries booking.phone_required so the booking page can open the phone step (ADR-030)', async () => {
+      const api = {
+        createBooking: vi
+          .fn()
+          .mockReturnValue(
+            throwError(() => problemDetails(409, 'booking.phone_required', 'Phone number is required.')),
+          ),
+      };
+      const { harness, effects } = setup(api);
+
+      const result = collect(effects.createBooking$);
+      harness.send(BookingsActions.createBooking({ payload: { listingId: 'l1', startDate: 'a', endDate: 'b' } }));
+      harness.complete();
+
+      expect(await result).toEqual([
+        BookingsActions.createBookingFailure({
+          error: 'Phone number is required.',
+          errorCode: 'booking.phone_required',
         }),
       ]);
     });

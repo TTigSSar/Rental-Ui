@@ -46,6 +46,7 @@ export function makeUser(overrides: Partial<CurrentUser> = {}): CurrentUser {
     email: 'user@example.com',
     firstName: 'Ada',
     lastName: 'Lovelace',
+    phoneNumber: '+37400000000',
     roles: ['User'],
     homePoint: null,
     ...overrides,

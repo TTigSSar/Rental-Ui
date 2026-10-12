@@ -78,6 +78,16 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
+/* "An account with this email exists" (Google 409) sits above the Sign in form. */
+.auth-dialog__exists.p-message {
+  margin-top: var(--ui-space-16);
+}
+
+.auth-dialog__tab:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 /* ── Mobile bottom-sheet layout + slide animation ──────────────── */
 @media (max-width: 560px) {
   @keyframes auth-dialog-slide-up {

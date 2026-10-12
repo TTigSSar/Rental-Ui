@@ -1,0 +1,88 @@
+<!-- Closing is handled here (X, "Not now", Esc), never by p-dialog: PrimeNG would close
+     itself without asking, even while the phone is being saved. -->
+<p-dialog
+  [visible]="visible()"
+  [modal]="true"
+  [closable]="false"
+  [closeOnEscape]="false"
+  [dismissableMask]="false"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="dr-step-dialog dr-step-dialog--phone"
+  appendTo="body"
+>
+  <ng-template pTemplate="header" let-labelledBy="ariaLabelledBy">
+    <div class="dr-step__head">
+      <span class="dr-step__sr" [id]="labelledBy">{{ 'auth.phoneStep.title' | translate }}</span>
+      <span class="dr-step__grab" aria-hidden="true"></span>
+      <button
+        type="button"
+        class="dr-step__x"
+        [disabled]="saving()"
+        [attr.aria-label]="'auth.phoneStep.close' | translate"
+        (click)="cancel()"
+      >
+        <i class="pi pi-times" aria-hidden="true"></i>
+      </button>
+    </div>
+  </ng-template>
+
+  <form novalidate (submit)="$event.preventDefault(); submit()">
+    <div class="dr-step__body">
+      <span class="dr-step__tile" aria-hidden="true"><i class="pi pi-phone"></i></span>
+
+      <div>
+        <p class="dr-step__eyebrow">
+          {{
+            (isListing() ? 'auth.phoneStep.eyebrowListing' : 'auth.phoneStep.eyebrowBooking')
+              | translate
+          }}
+        </p>
+        <h2 class="dr-step__title">{{ 'auth.phoneStep.title' | translate }}</h2>
+        <p class="dr-step__lead">{{ 'auth.phoneStep.why' | translate }}</p>
+      </div>
+
+      @if (hasSaveError()) {
+        <p-message severity="error" icon="pi pi-exclamation-circle"
+          styleClass="ui-msg ui-msg--error"
+          data-testid="phone-step-error">
+          {{ 'profile.personal.errServer' | translate }}
+        </p-message>
+      }
+
+      <app-ui-input
+        type="tel"
+        autocomplete="tel"
+        [formControl]="phone"
+        [label]="'profile.infoLabel.phone' | translate"
+        [placeholder]="'auth.phoneStep.placeholder' | translate"
+        [maxLength]="32"
+        [errorMessage]="invalid() ? ('auth.phoneStep.error' | translate) : null"
+        (valueChange)="onType()"
+      />
+
+      <p class="dr-step__privnote">
+        <i class="pi pi-shield" aria-hidden="true"></i>
+        <span>{{ 'auth.phoneStep.privacy' | translate }}</span>
+      </p>
+    </div>
+
+    <div class="dr-step__actions">
+      <p-button
+        type="submit"
+        styleClass="dr-step__cta"
+        [label]="
+          saving()
+            ? ('auth.phoneStep.saving' | translate)
+            : ((isListing() ? 'auth.phoneStep.ctaListing' : 'auth.phoneStep.ctaBooking')
+              | translate)
+        "
+        [loading]="saving()"
+        [disabled]="saving()"
+      />
+      <button type="button" class="dr-step__later" [disabled]="saving()" (click)="cancel()">
+        {{ 'listings.createForm.homeGate.later' | translate }}
+      </button>
+    </div>
+  </form>
+</p-dialog>

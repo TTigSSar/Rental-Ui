@@ -21,6 +21,7 @@ import {
   selectIsAuthenticated,
 } from './features/auth/store/auth.selectors';
 import { AuthDialogComponent } from './features/auth/components/auth-dialog/auth-dialog.component';
+import { NameStepComponent } from './features/auth/components/name-step/name-step.component';
 import { OwnerRequestsBadgeService } from './features/bookings/services/owner-requests-badge.service';
 import { ChatBadgeService } from './features/chat/services/chat-badge.service';
 import { ChatRealtimeService } from './features/chat/services/chat-realtime.service';
@@ -138,6 +139,7 @@ function isChatThreadUrl(url: string): boolean {
     AppHeaderComponent,
     AuthDialogComponent,
     BootScreenComponent,
+    NameStepComponent,
     RouterLink,
     RouterLinkActive,
     RouterOutlet,

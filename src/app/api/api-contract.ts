@@ -27,6 +27,12 @@ export const ApiContract = {
     // outside the 12 Yerevan districts.
     homePoint: '/api/auth/me/home-point',
     external: '/api/auth/external',
+    // Google sign-in v1 (ADR-030). externalNonce: anonymous POST -> 200
+    // `ExternalNonceResponse` (429, 503 auth.external_provider_unavailable).
+    // meName / mePhone: [Authorize] PUT -> 204 (400, 401, 403 auth.user_blocked, 429).
+    externalNonce: '/api/auth/external/nonce',
+    meName: '/api/auth/me/name',
+    mePhone: '/api/auth/me/phone',
     // Email verification (ADR-028). register now answers 201 `RegisterResponse` (no token).
     // verify-email: anonymous, body { token, password } -> 200 AuthResponse.
     // resend-verification: anonymous, body { email } -> 202 empty body, always.

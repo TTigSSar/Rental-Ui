@@ -7,6 +7,7 @@ import type {
   LoginRequest,
   RegisterRequest,
   UpdateHomePointRequest,
+  UpdateNameRequest,
 } from '../models/auth.models';
 
 export const login = createAction(
@@ -76,9 +77,14 @@ export const externalAuthSuccess = createAction(
   props<{ token: string }>(),
 );
 
+/**
+ * `errorCode` (the `ServiceError` code) and `status` (the HTTP status) let the Google
+ * block pick its message and tone (ADR-030): 409 `auth.external_link_conflict` switches
+ * the dialog to Sign in, 429 carries no code at all and is told apart by `status`.
+ */
 export const externalAuthFailure = createAction(
   '[Auth] External Auth Failure',
-  props<{ error: string }>(),
+  props<{ error: string; errorCode?: ApiErrorCode | null; status?: number | null }>(),
 );
 
 export const loadCurrentUser = createAction('[Auth] Load Current User');
@@ -174,3 +180,44 @@ export const clearHomePointFailure = createAction(
 /** Drops a home-point error without firing any request — dispatched when the
  *  picker/confirmation is reopened, so a stale refusal never greets the user. */
 export const clearHomePointError = createAction('[Auth] Clear Home Point Error');
+
+// ── Name and phone (ADR-030 §5, §8) ────────────────────────────────
+
+/** `PUT /api/auth/me/name`. */
+export const updateName = createAction(
+  '[Auth] Update Name',
+  props<{ payload: UpdateNameRequest }>(),
+);
+
+/** The trimmed values the server accepted (it answers 204, no body). */
+export const updateNameSuccess = createAction(
+  '[Auth] Update Name Success',
+  props<{ firstName: string; lastName: string }>(),
+);
+
+/** `errorCode` is `auth.invalid_name` (400) for a name the server refuses. */
+export const updateNameFailure = createAction(
+  '[Auth] Update Name Failure',
+  props<{ error: string; errorCode?: ApiErrorCode | null }>(),
+);
+
+/** `PUT /api/auth/me/phone`. */
+export const updatePhone = createAction(
+  '[Auth] Update Phone',
+  props<{ phoneNumber: string }>(),
+);
+
+/** The trimmed number the server accepted. */
+export const updatePhoneSuccess = createAction(
+  '[Auth] Update Phone Success',
+  props<{ phoneNumber: string }>(),
+);
+
+export const updatePhoneFailure = createAction(
+  '[Auth] Update Phone Failure',
+  props<{ error: string; errorCode?: ApiErrorCode | null }>(),
+);
+
+/** Drops name/phone save errors without a request — dispatched when a step or the
+ *  profile card is (re)opened, so a stale refusal never greets the user. */
+export const clearProfileWriteError = createAction('[Auth] Clear Profile Write Error');

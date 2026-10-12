@@ -1,8 +1,11 @@
+import type { ApiErrorCode } from '../../../api/api-error.model';
 import type { BookingDetail, BookingRequest, MyBooking } from '../models/booking.model';
 
 export interface BookingsState {
   createBookingLoading: boolean;
   createBookingError: string | null;
+  /** The `ServiceError` code behind `createBookingError` (409 `booking.phone_required`). */
+  createBookingErrorCode: ApiErrorCode | null;
   createBookingSuccessId: string | null;
   myBookings: MyBooking[];
   myBookingsLoading: boolean;
@@ -27,6 +30,7 @@ export interface BookingsState {
 export const initialBookingsState: BookingsState = {
   createBookingLoading: false,
   createBookingError: null,
+  createBookingErrorCode: null,
   createBookingSuccessId: null,
   myBookings: [],
   myBookingsLoading: false,

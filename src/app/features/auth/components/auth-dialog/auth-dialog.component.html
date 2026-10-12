@@ -8,6 +8,7 @@
   [resizable]="false"
   styleClass="auth-dialog"
   appendTo="body"
+  (onHide)="onHidden()"
 >
   <ng-template pTemplate="header">
     <div class="auth-dialog__drag-handle" aria-hidden="true"></div>
@@ -25,6 +26,7 @@
         [class.auth-dialog__tab--active]="activeMode() === 'login'"
         role="tab"
         [attr.aria-selected]="activeMode() === 'login'"
+        [disabled]="isLoading()"
         (click)="switchToLogin()"
       >
         {{ 'auth.login.title' | translate }}
@@ -35,16 +37,41 @@
         [class.auth-dialog__tab--active]="activeMode() === 'register'"
         role="tab"
         [attr.aria-selected]="activeMode() === 'register'"
+        [disabled]="isLoading()"
         (click)="switchToRegister()"
       >
         {{ 'auth.register.title' | translate }}
       </button>
     </div>
 
+    <!-- Google at the top of Sign in and of Register step 1 only (ADR-030 section 9); only while the dialog is open. -->
+    @if (blockMounted() && googleBlockVisible()) {
+      @for (epoch of [blockEpoch()]; track epoch) {
+        <app-google-sign-in-block
+          (linkConflict)="onLinkConflict($event)"
+          (attempt)="onGoogleAttempt()"
+        />
+      }
+    }
+
+    @if (linkConflictVisible() && activeMode() === 'login') {
+      <p-message
+        severity="info"
+        icon="pi pi-user"
+        styleClass="auth-dialog__exists ui-msg ui-msg--info"
+        data-testid="google-exists"
+      >
+        {{ 'auth.google.eExists' | translate }}
+      </p-message>
+    }
+
     @if (activeMode() === 'login') {
-      <app-login-form (switchMode)="switchToRegister()" />
+      <app-login-form [prefill]="loginPrefill()" (switchMode)="switchToRegister()" />
     } @else {
-      <app-register-form (switchMode)="switchToLogin()" />
+      <app-register-form
+        (switchMode)="switchToLogin()"
+        (firstStepChange)="onRegisterFirstStep($event)"
+      />
     }
   </div>
 </p-dialog>

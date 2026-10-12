@@ -107,6 +107,13 @@ export const selectCreateListingHomePointRequired = createSelector(
     state.createListingErrorCode === 'listing.home_point_required',
 );
 
+/** 409 `listing.phone_required` — refused BEFORE any write (ADR-030 §8), so the wizard
+ *  opens the phone step and re-sends once the number is saved. */
+export const selectCreateListingPhoneRequired = createSelector(
+  selectListingsState,
+  (state: ListingsState): boolean => state.createListingErrorCode === 'listing.phone_required',
+);
+
 export const selectCreateListingSuccessId = createSelector(
   selectListingsState,
   (state: ListingsState): string | null => state.createListingSuccessId,

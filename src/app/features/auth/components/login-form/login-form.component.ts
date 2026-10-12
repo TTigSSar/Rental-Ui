@@ -5,9 +5,15 @@ import {
   EventEmitter,
   Output,
   ViewEncapsulation,
+  Injector,
+  afterNextRender,
   computed,
+  effect,
   inject,
+  input,
   signal,
+  untracked,
+  viewChild,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
@@ -44,6 +50,18 @@ import { ResendVerificationComponent } from '../resend-verification/resend-verif
 export class LoginFormComponent {
   @Output() readonly switchMode = new EventEmitter<void>();
 
+  /**
+   * Set after a Google 409 `auth.external_link_conflict` (ADR-030 section 9): the email
+   * claim of the Google credential, shown in the email field - display only, the password
+   * is what signs the user in - and focus moves to the password field. `seq` lets a
+   * repeat conflict re-apply the same address.
+   */
+  readonly prefill = input<{ email: string | null; seq: number } | null>(null);
+
+  private readonly passwordInput = viewChild<UiInputComponent>('passwordInput');
+  private readonly injector = inject(Injector);
+  private lastAppliedPrefillSeq = 0;
+
   private readonly fb = inject(FormBuilder);
   private readonly store = inject(Store);
   private readonly isLoading = this.store.selectSignal(selectAuthLoading);
@@ -66,6 +84,26 @@ export class LoginFormComponent {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
   });
+
+  constructor() {
+    effect(() => {
+      const prefill = this.prefill();
+      const password = this.passwordInput();
+      if (prefill === null || password === undefined) {
+        return;
+      }
+      untracked(() => {
+        if (prefill.seq === this.lastAppliedPrefillSeq) {
+          return;
+        }
+        this.lastAppliedPrefillSeq = prefill.seq;
+        if (prefill.email !== null) {
+          this.loginForm.controls.email.setValue(prefill.email);
+        }
+        afterNextRender(() => password.focusInput(), { injector: this.injector });
+      });
+    });
+  }
 
   protected submit(): void {
     if (this.isLoading()) return;

@@ -1,0 +1,106 @@
+<section class="pi-card" aria-labelledby="pi-card-title" data-testid="personal-info-card">
+  @if (!editing()) {
+    <!-- View -->
+    <div class="pi-card__head">
+      <h2 class="pi-card__title" id="pi-card-title">{{ 'profile.personal.title' | translate }}</h2>
+      <button type="button" class="pi-card__edit" data-testid="personal-info-edit" (click)="edit()">
+        <i class="pi pi-pencil" aria-hidden="true"></i>
+        {{ 'profile.edit' | translate }}
+      </button>
+    </div>
+
+    <dl class="pi-card__rows">
+      <div class="pi-card__row">
+        <i class="pi pi-phone pi-card__row-icon" aria-hidden="true"></i>
+        <div class="pi-card__row-body">
+          <dt class="pi-card__label">{{ 'profile.infoLabel.phone' | translate }}</dt>
+          <dd class="pi-card__value" [class.pi-card__value--none]="displayPhone() === ''">
+            {{ displayPhone() || ('profile.personal.none' | translate) }}
+          </dd>
+          <dd class="pi-card__sub pi-card__sub--accent">
+            <i class="pi pi-shield" aria-hidden="true"></i>
+            {{ 'auth.phoneStep.privacy' | translate }}
+          </dd>
+        </div>
+      </div>
+
+      <div class="pi-card__row">
+        <i class="pi pi-envelope pi-card__row-icon" aria-hidden="true"></i>
+        <div class="pi-card__row-body">
+          <dt class="pi-card__label">{{ 'profile.infoLabel.email' | translate }}</dt>
+          <dd class="pi-card__value pi-card__value--wrap">{{ user()?.email }}</dd>
+          <dd class="pi-card__sub">
+            <i class="pi pi-lock" aria-hidden="true"></i>
+            {{ 'profile.personal.emailNote' | translate }}
+          </dd>
+        </div>
+      </div>
+    </dl>
+  } @else {
+    <!-- Edit in place -->
+    <form class="pi-card__form" novalidate (submit)="$event.preventDefault(); save()" [formGroup]="form">
+      <h2 class="pi-card__title" id="pi-card-title">{{ 'profile.personal.title' | translate }}</h2>
+
+      @if (serverError()) {
+        <p-message severity="error" icon="pi pi-exclamation-circle"
+          styleClass="ui-msg ui-msg--error"
+          data-testid="personal-info-error">
+          {{ 'profile.personal.errServer' | translate }}
+        </p-message>
+      }
+
+      <div class="pi-card__fields">
+        <app-ui-input
+          formControlName="firstName"
+          autocomplete="given-name"
+          [label]="'auth.form.firstName' | translate"
+          [maxLength]="maxLength"
+          [errorMessage]="
+            firstNameInvalid() || nameRejected() ? ('auth.nameStep.error' | translate) : null
+          "
+          (valueChange)="clearFirstNameError()"
+        />
+        <app-ui-input
+          formControlName="lastName"
+          autocomplete="family-name"
+          [label]="
+            ('auth.form.lastName' | translate) + ' · ' + ('auth.nameStep.optional' | translate)
+          "
+          [maxLength]="maxLength"
+        />
+        <app-ui-input
+          type="tel"
+          formControlName="phoneNumber"
+          autocomplete="tel"
+          [label]="'profile.infoLabel.phone' | translate"
+          [placeholder]="'auth.phoneStep.placeholder' | translate"
+          [maxLength]="32"
+          [hint]="'auth.phoneStep.privacy' | translate"
+          [errorMessage]="phoneInvalid() ? ('auth.phoneStep.error' | translate) : null"
+          (valueChange)="clearPhoneError()"
+        />
+        <app-ui-input
+          type="email"
+          leftIcon="pi pi-lock"
+          [value]="user()?.email ?? ''"
+          [readonly]="true"
+          [label]="'profile.infoLabel.email' | translate"
+          [hint]="'profile.personal.emailNote' | translate"
+        />
+      </div>
+
+      <div class="pi-card__actions">
+        <button type="button" class="pi-card__cancel" [disabled]="saving()" (click)="cancel()">
+          {{ 'profile.personal.cancel' | translate }}
+        </button>
+        <p-button
+          type="submit"
+          styleClass="pi-card__save"
+          [label]="saving() ? ('auth.phoneStep.saving' | translate) : ('profile.personal.save' | translate)"
+          [loading]="saving()"
+          [disabled]="saving()"
+        />
+      </div>
+    </form>
+  }
+</section>

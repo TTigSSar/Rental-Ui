@@ -68,6 +68,12 @@ export type KnownApiErrorCode =
   | 'auth.external_invalid_token'
   | 'auth.external_email_missing'
   | 'auth.external_link_conflict'
+  // Google sign-in v1 (ADR-030). 409 on POST /api/auth/external: a pending (unverified)
+  // registration exists for the email. 503 on /external and /external/nonce.
+  | 'auth.external_pending_registration'
+  | 'auth.external_provider_unavailable'
+  // 400 on PUT /api/auth/me/name.
+  | 'auth.invalid_name'
   // Email verification (ADR-028).
   // 403 on POST /api/auth/login (checked after invalid_credentials and user_blocked).
   | 'auth.email_not_verified'
@@ -123,6 +129,8 @@ export type KnownApiErrorCode =
   | 'booking.not_activatable'
   | 'booking.not_completable'
   | 'booking.owner_only'
+  // 409 on POST /api/bookings when the renter has no phone number (ADR-030).
+  | 'booking.phone_required'
   // chat.* — ChatService
   | 'chat.unauthenticated'
   | 'chat.user_blocked'
@@ -152,6 +160,8 @@ export type KnownApiErrorCode =
   // REPLACES the removed `listing.district_not_found` — that code no longer exists
   // on the backend and must not be handled anywhere in the UI.
   | 'listing.home_point_required'
+  // 409 on POST /api/listings when the owner has no phone number (ADR-030).
+  | 'listing.phone_required'
   | 'listing.invalid_age_range'
   | 'listing.image_empty'
   | 'listing.image_invalid_type'
@@ -180,6 +190,7 @@ export type KnownApiErrorCode =
   | 'review.booking_not_found'
   | 'review.booking_not_completed'
   | 'review.forbidden'
+  | 'review.user_blocked'
   | 'review.already_submitted';
 
 /**

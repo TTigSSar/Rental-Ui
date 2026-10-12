@@ -9,7 +9,10 @@ import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
-import { makeListingDetails } from '../../../../../testing/fixtures';
+import { makeListingDetails, makeUser } from '../../../../../testing/fixtures';
+import * as AuthActions from '../../../auth/store/auth.actions';
+import { authFeatureKey } from '../../../auth/store/auth.reducer';
+import { initialAuthState } from '../../../auth/store/auth.state';
 import * as BookingsActions from '../../../bookings/store/bookings.actions';
 import { bookingsFeatureKey } from '../../../bookings/store/bookings.reducer';
 import { initialBookingsState } from '../../../bookings/store/bookings.state';
@@ -29,14 +32,14 @@ const LISTING_ID = 'listing-1';
 interface ProtectedApi {
   readonly form: {
     readonly controls: {
-      readonly noteForOwner: { setValue(value: string): void };
+      readonly noteForOwner: { readonly value: string; setValue(value: string): void };
     };
   };
   onRangeChange(event: { startDate: Date | null; endDate: Date | null }): void;
   onSubmit(): void;
 }
 
-function createFixture() {
+function createFixture(phoneNumber?: string | null) {
   TestBed.configureTestingModule({
     imports: [ListingBookingPageComponent, TranslateModule.forRoot()],
     providers: [
@@ -57,6 +60,17 @@ function createFixture() {
             }),
           },
           [bookingsFeatureKey]: initialBookingsState,
+          // No auth slice unless a test cares about the renter's phone: an unloaded user
+          // is not "missing a phone" (the server's 409 decides then).
+          ...(phoneNumber === undefined
+            ? {}
+            : {
+                [authFeatureKey]: {
+                  ...initialAuthState,
+                  isAuthenticated: true,
+                  user: makeUser({ phoneNumber }),
+                },
+              }),
           [reviewsFeatureKey]: initialReviewsState,
           [publicProfilesFeatureKey]: initialPublicProfilesState,
           [chatFeatureKey]: initialChatState,
@@ -293,5 +307,139 @@ describe('ListingBookingPageComponent — loss & damage compensation row + popov
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.booking-page__comp-popover')).not.toBeNull();
+  });
+});
+
+/**
+ * ADR-030 section 8: a renter without a phone is asked for it BEFORE the request is sent;
+ * the original request then goes out exactly once. A 409 `booking.phone_required` is the
+ * only server answer that opens the step on its own.
+ */
+describe('ListingBookingPageComponent - phone step', () => {
+  const stepOpen = (): boolean => document.querySelector('.dr-step-dialog--phone') !== null;
+  const createBookingCalls = (spy: { mock: { calls: unknown[][] } }) =>
+    spy.mock.calls.filter(([a]) => (a as unknown as Action).type === BookingsActions.createBooking.type);
+  const storeBase = (store: MockStore) =>
+    (store as unknown as { source: { value: Record<string, unknown> } }).source.value;
+
+  afterEach(() => {
+    document.querySelectorAll('.p-dialog-mask').forEach((el) => el.remove());
+  });
+
+  it('opens the step instead of sending when the renter has no phone, and keeps the form', async () => {
+    const { fixture, store, api } = createFixture(null);
+    const dispatchSpy = vi.spyOn(store, 'dispatch');
+    selectValidDateRange(api);
+    api.form.controls.noteForOwner.setValue('Saturday morning?');
+
+    api.onSubmit();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(createBookingCalls(dispatchSpy)).toHaveLength(0);
+    expect(stepOpen()).toBe(true);
+    expect(api.form.controls.noteForOwner.value).toBe('Saturday morning?');
+  });
+
+  it('sends the original request exactly once after the phone is saved', async () => {
+    const { fixture, store, api } = createFixture(null);
+    const dispatchSpy = vi.spyOn(store, 'dispatch');
+    selectValidDateRange(api);
+    api.onSubmit();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const input = document.querySelector<HTMLInputElement>('.dr-step-dialog--phone input');
+    input!.value = '  +374 99 123 456 ';
+    input!.dispatchEvent(new Event('input'));
+    document
+      .querySelector<HTMLButtonElement>('.dr-step-dialog--phone button[type="submit"]')!
+      .click();
+    const savePhone = dispatchSpy.mock.calls.find(
+      ([a]) => (a as unknown as Action).type === AuthActions.updatePhone.type,
+    );
+    expect(savePhone?.[0]).toEqual(AuthActions.updatePhone({ phoneNumber: '+374 99 123 456' }));
+
+    // the store answers: saving, then done with the phone on the user
+    const authSlice = (phoneSaving: boolean, phone: string | null) => ({
+      ...initialAuthState,
+      isAuthenticated: true,
+      phoneSaving,
+      user: makeUser({ phoneNumber: phone }),
+    });
+    const base = storeBase(store);
+    store.setState({ ...base, [authFeatureKey]: authSlice(true, null) });
+    fixture.detectChanges();
+    store.setState({ ...base, [authFeatureKey]: authSlice(false, '+374 99 123 456') });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(createBookingCalls(dispatchSpy)).toHaveLength(1);
+    expect(stepOpen()).toBe(false);
+  });
+
+  it('"Not now" closes the step without sending and without touching the form', async () => {
+    const { fixture, store, api } = createFixture(null);
+    const dispatchSpy = vi.spyOn(store, 'dispatch');
+    selectValidDateRange(api);
+    api.form.controls.noteForOwner.setValue('keep me');
+    api.onSubmit();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    document.querySelector<HTMLButtonElement>('.dr-step__later')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(stepOpen()).toBe(false);
+    expect(createBookingCalls(dispatchSpy)).toHaveLength(0);
+    expect(api.form.controls.noteForOwner.value).toBe('keep me');
+  });
+
+  it('sends straight away when the renter already has a phone', () => {
+    const { store, api } = createFixture('+374 99 123 456');
+    const dispatchSpy = vi.spyOn(store, 'dispatch');
+    selectValidDateRange(api);
+
+    api.onSubmit();
+
+    expect(createBookingCalls(dispatchSpy)).toHaveLength(1);
+    expect(stepOpen()).toBe(false);
+  });
+
+  it('a 409 booking.phone_required opens the step; any other refusal does not', async () => {
+    const { fixture, store } = createFixture('+374 99 123 456');
+    const base = storeBase(store);
+    const bookings = (error: string, errorCode: string | null) => ({
+      ...initialBookingsState,
+      createBookingError: error,
+      createBookingErrorCode: errorCode,
+    });
+
+    store.setState({ ...base, [bookingsFeatureKey]: bookings('Network down', null) });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(stepOpen()).toBe(false);
+
+    store.setState({
+      ...base,
+      [bookingsFeatureKey]: bookings('Dates overlap', 'booking.overlap'),
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(stepOpen()).toBe(false);
+
+    store.setState({
+      ...base,
+      [bookingsFeatureKey]: bookings('Phone number is required', 'booking.phone_required'),
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(stepOpen()).toBe(true);
+    // the refusal is answered with the step, never printed as an error banner
+    expect(fixture.nativeElement.textContent).not.toContain('Phone number is required');
   });
 });

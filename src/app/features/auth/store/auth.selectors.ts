@@ -3,7 +3,7 @@ import { createFeatureSelector, createSelector } from '@ngrx/store';
 import type { ApiErrorCode } from '../../../api/api-error.model';
 import type { CurrentUser, HomePoint } from '../models/auth.models';
 import { authFeatureKey } from './auth.reducer';
-import type { AuthState } from './auth.state';
+import type { AuthState, ExternalAuthError } from './auth.state';
 
 export const selectAuthState = createFeatureSelector<AuthState>(authFeatureKey);
 
@@ -87,4 +87,70 @@ export const selectHomePointErrorCode = createSelector(
 export const selectHomePointOutsideYerevan = createSelector(
   selectHomePointErrorCode,
   (code: ApiErrorCode | null): boolean => code === 'auth.home_point_outside_yerevan',
+);
+
+/** A `POST /auth/external` is in flight (dedicated flag, not the shared `isLoading`). */
+export const selectExternalAuthPending = createSelector(
+  selectAuthState,
+  (state: AuthState | undefined): boolean => state?.externalAuthPending ?? false,
+);
+
+/** The last failed Google sign-in (code + HTTP status), or null. */
+export const selectAuthExternalError = createSelector(
+  selectAuthState,
+  (state: AuthState | undefined): ExternalAuthError | null => state?.externalError ?? null,
+);
+
+/**
+ * ADR-030 §5: signed in with no first name — the mandatory "What should we call you?"
+ * step. `user === null` (not loaded yet) is NOT "empty", so the step never flashes
+ * while `/auth/me` is still in flight.
+ */
+export const selectNameStepRequired = createSelector(
+  selectAuthState,
+  (state: AuthState | undefined): boolean =>
+    state !== undefined &&
+    state.isAuthenticated &&
+    state.user !== null &&
+    state.user.firstName.trim() === '',
+);
+
+export const selectNameSaving = createSelector(
+  selectAuthState,
+  (state: AuthState | undefined): boolean => state?.nameSaving ?? false,
+);
+
+export const selectNameError = createSelector(
+  selectAuthState,
+  (state: AuthState | undefined): string | null => state?.nameError ?? null,
+);
+
+export const selectNameErrorCode = createSelector(
+  selectAuthState,
+  (state: AuthState | undefined): ApiErrorCode | null => state?.nameErrorCode ?? null,
+);
+
+export const selectPhoneSaving = createSelector(
+  selectAuthState,
+  (state: AuthState | undefined): boolean => state?.phoneSaving ?? false,
+);
+
+export const selectPhoneError = createSelector(
+  selectAuthState,
+  (state: AuthState | undefined): string | null => state?.phoneError ?? null,
+);
+
+export const selectPhoneErrorCode = createSelector(
+  selectAuthState,
+  (state: AuthState | undefined): ApiErrorCode | null => state?.phoneErrorCode ?? null,
+);
+
+/**
+ * A LOADED user with no phone number: the phone step opens before a first listing / booking
+ * request (ADR-030 §8). An unloaded user (`null`) is not "missing" — then the server's own
+ * 409 `*.phone_required` is the authority, and the step opens on that instead.
+ */
+export const selectPhoneMissing = createSelector(
+  selectAuthUser,
+  (user: CurrentUser | null): boolean => user !== null && (user.phoneNumber ?? '').trim() === '',
 );

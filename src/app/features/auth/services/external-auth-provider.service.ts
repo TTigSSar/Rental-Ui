@@ -21,6 +21,17 @@ export interface GoogleButtonRenderOptions {
   readonly locale?: string;
 }
 
+/**
+ * `renderGoogleButton` options: GIS button configuration plus the single-use server
+ * `nonce` (ADR-030 §2/§3). `nonce` is NOT a button option — it is an `initialize()` one —
+ * so it is split off before the rest reaches `renderButton`.
+ */
+export interface GoogleRenderOptions extends GoogleButtonRenderOptions {
+  readonly nonce?: string;
+}
+
+const GOOGLE_SCRIPT_ID = 'google-identity-services-script';
+
 interface GoogleCredentialResponse {
   credential?: string;
 }
@@ -32,6 +43,7 @@ interface GoogleIdInitializeOptions {
   auto_select?: boolean;
   cancel_on_tap_outside?: boolean;
   itp_support?: boolean;
+  nonce?: string;
 }
 
 interface GoogleIdentityApi {
@@ -68,7 +80,10 @@ export class ExternalAuthProviderService {
   ) {}
 
   private googleScriptReadyPromise: Promise<void> | null = null;
+  private googleScriptLocale: string | undefined;
   private googleInitialized = false;
+  /** The nonce the last `initialize()` carried; a different one forces a new initialize. */
+  private googleInitializedNonce: string | undefined;
   private googleCredentialCallback: ((idToken: string) => void) | null = null;
   private googleDevDiagnosticLogged = false;
 
@@ -96,13 +111,17 @@ export class ExternalAuthProviderService {
    * Calls `onCredential` with the ID token once the user completes the popup
    * sign-in flow.
    *
-   * Safe to call multiple times (e.g. on view re-enter). Initialization with
-   * `google.accounts.id.initialize(...)` happens exactly once per page.
+   * NONCE RULE (ADR-030 §3, confirmed against the real GIS on 2026-10-10): a rendered
+   * button keeps the configuration it was rendered with, so a NEW nonce only takes effect
+   * through `initialize({nonce})` + emptying the container + `renderButton`, always
+   * together. This method is therefore the only place `initialize` is called, and it
+   * never calls it without the clear + render that follow. Re-rendering with the SAME
+   * nonce (language switch, resize) skips `initialize` — the button already carries it.
    */
   async renderGoogleButton(
     container: HTMLElement,
     onCredential: (idToken: string) => void,
-    options: GoogleButtonRenderOptions = {},
+    options: GoogleRenderOptions = {},
   ): Promise<void> {
     const clientId = this.authConfig.googleClientId;
     if (clientId === '') {
@@ -111,7 +130,7 @@ export class ExternalAuthProviderService {
       );
     }
 
-    await this.ensureGoogleScript();
+    await this.ensureGoogleScript(options.locale);
     const googleAccounts = (window as ExternalAuthWindow).google?.accounts?.id;
     if (!googleAccounts) {
       throw new Error('Google sign-in is unavailable right now. Please try again later.');
@@ -119,13 +138,17 @@ export class ExternalAuthProviderService {
 
     this.logDevDiagnostic(clientId);
 
-    if (!this.googleInitialized) {
+    const { nonce, ...buttonOptions } = options;
+    this.googleCredentialCallback = onCredential;
+
+    if (!this.googleInitialized || nonce !== this.googleInitializedNonce) {
       googleAccounts.initialize({
         client_id: clientId,
         ux_mode: 'popup',
         auto_select: false,
         cancel_on_tap_outside: true,
         itp_support: true,
+        ...(nonce !== undefined ? { nonce } : {}),
         callback: (response) => {
           const idToken = (response.credential ?? '').trim();
           if (idToken === '') {
@@ -135,10 +158,10 @@ export class ExternalAuthProviderService {
         },
       });
       this.googleInitialized = true;
+      this.googleInitializedNonce = nonce;
     }
 
-    this.googleCredentialCallback = onCredential;
-
+    container.replaceChildren();
     googleAccounts.renderButton(container, {
       type: 'standard',
       theme: 'outline',
@@ -147,21 +170,60 @@ export class ExternalAuthProviderService {
       text: 'signin_with',
       logo_alignment: 'left',
       width: 320,
-      ...options,
+      ...buttonOptions,
     });
   }
 
-  private ensureGoogleScript(): Promise<void> {
-    if (this.googleScriptReadyPromise) {
+  /**
+   * Stops delivering credentials to a block that is gone (the auth dialog closed): a
+   * popup still open when the dialog closes must not sign anyone in behind the user's back.
+   */
+  releaseGoogleButton(onCredential: (idToken: string) => void): void {
+    if (this.googleCredentialCallback === onCredential) {
+      this.googleCredentialCallback = null;
+    }
+  }
+
+  /**
+   * Loads the GIS client script in the requested language. Google documents that the button
+   * `locale` is only honoured together with `gsi/client?hl=<code>` on the script itself, and
+   * the script fixes its language for the page lifetime — so a language switch removes the
+   * script and the `google.accounts` object, loads it again with the new `hl`, and forces
+   * the next `initialize` (the caller re-initialises with the SAME nonce, then renders).
+   */
+  private ensureGoogleScript(locale: string | undefined): Promise<void> {
+    if (
+      this.googleScriptReadyPromise &&
+      (locale === undefined || locale === this.googleScriptLocale)
+    ) {
       return this.googleScriptReadyPromise;
     }
 
-    this.googleScriptReadyPromise = this.loadScriptOnce(
-      'google-identity-services-script',
-      'https://accounts.google.com/gsi/client',
-    );
+    if (this.googleScriptReadyPromise) {
+      document.getElementById(GOOGLE_SCRIPT_ID)?.remove();
+      const w = window as ExternalAuthWindow;
+      if (w.google) {
+        delete w.google.accounts;
+      }
+      this.googleInitialized = false;
+    }
 
-    return this.googleScriptReadyPromise;
+    this.googleScriptLocale = locale;
+    const query = locale ? `?hl=${encodeURIComponent(locale)}` : '';
+    const promise = this.loadScriptOnce(
+      GOOGLE_SCRIPT_ID,
+      `https://accounts.google.com/gsi/client${query}`,
+    );
+    this.googleScriptReadyPromise = promise;
+    // A failed load must not be cached forever.
+    promise.catch(() => {
+      if (this.googleScriptReadyPromise === promise) {
+        this.googleScriptReadyPromise = null;
+        this.googleScriptLocale = undefined;
+      }
+    });
+
+    return promise;
   }
 
   private loadScriptOnce(scriptId: string, src: string): Promise<void> {

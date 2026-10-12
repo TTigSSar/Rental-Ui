@@ -168,6 +168,10 @@
     (closed)="showAuthDialog.set(false)"
   />
 
+  <!-- Mandatory "What should we call you?" step (ADR-030 section 5): shows for any signed-in
+       user without a first name, and waits until the auth dialog has closed. -->
+  <app-name-step [suppressed]="showAuthDialog()" />
+
   @if (showFooter()) {
     <footer class="app-footer" [attr.aria-label]="'home.footer.aboutUs' | translate">
       <div class="app-footer__inner">

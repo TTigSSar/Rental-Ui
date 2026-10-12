@@ -12,13 +12,27 @@ export const authReducer = createReducer(
   on(
     AuthActions.login,
     AuthActions.register,
-    AuthActions.externalAuth,
     AuthActions.loadCurrentUser,
     (state): AuthState => ({
       ...state,
       isLoading: true,
       error: null,
       errorCode: null,
+      pendingVerificationEmail: null,
+    }),
+  ),
+
+  // A new Google attempt drops the previous Google failure (ADR-030: messages clear
+  // on the next attempt) and, like the others, the "check your email" step.
+  on(
+    AuthActions.externalAuth,
+    (state): AuthState => ({
+      ...state,
+      isLoading: true,
+      externalAuthPending: true,
+      error: null,
+      errorCode: null,
+      externalError: null,
       pendingVerificationEmail: null,
     }),
   ),
@@ -30,12 +44,14 @@ export const authReducer = createReducer(
     AuthActions.externalAuthSuccess,
     (state, { token }): AuthState => ({
       ...state,
+      externalAuthPending: false,
       token,
       isAuthenticated: true,
       isInitializing: false,
       isLoading: false,
       error: null,
       errorCode: null,
+      externalError: null,
       pendingVerificationEmail: null,
     }),
   ),
@@ -65,18 +81,29 @@ export const authReducer = createReducer(
     errorCode: null,
   })),
 
-  // Login / register / external-auth HTTP failure. `registerFailure` and
-  // `loginFailure` carry an `errorCode`; `externalAuthFailure` does not, and
-  // destructuring a property an action never set yields `undefined`, normalised to null.
+  // Login / register HTTP failure. Both carry an `errorCode`; an action that never set
+  // one yields `undefined`, normalised to null.
   on(
     AuthActions.loginFailure,
     AuthActions.registerFailure,
-    AuthActions.externalAuthFailure,
     (state, action): AuthState => ({
       ...state,
       isLoading: false,
       error: action.error,
       errorCode: 'errorCode' in action ? (action.errorCode ?? null) : null,
+    }),
+  ),
+
+  // External-auth failure (ADR-030). Stored in its OWN slot, with code and HTTP status,
+  // so the Google block can pick a message/tone and the password forms (which print
+  // `error`) never show a Google failure as a raw English string.
+  on(
+    AuthActions.externalAuthFailure,
+    (state, { error, errorCode, status }): AuthState => ({
+      ...state,
+      isLoading: false,
+      externalAuthPending: false,
+      externalError: { error, errorCode: errorCode ?? null, status: status ?? null },
     }),
   ),
 
@@ -99,17 +126,8 @@ export const authReducer = createReducer(
 
   // No token found during startup — anonymous session confirmed.
   on(AuthActions.authInitCompleted, (): AuthState => ({
-    user: null,
-    token: null,
-    isAuthenticated: false,
+    ...initialAuthState,
     isInitializing: false,
-    isLoading: false,
-    error: null,
-    errorCode: null,
-    pendingVerificationEmail: null,
-    homePointSaving: false,
-    homePointError: null,
-    homePointErrorCode: null,
   })),
 
   // Also drops the "check your email" step: the auth dialog dispatches this on
@@ -118,6 +136,7 @@ export const authReducer = createReducer(
     ...state,
     error: null,
     errorCode: null,
+    externalError: null,
     pendingVerificationEmail: null,
   })),
 
@@ -166,18 +185,64 @@ export const authReducer = createReducer(
     homePointErrorCode: null,
   })),
 
-  // Logout — explicitly NOT spreading initialAuthState so isInitializing stays false.
+  // Logout — explicitly keeps isInitializing false (the startup hydration is long done).
   on(AuthActions.logout, (): AuthState => ({
-    user: null,
-    token: null,
-    isAuthenticated: false,
+    ...initialAuthState,
     isInitializing: false,
-    isLoading: false,
-    error: null,
-    errorCode: null,
-    pendingVerificationEmail: null,
-    homePointSaving: false,
-    homePointError: null,
-    homePointErrorCode: null,
+  })),
+
+  // ── Name and phone (ADR-030) ──────────────────────────────────
+  on(AuthActions.updateName, (state): AuthState => ({
+    ...state,
+    nameSaving: true,
+    nameError: null,
+    nameErrorCode: null,
+  })),
+
+  // The server answers 204, so the user is patched with the trimmed values the request
+  // carried; `reloadUserAfterProfileWrite$` then re-reads /auth/me to confirm.
+  on(AuthActions.updateNameSuccess, (state, { firstName, lastName }): AuthState => ({
+    ...state,
+    user: state.user === null ? null : { ...state.user, firstName, lastName },
+    nameSaving: false,
+    nameError: null,
+    nameErrorCode: null,
+  })),
+
+  on(AuthActions.updateNameFailure, (state, { error, errorCode }): AuthState => ({
+    ...state,
+    nameSaving: false,
+    nameError: error,
+    nameErrorCode: errorCode ?? null,
+  })),
+
+  on(AuthActions.updatePhone, (state): AuthState => ({
+    ...state,
+    phoneSaving: true,
+    phoneError: null,
+    phoneErrorCode: null,
+  })),
+
+  on(AuthActions.updatePhoneSuccess, (state, { phoneNumber }): AuthState => ({
+    ...state,
+    user: state.user === null ? null : { ...state.user, phoneNumber },
+    phoneSaving: false,
+    phoneError: null,
+    phoneErrorCode: null,
+  })),
+
+  on(AuthActions.updatePhoneFailure, (state, { error, errorCode }): AuthState => ({
+    ...state,
+    phoneSaving: false,
+    phoneError: error,
+    phoneErrorCode: errorCode ?? null,
+  })),
+
+  on(AuthActions.clearProfileWriteError, (state): AuthState => ({
+    ...state,
+    nameError: null,
+    nameErrorCode: null,
+    phoneError: null,
+    phoneErrorCode: null,
   })),
 );

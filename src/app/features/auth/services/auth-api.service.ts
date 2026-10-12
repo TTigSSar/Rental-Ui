@@ -9,12 +9,15 @@ import type {
   ChangePasswordRequest,
   CurrentUser,
   ExternalAuthRequest,
+  ExternalNonceResponse,
   HomePoint,
   LoginRequest,
   RegisterRequest,
   RegisterResponse,
   ResendVerificationRequest,
   UpdateHomePointRequest,
+  UpdateNameRequest,
+  UpdatePhoneRequest,
   VerifyEmailRequest,
 } from '../models/auth.models';
 import type { ListingDistrict } from '../../listings/models/district.model';
@@ -153,6 +156,15 @@ export class AuthApiService {
       .pipe(map((response) => this.normalizeAuthResponse(response)));
   }
 
+  /**
+   * `POST /api/auth/external/nonce` (ADR-030) — a single-use server nonce, valid 5 min.
+   * 429 when rate limited, 503 `auth.external_provider_unavailable` when Google sign-in
+   * is off or the nonce store is full.
+   */
+  externalNonce(): Observable<ExternalNonceResponse> {
+    return this.http.post<ExternalNonceResponse>(toApiUrl(ApiContract.auth.externalNonce), {});
+  }
+
   getCurrentUser(): Observable<CurrentUser> {
     return this.http
       .get<Record<string, unknown>>(toApiUrl(ApiContract.auth.currentUser))
@@ -189,6 +201,16 @@ export class AuthApiService {
       .pipe(map((raw) => this.normalizeCurrentUser(raw)));
   }
 
+  /** `PUT /api/auth/me/name` — 204. 400 (incl. `auth.invalid_name`), 401, 403, 429. */
+  updateName(request: UpdateNameRequest): Observable<void> {
+    return this.http.put<void>(toApiUrl(ApiContract.auth.meName), request);
+  }
+
+  /** `PUT /api/auth/me/phone` — 204. 400, 401, 403, 429. */
+  updatePhone(request: UpdatePhoneRequest): Observable<void> {
+    return this.http.put<void>(toApiUrl(ApiContract.auth.mePhone), request);
+  }
+
   /** `PUT /api/auth/me/password` — 204 No Content on success, nothing to normalise. */
   changePassword(request: ChangePasswordRequest): Observable<void> {
     return this.http.put<void>(toApiUrl(ApiContract.auth.changePassword), request);
@@ -200,6 +222,7 @@ export class AuthApiService {
       email: typeof raw['email'] === 'string' ? raw['email'] : '',
       firstName: typeof raw['firstName'] === 'string' ? raw['firstName'] : '',
       lastName: typeof raw['lastName'] === 'string' ? raw['lastName'] : '',
+      phoneNumber: typeof raw['phoneNumber'] === 'string' ? raw['phoneNumber'] : null,
       preferredLanguage:
         typeof raw['preferredLanguage'] === 'string' && raw['preferredLanguage'].length > 0
           ? raw['preferredLanguage']

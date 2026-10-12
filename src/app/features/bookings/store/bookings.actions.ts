@@ -1,5 +1,6 @@
 import { createAction, props } from '@ngrx/store';
 
+import type { ApiErrorCode } from '../../../api/api-error.model';
 import type {
   BookingDetail,
   BookingRequest,
@@ -21,7 +22,9 @@ export const createBookingSuccess = createAction(
 
 export const createBookingFailure = createAction(
   '[Bookings] Create Booking Failure',
-  props<{ error: string }>(),
+  // `errorCode` lets the booking page open the phone step on 409
+  // `booking.phone_required` (ADR-030 §8) instead of printing the message.
+  props<{ error: string; errorCode?: ApiErrorCode | null }>(),
 );
 
 export const clearCreateBookingState = createAction(

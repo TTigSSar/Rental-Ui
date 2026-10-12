@@ -76,6 +76,11 @@ import { ResendVerificationComponent } from '../resend-verification/resend-verif
 export class RegisterFormComponent {
   @Output() readonly switchMode = new EventEmitter<void>();
 
+  /** True only on the first step (account fields): the dialog shows the Google block
+   *  there and nowhere else in sign-up (ADR-030 section 9). False on the home-point step
+   *  and on the "check your email" state. */
+  @Output() readonly firstStepChange = new EventEmitter<boolean>();
+
   private readonly fb = inject(FormBuilder);
   private readonly store = inject(Store);
   private readonly languageService = inject(LanguageService);
@@ -143,6 +148,10 @@ export class RegisterFormComponent {
   });
 
   constructor() {
+    effect(() => {
+      this.firstStepChange.emit(this.step() === 1 && !this.pendingEmail());
+    });
+
     // A duplicate email is a STEP 1 problem reported from step 2 — walk the
     // user back to the field that is wrong and mark it, keeping every other
     // value (and the chosen home point) exactly as it was.

@@ -23,6 +23,13 @@ export const selectCreateBookingError = createSelector(
   (state: BookingsState): string | null => state.createBookingError,
 );
 
+/** 409 `booking.phone_required` — the server refused BEFORE writing anything, so the
+ *  page opens the phone step and re-sends once the number is saved (ADR-030 §8). */
+export const selectCreateBookingPhoneRequired = createSelector(
+  selectBookingsState,
+  (state: BookingsState): boolean => state.createBookingErrorCode === 'booking.phone_required',
+);
+
 export const selectCreateBookingSuccessId = createSelector(
   selectBookingsState,
   (state: BookingsState): string | null => state.createBookingSuccessId,

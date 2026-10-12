@@ -23,7 +23,7 @@ function mapAuthUserToProfile(user: CurrentUser): UserProfile {
     firstName: user.firstName,
     lastName: user.lastName,
     email: user.email,
-    phoneNumber: null,
+    phoneNumber: user.phoneNumber,
     preferredLanguage: null,
     avatarUrl: null,
     createdAt: null,

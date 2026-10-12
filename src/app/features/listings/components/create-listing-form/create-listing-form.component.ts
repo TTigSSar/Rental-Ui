@@ -34,6 +34,8 @@ import { CategorySelectorComponent } from '../../../../shared/ui/category-select
 import { HomePointMapComponent } from '../../../../shared/ui/home-point-map/home-point-map.component';
 import type { HomePointSelection } from '../../../../shared/ui/home-point-map/home-point-map.model';
 import { HomePointStatusComponent } from '../../../../shared/ui/home-point-map/home-point-status.component';
+import { PhoneStepComponent } from '../../../auth/components/phone-step/phone-step.component';
+import { selectPhoneMissing } from '../../../auth/store/auth.selectors';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import type { MapLatLng } from '../../../../shared/ui/map/map.component';
 import { LanguageService } from '../../../../shared/services/language.service';
@@ -223,6 +225,7 @@ function ageRangeValidator(control: AbstractControl): ValidationErrors | null {
     HomePointStatusComponent,
     InputNumberModule,
     LocationPickerComponent,
+    PhoneStepComponent,
     PickupAreaCardComponent,
     ReactiveFormsModule,
     RouterLink,
@@ -286,6 +289,14 @@ export class CreateListingFormComponent implements OnInit {
       this.gateSaveInFlight = false;
       if (this.hasHomePoint() && !this.homePointOutsideYerevan()) {
         this.gateSatisfied.set(true);
+      }
+    });
+
+    // Fallback ONLY on an explicit 409 `listing.phone_required` - never on a network
+    // error, a timeout or any other refusal.
+    effect(() => {
+      if (this.phoneRequiredByServer() && this.mode === 'create') {
+        this.phoneStepOpen.set(true);
       }
     });
 
@@ -681,6 +692,20 @@ export class CreateListingFormComponent implements OnInit {
   private readonly focusReturnPending = signal(false);
 
   protected readonly hasHomePoint = this.store.selectSignal(selectHasHomePoint);
+
+  // ── Phone step (ADR-030 section 8) ────────────────────────────
+  /** A loaded owner with no phone: the server would refuse the create with 409
+   *  `listing.phone_required`, so the step opens BEFORE anything is sent. */
+  private readonly phoneMissing = this.store.selectSignal(selectPhoneMissing);
+
+  /**
+   * 409 `listing.phone_required` from the server - the fallback for a client that thought
+   * the owner had a phone. The server refused BEFORE any write, so re-sending after the
+   * number is saved is safe. A signal input, like `homePointRequiredByServer`.
+   */
+  readonly phoneRequiredByServer = input<boolean>(false);
+
+  protected readonly phoneStepOpen = signal(false);
   protected readonly homePoint = this.store.selectSignal(selectHomePoint);
   protected readonly homePointSaving = this.store.selectSignal(selectHomePointSaving);
   protected readonly homePointOutsideYerevan = this.store.selectSignal(
@@ -1187,6 +1212,13 @@ export class CreateListingFormComponent implements OnInit {
     const raw = this.createListingForm.getRawValue();
     if (raw.pricePerDay === null) return;
 
+    // ADR-030 section 8: no phone yet -> ask for it first. Nothing is sent, so there is
+    // nothing to roll back; `onPhoneSaved` re-runs this very method once.
+    if (this.mode === 'create' && this.phoneMissing()) {
+      this.phoneStepOpen.set(true);
+      return;
+    }
+
     const checks: string[] = [];
     if (this.cleanWashed()) checks.push('Washed with soap & water');
     if (this.cleanDisinfected()) checks.push('Disinfected with safe wipes');
@@ -1244,6 +1276,20 @@ export class CreateListingFormComponent implements OnInit {
       return;
     }
     this.submitted.emit({ payload, files: this.selectedFiles, imageOrder: null });
+  }
+
+  /** The phone is saved: close the step and send the original submit ONCE, through the
+   *  same path as the Publish button (so `isSubmitting` still guards a double send). */
+  protected onPhoneSaved(): void {
+    this.phoneStepOpen.set(false);
+    if (!this.isSubmitting) {
+      this.onSubmit();
+    }
+  }
+
+  /** "Not now" / X / Esc: the wizard underneath is exactly as the owner left it. */
+  protected onPhoneDismissed(): void {
+    this.phoneStepOpen.set(false);
   }
 
   // ── Retry image upload (re-emitted to the page) ───────────────

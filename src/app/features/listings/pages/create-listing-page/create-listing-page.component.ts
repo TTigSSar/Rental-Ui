@@ -21,6 +21,7 @@ import {
   selectCreateListingImageUploadError,
   selectCreateListingImageUploadProgress,
   selectCreateListingLoading,
+  selectCreateListingPhoneRequired,
   selectCreateListingSuccessId,
   selectListingCategories,
   selectListingCategoriesLoading,
@@ -57,6 +58,8 @@ export class CreateListingPageComponent implements OnInit {
     // 409 `listing.home_point_required` — the wizard re-raises its gate rather
     // than showing the generic banner (which said nothing actionable).
     homePointRequired:    this.store.select(selectCreateListingHomePointRequired),
+    // 409 `listing.phone_required` - the wizard opens its phone step instead of a banner.
+    phoneRequired:        this.store.select(selectCreateListingPhoneRequired),
     imageUploadError:     this.store.select(selectCreateListingImageUploadError),
     uploadProgress:       this.store.select(selectCreateListingImageUploadProgress),
   }).pipe(map(vm => vm));

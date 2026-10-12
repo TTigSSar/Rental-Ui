@@ -485,3 +485,58 @@ select:focus {
     transform: translateX(-50%) !important;
   }
 }
+
+/* ── Inline messages of the Google sign-in flow (ADR-030 §9, design board hp.css) ──
+   Opt-in modifier for `<p-message styleClass="ui-msg ui-msg--info|warn|error">`; other
+   p-message usages in the app keep the PrimeNG theme. The design's values match no
+   existing --ui-color-* token, so they live here as literals, once. */
+.p-message.ui-msg {
+  --ui-msg-bg: #fff8f0;
+  --ui-msg-border: #ffe0c2;
+  --ui-msg-text: var(--ui-color-text-secondary);
+  --ui-msg-icon: var(--ui-color-primary);
+
+  border: 1px solid var(--ui-msg-border);
+  outline: none;
+  border-radius: 12px;
+  background: var(--ui-msg-bg);
+  color: var(--ui-msg-text);
+  box-shadow: none;
+}
+
+.p-message.ui-msg--warn {
+  --ui-msg-bg: #fff1dc;
+  --ui-msg-border: #f7dcae;
+  --ui-msg-text: #6d4a10;
+  --ui-msg-icon: #d97706;
+}
+
+.p-message.ui-msg--error {
+  --ui-msg-bg: #fdecea;
+  --ui-msg-border: #f5c9c5;
+  --ui-msg-text: #8a231c;
+  --ui-msg-icon: #d9342b;
+}
+
+.p-message.ui-msg .p-message-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 13px;
+  color: var(--ui-msg-text);
+}
+
+.p-message.ui-msg .p-message-text {
+  font-size: 12.5px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--ui-msg-text);
+}
+
+.p-message.ui-msg .p-message-icon {
+  flex: none;
+  margin-top: 1px;
+  font-size: 17px;
+  line-height: 1;
+  color: var(--ui-msg-icon);
+}

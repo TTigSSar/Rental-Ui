@@ -18,7 +18,11 @@ export function e2eUser(overrides: Record<string, unknown> = {}) {
     firstName: 'Ada',
     lastName: 'Lovelace',
     roles: ['User'],
-    // Home-point model: `CurrentUserResponse.homePoint`. Defaults to a real
+    // ADR-030 section 8: a user with no phone is asked for one before a first listing or
+    // booking. The default account is a normal, complete one; pass `{ phoneNumber: null }`
+    // for the "never gave a phone" state.
+    phoneNumber: '+374 99 123 456',
+    // Home-point model:`CurrentUserResponse.homePoint`. Defaults to a real
     // Kentron point so journeys that create a listing behave like a normal
     // account (no home point = the API refuses create with 409
     // `listing.home_point_required`). Pass `{ homePoint: null }` for the
