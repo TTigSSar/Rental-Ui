@@ -121,6 +121,12 @@ export const appConfig: ApplicationConfig = {
       loader: translateHttpLoaderProviders[1],
     }),
     providePrimeNG({
+      // DatePicker's month/year buttons show the current month/year as text but carry a static
+      // aria-label ("Choose Month"/"Choose Year") that does not contain it (axe
+      // label-content-name-mismatch). Empty labels let the buttons take their accessible name
+      // from the visible text, which is already in the UI language. Decision: Tigran, 2026-10-12.
+      // PrimeNG merges this over its default translation, so only these two keys change.
+      translation: { chooseMonth: '', chooseYear: '' },
       theme: {
         preset: DoRentPreset,
         options: {
