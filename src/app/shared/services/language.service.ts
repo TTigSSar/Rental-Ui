@@ -3,7 +3,10 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 
+import { PrimeNG } from 'primeng/config';
+
 import * as AuthActions from '../../features/auth/store/auth.actions';
+import { localeTagForLanguage } from '../../features/listings/models/radius-scale.util';
 
 export type LanguageCode = 'en' | 'hy' | 'ru';
 
@@ -17,6 +20,36 @@ export interface LanguageOption {
 }
 
 const LANGUAGE_STORAGE_KEY = 'stayfinder.lang';
+
+function part(tag: string, options: Intl.DateTimeFormatOptions, date: Date, type: string): string {
+  const parts = new Intl.DateTimeFormat(tag, options).formatToParts(date);
+  const value = parts.find((p) => p.type === type)?.value ?? '';
+  return value.charAt(0).toLocaleUpperCase(tag) + value.slice(1);
+}
+
+/**
+ * PrimeNG DatePicker strings from `Intl` (ADR-033). A lone `month`/`weekday` option yields the
+ * stand-alone form (ru "октябрь", not the genitive); the first letter is capitalised for the
+ * calendar header. `chooseMonth`/`chooseYear` stay empty so the buttons are named by their text.
+ * Sunday-first, as PrimeNG expects (2024-01-07 is a Sunday).
+ */
+function primeNgLocale(tag: string) {
+  const months = Array.from({ length: 12 }, (_, m) => new Date(2024, m, 15));
+  const days = Array.from({ length: 7 }, (_, d) => new Date(2024, 0, 7 + d));
+  const dayShort = days.map((d) => part(tag, { weekday: 'short' }, d, 'weekday'));
+  // Two letters like PrimeNG's default, unless that makes days ambiguous (hy: Երկ/Երք -> Եր/Եր).
+  const twoLetter = dayShort.map((s) => s.slice(0, 2));
+  const dayMin = new Set(twoLetter).size === 7 ? twoLetter : dayShort;
+  return {
+    monthNames: months.map((d) => part(tag, { month: 'long' }, d, 'month')),
+    monthNamesShort: months.map((d) => part(tag, { month: 'short' }, d, 'month')),
+    dayNames: days.map((d) => part(tag, { weekday: 'long' }, d, 'weekday')),
+    dayNamesShort: dayShort,
+    dayNamesMin: dayMin,
+    chooseMonth: '',
+    chooseYear: '',
+  };
+}
 
 const LANGUAGES: readonly LanguageOption[] = [
   { code: 'en', flag: '🇬🇧', native: 'English', label: 'English' },
@@ -38,6 +71,7 @@ export class LanguageService {
   private readonly translate = inject(TranslateService);
   private readonly store = inject(Store);
   private readonly document = inject(DOCUMENT);
+  private readonly primeng = inject(PrimeNG);
 
   readonly languages: readonly LanguageOption[] = LANGUAGES;
 
@@ -90,9 +124,13 @@ export class LanguageService {
     }
   }
 
-  /** Keeps `<html lang>` in step with the UI language (screen readers, hyphenation, spellcheck). */
+  /**
+   * Keeps `<html lang>` and PrimeNG's own locale strings (DatePicker month/day names; ADR-033)
+   * in step with the UI language.
+   */
   private setDocumentLang(code: LanguageCode): void {
     this.document.documentElement.lang = code;
+    this.primeng.setTranslation(primeNgLocale(localeTagForLanguage(code)));
   }
 
   private resolveInitial(): LanguageOption {

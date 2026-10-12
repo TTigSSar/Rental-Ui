@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { PrimeNG } from 'primeng/config';
 
 import * as AuthActions from '../../features/auth/store/auth.actions';
 import { LanguageService } from './language.service';
@@ -136,6 +137,48 @@ describe('LanguageService', () => {
     service.use('ru');
 
     expect(dispatchSpy).toHaveBeenCalledWith(AuthActions.updatePreferredLanguage({ code: 'ru' }));
+  });
+
+  describe('PrimeNG translation (ADR-033)', () => {
+    function pushed(code: 'en' | 'ru' | 'hy') {
+      const service = createService();
+      const setTranslation = vi.spyOn(TestBed.inject(PrimeNG), 'setTranslation');
+      service.use(code);
+      return setTranslation.mock.calls.at(-1)![0];
+    }
+
+    it.each([
+      ['en', 'october', 'sunday'],
+      ['ru', 'октябрь', 'воскресенье'],
+      ['hy', 'հոկտեմբեր', 'կիրակի'],
+    ] as const)('use(%s) pushes %s and a Sunday-first week', (code, october, sunday) => {
+      const t = pushed(code);
+
+      expect(t.monthNames).toHaveLength(12);
+      expect(t.monthNames![9].toLowerCase()).toBe(october);
+      expect(t.dayNames).toHaveLength(7);
+      expect(t.dayNames![0].toLowerCase()).toBe(sunday);
+      expect(t.dayNamesShort).toHaveLength(7);
+      expect(t.dayNamesMin).toHaveLength(7);
+      expect(t.monthNamesShort).toHaveLength(12);
+    });
+
+    it.each(['en', 'ru', 'hy'] as const)('use(%s) keeps chooseMonth/chooseYear empty', (code) => {
+      const t = pushed(code);
+
+      expect(t.chooseMonth).toBe('');
+      expect(t.chooseYear).toBe('');
+    });
+
+    it('hydrate() pushes the stored language', () => {
+      window.localStorage.setItem(STORAGE_KEY, 'ru');
+      const service = createService();
+      const setTranslation = vi.spyOn(TestBed.inject(PrimeNG), 'setTranslation');
+
+      service.hydrate();
+
+      expect(setTranslation.mock.calls.at(-1)![0].monthNames![9].toLowerCase()).toBe('октябрь');
+    });
   });
 
   describe('<html lang>', () => {
