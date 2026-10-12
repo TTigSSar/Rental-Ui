@@ -1,6 +1,10 @@
+import { DOCUMENT } from '@angular/common';
 import { Injectable, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
+
+import { PrimeNG } from 'primeng/config';
 
 import * as AuthActions from '../../features/auth/store/auth.actions';
 
@@ -16,6 +20,36 @@ export interface LanguageOption {
 }
 
 const LANGUAGE_STORAGE_KEY = 'stayfinder.lang';
+
+const CALENDAR_KEYS = [
+  ['monthNames', 12],
+  ['monthNamesShort', 12],
+  ['dayNames', 7],
+  ['dayNamesShort', 7],
+  ['dayNamesMin', 7],
+] as const;
+
+/**
+ * The `calendar` block of a loaded translation file (ADR-033), or null when it is missing or
+ * malformed (wrong shape or array length), so a bad file never breaks the DatePicker.
+ */
+function calendarFrom(translations: unknown): Record<string, string[]> | null {
+  const calendar = (translations as { calendar?: unknown } | null | undefined)?.calendar;
+  if (typeof calendar !== 'object' || calendar === null) return null;
+  const result: Record<string, string[]> = {};
+  for (const [key, length] of CALENDAR_KEYS) {
+    const value = (calendar as Record<string, unknown>)[key];
+    if (
+      !Array.isArray(value) ||
+      value.length !== length ||
+      !value.every((s) => typeof s === 'string')
+    ) {
+      return null;
+    }
+    result[key] = value as string[];
+  }
+  return result;
+}
 
 const LANGUAGES: readonly LanguageOption[] = [
   { code: 'en', flag: '🇬🇧', native: 'English', label: 'English' },
@@ -36,15 +70,26 @@ const LANGUAGES: readonly LanguageOption[] = [
 export class LanguageService {
   private readonly translate = inject(TranslateService);
   private readonly store = inject(Store);
+  private readonly document = inject(DOCUMENT);
+  private readonly primeng = inject(PrimeNG);
 
   readonly languages: readonly LanguageOption[] = LANGUAGES;
 
   /** The active language. Resolved from storage at construction time. */
   readonly current = signal<LanguageOption>(this.resolveInitial());
 
+  constructor() {
+    // Translations load over HTTP, so PrimeNG's calendar strings (ADR-033) are pushed when a
+    // language's file has arrived (this also covers the first hydrate), not in `use()`.
+    this.translate.onLangChange
+      .pipe(takeUntilDestroyed())
+      .subscribe((event) => this.pushCalendar(event.translations));
+  }
+
   /** Applies the resolved language to ngx-translate. Call once, on app boot. */
   hydrate(): void {
     this.translate.use(this.current().code);
+    this.setDocumentLang(this.current().code);
   }
 
   /**
@@ -79,11 +124,28 @@ export class LanguageService {
   private applyLocally(option: LanguageOption): void {
     this.current.set(option);
     this.translate.use(option.code);
+    this.setDocumentLang(option.code);
     try {
       localStorage.setItem(LANGUAGE_STORAGE_KEY, option.code);
     } catch {
       /* ignore (private browsing / storage disabled) */
     }
+  }
+
+  /** Keeps `<html lang>` in step with the UI language (screen readers, hyphenation, spellcheck). */
+  private setDocumentLang(code: LanguageCode): void {
+    this.document.documentElement.lang = code;
+  }
+
+  /**
+   * Pushes the language's DatePicker month/day names to PrimeNG. `chooseMonth`/`chooseYear` stay
+   * empty so the buttons are named by their visible text. A missing or malformed `calendar`
+   * block skips the push (PrimeNG keeps its previous strings) and never throws.
+   */
+  private pushCalendar(translations: unknown): void {
+    const calendar = calendarFrom(translations);
+    if (calendar === null) return;
+    this.primeng.setTranslation({ ...calendar, chooseMonth: '', chooseYear: '' });
   }
 
   private resolveInitial(): LanguageOption {

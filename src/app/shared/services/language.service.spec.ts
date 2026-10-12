@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { PrimeNG } from 'primeng/config';
 
 import * as AuthActions from '../../features/auth/store/auth.actions';
 import { LanguageService } from './language.service';
@@ -136,6 +137,99 @@ describe('LanguageService', () => {
     service.use('ru');
 
     expect(dispatchSpy).toHaveBeenCalledWith(AuthActions.updatePreferredLanguage({ code: 'ru' }));
+  });
+
+  describe('PrimeNG translation (ADR-033)', () => {
+    const range = (n: number, prefix: string) => Array.from({ length: n }, (_, i) => `${prefix}${i}`);
+    const calendarFor = (prefix: string) => ({
+      monthNames: range(12, `${prefix}-m`),
+      monthNamesShort: range(12, `${prefix}-ms`),
+      dayNames: range(7, `${prefix}-d`),
+      dayNamesShort: range(7, `${prefix}-ds`),
+      dayNamesMin: range(7, `${prefix}-dm`),
+    });
+
+    function setup(translations: Record<string, object>) {
+      const service = createService();
+      const translate = TestBed.inject(TranslateService);
+      for (const [code, value] of Object.entries(translations)) {
+        translate.setTranslation(code, value as Parameters<TranslateService['setTranslation']>[1]);
+      }
+      return { service, setTranslation: vi.spyOn(TestBed.inject(PrimeNG), 'setTranslation') };
+    }
+
+    it.each(['en', 'ru', 'hy'] as const)(
+      'use(%s) pushes that language file’s calendar, with empty chooseMonth/chooseYear',
+      (code) => {
+        const { service, setTranslation } = setup({ [code]: { calendar: calendarFor(code) } });
+
+        service.use(code);
+
+        expect(setTranslation).toHaveBeenCalledTimes(1);
+        expect(setTranslation).toHaveBeenCalledWith({
+          ...calendarFor(code),
+          chooseMonth: '',
+          chooseYear: '',
+        });
+      },
+    );
+
+    it('hydrate() pushes the stored language’s calendar', () => {
+      window.localStorage.setItem(STORAGE_KEY, 'ru');
+      const { service, setTranslation } = setup({ ru: { calendar: calendarFor('ru') } });
+
+      service.hydrate();
+
+      expect(setTranslation).toHaveBeenCalledWith(expect.objectContaining(calendarFor('ru')));
+    });
+
+    it('skips the push, without throwing, when calendar is missing or malformed', () => {
+      const { service, setTranslation } = setup({
+        en: {},
+        ru: { calendar: { ...calendarFor('ru'), dayNames: ['only one'] } },
+        hy: { calendar: 'nope' },
+      });
+
+      expect(() => {
+        service.use('en');
+        service.use('ru');
+        service.use('hy');
+      }).not.toThrow();
+      expect(setTranslation).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('<html lang>', () => {
+    afterEach(() => {
+      document.documentElement.lang = 'en';
+    });
+
+    it('hydrate() sets the stored language on <html>', () => {
+      window.localStorage.setItem(STORAGE_KEY, 'hy');
+      const service = createService();
+
+      service.hydrate();
+
+      expect(document.documentElement.lang).toBe('hy');
+    });
+
+    it('use() updates <html lang>', () => {
+      const service = createService();
+
+      service.use('ru');
+
+      expect(document.documentElement.lang).toBe('ru');
+    });
+
+    it('applyFromUser() updates <html lang> for a valid code and ignores an unknown one', () => {
+      const service = createService();
+
+      service.applyFromUser('hy');
+      expect(document.documentElement.lang).toBe('hy');
+
+      service.applyFromUser('fr');
+      expect(document.documentElement.lang).toBe('hy');
+    });
   });
 
   describe('applyFromUser()', () => {

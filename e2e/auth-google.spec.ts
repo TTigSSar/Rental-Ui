@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 import { expect, test } from '@playwright/test';
 
 import { mockApi } from './support/api-mock';
@@ -86,7 +88,9 @@ test.describe('Google sign-in (ADR-030)', () => {
     await page.goto('/');
     await page.locator('.lang-selector__trigger').click();
     await page.locator('.lang-selector__row', { hasText: 'Հայերեն' }).click();
-    await page.getByRole('button', { name: 'Log in' }).click();
+    // The header button is translated now; read its hy label from the translation file.
+    const hy = JSON.parse(readFileSync('public/i18n/hy.json', 'utf-8').replace(/^﻿/, ''));
+    await page.getByRole('button', { name: hy.app.shell.nav.login }).click();
     await expect(page.locator('.gsi-block')).toBeVisible();
     await expectRenders(page, 1);
 

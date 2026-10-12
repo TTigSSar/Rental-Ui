@@ -1,7 +1,17 @@
 {
   "common": {
     "back": "Back",
+    "clear": "Clear",
+    "clearCategory": "Clear category",
+    "close": "Close",
     "retry": "Try again"
+  },
+  "calendar": {
+    "monthNames": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    "monthNamesShort": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "dayNames": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    "dayNamesShort": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "dayNamesMin": ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
   },
   "app": {
     "language": {
@@ -16,6 +26,21 @@
       "menuToggleAria": "Open menu",
       "bottomNavAria": "Mobile navigation",
       "userMenuToggleAria": "Account menu",
+      "header": {
+        "brandAria": "DoRent home",
+        "searchPlaceholder": "Search toys, brands, owners...",
+        "searchAria": "Search toys, brands, owners",
+        "searchButton": "Search",
+        "openMessagesAria": "Open messages",
+        "verified": "Verified",
+        "accountNavAria": "Account navigation",
+        "myAccountAria": "My account",
+        "defaultUserName": "User",
+        "toysCountAria": "{{count}} toys",
+        "bookingsCountAria": "{{count}} bookings",
+        "requestsCountAria": "{{count}} requests",
+        "savedCountAria": "{{count}} saved"
+      },
       "loading": "Loading DoRent…",
       "language": {
         "switchAria": "Change language"
@@ -781,7 +806,7 @@
         "hygieneCheckedBadge": "Hygiene checked",
         "communityNote": {
           "before": "I agree to DoRent's",
-          "linkLabel": "community rules",
+          "linkLabel": "Terms of Use",
           "after": "and confirm this listing is accurate."
         },
         "step1Short": "Photos",
@@ -1086,6 +1111,8 @@
       "incomingRequests": "Incoming requests",
       "favorites": "Saved toys",
       "earningsPayouts": "Earnings & payouts",
+      "viewProfile": "View profile",
+      "accountSettings": "Account settings",
       "verificationId": "Verification & ID",
       "language": "Language",
       "notifications": "Notifications",
@@ -2510,6 +2537,27 @@
       "heroTitle": "About DoRent",
       "heroLead": "We believe every child deserves access to great toys — without the clutter or the price tag.",
       "missionHeading": "Our Mission",
+      "missionP1": "DoRent started with a simple observation: children outgrow their toys quickly, yet new toys are expensive and often end up forgotten in storage. We built this platform to help families share the toys they already have — reducing waste, saving money, and giving every child access to a wider world of play.",
+      "missionP2": "Our goal is to make toy sharing as easy and trustworthy as borrowing from a neighbor you already know. Every listing is reviewed by our team, and every owner shares the condition, hygiene notes, and safety details of their toy before it goes live.",
+      "step1Title": "Discover",
+      "step1Text": "Browse toys by name, category, or age range. Use filters on the listings page to narrow down by price or toy type.",
+      "step2Title": "Request",
+      "step2Text": "Found something your child will love? Send a rental request to the owner, choose your dates, and wait for confirmation.",
+      "step3Title": "Enjoy & Return",
+      "step3Text": "Meet the owner, pick up the toy, and let the fun begin. Return it clean and on time — then discover the next one.",
+      "trust1Title": "Reviewed Listings",
+      "trust1Text": "Every toy listing is manually reviewed before it appears on the platform. We check photos, descriptions, and toy details to ensure quality and accuracy.",
+      "trust2Title": "Hygiene & Condition Details",
+      "trust2Text": "Owners are required to provide the toy's condition, hygiene notes, and any relevant safety information. You always know what you're renting before you commit.",
+      "trust3Title": "Family-to-Family",
+      "trust3Text": "You rent directly from real families, not anonymous sellers. Communication happens through our platform so both parties are always informed and protected.",
+      "moderationIntro": "When a family lists a toy, it enters a pending review state and is not publicly visible until approved. Our moderation team checks each submission for:",
+      "moderationItem1": "Clear, accurate photos and descriptions",
+      "moderationItem2": "Age-appropriate and safe toys",
+      "moderationItem3": "Honest condition and hygiene information",
+      "moderationItem4": "Absence of prohibited or unsafe items",
+      "moderationOutro": "Once approved, the owner receives an email confirmation and the listing goes live. Listings that do not meet our standards are rejected with a clear reason, and owners can resubmit after making corrections.",
+      "ctaText": "Ready to find the perfect toy for your child?",
       "howHeading": "How It Works",
       "trustHeading": "Trust & Safety",
       "moderationHeading": "Our Review Process",

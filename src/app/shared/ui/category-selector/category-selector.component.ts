@@ -9,6 +9,7 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 export interface CategoryOption {
   id: string;
@@ -20,7 +21,7 @@ export interface CategoryOption {
 @Component({
   selector: 'app-category-selector',
   standalone: true,
-  imports: [],
+  imports: [TranslatePipe],
   templateUrl: './category-selector.component.html',
   styleUrl: './category-selector.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

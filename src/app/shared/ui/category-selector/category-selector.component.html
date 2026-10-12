@@ -23,7 +23,7 @@
       class="cs-clear-btn"
       role="button"
       tabindex="-1"
-      aria-label="Clear category"
+      [attr.aria-label]="'common.clearCategory' | translate"
       (click)="clearSelectionInline($event)"
     >
       <i class="pi pi-times" aria-hidden="true"></i>

@@ -88,7 +88,7 @@
       <div class="booking-page__body">
 
         <!-- Left: Form column -->
-        <main class="booking-page__form-col">
+        <div class="booking-page__form-col">
 
           <!-- Item summary strip (mobile only — desktop shows it in the request card) -->
           @if (listing(); as item) {
@@ -323,8 +323,11 @@
                 <div class="booking-page__request-owner-info">
                   <p class="booking-page__request-owner-name">
                     {{ ownerName() }}
-                    <span class="booking-page__request-owner-badge" aria-label="verified">
+                    <span class="booking-page__request-owner-badge">
                       <i class="pi pi-check" aria-hidden="true"></i>
+                      <span class="booking-page__visually-hidden">{{
+                        'app.shell.header.verified' | translate
+                      }}</span>
                     </span>
                   </p>
                   <p class="booking-page__request-owner-meta">
@@ -349,7 +352,7 @@
             </div>
           }
 
-        </main>
+        </div>
 
         <!-- Right: Sticky "Your request" card (desktop) -->
         <aside class="booking-page__request-col">
@@ -399,8 +402,11 @@
                   <div class="booking-page__request-owner-info">
                     <p class="booking-page__request-owner-name">
                       {{ ownerName() }}
-                      <span class="booking-page__request-owner-badge" aria-label="verified">
+                      <span class="booking-page__request-owner-badge">
                         <i class="pi pi-check" aria-hidden="true"></i>
+                        <span class="booking-page__visually-hidden">{{
+                          'app.shell.header.verified' | translate
+                        }}</span>
                       </span>
                     </p>
                     <p class="booking-page__request-owner-meta">

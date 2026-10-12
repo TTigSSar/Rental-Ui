@@ -1,4 +1,9 @@
 <section class="profile-page page-container" [class.profile-page--child-active]="isChildRouteActive()">
+  <!-- Child routes (toys, rentals, ...) render their own page title. -->
+  @if (!isChildRouteActive()) {
+    <h1 class="profile-page__sr-title">{{ 'app.shell.nav.profile' | translate }}</h1>
+  }
+
   @if (vm$ | async; as vm) {
 
     @if (vm.error; as error) {
@@ -416,7 +421,7 @@
                 <div class="profile-page__identity-info">
                   <p class="profile-page__identity-name">{{ profile.firstName }} {{ profile.lastName }}</p>
                 </div>
-                <button type="button" class="profile-page__edit-btn" disabled aria-label="Edit profile">
+                <button type="button" class="profile-page__edit-btn" disabled [attr.aria-label]="('profile.edit' | translate) + ' – ' + ('app.shell.nav.profile' | translate)">
                   {{ 'profile.edit' | translate }}
                 </button>
               </div>
