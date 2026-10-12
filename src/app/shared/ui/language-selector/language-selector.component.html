@@ -4,7 +4,7 @@
   class="lang-selector__trigger"
   aria-haspopup="menu"
   [attr.aria-expanded]="open()"
-  [attr.aria-label]="'app.language.change' | translate"
+  [attr.aria-label]="current().code + ' – ' + ('app.language.change' | translate)"
   (click)="toggle()"
 >
   <i class="pi pi-globe lang-selector__icon" aria-hidden="true"></i>

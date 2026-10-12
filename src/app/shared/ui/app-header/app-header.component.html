@@ -4,15 +4,17 @@
     <a
       routerLink="/"
       class="nh__brand"
-      [attr.aria-label]="'app.shell.header.brandAria' | translate"
       (mouseenter)="onBrandHoverChange(true)"
       (mouseleave)="onBrandHoverChange(false)"
       (focusin)="onBrandHoverChange(true)"
       (focusout)="onBrandHoverChange(false)"
     >
+      <!-- The wordmark is split around an SVG "o", so its text is "DRent"; the accessible name
+           comes from the hidden full text instead of an aria-label that would not contain it. -->
       <span class="nh__brand-text" aria-hidden="true"
         >D<app-ui-dorent-symbol mode="hover" [animate]="brandHovered()" [size]="17" />Rent</span
       >
+      <span class="nh__sr">{{ 'app.shell.header.brandAria' | translate }}</span>
     </a>
 
     <!-- ── Search bar ─────────────────────────────────────────────────────
@@ -73,7 +75,10 @@
             class="nh__notif-btn"
             routerLink="/chat"
             routerLinkActive="nh__notif-btn--active"
-            [attr.aria-label]="'app.shell.header.openMessagesAria' | translate"
+            [attr.aria-label]="
+              ('app.shell.header.openMessagesAria' | translate) +
+              (unreadChatCount() > 0 ? ' (' + (unreadChatCount() > 99 ? '99+' : unreadChatCount()) + ')' : '')
+            "
           >
             <i class="pi pi-comments" aria-hidden="true"></i>
             @if (unreadChatCount() > 0) {
@@ -90,7 +95,10 @@
             class="nh__notif-btn"
             routerLink="/notifications"
             routerLinkActive="nh__notif-btn--active"
-            [attr.aria-label]="'app.shell.notifications.aria' | translate"
+            [attr.aria-label]="
+              ('app.shell.notifications.aria' | translate) +
+              (unreadNotifCount() > 0 ? ' (' + (unreadNotifCount() > 99 ? '99+' : unreadNotifCount()) + ')' : '')
+            "
           >
             <i class="pi pi-bell" aria-hidden="true"></i>
             @if (unreadNotifCount() > 0) {
@@ -113,14 +121,10 @@
             [class.nh__user-trigger--open]="profileOpen()"
             [attr.aria-expanded]="profileOpen()"
             aria-haspopup="true"
-            [attr.aria-label]="
-              userFirstName()
-                ? userFirstName() + ' – ' + ('app.shell.userMenuToggleAria' | translate)
-                : ('app.shell.userMenuToggleAria' | translate)
-            "
           >
             <span class="nh__user-avatar" aria-hidden="true">{{ userInitials() ?? 'U' }}</span>
             <span class="nh__user-name">{{ userFirstName() }}</span>
+            <span class="nh__sr"> – {{ 'app.shell.userMenuToggleAria' | translate }}</span>
             <i
               class="pi pi-chevron-down nh__user-chevron"
               [class.nh__user-chevron--open]="profileOpen()"
@@ -142,12 +146,9 @@
                 <div class="nh__dd-user-info">
                   <p class="nh__dd-user-name">
                     {{ userDisplayName() ?? ('app.shell.header.defaultUserName' | translate) }}
-                    <span
-                      class="nh__dd-verified"
-                      [attr.title]="'app.shell.header.verified' | translate"
-                      [attr.aria-label]="'app.shell.header.verified' | translate"
-                    >
+                    <span class="nh__dd-verified" [attr.title]="'app.shell.header.verified' | translate">
                       <i class="pi pi-check" aria-hidden="true"></i>
+                      <span class="nh__sr">{{ 'app.shell.header.verified' | translate }}</span>
                     </span>
                   </p>
                   <a
