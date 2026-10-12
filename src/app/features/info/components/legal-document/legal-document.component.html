@@ -1,0 +1,83 @@
+<ng-template #rich let-text>
+  @for (part of inline(text); track $index) {
+    <!-- no whitespace around the interpolations: it would show up inside sentences -->
+    @if (part.mail && part.bold) {
+      <a class="info-page__inline-link" [href]="'mailto:' + part.text"><strong>{{ part.text }}</strong></a>
+    } @else if (part.mail) {
+      <a class="info-page__inline-link" [href]="'mailto:' + part.text">{{ part.text }}</a>
+    } @else if (part.bold) {
+      <strong>{{ part.text }}</strong>
+    } @else {
+      <ng-container>{{ part.text }}</ng-container>
+    }
+  }
+</ng-template>
+
+<ng-template #entries let-list>
+  <ul class="info-page__list">
+    @for (entry of list; track $index) {
+      <li>
+        <ng-container
+          [ngTemplateOutlet]="rich"
+          [ngTemplateOutletContext]="{ $implicit: item(entry).text }"
+        />
+        @if (item(entry).items; as nested) {
+          <ng-container
+            [ngTemplateOutlet]="entries"
+            [ngTemplateOutletContext]="{ $implicit: nested }"
+          />
+        }
+        @if (item(entry).note; as note) {
+          <p class="info-page__prose info-page__prose--note">
+            <ng-container
+              [ngTemplateOutlet]="rich"
+              [ngTemplateOutletContext]="{ $implicit: note }"
+            />
+          </p>
+        }
+      </li>
+    }
+  </ul>
+</ng-template>
+
+@if (intro().length) {
+  <section class="info-page__section">
+    @for (paragraph of intro(); track $index) {
+      <p class="info-page__prose">
+        <ng-container
+          [ngTemplateOutlet]="rich"
+          [ngTemplateOutletContext]="{ $implicit: paragraph }"
+        />
+      </p>
+    }
+  </section>
+}
+
+@for (section of sections(); track $index) {
+  <section
+    class="info-page__section"
+    [class.info-page__section--highlight]="highlightSection() === $index"
+    [attr.aria-labelledby]="sectionId($index)"
+  >
+    <h2 [id]="sectionId($index)" class="info-page__section-heading">{{ section.title }}</h2>
+    @for (block of section.blocks; track $index) {
+      @if (block.heading) {
+        <h3 class="info-page__section-subheading">{{ block.heading }}</h3>
+      }
+      @if (block.p) {
+        <p class="info-page__prose">
+          <ng-container
+            [ngTemplateOutlet]="rich"
+            [ngTemplateOutletContext]="{ $implicit: block.p }"
+          />
+        </p>
+      }
+      @if (block.list; as list) {
+        <ng-container
+          [ngTemplateOutlet]="entries"
+          [ngTemplateOutletContext]="{ $implicit: list }"
+        />
+      }
+    }
+  </section>
+}

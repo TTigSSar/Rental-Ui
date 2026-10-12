@@ -7,9 +7,8 @@ import type { Page, Request } from '@playwright/test';
  * The real `https://accounts.google.com/gsi/client` cannot run in e2e: it needs the network,
  * an authorised origin and a human in a popup. So:
  *
- *  - the script URL is fulfilled with an empty JS file (the SPA's `<script>` still fires
- *    `onload`, but nothing real ever loads), and
- *  - `window.google.accounts.id` is replaced BEFORE the app boots with a recorder that keeps
+ *  - the script URL (any `?hl=` query) is fulfilled with a small JS file, and
+ *  - that file installs on each load `window.google.accounts.id` as a recorder that keeps
  *    every `initialize` / `renderButton` call (with its options) and exposes a hook that fires
  *    the callback registered by the LAST `initialize`, exactly as GIS would after a popup.
  *
@@ -32,58 +31,78 @@ export interface GsiState {
   events: string[];
   inits: GsiInitialize[];
   renders: GsiRender[];
+  /** `src` of every GIS script execution, e.g. ['.../gsi/client?hl=en', '.../gsi/client?hl=ru']. */
+  loads: string[];
+}
+
+/**
+ * Runs INSIDE the page every time the (fulfilled) GIS script executes - the stand-in for what
+ * the real `gsi/client` does on load: (re)create `window.google.accounts.id`. The SPA removes the
+ * script and deletes `google.accounts` on a language switch (5f9a9f1), so the recorder must come
+ * back with each load; `window.__gsi` (the recorded calls) deliberately survives it.
+ */
+function gisScriptBody(): void {
+  const w = window as unknown as Record<string, unknown>;
+  const state = (w['__gsi'] ??= { events: [], inits: [], renders: [], loads: [], cb: null }) as {
+    events: string[];
+    inits: unknown[];
+    renders: unknown[];
+    loads: string[];
+    cb: ((response: { credential: string }) => void) | null;
+  };
+  state.loads.push((document.currentScript as HTMLScriptElement | null)?.src ?? '');
+  const google = (w['google'] ??= {}) as Record<string, unknown>;
+  google['accounts'] = {
+    id: {
+      initialize(options: {
+        client_id: string;
+        nonce?: string;
+        ux_mode?: string;
+        callback: (response: { credential: string }) => void;
+      }) {
+        state.inits.push({
+          client_id: options.client_id,
+          nonce: options.nonce,
+          ux_mode: options.ux_mode,
+        });
+        state.events.push(`initialize:${options.nonce}`);
+        state.cb = options.callback;
+      },
+      renderButton(parent: HTMLElement, options: Record<string, unknown>) {
+        state.renders.push({ childrenBefore: parent.childElementCount, options });
+        state.events.push('render');
+        const fake = document.createElement('div');
+        fake.className = 'gsi-stub-button';
+        fake.textContent = 'Continue with Google';
+        parent.appendChild(fake);
+      },
+      cancel() {},
+    },
+  };
+  w['__gsiFire'] = (credential: string) => state.cb?.({ credential });
 }
 
 export async function installGoogleStub(page: Page): Promise<void> {
-  await page.route('https://accounts.google.com/gsi/client', (route) =>
-    route.fulfill({ status: 200, contentType: 'text/javascript', body: '/* gsi stub */' }),
+  // Any query string: the SPA loads `gsi/client?hl=<ui language>`.
+  await page.route(/^https:\/\/accounts\.google\.com\/gsi\/client(\?.*)?$/, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'text/javascript',
+      body: `(${gisScriptBody.toString()})();`,
+    }),
   );
-  await page.addInitScript(() => {
-    const state: {
-      events: string[];
-      inits: unknown[];
-      renders: unknown[];
-      cb: ((response: { credential: string }) => void) | null;
-    } = { events: [], inits: [], renders: [], cb: null };
-    const w = window as unknown as Record<string, unknown>;
-    w['__gsi'] = state;
-    w['google'] = {
-      accounts: {
-        id: {
-          initialize(options: {
-            client_id: string;
-            nonce?: string;
-            ux_mode?: string;
-            callback: (response: { credential: string }) => void;
-          }) {
-            state.inits.push({
-              client_id: options.client_id,
-              nonce: options.nonce,
-              ux_mode: options.ux_mode,
-            });
-            state.events.push(`initialize:${options.nonce}`);
-            state.cb = options.callback;
-          },
-          renderButton(parent: HTMLElement, options: Record<string, unknown>) {
-            state.renders.push({ childrenBefore: parent.childElementCount, options });
-            state.events.push('render');
-            const fake = document.createElement('div');
-            fake.className = 'gsi-stub-button';
-            fake.textContent = 'Continue with Google';
-            parent.appendChild(fake);
-          },
-          cancel() {},
-        },
-      },
-    };
-    w['__gsiFire'] = (credential: string) => state.cb?.({ credential });
-  });
 }
 
 export function gsiState(page: Page): Promise<GsiState> {
   return page.evaluate(() => {
-    const s = (window as unknown as { __gsi: GsiState }).__gsi;
-    return { events: [...s.events], inits: [...s.inits], renders: [...s.renders] };
+    // Absent until the (stubbed) GIS script has executed for the first time.
+    const s = (window as unknown as { __gsi?: GsiState }).__gsi ?? {
+      events: [],
+      inits: [],
+      renders: [],
+      loads: [],
+    };
+    return { events: [...s.events], inits: [...s.inits], renders: [...s.renders], loads: [...s.loads] };
   });
 }
 

@@ -288,4 +288,52 @@ test.describe('Google sign-in (ADR-030)', () => {
     expect(gsi.events.slice(4)).toEqual(['initialize:e2e-nonce-3', 'render']);
     expect(gsi.renders[2].childrenBefore).toBe(0);
   });
+
+  // Journey 11 (5f9a9f1: the GIS script is reloaded with hl=<code> on a language switch)
+  test('switching the UI language with the dialog open reloads gsi/client with hl, re-initializes with the SAME nonce and re-renders', async ({
+    page,
+  }) => {
+    const calls = recordCalls(page);
+    await mockApi(page, { external: { me: e2eUser() } });
+
+    await openLogin(page);
+    await expectRenders(page, 1);
+
+    for (const [row, code, total] of [
+      ['Русский', 'ru', 2],
+      ['Հայերեն', 'hy', 3],
+    ] as const) {
+      // The dialog's modal mask covers the header selector, so a pointer click would hit the
+      // mask (and close the dialog). Dispatch the click straight to the same handlers instead.
+      await page.locator('.lang-selector__trigger:visible').first().dispatchEvent('click');
+      await page.locator('.lang-selector__row', { hasText: row }).dispatchEvent('click');
+      await expectRenders(page, total);
+      const loads = (await gsiState(page)).loads;
+      expect(loads.at(-1)?.endsWith(`/gsi/client?hl=${code}`)).toBe(true);
+    }
+
+    const gsi = await gsiState(page);
+    expect(gsi.loads.map((l) => new URL(l).searchParams.get('hl'))).toEqual(['en', 'ru', 'hy']);
+    // Exactly one script tag survives the two reloads.
+    await expect(page.locator('script[src*="accounts.google.com/gsi/client"]')).toHaveCount(1);
+
+    // No new nonce was requested: every initialize carries the SAME one, each followed by a render
+    // into an emptied container with the new locale.
+    expect(callsTo(calls, 'POST', '/api/auth/external/nonce')).toHaveLength(1);
+    expect(gsi.events).toEqual([
+      'initialize:e2e-nonce-1',
+      'render',
+      'initialize:e2e-nonce-1',
+      'render',
+      'initialize:e2e-nonce-1',
+      'render',
+    ]);
+    expect(gsi.renders.map((r) => r.childrenBefore)).toEqual([0, 0, 0]);
+    expect(gsi.renders.map((r) => r.options['locale'])).toEqual(['en', 'ru', 'hy']);
+    await expect(page.locator('.gsi-block .gsi-stub-button')).toHaveCount(1);
+
+    // The re-created GIS still delivers credentials: one /external request, no more.
+    await fireGoogleCredential(page, credential());
+    await expect.poll(() => callsTo(calls, 'POST', '/api/auth/external')).toHaveLength(1);
+  });
 });

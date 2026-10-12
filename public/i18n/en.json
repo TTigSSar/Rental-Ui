@@ -196,8 +196,8 @@
     "footer": {
       "aboutUs": "About us",
       "faq": "FAQ’s",
-      "terms": "Terms and Conditions",
-      "privacy": "Privacy & Policy",
+      "terms": "Terms of Use",
+      "privacy": "Privacy Policy",
       "partnership": "Partnership",
       "allCategories": "All toy categories",
       "findUs": "You can find us in:",
@@ -2521,14 +2521,440 @@
       "heroLead": "Find answers to the most common questions about renting and listing toys."
     },
     "terms": {
-      "pageTitle": "Terms and Conditions",
-      "heroTitle": "Terms and Conditions",
-      "lastUpdated": "Last updated: May 2026"
+      "pageTitle": "Terms of Use",
+      "heroTitle": "Terms of Use",
+      "lastUpdated": "Last updated: October 2026",
+      "intro": [
+        "These Terms govern your use of dorent.am (the \"Platform\") (\"DoRent\", \"we\", \"us\"). By creating an account or using the Platform, you accept these Terms and our Privacy Policy. If you do not agree, please do not use the Platform."
+      ],
+      "sections": [
+        {
+          "title": "1. What DoRent is",
+          "blocks": [
+            {
+              "list": [
+                "DoRent is a marketplace that connects families who want to rent toys (\"Renters\") with families who lend their toys (\"Owners\").",
+                "We provide the Platform only: listings, booking requests, chat and reviews.",
+                "We are **not a party** to any rental between an Owner and a Renter.",
+                "We do not own, inspect, store, deliver or insure the toys."
+              ]
+            }
+          ]
+        },
+        {
+          "title": "2. Who can use DoRent",
+          "blocks": [
+            {
+              "list": [
+                "You must be at least 18 years old and able to enter into binding agreements.",
+                "The information you give us must be true and kept up to date, including your name, email address and phone number."
+              ]
+            }
+          ]
+        },
+        {
+          "title": "3. Your account",
+          "blocks": [
+            {
+              "list": [
+                "You can register with an email address and password, or with Sign in with Google.",
+                "You are responsible for everything done through your account.",
+                "Keep your password and devices secure. Tell us at support@dorent.am if you suspect someone else is using your account."
+              ]
+            }
+          ]
+        },
+        {
+          "title": "4. Listings and the Owner's responsibilities",
+          "blocks": [
+            {
+              "list": [
+                "Owners must describe the toy honestly: its condition, completeness, age range and any defects. Photos must show the actual toy.",
+                "Toys must be clean and sanitised before every rental.",
+                "Owners set the price and a loss & damage compensation amount. Owners decide how the toy is handed over: pickup from the home point and/or delivery.",
+                "Every listing is reviewed by our moderators before it appears publicly. We may refuse, hide or remove any listing that does not meet these Terms."
+              ]
+            }
+          ]
+        },
+        {
+          "title": "5. Prohibited listings",
+          "blocks": [
+            {
+              "p": "You may not list toys that are:"
+            },
+            {
+              "list": [
+                "broken or unsafe, or a choking hazard for the stated age;",
+                "recalled by the manufacturer or the authorities;",
+                "counterfeit, or infringe someone else's rights;",
+                "not meant for children, or inappropriate for them;",
+                "not yours to lend."
+              ]
+            },
+            {
+              "p": "You may not list items that are not toys, such as weapons or dangerous goods."
+            }
+          ]
+        },
+        {
+          "title": "6. Bookings and the Renter's responsibilities",
+          "blocks": [
+            {
+              "list": [
+                "A rental agreement is formed directly between the Owner and the Renter when the Owner approves a booking request.",
+                {
+                  "text": "Renters must:",
+                  "items": [
+                    "use the toy with care;",
+                    "keep it away from damage;",
+                    "return it complete, in the same condition and on the agreed date."
+                  ]
+                },
+                "Owners and Renters confirm the handover and the return on the Platform.",
+                "Booking requests that the Owner does not answer expire automatically."
+              ]
+            }
+          ]
+        },
+        {
+          "title": "7. Payments and loss & damage compensation",
+          "blocks": [
+            {
+              "list": [
+                "DoRent does **not** process payments. Rental fees, delivery costs and any loss & damage compensation are agreed and paid **directly between the Owner and the Renter**, outside the Platform.",
+                "The loss & damage compensation amount shown on a listing is the amount the Renter agrees to pay the Owner if the toy is lost or damaged. DoRent never collects, holds or refunds it.",
+                "Agree on payment terms clearly before you confirm a rental."
+              ]
+            }
+          ]
+        },
+        {
+          "title": "8. Behaviour on the Platform",
+          "blocks": [
+            {
+              "p": "You agree not to:"
+            },
+            {
+              "list": [
+                "harass, threaten or deceive other users;",
+                "post illegal, offensive or misleading content, in listings, chat or reviews;",
+                "use other users' contact details for anything other than the rental you arranged;",
+                "try to access accounts or data that are not yours, or to disrupt the Platform."
+              ]
+            },
+            {
+              "p": "Reviews must be honest and about a real rental."
+            }
+          ]
+        },
+        {
+          "title": "9. Disputes between users",
+          "blocks": [
+            {
+              "list": [
+                "Disputes about a rental (the condition of a toy, late returns, payments) must be resolved between the Owner and the Renter.",
+                "You can report a listing, a user or a message to us. We may review it and act on our Platform, but we are not obliged to resolve the dispute."
+              ]
+            }
+          ]
+        },
+        {
+          "title": "10. Moderation, suspension and termination",
+          "blocks": [
+            {
+              "list": [
+                "We may refuse or remove content, and suspend or close accounts, that break these Terms or harm other users or the Platform.",
+                "If your account is suspended and you think it is a mistake, write to support@dorent.am.",
+                "You can ask us to close your account at any time by writing to support@dorent.am."
+              ]
+            }
+          ]
+        },
+        {
+          "title": "11. Your content",
+          "blocks": [
+            {
+              "p": "You keep ownership of the photos and text you post. You give DoRent a free, non-exclusive licence to display them on the Platform for as long as they are published, so that we can run the service."
+            }
+          ]
+        },
+        {
+          "title": "12. Liability",
+          "blocks": [
+            {
+              "list": [
+                "The Platform is provided \"as is\".",
+                {
+                  "text": "To the extent the law allows, DoRent is not liable for:",
+                  "items": [
+                    "the toys themselves;",
+                    "the conduct of users;",
+                    "agreements and payments between users;",
+                    "any loss or injury arising from a rental."
+                  ]
+                },
+                "Nothing in these Terms limits rights that you have under consumer-protection law."
+              ]
+            }
+          ]
+        },
+        {
+          "title": "13. Changes",
+          "blocks": [
+            {
+              "list": [
+                "We may change these Terms. We will publish the new version on this page with a new date, and tell registered users about important changes.",
+                "Continuing to use the Platform after a change means you accept the new Terms."
+              ]
+            }
+          ]
+        },
+        {
+          "title": "14. Law and contact",
+          "blocks": [
+            {
+              "list": [
+                "These Terms are governed by the laws of the Republic of Armenia.",
+                "Questions: **support@dorent.am**."
+              ]
+            }
+          ]
+        }
+      ]
     },
     "privacy": {
       "pageTitle": "Privacy Policy",
       "heroTitle": "Privacy Policy",
-      "lastUpdated": "Last updated: May 2026"
+      "lastUpdated": "Last updated: October 2026",
+      "intro": [
+        "This Privacy Policy explains what personal data DoRent (\"DoRent\", \"we\", \"us\") collects when you use dorent.am (the \"Platform\"), why we collect it, who can see it, and what rights you have. For any privacy question, write to **support@dorent.am**.",
+        "DoRent is a platform where families in Armenia rent toys from each other. The Platform is intended for adults (18+). We do not knowingly collect personal data about children."
+      ],
+      "sections": [
+        {
+          "title": "1. Data we collect",
+          "blocks": [
+            {
+              "heading": "Account data"
+            },
+            {
+              "list": [
+                "Your email address, first name and last name.",
+                "Your phone number. We ask for it at registration, or the first time you publish a listing or send a booking request.",
+                "A securely hashed version of your password. We never store your password in plain text. If you only sign in with Google, you have no password with us.",
+                "Your preferred language (English, Armenian or Russian)."
+              ]
+            },
+            {
+              "heading": "Sign in with Google"
+            },
+            {
+              "p": "If you choose \"Continue with Google\", Google sends us:"
+            },
+            {
+              "list": [
+                "your Google account identifier;",
+                "your email address and whether Google has verified it;",
+                "your name;",
+                "the address of your profile picture;",
+                "for Google Workspace accounts, your organisation's domain."
+              ]
+            },
+            {
+              "p": "We use this only to create your account or sign you in. We do not receive your Google password, and we do not access your contacts, files, calendar or any other Google data."
+            },
+            {
+              "heading": "Home point (location)"
+            },
+            {
+              "p": "To list toys, you set a home point on a map: the place renters pick toys up from."
+            },
+            {
+              "list": [
+                "We store the exact point you choose.",
+                "Other users never see it. They see only your district and an approximate area of about 100 metres. You share the exact address with a renter yourself, in the chat, after a booking.",
+                "We also use your home point to show you how far toys are from you.",
+                "If you use \"my current location\" while browsing, that position is used only in your browser to calculate distances. It is not sent to us."
+              ]
+            },
+            {
+              "heading": "Listings"
+            },
+            {
+              "p": "The content you publish: the toy's name, description, photos, category, age range, condition, price, loss & damage compensation amount, and delivery options."
+            },
+            {
+              "heading": "Bookings, messages and reviews"
+            },
+            {
+              "list": [
+                "Your booking requests and their status, and the optional note you write to the owner.",
+                "Chat messages and the photos you send in a chat.",
+                {
+                  "text": "Reviews.",
+                  "items": [
+                    "The **written comment** of a review is public.",
+                    "The **individual scores** are shown to others only as averages, never with your name attached."
+                  ]
+                },
+                "Reports you file about listings, users or messages.",
+                "Your favourites and in-app notifications."
+              ]
+            },
+            {
+              "heading": "Technical data"
+            },
+            {
+              "list": [
+                "When you use the Platform, our servers and our network provider process your IP address and basic request information (browser type, pages requested).",
+                "We use it to deliver the service, limit abuse (for example, too many sign-in attempts), keep the Platform secure and fix errors. Server logs are kept only for a short time.",
+                "We do not use advertising or tracking cookies and we do not build advertising profiles."
+              ]
+            },
+            {
+              "heading": "Data stored in your browser"
+            },
+            {
+              "p": "We store your sign-in token and your language choice in your browser's local storage, so you stay signed in and see the Platform in your language. This is not shared with anyone. Signing out removes the sign-in token."
+            }
+          ]
+        },
+        {
+          "title": "2. Why we use your data",
+          "blocks": [
+            {
+              "p": "We use your data only to:"
+            },
+            {
+              "list": [
+                "create your account and sign you in, including confirming your email address;",
+                "show your listings and your public profile (name, district, reviews) to other users;",
+                "let owners and renters make and manage bookings and talk to each other;",
+                "show distances and approximate locations;",
+                "moderate listings and keep the Platform safe: review reports, prevent fraud, suspend accounts that break our Terms;",
+                "answer your questions;",
+                "keep the Platform working and secure."
+              ]
+            },
+            {
+              "p": "We process your data because it is necessary to provide the service you asked for, to keep the Platform safe (our legitimate interest), or because the law requires it."
+            }
+          ]
+        },
+        {
+          "title": "3. Who can see your data",
+          "blocks": [
+            {
+              "list": [
+                {
+                  "text": "**Other users** see:",
+                  "items": [
+                    "your first name and last name;",
+                    "your district and approximate area;",
+                    "your listings;",
+                    "your public reviews and ratings;",
+                    "the messages you send them."
+                  ],
+                  "note": "They never see your email address, phone number, exact home point or password."
+                },
+                "**Photos in chats** are delivered by a direct link. Anyone who has that link can open the photo, so only share photos you are comfortable with.",
+                "**DoRent moderators and administrators** can see account data, including your phone number, listings and reports. They need this to run and protect the Platform.",
+                {
+                  "text": "**Service providers** who process data for us only to provide their service:",
+                  "items": [
+                    "**Hetzner Online** (server hosting);",
+                    "**Cloudflare** (network delivery and protection);",
+                    "**Resend** (sending email);",
+                    "**Google** (Sign in with Google, only if you use it);",
+                    "**OpenStreetMap** (map tiles; your browser loads them directly from their servers, which see your IP address)."
+                  ],
+                  "note": "Some of these providers process data outside Armenia."
+                },
+                "**Authorities**, when the law requires us to disclose data."
+              ]
+            },
+            {
+              "p": "We do not sell or rent your personal data, and we do not share it for marketing."
+            }
+          ]
+        },
+        {
+          "title": "4. Emails",
+          "blocks": [
+            {
+              "p": "We send only service emails, such as confirming your email address. We do not send marketing emails. If we ever do, you will be able to opt out."
+            }
+          ]
+        },
+        {
+          "title": "5. How long we keep data",
+          "blocks": [
+            {
+              "list": [
+                "We keep your account data while your account exists.",
+                "If you ask us to delete your account, we delete or anonymise your personal data within 30 days. Some records may be kept longer where the law requires it, or where they are needed to resolve a dispute or protect another user.",
+                "Backup copies are kept for 7 days and then overwritten.",
+                "An unconfirmed registration that is never completed may be removed."
+              ]
+            }
+          ]
+        },
+        {
+          "title": "6. Your rights",
+          "blocks": [
+            {
+              "p": "You can ask us to:"
+            },
+            {
+              "list": [
+                "give you a copy of your data;",
+                "correct it;",
+                "delete your account and data;",
+                "stop or limit some processing."
+              ]
+            },
+            {
+              "p": "You can change your name and phone number yourself in your profile. For anything else, write to **support@dorent.am** from the email address of your account. We will answer within 30 days."
+            }
+          ]
+        },
+        {
+          "title": "7. Security",
+          "blocks": [
+            {
+              "p": "We protect your data with:"
+            },
+            {
+              "list": [
+                "encrypted connections (HTTPS);",
+                "hashed passwords;",
+                "access limited to the people who need it;",
+                "regular backups."
+              ]
+            },
+            {
+              "p": "No system is perfectly secure. If we learn of a breach that affects you, we will tell you."
+            }
+          ]
+        },
+        {
+          "title": "8. Changes to this policy",
+          "blocks": [
+            {
+              "p": "We may update this policy as the Platform changes. We will publish the new version on this page with a new date. For important changes, we will also tell registered users by email or on the Platform."
+            }
+          ]
+        },
+        {
+          "title": "9. Contact",
+          "blocks": [
+            {
+              "p": "DoRent · **support@dorent.am**"
+            }
+          ]
+        }
+      ]
     }
   },
   "notifications": {

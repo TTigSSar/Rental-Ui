@@ -1,0 +1,29 @@
+@use '../../pages/info-page' as *;
+
+// The host adds no box of its own: its sections stay direct flex items of the page container.
+:host {
+  display: contents;
+}
+
+.info-page__inline-link {
+  color: var(--ui-color-primary);
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.info-page__list .info-page__list {
+  margin-top: 10px;
+}
+
+.info-page__prose--note {
+  margin-top: 10px;
+}
+
+// A sub-heading directly after the section heading needs no extra top margin.
+.info-page__section-heading + .info-page__section-subheading {
+  margin-top: 0;
+}
