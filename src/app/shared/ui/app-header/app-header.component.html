@@ -4,7 +4,7 @@
     <a
       routerLink="/"
       class="nh__brand"
-      aria-label="DoRent home"
+      [attr.aria-label]="'app.shell.header.brandAria' | translate"
       (mouseenter)="onBrandHoverChange(true)"
       (mouseleave)="onBrandHoverChange(false)"
       (focusin)="onBrandHoverChange(true)"
@@ -27,12 +27,12 @@
           id="nh-search-input"
           class="nh__search-input"
           type="search"
-          placeholder="Search toys, brands, owners..."
+          [placeholder]="'app.shell.header.searchPlaceholder' | translate"
           [value]="searchQuery()"
           (input)="onSearchInput($event)"
           (keydown.enter)="onSearchSubmit()"
           [attr.tabindex]="searchHidden() ? -1 : null"
-          aria-label="Search toys, brands, owners"
+          [attr.aria-label]="'app.shell.header.searchAria' | translate"
           autocomplete="off"
         />
       </label>
@@ -41,9 +41,9 @@
         class="nh__search-btn"
         (click)="onSearchSubmit()"
         [attr.tabindex]="searchHidden() ? -1 : null"
-        aria-label="Submit search"
+        [attr.aria-label]="'app.shell.header.searchSubmitAria' | translate"
       >
-        Search
+        {{ 'app.shell.header.searchButton' | translate }}
       </button>
     </div>
 
@@ -73,7 +73,7 @@
             class="nh__notif-btn"
             routerLink="/chat"
             routerLinkActive="nh__notif-btn--active"
-            aria-label="Open messages"
+            [attr.aria-label]="'app.shell.header.openMessagesAria' | translate"
           >
             <i class="pi pi-comments" aria-hidden="true"></i>
             @if (unreadChatCount() > 0) {
@@ -90,7 +90,7 @@
             class="nh__notif-btn"
             routerLink="/notifications"
             routerLinkActive="nh__notif-btn--active"
-            aria-label="Open notifications"
+            [attr.aria-label]="'app.shell.notifications.aria' | translate"
           >
             <i class="pi pi-bell" aria-hidden="true"></i>
             @if (unreadNotifCount() > 0) {
@@ -114,7 +114,9 @@
             [attr.aria-expanded]="profileOpen()"
             aria-haspopup="true"
             [attr.aria-label]="
-              userFirstName() + ' – ' + ('app.shell.userMenuToggleAria' | translate)
+              userFirstName()
+                ? userFirstName() + ' – ' + ('app.shell.userMenuToggleAria' | translate)
+                : ('app.shell.userMenuToggleAria' | translate)
             "
           >
             <span class="nh__user-avatar" aria-hidden="true">{{ userInitials() ?? 'U' }}</span>
@@ -130,7 +132,7 @@
             <div
               class="nh__dropdown"
               role="menu"
-              aria-label="Account navigation"
+              [attr.aria-label]="'app.shell.header.accountNavAria' | translate"
               (mouseenter)="openProfileMenu()"
               (mouseleave)="scheduleCloseProfileMenu()"
             >
@@ -139,8 +141,12 @@
                 <span class="nh__dd-avatar" aria-hidden="true">{{ userInitials() ?? 'U' }}</span>
                 <div class="nh__dd-user-info">
                   <p class="nh__dd-user-name">
-                    {{ userDisplayName() ?? 'User' }}
-                    <span class="nh__dd-verified" title="Verified" aria-label="Verified">
+                    {{ userDisplayName() ?? ('app.shell.header.defaultUserName' | translate) }}
+                    <span
+                      class="nh__dd-verified"
+                      [attr.title]="'app.shell.header.verified' | translate"
+                      [attr.aria-label]="'app.shell.header.verified' | translate"
+                    >
                       <i class="pi pi-check" aria-hidden="true"></i>
                     </span>
                   </p>
@@ -150,14 +156,14 @@
                     role="menuitem"
                     (click)="closeProfile()"
                   >
-                    View profile
+                    {{ 'profile.nav.viewProfile' | translate }}
                     <i class="pi pi-chevron-right" aria-hidden="true"></i>
                   </a>
                 </div>
               </div>
 
               <!-- Primary nav items ──────────────────────────────────── -->
-              <div class="nh__dd-section" role="group" aria-label="My account">
+              <div class="nh__dd-section" role="group" [attr.aria-label]="'app.shell.header.myAccountAria' | translate">
                 <a
                   class="nh__dd-item"
                   routerLink="/profile/toys"
@@ -166,9 +172,14 @@
                   (click)="closeProfile()"
                 >
                   <i class="pi pi-box nh__dd-icon" aria-hidden="true"></i>
-                  <span class="nh__dd-label">My toys</span>
+                  <span class="nh__dd-label">{{ 'profile.nav.myToys' | translate }}</span>
                   @if (myToysCount() > 0) {
-                    <span class="nh__dd-count" aria-label="{{ myToysCount() }} toys">{{
+                    <span
+                      class="nh__dd-count"
+                      [attr.aria-label]="
+                        'app.shell.header.toysCountAria' | translate: { count: myToysCount() }
+                      "
+                      >{{
                       myToysCount()
                     }}</span>
                   }
@@ -184,7 +195,12 @@
                   <i class="pi pi-calendar nh__dd-icon" aria-hidden="true"></i>
                   <span class="nh__dd-label">{{ 'profile.nav.myRentals' | translate }}</span>
                   @if (myRentalsCount() > 0) {
-                    <span class="nh__dd-count" aria-label="{{ myRentalsCount() }} bookings">{{
+                    <span
+                      class="nh__dd-count"
+                      [attr.aria-label]="
+                        'app.shell.header.bookingsCountAria' | translate: { count: myRentalsCount() }
+                      "
+                      >{{
                       myRentalsCount()
                     }}</span>
                   }
@@ -198,11 +214,13 @@
                   (click)="closeProfile()"
                 >
                   <i class="pi pi-inbox nh__dd-icon" aria-hidden="true"></i>
-                  <span class="nh__dd-label">Incoming requests</span>
+                  <span class="nh__dd-label">{{ 'profile.nav.incomingRequests' | translate }}</span>
                   @if (requestsCount() > 0) {
                     <span
                       class="nh__dd-count nh__dd-count--badge"
-                      aria-label="{{ requestsCount() }} requests"
+                      [attr.aria-label]="
+                        'app.shell.header.requestsCountAria' | translate: { count: requestsCount() }
+                      "
                       >{{ requestsCount() }}</span
                     >
                   }
@@ -216,9 +234,14 @@
                   (click)="closeProfile()"
                 >
                   <i class="pi pi-heart nh__dd-icon" aria-hidden="true"></i>
-                  <span class="nh__dd-label">Saved toys</span>
+                  <span class="nh__dd-label">{{ 'profile.nav.favorites' | translate }}</span>
                   @if (savedCount() > 0) {
-                    <span class="nh__dd-count" aria-label="{{ savedCount() }} saved">{{
+                    <span
+                      class="nh__dd-count"
+                      [attr.aria-label]="
+                        'app.shell.header.savedCountAria' | translate: { count: savedCount() }
+                      "
+                      >{{
                       savedCount()
                     }}</span>
                   }
@@ -226,7 +249,7 @@
               </div>
 
               <!-- Secondary nav items ────────────────────────────────── -->
-              <div class="nh__dd-section" role="group" aria-label="Account settings">
+              <div class="nh__dd-section" role="group" [attr.aria-label]="'profile.nav.accountSettings' | translate">
                 <a
                   class="nh__dd-item"
                   routerLink="/profile"
@@ -234,7 +257,7 @@
                   (click)="closeProfile()"
                 >
                   <i class="pi pi-chart-bar nh__dd-icon" aria-hidden="true"></i>
-                  <span class="nh__dd-label">Earnings & payouts</span>
+                  <span class="nh__dd-label">{{ 'profile.nav.earningsPayouts' | translate }}</span>
                   <i class="pi pi-chevron-right nh__dd-chevron" aria-hidden="true"></i>
                 </a>
 
@@ -245,7 +268,7 @@
                   (click)="closeProfile()"
                 >
                   <i class="pi pi-cog nh__dd-icon" aria-hidden="true"></i>
-                  <span class="nh__dd-label">Account settings</span>
+                  <span class="nh__dd-label">{{ 'profile.nav.accountSettings' | translate }}</span>
                   <i class="pi pi-chevron-right nh__dd-chevron" aria-hidden="true"></i>
                 </a>
               </div>
@@ -259,7 +282,7 @@
                   (click)="onSignOut()"
                 >
                   <i class="pi pi-sign-out nh__dd-icon" aria-hidden="true"></i>
-                  <span class="nh__dd-label">Sign out</span>
+                  <span class="nh__dd-label">{{ 'profile.nav.logout' | translate }}</span>
                   <i class="pi pi-chevron-right nh__dd-chevron" aria-hidden="true"></i>
                 </button>
               </div>
