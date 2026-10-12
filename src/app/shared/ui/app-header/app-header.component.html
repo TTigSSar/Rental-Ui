@@ -43,7 +43,6 @@
         class="nh__search-btn"
         (click)="onSearchSubmit()"
         [attr.tabindex]="searchHidden() ? -1 : null"
-        [attr.aria-label]="'app.shell.header.searchSubmitAria' | translate"
       >
         {{ 'app.shell.header.searchButton' | translate }}
       </button>
@@ -75,14 +74,11 @@
             class="nh__notif-btn"
             routerLink="/chat"
             routerLinkActive="nh__notif-btn--active"
-            [attr.aria-label]="
-              ('app.shell.header.openMessagesAria' | translate) +
-              (unreadChatCount() > 0 ? ' (' + (unreadChatCount() > 99 ? '99+' : unreadChatCount()) + ')' : '')
-            "
           >
             <i class="pi pi-comments" aria-hidden="true"></i>
+            <span class="nh__sr">{{ 'app.shell.header.openMessagesAria' | translate }}</span>
             @if (unreadChatCount() > 0) {
-              <span class="nh__notif-badge" aria-hidden="true">
+              <span class="nh__notif-badge">
                 {{ unreadChatCount() > 99 ? '99+' : unreadChatCount() }}
               </span>
             }
@@ -95,14 +91,11 @@
             class="nh__notif-btn"
             routerLink="/notifications"
             routerLinkActive="nh__notif-btn--active"
-            [attr.aria-label]="
-              ('app.shell.notifications.aria' | translate) +
-              (unreadNotifCount() > 0 ? ' (' + (unreadNotifCount() > 99 ? '99+' : unreadNotifCount()) + ')' : '')
-            "
           >
             <i class="pi pi-bell" aria-hidden="true"></i>
+            <span class="nh__sr">{{ 'app.shell.notifications.aria' | translate }}</span>
             @if (unreadNotifCount() > 0) {
-              <span class="nh__notif-badge" aria-hidden="true">
+              <span class="nh__notif-badge">
                 {{ unreadNotifCount() > 99 ? '99+' : unreadNotifCount() }}
               </span>
             }

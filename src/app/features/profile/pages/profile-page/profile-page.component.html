@@ -421,7 +421,7 @@
                 <div class="profile-page__identity-info">
                   <p class="profile-page__identity-name">{{ profile.firstName }} {{ profile.lastName }}</p>
                 </div>
-                <button type="button" class="profile-page__edit-btn" disabled aria-label="Edit profile">
+                <button type="button" class="profile-page__edit-btn" disabled [attr.aria-label]="('profile.edit' | translate) + ' – ' + ('app.shell.nav.profile' | translate)">
                   {{ 'profile.edit' | translate }}
                 </button>
               </div>
