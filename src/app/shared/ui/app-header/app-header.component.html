@@ -58,10 +58,10 @@
       @if (!isAuthPending() && !isAuthenticated()) {
         <app-language-selector />
         <button type="button" class="nh__btn nh__btn--ghost" (click)="onOpenAuth('login')">
-          Log in
+          {{ 'app.shell.nav.login' | translate }}
         </button>
         <button type="button" class="nh__btn nh__btn--primary" (click)="onOpenAuth('register')">
-          Sign up
+          {{ 'app.shell.nav.register' | translate }}
         </button>
       }
 
@@ -113,7 +113,9 @@
             [class.nh__user-trigger--open]="profileOpen()"
             [attr.aria-expanded]="profileOpen()"
             aria-haspopup="true"
-            aria-label="Account menu"
+            [attr.aria-label]="
+              userFirstName() + ' – ' + ('app.shell.userMenuToggleAria' | translate)
+            "
           >
             <span class="nh__user-avatar" aria-hidden="true">{{ userInitials() ?? 'U' }}</span>
             <span class="nh__user-name">{{ userFirstName() }}</span>

@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { Injectable, inject, signal } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
@@ -36,6 +37,7 @@ const LANGUAGES: readonly LanguageOption[] = [
 export class LanguageService {
   private readonly translate = inject(TranslateService);
   private readonly store = inject(Store);
+  private readonly document = inject(DOCUMENT);
 
   readonly languages: readonly LanguageOption[] = LANGUAGES;
 
@@ -45,6 +47,7 @@ export class LanguageService {
   /** Applies the resolved language to ngx-translate. Call once, on app boot. */
   hydrate(): void {
     this.translate.use(this.current().code);
+    this.setDocumentLang(this.current().code);
   }
 
   /**
@@ -79,11 +82,17 @@ export class LanguageService {
   private applyLocally(option: LanguageOption): void {
     this.current.set(option);
     this.translate.use(option.code);
+    this.setDocumentLang(option.code);
     try {
       localStorage.setItem(LANGUAGE_STORAGE_KEY, option.code);
     } catch {
       /* ignore (private browsing / storage disabled) */
     }
+  }
+
+  /** Keeps `<html lang>` in step with the UI language (screen readers, hyphenation, spellcheck). */
+  private setDocumentLang(code: LanguageCode): void {
+    this.document.documentElement.lang = code;
   }
 
   private resolveInitial(): LanguageOption {

@@ -1,6 +1,7 @@
 {
   "common": {
     "back": "Back",
+    "close": "Close",
     "retry": "Try again"
   },
   "app": {
@@ -2510,6 +2511,8 @@
       "heroTitle": "About DoRent",
       "heroLead": "We believe every child deserves access to great toys — without the clutter or the price tag.",
       "missionHeading": "Our Mission",
+      "missionP1": "DoRent started with a simple observation: children outgrow their toys quickly, yet new toys are expensive and often end up forgotten in storage. We built this platform to help families share the toys they already have — reducing waste, saving money, and giving every child access to a wider world of play.",
+      "missionP2": "Our goal is to make toy sharing as easy and trustworthy as borrowing from a neighbor you already know. Every listing is reviewed by our team, and every owner shares the condition, hygiene notes, and safety details of their toy before it goes live.",
       "howHeading": "How It Works",
       "trustHeading": "Trust & Safety",
       "moderationHeading": "Our Review Process",

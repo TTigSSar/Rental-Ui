@@ -6,11 +6,15 @@
   [dismissableMask]="true"
   [draggable]="false"
   [resizable]="false"
+  [closeAriaLabel]="'common.close' | translate"
   styleClass="auth-dialog"
   appendTo="body"
   (onHide)="onHidden()"
 >
-  <ng-template pTemplate="header">
+  <!-- p-dialog binds aria-labelledby to the id it passes into this template; with a
+       custom header nothing else renders that id, so the dialog would have no name. -->
+  <ng-template pTemplate="header" let-labelledBy="ariaLabelledBy">
+    <span class="auth-dialog__sr" [id]="labelledBy">{{ 'auth.dialog.title' | translate }}</span>
     <div class="auth-dialog__drag-handle" aria-hidden="true"></div>
   </ng-template>
 

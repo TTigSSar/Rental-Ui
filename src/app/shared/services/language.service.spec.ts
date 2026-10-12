@@ -138,6 +138,39 @@ describe('LanguageService', () => {
     expect(dispatchSpy).toHaveBeenCalledWith(AuthActions.updatePreferredLanguage({ code: 'ru' }));
   });
 
+  describe('<html lang>', () => {
+    afterEach(() => {
+      document.documentElement.lang = 'en';
+    });
+
+    it('hydrate() sets the stored language on <html>', () => {
+      window.localStorage.setItem(STORAGE_KEY, 'hy');
+      const service = createService();
+
+      service.hydrate();
+
+      expect(document.documentElement.lang).toBe('hy');
+    });
+
+    it('use() updates <html lang>', () => {
+      const service = createService();
+
+      service.use('ru');
+
+      expect(document.documentElement.lang).toBe('ru');
+    });
+
+    it('applyFromUser() updates <html lang> for a valid code and ignores an unknown one', () => {
+      const service = createService();
+
+      service.applyFromUser('hy');
+      expect(document.documentElement.lang).toBe('hy');
+
+      service.applyFromUser('fr');
+      expect(document.documentElement.lang).toBe('hy');
+    });
+  });
+
   describe('applyFromUser()', () => {
     it('applies a valid server-saved code: updates current, ngx-translate, and storage', () => {
       const service = createService();
