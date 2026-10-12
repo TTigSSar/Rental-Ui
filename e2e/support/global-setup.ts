@@ -26,12 +26,14 @@ import type { FullConfig } from '@playwright/test';
  * straight through to `playwright test`.
  */
 export default async function globalSetup(_config: FullConfig): Promise<void> {
+  // E2E_PORT (see playwright.config.ts) points the mocked tier at another port; the same
+  // "never test a foreign server" check runs against whatever port was chosen.
   const runningRealTierOnly = process.argv.some((arg) => arg.includes('--project=real'));
   if (runningRealTierOnly) return;
 
   let response: Response;
   try {
-    response = await fetch('http://localhost:4200/');
+    response = await fetch(`http://localhost:${process.env['E2E_PORT'] ?? 4200}/`);
   } catch {
     // Nothing reachable yet — webServer already ran by the time global setup
     // executes, so this would be an unrelated transient issue; let the normal
@@ -42,9 +44,10 @@ export default async function globalSetup(_config: FullConfig): Promise<void> {
   const server = (response.headers.get('server') ?? '').toLowerCase();
   if (server.includes('nginx')) {
     throw new Error(
-      'Mocked e2e tier (`npm run e2e`): http://localhost:4200 is already serving the ' +
+      'Mocked e2e tier (`npm run e2e`): ' +
+        `http://localhost:${process.env['E2E_PORT'] ?? 4200} is already serving the ` +
         'docker nginx UI, not the Angular dev server (`ng serve`). Playwright\'s webServer ' +
-        'reuses whatever already answers on :4200, so this run would silently test a stale, ' +
+        'reuses whatever already answers on that port, so this run would silently test a stale, ' +
         "pre-built docker image instead of your working tree — the exact trap recorded as " +
         'M-011. Stop the docker UI container first (from the repo root), then re-run:\n' +
         '  docker compose -f rental-api/docker-compose.yml stop ui\n' +

@@ -21,6 +21,11 @@ import { defineConfig, devices } from '@playwright/test';
  * e2e/support/global-setup.ts for why this can't live inside `webServer`
  * itself and isn't a per-spec-file call the way the real tier's guard is.
  */
+// Mocked tier only: E2E_PORT moves `ng serve` (and baseURL) off :4200 when another server owns
+// it, e.g. the docker UI. The real tier is pinned to docker's :4200 by its own guard.
+const port = Number(process.env['E2E_PORT'] ?? 4200);
+const origin = `http://localhost:${port}`;
+
 export default defineConfig({
   testDir: './e2e',
   globalSetup: './e2e/support/global-setup.ts',
@@ -31,7 +36,7 @@ export default defineConfig({
   timeout: 30_000,
   expect: { timeout: 10_000 },
   use: {
-    baseURL: 'http://localhost:4200',
+    baseURL: origin,
     trace: 'on-first-retry',
     // The dev server uses a self-signed cert for the API host; ignore TLS in tests.
     ignoreHTTPSErrors: true,
@@ -89,8 +94,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm start',
-    url: 'http://localhost:4200',
+    command: port === 4200 ? 'npm start' : `npm start -- --port ${port}`,
+    url: origin,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
