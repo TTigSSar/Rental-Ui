@@ -6,6 +6,8 @@
   --notif-kind-color: var(--ui-color-primary);
   --notif-kind-strong: var(--ui-color-primary-strong);
   --notif-kind-soft-text: var(--ui-color-primary-strong-hover);
+  --notif-kind-fill: var(--ui-color-primary-strong);
+  --notif-kind-on-fill: #fff;
   --notif-kind-soft: var(--ui-color-primary-soft);
 
   position: relative;
@@ -92,7 +94,7 @@
   place-items: center;
   background: var(--notif-kind-color);
   border: 2.5px solid var(--p-surface-0, #fff);
-  color: #fff;
+  color: var(--notif-kind-on-fill);
   font-size: 0.625rem;
 }
 
@@ -135,8 +137,8 @@
   align-items: center;
   padding: 0.125rem 0.5rem;
   border-radius: 999px;
-  background: var(--notif-kind-strong);
-  color: #fff;
+  background: var(--notif-kind-fill);
+  color: var(--notif-kind-on-fill);
   font-size: 0.625rem;
   font-weight: 800;
   letter-spacing: 0.02em;
@@ -202,8 +204,8 @@
 }
 
 .notif-card__btn--primary {
-  background: var(--notif-kind-strong);
-  color: #fff;
+  background: var(--notif-kind-fill);
+  color: var(--notif-kind-on-fill);
   box-shadow: 0 4px 12px -3px color-mix(in srgb, var(--notif-kind-color) 53%, transparent);
 }
 

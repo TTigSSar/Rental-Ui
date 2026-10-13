@@ -190,7 +190,8 @@
   --app-bottom-nav-safe-space: 0px;
 
   /* —— Dashboard page tokens —— */
-  --dash-warn: #a75c05; /* was #d97706 (3.18 with white) */
+  --dash-warn: #d97706; /* amber FILL / dot: carries dark text, never white (ADR-034) */
+  --dash-warn-ink: #a75c05; /* amber TEXT on light backgrounds (4.5+) */
   --dash-warn-surface: #fef3c7;
   --dash-warn-text: #92400e;
   --dash-blue: #465ce2; /* was #4a5fe3 (4.37 on #e8eaff) */

@@ -24,6 +24,13 @@ export interface NotificationKindMeta {
    * light orange tint uses `--ui-color-primary-strong-hover`, `#a83c00`). Falls back to `strong`.
    */
   readonly softText?: string;
+  /**
+   * Fill for solid pills and the primary CTA, and the text/icon colour on it. Default: `strong`
+   * with white. Amber and yellow keep their bright colour with dark text instead (ADR-034):
+   * white on them fails 4.5:1, dark text passes (5.36 and 7.23).
+   */
+  readonly fill?: string;
+  readonly onFill?: string;
   /** Soft background tint for the label pill / unread wash. */
   readonly soft: string;
   readonly labelKey: string;
@@ -70,6 +77,8 @@ export const NOTIFICATION_KIND_META: Record<NotificationKind, NotificationKindMe
     icon: 'truck',
     color: '#d97706',
     strong: '#a75c05',
+    fill: '#d97706',
+    onFill: '#1a1b26',
     soft: '#fff1dc',
     labelKey: 'notifications.kind.pickup',
   },
@@ -85,6 +94,8 @@ export const NOTIFICATION_KIND_META: Record<NotificationKind, NotificationKindMe
     icon: 'clock',
     color: '#d97706',
     strong: '#a75c05',
+    fill: '#d97706',
+    onFill: '#1a1b26',
     soft: '#fff1dc',
     labelKey: 'notifications.kind.return',
   },
@@ -92,6 +103,8 @@ export const NOTIFICATION_KIND_META: Record<NotificationKind, NotificationKindMe
     icon: 'star',
     color: '#e39a00',
     strong: '#956500',
+    fill: '#e39a00',
+    onFill: '#1a1b26',
     soft: '#fcf1d8',
     labelKey: 'notifications.kind.review',
   },
