@@ -523,6 +523,7 @@
 
 .hp-sheet__primary:disabled {
   background: var(--ui-color-primary-disabled);
+  color: var(--ui-color-primary-disabled-text);
   box-shadow: none;
   cursor: not-allowed;
 }

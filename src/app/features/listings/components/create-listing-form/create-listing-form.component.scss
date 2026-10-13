@@ -150,7 +150,9 @@
   white-space: nowrap;
 
   &:disabled {
-    opacity: 0.55;
+    opacity: 1;
+    background: var(--ui-color-primary-disabled);
+    color: var(--ui-color-primary-disabled-text);
     cursor: not-allowed;
   }
   &:hover:not(:disabled) {
@@ -913,7 +915,7 @@
   border: 1.5px dashed var(--ui-color-primary);
   border-radius: var(--ui-radius-input);
   background: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
   font: inherit;
   font-weight: 700;
   font-size: var(--ui-font-size-caption);
@@ -1353,6 +1355,13 @@
   box-shadow: var(--ui-shadow-primary-button);
   &:hover:not(:disabled) {
     filter: brightness(0.94);
+  }
+  /* ADR-031: neutral disabled (the base `.wizard__btn:disabled` opacity must not stack on it). */
+  &:disabled {
+    opacity: 1;
+    background: var(--ui-color-primary-disabled);
+    color: var(--ui-color-primary-disabled-text);
+    box-shadow: none;
   }
 }
 

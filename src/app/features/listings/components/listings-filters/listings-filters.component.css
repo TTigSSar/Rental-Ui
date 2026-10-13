@@ -80,7 +80,7 @@
   border: 1px solid var(--ui-color-primary);
   border-radius: var(--ui-radius-pill);
   background: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
   font-size: 0.75rem;
   font-weight: 600;
   max-width: 12rem;
@@ -100,7 +100,7 @@
   border: none;
   border-radius: 50%;
   background: transparent;
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
   cursor: pointer;
   display: grid;
   place-items: center;

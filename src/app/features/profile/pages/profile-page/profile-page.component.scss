@@ -85,7 +85,7 @@
   height: 3.5rem;
   border-radius: 50%;
   background: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
   font-size: 1.25rem;
   font-weight: 800;
   display: grid;
@@ -901,7 +901,7 @@
 
     &--active {
       background: var(--ui-color-primary-soft);
-      color: var(--ui-color-primary-strong);
+      color: var(--ui-color-primary-strong-hover);
       font-weight: 600;
     }
 

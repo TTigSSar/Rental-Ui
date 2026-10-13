@@ -92,14 +92,14 @@
 }
 
 .app-shell__nav-link--active {
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
   background: #fff2e9;
   font-weight: 600;
 }
 
 .app-shell__nav-link--active:hover {
   background: #ffe5d4;
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-active);
 }
 
 /* —— Trailing: CTA, language, user menu, mobile burger —— */
@@ -272,7 +272,7 @@
 .app-shell__notif-btn--active {
   background: #fff2e9;
   border-color: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
 }
 
 .app-shell__notif-btn .pi {
@@ -527,7 +527,7 @@
 
 .app-shell__dropdown-item--selected {
   background: #fff2e9;
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
 }
 
 .app-shell__dropdown-item--selected .pi-check {
@@ -548,7 +548,7 @@
 }
 
 .app-shell__dropdown-item--selected .app-shell__language-option-label {
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
 }
 
 .app-shell__dropdown-item--danger {
@@ -746,7 +746,7 @@
 
   .app-bottom-nav__item:hover,
   .app-bottom-nav__item:focus-visible {
-    color: var(--ui-color-primary-strong);
+    color: var(--ui-color-primary-strong-hover);
     background: var(--ui-color-primary-soft);
   }
 

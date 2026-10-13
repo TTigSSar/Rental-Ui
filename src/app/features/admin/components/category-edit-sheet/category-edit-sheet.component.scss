@@ -84,6 +84,12 @@
   gap: var(--ui-space-8);
 }
 
+.category-edit-sheet__btn--confirm:disabled {
+  opacity: 1;
+  background: var(--ui-color-primary-disabled);
+  color: var(--ui-color-primary-disabled-text);
+}
+
 .category-edit-sheet__spinner {
   width: 14px;
   height: 14px;

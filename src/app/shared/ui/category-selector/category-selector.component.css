@@ -145,7 +145,7 @@
 
 .cs-option--selected {
   background: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
 }
 
 .cs-option--selected:hover,
@@ -182,6 +182,6 @@
 }
 
 .cs-option--selected .cs-option__count {
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
   opacity: 0.8;
 }

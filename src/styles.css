@@ -24,7 +24,9 @@
   --ui-color-primary-strong-active: #943300; /* 7.68 */
   --ui-color-primary-soft: #ffeedc;
   --ui-color-primary-wash: #fff2e9;
-  --ui-color-primary-disabled: #f4cfb7;
+  /* ADR-031: disabled primary controls are neutral (board): #f4f4f8 fill, #b5b6b7 text. */
+  --ui-color-primary-disabled: #f4f4f8;
+  --ui-color-primary-disabled-text: #b5b6b7;
   --ui-color-secondary: #2a2c41;
   --ui-color-background: #faf8f4;
   --ui-color-canvas-dark: #14161e;
@@ -371,6 +373,8 @@ p {
 .p-button:not(.p-button-outlined):not(.p-button-text):disabled {
   background: var(--ui-color-primary-disabled);
   border-color: var(--ui-color-primary-disabled);
+  color: var(--ui-color-primary-disabled-text);
+  box-shadow: none;
   opacity: 1;
 }
 

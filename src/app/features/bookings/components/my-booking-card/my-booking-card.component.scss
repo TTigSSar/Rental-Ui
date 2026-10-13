@@ -291,6 +291,13 @@
     background: var(--ui-color-primary-strong-hover);
     border-color: var(--ui-color-primary-strong-hover);
   }
+
+  &[disabled] {
+    opacity: 1;
+    background: var(--ui-color-primary-disabled);
+    border-color: var(--ui-color-primary-disabled);
+    color: var(--ui-color-primary-disabled-text);
+  }
 }
 
 /* ── Mobile adjustments ─────────────────────────────────── */

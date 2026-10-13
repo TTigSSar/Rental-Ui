@@ -308,7 +308,7 @@
   flex-shrink: 0;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
   text-decoration: none;
 
   .pi {
@@ -390,7 +390,7 @@
 }
 
 .detail-page__pill-btn--active {
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
   border-color: #ffc8a3;
   background: #fff4ea;
 
@@ -905,7 +905,7 @@
 
   &:hover {
     background: var(--ui-color-primary-wash);
-    color: var(--ui-color-primary-strong);
+    color: var(--ui-color-primary-strong-hover);
   }
 
   &:focus-visible {
@@ -1233,7 +1233,7 @@
   &:hover {
     border-color: var(--ui-color-primary);
     background: var(--ui-color-primary-wash);
-    color: var(--ui-color-primary-strong);
+    color: var(--ui-color-primary-strong-hover);
   }
 
   &:focus-visible {
@@ -1366,7 +1366,7 @@
   height: 24px;
   border-radius: 50%;
   background: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
   font-size: 0.75rem;
   font-weight: 800;
   display: inline-flex;

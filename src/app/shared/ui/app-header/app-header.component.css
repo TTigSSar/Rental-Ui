@@ -331,7 +331,7 @@ app-ui-dorent-symbol {
 .nh__notif-btn--active {
   background: var(--ui-color-primary-wash);
   border-color: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
 }
 
 .nh__notif-btn .pi {
@@ -624,7 +624,7 @@ app-ui-dorent-symbol {
 /* Active route (routerLinkActive) */
 .nh__dd-item--active {
   background: var(--ui-color-primary-wash);
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
   font-weight: 600;
 }
 

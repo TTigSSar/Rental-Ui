@@ -105,6 +105,12 @@
   gap: var(--ui-space-8);
 }
 
+.categories-page__btn--confirm:disabled {
+  opacity: 1;
+  background: var(--ui-color-primary-disabled);
+  color: var(--ui-color-primary-disabled-text);
+}
+
 .categories-page__spinner {
   width: 13px;
   height: 13px;

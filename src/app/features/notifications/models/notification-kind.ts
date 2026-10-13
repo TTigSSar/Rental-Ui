@@ -19,6 +19,11 @@ export interface NotificationKindMeta {
    * with white, `#c24600` is 5.04. `color` stays for non-text (dots, icons, borders).
    */
   readonly strong: string;
+  /**
+   * Text colour on the `soft` tint, when `strong` is too light there (ADR-031: orange text on a
+   * light orange tint uses `--ui-color-primary-strong-hover`, `#a83c00`). Falls back to `strong`.
+   */
+  readonly softText?: string;
   /** Soft background tint for the label pill / unread wash. */
   readonly soft: string;
   readonly labelKey: string;
@@ -29,6 +34,7 @@ export const NOTIFICATION_KIND_META: Record<NotificationKind, NotificationKindMe
     icon: 'calendar-plus',
     color: '#ff6008',
     strong: '#c24600',
+    softText: '#a83c00',
     soft: '#ffeedc',
     labelKey: 'notifications.kind.request',
   },
@@ -71,6 +77,7 @@ export const NOTIFICATION_KIND_META: Record<NotificationKind, NotificationKindMe
     icon: 'shield',
     color: '#ff6008',
     strong: '#c24600',
+    softText: '#a83c00',
     soft: '#ffeedc',
     labelKey: 'notifications.kind.confirm',
   },

@@ -353,7 +353,7 @@
   border: 1.5px solid var(--ui-color-primary);
   border-radius: var(--ui-radius-pill);
   background: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
   font: inherit;
   font-size: 0.8125rem;
   font-weight: 600;
@@ -533,7 +533,7 @@
 
   &--active {
     background: rgba(255, 96, 8, 0.08);
-    color: var(--ui-color-primary-strong);
+    color: var(--ui-color-primary-strong-hover);
 
     .pi { color: var(--ui-color-primary); }
   }

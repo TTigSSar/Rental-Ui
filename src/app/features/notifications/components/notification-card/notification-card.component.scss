@@ -5,6 +5,7 @@
 .notif-card {
   --notif-kind-color: var(--ui-color-primary);
   --notif-kind-strong: var(--ui-color-primary-strong);
+  --notif-kind-soft-text: var(--ui-color-primary-strong-hover);
   --notif-kind-soft: var(--ui-color-primary-soft);
 
   position: relative;
@@ -117,7 +118,7 @@
   padding: 0.125rem 0.5625rem 0.125rem 0.4375rem;
   border-radius: 999px;
   background: var(--notif-kind-soft);
-  color: var(--notif-kind-strong);
+  color: var(--notif-kind-soft-text);
   font-size: 0.65625rem;
   font-weight: 800;
   letter-spacing: 0.02em;

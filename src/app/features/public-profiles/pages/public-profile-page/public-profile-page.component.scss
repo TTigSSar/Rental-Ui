@@ -566,7 +566,7 @@
 
     &--owner,
     &--renter {
-      color: var(--ui-color-primary-strong);
+      color: var(--ui-color-primary-strong-hover);
       background: color-mix(in srgb, var(--ui-color-primary) 10%, var(--ui-color-surface));
       border: 1.5px solid color-mix(in srgb, var(--ui-color-primary) 22%, transparent);
     }
@@ -727,7 +727,7 @@
     }
     &--smokefree {
       background: #fff3e0;
-      color: var(--ui-color-primary-strong);
+      color: var(--ui-color-primary-strong-hover);
     }
     &--shield {
       background: #e8f5e9;

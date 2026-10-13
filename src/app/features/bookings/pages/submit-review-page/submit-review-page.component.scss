@@ -225,7 +225,9 @@
       }
 
       &:disabled {
-        opacity: 0.5;
+        opacity: 1;
+        background: var(--ui-color-primary-disabled);
+        color: var(--ui-color-primary-disabled-text);
         cursor: not-allowed;
       }
     }

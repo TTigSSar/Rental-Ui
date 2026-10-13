@@ -413,7 +413,7 @@
 
 .listing-card__booking-badge--approved {
   background: color-mix(in srgb, var(--ui-color-primary) 12%, transparent);
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
 }
 
 .listing-card__booking-badge--active {
@@ -499,7 +499,7 @@
   padding: 0 var(--ui-space-14);
   border-radius: var(--ui-radius-pill);
   background: color-mix(in srgb, var(--ui-color-primary) 12%, transparent);
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
   font-size: 0.8125rem;
   font-weight: 600;
   white-space: nowrap;
