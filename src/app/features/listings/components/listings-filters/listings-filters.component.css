@@ -55,12 +55,12 @@
 }
 
 .lf-bar__filter-btn--active {
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: var(--ui-color-on-primary);
 }
 
 .lf-bar__filter-btn--active:hover {
-  background: var(--ui-color-primary-strong);
+  background: var(--ui-color-primary-strong-hover);
 }
 
 /* ── Active filter chips ─────────────────────────────────── */
@@ -80,7 +80,7 @@
   border: 1px solid var(--ui-color-primary);
   border-radius: var(--ui-radius-pill);
   background: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
   font-size: 0.75rem;
   font-weight: 600;
   max-width: 12rem;
@@ -100,7 +100,7 @@
   border: none;
   border-radius: 50%;
   background: transparent;
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -261,15 +261,15 @@
 
 .lf-sheet__btn--apply {
   flex: 2;
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: var(--ui-color-on-primary);
-  border-color: var(--ui-color-primary);
+  border-color: var(--ui-color-primary-strong);
   box-shadow: var(--ui-shadow-primary-button);
 }
 
 .lf-sheet__btn--apply:hover {
-  background: var(--ui-color-primary-strong);
-  border-color: var(--ui-color-primary-strong);
+  background: var(--ui-color-primary-strong-hover);
+  border-color: var(--ui-color-primary-strong-hover);
 }
 
 /* ── Sheet form fields ────────────────────────────────────── */
@@ -344,7 +344,7 @@
 }
 
 .lf-field__select:focus {
-  border-color: var(--ui-color-primary);
+  border-color: var(--ui-color-primary-strong);
   box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.14);
   outline: none;
 }

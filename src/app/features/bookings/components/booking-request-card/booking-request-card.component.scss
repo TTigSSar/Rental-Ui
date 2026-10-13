@@ -11,7 +11,7 @@
   }
 
   &:hover .brc__title {
-    color: var(--ui-color-primary);
+    color: var(--ui-color-primary-strong);
   }
 }
 
@@ -158,6 +158,6 @@
 .brc__hint {
   margin: 4px 0 0;
   font-size: 13px;
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
   font-weight: 600;
 }

@@ -53,7 +53,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }
@@ -171,7 +171,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }
@@ -179,18 +179,18 @@
 .p-button.pi-card__save {
   min-height: var(--ui-button-min-height-lg);
   border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-primary);
-  border-color: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
+  border-color: var(--ui-color-primary-strong);
   font-weight: var(--ui-font-weight-bold);
 }
 
 .p-button.pi-card__save:hover:not(:disabled) {
-  background: var(--ui-color-primary-strong);
-  border-color: var(--ui-color-primary-strong);
+  background: var(--ui-color-primary-strong-hover);
+  border-color: var(--ui-color-primary-strong-hover);
 }
 
 .p-button.pi-card__save:disabled {
-  opacity: 0.85;
+  opacity: 1;
 }
 
 /* Desktop (the profile page's own 961px breakpoint): two columns, right-aligned buttons. */

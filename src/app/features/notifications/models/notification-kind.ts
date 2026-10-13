@@ -13,6 +13,17 @@ import type { NotificationKind } from './notification.model';
 export interface NotificationKindMeta {
   readonly icon: string;
   readonly color: string;
+  /**
+   * Text-safe shade of `color` (label text, fills carrying white text). Equals `color` except
+   * for the brand orange, which is `--ui-color-primary-strong` (ADR-031): `#ff6008` is 3.03:1
+   * with white, `#c24600` is 5.04. `color` stays for non-text (dots, icons, borders).
+   */
+  readonly strong: string;
+  /**
+   * Text colour on the `soft` tint, when `strong` is too light there (ADR-031: orange text on a
+   * light orange tint uses `--ui-color-primary-strong-hover`, `#a83c00`). Falls back to `strong`.
+   */
+  readonly softText?: string;
   /** Soft background tint for the label pill / unread wash. */
   readonly soft: string;
   readonly labelKey: string;
@@ -22,60 +33,72 @@ export const NOTIFICATION_KIND_META: Record<NotificationKind, NotificationKindMe
   request: {
     icon: 'calendar-plus',
     color: '#ff6008',
+    strong: '#c24600',
+    softText: '#a83c00',
     soft: '#ffeedc',
     labelKey: 'notifications.kind.request',
   },
   approved: {
     icon: 'check-circle',
     color: '#0e8a5f',
+    strong: '#0e8a5f',
     soft: '#e6f4ee',
     labelKey: 'notifications.kind.approved',
   },
   declined: {
     icon: 'times-circle',
     color: '#d9342b',
+    strong: '#d9342b',
     soft: '#fdecea',
     labelKey: 'notifications.kind.declined',
   },
   listing_live: {
     icon: 'verified',
     color: '#0e8a5f',
+    strong: '#0e8a5f',
     soft: '#e6f4ee',
     labelKey: 'notifications.kind.listingLive',
   },
   listing_changes: {
     icon: 'flag',
     color: '#d9342b',
+    strong: '#d9342b',
     soft: '#fdecea',
     labelKey: 'notifications.kind.listingChanges',
   },
   pickup: {
     icon: 'truck',
     color: '#d97706',
+    strong: '#d97706',
     soft: '#fff1dc',
     labelKey: 'notifications.kind.pickup',
   },
   confirm: {
     icon: 'shield',
     color: '#ff6008',
+    strong: '#c24600',
+    softText: '#a83c00',
     soft: '#ffeedc',
     labelKey: 'notifications.kind.confirm',
   },
   return: {
     icon: 'clock',
     color: '#d97706',
+    strong: '#d97706',
     soft: '#fff1dc',
     labelKey: 'notifications.kind.return',
   },
   review: {
     icon: 'star',
     color: '#e39a00',
+    strong: '#e39a00',
     soft: '#fcf1d8',
     labelKey: 'notifications.kind.review',
   },
   message: {
     icon: 'comment',
     color: '#4a5fe3',
+    strong: '#4a5fe3',
     soft: '#e8eaff',
     labelKey: 'notifications.kind.message',
   },

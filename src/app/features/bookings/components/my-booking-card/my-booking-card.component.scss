@@ -14,7 +14,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }
@@ -98,7 +98,7 @@
   gap: 5px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
 
   .pi { font-size: 11px; }
 
@@ -283,13 +283,20 @@
 }
 
 .mbc__btn--manage {
-  background: var(--ui-color-primary);
-  border: 1.5px solid var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
+  border: 1.5px solid var(--ui-color-primary-strong);
   color: #fff;
 
   &:hover {
-    background: var(--ui-color-primary-strong);
-    border-color: var(--ui-color-primary-strong);
+    background: var(--ui-color-primary-strong-hover);
+    border-color: var(--ui-color-primary-strong-hover);
+  }
+
+  &[disabled] {
+    opacity: 1;
+    background: var(--ui-color-primary-disabled);
+    border-color: var(--ui-color-primary-disabled);
+    color: var(--ui-color-primary-disabled-text);
   }
 }
 

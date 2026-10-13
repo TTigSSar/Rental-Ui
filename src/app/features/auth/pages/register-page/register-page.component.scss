@@ -14,12 +14,12 @@
   grid-template-columns: 42% 58%;
   border-radius: var(--ui-radius-auth-panel);
   overflow: hidden;
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   box-shadow: var(--ui-shadow-auth-shell);
 }
 
 .register-page__left-panel {
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: var(--ui-color-on-primary);
   display: flex;
   flex-direction: column;
@@ -181,15 +181,15 @@
   margin-top: var(--ui-space-16);
   border-radius: var(--ui-radius-pill);
   min-height: var(--ui-button-min-height-lg);
-  background: var(--ui-color-primary);
-  border-color: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
+  border-color: var(--ui-color-primary-strong);
   font-weight: 600;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 :host ::ng-deep .register-page__continue-button.p-button:hover:not(:disabled) {
-  background: var(--ui-color-primary-strong);
-  border-color: var(--ui-color-primary-strong);
+  background: var(--ui-color-primary-strong-hover);
+  border-color: var(--ui-color-primary-strong-hover);
   box-shadow: var(--ui-shadow-primary-button);
   transform: translateY(-1px);
 }
@@ -302,7 +302,7 @@
 }
 
 .register-page__switch a {
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
   font-weight: 600;
   text-decoration: none;
 }

@@ -60,7 +60,7 @@
     box-shadow:
       0 2px 6px rgba(16, 18, 30, 0.14),
       0 0 0 2px var(--ui-color-surface),
-      0 0 0 4px rgba(255, 96, 8, 0.55);
+      0 0 0 4px var(--ui-color-primary-strong);
   }
 
   .pi {
@@ -175,7 +175,7 @@
   height: 1.75rem;
   padding: 0 var(--ui-space-10);
   border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: #fff;
   font-size: 0.75rem;
   font-weight: 600;
@@ -184,6 +184,6 @@
   transition: background-color 120ms ease;
 
   &:hover {
-    background: var(--ui-color-primary-strong);
+    background: var(--ui-color-primary-strong-hover);
   }
 }

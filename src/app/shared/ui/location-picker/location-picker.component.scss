@@ -177,7 +177,7 @@
   white-space: nowrap;
   transition: filter 150ms ease;
 
-  &:focus-visible { outline: 2px solid var(--ui-color-primary); outline-offset: 2px; }
+  &:focus-visible { outline: 2px solid var(--ui-color-primary-strong); outline-offset: 2px; }
 }
 
 .location-picker__btn--cancel {

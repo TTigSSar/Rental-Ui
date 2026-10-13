@@ -71,7 +71,7 @@
 }
 
 .comp-card__input-row:focus-within {
-  border-color: var(--ui-color-primary);
+  border-color: var(--ui-color-primary-strong);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--ui-color-primary) 10%, transparent);
 }
 

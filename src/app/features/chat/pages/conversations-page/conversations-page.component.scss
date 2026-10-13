@@ -100,7 +100,7 @@
   font-size: 12px;
   font-weight: var(--ui-font-weight-extrabold);
   color: var(--ui-color-on-primary);
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
 }
 
 .conversations-page__search {
@@ -368,7 +368,7 @@
 }
 
 .chat-row--unread .chat-row__time {
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
   font-weight: var(--ui-font-weight-bold);
 }
 
@@ -474,7 +474,7 @@
   font-size: 11px;
   font-weight: var(--ui-font-weight-extrabold);
   color: var(--ui-color-on-primary);
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
 }
 
 /* ── Mobile inbox two-tone (< 1024px) ─────────────────────────────────────

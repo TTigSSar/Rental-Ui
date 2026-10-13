@@ -255,12 +255,12 @@
   padding: 0;
   font-size: 0.75rem;
   font-weight: var(--ui-font-weight-bold);
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
   cursor: pointer;
 
   &:hover,
   &:focus-visible {
-    color: var(--ui-color-primary-strong);
+    color: var(--ui-color-primary-strong-hover);
   }
 }
 
@@ -294,11 +294,11 @@
 
 .rof__btn--primary {
   margin-top: var(--ui-space-10);
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: var(--ui-color-on-primary);
 
   &:hover {
-    background: var(--ui-color-primary-strong);
+    background: var(--ui-color-primary-strong-hover);
   }
 }
 
@@ -323,12 +323,12 @@
   padding: 0;
   font-size: 0.75rem;
   font-weight: var(--ui-font-weight-bold);
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
   cursor: pointer;
 
   &:hover,
   &:focus-visible {
-    color: var(--ui-color-primary-strong);
+    color: var(--ui-color-primary-strong-hover);
   }
 }
 

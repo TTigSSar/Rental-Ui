@@ -74,7 +74,7 @@
 }
 
 .wizard-confirm-tile__link {
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
   font-weight: 800;
   text-decoration: none;
 
@@ -82,7 +82,7 @@
     text-decoration: underline;
   }
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }

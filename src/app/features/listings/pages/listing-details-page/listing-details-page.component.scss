@@ -57,7 +57,7 @@
 }
 
 .detail-page__error-link {
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
   text-decoration: none;
   font-weight: 600;
   font-size: 14px;
@@ -163,7 +163,7 @@
     text-decoration: none;
 
     &:hover {
-      color: var(--ui-color-primary);
+      color: var(--ui-color-primary-strong);
       text-decoration: underline;
     }
   }
@@ -308,7 +308,7 @@
   flex-shrink: 0;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong-hover);
   text-decoration: none;
 
   .pi {
@@ -378,7 +378,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 
@@ -390,7 +390,7 @@
 }
 
 .detail-page__pill-btn--active {
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong-hover);
   border-color: #ffc8a3;
   background: #fff4ea;
 
@@ -471,7 +471,7 @@
 .detail-page__price-amount {
   font-size: 1.75rem;
   font-weight: 800;
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
   letter-spacing: -0.03em;
   line-height: 1;
 }
@@ -874,11 +874,11 @@
   border-radius: var(--ui-radius-sm);
 
   &:hover .detail-page__owner-name {
-    color: var(--ui-color-primary);
+    color: var(--ui-color-primary-strong);
   }
 
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }
@@ -905,11 +905,11 @@
 
   &:hover {
     background: var(--ui-color-primary-wash);
-    color: var(--ui-color-primary-strong);
+    color: var(--ui-color-primary-strong-hover);
   }
 
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }
@@ -1079,7 +1079,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
   margin: 0 0 6px;
 }
 
@@ -1233,11 +1233,11 @@
   &:hover {
     border-color: var(--ui-color-primary);
     background: var(--ui-color-primary-wash);
-    color: var(--ui-color-primary-strong);
+    color: var(--ui-color-primary-strong-hover);
   }
 
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }
@@ -1366,7 +1366,7 @@
   height: 24px;
   border-radius: 50%;
   background: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary-strong);
+  color: var(--ui-color-primary-strong-hover);
   font-size: 0.75rem;
   font-weight: 800;
   display: inline-flex;

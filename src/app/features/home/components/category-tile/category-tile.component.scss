@@ -43,7 +43,7 @@
 /* The chip is display:none on desktop, so the focus ring has to live on the
    media tile — otherwise keyboard focus would be invisible above 560px. */
 .category-tile:focus-visible .category-tile__media {
-  outline: 2px solid var(--ui-color-primary);
+  outline: 2px solid var(--ui-color-primary-strong);
   outline-offset: 2px;
 }
 

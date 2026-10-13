@@ -17,10 +17,16 @@
 :root {
   /* —— Brand & core colors —— */
   --ui-color-primary: #ff6008;
-  --ui-color-primary-strong: #e5530a;
+  /* ADR-031 (amended 2026-10-13): orange TEXT, white text on orange, and focus rings use
+     "strong"; orange non-text (icons, borders, pins, tints) stays --ui-color-primary. */
+  --ui-color-primary-strong: #c24600; /* 5.04 with white, 4.75 on #faf8f4 */
+  --ui-color-primary-strong-hover: #a83c00; /* 6.34 */
+  --ui-color-primary-strong-active: #943300; /* 7.68 */
   --ui-color-primary-soft: #ffeedc;
   --ui-color-primary-wash: #fff2e9;
-  --ui-color-primary-disabled: #f4cfb7;
+  /* ADR-031: disabled primary controls are neutral (board): #f4f4f8 fill, #b5b6b7 text. */
+  --ui-color-primary-disabled: #f4f4f8;
+  --ui-color-primary-disabled-text: #b5b6b7;
   --ui-color-secondary: #2a2c41;
   --ui-color-background: #faf8f4;
   --ui-color-canvas-dark: #14161e;
@@ -150,7 +156,10 @@
   --ui-button-min-height-lg: 3rem;
   --ui-button-font-size: 0.875rem;
   --ui-button-font-weight: 600;
-  --ui-focus-ring: 0 0 0 3px rgba(255, 96, 8, 0.18);
+  /* ADR-031: 2px white gap + 2px strong ring (non-text, 4.75:1 on #faf8f4; the old 18% halo was far below 3:1). */
+  --ui-focus-ring:
+    0 0 0 2px #fff,
+    0 0 0 4px var(--ui-color-primary-strong);
   --ui-color-button-outlined-border: #c9cedd;
   --ui-color-button-outlined-text: #34384a;
 
@@ -313,7 +322,7 @@ p {
 .ui-input:focus-visible,
 .ui-textarea:focus-visible,
 .ui-select:focus-visible {
-  border-color: var(--ui-color-primary);
+  border-color: var(--ui-color-primary-strong);
   box-shadow: var(--ui-focus-ring);
   outline: none;
 }
@@ -339,18 +348,33 @@ p {
 }
 
 .p-button:not(.p-button-outlined):not(.p-button-text) {
-  background: var(--ui-color-primary);
-  border-color: var(--ui-color-primary);
-}
-
-.p-button:not(.p-button-outlined):not(.p-button-text):hover {
   background: var(--ui-color-primary-strong);
   border-color: var(--ui-color-primary-strong);
+}
+
+.p-button:not(.p-button-outlined):not(.p-button-text):not(:disabled):hover {
+  background: var(--ui-color-primary-strong-hover);
+  border-color: var(--ui-color-primary-strong-hover);
+}
+
+.p-button:not(.p-button-outlined):not(.p-button-text):not(:disabled):active {
+  background: var(--ui-color-primary-strong-active);
+  border-color: var(--ui-color-primary-strong-active);
+}
+
+/* ADR-031: 2px white gap + 2px strong ring (4.75 on the #faf8f4 page background). */
+.p-button:not(.p-button-outlined):not(.p-button-text):focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px var(--ui-color-primary-strong);
 }
 
 .p-button:not(.p-button-outlined):not(.p-button-text):disabled {
   background: var(--ui-color-primary-disabled);
   border-color: var(--ui-color-primary-disabled);
+  color: var(--ui-color-primary-disabled-text);
+  box-shadow: none;
   opacity: 1;
 }
 
@@ -378,7 +402,7 @@ select {
 .p-inputnumber-input:focus,
 textarea:focus,
 select:focus {
-  border-color: var(--ui-color-primary);
+  border-color: var(--ui-color-primary-strong);
   box-shadow: var(--ui-focus-ring);
   outline: none;
 }

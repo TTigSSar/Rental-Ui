@@ -81,7 +81,7 @@
       background: var(--ui-color-surface-muted);
     }
     &:focus-visible {
-      outline: 2px solid var(--ui-color-primary);
+      outline: 2px solid var(--ui-color-primary-strong);
       outline-offset: 2px;
     }
   }
@@ -108,8 +108,8 @@
   }
 
   .wizard-stepper__item--active .wizard-stepper__dot {
-    background: var(--ui-color-primary);
-    border-color: var(--ui-color-primary);
+    background: var(--ui-color-primary-strong);
+    border-color: var(--ui-color-primary-strong);
     color: #fff;
   }
 
@@ -185,7 +185,7 @@
     font-size: 1.625rem;
     font-weight: 900;
     letter-spacing: -0.03em;
-    color: var(--ui-color-primary);
+    color: var(--ui-color-primary-strong);
   }
   .wizard__content-eyebrow {
     display: block;
@@ -338,7 +338,8 @@
     color: var(--ui-color-text-primary);
   }
   .wizard__btn--primary .wizard__btn-sub {
-    color: rgba(255, 255, 255, 0.8);
+    /* ADR-031: 0.8-alpha white measured 3.76:1 on the strong orange; solid white is 5.04. */
+    color: #fff;
   }
   .wizard__btn--primary .wizard__btn-step {
     color: #fff;
