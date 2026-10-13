@@ -160,7 +160,7 @@ app-ui-dorent-symbol {
 }
 
 .nh__search:focus-within {
-  border-color: var(--ui-color-primary);
+  border-color: var(--ui-color-primary-strong);
   box-shadow:
     0 0 0 3px rgba(255, 96, 8, 0.12),
     0 1px 3px rgba(16, 18, 30, 0.04);
@@ -216,7 +216,7 @@ app-ui-dorent-symbol {
   margin: 3px 3px 3px 0;
   border: none;
   border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: #fff;
   font: inherit;
   font-size: 0.9375rem;
@@ -231,7 +231,7 @@ app-ui-dorent-symbol {
 }
 
 .nh__search-btn:hover {
-  background: var(--ui-color-primary-strong);
+  background: var(--ui-color-primary-strong-hover);
   box-shadow: 0 4px 12px rgba(255, 96, 8, 0.32);
 }
 
@@ -282,15 +282,20 @@ app-ui-dorent-symbol {
 
 .nh__btn--primary {
   color: #fff;
-  background: var(--ui-color-primary);
-  border-color: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
+  border-color: var(--ui-color-primary-strong);
   box-shadow: 0 4px 14px rgba(255, 96, 8, 0.25);
 }
 
 .nh__btn--primary:hover {
-  background: var(--ui-color-primary-strong);
-  border-color: var(--ui-color-primary-strong);
+  background: var(--ui-color-primary-strong-hover);
+  border-color: var(--ui-color-primary-strong-hover);
   box-shadow: 0 6px 18px rgba(255, 96, 8, 0.32);
+}
+
+.nh__btn--primary:active {
+  background: var(--ui-color-primary-strong-active);
+  border-color: var(--ui-color-primary-strong-active);
 }
 
 /* ── Notification bell ───────────────────────────────────────────────────── */
@@ -341,7 +346,7 @@ app-ui-dorent-symbol {
   height: 1rem;
   padding: 0 3px;
   border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: #fff;
   font-size: 0.5625rem;
   font-weight: 700;
@@ -575,7 +580,7 @@ app-ui-dorent-symbol {
 }
 
 .nh__dd-view-profile:hover {
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
 }
 
 .nh__dd-view-profile .pi {
@@ -665,7 +670,7 @@ app-ui-dorent-symbol {
   height: 1.375rem;
   padding: 0 5px;
   border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: #fff;
   font-size: 0.6875rem;
   font-weight: 700;
@@ -722,7 +727,7 @@ app-ui-dorent-symbol {
   outline: none;
   box-shadow:
     0 0 0 2px var(--ui-color-surface),
-    0 0 0 4px rgba(255, 96, 8, 0.55);
+    0 0 0 4px var(--ui-color-primary-strong);
 }
 
 /* ── Hide on mobile — bottom nav takes over at ≤ 960 px ─────────────────── */

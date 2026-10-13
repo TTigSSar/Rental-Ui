@@ -44,7 +44,7 @@
     background: var(--ui-color-surface-muted);
   }
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }
@@ -141,7 +141,7 @@
   padding: 0 var(--ui-space-12);
   border: none;
   border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: #fff;
   font-size: 0.8rem;
   font-weight: 700;
@@ -157,7 +157,7 @@
     filter: brightness(0.94);
   }
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }
@@ -329,7 +329,7 @@
     background: var(--ui-color-primary-wash);
   }
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }
@@ -395,7 +395,7 @@
   outline: none;
 }
 .rate-card:focus-within {
-  border-color: var(--ui-color-primary);
+  border-color: var(--ui-color-primary-strong);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--ui-color-primary) 10%, transparent);
 }
 
@@ -422,7 +422,7 @@
     background: color-mix(in srgb, var(--ui-color-background) 70%, var(--ui-color-border));
   }
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: -2px;
   }
 }
@@ -478,7 +478,7 @@
     color: var(--ui-color-primary);
   }
   strong {
-    color: var(--ui-color-primary);
+    color: var(--ui-color-primary-strong);
     font-weight: 800;
   }
 }
@@ -640,7 +640,7 @@
     background: rgba(0, 0, 0, 0.75);
   }
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }
@@ -667,7 +667,7 @@
     background: rgba(0, 0, 0, 0.75);
   }
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }
@@ -740,7 +740,7 @@
     background: rgba(0, 0, 0, 0.75);
   }
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
     opacity: 1;
   }
@@ -845,7 +845,7 @@
   left: 3px;
   padding: 1px 6px;
   border-radius: 5px;
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: #fff;
   font-size: 0.6rem;
   font-weight: 800;
@@ -869,7 +869,7 @@
 
   &:hover {
     border-color: var(--ui-color-primary);
-    color: var(--ui-color-primary);
+    color: var(--ui-color-primary-strong);
   }
 }
 
@@ -891,7 +891,7 @@
   background-position: right var(--ui-space-16) center;
 
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }
@@ -913,7 +913,7 @@
   border: 1.5px dashed var(--ui-color-primary);
   border-radius: var(--ui-radius-input);
   background: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
   font: inherit;
   font-weight: 700;
   font-size: var(--ui-font-size-caption);
@@ -924,7 +924,7 @@
     background: color-mix(in srgb, var(--ui-color-primary-soft) 80%, white);
   }
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }
@@ -1195,7 +1195,7 @@
   margin: 0;
   font-size: 1.25rem;
   font-weight: 800;
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
 }
 .wizard-preview__price-suffix {
   font-size: var(--ui-font-size-caption);
@@ -1242,13 +1242,13 @@
 }
 .wizard-summary__value--price {
   font-weight: 700;
-  color: var(--ui-color-primary-strong, var(--ui-color-primary));
+  color: var(--ui-color-primary-strong);
 }
 
 .wizard-summary__edit {
   background: none;
   border: none;
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
   font-size: var(--ui-font-size-caption);
   font-weight: 600;
   cursor: pointer;
@@ -1261,7 +1261,7 @@
     text-decoration: underline;
   }
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }
@@ -1328,7 +1328,7 @@
     cursor: not-allowed;
   }
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }
@@ -1348,7 +1348,7 @@
 
 .wizard__btn--primary {
   flex: 1;
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: #fff;
   box-shadow: var(--ui-shadow-primary-button);
   &:hover:not(:disabled) {

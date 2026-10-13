@@ -318,7 +318,7 @@
 
 .admin-rail__link--active {
   background: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
 }
 
 .admin-rail__link--active .admin-rail__label {
@@ -331,7 +331,7 @@
 }
 
 .admin-rail__link--active .admin-rail__meta--badge {
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
 }
 
 .admin-rail__queue-health {
@@ -521,7 +521,7 @@
 }
 
 .admin-mobile-nav__item--active {
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
 }
 
 .admin-mobile-nav__icon-wrap {
@@ -540,7 +540,7 @@
   height: 15px;
   padding: 0 4px;
   border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: #fff;
   font-size: 0.59375rem;
   font-weight: 800;

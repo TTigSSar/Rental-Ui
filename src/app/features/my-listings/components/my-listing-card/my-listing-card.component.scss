@@ -144,7 +144,7 @@
   transition: background 0.12s, opacity 0.12s;
 
   &--primary {
-    background: var(--ui-color-primary, #FF6008);
+    background: var(--ui-color-primary-strong);
     border: 1px solid transparent;
     color: #fff;
 

@@ -56,7 +56,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }
@@ -233,7 +233,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
     border-radius: var(--ui-radius-sm);
   }
@@ -295,7 +295,7 @@
   min-height: var(--ui-button-min-height-lg);
   border: 0;
   border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: var(--ui-color-on-primary);
   box-shadow: var(--ui-shadow-primary-button);
   font-family: inherit;
@@ -304,7 +304,7 @@
   cursor: pointer;
 
   &:hover {
-    background: var(--ui-color-primary-strong);
+    background: var(--ui-color-primary-strong-hover);
   }
 
   &:focus-visible {
@@ -508,7 +508,7 @@
   min-height: var(--ui-button-min-height-lg);
   border: 0;
   border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: var(--ui-color-on-primary);
   box-shadow: var(--ui-shadow-primary-button);
   font-family: inherit;
@@ -518,7 +518,7 @@
 }
 
 .hp-sheet__primary:hover:not(:disabled) {
-  background: var(--ui-color-primary-strong);
+  background: var(--ui-color-primary-strong-hover);
 }
 
 .hp-sheet__primary:disabled {
@@ -540,7 +540,7 @@
 }
 
 .hp-sheet__secondary:focus-visible {
-  outline: 2px solid var(--ui-color-primary);
+  outline: 2px solid var(--ui-color-primary-strong);
   outline-offset: 2px;
   border-radius: var(--ui-radius-sm);
 }

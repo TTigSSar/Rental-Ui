@@ -72,7 +72,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }
@@ -182,14 +182,14 @@
   width: 100%;
   border-radius: var(--ui-radius-pill);
   min-height: var(--ui-button-min-height-lg);
-  background: var(--ui-color-primary);
-  border-color: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
+  border-color: var(--ui-color-primary-strong);
   font-weight: var(--ui-font-weight-bold);
 }
 
 .dr-step__cta.p-button:hover:not(:disabled) {
-  background: var(--ui-color-primary-strong);
-  border-color: var(--ui-color-primary-strong);
+  background: var(--ui-color-primary-strong-hover);
+  border-color: var(--ui-color-primary-strong-hover);
 }
 
 .dr-step__cta.p-button:disabled {
@@ -212,7 +212,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }

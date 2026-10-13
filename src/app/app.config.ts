@@ -58,7 +58,8 @@ const DoRentPreset = definePreset(Aura, {
     focusRing: {
       width: '3px',
       style: 'solid',
-      color: 'rgba(255, 96, 8, 0.45)',
+      // ADR-031: a focus ring is non-text and needs 3:1 on the #faf8f4 page; #ff6008 measures 2.86.
+      color: '#c24600',
       offset: '2px',
     },
     colorScheme: {
@@ -80,9 +81,38 @@ const DoRentPreset = definePreset(Aura, {
         },
         formField: {
           borderColor: '#e8e5de',
-          focusBorderColor: '#ff6008',
+          focusBorderColor: '#c24600',
         },
       },
+    },
+  },
+  // ADR-031 (amended 2026-10-13): white text on orange, and orange text, use the strong shade
+  // (#c24600 / hover #a83c00 / active #943300). primary.500 and `primary.color` stay #ff6008 so
+  // non-text uses (checkbox/radio fills, slider, progress) keep the brand orange.
+  components: {
+    button: {
+      colorScheme: {
+        light: {
+          root: {
+            primary: {
+              background: '#c24600',
+              hoverBackground: '#a83c00',
+              activeBackground: '#943300',
+              borderColor: '#c24600',
+              hoverBorderColor: '#a83c00',
+              activeBorderColor: '#943300',
+              focusRing: { color: '#c24600', shadow: 'none' },
+            },
+          },
+          outlined: { primary: { color: '#c24600' } },
+          text: { primary: { color: '#c24600' } },
+          link: { color: '#c24600', hoverColor: '#a83c00', activeColor: '#943300' },
+        },
+      },
+    },
+    // Selected day: white text on the fill.
+    datepicker: {
+      date: { selectedBackground: '#c24600' },
     },
   },
 });

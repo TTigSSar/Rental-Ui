@@ -40,7 +40,7 @@
 }
 
 .listing-gallery__mtile:focus-visible {
-  outline: 2px solid var(--ui-color-primary);
+  outline: 2px solid var(--ui-color-primary-strong);
   outline-offset: -2px;
   z-index: 2;
 }
@@ -308,7 +308,7 @@
 }
 
 .listing-gallery__nav:focus-visible {
-  outline: 2px solid var(--ui-color-primary);
+  outline: 2px solid var(--ui-color-primary-strong);
   outline-offset: 2px;
 }
 
@@ -417,7 +417,7 @@
 }
 
 .listing-gallery__thumb:focus-visible {
-  outline: 2px solid var(--ui-color-primary);
+  outline: 2px solid var(--ui-color-primary-strong);
   outline-offset: 2px;
 }
 
@@ -659,7 +659,7 @@
 }
 
 .listing-gallery__lightbox-thumb:focus-visible {
-  outline: 2px solid var(--ui-color-primary);
+  outline: 2px solid var(--ui-color-primary-strong);
   outline-offset: 2px;
 }
 

@@ -37,7 +37,7 @@
 }
 
 .category-form-panel__name-input:focus-visible {
-  border-color: var(--ui-color-primary);
+  border-color: var(--ui-color-primary-strong);
   box-shadow: var(--ui-focus-ring);
 }
 
@@ -102,7 +102,7 @@
 .category-form-panel__swatch--selected:not(.category-form-panel__swatch--color) {
   background: var(--ui-color-primary-soft);
   border: 1.5px solid var(--ui-color-primary);
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
 }
 
 .category-form-panel__swatch--color.category-form-panel__swatch--selected {

@@ -134,7 +134,7 @@
 .chat-thread__view-profile:hover {
   background: var(--ui-color-surface-muted);
   border-color: var(--ui-color-primary);
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
 }
 
 .chat-thread__view-profile:focus-visible {
@@ -379,7 +379,7 @@
 
 .chat-status--booked {
   background: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
 }
 
 .chat-status--neutral,
@@ -422,7 +422,7 @@
 .chat-thread__view-booking:hover {
   background: var(--ui-color-surface-muted);
   border-color: var(--ui-color-primary);
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
 }
 
 .chat-thread__view-booking:focus-visible {

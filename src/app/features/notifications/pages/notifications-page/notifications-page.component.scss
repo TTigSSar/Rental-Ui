@@ -51,7 +51,7 @@
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--p-primary-color, #ff6008);
+  color: var(--ui-color-primary-strong);
 }
 
 .notifications-page__title {
@@ -73,7 +73,7 @@
   height: 1.625rem;
   padding: 0 0.5rem;
   border-radius: 999px;
-  background: var(--p-primary-color, #ff6008);
+  background: var(--ui-color-primary-strong);
   color: #fff;
   font-size: 0.85rem;
   font-weight: 800;

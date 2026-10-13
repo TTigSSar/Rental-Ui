@@ -66,15 +66,15 @@
   width: 100%;
   border-radius: var(--ui-radius-pill);
   min-height: var(--ui-button-min-height-lg);
-  background: var(--ui-color-primary);
-  border-color: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
+  border-color: var(--ui-color-primary-strong);
   font-weight: 600;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .verify-page__submit.p-button:hover:not(:disabled) {
-  background: var(--ui-color-primary-strong);
-  border-color: var(--ui-color-primary-strong);
+  background: var(--ui-color-primary-strong-hover);
+  border-color: var(--ui-color-primary-strong-hover);
   box-shadow: var(--ui-shadow-primary-button);
   transform: translateY(-1px);
 }

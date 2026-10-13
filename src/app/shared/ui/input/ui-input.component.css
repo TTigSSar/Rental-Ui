@@ -54,7 +54,7 @@
 
 /* ── Focus ────────────────────────────────────────────────────── */
 .uii-field--focus:not(.uii-field--error):not(.uii-field--success) {
-  border-color: var(--ui-color-primary);
+  border-color: var(--ui-color-primary-strong);
   box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.14);
 }
 
@@ -83,7 +83,7 @@
 
 .uii-field--filled.uii-field--focus:not(.uii-field--error):not(.uii-field--success) {
   background: var(--ui-color-surface);
-  border-color: var(--ui-color-primary);
+  border-color: var(--ui-color-primary-strong);
   box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.14);
 }
 
@@ -204,7 +204,7 @@
   padding: 0 var(--ui-space-20);
   border: none;
   border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: var(--ui-color-on-primary);
   font: inherit;
   font-size: 0.9375rem;
@@ -215,7 +215,7 @@
 }
 
 .uii-cta:hover {
-  background: var(--ui-color-primary-strong);
+  background: var(--ui-color-primary-strong-hover);
 }
 
 /* ── Helper / hint / error / success text ─────────────────────── */

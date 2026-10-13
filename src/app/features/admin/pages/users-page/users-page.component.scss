@@ -99,7 +99,7 @@
 .users-page__sort-option--active {
   background: var(--ui-color-surface-muted);
   font-weight: 800;
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
 }
 
 // ── Mobile search + sort row (own row below the shell's mobile header) ──
@@ -178,7 +178,7 @@
 .users-page__sort-sheet-option--active {
   background: var(--ui-color-surface-muted);
   font-weight: 800;
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
 }
 
 // ── Stat row (wraps 2x2 on mobile — the design folds this into the mobile header subtitle,
@@ -329,7 +329,7 @@
   white-space: nowrap;
 
   a {
-    color: var(--ui-color-primary);
+    color: var(--ui-color-primary-strong);
     text-decoration: none;
 
     &:hover {

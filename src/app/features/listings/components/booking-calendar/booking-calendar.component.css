@@ -159,7 +159,7 @@
    sibling) is a full circle — covers both "no range yet" and a same-day
    (1-day) range. */
 :host ::ng-deep .p-datepicker-day.p-datepicker-day-selected {
-  background: var(--ui-color-primary) !important;
+  background: var(--ui-color-primary-strong) !important;
   color: #fff !important;
   border-radius: 999px !important;
   font-weight: 700;

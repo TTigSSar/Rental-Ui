@@ -43,7 +43,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: -2px;
   }
 }
@@ -112,7 +112,7 @@
 .faq-contact__link {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
   text-decoration: none;
 
   &:hover {
@@ -120,7 +120,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
     border-radius: 2px;
   }

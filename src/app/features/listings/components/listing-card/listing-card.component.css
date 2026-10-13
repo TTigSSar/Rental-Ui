@@ -68,7 +68,7 @@
 .listing-card__link:focus-visible {
   box-shadow:
     0 0 0 2px var(--ui-color-surface),
-    0 0 0 4px rgba(255, 96, 8, 0.55);
+    0 0 0 4px var(--ui-color-primary-strong);
 }
 
 /* ── Media wrapper (contains image + overlays) ───────────── */
@@ -134,7 +134,7 @@
   line-height: 1.4;
   letter-spacing: 0.02em;
   white-space: nowrap;
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: #fff;
   box-shadow: 0 2px 8px rgba(255, 96, 8, 0.35);
   backdrop-filter: blur(4px);
@@ -326,7 +326,7 @@
   box-shadow:
     0 2px 6px rgba(16, 18, 30, 0.14),
     0 0 0 2px var(--ui-color-surface),
-    0 0 0 4px rgba(255, 96, 8, 0.55);
+    0 0 0 4px var(--ui-color-primary-strong);
 }
 
 .listing-card__fav-icon {
@@ -473,7 +473,7 @@
   height: 2rem;
   padding: 0 var(--ui-space-14);
   border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: #fff;
   font-size: 0.8125rem;
   font-weight: 600;
@@ -484,7 +484,7 @@
 
 @media (hover: hover) {
   .listing-card:hover .listing-card__view-btn {
-    background: var(--ui-color-primary-strong);
+    background: var(--ui-color-primary-strong-hover);
   }
 }
 

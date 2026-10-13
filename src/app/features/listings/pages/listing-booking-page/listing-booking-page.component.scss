@@ -144,7 +144,7 @@
 }
 
 .booking-page__confirm-note-bubble {
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: var(--ui-color-on-primary);
   border-radius: 14px 14px 14px 4px;
   padding: 10px 13px;
@@ -211,7 +211,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }
@@ -266,7 +266,7 @@
 }
 
 .booking-page__step--active {
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
 }
 
 .booking-page__step-dot {
@@ -286,7 +286,7 @@
 }
 
 .booking-page__step--active .booking-page__step-dot {
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: #fff;
 }
 
@@ -325,7 +325,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
 }
 
 /* Item summary strip (mobile only) */
@@ -464,17 +464,17 @@
 
   &:hover {
     border-color: var(--ui-color-primary);
-    color: var(--ui-color-primary);
+    color: var(--ui-color-primary-strong);
   }
 
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 
   &.booking-page__quick-chip--active {
-    background: var(--ui-color-primary);
-    border-color: var(--ui-color-primary);
+    background: var(--ui-color-primary-strong);
+    border-color: var(--ui-color-primary-strong);
     color: var(--ui-color-on-primary);
   }
 }
@@ -592,7 +592,7 @@
     color: var(--ui-color-primary);
   }
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 1px;
   }
 
@@ -699,7 +699,7 @@
 }
 
 .booking-page__note-optional {
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
   font-weight: 600;
 }
 
@@ -730,7 +730,7 @@
 
   &:focus {
     outline: none;
-    border-color: var(--ui-color-primary);
+    border-color: var(--ui-color-primary-strong);
     box-shadow: 0 0 0 4px rgba(255, 96, 8, 0.1);
   }
 
@@ -787,7 +787,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
   }
 }

@@ -228,7 +228,7 @@ app-ui-dorent-symbol {
 }
 
 .home__hero-search:focus-within {
-  border-color: var(--ui-color-primary);
+  border-color: var(--ui-color-primary-strong);
   box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.12);
 }
 
@@ -379,7 +379,7 @@ app-ui-dorent-symbol {
   flex-shrink: 0;
   font-size: 13.5px;
   font-weight: 700;
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
   text-decoration: none;
   white-space: nowrap;
   transition: color 140ms ease;
@@ -509,8 +509,8 @@ app-ui-dorent-symbol {
 .home__error-retry {
   padding: 10px 22px;
   border-radius: 40px;
-  border: 1px solid var(--ui-color-primary);
-  background: var(--ui-color-primary);
+  border: 1px solid var(--ui-color-primary-strong);
+  background: var(--ui-color-primary-strong);
   color: var(--ui-color-surface-muted);
   font-family: inherit;
   font-weight: 600;
@@ -519,8 +519,8 @@ app-ui-dorent-symbol {
 
 .home__error-retry:hover,
 .home__error-retry:focus-visible {
-  background: var(--ui-color-primary-strong);
-  border-color: var(--ui-color-primary-strong);
+  background: var(--ui-color-primary-strong-hover);
+  border-color: var(--ui-color-primary-strong-hover);
   outline: none;
 }
 
@@ -597,7 +597,7 @@ app-ui-dorent-symbol {
   border-radius: var(--ui-radius-pill);
   border: 1.5px solid color-mix(in srgb, var(--ui-color-primary) 27%, transparent);
   background: var(--ui-color-surface-muted);
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
   font-family: inherit;
   font-weight: 800;
   font-size: 16px;
@@ -609,7 +609,7 @@ app-ui-dorent-symbol {
 }
 
 .home__process-toggle-btn--active {
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: var(--ui-color-surface-muted);
   /* Keep the 1.5px border width so active/inactive stay the same height —
      just make it invisible instead of dropping it to 0. */
@@ -790,7 +790,7 @@ app-ui-dorent-symbol {
   padding: 0 30px;
   border-radius: 40px;
   border: none;
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: var(--ui-color-surface-muted);
   font-family: inherit;
   font-weight: 800;
@@ -803,7 +803,7 @@ app-ui-dorent-symbol {
 
 .home__faq-help-cta:hover,
 .home__faq-help-cta:focus-visible {
-  background: var(--ui-color-primary-strong);
+  background: var(--ui-color-primary-strong-hover);
   outline: none;
 }
 
@@ -843,7 +843,7 @@ app-ui-dorent-symbol {
 }
 
 .home__faq-item-header:focus-visible {
-  outline: 2px solid var(--ui-color-primary);
+  outline: 2px solid var(--ui-color-primary-strong);
   outline-offset: -2px;
 }
 

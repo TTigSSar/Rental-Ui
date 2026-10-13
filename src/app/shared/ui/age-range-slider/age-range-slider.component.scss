@@ -34,7 +34,7 @@
   padding: 4px 11px;
   border-radius: var(--ui-radius-pill);
   background: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
   font-size: 0.72rem;
   font-weight: 700;
 
@@ -93,7 +93,7 @@
   transition: box-shadow 150ms ease;
 
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 3px;
   }
 }

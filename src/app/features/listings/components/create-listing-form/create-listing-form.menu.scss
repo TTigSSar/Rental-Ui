@@ -53,7 +53,7 @@
   transition: background 130ms ease;
 
   &:hover { background: var(--ui-color-surface-muted); }
-  &:focus-visible { outline: 2px solid var(--ui-color-primary); outline-offset: -2px; }
+  &:focus-visible { outline: 2px solid var(--ui-color-primary-strong); outline-offset: -2px; }
 }
 
 /* Design: 30×30 rounded square (radius 8), not a circle. */
@@ -87,6 +87,6 @@
 
   &:hover { background: var(--ui-color-primary-soft); }
 
-  .rate-card__menu-badge { background: var(--ui-color-primary); color: #fff; }
-  .rate-card__menu-label { color: var(--ui-color-primary); font-weight: 800; }
+  .rate-card__menu-badge { background: var(--ui-color-primary-strong); color: #fff; }
+  .rate-card__menu-label { color: var(--ui-color-primary-strong); font-weight: 800; }
 }

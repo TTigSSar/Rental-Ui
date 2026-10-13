@@ -237,7 +237,7 @@
   height: 18px;
   padding: 0 5px;
   border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: #fff;
   font-size: 0.65625rem;
   font-weight: 800;
@@ -371,7 +371,7 @@
 }
 
 .messages-page__bubble-row--mine .messages-page__bubble {
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: #fff;
   border: none;
   border-bottom-left-radius: 14px;

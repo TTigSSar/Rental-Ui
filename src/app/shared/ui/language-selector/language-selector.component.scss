@@ -151,7 +151,7 @@
 }
 
 .lang-selector__row--active .lang-selector__native {
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
 }
 
 .lang-selector__label {
@@ -171,5 +171,5 @@
   outline: none;
   box-shadow:
     0 0 0 2px var(--ui-color-surface),
-    0 0 0 4px rgba(255, 96, 8, 0.55);
+    0 0 0 4px var(--ui-color-primary-strong);
 }

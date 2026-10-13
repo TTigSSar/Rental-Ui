@@ -99,7 +99,7 @@
   align-items: center;
   gap: 8px;
   padding: 14px 32px;
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: #fff;
   border-radius: 40px;
   font-size: 1rem;
@@ -108,12 +108,12 @@
   transition: background 160ms ease, transform 120ms ease;
 
   &:hover {
-    background: var(--ui-color-primary-strong);
+    background: var(--ui-color-primary-strong-hover);
     transform: translateY(-1px);
   }
 
   &:focus-visible {
-    outline: 2px solid var(--ui-color-primary);
+    outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 3px;
   }
 }

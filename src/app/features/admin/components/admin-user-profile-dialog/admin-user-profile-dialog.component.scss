@@ -85,7 +85,7 @@
   white-space: nowrap;
 
   a {
-    color: var(--ui-color-primary);
+    color: var(--ui-color-primary-strong);
     text-decoration: none;
 
     &:hover {
@@ -217,7 +217,7 @@
 }
 
 .admin-user-profile-dialog__action--primary {
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: var(--ui-color-on-primary);
 }
 

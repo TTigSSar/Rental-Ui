@@ -355,7 +355,7 @@
 }
 
 .profile-page__lang-option--active {
-  color: var(--ui-color-primary);
+  color: var(--ui-color-primary-strong);
   font-weight: 700;
 }
 
@@ -669,7 +669,7 @@
   min-width: 1.5rem;
   height: 1.5rem;
   border-radius: 999px;
-  background: var(--ui-color-primary);
+  background: var(--ui-color-primary-strong);
   color: #fff;
   font-size: 0.75rem;
   font-weight: 700;
@@ -901,7 +901,7 @@
 
     &--active {
       background: var(--ui-color-primary-soft);
-      color: var(--ui-color-primary);
+      color: var(--ui-color-primary-strong);
       font-weight: 600;
     }
 
@@ -940,7 +940,7 @@
     font-weight: 600;
 
     &--alert {
-      background: var(--ui-color-primary);
+      background: var(--ui-color-primary-strong);
       color: #fff;
     }
   }
