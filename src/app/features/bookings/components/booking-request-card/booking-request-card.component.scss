@@ -139,7 +139,7 @@
   }
 
   &--approve {
-    background: #0E8A5F;
+    background: var(--ui-color-success);
     color: #fff;
     display: flex;
     align-items: center;

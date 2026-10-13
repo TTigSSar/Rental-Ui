@@ -142,7 +142,8 @@
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--p-text-muted-color, #6b6a75);
+  /* PrimeNG's muted slate (#64748b) measured 4.48 on #faf8f4; same hue, 4.55 */
+  color: #63738a;
 }
 
 .notifications-page__group-rule {

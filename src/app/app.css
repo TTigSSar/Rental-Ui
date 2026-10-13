@@ -820,57 +820,6 @@
     white-space: nowrap;
     text-align: center;
   }
-
-  .app-bottom-nav__fab,
-  .app-bottom-nav__fab-spacer {
-    justify-self: center;
-    width: 3.25rem;
-    height: 3.25rem;
-  }
-
-  .app-bottom-nav__fab {
-    display: grid;
-    place-items: center;
-    margin-top: calc(-1 * var(--ui-space-24));
-    border: none;
-    border-radius: 50%;
-    background: var(--ui-color-primary);
-    color: var(--ui-color-on-primary);
-    box-shadow: var(--ui-shadow-booking-cta);
-    text-decoration: none;
-    cursor: pointer;
-    font-size: 1.125rem;
-    transition:
-      background-color 140ms ease,
-      box-shadow 140ms ease,
-      transform 140ms ease;
-  }
-
-  .app-bottom-nav__fab:hover {
-    background: var(--ui-color-primary-strong);
-    box-shadow: var(--ui-shadow-primary-hover);
-    transform: translateY(-1px);
-  }
-
-  .app-bottom-nav__fab:active {
-    transform: translateY(0) scale(0.94);
-    transition-duration: 80ms;
-  }
-
-  .app-bottom-nav__fab:focus-visible {
-    background: var(--ui-color-primary-strong);
-    transform: translateY(-1px);
-    outline: none;
-    box-shadow:
-      var(--ui-shadow-primary-hover),
-      0 0 0 2px var(--ui-color-surface),
-      0 0 0 4px var(--ui-color-primary-strong);
-  }
-
-  .app-bottom-nav__fab-spacer {
-    display: block;
-    pointer-events: none;
-  }
 }
 
 @media (min-width: 961px) {
@@ -934,7 +883,7 @@
 .app-footer__link {
   display: block;
   padding: 6px 0;
-  color: rgba(255, 255, 255, 0.82);
+  color: rgba(255, 255, 255, 0.92);
   font-size: 0.9375rem;
   font-weight: 400;
   text-decoration: none;
@@ -954,7 +903,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.78);
   margin: 0 0 10px;
   padding: 0;
 }
