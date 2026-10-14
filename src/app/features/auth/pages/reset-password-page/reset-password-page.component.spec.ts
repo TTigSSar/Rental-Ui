@@ -25,6 +25,7 @@ function setup(
     hash?: string;
     check?: ReturnType<typeof vi.fn>;
     reset?: ReturnType<typeof vi.fn>;
+    attach?: boolean;
   } = {},
 ) {
   window.location.hash = options.hash ?? `#token=${TOKEN}`;
@@ -46,6 +47,7 @@ function setup(
   });
   const fixture: ComponentFixture<ResetPasswordPageComponent> =
     TestBed.createComponent(ResetPasswordPageComponent);
+  if (options.attach) document.body.appendChild(fixture.nativeElement);
   const store = TestBed.inject(Store) as MockStore;
   const router = TestBed.inject(Router);
   const navigate = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
@@ -111,6 +113,45 @@ describe('ResetPasswordPageComponent - token and link check', () => {
 
     expect(component['phase']()).toBe('invalid');
     expect(api.resetPasswordCheck).not.toHaveBeenCalled();
+  });
+
+  describe('focus on a dead link (a11y)', () => {
+    function expectHeadingFocused(fixture: ComponentFixture<ResetPasswordPageComponent>): void {
+      fixture.detectChanges();
+      const h1: HTMLElement = fixture.nativeElement.querySelector('h1');
+      expect(h1.getAttribute('tabindex')).toBe('-1');
+      expect(document.activeElement).toBe(h1);
+    }
+
+    it('check 400 expired -> focus on the state heading', () => {
+      const { fixture } = setup({
+        check: vi.fn().mockReturnValue(throwError(() => problem(400, 'auth.reset_token_expired'))),
+        attach: true,
+      });
+      expectHeadingFocused(fixture);
+      fixture.nativeElement.remove();
+    });
+
+    it('check 400 invalid -> focus on the state heading', () => {
+      const { fixture } = setup({
+        check: vi.fn().mockReturnValue(throwError(() => problem(400, 'auth.reset_token_invalid'))),
+        attach: true,
+      });
+      expectHeadingFocused(fixture);
+      fixture.nativeElement.remove();
+    });
+
+    it('submit 400 expired -> focus moves from the form to the state heading', () => {
+      const { fixture, component } = setup({
+        reset: vi.fn().mockReturnValue(throwError(() => problem(400, 'auth.reset_token_expired'))),
+        attach: true,
+      });
+      fill(component, 'Password1!');
+      component['submit']();
+      expect(component['phase']()).toBe('expired');
+      expectHeadingFocused(fixture);
+      fixture.nativeElement.remove();
+    });
   });
 
   it('429 / network on the check -> inline error with a retry that keeps the token', () => {

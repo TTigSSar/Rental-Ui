@@ -349,6 +349,7 @@
       "chkT": "Check your email",
       "chkS": "If an account exists for <b>{{email}}</b>, we’ve sent a link to reset your password.",
       "chkV": "The link is valid for 30 minutes. If you don’t see the email, check your spam folder.",
+      "chkD": "You can request up to 5 emails a day.",
       "didnt": "Didn’t get it?",
       "again": "Send again",
       "againIn": "Send again in <b>{{time}}</b>",

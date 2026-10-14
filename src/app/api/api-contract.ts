@@ -41,7 +41,8 @@ export const ApiContract = {
     // Password reset by emailed link (ADR-035). All three anonymous, sharing one per-IP rate
     // limit (429, no body).
     // forgotPassword: body { email, preferredLanguage } -> 202 empty body, always (400 only
-    //   for over-length model validation; 503 auth.password_reset_unavailable).
+    //   for over-length model validation; 503 auth.password_reset_unavailable when email is not
+    //   configured OR the daily send budget is exhausted).
     // resetPasswordCheck: body { token } -> 204 (400 auth.reset_token_expired |
     //   auth.reset_token_invalid). Read-only, never consumes the token.
     // resetPassword: body { token, newPassword } -> 200 AuthResponse (400

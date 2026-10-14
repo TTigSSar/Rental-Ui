@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   Injector,
   ViewEncapsulation,
   afterNextRender,
@@ -74,6 +75,7 @@ export class ResetPasswordPageComponent {
   private readonly injector = inject(Injector);
 
   private readonly newPasswordInput = viewChild<UiInputComponent>('newPasswordInput');
+  private readonly deadHeading = viewChild<ElementRef<HTMLElement>>('deadHeading');
 
   /** The emailed link token. Component memory only. */
   private token: string | null = null;
@@ -119,6 +121,7 @@ export class ResetPasswordPageComponent {
     if (this.token === null) {
       // No fragment (typed URL, reload after the strip): same state as a malformed link.
       this.phase.set('invalid');
+      this.focusDeadHeading();
       return;
     }
     this.phase.set('checking');
@@ -223,5 +226,11 @@ export class ResetPasswordPageComponent {
     this.form.reset();
     this.saveError.set(null);
     this.phase.set(phase);
+    this.focusDeadHeading();
+  }
+
+  /** Expired / invalid replace the whole card: move focus to its h1 so it never falls to <body>. */
+  private focusDeadHeading(): void {
+    afterNextRender(() => this.deadHeading()?.nativeElement.focus(), { injector: this.injector });
   }
 }
