@@ -19,34 +19,36 @@
   </ng-template>
 
   <div class="auth-dialog__body">
-    <div
-      class="auth-dialog__tabs"
-      role="tablist"
-      [attr.aria-label]="'auth.dialog.tabsAria' | translate"
-    >
-      <button
-        type="button"
-        class="auth-dialog__tab"
-        [class.auth-dialog__tab--active]="activeMode() === 'login'"
-        role="tab"
-        [attr.aria-selected]="activeMode() === 'login'"
-        [disabled]="isLoading()"
-        (click)="switchToLogin()"
+    @if (activeMode() !== 'forgot') {
+      <div
+        class="auth-dialog__tabs"
+        role="tablist"
+        [attr.aria-label]="'auth.dialog.tabsAria' | translate"
       >
-        {{ 'auth.login.title' | translate }}
-      </button>
-      <button
-        type="button"
-        class="auth-dialog__tab"
-        [class.auth-dialog__tab--active]="activeMode() === 'register'"
-        role="tab"
-        [attr.aria-selected]="activeMode() === 'register'"
-        [disabled]="isLoading()"
-        (click)="switchToRegister()"
-      >
-        {{ 'auth.register.title' | translate }}
-      </button>
-    </div>
+        <button
+          type="button"
+          class="auth-dialog__tab"
+          [class.auth-dialog__tab--active]="activeMode() === 'login'"
+          role="tab"
+          [attr.aria-selected]="activeMode() === 'login'"
+          [disabled]="isLoading()"
+          (click)="switchToLogin()"
+        >
+          {{ 'auth.login.title' | translate }}
+        </button>
+        <button
+          type="button"
+          class="auth-dialog__tab"
+          [class.auth-dialog__tab--active]="activeMode() === 'register'"
+          role="tab"
+          [attr.aria-selected]="activeMode() === 'register'"
+          [disabled]="isLoading()"
+          (click)="switchToRegister()"
+        >
+          {{ 'auth.register.title' | translate }}
+        </button>
+      </div>
+    }
 
     <!-- Google at the top of Sign in and of Register step 1 only (ADR-030 section 9); only while the dialog is open. -->
     @if (blockMounted() && googleBlockVisible()) {
@@ -70,7 +72,13 @@
     }
 
     @if (activeMode() === 'login') {
-      <app-login-form [prefill]="loginPrefill()" (switchMode)="switchToRegister()" />
+      <app-login-form
+        [prefill]="loginPrefill()"
+        (switchMode)="switchToRegister()"
+        (forgotPassword)="switchToForgot($event)"
+      />
+    } @else if (activeMode() === 'forgot') {
+      <app-forgot-password [initialEmail]="forgotEmail()" (backToLogin)="onForgotBack($event)" />
     } @else {
       <app-register-form
         (switchMode)="switchToLogin()"

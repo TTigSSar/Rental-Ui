@@ -36,7 +36,7 @@ describe('AuthDialogComponent — Google block (ADR-030 §9)', () => {
     fixture.detectChanges();
   }
 
-  function open(mode: 'login' | 'register' = 'login'): void {
+  function open(mode: 'login' | 'register' | 'forgot' = 'login'): void {
     fixture.componentRef.setInput('mode', mode);
     fixture.componentRef.setInput('visible', true);
   }
@@ -207,5 +207,50 @@ describe('AuthDialogComponent — Google block (ADR-030 §9)', () => {
     expect(document.querySelector('.gsi-block')).toBeNull();
     expect(document.querySelector('.gsi-block__or')).toBeNull();
     expect(nonceCalls).toBe(0);
+  });
+  it('Forgot password?: replaces the tabs and the Google block with the Request step, email copied; Back returns it', async () => {
+    open('login');
+    await settle();
+    const email = document.querySelector<HTMLInputElement>('app-login-form input[type="email"]')!;
+    email.value = 'anna@';
+    email.dispatchEvent(new Event('input'));
+    document.querySelector<HTMLElement>('[data-testid="forgot-password"]')!.click();
+    await settle();
+
+    expect(document.querySelector('app-forgot-password')).not.toBeNull();
+    expect(document.querySelector('.auth-dialog__tabs')).toBeNull();
+    expect(document.querySelector('app-google-sign-in-block')).toBeNull();
+    expect(document.querySelector<HTMLInputElement>('app-forgot-password input')?.value).toBe('anna@');
+
+    document.querySelector<HTMLElement>('[data-testid="fp-back"]')!.click();
+    await settle();
+
+    expect(document.querySelector('app-forgot-password')).toBeNull();
+    expect(document.querySelector('.auth-dialog__tab--active')).toBe(
+      document.querySelector('.auth-dialog__tab'),
+    );
+    expect(document.querySelector<HTMLInputElement>('app-login-form input[type="email"]')?.value).toBe('anna@');
+  });
+
+  it('mode="forgot" (the /?forgot link) opens on the Request step with an EMPTY field', async () => {
+    open('forgot');
+    await settle();
+
+    expect(document.querySelector('app-forgot-password')).not.toBeNull();
+    expect(document.querySelector<HTMLInputElement>('app-forgot-password input')?.value).toBe('');
+  });
+
+  it('closing and reopening resets a forgot flow to the Sign in tab', async () => {
+    open('login');
+    await settle();
+    document.querySelector<HTMLElement>('[data-testid="forgot-password"]')!.click();
+    await settle();
+    fixture.componentRef.setInput('visible', false);
+    await settle();
+    open('login');
+    await settle();
+
+    expect(document.querySelector('app-forgot-password')).toBeNull();
+    expect(document.querySelector('app-login-form')).not.toBeNull();
   });
 });

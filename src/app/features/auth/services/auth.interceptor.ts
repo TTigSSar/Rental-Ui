@@ -12,6 +12,9 @@ const unauthenticatedAuthEndpoints = new Set<string>([
   ApiContract.auth.external,
   ApiContract.auth.verifyEmail,
   ApiContract.auth.resendVerification,
+  ApiContract.auth.forgotPassword,
+  ApiContract.auth.resetPasswordCheck,
+  ApiContract.auth.resetPassword,
 ]);
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {

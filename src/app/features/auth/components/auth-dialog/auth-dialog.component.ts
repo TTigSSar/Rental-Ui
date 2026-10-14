@@ -19,17 +19,20 @@ import { filter, pairwise } from 'rxjs';
 
 import * as AuthActions from '../../store/auth.actions';
 import { selectAuthLoading, selectIsAuthenticated } from '../../store/auth.selectors';
+import { ForgotPasswordComponent } from '../forgot-password/forgot-password.component';
 import { GoogleSignInBlockComponent } from '../google-sign-in-block/google-sign-in-block.component';
 import { LoginFormComponent } from '../login-form/login-form.component';
 import { RegisterFormComponent } from '../register-form/register-form.component';
 
-type AuthMode = 'login' | 'register';
+/** `forgot` is the password-reset request flow (ADR-035): no tabs, no Google block. */
+type AuthMode = 'login' | 'register' | 'forgot';
 
 @Component({
   selector: 'app-auth-dialog',
   standalone: true,
   imports: [
     DialogModule,
+    ForgotPasswordComponent,
     GoogleSignInBlockComponent,
     LoginFormComponent,
     MessageModule,
@@ -67,8 +70,10 @@ export class AuthDialogComponent {
   /** Register tab only: false on the home-point step and the "check your email" state. */
   private readonly registerFirstStep = signal(true);
   protected readonly googleBlockVisible = computed(
-    () => this.activeMode() === 'login' || this.registerFirstStep(),
+    () => this.activeMode() === 'login' || (this.activeMode() === 'register' && this.registerFirstStep()),
   );
+  /** Address carried into the Request step (Sign in email as typed; '' when opened by `/?forgot`). */
+  protected readonly forgotEmail = signal('');
 
   /** 409 `auth.external_link_conflict`: show "an account with this email exists" above the form. */
   protected readonly linkConflictVisible = signal(false);
@@ -83,6 +88,7 @@ export class AuthDialogComponent {
         this.activeMode.set(this.mode());
         this.linkConflictVisible.set(false);
         this.loginPrefill.set(null);
+        this.forgotEmail.set('');
         this.blockEpoch.update((n) => n + 1);
         this.blockMounted.set(true);
         this.store.dispatch(AuthActions.clearAuthError());
@@ -120,6 +126,21 @@ export class AuthDialogComponent {
     this.activeMode.set('login');
     this.linkConflictVisible.set(false);
     this.store.dispatch(AuthActions.clearAuthError());
+  }
+
+  /** "Forgot password?" on the Sign in tab: the Request step, with the typed email copied over. */
+  protected switchToForgot(email: string): void {
+    if (this.isLoading()) return;
+    this.forgotEmail.set(email);
+    this.activeMode.set('forgot');
+    this.linkConflictVisible.set(false);
+    this.store.dispatch(AuthActions.clearAuthError());
+  }
+
+  /** "Back to Sign in": the Sign in tab again, carrying the address back. */
+  protected onForgotBack(email: string): void {
+    this.loginPrefill.set({ email, seq: ++this.prefillSeq });
+    this.activeMode.set('login');
   }
 
   /** After the hide animation: tear the Google block down (unless reopened meanwhile). */

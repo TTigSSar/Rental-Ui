@@ -543,6 +543,14 @@ select:focus {
   --ui-msg-icon: #d9342b;
 }
 
+/* "ok" variant (forgot-password: "request sent again"): success tokens, AA text. */
+.p-message.ui-msg--success {
+  --ui-msg-bg: var(--ui-color-success-surface);
+  --ui-msg-border: var(--ui-color-success-border);
+  --ui-msg-text: var(--ui-color-approved);
+  --ui-msg-icon: var(--ui-color-success);
+}
+
 .p-message.ui-msg .p-message-content {
   display: flex;
   align-items: flex-start;

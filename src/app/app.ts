@@ -197,7 +197,7 @@ export class App {
   protected readonly isHomePage = signal(isHomeUrl(this.router.url));
   protected readonly isAdminConsolePage = signal(isAdminConsoleUrl(this.router.url));
   protected readonly showAuthDialog = signal(false);
-  protected readonly authDialogMode = signal<'login' | 'register'>('login');
+  protected readonly authDialogMode = signal<'login' | 'register' | 'forgot'>('login');
 
   // The scroll-revealed header search is a HOME-ONLY behaviour. Gating the
   // service flag on the route here means every other page keeps the header
@@ -299,10 +299,28 @@ export class App {
         this.isBookingPage.set(isBookingPageUrl(url));
         this.isHomePage.set(isHomeUrl(url));
         this.isAdminConsolePage.set(isAdminConsoleUrl(url));
+        this.openForgotFromUrl(url);
       });
   }
 
-  protected openAuthDialog(mode: 'login' | 'register'): void {
+  /**
+   * `/?forgot` (ADR-035): the reset page's "Request a new link" lands here and opens the auth
+   * dialog on the Request step with an empty field. The marker is dropped from the URL so a
+   * reload or a back navigation does not reopen it.
+   */
+  private openForgotFromUrl(url: string): void {
+    if (!isHomeUrl(url) || !this.router.parseUrl(url).queryParamMap.has('forgot')) {
+      return;
+    }
+    this.openAuthDialog('forgot');
+    void this.router.navigate([], {
+      queryParams: { forgot: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  protected openAuthDialog(mode: 'login' | 'register' | 'forgot'): void {
     this.authDialogMode.set(mode);
     this.showAuthDialog.set(true);
   }

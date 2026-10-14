@@ -379,4 +379,44 @@ describe('AuthApiService — email verification (ADR-028)', () => {
 
     expect(completed).toBe(true);
   });
+  it('forgotPassword POSTs { email, preferredLanguage } and accepts an EMPTY 202 body', () => {
+    let completed = false;
+    service
+      .forgotPassword({ email: 'ann@example.com', preferredLanguage: 'hy' })
+      .subscribe({ complete: () => (completed = true) });
+
+    const req = httpMock.expectOne(toApiUrl(ApiContract.auth.forgotPassword));
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ email: 'ann@example.com', preferredLanguage: 'hy' });
+    // JSON (not text): an error body must arrive parsed so its errorCode is readable.
+    expect(req.request.responseType).toBe('json');
+    req.flush(null, { status: 202, statusText: 'Accepted' });
+
+    expect(completed).toBe(true);
+  });
+
+  it('resetPasswordCheck POSTs { token } and accepts an EMPTY 204 body', () => {
+    let completed = false;
+    service.resetPasswordCheck({ token: 'tok' }).subscribe({ complete: () => (completed = true) });
+
+    const req = httpMock.expectOne(toApiUrl(ApiContract.auth.resetPasswordCheck));
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ token: 'tok' });
+    expect(req.request.responseType).toBe('json');
+    req.flush(null, { status: 204, statusText: 'No Content' });
+
+    expect(completed).toBe(true);
+  });
+
+  it('resetPassword POSTs { token, newPassword } and returns the normalised AuthResponse', () => {
+    let result: unknown;
+    service.resetPassword({ token: 'tok', newPassword: 'Password1!' }).subscribe((r) => (result = r));
+
+    const req = httpMock.expectOne(toApiUrl(ApiContract.auth.resetPassword));
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ token: 'tok', newPassword: 'Password1!' });
+    req.flush({ token: ' jwt ', expiresAt: '2099-01-01T00:00:00Z' });
+
+    expect(result).toMatchObject({ token: 'jwt' });
+  });
 });

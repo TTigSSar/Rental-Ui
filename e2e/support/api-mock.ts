@@ -98,6 +98,23 @@ export interface ApiSeed {
    */
   resendVerification?: { status?: number; body?: unknown };
   /**
+   * POST /api/auth/forgot-password outcome (ADR-035) - defaults to 202 with an EMPTY body,
+   * which is what the real endpoint always answers. Set `status`/`body` for 429 / 503
+   * (`errorCode: 'auth.password_reset_unavailable'`).
+   */
+  forgotPassword?: { status?: number; body?: unknown };
+  /**
+   * POST /api/auth/reset-password/check outcome (ADR-035) - defaults to 204. Set `status: 400`
+   * with `body.errorCode` `auth.reset_token_expired` / `auth.reset_token_invalid`.
+   */
+  resetPasswordCheck?: { status?: number; body?: unknown };
+  /**
+   * POST /api/auth/reset-password outcome (ADR-035) - defaults to 200 `AuthResponse`
+   * (auto-login). Set `status`/`body` for 400 `auth.reset_token_expired` /
+   * `auth.reset_token_invalid` / `auth.password_too_long`.
+   */
+  resetPassword?: { status?: number; body?: unknown };
+  /**
    * PUT /api/auth/me/home-point outcome (home-point model). On success the mock
    * returns the CURRENT `me` seed with `homePoint` replaced by a point built
    * from the request body, so a journey that saves a pin then re-reads
@@ -473,6 +490,28 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
       const status = seed.resendVerification?.status ?? 202;
       if (status >= 400) return json(route, status, seed.resendVerification?.body ?? {});
       return route.fulfill({ status, body: '' });
+    }
+
+    // POST /api/auth/forgot-password - 202 with an EMPTY body, always (ADR-035).
+    if (pathname.endsWith('/api/auth/forgot-password') && method === 'POST') {
+      const status = seed.forgotPassword?.status ?? 202;
+      if (status >= 400) return json(route, status, seed.forgotPassword?.body ?? {});
+      return route.fulfill({ status, body: '' });
+    }
+
+    // POST /api/auth/reset-password/check - 204 for a live token (ADR-035). Checked before
+    // /reset-password so the longer path is never swallowed by the shorter one.
+    if (pathname.endsWith('/api/auth/reset-password/check') && method === 'POST') {
+      const status = seed.resetPasswordCheck?.status ?? 204;
+      if (status >= 400) return json(route, status, seed.resetPasswordCheck?.body ?? {});
+      return route.fulfill({ status, body: '' });
+    }
+
+    // POST /api/auth/reset-password - { token, newPassword } -> AuthResponse (ADR-035).
+    if (pathname.endsWith('/api/auth/reset-password') && method === 'POST') {
+      const status = seed.resetPassword?.status ?? 200;
+      if (status >= 400) return json(route, status, seed.resetPassword?.body ?? {});
+      return json(route, status, seed.resetPassword?.body ?? e2eAuthResponse());
     }
 
     // PUT / DELETE /api/auth/me/home-point — both answer with the full
