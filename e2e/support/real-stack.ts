@@ -402,11 +402,68 @@ export function authOriginFor(email: string): string {
 const authSpend: Record<AuthBucket, number> = { direct: 0, proxied: 0 };
 
 export function noteAuthSpend(bucket: AuthBucket, what: string): void {
+  recordWindowSpend('auth', bucket, 1);
   authSpend[bucket] += 1;
   if (process.env['E2E_AUTH_DEBUG']) {
     // eslint-disable-next-line no-console
     console.log(`[auth-budget] ${bucket} #${authSpend[bucket]}/5 — ${what}`);
   }
+}
+
+/**
+ * Window-aware budget scheduler for specs that cannot fit into the static per-run budget.
+ *
+ * Both `auth` buckets are already at 5/5 for the pre-existing suite (e2e/README.md), and the
+ * password-reset specs (ADR-035) add more register/login calls plus their own `password-reset`
+ * policy (5/min per IP, shared by forgot-password, reset-password/check and reset-password).
+ * Rather than growing the 429 hazard, a spec calls `awaitRateWindow(...)` BEFORE a group of calls
+ * and, if that group would not fit into what is left of the current fixed 60s window, it waits
+ * for the window to end. This is the single reason for a wait in the suite: a fixed-window
+ * limiter has no other observable signal, and a 429 is not a flake but a budget breach.
+ *
+ * Tracking is per worker (the real project runs with `workers: 1`), approximates the server's
+ * window by the first spend seen in it, and is fed by `noteAuthSpend` (auth) and
+ * `noteRateSpend` (password-reset). A window started by a previous process (e.g. a run started
+ * seconds after the last) is not visible here; that case still surfaces as an explicit 429
+ * message, exactly like the existing auth budget.
+ */
+export type RatePolicy = 'auth' | 'password-reset';
+const RATE_WINDOW_MS = 60_000;
+const RATE_WINDOW_MARGIN_MS = 2_000;
+const RATE_LIMIT = 5;
+const rateWindows = new Map<string, { start: number; count: number }>();
+
+function recordWindowSpend(policy: RatePolicy, bucket: AuthBucket, n: number): void {
+  const key = `${policy}:${bucket}`;
+  const now = Date.now();
+  const w = rateWindows.get(key);
+  if (!w || now - w.start >= RATE_WINDOW_MS) {
+    rateWindows.set(key, { start: now, count: n });
+  } else {
+    w.count += n;
+  }
+}
+
+/** Records `n` calls against the `password-reset` policy for a bucket (browser calls included). */
+export function noteRateSpend(bucket: AuthBucket, n: number): void {
+  recordWindowSpend('password-reset', bucket, n);
+}
+
+/** Waits (only if needed) until `n` more calls fit into the current fixed window of this bucket. */
+export async function awaitRateWindow(
+  policy: RatePolicy,
+  bucket: AuthBucket,
+  n: number,
+): Promise<void> {
+  const key = `${policy}:${bucket}`;
+  const w = rateWindows.get(key);
+  if (!w) return;
+  const now = Date.now();
+  if (now - w.start >= RATE_WINDOW_MS) return;
+  if (w.count + n <= RATE_LIMIT) return;
+  const wait = w.start + RATE_WINDOW_MS + RATE_WINDOW_MARGIN_MS - now;
+  await new Promise((resolve) => setTimeout(resolve, wait));
+  rateWindows.delete(key);
 }
 
 /**
@@ -556,6 +613,61 @@ export async function readVerificationToken(email: string): Promise<string> {
     )
     .not.toBeNull();
   return token!;
+}
+
+/**
+ * Every password-reset link the API "sent" to `email`, oldest first, read from the api container
+ * log (`LoggingEmailSender`, same source and rationale as `readVerificationToken`). Entries are
+ * split on the `[DEV-EMAIL] TO: <email> ` marker, so verification mails for the same address are
+ * skipped and a count of N means exactly N reset mails were produced. Not polled: callers poll
+ * (`expect.poll`) on whatever they are waiting for.
+ */
+export function readResetTokens(email: string): string[] {
+  const marker = `[DEV-EMAIL] TO: ${email} `;
+  const logs = execFileSync(
+    'docker',
+    ['compose', '-f', DOCKER_COMPOSE_FILE, 'logs', '--no-color', '--no-log-prefix', 'api'],
+    { encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 },
+  );
+  const tokens: string[] = [];
+  for (const entry of logs.split(marker).slice(1)) {
+    // An entry ends at the next log record; cut at the next "[DEV-EMAIL]" if the sender logs back to back.
+    const body = entry.split('[DEV-EMAIL]')[0];
+    const match = /\/auth\/reset-password#token=([A-Za-z0-9_-]+)/.exec(body);
+    if (match) tokens.push(match[1]);
+  }
+  return tokens;
+}
+
+/** Polls the api log until at least `count` reset links exist for `email`, returns them all. */
+export async function waitForResetTokens(email: string, count = 1): Promise<string[]> {
+  let tokens: string[] = [];
+  await expect
+    .poll(
+      () => {
+        tokens = readResetTokens(email);
+        return tokens.length;
+      },
+      {
+        message: `no password-reset link for ${email} in the api container log`,
+        timeout: 15_000,
+      },
+    )
+    .toBeGreaterThanOrEqual(count);
+  return tokens;
+}
+
+/** Registers AND verifies a THROWAWAY account; returns its JWT and id (via /me). */
+export async function apiRegisterWithId(
+  request: APIRequestContext,
+  details: RegistrationDetails,
+): Promise<{ jwt: string; id: string }> {
+  const jwt = await apiRegister(request, details);
+  const me = await request.get(`${API_URL}/api/auth/me`, {
+    headers: { Authorization: `Bearer ${jwt}` },
+  });
+  if (!me.ok()) throw new Error(`GET /api/auth/me for ${details.email} failed: ${me.status()}`);
+  return { jwt, id: ((await me.json()) as { id: string }).id };
 }
 
 /**

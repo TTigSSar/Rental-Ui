@@ -139,6 +139,19 @@ confirms the restore actually took — both the restore and the probe route thro
 specifically so they cost nothing against the scarcer `auth` buckets. 3 of 5 leaves headroom; this
 bucket is not the tight one.
 
+**`password-reset` — forgot-password, reset-password/check and reset-password (ADR-035), 5/minute
+per IP, a FOURTH bucket (again split `direct` / `proxied`).** The password-reset specs
+(`password-reset-journey`, `password-reset-api`, `password-reset-session-replace`) need more than the
+static budget allows, so they use the window-aware scheduler in `support/real-stack.ts`:
+`awaitRateWindow(policy, bucket, n)` is called before a group of calls and waits ONLY if `n` more
+calls would not fit into what is left of the current fixed window (the one place the suite waits on
+purpose; a fixed-window limiter exposes no other signal). `noteAuthSpend` (auth) and `noteRateSpend`
+(password-reset) feed it. It tracks one worker; a window started by an earlier Playwright process
+is invisible to it, so the "leave ~60s between runs" rule below still applies. Expect the three
+specs to add a few minutes to a full run because of those waits. They also give the full run a
+SECOND reason to be slow: the `auth` buckets are at 5/5 already, so every register/login they add
+is paid for with a wait, not with headroom.
+
 **One full `npx playwright test --project=real` run fits inside every window. A second
 back-to-back run does not.** Each window is fixed and ~60s wide, so two immediate full runs land
 more than 5 calls of a bucket inside one window and the second run 429s partway through — and
