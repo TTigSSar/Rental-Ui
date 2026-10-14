@@ -38,6 +38,17 @@ export const ApiContract = {
     // resend-verification: anonymous, body { email } -> 202 empty body, always.
     verifyEmail: '/api/auth/verify-email',
     resendVerification: '/api/auth/resend-verification',
+    // Password reset by emailed link (ADR-035). All three anonymous, sharing one per-IP rate
+    // limit (429, no body).
+    // forgotPassword: body { email, preferredLanguage } -> 202 empty body, always (400 only
+    //   for over-length model validation; 503 auth.password_reset_unavailable).
+    // resetPasswordCheck: body { token } -> 204 (400 auth.reset_token_expired |
+    //   auth.reset_token_invalid). Read-only, never consumes the token.
+    // resetPassword: body { token, newPassword } -> 200 AuthResponse (400
+    //   auth.reset_token_expired | auth.reset_token_invalid | auth.password_too_long).
+    forgotPassword: '/api/auth/forgot-password',
+    resetPasswordCheck: '/api/auth/reset-password/check',
+    resetPassword: '/api/auth/reset-password',
   },
   listings: {
     root: '/api/listings',
