@@ -364,6 +364,21 @@ describe('chatReducer', () => {
       expect(row?.lastMessageSnippet).toBe('Ping');
     });
 
+    it('moves the updated row to the top of the inbox', () => {
+      const start = stateWith({
+        conversations: [makePreview({ id: 'c1' }), makePreview({ id: 'c2' })],
+      });
+
+      const next = chatReducer(
+        start,
+        ChatActions.realtimeMessageResolved({
+          message: makeMessage({ id: 'm9', conversationId: 'c2' }),
+        }),
+      );
+
+      expect(next.conversations.map((c) => c.id)).toEqual(['c2', 'c1']);
+    });
+
     it('does not bump unread for the currently open conversation', () => {
       const start = stateWith({
         conversations: [makePreview({ id: 'c1', unreadCount: 0 })],
@@ -468,6 +483,32 @@ describe('chatReducer', () => {
       );
       expect(next.openingConversationFromBooking).toBe(false);
       expect(next.activeConversation).toEqual(conversation);
+    });
+
+    it('on success, adds a missing conversation to the top of the inbox', () => {
+      const next = chatReducer(
+        stateWith({ conversations: [makePreview({ id: 'old' })] }),
+        ChatActions.openConversationFromBookingSuccess({
+          conversation: makeDetails({ id: 'fresh', counterpartName: 'Sam' }),
+        }),
+      );
+      expect(next.conversations.map((c) => c.id)).toEqual(['fresh', 'old']);
+      expect(next.conversations[0]).toMatchObject({
+        counterpartName: 'Sam',
+        lastMessageAt: null,
+        unreadCount: 0,
+      });
+    });
+
+    it('on success, does not duplicate a conversation already in the inbox', () => {
+      const existing = makePreview({ id: 'c1' });
+      const next = chatReducer(
+        stateWith({ conversations: [existing] }),
+        ChatActions.openConversationFromBookingSuccess({
+          conversation: makeDetails({ id: 'c1' }),
+        }),
+      );
+      expect(next.conversations).toEqual([existing]);
     });
 
     it('on failure, clears the flag without touching the active conversation', () => {

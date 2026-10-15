@@ -13,16 +13,17 @@ export const chatFeatureKey = 'chat' as const;
 /**
  * Merge a freshly received message into the inbox row for its conversation:
  * refresh the last-message preview and bump the unread counter when it is an
- * incoming message the user is not currently looking at. Rows that do not exist
- * yet (e.g. a brand-new conversation) are left untouched — the next
- * `loadConversations` reconciles them.
+ * incoming message the user is not currently looking at. The touched row moves
+ * to the top (the list is ordered by last activity). Rows that do not exist yet
+ * are left untouched here — `ChatEffects.realtimeMessageReceived$` dispatches
+ * `loadConversations` for an unknown conversation so the server list reconciles it.
  */
 function applyMessageToInbox(
   conversations: ChatConversationPreview[],
   message: ChatMessage,
   isOpenConversation: boolean,
 ): ChatConversationPreview[] {
-  return conversations.map((conversation) => {
+  const updated = conversations.map((conversation) => {
     if (conversation.id !== message.conversationId) {
       return conversation;
     }
@@ -42,6 +43,35 @@ function applyMessageToInbox(
         : conversation.unreadCount,
     };
   });
+
+  const index = updated.findIndex((c) => c.id === message.conversationId);
+  if (index <= 0) {
+    return updated;
+  }
+  return [updated[index], ...updated.slice(0, index), ...updated.slice(index + 1)];
+}
+
+/**
+ * Build an inbox row from a just-opened conversation's details (last-message
+ * fields come from the tail of the loaded messages; none for a fresh thread).
+ */
+function toInboxPreview(details: ChatConversationDetails): ChatConversationPreview {
+  const last = details.messages.at(-1) ?? null;
+  return {
+    id: details.id,
+    kind: details.kind,
+    bookingId: details.bookingId,
+    counterpartName: details.counterpartName,
+    counterpartAvatarUrl: details.counterpartAvatarUrl,
+    toyTitle: details.toyTitle,
+    toyImageUrl: details.toyImageUrl,
+    status: details.status,
+    lastMessageSnippet: last?.body ?? null,
+    lastMessageAt: last?.sentAt ?? null,
+    lastMessageType: last?.type ?? null,
+    lastMessageIsMine: last?.isMine ?? false,
+    unreadCount: 0,
+  };
 }
 
 /**
@@ -302,6 +332,11 @@ export const chatReducer = createReducer(
       ...state,
       openingConversationFromBooking: false,
       activeConversation: conversation,
+      // A just-created thread has no messages, so it may be missing from the
+      // loaded inbox — show it (on top) right away.
+      conversations: state.conversations.some((c) => c.id === conversation.id)
+        ? state.conversations
+        : [toInboxPreview(conversation), ...state.conversations],
     }),
   ),
   on(
