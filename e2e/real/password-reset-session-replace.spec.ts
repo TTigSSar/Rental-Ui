@@ -23,9 +23,9 @@ import {
  * are never re-fetched with B's token. Home/listings origins were checked and do NOT leak.
  *
  * This spec asserts the CORRECT behaviour: once B is signed in, the realtime hub and the badge
- * pollers talk to the API with B's token. It is committed as `test.fixme` until frontend-dev fixes
- * the bug (the suite stays green; remove `.fixme` with the fix). It was run as a plain `test`
- * first and failed for exactly this reason.
+ * pollers (notifications, chat conversations, owner requests) talk to the API with B's token.
+ * It was committed as `test.fixme` while the bug was open; fixed in Rental-Ui f9b32a9 (session
+ * user change is treated as logout + login) and enabled as a plain `test`.
  *
  * Budget: `auth` direct = 2 registers; `password-reset` direct = 1 forgot, proxied = check + reset.
  */
@@ -39,9 +39,9 @@ test.describe('Password reset replaces a signed-in session (real stack)', () => 
     password: 'Demo1234',
   });
 
-  // BUG (frontend): verifyEmailSuccess while authenticated does not restart the realtime hub and
-  // badge pollers, nor reset user-scoped state; B inherits A's live chat connection.
-  test.fixme('after B resets while A is signed in, hub and badges use B token', async ({
+  // Regression guard: verifyEmailSuccess while authenticated must restart the realtime hub and the
+  // badge pollers and reset user-scoped state (previously B inherited A's live chat connection).
+  test('after B resets while A is signed in, hub and badges use B token', async ({
     page,
     request,
   }) => {
@@ -69,12 +69,16 @@ test.describe('Password reset replaces a signed-in session (real stack)', () => 
 
     const hubAuth: string[] = [];
     const badgeAuth: string[] = [];
+    const chatListAuth: string[] = [];
+    const requestsAuth: string[] = [];
     let recording = false;
     page.on('request', (req) => {
       if (!recording) return;
       const auth = req.headers()['authorization'] ?? '';
       if (req.url().includes('/hubs/chat/negotiate')) hubAuth.push(auth);
       if (req.url().includes('/api/notifications/unread-count')) badgeAuth.push(auth);
+      if (req.url().includes('/api/chat/conversations')) chatListAuth.push(auth);
+      if (req.url().includes('/api/bookings/requests')) requestsAuth.push(auth);
     });
 
     // The emailed link opens in the browser that still holds A's session.
@@ -103,6 +107,18 @@ test.describe('Password reset replaces a signed-in session (real stack)', () => 
     await expect
       .poll(() => badgeAuth.includes(`Bearer ${tokenB}`), {
         message: 'the notification badge must be re-fetched with the NEW user token',
+        timeout: 10_000,
+      })
+      .toBe(true);
+    await expect
+      .poll(() => chatListAuth.includes(`Bearer ${tokenB}`), {
+        message: 'the chat-unread badge poller must re-fetch conversations with the NEW user token',
+        timeout: 10_000,
+      })
+      .toBe(true);
+    await expect
+      .poll(() => requestsAuth.includes(`Bearer ${tokenB}`), {
+        message: 'the owner-requests badge poller must re-fetch with the NEW user token',
         timeout: 10_000,
       })
       .toBe(true);
