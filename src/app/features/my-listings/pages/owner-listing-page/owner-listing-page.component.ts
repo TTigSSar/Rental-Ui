@@ -16,6 +16,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
 import { selectAuthUser } from '../../../auth/store/auth.selectors';
+import * as ChatActions from '../../../chat/store/chat.actions';
 import { ListingGalleryComponent } from '../../../listings/components/listing-gallery/listing-gallery.component';
 import type { ListingDetails } from '../../../listings/models/listing-details.model';
 import * as ListingsActions from '../../../listings/store/listings.actions';
@@ -247,9 +248,9 @@ export class OwnerListingPageComponent {
   }
 
   protected onMessage(request: OwnerBookingRequest): void {
-    // TODO(real API): open the conversation with this renter once chat threads
-    // can be created from a booking. For now route to the chat inbox.
-    void this.router.navigate(['/chat'], { queryParams: { renter: request.renter.id } });
+    // Chat is scoped to the booking (ADR-001): get-or-create the thread and let
+    // ChatEffects navigate to /chat/:id (or toast on failure).
+    this.store.dispatch(ChatActions.openConversationFromBooking({ bookingId: request.id }));
   }
 
   protected isActionLoading(bookingId: string): boolean {
