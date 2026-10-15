@@ -102,6 +102,16 @@ export const loadCurrentUserFailure = createAction(
 export const logout = createAction('[Auth] Logout');
 
 /**
+ * The authenticated identity changed from one user to ANOTHER without a logout in between
+ * (a reset-password / verify-email link opened while someone else is signed in, or any other
+ * token replacement). Dispatched by `AuthEffects.detectSessionReplaced$` once `/auth/me`
+ * delivers the new user. The session-reset meta-reducer drops every user-scoped slice on it and
+ * `SessionLifecycleService` tears down and restarts the hub and badge pollers — i.e. it behaves
+ * like logout + login.
+ */
+export const sessionReplaced = createAction('[Auth] Session Replaced');
+
+/**
  * Dispatched once by App constructor after all effects are registered.
  * Using this instead of ROOT_EFFECTS_INIT because ROOT_EFFECTS_INIT fires from
  * the first provideEffects() call — before AuthEffects is registered — so

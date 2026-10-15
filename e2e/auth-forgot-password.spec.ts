@@ -112,3 +112,51 @@ test.describe('Forgot password (ADR-035)', () => {
     await expect(page).toHaveURL(/\/$/);
   });
 });
+
+test.describe('Reset link opened while another user is signed in', () => {
+  test('B inherits nothing of A: badge pollers restart with the new token', async ({ page }) => {
+    await mockApi(page, {
+      me: e2eUser({ id: 'user-a', firstName: 'Alice' }),
+      resetPassword: { body: { token: 'tok-b' } },
+    });
+    // Later-registered routes win: answer /auth/me per bearer token, like the real API.
+    await page.route('**/api/auth/me', async (route) => {
+      if (route.request().method() !== 'GET') return route.fallback();
+      const bearer = route.request().headers()['authorization'] ?? '';
+      const user =
+        bearer === 'Bearer tok-b'
+          ? e2eUser({ id: 'user-b', firstName: 'Boris' })
+          : e2eUser({ id: 'user-a', firstName: 'Alice' });
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(user),
+      });
+    });
+    await page.addInitScript(() => {
+      if (!window.localStorage.getItem('auth_token')) {
+        window.localStorage.setItem('auth_token', 'tok-a');
+      }
+    });
+
+    const badgeAuth: string[] = [];
+    page.on('request', (req) => {
+      if (req.url().includes('/api/notifications/unread-count')) {
+        badgeAuth.push(req.headers()['authorization'] ?? '');
+      }
+    });
+
+    await page.goto(`${RESET_PATH}#token=${TOKEN}`);
+    await expect.poll(() => badgeAuth).toContain('Bearer tok-a');
+
+    const fields = page.locator('app-reset-password-page input[type="password"]');
+    await fields.nth(0).fill('Password1!');
+    await fields.nth(1).fill('Password1!');
+    await page.getByRole('button', { name: 'Set password' }).click();
+
+    await expect(page).toHaveURL(/\/$/);
+    expect(await page.evaluate(() => window.localStorage.getItem('auth_token'))).toBe('tok-b');
+    // The poller was torn down and restarted for B: it re-fetched with B's token.
+    await expect.poll(() => badgeAuth).toContain('Bearer tok-b');
+  });
+});
