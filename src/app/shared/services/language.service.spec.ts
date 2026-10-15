@@ -4,7 +4,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { PrimeNG } from 'primeng/config';
 
 import * as AuthActions from '../../features/auth/store/auth.actions';
-import { LanguageService } from './language.service';
+import { BROWSER_LANGUAGES, LanguageService } from './language.service';
 
 const STORAGE_KEY = 'stayfinder.lang';
 
@@ -48,10 +48,10 @@ if (typeof window.localStorage === 'undefined' || window.localStorage === null) 
   });
 }
 
-function createService(): LanguageService {
+function createService(browserLanguages: readonly string[] = []): LanguageService {
   TestBed.configureTestingModule({
     imports: [TranslateModule.forRoot()],
-    providers: [provideMockStore()],
+    providers: [provideMockStore(), { provide: BROWSER_LANGUAGES, useValue: browserLanguages }],
   });
   return TestBed.inject(LanguageService);
 }
@@ -93,6 +93,48 @@ describe('LanguageService', () => {
     const service = createService();
 
     expect(service.current().code).toBe('ru');
+  });
+
+  describe('first visit: browser language (ADR-038)', () => {
+    it.each([
+      [['hy-AM'], 'hy'],
+      [['ru'], 'ru'],
+      [['en-US'], 'en'],
+      [['fr'], 'en'],
+      [['en-US', 'ru'], 'en'],
+      [['fr', 'ru-RU'], 'ru'],
+      [['HY'], 'hy'],
+      [['Hy_am'], 'hy'],
+      [['RU_ru'], 'ru'],
+      [[], 'en'],
+    ] as [string[], string][])('%j -> %s', (languages, expected) => {
+      expect(createService(languages).current().code).toBe(expected);
+    });
+
+    it('a stored language wins over the browser', () => {
+      window.localStorage.setItem(STORAGE_KEY, 'ru');
+
+      expect(createService(['hy-AM']).current().code).toBe('ru');
+    });
+
+    it('the detected language is not written to localStorage, even after hydrate()', () => {
+      const service = createService(['hy-AM']);
+
+      service.hydrate();
+
+      expect(service.current().code).toBe('hy');
+      expect(document.documentElement.lang).toBe('hy');
+      expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
+    });
+
+    it('applyFromUser() still overrides a detected language', () => {
+      const service = createService(['hy-AM']);
+
+      service.applyFromUser('ru');
+
+      expect(service.current().code).toBe('ru');
+      expect(window.localStorage.getItem(STORAGE_KEY)).toBe('ru');
+    });
   });
 
   it('hydrate() applies the resolved language to ngx-translate', () => {
