@@ -38,18 +38,14 @@ export const HOME_POINT_DERIVED_FIELDS = [
  * skipped save, and any newly writable field has to be added here consciously
  * — which is the moment to ask whether it is derived from the home point.
  *
- * KNOWN GAP (not by design): `priceUnit` is missing. The backend's
- * `UpdateListingRequest.PriceUnit` accepts it and the wizard emits it in its
- * `CreateListingRequest`, but `EditListingPageComponent.onSave` never forwards
- * it and `UpdateListingRequest` (UI model) has no such member — so a price-unit
- * change in the edit wizard is dropped on the client side. Fixing that is an
- * application-code change; when it lands, add `'priceUnit'` here and these
- * guards go green again.
+ * `priceUnit` is writable: the backend's `UpdateListingRequest.PriceUnit` accepts it
+ * (null = leave unchanged) and the edit wizard always sends the owner's selection.
  */
 export const LISTING_UPDATE_WRITABLE_FIELDS = [
   'title',
   'description',
   'pricePerDay',
+  'priceUnit',
   'ageFromMonths',
   'ageToMonths',
   'condition',

@@ -3,8 +3,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, from, map, switchMap } from 'rxjs';
 
 import { ApiContract, toApiUrl } from '../../../api/api-contract';
-import { DELIVERY_TYPES } from '../../listings/models/create-listing.model';
-import type { DeliveryType } from '../../listings/models/create-listing.model';
+import { DELIVERY_TYPES, PRICE_UNITS } from '../../listings/models/create-listing.model';
+import type { DeliveryType, PriceUnit } from '../../listings/models/create-listing.model';
 import { compressImageFiles } from '../../../shared/utils/image-compression.utils';
 import type { ListingImage, MyListing, MyListingStatus, RejectionInfo, UpdateListingRequest } from '../models/my-listing.model';
 
@@ -47,6 +47,13 @@ function coerceDeliveryTypes(value: unknown, legacyType: DeliveryType | null): D
     if (filtered.length > 0) return filtered;
   }
   return legacyType ? [legacyType] : null;
+}
+
+/** The API serializes PriceUnit as a string (JsonStringEnumConverter); unknown values read as the 'Daily' default. */
+function coercePriceUnit(value: unknown): PriceUnit {
+  return typeof value === 'string' && (PRICE_UNITS as readonly string[]).includes(value)
+    ? (value as PriceUnit)
+    : 'Daily';
 }
 
 function toNullableString(value: unknown): string | null {
@@ -93,6 +100,7 @@ function normalizeMyListing(raw: Record<string, unknown> & { id: string }): MyLi
       typeof raw['pricePerDay'] === 'number' && Number.isFinite(raw['pricePerDay'])
         ? (raw['pricePerDay'] as number)
         : 0,
+    priceUnit: coercePriceUnit(raw['priceUnit']),
     imageUrl:
       typeof rawImageUrl === 'string' && rawImageUrl.length > 0 ? rawImageUrl : null,
     status: coerceMyListingStatus(raw['status']),
