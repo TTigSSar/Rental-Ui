@@ -202,7 +202,18 @@ describe('HomeHeroMapComponent', () => {
     expect(state.circleCalls[0].options['radius']).toBe(1200);
   });
 
-  it('renders marker dots as non-focusable (never a tab stop) — the frozen map must not trap keyboard focus', async () => {
+  it('is interactive: renders app-map\'s +/− zoom stack with translated labels', async () => {
+    const fixture = await createHost();
+    const stack = fixture.nativeElement.querySelector('.app-map__zoom-stack');
+    expect(stack).not.toBeNull();
+    const buttons: HTMLButtonElement[] = Array.from(stack.querySelectorAll('button'));
+    expect(buttons.map((b) => b.getAttribute('aria-label'))).toEqual([
+      'listings.details.location.zoomIn',
+      'listings.details.location.zoomOut',
+    ]);
+  });
+
+  it('renders marker dots as non-focusable (never a tab stop) — decorative pins must not trap keyboard focus', async () => {
     configure();
     const fixture = TestBed.createComponent(HostComponent);
     fixture.componentInstance.markers = [
@@ -258,7 +269,7 @@ describe('HomeHeroMapComponent', () => {
       expect(button.disabled).toBe(true);
     });
 
-    it('is the only app-added tab stop — a real <button>, no explicit role/tabindex needed', async () => {
+    it('is the only tab stop this component adds (zoom stack is app-map\'s) — a real <button>, no explicit role/tabindex needed', async () => {
       const fixture = await createHost();
       const button: HTMLButtonElement | null = fixture.nativeElement.querySelector('.app-map__btn');
       expect(button).not.toBeNull();
@@ -385,21 +396,22 @@ describe('HomeHeroMapComponent', () => {
 });
 
 describe('deriveHeroMapZoom', () => {
-  it('zooms out to 12 for a radius beyond 2200m', () => {
-    expect(deriveHeroMapZoom(2500)).toBe(12);
+  it('zooms out to 11 for a radius beyond 2200m', () => {
+    expect(deriveHeroMapZoom(2500)).toBe(11);
   });
 
-  it('uses 13 for a radius beyond 1400m but at or below 2200m', () => {
-    expect(deriveHeroMapZoom(2000)).toBe(13);
-    expect(deriveHeroMapZoom(1401)).toBe(13);
+  it('uses 12 for a radius beyond 1400m but at or below 2200m', () => {
+    expect(deriveHeroMapZoom(2200)).toBe(12);
+    expect(deriveHeroMapZoom(2000)).toBe(12);
+    expect(deriveHeroMapZoom(1401)).toBe(12);
   });
 
-  it('uses the closest-in zoom (14) at or below 1400m, including the default 1.2km radius', () => {
-    expect(deriveHeroMapZoom(1200)).toBe(14);
-    expect(deriveHeroMapZoom(1400)).toBe(14);
+  it('uses the closest-in zoom (13) at or below 1400m, including the default 1.2km radius', () => {
+    expect(deriveHeroMapZoom(1200)).toBe(13);
+    expect(deriveHeroMapZoom(1400)).toBe(13);
   });
 
-  it('uses the closest-in zoom (14) when there is no radius at all (geolocation denied)', () => {
-    expect(deriveHeroMapZoom(null)).toBe(14);
+  it('uses the closest-in zoom (13) when there is no radius at all (geolocation denied)', () => {
+    expect(deriveHeroMapZoom(null)).toBe(13);
   });
 });
