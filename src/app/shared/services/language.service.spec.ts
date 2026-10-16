@@ -87,6 +87,34 @@ describe('LanguageService', () => {
     expect(service.current().code).toBe('en');
   });
 
+  it('an invalid stored code falls through to the browser language', () => {
+    window.localStorage.setItem(STORAGE_KEY, 'fr');
+
+    expect(createService(['hy-AM']).current().code).toBe('hy');
+  });
+
+  describe('BROWSER_LANGUAGES default factory', () => {
+    afterEach(() => vi.restoreAllMocks());
+
+    function inject(languages: readonly string[] | undefined, language: string) {
+      vi.spyOn(navigator, 'languages', 'get').mockReturnValue(languages as readonly string[]);
+      vi.spyOn(navigator, 'language', 'get').mockReturnValue(language);
+      return TestBed.inject(BROWSER_LANGUAGES);
+    }
+
+    it('returns navigator.languages when present', () => {
+      expect(inject(['hy-AM', 'en'], 'en-US')).toEqual(['hy-AM', 'en']);
+    });
+
+    it('falls back to [navigator.language] when the list is empty', () => {
+      expect(inject([], 'ru-RU')).toEqual(['ru-RU']);
+    });
+
+    it('returns [] when neither is available', () => {
+      expect(inject([], '')).toEqual([]);
+    });
+  });
+
   it('resolves the stored language when it is valid', () => {
     window.localStorage.setItem(STORAGE_KEY, 'ru');
 

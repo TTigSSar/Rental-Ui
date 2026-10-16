@@ -89,7 +89,7 @@ export class LanguageService {
 
   readonly languages: readonly LanguageOption[] = LANGUAGES;
 
-  /** The active language. Resolved from storage at construction time. */
+  /** The active language. Resolved at construction time: stored choice, else the browser language (ADR-038). */
   readonly current = signal<LanguageOption>(this.resolveInitial());
 
   constructor() {
@@ -112,7 +112,7 @@ export class LanguageService {
    * boot with a token and post-login/register/external-auth).
    *
    * No-ops when `code` is null/undefined/unknown — a user with no saved
-   * preference keeps whatever is already active (localStorage/default).
+   * preference keeps whatever is already active (stored choice or browser-detected language).
    * Never persists back to the backend; only the outbound `use()` does that,
    * so applying a server value can never trigger a re-persist loop.
    */
