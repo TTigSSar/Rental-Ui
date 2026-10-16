@@ -27,6 +27,12 @@ import { e2eHomePoint, e2eMapPin, e2eUser } from './support/fixtures';
  * request renders the granted view: user dot, radius (+ accuracy) circle,
  * pill text via `nearbyCount`.
  *
+ * The map is interactive but scroll-gated (ADR-015 amendment, 2026-10-16):
+ * `[interactive]="true"` renders `app-map`'s own zoom stack, and
+ * `[scrollGate]="true"` makes a plain wheel scroll the PAGE (Ctrl/Cmd+wheel
+ * zooms) and puts a tap-to-activate overlay over the map on touch-primary
+ * pointers. It was a frozen thumbnail before.
+ *
  * Deliberately thin — a handful of behaviours only, each one a documented,
  * specific failure mode (`hero-map.component.ts`/`home.actions.ts`'s own doc
  * comments, and M-027 in `knowledge/mistakes.md`), not general coverage of
@@ -345,15 +351,15 @@ test.describe('Home hero map — opt-in journey, end to end', () => {
  * the task): the pill was originally bottom-left, directly on top of the
  * MapTiler logo, and was moved to top-left in `hero-map.component.scss`. The
  * logo and Leaflet's own attribution control are both licence-mandated and
- * must never be occluded — see `map.component.ts`'s class doc comment. The
- * opt-in button (`.app-map__actions`, bottom-right, "raised clear of
- * Leaflet's attribution control" per that slot's own doc comment in
- * map.component.scss) is a second, newer piece of chrome sharing that same
- * bottom-right corner with the attribution control — checked independently
- * here rather than trusted from that comment.
+ * must never be occluded — see `map.component.ts`'s class doc comment. Now
+ * that the map is interactive, its zoom stack (top-right) joins the chrome
+ * that the top-left pill/zone chip must not collide with, and the opt-in
+ * button (`.app-map__actions`, bottom-right, "raised clear of Leaflet's
+ * attribution control") shares a corner with the attribution control —
+ * checked independently here rather than trusted from comments.
  */
 test.describe('Home hero map — licence chrome stays visible', () => {
-  test('the pill and the opt-in button never overlap the MapTiler logo or the attribution control', async ({
+  test('the pill never overlaps the zoom stack, logo, attribution or locate button; the locate button never overlaps zoom stack, logo or attribution', async ({
     page,
     context,
   }) => {
@@ -365,16 +371,21 @@ test.describe('Home hero map — licence chrome stays visible', () => {
     await expect.poll(() => tiles.count()).toBeGreaterThan(0);
     await expect(page.locator('.hero-map__pill')).toBeVisible();
     await expect(optInButton(page)).toBeVisible();
+    await expect(page.locator('.hero-map .app-map__zoom-stack')).toBeVisible();
     await expect(page.locator('.hero-map .app-map__maptiler-logo')).toBeVisible();
     await expect(page.locator('.hero-map .leaflet-control-attribution')).toBeVisible();
 
     const assertNoOverlap = async () => {
       const pill = await boundingBoxOrThrow(page, '.hero-map__pill');
       const button = await boundingBoxOrThrow(page, '.hero-map .app-map__btn');
+      const zoom = await boundingBoxOrThrow(page, '.hero-map .app-map__zoom-stack');
       const logo = await boundingBoxOrThrow(page, '.hero-map .app-map__maptiler-logo');
       const attribution = await boundingBoxOrThrow(page, '.hero-map .leaflet-control-attribution');
+      expect(rectsOverlap(pill, zoom)).toBe(false);
       expect(rectsOverlap(pill, logo)).toBe(false);
       expect(rectsOverlap(pill, attribution)).toBe(false);
+      expect(rectsOverlap(pill, button)).toBe(false);
+      expect(rectsOverlap(button, zoom)).toBe(false);
       expect(rectsOverlap(button, logo)).toBe(false);
       expect(rectsOverlap(button, attribution)).toBe(false);
     };
@@ -392,33 +403,27 @@ test.describe('Home hero map — licence chrome stays visible', () => {
 });
 
 /**
- * The map is always constructed `[interactive]="false"` (a frozen thumbnail
- * — see `hero-map.component.ts`'s class doc comment) with
+ * The map is `[interactive]="true"` + `[scrollGate]="true"` with
  * `[markerVariant]="'twinkle'"` (decorative dots, never a tab stop — see
- * `MapComponent.markerVariant`'s own doc comment). Neither
- * `HomeHeroMapComponent` nor a frozen `app-map` adds any focus stop of its
- * OWN besides the opt-in button itself: no marker (`role="button"`/
- * `tabIndex=0`, the 'brand' variant only), no zoom stack (`<button>`,
- * `interactive`-gated), no touch scroll-gate (`role="button"`/
- * `tabindex="0"`, also `interactive`-gated). The opt-in button IS a real,
- * deliberate `<button>` — "the ONE intentional tab stop this panel adds" per
- * `HomeHeroMapComponent`'s own class doc comment — and hides itself once
- * granted, so it disappears from the tab order the moment there's nothing
- * left to opt into.
+ * `MapComponent.markerVariant`'s own doc comment). The focusable controls
+ * inside the hero map are therefore exactly: `app-map`'s zoom stack (two
+ * `.app-map__zoom-btn` buttons, labelled "Zoom in" / "Zoom out"), Leaflet's
+ * own keyboard-navigation stop (the `.leaflet-container` surface gets
+ * `tabindex=0` because `keyboard: interactive`, so arrows and +/- work) and,
+ * for an anonymous visitor, the deliberate opt-in locate `.app-map__btn`. No marker
+ * (`role="button"`/`tabIndex=0` is the 'brand' variant only) and no touch
+ * gate (`.app-map__gate` renders only on a touch-primary pointer; this
+ * project runs a fine pointer) may add a stop.
  *
- * `app-map` ALSO legitimately renders a handful of plain `<a href>` links
- * regardless of `interactive` — Leaflet's own attribution control text (the
- * "Leaflet" link plus one link per tile-attribution string) and the MapTiler
- * logo — all licence-mandated (see `map.component.ts`'s class doc comment)
- * and all naturally focusable simply by having an `href`, with no `tabindex`
- * attribute of their own. Those are correct, expected tab stops too, so this
- * spec deliberately does not count or restrict them — it only asserts that
- * nothing else app-added is focusable beyond the one opt-in button, and that
- * a real Tab traversal starting just before the map eventually leaves it
- * rather than cycling forever.
+ * `app-map` ALSO legitimately renders plain `<a href>` links regardless of
+ * `interactive` — Leaflet's attribution text and the MapTiler logo — all
+ * licence-mandated and naturally focusable. Those are expected tab stops, so
+ * they are neither counted nor restricted; the spec only asserts nothing else
+ * app-added is focusable, and that a real Tab traversal starting just before
+ * the map eventually leaves it rather than cycling forever.
  */
 test.describe('Home hero map — keyboard focus', () => {
-  test('the opt-in button is the only app-added tab stop, and nothing traps keyboard focus', async ({
+  test('focusable controls are the labelled zoom stack plus the locate button, and nothing traps keyboard focus', async ({
     page,
     context,
   }) => {
@@ -436,37 +441,44 @@ test.describe('Home hero map — keyboard focus', () => {
     // mounted before the focus assertions below run.
     await expect(page.locator('.hero-map .leaflet-control-attribution a').first()).toBeVisible();
 
-    // Frozen (`interactive: false`) — this component's own zoom stack must
-    // never render at all.
-    await expect(page.locator('.hero-map .app-map__zoom-stack')).toHaveCount(0);
+    // Interactive: the zoom stack renders with its two labelled buttons.
+    const zoomButtons = page.locator('.hero-map .app-map__zoom-stack .app-map__zoom-btn');
+    await expect(zoomButtons).toHaveCount(2);
+    await expect(zoomButtons.nth(0)).toHaveAttribute('aria-label', 'Zoom in');
+    await expect(zoomButtons.nth(1)).toHaveAttribute('aria-label', 'Zoom out');
 
-    // Exactly one app-added focusable element anywhere inside the hero
-    // map — the opt-in button. No marker, no gate, nothing else.
+    // Exactly four focusable elements anywhere inside the hero map — the
+    // Leaflet surface, zoom in, zoom out, locate. No marker, no gate, nothing
+    // else.
     const appAddedFocusable = page.locator(
       '.hero-map button, .hero-map [tabindex], .hero-map [role="button"]',
     );
-    await expect(appAddedFocusable).toHaveCount(1);
-    await expect(appAddedFocusable.first()).toHaveClass(/app-map__btn/);
+    await expect(appAddedFocusable).toHaveCount(4);
+    await expect(page.locator('.hero-map .leaflet-container[tabindex="0"]')).toHaveCount(1);
+    await expect(page.locator('.hero-map .app-map__gate')).toHaveCount(0);
+    await expect(optInButton(page)).toHaveCount(1);
 
-    // Real Tab traversal: starting just before the map in document order,
-    // focus may pass through the licence-required attribution/logo links and
-    // the one legitimate opt-in button, but must never land on anything else
-    // matching a marker/button/gate pattern, and must eventually leave
-    // `.hero-map` rather than cycling forever — proof there is no keyboard
-    // trap, not just that the static markup has a bounded number of stops.
+    // Real Tab traversal: focus may pass through the licence-required
+    // attribution/logo links, the Leaflet surface, the zoom buttons and the locate button, but
+    // never land on any other button/gate/tabindex element, and must
+    // eventually leave `.hero-map` — proof there is no keyboard trap.
     await page.locator('.home__hero-search-filter').focus();
     let escaped = false;
-    for (let i = 0; i < 10 && !escaped; i++) {
+    for (let i = 0; i < 12 && !escaped; i++) {
       await page.keyboard.press('Tab');
       const activeInfo = await page.evaluate(() => {
         const heroMap = document.querySelector('.hero-map');
         const active = document.activeElement;
-        const isOptInButton = !!active && active.classList.contains('app-map__btn');
+        const isLegitimate =
+          !!active &&
+          (active.classList.contains('app-map__btn') ||
+            active.classList.contains('app-map__zoom-btn') ||
+            active.classList.contains('leaflet-container'));
         return {
           escaped: !!heroMap && !!active && !heroMap.contains(active),
           isIllegitimateControl:
             !!active &&
-            !isOptInButton &&
+            !isLegitimate &&
             (active.tagName === 'BUTTON' ||
               active.getAttribute('role') === 'button' ||
               active.hasAttribute('tabindex')),
@@ -479,6 +491,50 @@ test.describe('Home hero map — keyboard focus', () => {
       }
     }
     expect(escaped).toBe(true);
+  });
+});
+
+/**
+ * Scroll gate (desktop half): a plain wheel over the hero map must NOT zoom
+ * it (the page scrolls instead, and `.app-map__scroll-hint` flashes). Zoom is
+ * read from the `{z}` segment of the tile URLs Leaflet requests; the zoom-in
+ * button is the positive control proving that probe actually moves, so the
+ * "unchanged" assertion cannot pass vacuously. Ctrl+wheel is deliberately not
+ * asserted: Leaflet debounces and animates wheel zoom, which would need
+ * timing waits.
+ */
+test.describe('Home hero map — scroll gate', () => {
+  test('a plain wheel over the map does not zoom it; the zoom button does', async ({
+    page,
+    context,
+  }) => {
+    const tileZooms: number[] = [];
+    await context.clearPermissions();
+    await mockTiles(page);
+    page.on('request', (req) => {
+      if (req.resourceType() !== 'image') return;
+      const m = /\/(\d{1,2})\/\d+\/\d+\.png$/.exec(new URL(req.url()).pathname);
+      if (m) tileZooms.push(Number(m[1]));
+    });
+    await mockApi(page, { mapPins: [e2eMapPin()], mapPinsTruncated: false });
+
+    await page.goto('/');
+    await expect(page.locator('.hero-map .app-map__zoom-stack')).toBeVisible();
+    await expect.poll(() => tileZooms.length).toBeGreaterThan(0);
+    const initialZoom = tileZooms.at(-1)!;
+
+    const box = await boundingBoxOrThrow(page, '.hero-map .app-map__surface');
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    const before = tileZooms.length;
+    await page.mouse.wheel(0, -400);
+    // The gate's own visible reaction proves the wheel was intercepted.
+    await expect(page.locator('.hero-map .app-map__scroll-hint')).toBeVisible();
+    expect(tileZooms.length).toBe(before);
+    expect(tileZooms.at(-1)).toBe(initialZoom);
+
+    // Positive control: the zoom button changes the probe.
+    await page.locator('.hero-map .app-map__zoom-btn[aria-label="Zoom in"]').click();
+    await expect.poll(() => tileZooms.at(-1)).toBe(initialZoom + 1);
   });
 });
 
