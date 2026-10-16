@@ -40,6 +40,9 @@ export default defineConfig({
     trace: 'on-first-retry',
     // The dev server uses a self-signed cert for the API host; ignore TLS in tests.
     ignoreHTTPSErrors: true,
+    // ADR-038: first-visit language follows the browser; pin English so specs that assume
+    // English do not depend on the host locale. Specs override via test.use({ locale }).
+    locale: 'en-US',
   },
   projects: [
     {
