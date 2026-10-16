@@ -46,6 +46,12 @@ export class ChatRealtimeService {
    * import or the handshake hasn't resolved yet).
    */
   private active = false;
+  /**
+   * Bumped by every {@link start} and {@link stop}. A connect that is still awaiting the
+   * dynamic import / handshake compares its own run number, so a stop()+start() pair (a user
+   * switch) cannot let the superseded connect carry on and open a second hub as the old user.
+   */
+  private run = 0;
 
   /**
    * Open the hub connection. Idempotent. Call once the user signs in. Lazily
@@ -57,12 +63,13 @@ export class ChatRealtimeService {
       return;
     }
     this.active = true;
-    void this.openConnection();
+    void this.openConnection(++this.run);
   }
 
   /** Close the connection. Call on sign-out. Safe whether or not connect finished. */
   stop(): void {
     this.active = false;
+    this.run++;
     const connection = this.connection;
     this.connection = null;
     connection?.stop().catch(() => {
@@ -70,11 +77,11 @@ export class ChatRealtimeService {
     });
   }
 
-  private async openConnection(): Promise<void> {
+  private async openConnection(run: number): Promise<void> {
     try {
       const signalR = await import('@microsoft/signalr');
       // stop() may have raced in while the chunk was loading.
-      if (!this.active) {
+      if (run !== this.run) {
         return;
       }
 
@@ -101,16 +108,20 @@ export class ChatRealtimeService {
       await connection.start();
 
       // stop() may have raced in while the handshake was in flight.
-      if (!this.active) {
-        this.connection = null;
+      if (run !== this.run) {
+        if (this.connection === connection) {
+          this.connection = null;
+        }
         await connection.stop().catch(() => {});
       }
     } catch {
       // A failed import or initial handshake must not break the shell. Reset so
       // the next sign-in (or app reload) can retry; the badge poll is the
       // backstop meanwhile.
-      this.connection = null;
-      this.active = false;
+      if (run === this.run) {
+        this.connection = null;
+        this.active = false;
+      }
     }
   }
 

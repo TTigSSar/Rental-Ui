@@ -257,8 +257,9 @@ export class ChatEffects {
       withLatestFrom(
         this.store.select(selectAuthUser),
         this.store.select(selectActiveConversation),
+        this.store.select(selectConversations),
       ),
-      mergeMap(([{ message: raw }, user, activeConversation]) => {
+      mergeMap(([{ message: raw }, user, activeConversation, conversations]) => {
         const message = toChatMessage(raw, user?.id ?? null);
         const isOpen =
           activeConversation !== null &&
@@ -268,7 +269,15 @@ export class ChatEffects {
           | typeof ChatActions.realtimeMessageResolved
           | typeof ChatActions.markConversationRead
           | typeof ChatActions.loadConversationDetails
+          | typeof ChatActions.loadConversations
         >[] = [ChatActions.realtimeMessageResolved({ message })];
+
+        // A message for a conversation that is not in the inbox yet (brand-new
+        // thread): the reducer cannot build a row from it, so reconcile with the
+        // server list.
+        if (!conversations.some((c) => c.id === message.conversationId)) {
+          actions.push(ChatActions.loadConversations());
+        }
 
         if (isOpen && !message.isMine) {
           actions.push(

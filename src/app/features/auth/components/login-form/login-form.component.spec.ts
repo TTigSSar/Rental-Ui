@@ -57,3 +57,24 @@ describe('LoginFormComponent — unverified account (ADR-028)', () => {
     expect(component['submittedEmail']()).toBe('ann@example.com');
   });
 });
+
+describe('LoginFormComponent — Forgot password? (ADR-035)', () => {
+  it('sits between the password field and Sign in, and emits the email exactly as typed', () => {
+    const { fixture } = setup();
+    const component = fixture.componentInstance;
+    const emitted: string[] = [];
+    component.forgotPassword.subscribe((email) => emitted.push(email));
+
+    component['loginForm'].controls.email.setValue('  not-an-email ');
+    const link = fixture.nativeElement.querySelector('[data-testid="forgot-password"]') as HTMLElement;
+    link.click();
+
+    expect(emitted).toEqual(['  not-an-email ']);
+    const order = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('form input, form button'),
+    );
+    const forgotIndex = order.indexOf(link);
+    expect(order[forgotIndex - 1]?.getAttribute('type')).toBe('button'); // password show/hide toggle
+    expect(order[forgotIndex + 1]?.tagName).toBe('BUTTON');
+  });
+});

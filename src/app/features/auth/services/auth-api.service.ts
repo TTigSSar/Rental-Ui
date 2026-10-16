@@ -10,11 +10,14 @@ import type {
   CurrentUser,
   ExternalAuthRequest,
   ExternalNonceResponse,
+  ForgotPasswordRequest,
   HomePoint,
   LoginRequest,
   RegisterRequest,
   RegisterResponse,
   ResendVerificationRequest,
+  ResetPasswordCheckRequest,
+  ResetPasswordRequest,
   UpdateHomePointRequest,
   UpdateNameRequest,
   UpdatePhoneRequest,
@@ -148,6 +151,40 @@ export class AuthApiService {
     return this.http
       .post(toApiUrl(ApiContract.auth.resendVerification), payload, { responseType: 'text' })
       .pipe(map(() => undefined));
+  }
+
+  /**
+   * `POST /api/auth/forgot-password` (ADR-035) - 202 with an EMPTY body, always (also for an
+   * unknown / unverified / blocked address). 429 without a body; 503
+   * `auth.password_reset_unavailable` while production email is not configured.
+   */
+  forgotPassword(payload: ForgotPasswordRequest): Observable<void> {
+    // Default JSON response type (not 'text' like resendVerification): the 503 / 400 error
+    // body must arrive parsed so `getApiErrorCode` can read it; an empty 202 body is `null`.
+    return this.http
+      .post<null>(toApiUrl(ApiContract.auth.forgotPassword), payload)
+      .pipe(map(() => undefined));
+  }
+
+  /**
+   * `POST /api/auth/reset-password/check` (ADR-035) - 204 for a live token. 400
+   * `auth.reset_token_expired` / `auth.reset_token_invalid`. Read-only: never consumes the token.
+   */
+  resetPasswordCheck(payload: ResetPasswordCheckRequest): Observable<void> {
+    // JSON response type for the same reason as `forgotPassword`: the 400 body carries the code.
+    return this.http
+      .post<null>(toApiUrl(ApiContract.auth.resetPasswordCheck), payload)
+      .pipe(map(() => undefined));
+  }
+
+  /**
+   * `POST /api/auth/reset-password` (ADR-035) - 200 `AuthResponse` (auto-login). 400
+   * `auth.reset_token_expired` / `auth.reset_token_invalid` / `auth.password_too_long`.
+   */
+  resetPassword(payload: ResetPasswordRequest): Observable<AuthResponse> {
+    return this.http
+      .post<BackendAuthResponse>(toApiUrl(ApiContract.auth.resetPassword), payload)
+      .pipe(map((response) => this.normalizeAuthResponse(response)));
   }
 
   externalAuth(payload: ExternalAuthRequest): Observable<AuthResponse> {

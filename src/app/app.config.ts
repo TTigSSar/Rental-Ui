@@ -17,6 +17,7 @@ import { providePrimeNG } from 'primeng/config';
 import { AuthEffects } from './features/auth/store/auth.effects';
 import { authInterceptor } from './features/auth/services/auth.interceptor';
 import { authFeatureKey, authReducer } from './features/auth/store/auth.reducer';
+import { sessionResetMetaReducers } from './features/auth/store/session-reset.meta-reducer';
 import { routes } from './app.routes';
 import { TILE_PROVIDER_CONFIG } from './shared/ui/map/map.component';
 import { BUILD_STAMP } from './build-info';
@@ -137,7 +138,7 @@ export const appConfig: ApplicationConfig = {
     { provide: TILE_PROVIDER_CONFIG, useValue: environment.tileProvider },
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
-    provideStore(),
+    provideStore({}, { metaReducers: sessionResetMetaReducers }),
     // Auth is the only eagerly-registered slice: the app shell reads auth
     // state and dispatches authInitStarted at bootstrap. Every other feature
     // slice is registered lazily on the route(s) that consume it (see each

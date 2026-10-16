@@ -45,6 +45,30 @@
   transform: translateY(-1px);
 }
 
+.auth-form__forgot {
+  /* 44 px hit area; the negative block margins cancel the extra height so the visual
+     spacing between the password field and the button is the link's text line only. */
+  align-self: flex-end;
+  min-height: 44px;
+  margin: -14px 0 -14px;
+  padding: 0 var(--ui-space-4);
+  background: none;
+  border: none;
+  font-size: 13.5px;
+  font-weight: var(--ui-font-weight-bold);
+  color: var(--ui-color-primary-strong);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--ui-color-primary-strong-hover);
+    text-decoration: underline;
+  }
+
+  &:active {
+    color: var(--ui-color-primary-strong-active);
+  }
+}
+
 .auth-form__switch {
   margin-top: var(--ui-space-12);
   text-align: center;

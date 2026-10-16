@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, InjectionToken, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
@@ -20,6 +20,19 @@ export interface LanguageOption {
 }
 
 const LANGUAGE_STORAGE_KEY = 'stayfinder.lang';
+
+/**
+ * The browser's preferred languages, in preference order (ADR-038). The default reads
+ * `navigator` safely; specs provide their own value.
+ */
+export const BROWSER_LANGUAGES = new InjectionToken<readonly string[]>('BROWSER_LANGUAGES', {
+  providedIn: 'root',
+  factory: () => {
+    if (typeof navigator === 'undefined') return [];
+    if (navigator.languages && navigator.languages.length > 0) return [...navigator.languages];
+    return navigator.language ? [navigator.language] : [];
+  },
+});
 
 const CALENDAR_KEYS = [
   ['monthNames', 12],
@@ -72,10 +85,11 @@ export class LanguageService {
   private readonly store = inject(Store);
   private readonly document = inject(DOCUMENT);
   private readonly primeng = inject(PrimeNG);
+  private readonly browserLanguages = inject(BROWSER_LANGUAGES);
 
   readonly languages: readonly LanguageOption[] = LANGUAGES;
 
-  /** The active language. Resolved from storage at construction time. */
+  /** The active language. Resolved at construction time: stored choice, else the browser language (ADR-038). */
   readonly current = signal<LanguageOption>(this.resolveInitial());
 
   constructor() {
@@ -98,7 +112,7 @@ export class LanguageService {
    * boot with a token and post-login/register/external-auth).
    *
    * No-ops when `code` is null/undefined/unknown — a user with no saved
-   * preference keeps whatever is already active (localStorage/default).
+   * preference keeps whatever is already active (stored choice or browser-detected language).
    * Never persists back to the backend; only the outbound `use()` does that,
    * so applying a server value can never trigger a re-persist loop.
    */
@@ -155,6 +169,14 @@ export class LanguageService {
     } catch {
       /* ignore */
     }
-    return this.languages.find((l) => l.code === stored) ?? this.languages[0];
+    const storedOption = this.languages.find((l) => l.code === stored);
+    if (storedOption !== undefined) return storedOption;
+    // ADR-038: no explicit choice yet - follow the browser; deliberately not persisted.
+    for (const tag of this.browserLanguages) {
+      const primary = String(tag).split(/[-_]/)[0].toLowerCase();
+      const match = this.languages.find((l) => l.code === primary);
+      if (match !== undefined) return match;
+    }
+    return this.languages[0];
   }
 }

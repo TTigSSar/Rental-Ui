@@ -81,6 +81,30 @@ export interface ResendVerificationRequest {
 }
 
 /**
+ * Body of `POST /api/auth/forgot-password` (ADR-035). Answers 202 with an empty body, always.
+ * Mirrors `ForgotPasswordRequest`; no server-side format check on purpose (a malformed address
+ * must answer the same 202). `email` max 320, `preferredLanguage` max 16 (`en` | `hy` | `ru`).
+ */
+export interface ForgotPasswordRequest {
+  email: string | null;
+  preferredLanguage: string | null;
+}
+
+/** Body of `POST /api/auth/reset-password/check` — token required, max 256. Answers 204. */
+export interface ResetPasswordCheckRequest {
+  token: string;
+}
+
+/**
+ * Body of `POST /api/auth/reset-password` — token required (max 256), newPassword min 8,
+ * max 128 (and 72 UTF-8 bytes, else 400 `auth.password_too_long`). Answers 200 `AuthResponse`.
+ */
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}
+
+/**
  * The signed-in user's single home point — the one place every listing they own
  * is shown from (home-point model). Mirrors `HomePointResponse`.
  *

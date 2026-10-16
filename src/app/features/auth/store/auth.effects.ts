@@ -6,10 +6,12 @@ import { Store } from '@ngrx/store';
 import {
   EMPTY,
   catchError,
+  distinctUntilChanged,
   filter,
   map,
   mergeMap,
   of,
+  pairwise,
   switchMap,
   take,
   tap,
@@ -24,7 +26,7 @@ import { AuthApiService } from '../services/auth-api.service';
 import { ExternalAuthProviderService } from '../services/external-auth-provider.service';
 import { AuthTokenService } from '../services/auth-token.service';
 import * as AuthActions from './auth.actions';
-import { selectAuthToken, selectIsAuthenticated } from './auth.selectors';
+import { selectAuthToken, selectAuthUser, selectIsAuthenticated } from './auth.selectors';
 
 function toErrorMessage(error: unknown): string {
   return toApiErrorMessage(error, {
@@ -355,6 +357,22 @@ export class AuthEffects {
           ),
         ),
       ),
+    ),
+  );
+
+  /**
+   * Identity A -> identity B with no logout in between (reset-password / verify-email success
+   * while signed in, or any token swap). Watches the user id in the store, so it is independent
+   * of which action replaced the token. Logout goes through `null` and never matches; a same-user
+   * re-auth keeps the id and never matches either.
+   */
+  readonly detectSessionReplaced$ = createEffect(() =>
+    this.store.select(selectAuthUser).pipe(
+      map((user) => user?.id ?? null),
+      distinctUntilChanged(),
+      pairwise(),
+      filter(([previous, current]) => previous !== null && current !== null),
+      map(() => AuthActions.sessionReplaced()),
     ),
   );
 

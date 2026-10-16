@@ -40,6 +40,10 @@
     [errorMessage]="hasError('password', 'required') ? ('auth.validation.passwordRequired' | translate) : hasError('password', 'minlength') ? ('auth.validation.passwordMinLength' | translate) : null"
   />
 
+  <button type="button" class="auth-form__forgot" (click)="onForgotPassword()" data-testid="forgot-password">
+    {{ 'auth.login.forgotPassword' | translate }}
+  </button>
+
   <p-button
     type="submit"
     styleClass="auth-form__submit-button"

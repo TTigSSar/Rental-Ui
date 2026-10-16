@@ -12,7 +12,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } fro
 import { Store } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 import { Toast } from 'primeng/toast';
-import { combineLatest, distinctUntilChanged, filter, map, timer } from 'rxjs';
+import { combineLatest, filter, map, timer } from 'rxjs';
 
 import * as AuthActions from './features/auth/store/auth.actions';
 import {
@@ -24,7 +24,7 @@ import { AuthDialogComponent } from './features/auth/components/auth-dialog/auth
 import { NameStepComponent } from './features/auth/components/name-step/name-step.component';
 import { OwnerRequestsBadgeService } from './features/bookings/services/owner-requests-badge.service';
 import { ChatBadgeService } from './features/chat/services/chat-badge.service';
-import { ChatRealtimeService } from './features/chat/services/chat-realtime.service';
+import { SessionLifecycleService } from './features/auth/services/session-lifecycle.service';
 import { NotificationBadgeService } from './features/notifications/services/notification-badge.service';
 import { LanguageService } from './shared/services/language.service';
 import { AppHeaderComponent } from './shared/ui/app-header/app-header.component';
@@ -154,9 +154,9 @@ export class App {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
   private readonly languageService = inject(LanguageService);
+  private readonly sessionLifecycle = inject(SessionLifecycleService);
   private readonly notificationBadge = inject(NotificationBadgeService);
   private readonly chatBadge = inject(ChatBadgeService);
-  private readonly chatRealtime = inject(ChatRealtimeService);
   private readonly ownerRequestsBadge = inject(OwnerRequestsBadgeService);
   private readonly headerSearchVisibility = inject(HeaderSearchVisibilityService);
 
@@ -197,7 +197,7 @@ export class App {
   protected readonly isHomePage = signal(isHomeUrl(this.router.url));
   protected readonly isAdminConsolePage = signal(isAdminConsoleUrl(this.router.url));
   protected readonly showAuthDialog = signal(false);
-  protected readonly authDialogMode = signal<'login' | 'register'>('login');
+  protected readonly authDialogMode = signal<'login' | 'register' | 'forgot'>('login');
 
   // The scroll-revealed header search is a HOME-ONLY behaviour. Gating the
   // service flag on the route here means every other page keeps the header
@@ -259,23 +259,11 @@ export class App {
     this.store.dispatch(AuthActions.authInitStarted());
     this.languageService.hydrate();
 
-    // Drive the global notification badge poller off auth state.
-    this.store
-      .select(selectIsAuthenticated)
-      .pipe(distinctUntilChanged(), takeUntilDestroyed())
-      .subscribe((isAuthenticated) => {
-        if (isAuthenticated) {
-          this.notificationBadge.start();
-          this.chatBadge.start();
-          this.chatRealtime.start();
-          this.ownerRequestsBadge.start();
-        } else {
-          this.notificationBadge.stop();
-          this.chatBadge.stop();
-          this.chatRealtime.stop();
-          this.ownerRequestsBadge.stop();
-        }
-      });
+    // Hub + badge pollers follow the signed-in USER (not the auth boolean), so a session
+    // switch A -> B tears A's down and starts B's — see SessionLifecycleService.
+    this.sessionLifecycle.sessionUserId$
+      .pipe(takeUntilDestroyed())
+      .subscribe((userId) => this.sessionLifecycle.apply(userId));
 
     this.router.events
       .pipe(
@@ -299,10 +287,28 @@ export class App {
         this.isBookingPage.set(isBookingPageUrl(url));
         this.isHomePage.set(isHomeUrl(url));
         this.isAdminConsolePage.set(isAdminConsoleUrl(url));
+        this.openForgotFromUrl(url);
       });
   }
 
-  protected openAuthDialog(mode: 'login' | 'register'): void {
+  /**
+   * `/?forgot` (ADR-035): the reset page's "Request a new link" lands here and opens the auth
+   * dialog on the Request step with an empty field. The marker is dropped from the URL so a
+   * reload or a back navigation does not reopen it.
+   */
+  private openForgotFromUrl(url: string): void {
+    if (!isHomeUrl(url) || !this.router.parseUrl(url).queryParamMap.has('forgot')) {
+      return;
+    }
+    this.openAuthDialog('forgot');
+    void this.router.navigate([], {
+      queryParams: { forgot: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  protected openAuthDialog(mode: 'login' | 'register' | 'forgot'): void {
     this.authDialogMode.set(mode);
     this.showAuthDialog.set(true);
   }

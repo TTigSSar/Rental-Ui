@@ -114,6 +114,8 @@ export class HomeEffects {
         AuthActions.updateHomePointSuccess,
         AuthActions.clearHomePointSuccess,
         AuthActions.logout,
+        // The session-reset meta-reducer wipes this slice on a user switch; re-resolve for B.
+        AuthActions.sessionReplaced,
       ),
       withLatestFrom(this.store.select(selectHomePoint)),
       map(([, homePoint]) =>

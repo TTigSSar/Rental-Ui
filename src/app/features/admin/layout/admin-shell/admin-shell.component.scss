@@ -302,7 +302,7 @@
   padding: 1px 8px;
   border-radius: var(--ui-radius-pill);
   background: var(--dash-warn);
-  color: #fff;
+  color: var(--ui-color-text-primary);
   font-size: 0.6875rem;
   font-weight: 800;
 }
@@ -332,6 +332,7 @@
 
 .admin-rail__link--active .admin-rail__meta--badge {
   background: var(--ui-color-primary-strong);
+  color: #fff;
 }
 
 .admin-rail__queue-health {

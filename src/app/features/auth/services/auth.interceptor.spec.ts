@@ -62,6 +62,9 @@ describe('authInterceptor', () => {
     '/api/auth/login',
     '/api/auth/register',
     '/api/auth/external',
+    '/api/auth/forgot-password',
+    '/api/auth/reset-password/check',
+    '/api/auth/reset-password',
   ])('never attaches a token to the unauthenticated endpoint %s', (path) => {
     const { http, httpMock } = configure('jwt-123');
     http.post(`${API}${path}`, {}).subscribe();

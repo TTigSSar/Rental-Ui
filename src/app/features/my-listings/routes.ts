@@ -3,6 +3,8 @@ import { provideState } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';
 
 import { authGuard } from '../auth/guards/auth.guard';
+import { ChatEffects } from '../chat/store/chat.effects';
+import { chatFeatureKey, chatReducer } from '../chat/store/chat.reducer';
 import { ListingsEffects } from '../listings/store/listings.effects';
 import { listingsFeatureKey, listingsReducer } from '../listings/store/listings.reducer';
 import { ReviewsEffects } from '../reviews/store/reviews.effects';
@@ -45,6 +47,10 @@ export const myListingsRoutes: Routes = [
           provideEffects(ListingsEffects),
           provideState(reviewsFeatureKey, reviewsReducer),
           provideEffects(ReviewsEffects),
+          // "Message {renter}" dispatches `openConversationFromBooking`; the chat
+          // store is registered lazily per consuming route, never app-wide.
+          provideState(chatFeatureKey, chatReducer),
+          provideEffects(ChatEffects),
         ],
         loadComponent: () =>
           import('./pages/owner-listing-page/owner-listing-page.component').then(

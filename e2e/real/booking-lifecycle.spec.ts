@@ -474,6 +474,38 @@ test.describe('Booking lifecycle (real stack)', () => {
         await expect(statusBadge(ownerPage)).toHaveText('Approved');
       });
 
+      await test.step('owner "Message {renter}" on the My Listings request card opens the booking conversation (regression: this used to navigate to a dead /chat?renter=)', async () => {
+        // owner-listing-page's onMessage used to router.navigate(['/chat'], { renter }),
+        // a route nothing handles, and the chat store was not registered on the
+        // my-listings route. Real stack only: the fix is the get-or-create POST
+        // plus ChatEffects navigating to /chat/:id, which mocked tests cannot prove.
+        await ownerPage.goto(`/my-listings/${TOY_KITCHEN.id}`);
+        const messageCard = ownerPage
+          .locator('article.orc')
+          .filter({ hasText: 'Awaiting handover' });
+        await expect(messageCard).toHaveCount(1);
+
+        await Promise.all([
+          ownerPage.waitForResponse(
+            (res) =>
+              res.url().endsWith(`/api/chat/conversations/from-booking/${bookingId}`) &&
+              res.request().method() === 'POST' &&
+              res.ok(),
+            // Fail fast (not at the 180s test timeout) when the button is dead.
+            { timeout: 10_000 },
+          ),
+          // Substring match, not /^Message/: the PrimeNG icon's ::before glyph is
+          // part of the accessible name, so an anchored regex never matches.
+          messageCard.getByRole('button', { name: 'Message' }).click(),
+        ]);
+        await ownerPage.waitForURL(/\/chat\/[^/]+$/);
+        expect(ownerPage.url()).not.toContain('/chat?renter=');
+
+        // Restore the state the next step expects: owner on the booking details page.
+        await ownerPage.goto(`/bookings/${bookingId}`);
+        await expect(statusBadge(ownerPage)).toHaveText('Approved');
+      });
+
       await test.step('owner hands the toy over: Approved -> Active', async () => {
         // markActive is optimistic client-side (bookings.reducer flips the detail to
         // Active on dispatch, before the POST resolves — see bookings.reducer.spec.ts).

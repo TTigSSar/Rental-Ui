@@ -86,6 +86,13 @@ export type KnownApiErrorCode =
   | 'auth.verification_cooldown'
   // 503 on POST /api/auth/register and /resend-verification (mail transport unavailable).
   | 'auth.registration_unavailable'
+  // Password reset (ADR-035). 503 on POST /api/auth/forgot-password while the production
+  // email gate is closed.
+  | 'auth.password_reset_unavailable'
+  // 400 on POST /api/auth/reset-password/check and /reset-password: the link's token is
+  // past its lifetime / unknown, already used or revoked.
+  | 'auth.reset_token_expired'
+  | 'auth.reset_token_invalid'
   // PUT /api/auth/me/password (password-change form). invalid_current_password /
   // password_unchanged are 400 for a normal current-password mismatch / no-op new
   // password; password_not_set is 400 for an external-only account with no local

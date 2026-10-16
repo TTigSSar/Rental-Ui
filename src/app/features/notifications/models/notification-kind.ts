@@ -24,6 +24,13 @@ export interface NotificationKindMeta {
    * light orange tint uses `--ui-color-primary-strong-hover`, `#a83c00`). Falls back to `strong`.
    */
   readonly softText?: string;
+  /**
+   * Fill for solid pills and the primary CTA, and the text/icon colour on it. Default: `strong`
+   * with white. Amber and yellow keep their bright colour with dark text instead (ADR-034):
+   * white on them fails 4.5:1, dark text passes (5.36 and 7.23).
+   */
+  readonly fill?: string;
+  readonly onFill?: string;
   /** Soft background tint for the label pill / unread wash. */
   readonly soft: string;
   readonly labelKey: string;
@@ -41,35 +48,37 @@ export const NOTIFICATION_KIND_META: Record<NotificationKind, NotificationKindMe
   approved: {
     icon: 'check-circle',
     color: '#0e8a5f',
-    strong: '#0e8a5f',
+    strong: '#0d7d56',
     soft: '#e6f4ee',
     labelKey: 'notifications.kind.approved',
   },
   declined: {
     icon: 'times-circle',
     color: '#d9342b',
-    strong: '#d9342b',
+    strong: '#cc2d25',
     soft: '#fdecea',
     labelKey: 'notifications.kind.declined',
   },
   listing_live: {
     icon: 'verified',
     color: '#0e8a5f',
-    strong: '#0e8a5f',
+    strong: '#0d7d56',
     soft: '#e6f4ee',
     labelKey: 'notifications.kind.listingLive',
   },
   listing_changes: {
     icon: 'flag',
     color: '#d9342b',
-    strong: '#d9342b',
+    strong: '#cc2d25',
     soft: '#fdecea',
     labelKey: 'notifications.kind.listingChanges',
   },
   pickup: {
     icon: 'truck',
     color: '#d97706',
-    strong: '#d97706',
+    strong: '#a75c05',
+    fill: '#d97706',
+    onFill: '#1a1b26',
     soft: '#fff1dc',
     labelKey: 'notifications.kind.pickup',
   },
@@ -84,21 +93,25 @@ export const NOTIFICATION_KIND_META: Record<NotificationKind, NotificationKindMe
   return: {
     icon: 'clock',
     color: '#d97706',
-    strong: '#d97706',
+    strong: '#a75c05',
+    fill: '#d97706',
+    onFill: '#1a1b26',
     soft: '#fff1dc',
     labelKey: 'notifications.kind.return',
   },
   review: {
     icon: 'star',
     color: '#e39a00',
-    strong: '#e39a00',
+    strong: '#956500',
+    fill: '#e39a00',
+    onFill: '#1a1b26',
     soft: '#fcf1d8',
     labelKey: 'notifications.kind.review',
   },
   message: {
     icon: 'comment',
     color: '#4a5fe3',
-    strong: '#4a5fe3',
+    strong: '#465ce2',
     soft: '#e8eaff',
     labelKey: 'notifications.kind.message',
   },

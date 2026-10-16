@@ -10,6 +10,7 @@ import { actionsHarness, collect } from '../../../../testing/ngrx.helpers';
 import { selectAuthUser } from '../../auth/store/auth.selectors';
 import type {
   ChatConversationDetails,
+  ChatConversationPreview,
   ChatMessage,
   ChatRealtimeMessage,
 } from '../models/chat.model';
@@ -17,7 +18,7 @@ import { ChatBadgeService } from '../services/chat-badge.service';
 import { ChatApiService } from '../services/chat-api.service';
 import * as ChatActions from './chat.actions';
 import { ChatEffects } from './chat.effects';
-import { selectActiveConversation } from './chat.selectors';
+import { selectActiveConversation, selectConversations } from './chat.selectors';
 
 function makeRealtimeMessage(overrides: Partial<ChatRealtimeMessage> = {}): ChatRealtimeMessage {
   return {
@@ -109,6 +110,7 @@ function setup(chatApi: Partial<ChatApiService> = {}) {
   });
   const store = TestBed.inject(MockStore);
   store.overrideSelector(selectAuthUser, { id: 'renter-1' } as never);
+  store.overrideSelector(selectConversations, []);
   store.overrideSelector(selectActiveConversation, makeActiveConversation());
   return {
     harness,
@@ -321,6 +323,42 @@ describe('ChatEffects', () => {
       expect(
         emitted.some((action) => action.type === ChatActions.realtimeMessageResolved.type),
       ).toBe(true);
+    });
+
+    it('reloads the inbox for a message in a conversation not in the list', async () => {
+      const { harness, store, effects } = setup();
+      store.overrideSelector(selectConversations, []);
+      store.refreshState();
+
+      const result = collect(effects.realtimeMessageReceived$);
+      harness.send(
+        ChatActions.realtimeMessageReceived({
+          message: makeRealtimeMessage({ conversationId: 'brand-new' }),
+        }),
+      );
+      harness.complete();
+
+      const emitted = await result;
+      expect(emitted.some((a) => a.type === ChatActions.loadConversations.type)).toBe(true);
+    });
+
+    it('does NOT reload the inbox when the conversation is already listed', async () => {
+      const { harness, store, effects } = setup();
+      store.overrideSelector(selectConversations, [
+        { id: 'c1' } as ChatConversationPreview,
+      ]);
+      store.refreshState();
+
+      const result = collect(effects.realtimeMessageReceived$);
+      harness.send(
+        ChatActions.realtimeMessageReceived({
+          message: makeRealtimeMessage({ conversationId: 'c1' }),
+        }),
+      );
+      harness.complete();
+
+      const emitted = await result;
+      expect(emitted.some((a) => a.type === ChatActions.loadConversations.type)).toBe(false);
     });
 
     it('does NOT re-fetch details for an ordinary TEXT message', async () => {

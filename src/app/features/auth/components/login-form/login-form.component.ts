@@ -49,6 +49,8 @@ import { ResendVerificationComponent } from '../resend-verification/resend-verif
 })
 export class LoginFormComponent {
   @Output() readonly switchMode = new EventEmitter<void>();
+  /** "Forgot password?": carries the email exactly as typed (even if invalid). */
+  @Output() readonly forgotPassword = new EventEmitter<string>();
 
   /**
    * Set after a Google 409 `auth.external_link_conflict` (ADR-030 section 9): the email
@@ -114,6 +116,10 @@ export class LoginFormComponent {
     const payload = this.loginForm.getRawValue();
     this.submittedEmail.set(payload.email.trim());
     this.store.dispatch(AuthActions.login({ payload }));
+  }
+
+  protected onForgotPassword(): void {
+    this.forgotPassword.emit(this.loginForm.controls.email.value);
   }
 
   protected hasError(controlName: 'email' | 'password', errorKey: string): boolean {
