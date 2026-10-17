@@ -13,7 +13,7 @@
     @for (group of faqGroups; track group.id) {
       <section class="info-page__section" [attr.aria-labelledby]="'faq-group-' + group.id">
         <h2 [id]="'faq-group-' + group.id" class="info-page__section-heading">
-          {{ group.heading }}
+          {{ group.headingKey | translate }}
         </h2>
 
         <div class="faq-accordion" role="list">
@@ -30,7 +30,7 @@
                 [attr.aria-controls]="'faq-panel-' + item.id"
                 (click)="toggle(item.id)"
               >
-                <span class="faq-accordion__question">{{ item.question }}</span>
+                <span class="faq-accordion__question">{{ item.questionKey | translate }}</span>
                 <i
                   class="faq-accordion__chevron pi"
                   [class.pi-chevron-down]="expandedId() !== item.id"
@@ -43,7 +43,7 @@
                   class="faq-accordion__answer"
                   [id]="'faq-panel-' + item.id"
                 >
-                  {{ item.answer }}
+                  {{ item.answerKey | translate }}
                 </p>
               }
             </div>
@@ -55,7 +55,7 @@
     <!-- Contact nudge -->
     <div class="faq-contact">
       <i class="pi pi-envelope faq-contact__icon" aria-hidden="true"></i>
-      <p class="faq-contact__text">Still have a question? We're happy to help.</p>
+      <p class="faq-contact__text">{{ 'info.faq.contactText' | translate }}</p>
       <a class="faq-contact__link" href="mailto:support@dorent.am">
         support@dorent.am
       </a>
