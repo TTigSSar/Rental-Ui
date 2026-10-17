@@ -80,18 +80,15 @@ const PROTECTION_INTRO_NO_AMOUNT_KEY = 'listings.details.protection.introNoAmoun
 /**
  * Loss & damage compensation (ADR-014, redesigned): a maximum the renter owes
  * the owner if the toy is lost, seriously damaged or not returned — nothing
- * is ever paid upfront, and DoRent never collects/holds/refunds it. All 6
- * bullets describe this real, platform-neutral mechanism (no claims/refund
- * process DoRent doesn't actually run), unlike the old 5-bullet refundable-
- * guarantee copy this replaces.
+ * is ever paid upfront, and DoRent never collects/holds/refunds it. The 3
+ * compact bullets (lost / damage / settled directly) describe this real,
+ * platform-neutral mechanism (no claims/refund process DoRent doesn't
+ * actually run), unlike the old refundable-guarantee copy this replaces.
  */
 const PROTECTION_BULLET_KEYS: readonly string[] = [
   'listings.details.protection.bullet1',
   'listings.details.protection.bullet2',
   'listings.details.protection.bullet3',
-  'listings.details.protection.bullet4',
-  'listings.details.protection.bullet5',
-  'listings.details.protection.bullet6',
 ];
 
 export interface AgeRangeDisplay {
