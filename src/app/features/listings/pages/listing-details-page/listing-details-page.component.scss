@@ -585,7 +585,7 @@
   }
 }
 
-/* ── Specs quad: best age / condition / compensation / handover ─────── */
+/* ── Specs quad: best age / condition / handover / minimum rental ─────── */
 .detail-page__specquad {
   display: grid;
   /* 2-up by default (also covers ≤1099px, unchanged/verified clean). 4-up
@@ -673,14 +673,11 @@
   font-weight: 800;
   color: var(--ui-color-text-primary);
   line-height: 1.25;
-  /* The compensation tile's label ("Կորստի և վնասի փոխհատուցում" /
-     "Компенсация за утрату и порчу") is what needs the room now — it's
-     allowed to wrap to two lines (`.detail-page__specquad-label` above). The
-     value ("Մինչև 16,000 ֏") stays short and single-line by design, so it's
-     pinned to `nowrap` rather than wrapped — that's what keeps both hy/ru
-     labels fitting the 4-up desktop / 2-up mobile grid without either one
-     overflowing the cell. */
-  white-space: nowrap;
+  /* Wraps like the label above so no tile value (handover "Самовывоз или
+     курьер", minimum rental, ...) can exceed its cell at any width or
+     language. */
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .detail-page__safety-note {
