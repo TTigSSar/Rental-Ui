@@ -33,6 +33,7 @@ import {
   type GalleryBadge,
 } from '../../components/listing-gallery/listing-gallery.component';
 import { ListingLocationComponent } from '../../components/listing-location/listing-location.component';
+import { resolveConditionLabelKey } from '../../../../shared/utils/listing-condition.utils';
 import type { ListingDetails } from '../../models/listing-details.model';
 import type { DeliveryType } from '../../models/create-listing.model';
 import * as ListingsActions from '../../store/listings.actions';
@@ -92,28 +93,6 @@ const PROTECTION_BULLET_KEYS: readonly string[] = [
   'listings.details.protection.bullet5',
   'listings.details.protection.bullet6',
 ];
-
-export function resolveConditionLabelKey(value: string | null | undefined): string | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-  const normalized = value
-    .trim()
-    .toLowerCase()
-    .replace(/[\s_-]+/g, '');
-  switch (normalized) {
-    case 'new':
-      return 'listings.details.conditionValues.new';
-    case 'likenew':
-      return 'listings.details.conditionValues.likeNew';
-    case 'good':
-      return 'listings.details.conditionValues.good';
-    case 'fair':
-      return 'listings.details.conditionValues.fair';
-    default:
-      return null;
-  }
-}
 
 export interface AgeRangeDisplay {
   readonly key:

@@ -10,7 +10,6 @@ import {
   ListingDetailsPageComponent,
   hasAnyToyDetail,
   resolveAgeRangeDisplay,
-  resolveConditionLabelKey,
 } from './listing-details-page.component';
 import type { ListingDetails } from '../../models/listing-details.model';
 import { authFeatureKey } from '../../../auth/store/auth.reducer';
@@ -40,26 +39,6 @@ function baseListing(overrides: Partial<ListingDetails> = {}): ListingDetails {
     ...overrides,
   };
 }
-
-describe('resolveConditionLabelKey', () => {
-  it.each([
-    ['New', 'listings.details.conditionValues.new'],
-    ['LikeNew', 'listings.details.conditionValues.likeNew'],
-    ['Like New', 'listings.details.conditionValues.likeNew'],
-    ['like-new', 'listings.details.conditionValues.likeNew'],
-    ['Good', 'listings.details.conditionValues.good'],
-    ['Fair', 'listings.details.conditionValues.fair'],
-  ])('maps %s -> %s', (input, expected) => {
-    expect(resolveConditionLabelKey(input)).toBe(expected);
-  });
-
-  it('returns null for an unknown or missing condition', () => {
-    expect(resolveConditionLabelKey('Poor')).toBeNull();
-    expect(resolveConditionLabelKey(undefined)).toBeNull();
-    expect(resolveConditionLabelKey(null)).toBeNull();
-    expect(resolveConditionLabelKey('')).toBeNull();
-  });
-});
 
 describe('resolveAgeRangeDisplay', () => {
   it('returns the from-to key when both bounds are present', () => {
