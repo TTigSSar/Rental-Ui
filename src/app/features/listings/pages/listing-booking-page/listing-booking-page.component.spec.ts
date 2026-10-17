@@ -37,9 +37,17 @@ interface ProtectedApi {
   };
   onRangeChange(event: { startDate: Date | null; endDate: Date | null }): void;
   onSubmit(): void;
+  applyQuickBook(option: { key: string; labelKey: string; days: number }): void;
+  quickBookOptions: readonly { key: string; labelKey: string; days: number }[];
+  startDate(): Date | null;
+  endDate(): Date | null;
+  rentalDays(): number;
+  totalPrice(): number | null;
+  canSubmit(): boolean;
+  belowMinRental(): boolean;
 }
 
-function createFixture(phoneNumber?: string | null) {
+function createFixture(phoneNumber?: string | null, minRentalDays: number | null = null) {
   TestBed.configureTestingModule({
     imports: [ListingBookingPageComponent, TranslateModule.forRoot()],
     providers: [
@@ -52,6 +60,7 @@ function createFixture(phoneNumber?: string | null) {
               id: LISTING_ID,
               pricePerDay: 1000,
               compensationAmount: 5000,
+              minRentalDays,
               owner: {
                 id: 'owner-1',
                 firstName: 'Owen',
@@ -104,12 +113,12 @@ function findCreateBookingDispatch(dispatchSpy: {
     );
 }
 
-/** Selects a 2-day range starting today so `canSubmit()` is true. */
+/** Selects a 2-day range (today -> today + 2, ADR-043) so `canSubmit()` is true. */
 function selectValidDateRange(api: ProtectedApi): void {
   const start = new Date();
   start.setHours(0, 0, 0, 0);
   const end = new Date(start);
-  end.setDate(end.getDate() + 1);
+  end.setDate(end.getDate() + 2);
   api.onRangeChange({ startDate: start, endDate: end });
 }
 
@@ -441,5 +450,100 @@ describe('ListingBookingPageComponent - phone step', () => {
     expect(stepOpen()).toBe(true);
     // the refusal is answered with the step, never printed as an error banner
     expect(fixture.nativeElement.textContent).not.toContain('Phone number is required');
+  });
+});
+
+describe('ListingBookingPageComponent - ADR-043 rental days and minimum rental', () => {
+  function today(): Date {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+  function daysFromToday(n: number): Date {
+    const d = today();
+    d.setDate(d.getDate() + n);
+    return d;
+  }
+  function option(api: ProtectedApi, key: string) {
+    return api.quickBookOptions.find((o) => o.key === key)!;
+  }
+
+  it.each([
+    ['day', 1],
+    ['week', 7],
+    ['month', 30],
+    ['year', 365],
+  ])('quick-book "%s" ends today + %i days and counts that many rental days', (key, days) => {
+    const { api } = createFixture();
+
+    api.applyQuickBook(option(api, key));
+
+    expect(api.startDate()).toEqual(today());
+    expect(api.endDate()).toEqual(daysFromToday(days));
+    expect(api.rentalDays()).toBe(days);
+    expect(api.totalPrice()).toBe(days * 1000);
+  });
+
+  it('prices a same-day range as 1 day', () => {
+    const { api } = createFixture();
+
+    api.onRangeChange({ startDate: today(), endDate: today() });
+
+    expect(api.rentalDays()).toBe(1);
+    expect(api.totalPrice()).toBe(1000);
+  });
+
+  it('with no minimum, nothing is disabled and no hint shows', () => {
+    const { fixture, api } = createFixture();
+    selectValidDateRange(api);
+    fixture.detectChanges();
+
+    expect(api.canSubmit()).toBe(true);
+    expect(fixture.nativeElement.querySelector('.booking-page__min-rental')).toBeNull();
+    const chips = fixture.nativeElement.querySelectorAll('.booking-page__quick-chip');
+    expect([...chips].some((c) => (c as HTMLButtonElement).disabled)).toBe(false);
+  });
+
+  it('shows the minimum hint and disables quick-book chips shorter than the minimum', () => {
+    const { fixture } = createFixture(undefined, 7);
+
+    expect(fixture.nativeElement.querySelector('.booking-page__min-rental')).not.toBeNull();
+    const chips = [
+      ...fixture.nativeElement.querySelectorAll('.booking-page__quick-chip'),
+    ] as HTMLButtonElement[];
+    expect(chips.map((c) => c.disabled)).toEqual([true, false, false, false]);
+  });
+
+  it('ignores a click on a disabled quick-book option', () => {
+    const { api } = createFixture(undefined, 7);
+
+    api.applyQuickBook(option(api, 'day'));
+
+    expect(api.startDate()).toBeNull();
+  });
+
+  it('flags a range below the minimum with the warning hint and blocks submit', () => {
+    const { fixture, store, api } = createFixture(undefined, 3);
+    const dispatchSpy = vi.spyOn(store, 'dispatch');
+
+    api.onRangeChange({ startDate: today(), endDate: daysFromToday(2) });
+    fixture.detectChanges();
+
+    expect(api.belowMinRental()).toBe(true);
+    expect(api.canSubmit()).toBe(false);
+    expect(
+      fixture.nativeElement.querySelector('.booking-page__min-rental--warn'),
+    ).not.toBeNull();
+    api.onSubmit();
+    expect(findCreateBookingDispatch(dispatchSpy)).toBeUndefined();
+  });
+
+  it('allows a range that meets the minimum exactly', () => {
+    const { api } = createFixture(undefined, 3);
+
+    api.onRangeChange({ startDate: today(), endDate: daysFromToday(3) });
+
+    expect(api.belowMinRental()).toBe(false);
+    expect(api.canSubmit()).toBe(true);
   });
 });

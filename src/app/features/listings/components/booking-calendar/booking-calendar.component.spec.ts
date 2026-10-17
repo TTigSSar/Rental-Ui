@@ -133,14 +133,14 @@ describe('expandBookedDateRangesToDisabledDates', () => {
     expect(isoDatesOf(result)).toEqual(['2026-8-10']);
   });
 
-  it('expands a multi-day range inclusive of both endpoints', () => {
+  it('expands a multi-day range to the occupied nights only - the return day stays free (ADR-043)', () => {
     const ranges: BookedDateRange[] = [
       { startDate: '2026-09-10', endDate: '2026-09-12' },
     ];
 
     const result = expandBookedDateRangesToDisabledDates(ranges);
 
-    expect(isoDatesOf(result)).toEqual(['2026-8-10', '2026-8-11', '2026-8-12']);
+    expect(isoDatesOf(result)).toEqual(['2026-8-10', '2026-8-11']);
   });
 
   it('expands two disjoint ranges into the union of their days, without bridging the gap', () => {
@@ -151,14 +151,23 @@ describe('expandBookedDateRangesToDisabledDates', () => {
 
     const result = expandBookedDateRangesToDisabledDates(ranges);
 
-    expect(isoDatesOf(result)).toEqual([
-      '2026-8-10',
-      '2026-8-11',
-      '2026-8-20',
-      '2026-8-21',
-    ]);
+    expect(isoDatesOf(result)).toEqual(['2026-8-10', '2026-8-20']);
     // The gap between the two ranges must stay available.
     expect(isoDatesOf(result)).not.toContain('2026-8-15');
+  });
+
+  it('leaves back-to-back bookings selectable: the first return day is the second pickup day', () => {
+    const ranges: BookedDateRange[] = [
+      { startDate: '2026-09-10', endDate: '2026-09-12' },
+      { startDate: '2026-09-12', endDate: '2026-09-14' },
+    ];
+
+    expect(isoDatesOf(expandBookedDateRangesToDisabledDates(ranges))).toEqual([
+      '2026-8-10',
+      '2026-8-11',
+      '2026-8-12',
+      '2026-8-13',
+    ]);
   });
 
   it('returns an empty array for no booked ranges', () => {

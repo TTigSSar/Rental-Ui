@@ -472,10 +472,32 @@
     outline-offset: 2px;
   }
 
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    border-color: var(--ui-color-border);
+    color: var(--ui-color-text-primary);
+  }
+
   &.booking-page__quick-chip--active {
     background: var(--ui-color-primary-strong);
     border-color: var(--ui-color-primary-strong);
     color: var(--ui-color-on-primary);
+  }
+}
+
+/* Minimum-rental hint (ADR-043) */
+.booking-page__min-rental {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--ui-color-text-secondary);
+
+  &--warn {
+    color: var(--ui-color-error);
   }
 }
 

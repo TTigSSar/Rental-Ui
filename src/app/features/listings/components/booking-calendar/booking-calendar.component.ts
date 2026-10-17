@@ -13,10 +13,15 @@ import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { DatePickerModule } from 'primeng/datepicker';
 
+import {
+  countRentalDays,
+  rentalEffectiveEnd,
+} from '../../../../shared/utils/rental-days.utils';
 import type { BookedDateRange } from '../../models/listing.model';
 
 /**
- * Expands inclusive API ranges into individual calendar dates for `disabledDates`.
+ * Expands API ranges into the occupied nights (start … effectiveEnd - 1) for `disabledDates`
+ * (ADR-043): the return day is free for the next pickup; a same-day range occupies its day.
  */
 export function expandBookedDateRangesToDisabledDates(
   ranges: readonly BookedDateRange[],
@@ -28,7 +33,9 @@ export function expandBookedDateRangesToDisabledDates(
     if (start === null || end === null) {
       continue;
     }
-    out.push(...eachDateInclusive(start, end));
+    const lastNight = rentalEffectiveEnd(start, end);
+    lastNight.setDate(lastNight.getDate() - 1);
+    out.push(...eachDateInclusive(start, lastNight));
   }
   return out;
 }
@@ -74,20 +81,6 @@ function normalizeRangeSelection(
     return value.length === 0 ? null : value;
   }
   return [value];
-}
-
-function countInclusiveRentalDays(start: Date, end: Date): number {
-  const startUtc = Date.UTC(
-    start.getFullYear(),
-    start.getMonth(),
-    start.getDate(),
-  );
-  const endUtc = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
-  const diffDays = Math.floor((endUtc - startUtc) / 86_400_000);
-  if (diffDays < 0) {
-    return 0;
-  }
-  return diffDays + 1;
 }
 
 @Component({
@@ -148,7 +141,7 @@ export class BookingCalendarComponent {
     if (!(start instanceof Date) || !(end instanceof Date)) {
       return null;
     }
-    const rentalDays = countInclusiveRentalDays(start, end);
+    const rentalDays = countRentalDays(start, end);
     if (rentalDays <= 0) {
       return null;
     }

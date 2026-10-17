@@ -590,7 +590,8 @@
         "point2": "This is a maximum. Lost or not returned: the full amount. Damaged: a sum you agree with the owner, never higher.",
         "point3": "You and the owner settle it between yourselves. DoRent doesn't collect, hold or refund it — support can help if you get stuck."
       },
-      "noteTooLongError": "Your note is too long — please keep it to {{max}} characters or fewer."
+      "noteTooLongError": "Your note is too long — please keep it to {{max}} characters or fewer.",
+      "belowMinRentalError": "This listing has a minimum rental period — please choose a longer range."
     },
     "page": {
       "title": "Browse Toys",
@@ -1126,6 +1127,8 @@
       "summaryTotal": "Total",
       "selectDatesHint": "Choose dates to see the total price",
       "daysLabel": "days",
+      "minRentalHint": "Minimum rental: {{count}} days",
+      "belowMinRentalHint": "This listing needs at least {{count}} days — choose a later return date.",
       "submitCta": "Send booking request",
       "submitting": "Submitting…",
       "confirmTitle": "Request sent to {{name}}!",

@@ -29,6 +29,9 @@ function translateStub(): Pick<TranslateService, 'instant'> {
       if (key === 'listings.booking.noteTooLongError') {
         return `Your note is too long — please keep it to ${params?.['max'] ?? ''} characters or fewer.`;
       }
+      if (key === 'listings.booking.belowMinRentalError') {
+        return 'below-min translated';
+      }
       return key;
     }) as TranslateService['instant'],
   };
@@ -103,6 +106,34 @@ describe('BookingsEffects', () => {
         BookingsActions.createBookingFailure({
           error: 'Your note is too long — please keep it to 280 characters or fewer.',
           errorCode: 'booking.note_too_long',
+        }),
+      ]);
+    });
+
+    it('maps booking.below_min_rental to the translated i18n message (ADR-043)', async () => {
+      const api = {
+        createBooking: vi
+          .fn()
+          .mockReturnValue(
+            throwError(() =>
+              problemDetails(400, 'booking.below_min_rental', 'Minimum rental for this listing is 3 days.'),
+            ),
+          ),
+      };
+      const { harness, effects } = setup(api);
+
+      const result = collect(effects.createBooking$);
+      harness.send(
+        BookingsActions.createBooking({
+          payload: { listingId: 'l1', startDate: 'a', endDate: 'b', note: null },
+        }),
+      );
+      harness.complete();
+
+      expect(await result).toEqual([
+        BookingsActions.createBookingFailure({
+          error: 'below-min translated',
+          errorCode: 'booking.below_min_rental',
         }),
       ]);
     });
