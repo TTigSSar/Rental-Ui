@@ -193,3 +193,65 @@ test.describe('Booking calendar — booked dates stay disabled (regression)', ()
     await expect(page.locator('.booking-page__breakdown-row--hint')).toBeVisible();
   });
 });
+
+/**
+ * ADR-043 regression pins (confirmed bug: today -> tomorrow was charged 2 days
+ * under inclusive counting, and minRentalDays was never enforced). Mocked tier
+ * because both are renter-visible UI contracts that fail catastrophically
+ * (wrong money shown / unbookable listing); the server-side half lives in
+ * e2e/real/booking-rental-days.spec.ts.
+ */
+test.describe('Booking — ADR-043 rental days and minimum rental', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('auth_token', 'e2e-jwt-token');
+    });
+  });
+
+  test('"1 day" quick-book is today -> tomorrow and costs exactly 1 x price', async ({ page }) => {
+    await mockApi(page, {
+      me: e2eUser(),
+      listingDetails: e2eListingDetails(), // pricePerDay: 5
+      createBooking: { body: e2eCreateBookingResponse() },
+    });
+    await page.goto('/listings/listing-e2e-1/book');
+
+    await page.getByRole('button', { name: '1 day', exact: true }).click();
+
+    // Inclusive counting (the bug) would show 2 x 5 = 10 here.
+    await expect(page.locator('.booking-page__breakdown-row--total dd')).toHaveText(
+      /^5[   ]?֏$/,
+    );
+
+    const [request] = await Promise.all([
+      page.waitForRequest((req) => req.url().endsWith('/api/bookings') && req.method() === 'POST'),
+      page.getByRole('button', { name: 'Send booking request' }).click(),
+    ]);
+    const body = request.postDataJSON() as { startDate: string; endDate: string };
+    const dayMs = 24 * 60 * 60 * 1000;
+    expect(
+      (Date.parse(body.endDate) - Date.parse(body.startDate)) / dayMs,
+      'day = pickup today, return tomorrow (return - pickup = 1)',
+    ).toBe(1);
+  });
+
+  test('a listing minimum disables shorter quick-book chips and shows the hint', async ({
+    page,
+  }) => {
+    await mockApi(page, {
+      me: e2eUser(),
+      listingDetails: e2eListingDetails({ minRentalDays: 3 }),
+      createBooking: { body: e2eCreateBookingResponse() },
+    });
+    await page.goto('/listings/listing-e2e-1/book');
+
+    await expect(page.locator('.booking-page__min-rental')).toContainText('Minimum rental: 3 days');
+    await expect(page.getByRole('button', { name: '1 day', exact: true })).toBeDisabled();
+    await expect(page.getByRole('button', { name: '1 week', exact: true })).toBeEnabled();
+    // Nothing selected -> cannot submit.
+    await expect(page.getByRole('button', { name: 'Send booking request' })).toBeDisabled();
+
+    await page.getByRole('button', { name: '1 week', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Send booking request' })).toBeEnabled();
+  });
+});

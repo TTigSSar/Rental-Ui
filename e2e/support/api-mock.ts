@@ -986,7 +986,7 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
           status: 'Pending',
           startDate: '2026-09-10',
           endDate: '2026-09-12',
-          totalPrice: 15,
+          totalPrice: 10,
           createdAt: '2026-08-01T10:00:00.000Z',
         },
       );

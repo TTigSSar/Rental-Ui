@@ -98,6 +98,12 @@ async function assertPhoneNeverExposed(page: Page): Promise<void> {
 const MONTHS_AHEAD = 2;
 
 /**
+ * ADR-043: rental days = max(1, return - pickup). Picking day N and day N+4
+ * is 4 rental days (the return day is not charged), NOT 5 inclusive days.
+ */
+const RENTAL_DAYS = 4;
+
+/**
  * Matches how DramCurrencyPipe renders `amount` — the grouped whole number
  * (Intl 'en-US', same grouping Angular's formatNumber uses) followed by the ֏
  * symbol. Whitespace between the number and the symbol is tolerated as an
@@ -148,7 +154,7 @@ function bookingWindow(): BookingWindow {
   target.setMonth(target.getMonth() + MONTHS_AHEAD);
   return {
     startDay,
-    endDay: startDay + 3, // 4 inclusive days
+    endDay: startDay + RENTAL_DAYS, // ADR-043: return - pickup = 4 rental days (max 24 + 4 = 28, same month)
     monthName: target.toLocaleString('en-US', { month: 'long' }),
     monthShort: target.toLocaleString('en-US', { month: 'short' }),
     year: String(target.getFullYear()),
@@ -334,7 +340,8 @@ test.describe('Booking lifecycle (real stack)', () => {
         TOY_KITCHEN.title,
       );
 
-      // 4 inclusive days x 3,500 AMD/day = 14,000 AMD. Rendered by
+      // 4 rental days (ADR-043: return - pickup, return day free) x 3,500 AMD/day
+      // = 14,000 AMD. Rendered by
       // DramCurrencyPipe (dram-currency.pipe.ts) as Angular's
       // formatNumber(total, 'en-US', '1.0-0') + ' ֏' — e.g. "14,000 ֏". Build
       // the expected grouping the same way (Intl, en-US) rather than
@@ -342,7 +349,7 @@ test.describe('Booking lifecycle (real stack)', () => {
       // space, or a narrow no-break space between amount and symbol without
       // loosening what amount is required — selectRange only returns once the
       // breakdown shows it.
-      await selectRange(renterPage, window, expectedTotalPattern(TOY_KITCHEN.pricePerDay * 4));
+      await selectRange(renterPage, window, expectedTotalPattern(TOY_KITCHEN.pricePerDay * RENTAL_DAYS));
 
       // Capture the created booking's id from the network response itself
       // (not from a subsequent UI click) — the confirmation screen's two
@@ -416,7 +423,7 @@ test.describe('Booking lifecycle (real stack)', () => {
           .first();
         await expect(notificationCard).toBeVisible();
         await expect(notificationCard.locator('.notif-card__meta > span').first()).toHaveText(
-          expectedMetaPattern(4, TOY_KITCHEN.pricePerDay * 4),
+          expectedMetaPattern(RENTAL_DAYS, TOY_KITCHEN.pricePerDay * RENTAL_DAYS),
         );
       });
 
