@@ -225,7 +225,8 @@ export class EditListingPageComponent implements OnInit {
       condition:     p.condition ?? null,
       hygieneNotes:  p.hygieneNotes ?? null,
       safetyNotes:   p.safetyNotes ?? null,
-      compensationAmount: p.compensationAmount ?? null,
+      // ADR-040: compensation cannot be cleared — omit the key rather than send null.
+      ...(p.compensationAmount != null ? { compensationAmount: p.compensationAmount } : {}),
       minRentalDays: p.minRentalDays ?? null,
       deliveryType:  p.deliveryType ?? null,
       deliveryTypes: p.deliveryTypes ?? null,
