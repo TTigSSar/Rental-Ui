@@ -232,10 +232,11 @@ export class ListingBookingPageComponent {
     return countRentalDays(start, end);
   });
 
-  /** Listing's minimum rental in days (0 = none). */
+  /** Listing's minimum rental in days (0 = none or 1). */
   protected readonly minRentalDays = computed(() => {
     const min = this.listing()?.minRentalDays;
-    return typeof min === 'number' && min > 0 ? min : 0;
+    // A minimum of 1 day is the floor for every booking, so it is not worth showing.
+    return typeof min === 'number' && min > 1 ? min : 0;
   });
 
   /** A complete range is selected but shorter than the listing's minimum (ADR-043). */
