@@ -40,6 +40,18 @@ export const HOME_POINT_DERIVED_FIELDS = [
  *
  * `priceUnit` is writable: the backend's `UpdateListingRequest.PriceUnit` accepts it
  * (null = leave unchanged) and the edit wizard always sends the owner's selection.
+ *
+ * ADR-040: the key set is unchanged, but value semantics are not uniform. For
+ * ageFromMonths/ageToMonths/condition/hygieneNotes/safetyNotes/minRentalDays,
+ * absent = unchanged and null = clear. `compensationAmount` is NOT clearable:
+ * null is a 400, so the edit page omits the key when the form has no value.
+ *
+ * Guard choice: this stays the EXACT set, including `compensationAmount`. The
+ * wizard's compensation control is required, so a body without it is
+ * unreachable through the form; asserting the full set in the normal case keeps
+ * the guard honest (a silently dropped amount fails it). The omit-instead-of-null
+ * fallback in `onSave` is covered by its own spec, which asserts this set minus
+ * `compensationAmount` explicitly.
  */
 export const LISTING_UPDATE_WRITABLE_FIELDS = [
   'title',

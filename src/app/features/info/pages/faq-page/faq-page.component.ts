@@ -3,128 +3,114 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 interface FaqItem {
   readonly id: string;
-  readonly question: string;
-  readonly answer: string;
+  readonly questionKey: string;
+  readonly answerKey: string;
 }
 
 interface FaqGroup {
   readonly id: string;
-  readonly heading: string;
+  readonly headingKey: string;
   readonly items: readonly FaqItem[];
 }
 
 const FAQ_GROUPS: readonly FaqGroup[] = [
   {
     id: 'renting',
-    heading: 'Renting a Toy',
+    headingKey: 'info.faq.groups.renting.heading',
     items: [
       {
         id: 'r1',
-        question: 'How does renting a toy work?',
-        answer:
-          'Browse the catalogue, find a toy your child will love, and send a rental request to the owner. Choose your preferred dates and add a note if you like. The owner will accept or decline your request. Once accepted, coordinate pickup directly with the owner. Return the toy clean and on time.',
+        questionKey: 'info.faq.items.r1.question',
+        answerKey: 'info.faq.items.r1.answer',
       },
       {
         id: 'r2',
-        question: 'How do I search for a toy?',
-        answer:
-          'Use the search bar on the homepage to find toys by name. On the Browse Toys page you can also filter by category, price range, and age suitability. Browse curated sections like "Popular Toys" and "Most Recent" on the home page.',
+        questionKey: 'info.faq.items.r2.question',
+        answerKey: 'info.faq.items.r2.answer',
       },
       {
         id: 'r4',
-        question: 'How does pickup and return work?',
-        answer:
-          'Pickup and return are arranged directly between the renter and the owner — typically at a convenient location you both agree on. All communication happens through the platform so everything stays on record.',
+        questionKey: 'info.faq.items.r4.question',
+        answerKey: 'info.faq.items.r4.answer',
       },
     ],
   },
   {
     id: 'listing',
-    heading: 'Listing a Toy',
+    headingKey: 'info.faq.groups.listing.heading',
     items: [
       {
         id: 'l1',
-        question: 'How do I list my toy?',
-        answer:
-          'Sign in, go to "List a Toy" in the menu, and fill in the toy details: name, description, category, age range, condition, hygiene notes, photos, and daily price. Submit and our team will review it. You\'ll receive an email once approved.',
+        questionKey: 'info.faq.items.l1.question',
+        answerKey: 'info.faq.items.l1.answer',
       },
       {
         id: 'l2',
-        question: 'How long does approval take?',
-        answer:
-          'Most listings are reviewed within 24 hours. You can track the status of your listings under "My Toys." Once approved, your toy becomes visible to all families on the platform.',
+        questionKey: 'info.faq.items.l2.question',
+        answerKey: 'info.faq.items.l2.answer',
       },
       {
         id: 'l3',
-        question: 'Can I set my own price?',
-        answer:
-          'Yes. You choose the daily rental price. We recommend pricing that reflects the toy\'s value and condition.',
+        questionKey: 'info.faq.items.l3.question',
+        answerKey: 'info.faq.items.l3.answer',
       },
       {
         id: 'l4',
-        question: 'What toys can I list?',
-        answer:
-          'Any age-appropriate, safe, and clean toy in reasonable condition. Prohibited items include broken or damaged toys, toys with choking hazards for the listed age group, toys with missing safety certifications, or anything unsuitable for children.',
+        questionKey: 'info.faq.items.l4.question',
+        answerKey: 'info.faq.items.l4.answer',
       },
     ],
   },
   {
     id: 'safety',
-    heading: 'Safety & Hygiene',
+    headingKey: 'info.faq.groups.safety.heading',
     items: [
       {
         id: 's1',
-        question: 'How do I know a toy is clean?',
-        answer:
-          'Owners must provide hygiene notes when listing — describing how the toy is cleaned between rentals. All listings go through a manual review, and listings without adequate hygiene information are rejected.',
+        questionKey: 'info.faq.items.s1.question',
+        answerKey: 'info.faq.items.s1.answer',
       },
       {
         id: 's2',
-        question: 'What if I receive a damaged or incorrect toy?',
-        answer:
-          'Please contact us immediately via email if a toy does not match its listing or arrives damaged. We take every report seriously and investigate promptly.',
+        questionKey: 'info.faq.items.s2.question',
+        answerKey: 'info.faq.items.s2.answer',
       },
       {
         id: 's3',
-        question: 'Are listings checked for safety?',
-        answer:
-          'Yes. Our moderation team reviews every new listing for safety, accuracy, and quality before it goes live. We check photos, descriptions, age suitability, and the owner\'s stated condition and hygiene notes.',
+        questionKey: 'info.faq.items.s3.question',
+        answerKey: 'info.faq.items.s3.answer',
       },
     ],
   },
   {
     id: 'payments',
-    heading: 'Payments',
+    headingKey: 'info.faq.groups.payments.heading',
     items: [
       {
         id: 'p1',
-        question: 'How do payments work?',
-        answer:
-          'At this stage of the platform, payments are handled directly between the renting family and the listing owner. The platform does not process any financial transactions. Always agree on the amount and method before pickup.',
+        questionKey: 'info.faq.items.p1.question',
+        answerKey: 'info.faq.items.p1.answer',
       },
     ],
   },
   {
     id: 'account',
-    heading: 'Accounts & Platform',
+    headingKey: 'info.faq.groups.account.heading',
     items: [
       {
         id: 'a1',
-        question: 'How do I create an account?',
-        answer:
-          'Click "Sign Up" in the header, provide your name, email address, and a secure password. You\'ll be logged in immediately. An email address is required for listing approvals and booking notifications.',
+        questionKey: 'info.faq.items.a1.question',
+        answerKey: 'info.faq.items.a1.answer',
       },
       {
         id: 'a2',
-        question: 'I forgot my password. What do I do?',
-        answer:
-          'Password reset is coming soon. In the meantime, please contact us via email and we will assist you manually.',
+        questionKey: 'info.faq.items.a2.question',
+        answerKey: 'info.faq.items.a2.answer',
       },
       {
         id: 'a3',
-        question: 'How do I contact support?',
-        answer:
-          'Send us an email at support@dorent.am and we will get back to you as soon as possible. We aim to respond within 1 business day.',
+        questionKey: 'info.faq.items.a3.question',
+        answerKey: 'info.faq.items.a3.answer',
       },
     ],
   },
