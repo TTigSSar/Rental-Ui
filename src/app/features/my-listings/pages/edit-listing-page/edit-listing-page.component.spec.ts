@@ -314,6 +314,107 @@ describe('EditListingPageComponent — home point -> PATCH payload', () => {
     expect(updateCalls[0].request['priceUnit']).toBe('Monthly');
   });
 
+  // ADR-040: on PATCH an ABSENT key means "unchanged", so an owner who empties
+  // an optional field must produce a key present with `null` — not an omitted key.
+  it('sends explicit null (key present) for condition / safetyNotes / hygieneNotes the owner emptied', () => {
+    const { fixture, updateCalls } = createSaveFixture();
+    const form = fixture.debugElement.query(By.directive(CreateListingFormComponent))
+      .componentInstance as CreateListingFormComponent;
+
+    // Real handlers: toggling the active condition chip off, and the safety /
+    // hygiene controls emptied the way the textarea's input event does.
+    const goodChip = form.conditionChips.find((c) => c.value === 'Good')!;
+    form.selectCond(goodChip);
+    form.createListingForm.controls.safetyNotes.setValue('');
+    form.createListingForm.controls.hygieneNotes.setValue('');
+    form.editGallery.set([{ url: EXISTING_IMAGE.url, existingId: EXISTING_IMAGE.id, file: null }]);
+    (form as unknown as { onSubmit(): void }).onSubmit();
+
+    expect(updateCalls).toHaveLength(1);
+    const { request } = updateCalls[0];
+    for (const key of ['condition', 'safetyNotes', 'hygieneNotes']) {
+      expect(Object.prototype.hasOwnProperty.call(request, key), `${key} must be present`).toBe(true);
+      expect(request[key], key).toBeNull();
+    }
+    expect(Object.keys(request).sort()).toEqual([...LISTING_UPDATE_WRITABLE_FIELDS].sort());
+  });
+
+  it('sends explicit null for cleared age and minimum-rental values', () => {
+    const { fixture, updateCalls } = createSaveFixture();
+    const page = fixture.componentInstance as unknown as {
+      onSave(event: {
+        payload: CreateListingRequest;
+        files: File[];
+        imageOrder: ListingImageOrderItem[] | null;
+      }): void;
+    };
+    page.onSave({
+      payload: {
+        title: 'T',
+        description: 'D',
+        categoryId: 'cat-1',
+        pricePerDay: 1500,
+        priceUnit: 'Daily',
+        addressLine: null,
+        compensationAmount: 45000,
+        ageFromMonths: null,
+        ageToMonths: null,
+        condition: null,
+        hygieneNotes: null,
+        safetyNotes: null,
+        minRentalDays: null,
+        deliveryType: 'Courier',
+        deliveryTypes: ['Courier'],
+      } as unknown as CreateListingRequest,
+      files: [],
+      imageOrder: [{ existingId: EXISTING_IMAGE.id, newFileIndex: null }],
+    });
+
+    const { request } = updateCalls[0];
+    for (const key of ['ageFromMonths', 'ageToMonths', 'minRentalDays']) {
+      expect(Object.prototype.hasOwnProperty.call(request, key), `${key} must be present`).toBe(true);
+      expect(request[key], key).toBeNull();
+    }
+  });
+
+  it('never sends compensationAmount as null, and carries the number when set', () => {
+    const { fixture, updateCalls } = createSaveFixture();
+    const form = fixture.debugElement.query(By.directive(CreateListingFormComponent))
+      .componentInstance as CreateListingFormComponent;
+    form.editGallery.set([{ url: EXISTING_IMAGE.url, existingId: EXISTING_IMAGE.id, file: null }]);
+    (form as unknown as { onSubmit(): void }).onSubmit();
+    expect(updateCalls[0].request['compensationAmount']).toBe(45000);
+
+    // Defence in depth: the form requires the amount so this is unreachable
+    // through it, but onSave must still omit (never null) if it ever happens.
+    const page = fixture.componentInstance as unknown as {
+      onSave(event: {
+        payload: CreateListingRequest;
+        files: File[];
+        imageOrder: ListingImageOrderItem[] | null;
+      }): void;
+    };
+    page.onSave({
+      payload: {
+        title: 'T',
+        description: 'D',
+        categoryId: 'cat-1',
+        pricePerDay: 1500,
+        priceUnit: 'Daily',
+        compensationAmount: null,
+        deliveryType: 'Courier',
+        deliveryTypes: ['Courier'],
+      } as unknown as CreateListingRequest,
+      files: [],
+      imageOrder: [{ existingId: EXISTING_IMAGE.id, newFileIndex: null }],
+    });
+    const { request } = updateCalls[1];
+    expect(Object.prototype.hasOwnProperty.call(request, 'compensationAmount')).toBe(false);
+    expect(Object.keys(request).sort()).toEqual(
+      LISTING_UPDATE_WRITABLE_FIELDS.filter((f) => f !== 'compensationAmount').sort(),
+    );
+  });
+
   it('drops the derived fields even when the emitted payload carries all five', () => {
     const { fixture, updateCalls } = createSaveFixture();
     const page = fixture.componentInstance as unknown as {
