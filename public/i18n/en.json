@@ -124,7 +124,14 @@
       "nextLabel": "Next categories"
     },
     "sections": {
-      "errorTitle": "We couldn't load toy sections"
+      "errorTitle": "We couldn't load toy sections",
+      "titles": {
+        "recent": "Most Recent Toys",
+        "popular": "Popular Toys",
+        "liked": "Most Liked Toys",
+        "baby-toys": "Baby Toys",
+        "outdoor-toys": "Outdoor Toys"
+      }
     },
     "process": {
       "modes": {

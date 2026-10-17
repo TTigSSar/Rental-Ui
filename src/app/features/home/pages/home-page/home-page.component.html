@@ -189,8 +189,10 @@
         @for (section of vm.sections; track section.key) {
           @if (section.items.length > 0) {
             <section class="home__section" [attr.aria-labelledby]="'home-section-' + section.key">
+              @let titleKey = 'home.sections.titles.' + section.key;
+              @let translatedTitle = titleKey | translate;
               <app-ui-section-header
-                [title]="section.title"
+                [title]="translatedTitle === titleKey ? section.title : translatedTitle"
                 [headingId]="'home-section-' + section.key"
               >
                 <a actions [routerLink]="['/listings']" class="home__section-action">
