@@ -115,7 +115,7 @@
 
 /* ── Day cells ────────────────────────────────────────────────────── */
 :host ::ng-deep .p-datepicker-day-cell {
-  padding: 2px 0;
+  padding: 0;
   text-align: center;
 }
 

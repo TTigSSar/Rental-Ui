@@ -185,7 +185,7 @@ test.describe('Listing details — blocks absent when their data is absent', () 
     await expect(page.locator('.detail-page__highlights')).toHaveCount(0);
   });
 
-  test('compensation spec tile shows "Not specified" when compensationAmount is null', async ({ page }) => {
+  test('protection card shows "Not specified" when compensationAmount is null, and the specs quad carries no compensation', async ({ page }) => {
     await mockApi(page, {
       listingDetails: e2eListingDetails({
         compensationAmount: null,
@@ -198,13 +198,18 @@ test.describe('Listing details — blocks absent when their data is absent', () 
 
     await page.goto('/listings/listing-e2e-1');
 
+    // ADR-018 (amended 2026-10-17): compensation lives ONCE, in the protection
+    // card, which always renders. Desktop sidebar copy + mobile copy exist;
+    // target the visible one for the test viewport.
+    const protectionCard = page.locator('.detail-page__protection-card:visible');
+    await expect(protectionCard).toHaveCount(1);
+    await expect(protectionCard).toContainText('Not specified');
+
+    // The specs quad is age / condition / handover / minimum rental only.
     const specQuad = page.locator('.detail-page__specquad');
     await expect(specQuad).toBeVisible();
-    // Age + condition + delivery + compensation (always rendered, even when
-    // the amount is null) = 4 cells.
-    await expect(specQuad.locator('.detail-page__specquad-cell')).toHaveCount(4);
-    await expect(specQuad).toContainText('Loss & damage compensation');
-    await expect(specQuad).toContainText('Not specified');
+    await expect(specQuad).not.toContainText('Loss & damage compensation');
+    await expect(specQuad).not.toContainText('Not specified');
   });
 
   test('breadcrumb has no category segment when the category is missing', async ({ page }) => {

@@ -451,6 +451,32 @@ describe('ListingsApiService — getListingById', () => {
 
     expect(result?.bookedDateRanges).toEqual([]);
   });
+  it.each([
+    ['Excellent', 'LikeNew'],
+    ['Used', 'Fair'],
+    ['Like new', 'LikeNew'],
+  ])('canonicalizes legacy condition %j to %s', (raw, expected) => {
+    let result: { condition?: string | null } | undefined;
+    service.getListingById('l1').subscribe((r) => (result = r as never));
+
+    const req = httpMock.expectOne(
+      (r) => r.url === toApiUrl(ApiContract.listings.byId('l1')),
+    );
+    req.flush({
+      id: 'l1',
+      title: 'Wooden Train Set',
+      description: 'A lovely wooden train set.',
+      city: 'Yerevan',
+      pricePerDay: 5000,
+      images: [],
+      owner: { id: 'owner-1', firstName: 'Owen', lastName: 'Owner' },
+      isFavorite: false,
+      category: null,
+      condition: raw,
+    });
+
+    expect(result?.condition).toBe(expected);
+  });
 });
 
 // Home-point model: GET /api/districts/at?lat=&lng= — the live district readout

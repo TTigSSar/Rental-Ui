@@ -716,14 +716,11 @@
         "eyebrow": "If something goes wrong",
         "title": "Loss & damage compensation",
         "pillNoUpfront": "Nothing charged upfront",
-        "intro": "The owner sets this amount. You pay nothing upfront.",
+        "intro": "The owner sets this amount.",
         "introNoAmount": "The owner has not set an amount for this toy. Agree with the owner what happens if the toy is lost or damaged before you book.",
         "bullet1": "Lost or not returned: up to the full amount",
         "bullet2": "Serious damage: an amount you agree with the owner, never more than this",
-        "bullet3": "Settled directly between you and the owner",
-        "bullet4": "Each owner describes how the toy is cleaned between rentals",
-        "bullet5": "Follow the owner's age and safety guidance",
-        "bullet6": "If an issue comes up, contact the owner first — DoRent support is also here to help"
+        "bullet3": "Settled directly between you and the owner"
       },
       "reviews": {
         "heading": "Reviews",
@@ -734,9 +731,7 @@
       },
       "pickupDelivery": {
         "heading": "Pickup & delivery",
-        "hygieneValue": "Provided by owner",
-        "compensationLabel": "Loss & damage compensation",
-        "compensationSubline": "only if lost, damaged or not returned · nothing upfront"
+        "hygieneValue": "Provided by owner"
       },
       "ownerStats": {
         "rating": "Rating",

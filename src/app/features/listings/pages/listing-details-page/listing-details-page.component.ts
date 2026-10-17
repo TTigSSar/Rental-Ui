@@ -33,6 +33,7 @@ import {
   type GalleryBadge,
 } from '../../components/listing-gallery/listing-gallery.component';
 import { ListingLocationComponent } from '../../components/listing-location/listing-location.component';
+import { resolveConditionLabelKey } from '../../../../shared/utils/listing-condition.utils';
 import type { ListingDetails } from '../../models/listing-details.model';
 import type { DeliveryType } from '../../models/create-listing.model';
 import * as ListingsActions from '../../store/listings.actions';
@@ -79,41 +80,16 @@ const PROTECTION_INTRO_NO_AMOUNT_KEY = 'listings.details.protection.introNoAmoun
 /**
  * Loss & damage compensation (ADR-014, redesigned): a maximum the renter owes
  * the owner if the toy is lost, seriously damaged or not returned — nothing
- * is ever paid upfront, and DoRent never collects/holds/refunds it. All 6
- * bullets describe this real, platform-neutral mechanism (no claims/refund
- * process DoRent doesn't actually run), unlike the old 5-bullet refundable-
- * guarantee copy this replaces.
+ * is ever paid upfront, and DoRent never collects/holds/refunds it. The 3
+ * compact bullets (lost / damage / settled directly) describe this real,
+ * platform-neutral mechanism (no claims/refund process DoRent doesn't
+ * actually run), unlike the old refundable-guarantee copy this replaces.
  */
 const PROTECTION_BULLET_KEYS: readonly string[] = [
   'listings.details.protection.bullet1',
   'listings.details.protection.bullet2',
   'listings.details.protection.bullet3',
-  'listings.details.protection.bullet4',
-  'listings.details.protection.bullet5',
-  'listings.details.protection.bullet6',
 ];
-
-export function resolveConditionLabelKey(value: string | null | undefined): string | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-  const normalized = value
-    .trim()
-    .toLowerCase()
-    .replace(/[\s_-]+/g, '');
-  switch (normalized) {
-    case 'new':
-      return 'listings.details.conditionValues.new';
-    case 'likenew':
-      return 'listings.details.conditionValues.likeNew';
-    case 'good':
-      return 'listings.details.conditionValues.good';
-    case 'fair':
-      return 'listings.details.conditionValues.fair';
-    default:
-      return null;
-  }
-}
 
 export interface AgeRangeDisplay {
   readonly key:
@@ -190,9 +166,6 @@ export interface DetailRow {
   readonly id: string;
   readonly icon: string;
   readonly labelKey: string;
-  /** Optional small muted line under the label (e.g. the compensation row's
-   *  "only if lost, damaged or not returned · nothing upfront"). */
-  readonly subLabelKey?: string;
   readonly valueKey?: string;
   readonly valueParams?: Record<string, unknown>;
   /** Pre-formatted value (e.g. currency via `dram`) instead of an i18n key. */
@@ -658,7 +631,7 @@ export class ListingDetailsPageComponent {
 
   protected readonly highlightColumns = computed(() => this.highlightTiles().length);
 
-  // ── Specs quad (best age / condition / compensation / handover) ────────
+  // ── Specs quad (best age / condition / handover / minimum rental) ────────
   protected readonly specTiles = computed<DetailTile[]>(() => {
     const listing = this.displayListing();
     if (!listing) return [];
@@ -683,27 +656,6 @@ export class ListingDetailsPageComponent {
         subKey: conditionKey ?? undefined,
       });
     }
-    // Always rendered (unlike the other conditional tiles above) — a missing
-    // amount is itself meaningful information ("Not specified"), not an
-    // absent field to hide.
-    tiles.push(
-      isCompensationAmountSet(listing.compensationAmount)
-        ? {
-            id: 'compensation',
-            icon: 'pi pi-shield',
-            titleKey: 'listings.details.toyDetails.compensation',
-            subKey: 'listings.details.toyDetails.compensationValue',
-            // Pre-formatted (not the raw number) — a translate param is a
-            // plain string substitution, it can't apply the `dram` pipe itself.
-            subParams: { amount: this.formatDram(listing.compensationAmount) },
-          }
-        : {
-            id: 'compensation',
-            icon: 'pi pi-shield',
-            titleKey: 'listings.details.toyDetails.compensation',
-            subKey: 'listings.details.toyDetails.compensationNotSpecified',
-          },
-    );
     const deliveryTypes = resolveDeliveryTypes(listing);
     if (deliveryTypes.length > 0) {
       const both = deliveryTypes.length >= 2;
@@ -712,6 +664,18 @@ export class ListingDetailsPageComponent {
         icon: deliveryTypes.includes('Courier') ? 'pi pi-truck' : 'pi pi-map-marker',
         titleKey: 'listings.details.handoverLabel',
         subKey: both ? 'listings.createForm.delivery.both' : deliveryLabelKey(deliveryTypes[0]),
+      });
+    }
+    if (typeof listing.minRentalDays === 'number' && listing.minRentalDays > 0) {
+      const chipKey = minRentalChipLabelKey(listing.minRentalDays);
+      tiles.push({
+        id: 'minRental',
+        icon: 'pi pi-calendar',
+        titleKey: 'listings.createForm.minRental.label',
+        subKey:
+          chipKey ??
+          (listing.minRentalDays === 1 ? 'listings.booking.night' : 'listings.booking.nights'),
+        subParams: chipKey ? undefined : { count: listing.minRentalDays },
       });
     }
     return tiles;
@@ -735,44 +699,9 @@ export class ListingDetailsPageComponent {
         valueKey: both ? 'listings.createForm.delivery.bothHint' : deliveryHintKey(deliveryTypes[0]),
       });
     }
-    if (typeof listing.minRentalDays === 'number' && listing.minRentalDays > 0) {
-      const chipKey = minRentalChipLabelKey(listing.minRentalDays);
-      rows.push({
-        id: 'minRental',
-        icon: 'pi pi-calendar',
-        labelKey: 'listings.createForm.minRental.label',
-        valueKey:
-          chipKey ??
-          (listing.minRentalDays === 1 ? 'listings.booking.night' : 'listings.booking.nights'),
-        valueParams: chipKey ? undefined : { count: listing.minRentalDays },
-      });
-    }
-    // Always shown (unlike the other conditional rows above) — a hidden row
-    // would read as "nothing to pay, ever", which isn't true; "Not specified"
-    // is itself meaningful.
-    rows.push(
-      isCompensationAmountSet(listing.compensationAmount)
-        ? {
-            id: 'compensation',
-            icon: 'pi pi-shield',
-            labelKey: 'listings.details.pickupDelivery.compensationLabel',
-            subLabelKey: 'listings.details.pickupDelivery.compensationSubline',
-            valueKey: 'listings.details.toyDetails.compensationValue',
-            valueParams: { amount: this.formatDram(listing.compensationAmount) },
-          }
-        : {
-            id: 'compensation',
-            icon: 'pi pi-shield',
-            labelKey: 'listings.details.pickupDelivery.compensationLabel',
-            subLabelKey: 'listings.details.pickupDelivery.compensationSubline',
-            valueKey: 'listings.details.toyDetails.compensationNotSpecified',
-          },
-    );
     if (listing.hygieneNotes) {
       rows.push({
         id: 'hygiene',
-        // pi-shield is now used by the compensation row above — pi-sparkles
-        // keeps the two visually distinct.
         icon: 'pi pi-sparkles',
         labelKey: 'listings.card.hygieneProvided',
         valueKey: 'listings.details.pickupDelivery.hygieneValue',

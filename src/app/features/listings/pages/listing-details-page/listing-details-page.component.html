@@ -272,7 +272,7 @@
             }
 
             <div class="detail-page__sections">
-              <!-- 1. Specs quad: best age / condition / compensation / handover -->
+              <!-- 1. Specs quad: best age / condition / handover / minimum rental -->
               @if (specTiles().length > 0) {
                 <section class="detail-page__section" aria-labelledby="detail-specs-heading">
                   <h2 id="detail-specs-heading" class="detail-page__section-title">
@@ -356,16 +356,8 @@
                             <span class="detail-page__pickup-row-label">{{
                               row.labelKey | translate
                             }}</span>
-                            @if (row.subLabelKey) {
-                              <span class="detail-page__pickup-row-sublabel">{{
-                                row.subLabelKey | translate
-                              }}</span>
-                            }
                           </span>
-                          <span
-                            class="detail-page__pickup-row-value"
-                            [class.detail-page__pickup-row-value--compensation]="row.id === 'compensation'"
-                          >
+                          <span class="detail-page__pickup-row-value">
                             @if (row.valueText) {
                               {{ row.valueText }}
                             } @else {

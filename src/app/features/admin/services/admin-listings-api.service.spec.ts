@@ -177,6 +177,26 @@ describe('AdminListingsApiService', () => {
       expect(result?.items[0].primaryImageUrl).toBeNull();
     });
 
+    it.each([
+      ['Excellent', 'LikeNew'],
+      ['Used', 'Fair'],
+    ])('canonicalizes legacy condition %j to %s', (raw, expected) => {
+      let result: AdminListingQueue | undefined;
+      service.getListingQueue().subscribe((queue) => (result = queue));
+
+      const req = httpMock.expectOne((r) => r.url === toApiUrl(ApiContract.adminListings.queue));
+      req.flush({
+        items: [{ ...FULL_SUMMARY_RAW, condition: raw }],
+        page: 1,
+        pageSize: 20,
+        totalCount: 1,
+        totalPages: 1,
+        counts: { pending: 1, approved: 0, rejected: 0 },
+      });
+
+      expect(result?.items[0].condition).toBe(expected);
+    });
+
     it('falls back to safe defaults when a summary row is missing optional fields', () => {
       let result: AdminListingQueue | undefined;
       service.getListingQueue().subscribe((queue) => (result = queue));

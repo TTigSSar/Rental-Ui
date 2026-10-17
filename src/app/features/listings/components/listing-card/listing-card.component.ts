@@ -13,6 +13,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { LanguageService } from '../../../../shared/services/language.service';
 import { ImageContainerComponent } from '../../../../shared/ui/image-container/image-container.component';
+import { resolveConditionLabelKey } from '../../../../shared/utils/listing-condition.utils';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import type { BookingStatus } from '../../../bookings/models/booking.model';
 import type { ListingPreview } from '../../models/listing.model';
@@ -52,25 +53,6 @@ interface AgeRangeDisplay {
     | 'listings.details.toyDetails.ageRangeFromOnly'
     | 'listings.details.toyDetails.ageRangeToOnly';
   readonly params: { from?: number; to?: number };
-}
-
-function resolveConditionLabelKey(value: string | null | undefined): string | null {
-  if (typeof value !== 'string') {
-    return null;
-  }
-  const normalized = value.trim().toLowerCase().replace(/[\s_-]+/g, '');
-  switch (normalized) {
-    case 'new':
-      return 'listings.details.conditionValues.new';
-    case 'likenew':
-      return 'listings.details.conditionValues.likeNew';
-    case 'good':
-      return 'listings.details.conditionValues.good';
-    case 'fair':
-      return 'listings.details.conditionValues.fair';
-    default:
-      return null;
-  }
 }
 
 function resolveAgeRangeDisplay(

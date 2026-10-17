@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, filter, from, map, switchMap } from 'rxjs';
 
 import { ApiContract, toApiUrl } from '../../../api/api-contract';
+import { normalizeToyCondition } from '../../../shared/utils/listing-condition.utils';
 import { roundCoordForApi } from '../../../shared/utils/coord-precision.utils';
 import { compressImageFiles } from '../../../shared/utils/image-compression.utils';
 import type {
@@ -15,7 +16,6 @@ import type {
 import type {
   ListingDetails,
   ListingDetailsCategory,
-  ToyCondition,
 } from '../models/listing-details.model';
 import type { ListingDistrict } from '../models/district.model';
 import type {
@@ -105,15 +105,6 @@ function normalizeNonEmptyString(value: unknown): string | null {
   }
   const trimmed = value.trim();
   return trimmed.length === 0 ? null : trimmed;
-}
-
-const TOY_CONDITIONS = new Set<ToyCondition>(['New', 'LikeNew', 'Good', 'Fair', 'Poor']);
-
-/** Narrows an untrusted backend value to a known ToyCondition, or null. */
-function normalizeToyCondition(value: unknown): ToyCondition | null {
-  return typeof value === 'string' && TOY_CONDITIONS.has(value as ToyCondition)
-    ? (value as ToyCondition)
-    : null;
 }
 
 const PRICE_UNITS = new Set<PriceUnit>(['Hourly', 'Daily', 'Weekly', 'Monthly', 'Yearly']);

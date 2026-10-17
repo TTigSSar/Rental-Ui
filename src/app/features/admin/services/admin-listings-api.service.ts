@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
 import { ApiContract, toApiUrl } from '../../../api/api-contract';
+import { normalizeToyCondition } from '../../../shared/utils/listing-condition.utils';
 import type {
   AdminListingDetail,
   AdminListingImage,
@@ -11,14 +12,7 @@ import type {
   AdminListingQueueParams,
   AdminListingSummary,
   ListingModerationStatus,
-  ToyCondition,
 } from '../models/admin-listing-queue.model';
-
-const TOY_CONDITIONS = new Set<ToyCondition>(['New', 'LikeNew', 'Good', 'Fair', 'Poor']);
-
-function isToyCondition(value: unknown): value is ToyCondition {
-  return typeof value === 'string' && TOY_CONDITIONS.has(value as ToyCondition);
-}
 
 const LISTING_MODERATION_STATUSES = new Set<ListingModerationStatus>([
   'Draft',
@@ -99,7 +93,7 @@ function normalizeAdminListingSummary(
 
     ageFromMonths: toNullableNumber(raw['ageFromMonths']),
     ageToMonths: toNullableNumber(raw['ageToMonths']),
-    condition: isToyCondition(raw['condition']) ? raw['condition'] : null,
+    condition: normalizeToyCondition(raw['condition']),
     hygieneNotes: toNullableString(raw['hygieneNotes']),
     safetyNotes: toNullableString(raw['safetyNotes']),
     compensationAmount: toNullableNumber(raw['compensationAmount']),

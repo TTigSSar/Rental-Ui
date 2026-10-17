@@ -10,7 +10,6 @@ import {
   ListingDetailsPageComponent,
   hasAnyToyDetail,
   resolveAgeRangeDisplay,
-  resolveConditionLabelKey,
 } from './listing-details-page.component';
 import type { ListingDetails } from '../../models/listing-details.model';
 import { authFeatureKey } from '../../../auth/store/auth.reducer';
@@ -40,26 +39,6 @@ function baseListing(overrides: Partial<ListingDetails> = {}): ListingDetails {
     ...overrides,
   };
 }
-
-describe('resolveConditionLabelKey', () => {
-  it.each([
-    ['New', 'listings.details.conditionValues.new'],
-    ['LikeNew', 'listings.details.conditionValues.likeNew'],
-    ['Like New', 'listings.details.conditionValues.likeNew'],
-    ['like-new', 'listings.details.conditionValues.likeNew'],
-    ['Good', 'listings.details.conditionValues.good'],
-    ['Fair', 'listings.details.conditionValues.fair'],
-  ])('maps %s -> %s', (input, expected) => {
-    expect(resolveConditionLabelKey(input)).toBe(expected);
-  });
-
-  it('returns null for an unknown or missing condition', () => {
-    expect(resolveConditionLabelKey('Poor')).toBeNull();
-    expect(resolveConditionLabelKey(undefined)).toBeNull();
-    expect(resolveConditionLabelKey(null)).toBeNull();
-    expect(resolveConditionLabelKey('')).toBeNull();
-  });
-});
 
 describe('resolveAgeRangeDisplay', () => {
   it('returns the from-to key when both bounds are present', () => {
@@ -319,6 +298,10 @@ describe('ListingDetailsPageComponent — delivery types & min-rental labels', (
               d365: '1 year',
             },
           },
+          booking: {
+            night: '{{count}} night',
+            nights: '{{count}} nights',
+          },
         },
       },
       true,
@@ -374,9 +357,41 @@ describe('ListingDetailsPageComponent — delivery types & min-rental labels', (
     const fixture = setup({ minRentalDays: 365, deliveryType: 'Pickup' });
     fixture.detectChanges();
 
-    const rows = pickupRowValues(fixture);
-    expect(rows).toContain('1 year');
-    expect(rows.some((t) => t.includes('365'))).toBe(false);
+    const tiles = specValues(fixture);
+    expect(tiles).toContain('1 year');
+    expect(tiles.some((t) => t.includes('365'))).toBe(false);
+    // Each fact has one home: minimum rental is a spec tile, not a pickup row.
+    expect(pickupRowValues(fixture)).not.toContain('1 year');
+  });
+
+  it('falls back to the night count in the minimum-rental spec tile for a non-chip value', () => {
+    const fixture = setup({ minRentalDays: 5, deliveryType: 'Pickup' });
+    fixture.detectChanges();
+
+    expect(specValues(fixture)).toContain('5 nights');
+    expect(pickupRowValues(fixture).some((t) => t.includes('5 nights'))).toBe(false);
+  });
+
+  it('does not render a minimum-rental tile when minRentalDays is not set', () => {
+    const fixture = setup({ minRentalDays: null, deliveryType: 'Pickup' });
+    fixture.detectChanges();
+
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).not.toContain('Minimum rental');
+  });
+
+  it('orders the specs quad handover before minimum rental', () => {
+    const fixture = setup({ minRentalDays: 365, deliveryType: 'Pickup' });
+    fixture.detectChanges();
+
+    const labels = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
+        '.detail-page__specquad-label',
+      ),
+    ).map((el) => el.textContent?.trim());
+    expect(labels.indexOf('Handover')).toBeGreaterThanOrEqual(0);
+    expect(labels.indexOf('Handover')).toBeLessThan(labels.indexOf('Minimum rental'));
+    expect(labels[labels.length - 1]).toBe('Minimum rental');
   });
 
   it('shows the "Min. 1 year" highlight tile (not the raw day count) for a 365-day minimum rental', () => {
@@ -397,14 +412,12 @@ describe('ListingDetailsPageComponent — delivery types & min-rental labels', (
 });
 
 /**
- * Loss & damage compensation: the specs tile, the pickup & delivery row and
- * the protection card all decide "set vs. not specified" the same way now
- * (`isCompensationAmountSet` — finite number > 0). `0` gets its own case
+ * Loss & damage compensation (ADR-018, amended 2026-10-17): the renter meets
+ * it once on the item page — in the protection card. The specs tile and the
+ * pickup row are gone. The card decides "set vs. not specified" via
+ * `isCompensationAmountSet` — finite number > 0. `0` gets its own case
  * because it's a real, reachable legacy value (the old optional-deposit
- * validator allowed it, and the depositAmount -> compensationAmount rename
- * preserved values) — before the shared helper existed, the tile/row treated
- * `0` as "not specified" while the protection card rendered "Up to 0 ֏"
- * (confirmed bug).
+ * validator allowed it).
  */
 describe('ListingDetailsPageComponent — loss & damage compensation amount', () => {
   function setup(compensationAmount: number | null) {
@@ -449,10 +462,6 @@ describe('ListingDetailsPageComponent — loss & damage compensation amount', ()
               compensationValue: 'Up to {{amount}}',
               compensationNotSpecified: 'Not specified',
             },
-            pickupDelivery: {
-              compensationLabel: 'Loss & damage compensation',
-              compensationSubline: 'only if lost, damaged or not returned',
-            },
             protection: {
               eyebrow: 'If something goes wrong',
               title: 'Loss & damage compensation',
@@ -475,49 +484,45 @@ describe('ListingDetailsPageComponent — loss & damage compensation amount', ()
     return (fixture.nativeElement as HTMLElement).querySelector(selector)?.textContent?.trim();
   }
 
-  it('renders "Up to 45,000 ֏" in the specs tile, the pickup row and the protection card when an amount is set', () => {
+  function hasCompensationOutsideProtectionCard(fixture: ReturnType<typeof setup>): boolean {
+    const root = fixture.nativeElement as HTMLElement;
+    const cells = Array.from(
+      root.querySelectorAll<HTMLElement>('.detail-page__specquad-cell, .detail-page__pickup-row'),
+    );
+    return cells.some((el) => /compensation|Not specified|Up to/.test(el.textContent ?? ''));
+  }
+
+  it('renders "Up to 45,000 ֏" only in the protection card, not in the specs quad or pickup rows', () => {
     const fixture = setup(45000);
 
     // The amount and the ֏ symbol are joined by a non-breaking space (see
-    // `DramCurrencyPipe`), so the expected string uses ` ` there — a
+    // `DramCurrencyPipe`), so the expected string uses ` ` there — a
     // plain space would never match the rendered `textContent`.
-    const upTo45000 = 'Up to 45,000 ֏';
-
-    // No other spec-tile-worthy fields are set on this fixture (age/condition/
-    // delivery all null), so the compensation tile — always pushed regardless
-    // of amount — is the only one rendered, making this selector unambiguous.
-    expect(text(fixture, '.detail-page__specquad-value')).toBe(upTo45000);
-    expect(text(fixture, '.detail-page__pickup-row-value')).toBe(upTo45000);
     expect(
-      text(
-        fixture,
-        '.detail-page__protection-card--mobile .detail-page__protection-amount',
-      ),
-    ).toBe(upTo45000);
+      text(fixture, '.detail-page__protection-card--mobile .detail-page__protection-amount'),
+    ).toBe('Up to 45,000 ֏');
+    expect(hasCompensationOutsideProtectionCard(fixture)).toBe(false);
+    expect(text(fixture, '.detail-page__specquad-value')).toBeUndefined();
+    expect(text(fixture, '.detail-page__pickup-row-value')).toBeUndefined();
   });
 
   it.each([
     ['null (never set)', null],
     ['0 (legacy data from the old optional-deposit validator)', 0],
   ])(
-    'renders "Not specified" and the no-amount intro everywhere when the amount is %s',
+    'protection card renders "Not specified" and the no-amount intro when the amount is %s, and nothing else on the page repeats it',
     (_label, amount) => {
       const fixture = setup(amount);
 
-      expect(text(fixture, '.detail-page__specquad-value')).toBe('Not specified');
-      expect(text(fixture, '.detail-page__pickup-row-value')).toBe('Not specified');
       expect(
-        text(
-          fixture,
-          '.detail-page__protection-card--mobile .detail-page__protection-amount',
-        ),
+        text(fixture, '.detail-page__protection-card--mobile .detail-page__protection-amount'),
       ).toBe('Not specified');
       expect(
-        text(
-          fixture,
-          '.detail-page__protection-card--mobile .detail-page__protection-intro',
-        ),
+        text(fixture, '.detail-page__protection-card--mobile .detail-page__protection-intro'),
       ).toBe('The owner has not set an amount for this toy.');
+      expect(hasCompensationOutsideProtectionCard(fixture)).toBe(false);
+      expect(text(fixture, '.detail-page__specquad-value')).toBeUndefined();
+      expect(text(fixture, '.detail-page__pickup-row-value')).toBeUndefined();
     },
   );
 });
