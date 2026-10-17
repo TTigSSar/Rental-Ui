@@ -19,13 +19,20 @@ export interface UpdateListingRequest {
   // A stale client that still sends any of the three binds harmlessly (unknown
   // JSON members are ignored), so nothing is applied — which is exactly why
   // none of them may live here.
+  // ADR-040 — clearable optionals: absent = unchanged, null = clear, value = set.
+  // Blank condition/hygieneNotes/safetyNotes also clear. Ranges: age 0–600 months,
+  // condition max 50, notes max 1000, minRentalDays 1–365.
   ageFromMonths?: number | null;
   ageToMonths?: number | null;
   condition?: string | null;
   hygieneNotes?: string | null;
   safetyNotes?: string | null;
-  /** See `CreateListingRequest.compensationAmount` — same field, update payload. */
-  compensationAmount?: number | null;
+  /**
+   * See `CreateListingRequest.compensationAmount` — same field, update payload.
+   * NOT clearable (ADR-040): absent = unchanged, null is rejected with 400
+   * "Loss & damage compensation cannot be cleared." — hence no `| null`.
+   */
+  compensationAmount?: number;
   minRentalDays?: number | null;
   deliveryType?: DeliveryType | null;
   deliveryTypes?: DeliveryType[] | null;

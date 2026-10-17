@@ -40,6 +40,11 @@ export const HOME_POINT_DERIVED_FIELDS = [
  *
  * `priceUnit` is writable: the backend's `UpdateListingRequest.PriceUnit` accepts it
  * (null = leave unchanged) and the edit wizard always sends the owner's selection.
+ *
+ * ADR-040: the key set is unchanged, but value semantics are not uniform. For
+ * ageFromMonths/ageToMonths/condition/hygieneNotes/safetyNotes/minRentalDays,
+ * absent = unchanged and null = clear. `compensationAmount` is NOT clearable:
+ * null is a 400, so the edit page omits the key when the form has no value.
  */
 export const LISTING_UPDATE_WRITABLE_FIELDS = [
   'title',
