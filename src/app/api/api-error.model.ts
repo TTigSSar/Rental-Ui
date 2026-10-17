@@ -138,6 +138,10 @@ export type KnownApiErrorCode =
   | 'booking.owner_only'
   // 409 on POST /api/bookings when the renter has no phone number (ADR-030).
   | 'booking.phone_required'
+  // 400 on POST /api/bookings (ADR-043) when listing.minRentalDays > 0 and the rental
+  // days (max(1, endDate - startDate)) are fewer than it. Message: "Minimum rental for
+  // this listing is {N} days." — N is only in the message, not a separate field.
+  | 'booking.below_min_rental'
   // chat.* — ChatService
   | 'chat.unauthenticated'
   | 'chat.user_blocked'

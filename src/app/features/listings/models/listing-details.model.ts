@@ -27,8 +27,11 @@ export interface ListingDetails {
   /**
    * Wire field is `bookedDateRanges` (`ListingDetailsResponse.BookedDateRanges`
    * on the backend, `ListingsQueryService` — only Approved + Active bookings
-   * are included). Each entry is an inclusive `{startDate, endDate}` range,
-   * NOT a list of individual dates — expand with
+   * are included). Each entry is a `{startDate, endDate}` range (pickup day to
+   * return day, shape unchanged), NOT a list of individual dates. Since ADR-043
+   * the return day (`endDate`) is NOT occupied — another booking may pick up on
+   * it (occupied nights are [startDate, endDate)); a single-day booking
+   * (start == end) still occupies that day. Expand with
    * `expandBookedDateRangesToDisabledDates` before feeding a datepicker.
    */
   bookedDateRanges: BookedDateRange[];

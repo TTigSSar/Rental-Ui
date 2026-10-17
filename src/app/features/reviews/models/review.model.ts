@@ -7,6 +7,7 @@ export interface ReviewComment {
   readonly reviewerLastName: string;
   readonly reviewerAvatarUrl: string | null;
   readonly comment: string;
+  /** Rental days = booking endDate - startDate, minimum 1 (ADR-043). */
   readonly rentedDays: number;
   readonly createdAt: string;
   /** 1–5 star score — included when visible to the reader (e.g. profile pages) */
