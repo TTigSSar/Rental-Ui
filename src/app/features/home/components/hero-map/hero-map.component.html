@@ -17,8 +17,14 @@
     [markerVariant]="'twinkle'"
     [markerLabel]="'home.heroMap.markerLabel' | translate"
     [markerGroupLabel]="'home.heroMap.markerGroupLabel' | translate"
+    [interactive]="true"
+    [scrollGate]="true"
+    [zoomInLabel]="'listings.details.location.zoomIn' | translate"
+    [zoomOutLabel]="'listings.details.location.zoomOut' | translate"
     height="100%"
   >
+    <span app-map-scroll-hint>{{ 'listings.details.location.scrollGateHint' | translate }}</span>
+    <span app-map-gate-hint>{{ 'listings.details.location.touchGateHint' | translate }}</span>
     <!-- Two chip forms, same top-left slot (the one corner free of the
          licence-mandated MapTiler logo and Leaflet attribution — see this
          file's SCSS and ADR-015). The home form is the design's two-line

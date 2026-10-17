@@ -13,19 +13,20 @@ import {
 } from '../../../listings/models/radius-scale.util';
 
 /**
- * Zoom derived from the visible radius (Home hero design): a wider radius
- * needs a wider view to still show its whole circle, so this trades zoom
- * against radius on three fixed steps rather than a caller picking a zoom
- * value that might not agree with whatever radius is on screen.
+ * INITIAL zoom derived from the visible radius (Home hero design): a wider
+ * radius needs a wider view to still show its whole circle, so this trades
+ * zoom against radius on three fixed steps rather than a caller picking a
+ * zoom value that might not agree with whatever radius is on screen. The
+ * map is now zoomable, so this is only where it opens — one level wider
+ * than the original frozen-thumbnail table (>2200 m → 11, >1400 m → 12).
  * `radiusMeters === null` (no circle — geolocation denied) falls into the
- * closest-in step: there is no radius to accommodate, so the tightest,
- * most legible city-block zoom is the right default. Exported for direct
- * unit testing of the threshold table without mounting the component.
+ * closest-in step (13): there is no radius to accommodate. Exported for
+ * direct unit testing of the threshold table without mounting the component.
  */
 export function deriveHeroMapZoom(radiusMeters: number | null): number {
-  if (radiusMeters !== null && radiusMeters > 2200) return 12;
-  if (radiusMeters !== null && radiusMeters > 1400) return 13;
-  return 14;
+  if (radiusMeters !== null && radiusMeters > 2200) return 11;
+  if (radiusMeters !== null && radiusMeters > 1400) return 12;
+  return 13;
 }
 
 /**
@@ -36,16 +37,18 @@ export function deriveHeroMapZoom(radiusMeters: number | null): number {
  * slot. Never imports Leaflet or knows a tile URL itself — `app-map` is the
  * only file allowed to (`Rental-Ui/CLAUDE.md`).
  *
- * Always renders `[interactive]="false"` (`app-map`'s own default — the
- * "frozen thumbnail" mode: no drag/wheel-zoom/double-click-zoom/touch-zoom/
- * keyboard, and `zoomControl` is always constructed disabled regardless —
- * see `MapComponent`'s own class doc comment) and `[markerVariant]="'twinkle'"`
- * (small, purely decorative dots — never a tab stop, never clickable; see
- * `MapComponent.markerVariant`'s own doc comment). Between those two, the
- * only interactive/focusable element this can ever render is `app-map`'s own
- * licence-mandated MapTiler attribution logo (shown identically by every
- * other static `app-map` usage in the app, e.g. the create-listing wizard's
- * location preview) — nothing THIS component adds is a tab stop.
+ * Renders `[interactive]="true"` behind `[scrollGate]="true"` (pannable and
+ * zoomable; page scroll is never hijacked — wheel-zoom needs Ctrl/⌘ and touch
+ * drag is gated behind a tap, see `MapComponent`'s own class doc comment; this
+ * is the same wiring `ListingLocationComponent` uses) with
+ * `[markerVariant]="'twinkle'"` (small, purely decorative dots — never a tab
+ * stop, never clickable; see `MapComponent.markerVariant`'s own doc comment).
+ * It was a "frozen thumbnail" until the 2026-10-16 change (ADR-015 amended).
+ *
+ * Tab stops: `app-map`'s own +/− zoom stack (top-right) adds two, the opt-in
+ * locate button below adds one (ungranted only), plus `app-map`'s
+ * licence-mandated MapTiler attribution logo. The pill / zone chip stays
+ * top-left, so it never collides with the zoom stack.
  *
  * The template binds `[pin]="center()"` with `[showPin]="false"` — `app-map`
  * anchors its `circleRadiusMeters` circle to `pin` (or the crosshair centre
@@ -74,7 +77,8 @@ export function deriveHeroMapZoom(radiusMeters: number | null): number {
  * and styled with `app-map`'s own unscoped `.app-map__btn` class, the exact
  * pattern `LocationPickerComponent`'s "My location" button already uses — a
  * real, keyboard-reachable `<button>` with a visible focus ring and a
- * translated `aria-label`, the ONE intentional tab stop this panel adds.
+ * translated `aria-label`, the one tab stop this component itself adds
+ * (the zoom stack's two belong to `app-map`).
  */
 @Component({
   selector: 'app-home-hero-map',

@@ -1,5 +1,5 @@
 import type { ListingImage } from '../../listings/models/listing.model';
-import type { DeliveryType } from '../../listings/models/create-listing.model';
+import type { DeliveryType, PriceUnit } from '../../listings/models/create-listing.model';
 
 export type { ListingImage };
 
@@ -7,6 +7,8 @@ export interface UpdateListingRequest {
   title?: string;
   description?: string;
   pricePerDay?: number;
+  /** Rental period the price applies to. Wire: string enum name. Omitted/null leaves it unchanged. */
+  priceUnit?: PriceUnit | null;
   // BREAKING (home-point model): `country`, `city` and `districtId` were all
   // REMOVED from this payload — the backend deleted them from
   // UpdateListingRequest. A listing's country, city and district are always
@@ -49,6 +51,8 @@ export interface MyListing {
   title: string;
   city: string;
   pricePerDay: number;
+  /** Rental period `pricePerDay` is charged for (always present on the wire). */
+  priceUnit: PriceUnit;
   imageUrl: string | null;
   status: MyListingStatus;
   createdAt: string | null;

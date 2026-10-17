@@ -29,6 +29,9 @@ function makeMyListing(overrides: Partial<MyListing> = {}): MyListing {
     title: 'Wooden Train Set',
     city: 'Yerevan',
     pricePerDay: 1500,
+    // Not 'Daily' on purpose: the wizard's own default is Daily, so a Daily
+    // fixture could not tell a real prefill from a dropped one.
+    priceUnit: 'Weekly',
     imageUrl: null,
     status: 'Approved',
     createdAt: '2026-01-01T00:00:00.000Z',
@@ -282,6 +285,33 @@ describe('EditListingPageComponent — home point -> PATCH payload', () => {
     });
     expect(request['hygieneNotes']).toBe('Wiped down after every rental.');
     expect(request['safetyNotes']).toBe('Small parts, not for under-3s.');
+  });
+
+  // priceUnit was dropped on both legs of the edit path: the prefill never set
+  // it (a Weekly listing opened as "per day") and onSave never forwarded it.
+  it('prefills the stored price unit into the real wizard and sends it back unchanged', () => {
+    const { fixture, updateCalls } = createSaveFixture();
+    const form = fixture.debugElement.query(By.directive(CreateListingFormComponent))
+      .componentInstance as CreateListingFormComponent;
+
+    expect(form.createListingForm.controls.priceUnit.value).toBe('Weekly');
+
+    form.editGallery.set([{ url: EXISTING_IMAGE.url, existingId: EXISTING_IMAGE.id, file: null }]);
+    (form as unknown as { onSubmit(): void }).onSubmit();
+
+    expect(updateCalls[0].request['priceUnit']).toBe('Weekly');
+  });
+
+  it('sends the unit the owner picked in the wizard', () => {
+    const { fixture, updateCalls } = createSaveFixture();
+    const form = fixture.debugElement.query(By.directive(CreateListingFormComponent))
+      .componentInstance as CreateListingFormComponent;
+
+    (form as unknown as { selectUnit(unit: string): void }).selectUnit('Monthly');
+    form.editGallery.set([{ url: EXISTING_IMAGE.url, existingId: EXISTING_IMAGE.id, file: null }]);
+    (form as unknown as { onSubmit(): void }).onSubmit();
+
+    expect(updateCalls[0].request['priceUnit']).toBe('Monthly');
   });
 
   it('drops the derived fields even when the emitted payload carries all five', () => {
