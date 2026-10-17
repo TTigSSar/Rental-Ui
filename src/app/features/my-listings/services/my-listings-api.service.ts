@@ -5,6 +5,7 @@ import { Observable, from, map, switchMap } from 'rxjs';
 import { ApiContract, toApiUrl } from '../../../api/api-contract';
 import { DELIVERY_TYPES, PRICE_UNITS } from '../../listings/models/create-listing.model';
 import type { DeliveryType, PriceUnit } from '../../listings/models/create-listing.model';
+import { normalizeToyCondition } from '../../../shared/utils/listing-condition.utils';
 import { compressImageFiles } from '../../../shared/utils/image-compression.utils';
 import type { ListingImage, MyListing, MyListingStatus, RejectionInfo, UpdateListingRequest } from '../models/my-listing.model';
 
@@ -115,9 +116,10 @@ function normalizeMyListing(raw: Record<string, unknown> & { id: string }): MyLi
       typeof raw['ageFromMonths'] === 'number' ? (raw['ageFromMonths'] as number) : null,
     ageToMonths:
       typeof raw['ageToMonths'] === 'number' ? (raw['ageToMonths'] as number) : null,
-    condition: typeof raw['condition'] === 'string' && raw['condition'].length > 0
-      ? raw['condition']
-      : null,
+    condition: normalizeToyCondition(raw['condition'])
+      ?? (typeof raw['condition'] === 'string' && raw['condition'].length > 0
+        ? raw['condition']
+        : null),
     hygieneNotes: typeof raw['hygieneNotes'] === 'string' && raw['hygieneNotes'].length > 0
       ? raw['hygieneNotes']
       : null,

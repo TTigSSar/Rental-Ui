@@ -1,4 +1,4 @@
-import { resolveConditionLabelKey } from './listing-condition.utils';
+import { normalizeToyCondition, resolveConditionLabelKey } from './listing-condition.utils';
 
 describe('resolveConditionLabelKey', () => {
   it.each([
@@ -21,5 +21,35 @@ describe('resolveConditionLabelKey', () => {
     expect(resolveConditionLabelKey(undefined)).toBeNull();
     expect(resolveConditionLabelKey(null)).toBeNull();
     expect(resolveConditionLabelKey('')).toBeNull();
+  });
+});
+
+describe('normalizeToyCondition', () => {
+  it.each([
+    ['New', 'New'],
+    ['LikeNew', 'LikeNew'],
+    ['Like new', 'LikeNew'],
+    ['like-new', 'LikeNew'],
+    ['Good', 'Good'],
+    ['Fair', 'Fair'],
+    ['Poor', 'Poor'],
+    ['Excellent', 'LikeNew'],
+    ['EXCELLENT', 'LikeNew'],
+    ['Used', 'Fair'],
+    [' used ', 'Fair'],
+  ])('maps %j -> %s', (input, expected) => {
+    expect(normalizeToyCondition(input)).toBe(expected);
+  });
+
+  it('returns null for unknown, empty or non-string values', () => {
+    expect(normalizeToyCondition('Broken')).toBeNull();
+    expect(normalizeToyCondition('')).toBeNull();
+    expect(normalizeToyCondition(null)).toBeNull();
+    expect(normalizeToyCondition(undefined)).toBeNull();
+    expect(normalizeToyCondition(3)).toBeNull();
+  });
+
+  it('resolveConditionLabelKey returns null for Poor (no label key)', () => {
+    expect(resolveConditionLabelKey('Poor')).toBeNull();
   });
 });
