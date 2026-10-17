@@ -734,9 +734,7 @@
       },
       "pickupDelivery": {
         "heading": "Pickup & delivery",
-        "hygieneValue": "Provided by owner",
-        "compensationLabel": "Loss & damage compensation",
-        "compensationSubline": "only if lost, damaged or not returned · nothing upfront"
+        "hygieneValue": "Provided by owner"
       },
       "ownerStats": {
         "rating": "Rating",

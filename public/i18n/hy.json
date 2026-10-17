@@ -734,9 +734,7 @@
       },
       "pickupDelivery": {
         "heading": "Ստացում և առաքում",
-        "hygieneValue": "Տրամադրված է տիրոջ կողմից",
-        "compensationLabel": "Կորստի և վնասի փոխհատուցում",
-        "compensationSubline": "միայն կորստի, վնասի կամ չվերադարձնելու դեպքում · նախապես ոչինչ չի գանձվում"
+        "hygieneValue": "Տրամադրված է տիրոջ կողմից"
       },
       "ownerStats": {
         "rating": "Վարկանիշ",
