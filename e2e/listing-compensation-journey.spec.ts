@@ -7,9 +7,8 @@ import { e2eListingDetails, e2eUser } from './support/fixtures';
  * Loss & damage compensation (ADR-014 redesign, `DepositAmount` renamed to
  * `CompensationAmount`, migration `20260917052338_RenameDepositAmountTo
  * CompensationAmount`): the amount is now required on create and surfaces on
- * THREE different templates — the item details page's specs quad, its
- * pickup/delivery row, its "Loss & damage compensation" protection card, and
- * the booking page's own breakdown row (excluded from the total, with a "How
+ * TWO templates — the item details page's protection card (the only place on
+ * that page, ADR-018 amended 2026-10-17) and the booking page's own breakdown row (excluded from the total, with a "How
  * this works" popover).
  *
  * Existing coverage before this spec:
@@ -51,26 +50,21 @@ test.describe('Loss & damage compensation — details page to booking page', () 
 
     await page.goto('/listings/listing-e2e-1');
 
-    // ── Details page: specs quad tile ──
-    const specQuad = page.locator('.detail-page__specquad');
-    await expect(specQuad).toContainText('Loss & damage compensation');
-    await expect(specQuad).toContainText('Up to 45,000 ֏');
-    await expect(specQuad).not.toContainText('Not specified');
-
-    // ── Details page: pickup/delivery row ──
-    const pickupRow = page.locator('.detail-page__pickup-row', {
-      hasText: 'Loss & damage compensation',
-    });
-    await expect(pickupRow).toBeVisible();
-    await expect(pickupRow).toContainText('Up to 45,000 ֏');
-
-    // ── Details page: protection card ("If something goes wrong") — the
-    // `ng-template` backing it is instantiated twice (desktop + mobile
-    // layout slots), so scope to the first like the rest of this page's
-    // specs do for dual-rendered blocks. ──
-    const protectionCard = page.locator('.detail-page__protection-card').first();
+    // ── Details page: compensation appears ONCE, in the protection card
+    // ("If something goes wrong", ADR-018 amended 2026-10-17). Desktop sidebar
+    // and mobile copies both exist; target the visible one. ──
+    const protectionCard = page.locator('.detail-page__protection-card:visible');
+    await expect(protectionCard).toHaveCount(1);
     await expect(protectionCard).toContainText('Up to 45,000 ֏');
     await expect(protectionCard).not.toContainText('Not specified');
+
+    // ── Not repeated in the specs quad or the pickup rows ──
+    await expect(page.locator('.detail-page__specquad')).not.toContainText(
+      'Loss & damage compensation',
+    );
+    await expect(page.locator('.detail-page__pickup-row')).not.toContainText([
+      'Loss & damage compensation',
+    ]);
 
     // ── Follow the real CTA into the booking page — a journey, not a second
     // independent page.goto() ──
