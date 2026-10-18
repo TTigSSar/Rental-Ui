@@ -41,6 +41,22 @@
       </div>
     }
 
+    <!-- Renter's note (ADR-013: shown at any status) -->
+    @if (d.note) {
+      <div class="booking-details__card booking-details__note">
+        <h2 class="booking-details__section-title">
+          {{
+            (d.role === 'owner' ? 'bookings.details.noteFromRenter' : 'bookings.details.yourNote')
+              | translate
+          }}
+        </h2>
+        <p class="booking-details__line">
+          <i class="pi pi-comment"></i>
+          {{ d.note }}
+        </p>
+      </div>
+    }
+
     <!-- Toy summary -->
     <div class="booking-details__card booking-details__toy">
       @if (d.listingPrimaryImageUrl) {
@@ -129,7 +145,13 @@
       <h2 class="booking-details__section-title">{{ 'bookings.details.timeline' | translate }}</h2>
       <ol class="booking-timeline">
         @for (item of timeline(); track item.labelKey) {
-          <li class="booking-timeline__item" [class.booking-timeline__item--done]="item.done">
+          <li
+            class="booking-timeline__item"
+            [class.booking-timeline__item--done]="item.state === 'done'"
+            [class.booking-timeline__item--current]="item.state === 'current'"
+            [class.booking-timeline__item--linked]="item.linked"
+            [attr.aria-current]="item.state === 'current' ? 'step' : null"
+          >
             <span class="booking-timeline__dot" aria-hidden="true"></span>
             <span class="booking-timeline__label">{{ item.labelKey | translate }}</span>
             <span class="booking-timeline__date">
