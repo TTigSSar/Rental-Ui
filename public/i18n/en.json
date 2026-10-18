@@ -1524,6 +1524,7 @@
       "tabEmpty": "No bookings in this category."
     },
     "requests": {
+      "noteLabel": "Note from renter",
       "title": "Rental Requests",
       "subtitle": "Review and respond to rental requests for your toys.",
       "errorTitle": "Unable to load rental requests",
@@ -1568,6 +1569,8 @@
       "owner": "Owner",
       "renter": "Renter",
       "message": "Message {{name}}",
+      "noteFromRenter": "Note from renter",
+      "yourNote": "Your note",
       "rejectionReason": "Reason for decline",
       "cancelRequest": "Cancel request",
       "cancelBooking": "Cancel booking",

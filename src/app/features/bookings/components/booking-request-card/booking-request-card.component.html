@@ -19,6 +19,16 @@
       {{ request().totalPrice | dram }}
     </p>
 
+    @if (request().note; as note) {
+      <blockquote class="brc__note">
+        <span class="brc__note-label">
+          <i class="pi pi-comment"></i>
+          {{ 'bookings.requests.noteLabel' | translate }}
+        </span>
+        <span class="brc__note-text">{{ note }}</span>
+      </blockquote>
+    }
+
     @if (canDecide()) {
       <div class="brc__actions" (click)="$event.stopPropagation()">
         <button type="button" class="brc__btn brc__btn--message" disabled>
