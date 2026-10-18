@@ -53,13 +53,7 @@
             <app-icon name="x" [size]="22" />
           </span>
           <p class="report-dialog__outcome-title">{{ 'reports.dialog.error.title' | translate }}</p>
-          <p class="report-dialog__outcome-text">
-            @if (errorMessageKey(); as key) {
-              {{ key | translate }}
-            } @else {
-              {{ errorMessage() }}
-            }
-          </p>
+          <p class="report-dialog__outcome-text">{{ errorMessage() }}</p>
         </div>
       }
       @default {

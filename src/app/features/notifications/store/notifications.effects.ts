@@ -4,7 +4,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { EMPTY, catchError, map, mergeMap, of, switchMap, tap, withLatestFrom } from 'rxjs';
 
-import { toApiErrorMessage } from '../../../api/http-error-message.util';
+import { ApiErrorMapper } from '../../../api/api-error-mapper';
 import { NotificationBadgeService } from '../services/notification-badge.service';
 import { NotificationsApiService } from '../services/notifications-api.service';
 import * as NotificationsActions from './notifications.actions';
@@ -17,6 +17,7 @@ import {
 @Injectable()
 export class NotificationsEffects {
   private readonly actions$ = inject(Actions);
+  private readonly apiErrors = inject(ApiErrorMapper);
   private readonly store = inject(Store);
   private readonly api = inject(NotificationsApiService);
   private readonly badge = inject(NotificationBadgeService);
@@ -31,7 +32,7 @@ export class NotificationsEffects {
           catchError((error: unknown) =>
             of(
               NotificationsActions.loadFeedFailure({
-                error: toApiErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -64,7 +65,7 @@ export class NotificationsEffects {
           catchError((error: unknown) =>
             of(
               NotificationsActions.loadMoreFailure({
-                error: toApiErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -111,7 +112,7 @@ export class NotificationsEffects {
             of(
               NotificationsActions.markReadFailure({
                 id,
-                error: toApiErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -129,7 +130,7 @@ export class NotificationsEffects {
           catchError((error: unknown) =>
             of(
               NotificationsActions.markAllReadFailure({
-                error: toApiErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),

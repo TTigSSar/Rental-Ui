@@ -9,7 +9,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { StarRatingComponent } from '../../../../shared/ui/star-rating/star-rating.component';
-import { toApiErrorMessage } from '../../../../api/http-error-message.util';
+import { ApiErrorMapper } from '../../../../api/api-error-mapper';
 import { ReviewsApiService } from '../../../reviews/services/reviews-api.service';
 
 interface SubScore {
@@ -31,6 +31,7 @@ export class RateRenterPageComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly api = inject(ReviewsApiService);
+  private readonly apiErrors = inject(ApiErrorMapper);
 
   protected readonly bookingId = this.route.snapshot.paramMap.get('bookingId') ?? '';
 
@@ -74,7 +75,7 @@ export class RateRenterPageComponent {
         },
         error: (e: unknown) => {
           this.submitting.set(false);
-          this.error.set(toApiErrorMessage(e));
+          this.error.set(this.apiErrors.message(e));
         },
       });
   }

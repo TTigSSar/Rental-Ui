@@ -14,7 +14,7 @@ import {
   filter,
 } from 'rxjs';
 
-import { toApiErrorMessage } from '../../../api/http-error-message.util';
+import { ApiErrorMapper } from '../../../api/api-error-mapper';
 import * as AuthActions from '../../auth/store/auth.actions';
 import { selectHomePoint } from '../../auth/store/auth.selectors';
 import { selectFavoriteIds } from '../../favorites/store/favorites.selectors';
@@ -31,13 +31,10 @@ import {
 import { initialListingsState } from './listings.state';
 import { getApiErrorCode } from '../../../api/api-error.model';
 
-function toErrorMessage(error: unknown): string {
-  return toApiErrorMessage(error);
-}
-
 @Injectable()
 export class ListingsEffects {
   private readonly actions$ = inject(Actions);
+  private readonly apiErrors = inject(ApiErrorMapper);
   private readonly store = inject(Store);
   private readonly listingsApi = inject(ListingsApiService);
 
@@ -62,7 +59,7 @@ export class ListingsEffects {
           catchError((error: unknown) =>
             of(
               ListingsActions.loadListingsFailure({
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -95,7 +92,7 @@ export class ListingsEffects {
           catchError((error: unknown) =>
             of(
               ListingsActions.loadListingsFailure({
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -128,7 +125,7 @@ export class ListingsEffects {
           catchError((error: unknown) =>
             of(
               ListingsActions.loadMapPinsFailure({
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -148,7 +145,7 @@ export class ListingsEffects {
           catchError((error: unknown) =>
             of(
               ListingsActions.loadListingDetailsFailure({
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -196,7 +193,7 @@ export class ListingsEffects {
           catchError((error: unknown) =>
             of(
               ListingsActions.loadListingCategoriesFailure({
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -239,7 +236,7 @@ export class ListingsEffects {
                 of(
                   ListingsActions.createListingSuccess({
                     response,
-                    imageUploadError: toErrorMessage(err),
+                    imageUploadError: this.apiErrors.message(err),
                   }),
                 ),
               ),
@@ -249,7 +246,7 @@ export class ListingsEffects {
             // Only listing-creation failures reach this branch.
             of(
               ListingsActions.createListingFailure({
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
                 errorCode: getApiErrorCode(error),
               }),
             ),
@@ -274,7 +271,7 @@ export class ListingsEffects {
           catchError((err: unknown) =>
             of(
               ListingsActions.retryImageUploadFailure({
-                error: toErrorMessage(err),
+                error: this.apiErrors.message(err),
               }),
             ),
           ),

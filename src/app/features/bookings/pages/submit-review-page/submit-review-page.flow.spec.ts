@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideTranslateService } from '@ngx-translate/core';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { provideMockStore } from '@ngrx/store/testing';
 import { of, throwError } from 'rxjs';
@@ -29,6 +30,8 @@ interface Internals {
 function createComponent(api: Partial<ReviewsApiService>) {
   TestBed.configureTestingModule({
     providers: [
+
+      provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
       provideRouter([]),
       provideMockStore({ initialState: { bookings: { myBookings: [] } } }),
       { provide: ReviewsApiService, useValue: api },
@@ -94,7 +97,7 @@ describe('SubmitReviewPageComponent flow', () => {
 
       c.submitToyAndContinue();
 
-      expect(c.error()).toBe('server down');
+      expect(c.error()).toBe('errors.generic');
       expect(c.submitting()).toBe(false);
       expect(c.step()).toBe(1);
     });

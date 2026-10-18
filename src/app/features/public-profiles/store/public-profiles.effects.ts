@@ -2,17 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { catchError, map, mergeMap, of } from 'rxjs';
 
-import { toApiErrorMessage } from '../../../api/http-error-message.util';
+import { ApiErrorMapper } from '../../../api/api-error-mapper';
 import { PublicProfileApiService } from '../services/public-profile-api.service';
 import * as PublicProfilesActions from './public-profiles.actions';
-
-function toErrorMessage(error: unknown): string {
-  return toApiErrorMessage(error);
-}
 
 @Injectable()
 export class PublicProfilesEffects {
   private readonly actions$ = inject(Actions);
+  private readonly apiErrors = inject(ApiErrorMapper);
   private readonly api = inject(PublicProfileApiService);
 
   readonly loadPublicProfile$ = createEffect(() =>
@@ -27,7 +24,7 @@ export class PublicProfilesEffects {
             of(
               PublicProfilesActions.loadPublicProfileFailure({
                 userId,
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -48,7 +45,7 @@ export class PublicProfilesEffects {
             of(
               PublicProfilesActions.loadUserListingsFailure({
                 userId,
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),

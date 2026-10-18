@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { provideTranslateService } from '@ngx-translate/core';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
@@ -226,6 +227,8 @@ function setupEffects(api: Partial<AuthApiService> = {}) {
   const harness = actionsHarness();
   TestBed.configureTestingModule({
     providers: [
+
+      provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
       AuthEffects,
       harness.provider,
       provideMockStore(),

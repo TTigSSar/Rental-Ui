@@ -34,14 +34,12 @@ import {
   selectCategoryActionIds,
   selectCreateErrorCode,
   selectDeleteError,
-  selectDeleteErrorCode,
   selectDeletingId,
   selectEditErrorCodeById,
   selectIsCreatingCategory,
   selectIsReordering,
 } from '../../store/admin-categories.selectors';
 import { AdminBreakpointService } from '../../utils/admin-breakpoint.service';
-import { categoryErrorMessageKey } from '../../utils/category-error-message.util';
 
 /**
  * `/admin/categories` — the redesigned category taxonomy screen
@@ -92,7 +90,6 @@ export class CategoriesPageComponent implements OnInit {
   protected readonly editErrorCodeById = this.store.selectSignal(selectEditErrorCodeById);
   protected readonly storeDeletingId = this.store.selectSignal(selectDeletingId);
   protected readonly deleteError = this.store.selectSignal(selectDeleteError);
-  protected readonly deleteErrorCode = this.store.selectSignal(selectDeleteErrorCode);
   protected readonly isReordering = this.store.selectSignal(selectIsReordering);
 
   protected readonly defaultIcon = DEFAULT_CATEGORY_ICON;
@@ -168,9 +165,6 @@ export class CategoriesPageComponent implements OnInit {
   protected readonly deleteDialogErrorMessage = computed<string | null>(() => {
     const current = this.deletingCategory();
     if (current === null) return null;
-    const code = this.deleteErrorCode();
-    const messageKey = categoryErrorMessageKey(code);
-    if (messageKey !== null) return this.translate.instant(messageKey);
     return this.deleteError();
   });
 

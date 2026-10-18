@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideTranslateService } from '@ngx-translate/core';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { Subject, from, of, throwError, type Observable } from 'rxjs';
 import type { Action } from '@ngrx/store';
@@ -32,6 +33,7 @@ function setup(api: Partial<ListingsApiService> = {}) {
   const harness = actionsHarness();
   TestBed.configureTestingModule({
     providers: [
+      provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
       ListingsEffects,
       harness.provider,
       provideMockStore(),
@@ -136,7 +138,7 @@ describe('ListingsEffects', () => {
       harness.complete();
 
       expect(await result).toEqual([
-        ListingsActions.createListingSuccess({ response, imageUploadError: 'upload too large' }),
+        ListingsActions.createListingSuccess({ response, imageUploadError: 'errors.generic' }),
       ]);
     });
 
@@ -176,7 +178,7 @@ describe('ListingsEffects', () => {
         // body, so `getApiErrorCode` finds nothing. A 409
         // `listing.home_point_required` is the case where it is populated —
         // see the wizard's home-point gate.
-        ListingsActions.createListingFailure({ error: 'invalid listing', errorCode: null }),
+        ListingsActions.createListingFailure({ error: 'errors.generic', errorCode: null }),
       ]);
     });
   });
@@ -214,7 +216,7 @@ describe('ListingsEffects', () => {
       harness.complete();
 
       expect(await result).toEqual([
-        ListingsActions.retryImageUploadFailure({ error: 'still failing' }),
+        ListingsActions.retryImageUploadFailure({ error: 'errors.generic' }),
       ]);
     });
   });
@@ -245,7 +247,7 @@ describe('ListingsEffects', () => {
       harness.complete();
 
       expect(await collected).toEqual([
-        ListingsActions.loadMapPinsFailure({ error: 'boom' }),
+        ListingsActions.loadMapPinsFailure({ error: 'errors.generic' }),
       ]);
     });
 

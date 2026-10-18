@@ -108,10 +108,11 @@ describe('ReportDialogComponent', () => {
     component['submit']();
 
     expect(component['phase']()).toBe('error');
-    expect(component['errorMessageKey']()).toBe('reports.dialog.errors.userBlocked');
+    // No translations are loaded in this spec, so `instant()` echoes the key it resolved.
+    expect(component['errorMessage']()).toBe('reports.dialog.errors.userBlocked');
   });
 
-  it('falls back to the raw server message for an unrecognised error code', () => {
+  it('never shows the raw server message for an unrecognised error', () => {
     const problem = new HttpErrorResponse({
       status: 500,
       error: { title: 'Server exploded' },
@@ -124,8 +125,7 @@ describe('ReportDialogComponent', () => {
     component['submit']();
 
     expect(component['phase']()).toBe('error');
-    expect(component['errorMessageKey']()).toBeNull();
-    expect(component['errorMessage']()).toBe('Server exploded');
+    expect(component['errorMessage']()).toBe('errors.server');
   });
 
   it('returns to the form on "try again" without losing the selected reason', () => {

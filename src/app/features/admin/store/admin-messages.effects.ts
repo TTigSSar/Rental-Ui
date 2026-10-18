@@ -5,7 +5,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import { catchError, concatMap, filter, map, mergeMap, of, switchMap, tap, withLatestFrom } from 'rxjs';
 
-import { toApiErrorMessage } from '../../../api/http-error-message.util';
+import { ApiErrorMapper } from '../../../api/api-error-mapper';
 import { selectAuthUser } from '../../auth/store/auth.selectors';
 import type { ChatMessage, ChatRealtimeMessage } from '../../chat/models/chat.model';
 import { ChatApiService } from '../../chat/services/chat-api.service';
@@ -17,10 +17,6 @@ import {
   selectMessageThreadRequestParams,
   selectSelectedThreadId,
 } from './admin-messages.selectors';
-
-function toErrorMessage(error: unknown): string {
-  return toApiErrorMessage(error);
-}
 
 /** Map a viewer-neutral hub message to the local, viewer-relative shape — same mapping
  *  `ChatEffects`'s (private) `toChatMessage` does, duplicated here rather than exported from
@@ -38,6 +34,7 @@ const TOAST_LIFE_MS = 7000;
 @Injectable()
 export class AdminMessagesEffects {
   private readonly actions$ = inject(Actions);
+  private readonly apiErrors = inject(ApiErrorMapper);
   private readonly store = inject(Store);
   private readonly messagesApi = inject(AdminMessagesApiService);
   private readonly chatApi = inject(ChatApiService);
@@ -53,7 +50,7 @@ export class AdminMessagesEffects {
         this.messagesApi.getThreads(params).pipe(
           map((queue) => AdminMessagesActions.loadMessageThreadsSuccess({ queue })),
           catchError((error: unknown) =>
-            of(AdminMessagesActions.loadMessageThreadsFailure({ error: toErrorMessage(error) })),
+            of(AdminMessagesActions.loadMessageThreadsFailure({ error: this.apiErrors.message(error) })),
           ),
         ),
       ),
@@ -82,7 +79,7 @@ export class AdminMessagesEffects {
           map((conversation) => AdminMessagesActions.loadMessageThreadDetailSuccess({ conversation })),
           catchError((error: unknown) =>
             of(
-              AdminMessagesActions.loadMessageThreadDetailFailure({ error: toErrorMessage(error) }),
+              AdminMessagesActions.loadMessageThreadDetailFailure({ error: this.apiErrors.message(error) }),
             ),
           ),
         ),
@@ -132,7 +129,7 @@ export class AdminMessagesEffects {
         this.chatApi.markRead(conversationId).pipe(
           map(() => AdminMessagesActions.markMessageThreadReadSuccess({ conversationId })),
           catchError((error: unknown) =>
-            of(AdminMessagesActions.markMessageThreadReadFailure({ error: toErrorMessage(error) })),
+            of(AdminMessagesActions.markMessageThreadReadFailure({ error: this.apiErrors.message(error) })),
           ),
         ),
       ),
@@ -148,7 +145,7 @@ export class AdminMessagesEffects {
           map((message) => AdminMessagesActions.sendMessageThreadMessageSuccess({ message })),
           catchError((error: unknown) =>
             of(
-              AdminMessagesActions.sendMessageThreadMessageFailure({ error: toErrorMessage(error) }),
+              AdminMessagesActions.sendMessageThreadMessageFailure({ error: this.apiErrors.message(error) }),
             ),
           ),
         ),
@@ -165,7 +162,7 @@ export class AdminMessagesEffects {
           map((thread) => AdminMessagesActions.openMessageThreadForUserSuccess({ thread })),
           catchError((error: unknown) =>
             of(
-              AdminMessagesActions.openMessageThreadForUserFailure({ error: toErrorMessage(error) }),
+              AdminMessagesActions.openMessageThreadForUserFailure({ error: this.apiErrors.message(error) }),
             ),
           ),
         ),

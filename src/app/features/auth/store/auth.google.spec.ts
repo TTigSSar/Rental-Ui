@@ -221,7 +221,7 @@ describe('AuthEffects — Google sign-in (ADR-030)', () => {
 
     expect(updatePhone).toHaveBeenNthCalledWith(1, { phoneNumber: '+374 99 123 456' });
     expect(emitted[0]).toEqual(AuthActions.updatePhoneSuccess({ phoneNumber: '+374 99 123 456' }));
-    expect(emitted[1]).toMatchObject({ type: AuthActions.updatePhoneFailure.type, error: 'bad' });
+    expect(emitted[1]).toMatchObject({ type: AuthActions.updatePhoneFailure.type, error: 'errors.validation' });
   });
 
   it('re-reads /auth/me after a name or phone write', () => {

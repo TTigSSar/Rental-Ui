@@ -17,7 +17,7 @@ import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 
 import { getApiErrorCode } from '../../../../api/api-error.model';
-import { toApiErrorMessage } from '../../../../api/http-error-message.util';
+import { ApiErrorMapper } from '../../../../api/api-error-mapper';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import { AuthDialogComponent } from '../../components/auth-dialog/auth-dialog.component';
 import { ResendVerificationComponent } from '../../components/resend-verification/resend-verification.component';
@@ -84,6 +84,7 @@ export class VerifyEmailPageComponent {
   private readonly location = inject(Location);
   private readonly document = inject(DOCUMENT);
   private readonly authApi = inject(AuthApiService);
+  private readonly apiErrors = inject(ApiErrorMapper);
 
   /** The emailed link token. Component memory only. */
   private token: string | null = null;
@@ -211,7 +212,7 @@ export class VerifyEmailPageComponent {
 
     if (code === 'auth.user_blocked') {
       this.dropToken();
-      this.serverMessage.set(toApiErrorMessage(error));
+      this.serverMessage.set(this.apiErrors.message(error));
       this.error.set('blocked');
       return;
     }

@@ -5,13 +5,9 @@ import { MessageService } from 'primeng/api';
 import { catchError, map, mergeMap, of, switchMap, tap } from 'rxjs';
 
 import { getApiErrorCode } from '../../../api/api-error.model';
-import { toApiErrorMessage } from '../../../api/http-error-message.util';
+import { ApiErrorMapper } from '../../../api/api-error-mapper';
 import { AdminCategoriesApiService } from '../services/admin-categories-api.service';
 import * as AdminCategoriesActions from './admin-categories.actions';
-
-function toErrorMessage(error: unknown): string {
-  return toApiErrorMessage(error);
-}
 
 function toErrorCode(error: unknown): string | null {
   return getApiErrorCode(error);
@@ -28,6 +24,7 @@ const INLINE_ONLY_ERROR_CODES = new Set<string>([
 @Injectable()
 export class AdminCategoriesEffects {
   private readonly actions$ = inject(Actions);
+  private readonly apiErrors = inject(ApiErrorMapper);
   private readonly categoriesApi = inject(AdminCategoriesApiService);
   private readonly messageService = inject(MessageService);
   private readonly translate = inject(TranslateService);
@@ -40,7 +37,7 @@ export class AdminCategoriesEffects {
         this.categoriesApi.getCategories().pipe(
           map((list) => AdminCategoriesActions.loadCategoriesSuccess({ list })),
           catchError((error: unknown) =>
-            of(AdminCategoriesActions.loadCategoriesFailure({ error: toErrorMessage(error) })),
+            of(AdminCategoriesActions.loadCategoriesFailure({ error: this.apiErrors.message(error) })),
           ),
         ),
       ),
@@ -75,7 +72,7 @@ export class AdminCategoriesEffects {
             of(
               AdminCategoriesActions.createCategoryFailure({
                 tempId,
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
                 errorCode: toErrorCode(error),
               }),
             ),
@@ -96,7 +93,7 @@ export class AdminCategoriesEffects {
             of(
               AdminCategoriesActions.updateCategoryFailure({
                 id,
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
                 errorCode: toErrorCode(error),
               }),
             ),
@@ -117,7 +114,7 @@ export class AdminCategoriesEffects {
             of(
               AdminCategoriesActions.updateVisibilityFailure({
                 id,
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -134,7 +131,7 @@ export class AdminCategoriesEffects {
         this.categoriesApi.reorderCategories(orderedIds).pipe(
           map((categories) => AdminCategoriesActions.reorderCategoriesSuccess({ categories })),
           catchError((error: unknown) =>
-            of(AdminCategoriesActions.reorderCategoriesFailure({ error: toErrorMessage(error) })),
+            of(AdminCategoriesActions.reorderCategoriesFailure({ error: this.apiErrors.message(error) })),
           ),
         ),
       ),
@@ -152,7 +149,7 @@ export class AdminCategoriesEffects {
             of(
               AdminCategoriesActions.deleteCategoryFailure({
                 id,
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
                 errorCode: toErrorCode(error),
               }),
             ),
@@ -180,7 +177,7 @@ export class AdminCategoriesEffects {
                   AdminCategoriesActions.deleteCategoryToNewCategoryPartialFailure({
                     id,
                     createdCategoryId: created.id,
-                    error: toErrorMessage(error),
+                    error: this.apiErrors.message(error),
                   }),
                 ),
               ),
@@ -190,7 +187,7 @@ export class AdminCategoriesEffects {
             of(
               AdminCategoriesActions.deleteCategoryFailure({
                 id,
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
                 errorCode: toErrorCode(error),
               }),
             ),

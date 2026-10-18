@@ -183,7 +183,7 @@ describe('ChatEffects', () => {
 
       const emitted = await result;
       expect(emitted).toEqual([
-        ChatActions.sendImageMessageFailure({ error: 'Attachment too large' }),
+        ChatActions.sendImageMessageFailure({ error: 'errors.generic' }),
       ]);
     });
 
@@ -436,7 +436,7 @@ describe('ChatEffects', () => {
       harness.complete();
 
       expect(await result).toEqual([
-        ChatActions.openConversationFromBookingFailure({ error: 'nope' }),
+        ChatActions.openConversationFromBookingFailure({ error: 'errors.generic' }),
       ]);
     });
   });

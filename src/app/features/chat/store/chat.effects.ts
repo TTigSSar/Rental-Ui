@@ -15,11 +15,9 @@ import {
   withLatestFrom,
 } from 'rxjs';
 
-import { type ApiErrorCode, getApiErrorCode } from '../../../api/api-error.model';
-import { toApiErrorMessage } from '../../../api/http-error-message.util';
+import { ApiErrorMapper } from '../../../api/api-error-mapper';
 import { selectAuthUser } from '../../auth/store/auth.selectors';
 import {
-  CHAT_ATTACHMENT_MAX_BYTES,
   type ChatMessage,
   type ChatRealtimeMessage,
 } from '../models/chat.model';
@@ -30,20 +28,6 @@ import {
   selectActiveConversation,
   selectConversations,
 } from './chat.selectors';
-
-/**
- * Server ServiceError codes → the i18n keys the composer's client-side
- * pre-checks already use. The client checks are only a fast path: the browser
- * derives `File.type` from the extension, so a renamed text file passes them
- * and is caught by the server's magic-byte validation instead. Without this map
- * that rejection would surface the server's hardcoded-English ProblemDetails
- * `title`, untranslated.
- */
-const CHAT_ERROR_MESSAGE_KEYS: Readonly<Partial<Record<ApiErrorCode, string>>> = {
-  'chat.attachment_invalid_type': 'chat.details.imageInvalidType',
-  'chat.attachment_too_large': 'chat.details.imageTooLarge',
-  'chat.conversation_closed': 'chat.details.closedBanner',
-};
 
 const CHAT_TOAST_LIFE_MS = 7000;
 
@@ -62,29 +46,13 @@ function toChatMessage(
 @Injectable()
 export class ChatEffects {
   private readonly actions$ = inject(Actions);
+  private readonly apiErrors = inject(ApiErrorMapper);
   private readonly chatApi = inject(ChatApiService);
   private readonly store = inject(Store);
   private readonly chatBadge = inject(ChatBadgeService);
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
-
-  /**
-   * Translate a known chat error code; fall back to the generic HTTP message
-   * for anything unmapped. The code is read from the ProblemDetails `errorCode`
-   * member via `getApiErrorCode` — NOT from `type`, which is an opaque
-   * `urn:rental:error:<code>` URI reference (see `ApiProblemDetails`).
-   */
-  private toErrorMessage(error: unknown): string {
-    const key = CHAT_ERROR_MESSAGE_KEYS[getApiErrorCode(error) ?? ''];
-    if (key === undefined) {
-      return toApiErrorMessage(error);
-    }
-    // `imageTooLarge` interpolates {{max}}; the other keys ignore it.
-    return this.translate.instant(key, {
-      max: Math.round(CHAT_ATTACHMENT_MAX_BYTES / (1024 * 1024)),
-    });
-  }
 
   readonly loadConversations$ = createEffect(() =>
     this.actions$.pipe(
@@ -97,7 +65,7 @@ export class ChatEffects {
           catchError((error: unknown) =>
             of(
               ChatActions.loadConversationsFailure({
-                error: this.toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -117,7 +85,7 @@ export class ChatEffects {
           catchError((error: unknown) =>
             of(
               ChatActions.loadConversationDetailsFailure({
-                error: this.toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -135,7 +103,7 @@ export class ChatEffects {
           catchError((error: unknown) =>
             of(
               ChatActions.sendMessageFailure({
-                error: this.toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -162,7 +130,7 @@ export class ChatEffects {
           catchError((error: unknown) =>
             of(
               ChatActions.sendImageMessageFailure({
-                error: this.toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -180,7 +148,7 @@ export class ChatEffects {
           catchError((error: unknown) =>
             of(
               ChatActions.markConversationReadFailure({
-                error: this.toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -206,7 +174,7 @@ export class ChatEffects {
           catchError((error: unknown) =>
             of(
               ChatActions.openConversationFromBookingFailure({
-                error: this.toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),

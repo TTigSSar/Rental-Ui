@@ -25,7 +25,7 @@ import type {
 } from '../../../listings/models/create-listing.model';
 import type { ListingImage } from '../../../listings/models/listing.model';
 import { ListingsApiService } from '../../../listings/services/listings-api.service';
-import { toApiErrorMessage } from '../../../../api/http-error-message.util';
+import { ApiErrorMapper } from '../../../../api/api-error-mapper';
 import { isCompensationAmountSet } from '../../../../shared/utils/compensation-amount.utils';
 import type {
   MyListing,
@@ -59,6 +59,7 @@ export class EditListingPageComponent implements OnInit {
   private readonly listingsApi = inject(ListingsApiService);
   private readonly cdr         = inject(ChangeDetectorRef);
   private readonly destroyRef  = inject(DestroyRef);
+  private readonly apiErrors   = inject(ApiErrorMapper);
 
   protected readonly isLoadingData    = signal(true);
   protected readonly notFound         = signal(false);
@@ -291,7 +292,7 @@ export class EditListingPageComponent implements OnInit {
   }
 
   private fail(error: unknown): void {
-    this.submitError.set(toApiErrorMessage(error));
+    this.submitError.set(this.apiErrors.message(error));
     this.isSubmitting.set(false);
     this.cdr.markForCheck();
   }
