@@ -16,14 +16,14 @@ describe('computeBookingProgress', () => {
   });
 
   describe('happy path', () => {
-    it('marks the first node current while Pending', () => {
+    it('marks Requested done and Approved current while Pending', () => {
       const { steps, isOffPath, terminalLabelKey } = computeBookingProgress(
         'Pending',
         null,
       );
       expect(steps.map((s) => s.state)).toEqual([
+        'done',
         'current',
-        'upcoming',
         'upcoming',
         'upcoming',
       ]);
@@ -32,23 +32,23 @@ describe('computeBookingProgress', () => {
     });
 
     it('treats PendingApproval the same as Pending', () => {
-      expect(computeBookingProgress('PendingApproval', null).steps[0].state).toBe(
-        'current',
-      );
-    });
-
-    it('completes the first node and makes Approved current', () => {
       expect(
-        computeBookingProgress('Approved', null).steps.map((s) => s.state),
+        computeBookingProgress('PendingApproval', null).steps.map((s) => s.state),
       ).toEqual(['done', 'current', 'upcoming', 'upcoming']);
     });
 
-    it('puts the current marker on the active node for Active and ReturnMarked', () => {
+    it('marks Approved done and Picked up current once Approved', () => {
+      expect(
+        computeBookingProgress('Approved', null).steps.map((s) => s.state),
+      ).toEqual(['done', 'done', 'current', 'upcoming']);
+    });
+
+    it('marks Picked up done and Returned current for Active and ReturnMarked', () => {
       const active = computeBookingProgress('Active', null).steps.map((s) => s.state);
       const returned = computeBookingProgress('ReturnMarked', null).steps.map(
         (s) => s.state,
       );
-      const expected = ['done', 'done', 'current', 'upcoming'];
+      const expected = ['done', 'done', 'done', 'current'];
       expect(active).toEqual(expected);
       expect(returned).toEqual(expected);
     });
@@ -77,6 +77,6 @@ describe('computeBookingProgress', () => {
       null,
     );
     expect(isOffPath).toBe(false);
-    expect(steps[0].state).toBe('current');
+    expect(steps.map((s) => s.state)).toEqual(['done', 'current', 'upcoming', 'upcoming']);
   });
 });
