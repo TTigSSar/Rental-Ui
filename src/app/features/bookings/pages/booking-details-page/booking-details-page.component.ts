@@ -20,6 +20,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { BookingProgressComponent } from '../../../../shared/ui/booking-progress/booking-progress.component';
 import { BookingStatusBadgeComponent } from '../../../../shared/ui/booking-status-badge/booking-status-badge.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
+import type { ProgressStepState } from '../../../../shared/utils/booking-progress.utils';
 import { todayUtcDateString } from '../../../../shared/utils/date.utils';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import * as ChatActions from '../../../chat/store/chat.actions';
@@ -56,6 +57,9 @@ interface TimelineItem {
   readonly labelKey: string;
   readonly date: string | null;
   readonly done: boolean;
+  readonly state: ProgressStepState;
+  /** Connector below this item is coloured when the next item is reached (done/current). */
+  readonly linked: boolean;
 }
 
 /** Parses the `YYYY-MM-DD` prefix of an API date as a LOCAL calendar date (no UTC shift). */
@@ -109,9 +113,7 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
   // /profile/requests and the My Listings owner-request-card (see bookings.effects.ts);
   // this page only adds the CTAs and reuses selectBookingRequestActionIds to know
   // whether THIS booking's decision is currently in flight.
-  private readonly bookingRequestActionIds = this.store.selectSignal(
-    selectBookingRequestActionIds,
-  );
+  private readonly bookingRequestActionIds = this.store.selectSignal(selectBookingRequestActionIds);
   protected readonly requestActionError = this.store.selectSignal(selectBookingRequestsError);
   protected readonly rejectDialogVisible = signal(false);
 
@@ -141,9 +143,7 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
   protected readonly ownerMayDecide = computed(() => {
     const d = this.detail();
     return (
-      d !== null &&
-      d.role === 'owner' &&
-      (d.status === 'Pending' || d.status === 'PendingApproval')
+      d !== null && d.role === 'owner' && (d.status === 'Pending' || d.status === 'PendingApproval')
     );
   });
 
@@ -185,20 +185,28 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
     if (!d) return [];
     const completed = d.status === 'Completed';
     const active = d.status === 'Active' || d.status === 'Completed';
-    return [
+    const raw = [
       { labelKey: 'bookings.timeline.requested', date: d.createdAt, done: true },
-      {
-        labelKey: 'bookings.timeline.approved',
-        date: d.approvedAt,
-        done: d.approvedAt !== null,
-      },
-      {
-        labelKey: 'bookings.timeline.active',
-        date: d.activeAt,
-        done: active,
-      },
+      { labelKey: 'bookings.timeline.approved', date: d.approvedAt, done: d.approvedAt !== null },
+      { labelKey: 'bookings.timeline.active', date: d.activeAt, done: active },
       { labelKey: 'bookings.timeline.completed', date: d.completedAt, done: completed },
     ];
+    // ADR-044: reached steps are ticked; the first unreached one is "awaited" — happy path only.
+    const onPath =
+      d.status === 'Pending' ||
+      d.status === 'PendingApproval' ||
+      d.status === 'Approved' ||
+      d.status === 'Active' ||
+      d.status === 'ReturnMarked';
+    const currentIdx = onPath ? raw.findIndex((i) => !i.done) : -1;
+    const states = raw.map<ProgressStepState>((i, idx) =>
+      i.done ? 'done' : idx === currentIdx ? 'current' : 'upcoming',
+    );
+    return raw.map((i, idx) => ({
+      ...i,
+      state: states[idx],
+      linked: idx + 1 < raw.length && states[idx + 1] !== 'upcoming',
+    }));
   });
 
   // Rejection reason: known codes map to a localized label, free text shows as-is.
@@ -366,7 +374,9 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
     this.rejectDialogVisible.set(false);
     if (this.bookingId) {
       this.decisionAttempted.set(true);
-      this.store.dispatch(BookingsActions.rejectBookingRequest({ bookingId: this.bookingId, reason }));
+      this.store.dispatch(
+        BookingsActions.rejectBookingRequest({ bookingId: this.bookingId, reason }),
+      );
     }
   }
 

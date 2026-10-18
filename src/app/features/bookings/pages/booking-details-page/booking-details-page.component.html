@@ -145,8 +145,18 @@
       <h2 class="booking-details__section-title">{{ 'bookings.details.timeline' | translate }}</h2>
       <ol class="booking-timeline">
         @for (item of timeline(); track item.labelKey) {
-          <li class="booking-timeline__item" [class.booking-timeline__item--done]="item.done">
-            <span class="booking-timeline__dot" aria-hidden="true"></span>
+          <li
+            class="booking-timeline__item"
+            [class.booking-timeline__item--done]="item.state === 'done'"
+            [class.booking-timeline__item--current]="item.state === 'current'"
+            [class.booking-timeline__item--linked]="item.linked"
+            [attr.aria-current]="item.state === 'current' ? 'step' : null"
+          >
+            <span class="booking-timeline__dot" aria-hidden="true">
+              @if (item.state === 'done') {
+                <i class="pi pi-check"></i>
+              }
+            </span>
             <span class="booking-timeline__label">{{ item.labelKey | translate }}</span>
             <span class="booking-timeline__date">
               @if (item.date) {
