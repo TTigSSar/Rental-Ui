@@ -29,6 +29,7 @@ import { selectPhoneMissing } from '../../../auth/store/auth.selectors';
 import { BookingCalendarComponent } from '../../components/booking-calendar/booking-calendar.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
+import { countRentalDays } from '../../../../shared/utils/rental-days.utils';
 import { isCompensationAmountSet } from '../../../../shared/utils/compensation-amount.utils';
 import * as BookingsActions from '../../../bookings/store/bookings.actions';
 import {
@@ -66,13 +67,6 @@ const SUGGESTION_CHIP_KEYS: readonly string[] = [
   'listings.bookingPage.suggestion.chip3',
   'listings.bookingPage.suggestion.chip4',
 ];
-
-function countInclusiveRentalDays(start: Date, end: Date): number {
-  const startUtc = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
-  const endUtc = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
-  const diffDays = Math.floor((endUtc - startUtc) / 86_400_000);
-  return diffDays < 0 ? 0 : diffDays + 1;
-}
 
 function toLocalIsoDate(value: Date): string {
   const year = value.getFullYear();
@@ -235,8 +229,26 @@ export class ListingBookingPageComponent {
     const start = this.startDate();
     const end = this.endDate();
     if (start === null || end === null) return 0;
-    return countInclusiveRentalDays(start, end);
+    return countRentalDays(start, end);
   });
+
+  /** Listing's minimum rental in days (0 = none or 1). */
+  protected readonly minRentalDays = computed(() => {
+    const min = this.listing()?.minRentalDays;
+    // A minimum of 1 day is the floor for every booking, so it is not worth showing.
+    return typeof min === 'number' && min > 1 ? min : 0;
+  });
+
+  /** A complete range is selected but shorter than the listing's minimum (ADR-043). */
+  protected readonly belowMinRental = computed(() => {
+    const days = this.rentalDays();
+    const min = this.minRentalDays();
+    return days > 0 && min > 0 && days < min;
+  });
+
+  protected isQuickBookDisabled(option: QuickBookOption): boolean {
+    return option.days < this.minRentalDays();
+  }
 
   protected readonly totalPrice = computed(() => {
     const days = this.rentalDays();
@@ -314,6 +326,7 @@ export class ListingBookingPageComponent {
       this.startDate() !== null &&
       this.endDate() !== null &&
       this.rentalDays() > 0 &&
+      !this.belowMinRental() &&
       !this.submitting() &&
       this.form.controls.noteForOwner.valid,
   );
@@ -358,6 +371,7 @@ export class ListingBookingPageComponent {
   }
 
   protected applyQuickBook(option: QuickBookOption): void {
+    if (this.isQuickBookDisabled(option)) return;
     if (this.selectedQuickBook()?.key === option.key) {
       this.selectedQuickBook.set(null);
       this.controlledRange.set([]);
@@ -369,7 +383,7 @@ export class ListingBookingPageComponent {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const end = new Date(today);
-    end.setDate(end.getDate() + option.days - 1);
+    end.setDate(end.getDate() + option.days);
     this.selectedQuickBook.set(option);
     this.controlledRange.set([today, end]);
     this.startDate.set(today);

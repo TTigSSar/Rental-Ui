@@ -132,6 +132,7 @@
                     type="button"
                     class="booking-page__quick-chip"
                     [class.booking-page__quick-chip--active]="selectedQuickBook()?.key === opt.key"
+                    [disabled]="isQuickBookDisabled(opt)"
                     (click)="applyQuickBook(opt)"
                   >
                     {{ opt.labelKey | translate }}
@@ -139,6 +140,17 @@
                 }
               </div>
             </div>
+
+            @if (minRentalDays() > 0) {
+              <p class="booking-page__min-rental" [class.booking-page__min-rental--warn]="belowMinRental()" [attr.role]="belowMinRental() ? 'alert' : null">
+                <i class="pi pi-info-circle" aria-hidden="true"></i>
+                @if (belowMinRental()) {
+                  {{ 'listings.bookingPage.belowMinRentalHint' | translate: { count: minRentalDays() } }}
+                } @else {
+                  {{ 'listings.bookingPage.minRentalHint' | translate: { count: minRentalDays() } }}
+                }
+              </p>
+            }
 
             @if (listing(); as item) {
               <app-booking-calendar

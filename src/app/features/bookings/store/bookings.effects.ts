@@ -17,6 +17,8 @@ import * as BookingsActions from './bookings.actions';
  */
 const BOOKING_ERROR_MESSAGE_KEYS: Readonly<Partial<Record<ApiErrorCode, string>>> = {
   'booking.note_too_long': 'listings.booking.noteTooLongError',
+  // ADR-043. Generic (no N): the effect has no listing; the page already shows the live minimum.
+  'booking.below_min_rental': 'listings.booking.belowMinRentalError',
 };
 
 @Injectable()

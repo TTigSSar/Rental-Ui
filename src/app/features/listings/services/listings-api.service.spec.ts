@@ -417,7 +417,8 @@ describe('ListingsApiService — getListingById', () => {
     ]);
 
     // The whole point of surfacing this field correctly: expanding it must
-    // actually disable the booked days (single-day range + a 3-day range).
+    // actually disable the occupied nights (single-day range + a range whose
+    // return day, 2026-09-22, stays free - ADR-043).
     const disabled = expandBookedDateRangesToDisabledDates(result!.bookedDateRanges);
     const isoDatesOf = (dates: Date[]) =>
       dates.map((d) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`).sort();
@@ -426,7 +427,6 @@ describe('ListingsApiService — getListingById', () => {
       '2026-8-10',
       '2026-8-20',
       '2026-8-21',
-      '2026-8-22',
     ]);
   });
 

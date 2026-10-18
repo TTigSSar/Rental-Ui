@@ -14,9 +14,16 @@ export type BookingParty = 'Renter' | 'Owner';
 
 export type CompletionMethod = 'Mutual' | 'Auto';
 
+// Date semantics (ADR-043), apply to every `startDate`/`endDate` pair in this file:
+// `startDate` = pickup day, `endDate` = return day. Rental days = max(1, endDate - startDate);
+// the return day is free for handover, so a booking may start on the day another returns
+// (no 409 `booking.overlap`). POST also rejects with 400 `booking.below_min_rental` when
+// the listing's minRentalDays is not met.
 export interface CreateBookingRequest {
   listingId: string;
+  /** Pickup day. */
   startDate: string;
+  /** Return day (not an occupied night). */
   endDate: string;
   // Optional free-text note to the owner (server trims; whitespace-only is treated as
   // absent; >280 chars after trimming is rejected with `booking.note_too_long`).

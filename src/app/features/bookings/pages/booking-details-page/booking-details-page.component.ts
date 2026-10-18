@@ -25,6 +25,7 @@ import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import * as ChatActions from '../../../chat/store/chat.actions';
 import { selectOpeningConversationFromBooking } from '../../../chat/store/chat.selectors';
 import type { BookingReviewStatus } from '../../../reviews/models/review.model';
+import { countRentalDays } from '../../../../shared/utils/rental-days.utils';
 import { ReviewsApiService } from '../../../reviews/services/reviews-api.service';
 import {
   BookingRejectDialogComponent,
@@ -55,6 +56,13 @@ interface TimelineItem {
   readonly labelKey: string;
   readonly date: string | null;
   readonly done: boolean;
+}
+
+/** Parses the `YYYY-MM-DD` prefix of an API date as a LOCAL calendar date (no UTC shift). */
+function parseLocalIsoDate(value: string): Date | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (m === null) return null;
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
 }
 
 @Component({
@@ -121,10 +129,10 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
   protected readonly rentalDays = computed(() => {
     const d = this.detail();
     if (!d) return 0;
-    const start = Date.parse(d.startDate);
-    const end = Date.parse(d.endDate);
-    if (Number.isNaN(start) || Number.isNaN(end)) return 0;
-    return Math.round((end - start) / 86_400_000) + 1;
+    const start = parseLocalIsoDate(d.startDate);
+    const end = parseLocalIsoDate(d.endDate);
+    if (start === null || end === null) return 0;
+    return countRentalDays(start, end);
   });
 
   // Defect A fix: an owner viewing a Pending request via /bookings/:id (rather than
