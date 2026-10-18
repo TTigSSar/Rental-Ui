@@ -59,6 +59,11 @@ describe('BookingDetailsPageComponent timeline (ADR-044)', () => {
       ['done', 'done', 'done', 'current'],
     ],
     [
+      'ReturnMarked',
+      { ...none, status: 'ReturnMarked', approvedAt: T, activeAt: T },
+      ['done', 'done', 'done', 'current'],
+    ],
+    [
       'Completed',
       { status: 'Completed', approvedAt: T, activeAt: T, completedAt: T },
       ['done', 'done', 'done', 'done'],

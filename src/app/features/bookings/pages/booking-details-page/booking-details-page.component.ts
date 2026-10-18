@@ -184,7 +184,8 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
     const d = this.detail();
     if (!d) return [];
     const completed = d.status === 'Completed';
-    const active = d.status === 'Active' || d.status === 'Completed';
+    const active =
+      d.status === 'Active' || d.status === 'ReturnMarked' || d.status === 'Completed';
     const raw = [
       { labelKey: 'bookings.timeline.requested', date: d.createdAt, done: true },
       { labelKey: 'bookings.timeline.approved', date: d.approvedAt, done: d.approvedAt !== null },
