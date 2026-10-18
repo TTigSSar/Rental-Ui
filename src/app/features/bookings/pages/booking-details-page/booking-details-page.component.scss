@@ -198,6 +198,17 @@
   }
 }
 
+.booking-details__note .booking-details__line {
+  align-items: flex-start;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+
+  i {
+    margin-top: 3px;
+    color: var(--ui-color-text-secondary);
+  }
+}
+
 // --- Completion + review ---
 .booking-details__completion-msg {
   margin: 0 0 8px;

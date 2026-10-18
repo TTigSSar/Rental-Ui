@@ -17,8 +17,9 @@ export interface BookingProgress {
   readonly terminalLabelKey: string | null;
 }
 
-// The four happy-path nodes. The last node is relabelled "Completion" while a return
-// is awaiting confirmation, and "Completed" once the booking is done.
+// The four happy-path nodes. Every step the booking has reached (including the one it
+// is in now) is `done`; the next step being waited for is `current`; the rest are
+// `upcoming`. A Completed booking has all four done and no current step.
 const STEP_LABEL_KEYS = [
   'bookings.progress.pending',
   'bookings.progress.approved',
@@ -52,36 +53,34 @@ export function computeBookingProgress(
       break;
   }
 
-  let currentIndex = 0;
-  let allDone = false;
+  // Index of the last step the booking has reached (inclusive).
+  let reachedIndex = 0;
 
   switch (status) {
     case 'Pending':
     case 'PendingApproval':
-      currentIndex = 0;
+      reachedIndex = 0;
       break;
     case 'Approved':
-      currentIndex = 1;
+      reachedIndex = 1;
       break;
     case 'Active':
     case 'ReturnMarked':
-      currentIndex = 2;
+      reachedIndex = 2;
       break;
     case 'Completed':
-      currentIndex = 3;
-      allDone = true;
+      reachedIndex = 3;
       break;
     default:
-      currentIndex = 0;
+      reachedIndex = 0;
   }
 
+  // Reached steps are done; the next step (the one awaited) is current.
   const steps: ProgressStep[] = STEP_LABEL_KEYS.map((labelKey, index) => {
     let state: ProgressStepState;
-    if (allDone) {
+    if (index <= reachedIndex) {
       state = 'done';
-    } else if (index < currentIndex) {
-      state = 'done';
-    } else if (index === currentIndex) {
+    } else if (index === reachedIndex + 1) {
       state = 'current';
     } else {
       state = 'upcoming';

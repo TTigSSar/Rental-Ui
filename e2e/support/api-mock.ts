@@ -196,6 +196,8 @@ export interface ApiSeed {
   };
   /** GET /api/bookings/mine — items for "my bookings" (booking-relationship UI). */
   myBookings?: unknown[];
+  /** GET /api/bookings/requests — owner's incoming `BookingRequest[]`. Defaults to `[]`. */
+  bookingRequests?: unknown[];
   /**
    * GET /api/bookings/:id — the booking-details page (`BookingDetail` wire shape, see
    * `e2eBookingDetail()`). Undefined/omitted responds 404, matching what the real API does for
@@ -996,9 +998,14 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
       return json(route, 200, seed.myBookings ?? []);
     }
 
-    // GET /api/bookings/{id} — the booking-details page. Excludes /mine (matched by the
-    // exact endsWith above) and /requests (no dedicated handler exists — it falls through
-    // to the generic GET catch-all below, returning `[]`) so this never misinterprets
+    // GET /api/bookings/requests — the owner's incoming requests (`BookingRequest[]`).
+    // Unseeded it still answers `[]`, exactly what the generic GET catch-all returned before.
+    if (pathname.endsWith('/api/bookings/requests') && method === 'GET') {
+      return json(route, 200, seed.bookingRequests ?? []);
+    }
+
+    // GET /api/bookings/{id} — the booking-details page. Excludes /mine and /requests
+    // (both matched by the exact endsWith handlers above) so this never misinterprets
     // either reserved segment as a booking id.
     const bookingDetailId = pathname.match(/^\/api\/bookings\/([^/]+)$/)?.[1];
     if (bookingDetailId && bookingDetailId !== 'mine' && bookingDetailId !== 'requests' && method === 'GET') {
