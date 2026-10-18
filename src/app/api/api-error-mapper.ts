@@ -40,6 +40,8 @@ export const API_ERROR_MESSAGE_KEYS: Readonly<Record<KnownApiErrorCode, string>>
   'admin.report_not_found': 'admin.reports.errors.reportNotFound',
   'admin.report_target_filter_incomplete': 'errors.validation',
   'admin.report_invalid_target_filter': 'errors.validation',
+  'admin.cannot_message_self': 'errors.cannotMessageSelf',
+  'admin.cannot_message_admin': 'errors.cannotMessageAdmin',
   // auth.*
   'auth.duplicate_email': 'auth.validation.emailTaken',
   'auth.invalid_credentials': 'errors.invalidCredentials',
@@ -52,6 +54,8 @@ export const API_ERROR_MESSAGE_KEYS: Readonly<Record<KnownApiErrorCode, string>>
   'auth.external_pending_registration': 'auth.google.ePending',
   'auth.external_provider_unavailable': 'auth.google.eOff',
   'auth.invalid_name': 'errors.invalidName',
+  'auth.invalid_phone': 'auth.phoneStep.error',
+  'auth.invalid_language': 'errors.invalidLanguage',
   'auth.email_not_verified': 'errors.emailNotVerified',
   'auth.verification_token_invalid': 'errors.verificationLinkInvalid',
   'auth.verification_token_expired': 'errors.verificationLinkExpired',

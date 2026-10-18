@@ -48,7 +48,10 @@
     "imageNotFound": "This photo no longer exists.",
     "imageInvalidReorder": "The photo order couldn't be saved. Refresh the page and try again.",
     "bookingNotCompleted": "You can leave a review once the rental is completed.",
-    "reviewAlreadySubmitted": "You've already reviewed this booking."
+    "reviewAlreadySubmitted": "You've already reviewed this booking.",
+    "invalidLanguage": "Choose a supported language: English, Russian or Armenian.",
+    "cannotMessageSelf": "You can't open a conversation with your own account.",
+    "cannotMessageAdmin": "You can't open a conversation with another admin."
   },
   "calendar": {
     "monthNames": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
