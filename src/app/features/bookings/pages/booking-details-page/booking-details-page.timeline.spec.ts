@@ -73,12 +73,13 @@ describe('BookingDetailsPageComponent timeline (ADR-044)', () => {
 
   for (const [name, detail, expected] of cases) {
     it(`${name}: ${expected.join('/')}`, () => {
-      const items = Array.from(render(detail).querySelectorAll('.booking-timeline__item'));
+      const el = render(detail);
+      const items = Array.from(el.querySelectorAll('.booking-timeline__item'));
       expect(items.map(stateOf)).toEqual(expected);
       items.forEach((li, i) => {
         expect(li.getAttribute('aria-current')).toBe(expected[i] === 'current' ? 'step' : null);
-        expect(li.querySelector('.pi-check') !== null).toBe(expected[i] === 'done');
       });
+      expect(el.querySelector('.booking-timeline .pi-check')).toBeNull();
     });
   }
 });
