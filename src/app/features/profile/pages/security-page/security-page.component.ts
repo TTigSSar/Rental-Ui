@@ -15,7 +15,7 @@ import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 
 import { getApiErrorCode } from '../../../../api/api-error.model';
-import { toApiErrorMessage } from '../../../../api/http-error-message.util';
+import { ApiErrorMapper } from '../../../../api/api-error-mapper';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import { maxByteLengthValidator, MAX_PASSWORD_BYTES } from '../../../../shared/validators/max-byte-length.validator';
@@ -55,6 +55,7 @@ type SecurityFormField = 'currentPassword' | 'newPassword' | 'confirmPassword';
 export class SecurityPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authApi = inject(AuthApiService);
+  private readonly apiErrors = inject(ApiErrorMapper);
   private readonly translate = inject(TranslateService);
 
   protected readonly phase = signal<SecurityPhase>('form');
@@ -202,12 +203,7 @@ export class SecurityPageComponent {
       return;
     }
 
-    this.bannerMessage.set(
-      toApiErrorMessage(error, {
-        unauthorizedMessage: this.translate.instant('profile.security.errors.sessionExpired'),
-        serverErrorMessage: this.translate.instant('profile.security.errors.serverError'),
-      }),
-    );
+    this.bannerMessage.set(this.apiErrors.message(error));
     this.phase.set('form');
   }
 }

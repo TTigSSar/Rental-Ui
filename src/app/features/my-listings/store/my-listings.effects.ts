@@ -2,17 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { catchError, map, mergeMap, of, switchMap } from 'rxjs';
 
-import { toApiErrorMessage } from '../../../api/http-error-message.util';
+import { ApiErrorMapper } from '../../../api/api-error-mapper';
 import { MyListingsApiService } from '../services/my-listings-api.service';
 import * as MyListingsActions from './my-listings.actions';
-
-function toErrorMessage(error: unknown): string {
-  return toApiErrorMessage(error);
-}
 
 @Injectable()
 export class MyListingsEffects {
   private readonly actions$ = inject(Actions);
+  private readonly apiErrors = inject(ApiErrorMapper);
   private readonly myListingsApi = inject(MyListingsApiService);
 
   readonly loadMyListings$ = createEffect(() =>
@@ -22,7 +19,7 @@ export class MyListingsEffects {
         this.myListingsApi.getMyListings().pipe(
           map((items) => MyListingsActions.loadMyListingsSuccess({ items })),
           catchError((error: unknown) =>
-            of(MyListingsActions.loadMyListingsFailure({ error: toErrorMessage(error) })),
+            of(MyListingsActions.loadMyListingsFailure({ error: this.apiErrors.message(error) })),
           ),
         ),
       ),
@@ -36,7 +33,7 @@ export class MyListingsEffects {
         this.myListingsApi.archiveListing(listingId).pipe(
           map(() => MyListingsActions.archiveListingSuccess({ listingId })),
           catchError((error: unknown) =>
-            of(MyListingsActions.archiveListingFailure({ error: toErrorMessage(error) })),
+            of(MyListingsActions.archiveListingFailure({ error: this.apiErrors.message(error) })),
           ),
         ),
       ),
@@ -50,7 +47,7 @@ export class MyListingsEffects {
         this.myListingsApi.restoreListing(listingId).pipe(
           map(() => MyListingsActions.restoreListingSuccess({ listingId })),
           catchError((error: unknown) =>
-            of(MyListingsActions.restoreListingFailure({ error: toErrorMessage(error) })),
+            of(MyListingsActions.restoreListingFailure({ error: this.apiErrors.message(error) })),
           ),
         ),
       ),
@@ -64,7 +61,7 @@ export class MyListingsEffects {
         this.myListingsApi.resubmitListing(listingId).pipe(
           map(() => MyListingsActions.resubmitListingSuccess({ listingId })),
           catchError((error: unknown) =>
-            of(MyListingsActions.resubmitListingFailure({ error: toErrorMessage(error) })),
+            of(MyListingsActions.resubmitListingFailure({ error: this.apiErrors.message(error) })),
           ),
         ),
       ),

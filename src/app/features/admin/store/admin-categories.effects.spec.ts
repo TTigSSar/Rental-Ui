@@ -97,7 +97,7 @@ describe('AdminCategoriesEffects', () => {
       expect(await result).toEqual([
         AdminCategoriesActions.createCategoryFailure({
           tempId: 't1',
-          error: 'taken',
+          error: 'admin.categories.errors.nameTaken',
           errorCode: 'admin.category_name_taken',
         }),
       ]);
@@ -154,7 +154,7 @@ describe('AdminCategoriesEffects', () => {
       expect(await result).toEqual([
         AdminCategoriesActions.deleteCategoryFailure({
           id: 'old-cat',
-          error: 'down',
+          error: 'errors.generic',
           errorCode: null,
         }),
       ]);
@@ -177,7 +177,7 @@ describe('AdminCategoriesEffects', () => {
         AdminCategoriesActions.deleteCategoryToNewCategoryPartialFailure({
           id: 'old-cat',
           createdCategoryId: 'new-cat',
-          error: 'locked',
+          error: 'errors.generic',
         }),
       ]);
     });

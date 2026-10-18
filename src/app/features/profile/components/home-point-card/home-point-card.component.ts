@@ -92,17 +92,12 @@ export class HomePointCardComponent {
    * Which COPY the card shows for a refused save or remove — chosen by the
    * machine-readable `errorCode`, never by the message string the store holds.
    *
-   * That string is `toApiErrorMessage()`'s output, and on this path it is one
-   * of three things, none of them user-facing: a ProblemDetails `title`, which
-   * is server-side English in all three languages; nothing at all; or — when
-   * the response carries no body, which is exactly what the home-point rate
-   * limiter's 429 and a dropped connection produce — Angular's internal
-   * `HttpErrorResponse.message`, i.e. "Http failure response for
-   * https://localhost:7241/api/auth/me/home-point: 409 Conflict", API host and
-   * all. The card used to print whichever of those arrived.
+   * That string is `ApiErrorMapper.message()`'s output: already translated, but
+   * generic where this card has precise copy of its own ("can't remove while
+   * you have toys", the outside-Yerevan notice), so the card keeps choosing by code.
    *
    * So the mapping is TOTAL: every code and the no-code case resolve to a real
-   * key, and the raw string is not rendered anywhere. `default` is not a
+   * key, and the store's string is not rendered anywhere. `default` is not a
    * fallback that happens to be rare — 429/401/403/status-0 all land there, and
    * it is the only branch a code this file has never heard of can reach.
    */

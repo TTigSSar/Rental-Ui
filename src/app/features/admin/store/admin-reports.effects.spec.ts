@@ -136,7 +136,7 @@ describe('AdminReportsEffects', () => {
       expect(await result).toEqual([
         AdminReportsActions.resolveReportFailure({
           reportId: 'r1',
-          error: 'Not found',
+          error: 'admin.reports.errors.reportNotFound',
           errorCode: 'admin.report_not_found',
         }),
       ]);
@@ -167,7 +167,7 @@ describe('AdminReportsEffects', () => {
       expect(await result).toEqual([
         AdminReportsActions.dismissReportFailure({
           reportId: 'r1',
-          error: 'boom',
+          error: 'errors.generic',
           errorCode: null,
         }),
       ]);
@@ -201,20 +201,20 @@ describe('AdminReportsEffects', () => {
       );
     });
 
-    it('shows an error toast on failure, using the known-code translation when available', () => {
+    it('shows an error toast carrying the already-translated store message', () => {
       const { harness, effects, messageService } = setup();
       TestBed.runInInjectionContext(() => effects.actionFailureToast$.subscribe());
       harness.send(
         AdminReportsActions.resolveReportFailure({
           reportId: 'r1',
-          error: 'raw message',
+          error: 'Translated message',
           errorCode: 'admin.report_not_found',
         }),
       );
       expect(messageService.add).toHaveBeenCalledWith(
         expect.objectContaining({
           severity: 'error',
-          detail: 'admin.reports.errors.reportNotFound',
+          detail: 'Translated message',
         }),
       );
     });

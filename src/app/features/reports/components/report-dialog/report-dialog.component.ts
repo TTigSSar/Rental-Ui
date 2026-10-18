@@ -15,7 +15,7 @@ import {
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { getApiErrorCode } from '../../../../api/api-error.model';
-import { toApiErrorMessage } from '../../../../api/http-error-message.util';
+import { ApiErrorMapper } from '../../../../api/api-error-mapper';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import { REPORT_REASONS } from '../../models/report-reason.model';
 import { ReportsApiService } from '../../services/reports-api.service';
@@ -68,6 +68,7 @@ type DialogPhase = 'form' | 'submitting' | 'success' | 'alreadyReported' | 'erro
 export class ReportDialogComponent implements OnInit, OnDestroy {
   private readonly host: ElementRef<HTMLElement> = inject(ElementRef);
   private readonly reportsApi = inject(ReportsApiService);
+  private readonly apiErrors = inject(ApiErrorMapper);
   private previouslyFocused: HTMLElement | null = null;
 
   readonly target = input.required<ReportDialogTarget>();
@@ -159,10 +160,6 @@ export class ReportDialogComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Set alongside `errorMessage` so the template can prefer a translated, precise message for
-   *  a known code and fall back to the raw (English) server message otherwise. */
-  protected readonly errorMessageKey = signal<string | null>(null);
-
   private handleError(error: unknown): void {
     const code = getApiErrorCode(error);
     if (code === 'report.already_reported') {
@@ -172,30 +169,12 @@ export class ReportDialogComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const messageKey = this.knownErrorMessageKey(code);
-    this.errorMessageKey.set(messageKey);
-    this.errorMessage.set(messageKey !== null ? null : toApiErrorMessage(error));
+    this.errorMessage.set(this.apiErrors.message(error));
     this.phase.set('error');
-  }
-
-  private knownErrorMessageKey(code: string | null): string | null {
-    switch (code) {
-      case 'report.cannot_report_own':
-        return 'reports.dialog.errors.cannotReportOwn';
-      case 'report.user_blocked':
-        return 'reports.dialog.errors.userBlocked';
-      case 'report.invalid_reason':
-        return 'reports.dialog.errors.invalidReason';
-      case 'report.target_not_found':
-        return 'reports.dialog.errors.targetNotFound';
-      default:
-        return null;
-    }
   }
 
   protected tryAgain(): void {
     this.phase.set('form');
     this.errorMessage.set(null);
-    this.errorMessageKey.set(null);
   }
 }

@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 
 import { actionsHarness, collect } from '../../../../testing/ngrx.helpers';
@@ -11,6 +12,7 @@ function setup(api: Partial<AdminOverviewApiService> = {}) {
   const harness = actionsHarness();
   TestBed.configureTestingModule({
     providers: [
+      provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
       AdminOverviewEffects,
       harness.provider,
       { provide: AdminOverviewApiService, useValue: api },
@@ -38,7 +40,7 @@ describe('AdminOverviewEffects', () => {
       const result = collect(effects.loadOverview$);
       harness.send(AdminOverviewActions.loadOverview());
       harness.complete();
-      expect(await result).toEqual([AdminOverviewActions.loadOverviewFailure({ error: 'boom' })]);
+      expect(await result).toEqual([AdminOverviewActions.loadOverviewFailure({ error: 'errors.generic' })]);
     });
   });
 
@@ -62,7 +64,7 @@ describe('AdminOverviewEffects', () => {
       harness.send(AdminOverviewActions.loadActivityFeed({}));
       harness.complete();
       expect(await result).toEqual([
-        AdminOverviewActions.loadActivityFeedFailure({ error: 'boom' }),
+        AdminOverviewActions.loadActivityFeedFailure({ error: 'errors.generic' }),
       ]);
     });
   });

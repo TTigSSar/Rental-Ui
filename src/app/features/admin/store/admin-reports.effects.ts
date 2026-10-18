@@ -6,30 +6,19 @@ import { MessageService } from 'primeng/api';
 import { catchError, map, mergeMap, of, switchMap, tap, withLatestFrom } from 'rxjs';
 
 import { getApiErrorCode } from '../../../api/api-error.model';
-import { toApiErrorMessage } from '../../../api/http-error-message.util';
+import { ApiErrorMapper } from '../../../api/api-error-mapper';
 import { AdminReportsApiService } from '../services/admin-reports-api.service';
 import * as AdminReportsActions from './admin-reports.actions';
 import { selectReportRequestParams } from './admin-reports.selectors';
-
-function toErrorMessage(error: unknown): string {
-  return toApiErrorMessage(error);
-}
 
 function toErrorCode(error: unknown): string | null {
   return getApiErrorCode(error);
 }
 
-/** `admin.report_not_found` is the only documented failure mode for resolve/dismiss/reopen
- *  (a report deleted or already actioned from another admin tab between load and click) —
- *  resolve/dismiss/reopen are otherwise idempotent 200s server-side, so a double-click never
- *  errors. Anything else falls back to the raw (English) `ServiceError.Message`. */
-const KNOWN_ERROR_MESSAGE_KEYS: Record<string, string> = {
-  'admin.report_not_found': 'admin.reports.errors.reportNotFound',
-};
-
 @Injectable()
 export class AdminReportsEffects {
   private readonly actions$ = inject(Actions);
+  private readonly apiErrors = inject(ApiErrorMapper);
   private readonly store = inject(Store);
   private readonly reportsApi = inject(AdminReportsApiService);
   private readonly messageService = inject(MessageService);
@@ -44,7 +33,7 @@ export class AdminReportsEffects {
         this.reportsApi.getReportQueue(params).pipe(
           map((queue) => AdminReportsActions.loadReportQueueSuccess({ queue })),
           catchError((error: unknown) =>
-            of(AdminReportsActions.loadReportQueueFailure({ error: toErrorMessage(error) })),
+            of(AdminReportsActions.loadReportQueueFailure({ error: this.apiErrors.message(error) })),
           ),
         ),
       ),
@@ -90,7 +79,7 @@ export class AdminReportsEffects {
             of(
               AdminReportsActions.resolveReportFailure({
                 reportId,
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
                 errorCode: toErrorCode(error),
               }),
             ),
@@ -110,7 +99,7 @@ export class AdminReportsEffects {
             of(
               AdminReportsActions.dismissReportFailure({
                 reportId,
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
                 errorCode: toErrorCode(error),
               }),
             ),
@@ -130,7 +119,7 @@ export class AdminReportsEffects {
             of(
               AdminReportsActions.reopenReportFailure({
                 reportId,
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
                 errorCode: toErrorCode(error),
               }),
             ),
@@ -197,9 +186,7 @@ export class AdminReportsEffects {
           AdminReportsActions.dismissReportFailure,
           AdminReportsActions.reopenReportFailure,
         ),
-        tap(({ errorCode, error }) => {
-          const messageKey = errorCode !== null ? KNOWN_ERROR_MESSAGE_KEYS[errorCode] : undefined;
-          const detail = messageKey !== undefined ? this.translate.instant(messageKey) : error;
+        tap(({ error: detail }) => {
           this.messageService.add({
             severity: 'error',
             summary: this.translate.instant('admin.reports.toast.actionFailureTitle'),

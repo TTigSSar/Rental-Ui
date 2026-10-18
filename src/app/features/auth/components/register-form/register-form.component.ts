@@ -120,19 +120,6 @@ export class RegisterFormComponent {
    *  step (see `registerSuccess` in the reducer). */
   protected readonly pendingEmail = this.store.selectSignal(selectPendingVerificationEmail);
 
-  /** Codes that get a purpose-written, translated message instead of the raw
-   *  English `ProblemDetails.title`. */
-  protected readonly errorTranslationKey = computed((): string | null => {
-    switch (this.errorCode()) {
-      case 'auth.verification_cooldown':
-        return 'auth.verification.registerCooldown';
-      case 'auth.registration_unavailable':
-        return 'auth.verification.registrationUnavailable';
-      default:
-        return null;
-    }
-  });
-
   protected readonly registerForm = this.fb.nonNullable.group({
     firstName: ['', [Validators.required]],
     lastName: ['', [Validators.required]],

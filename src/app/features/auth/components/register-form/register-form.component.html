@@ -80,11 +80,7 @@
     <p-message severity="error" styleClass="auth-form__message--error">
       <div class="auth-form__error-content">
         <strong>{{ 'auth.register.errorTitle' | translate }}</strong>
-        @if (errorTranslationKey(); as key) {
-          <span>{{ key | translate }}</span>
-        } @else {
-          <span>{{ error }}</span>
-        }
+        <span>{{ error }}</span>
       </div>
     </p-message>
   }

@@ -3,16 +3,12 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { catchError, map, of, switchMap, withLatestFrom } from 'rxjs';
 
-import { toApiErrorMessage } from '../../../api/http-error-message.util';
+import { ApiErrorMapper } from '../../../api/api-error-mapper';
 import { selectAuthUser } from '../../auth/store/auth.selectors';
 import type { CurrentUser } from '../../auth/models/auth.models';
 import type { UserProfile } from '../models/profile.model';
 import { ProfileApiService } from '../services/profile-api.service';
 import * as ProfileActions from './profile.actions';
-
-function toErrorMessage(error: unknown): string {
-  return toApiErrorMessage(error);
-}
 
 // Fallback used when GET /api/auth/me fails but the auth store already has a
 // CurrentUser (e.g. from login). CurrentUser doesn't carry avatarUrl/createdAt/
@@ -39,6 +35,7 @@ function mapAuthUserToProfile(user: CurrentUser): UserProfile {
 @Injectable()
 export class ProfileEffects {
   private readonly actions$ = inject(Actions);
+  private readonly apiErrors = inject(ApiErrorMapper);
   private readonly store = inject(Store);
   private readonly profileApi = inject(ProfileApiService);
 
@@ -59,7 +56,7 @@ export class ProfileEffects {
             }
             return of(
               ProfileActions.loadProfileFailure({
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             );
           }),

@@ -195,7 +195,7 @@ describe('SecurityPageComponent', () => {
     expect(component['bannerMessageKey']()).toBe('profile.security.errors.tooManyAttempts');
   });
 
-  it('falls back to the raw server message for an unrecognised error code', () => {
+  it('never shows the raw server message for an unrecognised error code', () => {
     const problem = new HttpErrorResponse({ status: 500, error: { title: 'Server exploded' } });
     const changePassword = vi.fn().mockReturnValue(throwError(() => problem));
     const fixture = setup(changePassword);
@@ -205,13 +205,12 @@ describe('SecurityPageComponent', () => {
     component['submit']();
 
     expect(component['bannerMessageKey']()).toBeNull();
-    expect(component['bannerMessage']()).toBe('Server exploded');
+    expect(component['bannerMessage']()).toBe('errors.server');
+    expect(component['bannerMessage']()).not.toContain('Server exploded');
   });
 
-  // `toApiErrorMessage`'s `unauthorizedMessage`/`serverErrorMessage` options are a last
-  // resort — they only kick in once the ProblemDetails body has nothing usable. These
-  // three specs cover that fallback wiring (added alongside the a11y fix below; the
-  // `unauthorizedMessage`/`serverErrorMessage` pass-through itself predates this change).
+  // Anything without a recognised errorCode resolves by status through the shared mapper
+  // (ADR-045); the server's own prose is never shown.
   describe('generic HTTP fallback messages (no recognised errorCode)', () => {
     it('renders the translated session-expired message for a bare 401 with no ProblemDetails body', () => {
       const problem = new HttpErrorResponse({ status: 401, error: null });
@@ -228,7 +227,7 @@ describe('SecurityPageComponent', () => {
       // `translate.instant()` resolves to the key itself — the same "translated, not the
       // default HttpErrorResponse message" assertion the other admin-store specs make via
       // their `{ instant: (k) => k }` double.
-      expect(component['bannerMessage']()).toBe('profile.security.errors.sessionExpired');
+      expect(component['bannerMessage']()).toBe('errors.sessionExpired');
       expect(component['bannerMessage']()).not.toContain('Http failure response');
     });
 
@@ -242,11 +241,11 @@ describe('SecurityPageComponent', () => {
       component['submit']();
 
       expect(component['bannerMessageKey']()).toBeNull();
-      expect(component['bannerMessage']()).toBe('profile.security.errors.serverError');
+      expect(component['bannerMessage']()).toBe('errors.server');
       expect(component['bannerMessage']()).not.toContain('Http failure response');
     });
 
-    it('still renders a ProblemDetails `title` for a 401 that carries one — the body wins over the unauthorizedMessage option (http-error-message.util.spec.ts:67-72)', () => {
+    it('does not render the ProblemDetails `title` of a 401 that carries one', () => {
       const problem = new HttpErrorResponse({
         status: 401,
         error: { title: 'Your session token is no longer valid' },
@@ -259,7 +258,8 @@ describe('SecurityPageComponent', () => {
       component['submit']();
 
       expect(component['bannerMessageKey']()).toBeNull();
-      expect(component['bannerMessage']()).toBe('Your session token is no longer valid');
+      expect(component['bannerMessage']()).toBe('errors.sessionExpired');
+      expect(component['bannerMessage']()).not.toContain('no longer valid');
     });
   });
 

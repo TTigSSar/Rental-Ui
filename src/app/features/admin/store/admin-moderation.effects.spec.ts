@@ -94,7 +94,7 @@ describe('AdminModerationEffects', () => {
       harness.send(AdminModerationActions.approveListing({ listingId: 'p1' }));
       harness.complete();
       expect(await result).toEqual([
-        AdminModerationActions.approveListingFailure({ listingId: 'p1', error: 'denied' }),
+        AdminModerationActions.approveListingFailure({ listingId: 'p1', error: 'errors.generic' }),
       ]);
     });
   });
@@ -147,7 +147,7 @@ describe('AdminModerationEffects', () => {
       );
       harness.complete();
       expect(await result).toEqual([
-        AdminModerationActions.updateListingCategoryFailure({ listingId: 'p1', error: 'nope' }),
+        AdminModerationActions.updateListingCategoryFailure({ listingId: 'p1', error: 'errors.generic' }),
       ]);
     });
   });
