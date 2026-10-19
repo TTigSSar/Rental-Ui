@@ -6,33 +6,19 @@ import { MessageService } from 'primeng/api';
 import { catchError, map, mergeMap, of, switchMap, tap, withLatestFrom } from 'rxjs';
 
 import { getApiErrorCode } from '../../../api/api-error.model';
-import { toApiErrorMessage } from '../../../api/http-error-message.util';
+import { ApiErrorMapper } from '../../../api/api-error-mapper';
 import { AdminUsersApiService } from '../services/admin-users-api.service';
 import * as AdminUsersActions from './admin-users.actions';
 import { selectUserRequestParams } from './admin-users.selectors';
-
-function toErrorMessage(error: unknown): string {
-  return toApiErrorMessage(error);
-}
 
 function toErrorCode(error: unknown): string | null {
   return getApiErrorCode(error);
 }
 
-/** Codes with dedicated, translated copy — `cannot_suspend_*` the UI already prevents by
- *  hiding/disabling the action (see `utils/admin-user-guards.util.ts`) but still handles
- *  gracefully if the server rejects it anyway (stale row, race with another admin tab);
- *  `user_not_found` covers a row deleted/changed between page load and the click. Anything
- *  else falls back to the raw (English) `ServiceError.Message` from the effect. */
-const KNOWN_ERROR_MESSAGE_KEYS: Record<string, string> = {
-  'admin.cannot_suspend_self': 'admin.users.errors.cannotSuspendSelf',
-  'admin.cannot_suspend_admin': 'admin.users.errors.cannotSuspendAdmin',
-  'admin.user_not_found': 'admin.users.errors.userNotFound',
-};
-
 @Injectable()
 export class AdminUsersEffects {
   private readonly actions$ = inject(Actions);
+  private readonly apiErrors = inject(ApiErrorMapper);
   private readonly store = inject(Store);
   private readonly usersApi = inject(AdminUsersApiService);
   private readonly messageService = inject(MessageService);
@@ -47,7 +33,7 @@ export class AdminUsersEffects {
         this.usersApi.getUserQueue(params).pipe(
           map((queue) => AdminUsersActions.loadUserQueueSuccess({ queue })),
           catchError((error: unknown) =>
-            of(AdminUsersActions.loadUserQueueFailure({ error: toErrorMessage(error) })),
+            of(AdminUsersActions.loadUserQueueFailure({ error: this.apiErrors.message(error) })),
           ),
         ),
       ),
@@ -94,7 +80,7 @@ export class AdminUsersEffects {
             of(
               AdminUsersActions.verifyUserFailure({
                 userId,
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
                 errorCode: toErrorCode(error),
               }),
             ),
@@ -114,7 +100,7 @@ export class AdminUsersEffects {
             of(
               AdminUsersActions.suspendUserFailure({
                 userId,
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
                 errorCode: toErrorCode(error),
               }),
             ),
@@ -134,7 +120,7 @@ export class AdminUsersEffects {
             of(
               AdminUsersActions.reactivateUserFailure({
                 userId,
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
                 errorCode: toErrorCode(error),
               }),
             ),
@@ -157,7 +143,7 @@ export class AdminUsersEffects {
             of(
               AdminUsersActions.loadAdminUserLookupFailure({
                 userId,
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -223,9 +209,7 @@ export class AdminUsersEffects {
           AdminUsersActions.suspendUserFailure,
           AdminUsersActions.reactivateUserFailure,
         ),
-        tap(({ errorCode, error }) => {
-          const messageKey = errorCode !== null ? KNOWN_ERROR_MESSAGE_KEYS[errorCode] : undefined;
-          const detail = messageKey !== undefined ? this.translate.instant(messageKey) : error;
+        tap(({ error: detail }) => {
           this.messageService.add({
             severity: 'error',
             summary: this.translate.instant('admin.users.toast.actionFailureTitle'),

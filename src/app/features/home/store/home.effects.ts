@@ -3,7 +3,7 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { catchError, forkJoin, from, map, of, switchMap, withLatestFrom } from 'rxjs';
 
-import { toApiErrorMessage } from '../../../api/http-error-message.util';
+import { ApiErrorMapper } from '../../../api/api-error-mapper';
 import * as AuthActions from '../../auth/store/auth.actions';
 import { selectHomePoint } from '../../auth/store/auth.selectors';
 import { GeolocationService } from '../../../shared/services/geolocation.service';
@@ -56,6 +56,7 @@ function mapPinsToMarkerGroups(pins: ListingMapPin[]): MapMarkerGroup[] {
 @Injectable()
 export class HomeEffects {
   private readonly actions$ = inject(Actions);
+  private readonly apiErrors = inject(ApiErrorMapper);
   private readonly store = inject(Store);
   private readonly homeApi = inject(HomeApiService);
   private readonly listingsApi = inject(ListingsApiService);
@@ -70,7 +71,7 @@ export class HomeEffects {
           catchError((error: unknown) =>
             of(
               HomeSectionsActions.loadFailure({
-                error: error instanceof Error ? error.message : 'Failed to load toy sections',
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -160,7 +161,7 @@ export class HomeEffects {
             }),
           ),
           catchError((error: unknown) =>
-            of(HomeNearbyActions.pinsLoadFailure({ error: toApiErrorMessage(error) })),
+            of(HomeNearbyActions.pinsLoadFailure({ error: this.apiErrors.message(error) })),
           ),
         );
       }),
@@ -236,7 +237,7 @@ export class HomeEffects {
             }),
           ),
           catchError((error: unknown) =>
-            of(HomeNearbyActions.pinsLoadFailure({ error: toApiErrorMessage(error) })),
+            of(HomeNearbyActions.pinsLoadFailure({ error: this.apiErrors.message(error) })),
           ),
         );
       }),
@@ -278,7 +279,7 @@ export class HomeEffects {
               }),
             ),
             catchError((error: unknown) =>
-              of(HomeNearbyActions.pinsLoadFailure({ error: toApiErrorMessage(error) })),
+              of(HomeNearbyActions.pinsLoadFailure({ error: this.apiErrors.message(error) })),
             ),
           ),
       ),

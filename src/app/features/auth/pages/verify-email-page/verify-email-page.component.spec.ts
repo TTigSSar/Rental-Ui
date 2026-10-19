@@ -183,7 +183,7 @@ describe('VerifyEmailPageComponent — submit', () => {
     expect(component['showResend']()).toBe(false);
   });
 
-  it('blocked (403 user_blocked): shows the server message, no resend', () => {
+  it('blocked (403 user_blocked): shows the translated blocked message, no resend', () => {
     const { component } = setup({
       api: {
         verifyEmail: vi
@@ -196,7 +196,7 @@ describe('VerifyEmailPageComponent — submit', () => {
     component['submit']();
 
     expect(component['error']()).toBe('blocked');
-    expect(component['serverMessage']()).toBe('User is blocked');
+    expect(component['serverMessage']()).toBe('errors.userBlocked');
     expect(component['showResend']()).toBe(false);
   });
 

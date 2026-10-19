@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { provideTranslateService } from '@ngx-translate/core';
 import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
@@ -21,6 +22,8 @@ function setup(api: Partial<AuthApiService> = {}, authRedirect: Partial<AuthRedi
   const authRedirectService = { consume: vi.fn().mockReturnValue(null), ...authRedirect };
   TestBed.configureTestingModule({
     providers: [
+
+      provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
       AuthEffects,
       harness.provider,
       provideMockStore(),
@@ -188,6 +191,7 @@ describe('AuthEffects — email verification (ADR-028)', () => {
     const router = { navigateByUrl: vi.fn() };
     TestBed.configureTestingModule({
       providers: [
+        provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
         AuthEffects,
         harness.provider,
         provideMockStore(),
@@ -271,7 +275,7 @@ describe('AuthEffects — email verification (ADR-028)', () => {
 
     expect(emitted).toEqual([
       AuthActions.loginFailure({
-        error: 'Email not verified',
+        error: 'errors.emailNotVerified',
         errorCode: 'auth.email_not_verified',
       }),
     ]);

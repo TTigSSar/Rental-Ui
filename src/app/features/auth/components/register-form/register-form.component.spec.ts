@@ -341,14 +341,9 @@ describe('RegisterFormComponent — email verification (ADR-028)', () => {
     expect(el.querySelector('form.auth-form')).not.toBeNull();
   });
 
-  it.each([
-    ['auth.verification_cooldown', 'auth.verification.registerCooldown'],
-    ['auth.registration_unavailable', 'auth.verification.registrationUnavailable'],
-  ])('%s gets a translated message instead of the raw server title', (code, key) => {
-    const { fixture } = setup({ error: 'Raw English title', errorCode: code });
+  it('renders the store message, already translated, in the banner', () => {
+    const { fixture } = setup({ error: 'Translated message', errorCode: 'auth.verification_cooldown' });
 
-    expect(fixture.componentInstance['errorTranslationKey']()).toBe(key);
-    expect(fixture.nativeElement.textContent).toContain(key);
-    expect(fixture.nativeElement.textContent).not.toContain('Raw English title');
+    expect(fixture.nativeElement.textContent).toContain('Translated message');
   });
 });

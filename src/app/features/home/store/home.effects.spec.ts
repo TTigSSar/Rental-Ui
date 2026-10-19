@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideTranslateService } from '@ngx-translate/core';
 import { provideMockStore } from '@ngrx/store/testing';
 import { of, throwError } from 'rxjs';
 
@@ -27,6 +28,7 @@ function setup(
   const harness = actionsHarness();
   TestBed.configureTestingModule({
     providers: [
+      provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
       HomeEffects,
       harness.provider,
       provideMockStore({
@@ -333,7 +335,7 @@ describe('HomeEffects — hero map "nearby toys" preview', () => {
       );
       harness.complete();
 
-      expect(await collected).toEqual([HomeNearbyActions.pinsLoadFailure({ error: 'boom' })]);
+      expect(await collected).toEqual([HomeNearbyActions.pinsLoadFailure({ error: 'errors.generic' })]);
     });
   });
 
@@ -410,7 +412,7 @@ describe('HomeEffects — hero map "nearby toys" preview', () => {
       harness.send(HomeNearbyActions.useFallbackOrigin());
       harness.complete();
 
-      expect(await collected).toEqual([HomeNearbyActions.pinsLoadFailure({ error: 'offline' })]);
+      expect(await collected).toEqual([HomeNearbyActions.pinsLoadFailure({ error: 'errors.generic' })]);
     });
   });
 });

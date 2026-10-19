@@ -7,7 +7,12 @@ import { HttpErrorResponse } from '@angular/common/http';
  * ListingsOwnerService, NotificationsService, ReviewsService). Nothing on the backend
  * exports these today, so this list is NOT generated — re-grep
  * `private static class ErrorCodes` across that folder when a backend PR adds/renames a
- * code, and update this list in the same change.
+ * code, and update this list in the same change. Not every code lives in an `ErrorCodes`
+ * class: `auth.external_provider_unavailable` is a literal in
+ * `RentalPlatform.Infrastructure/Services/ExternalIdentityTokenValidator.cs` and
+ * `AuthController.FromError`, and `AdminMessagesController.FromError` names the
+ * `admin.cannot_message_*` codes, so also grep `"(admin|auth|booking|chat|listing|report|review).` in
+ * `rental-api/src/RentalPlatform.Api/Controllers` and `.Infrastructure`.
  *
  * Deliberately a *widened* literal union (`KnownApiErrorCode | (string & {})`, exported as
  * `ApiErrorCode`) rather than a closed union: `errorCode` is a live wire value produced by
@@ -59,6 +64,11 @@ export type KnownApiErrorCode =
   // Listing/User/Message is invalid — AdminReportsController.
   | 'admin.report_target_filter_incomplete'
   | 'admin.report_invalid_target_filter'
+  // admin.cannot_message_* — AdminMessagesService (admin Messages screen, open a thread for a user).
+  // Both 400 via AdminMessagesController.FromError: opening a thread with your own account /
+  // with another admin.
+  | 'admin.cannot_message_self'
+  | 'admin.cannot_message_admin'
   // auth.* — AuthService
   | 'auth.duplicate_email'
   | 'auth.invalid_credentials'
@@ -74,6 +84,11 @@ export type KnownApiErrorCode =
   | 'auth.external_provider_unavailable'
   // 400 on PUT /api/auth/me/name.
   | 'auth.invalid_name'
+  // 400 (AuthController.FromError default branch) from AuthService: PUT /api/auth/me/phone with a
+  // phone outside 1-32 characters (backstop behind the request-model validation), and the
+  // preferred-language update with a value outside en/hy/ru.
+  | 'auth.invalid_phone'
+  | 'auth.invalid_language'
   // Email verification (ADR-028).
   // 403 on POST /api/auth/login (checked after invalid_credentials and user_blocked).
   | 'auth.email_not_verified'

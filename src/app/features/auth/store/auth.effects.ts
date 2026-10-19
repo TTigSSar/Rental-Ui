@@ -18,8 +18,8 @@ import {
   withLatestFrom,
 } from 'rxjs';
 
+import { ApiErrorMapper } from '../../../api/api-error-mapper';
 import { getApiErrorCode } from '../../../api/api-error.model';
-import { toApiErrorMessage } from '../../../api/http-error-message.util';
 import { LanguageService } from '../../../shared/services/language.service';
 import { AuthRedirectService } from '../services/auth-redirect.service';
 import { AuthApiService } from '../services/auth-api.service';
@@ -28,16 +28,10 @@ import { AuthTokenService } from '../services/auth-token.service';
 import * as AuthActions from './auth.actions';
 import { selectAuthToken, selectAuthUser, selectIsAuthenticated } from './auth.selectors';
 
-function toErrorMessage(error: unknown): string {
-  return toApiErrorMessage(error, {
-    unauthorizedMessage: 'Your session has expired. Please log in again.',
-    serverErrorMessage: 'Service is temporarily unavailable. Please try again.',
-  });
-}
-
 @Injectable()
 export class AuthEffects {
   private readonly actions$ = inject(Actions);
+  private readonly apiErrors = inject(ApiErrorMapper);
   private readonly store = inject(Store);
   private readonly router = inject(Router);
   private readonly authApi = inject(AuthApiService);
@@ -55,7 +49,7 @@ export class AuthEffects {
           catchError((error: unknown) =>
             of(
               AuthActions.loginFailure({
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
                 // 403 `auth.email_not_verified` vs 403 `auth.user_blocked`: told
                 // apart by code, never by status (ADR-028).
                 errorCode: getApiErrorCode(error),
@@ -90,7 +84,7 @@ export class AuthEffects {
           catchError((error: unknown) =>
             of(
               AuthActions.registerFailure({
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
                 // Sign-up branches on this: `auth.duplicate_email` returns to
                 // step 1, `auth.home_point_outside_yerevan` stays on step 2.
                 errorCode: getApiErrorCode(error),
@@ -120,7 +114,7 @@ export class AuthEffects {
             catchError((error: unknown) =>
               of(
                 AuthActions.externalAuthFailure({
-                  error: toErrorMessage(error),
+                  error: this.apiErrors.message(error),
                   // 409 conflict / pending / 403 blocked / 503 unavailable are told apart
                   // by code; the rate limiter's 429 carries none, hence the status.
                   errorCode: getApiErrorCode(error),
@@ -147,7 +141,7 @@ export class AuthEffects {
         this.externalAuthProvider.getIdToken(provider).pipe(
           map((idToken) => AuthActions.externalAuth({ provider, idToken })),
           catchError((error: unknown) =>
-            of(AuthActions.externalAuthFailure({ error: toErrorMessage(error) })),
+            of(AuthActions.externalAuthFailure({ error: this.apiErrors.message(error) })),
           ),
         ),
       ),
@@ -243,7 +237,7 @@ export class AuthEffects {
           catchError((error: unknown) =>
             of(
               AuthActions.loadCurrentUserFailure({
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
                 preserveSession: !(error instanceof HttpErrorResponse && error.status === 401),
               }),
             ),
@@ -273,7 +267,7 @@ export class AuthEffects {
           catchError((error: unknown) =>
             of(
               AuthActions.updateHomePointFailure({
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
                 errorCode: getApiErrorCode(error),
               }),
             ),
@@ -298,7 +292,7 @@ export class AuthEffects {
           catchError((error: unknown) =>
             of(
               AuthActions.updateNameFailure({
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
                 errorCode: getApiErrorCode(error),
               }),
             ),
@@ -320,7 +314,7 @@ export class AuthEffects {
           catchError((error: unknown) =>
             of(
               AuthActions.updatePhoneFailure({
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
                 errorCode: getApiErrorCode(error),
               }),
             ),
@@ -350,7 +344,7 @@ export class AuthEffects {
           catchError((error: unknown) =>
             of(
               AuthActions.clearHomePointFailure({
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
                 errorCode: getApiErrorCode(error),
               }),
             ),

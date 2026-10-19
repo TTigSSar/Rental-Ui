@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { mockApi } from './support/api-mock';
+import { enText } from './support/i18n';
 import {
   e2eAdmin,
   e2eAdminMessageThread,
@@ -345,7 +346,8 @@ test.describe('Admin messages', () => {
     const errorBlock = page.locator('.messages-page__list-error');
     await expect(errorBlock).toBeVisible();
     await expect(errorBlock).toContainText('Unable to load conversations');
-    await expect(errorBlock).toContainText('Server error');
+    await expect(errorBlock).toContainText(enText('errors.server'));
+    await expect(errorBlock).not.toContainText('Server error');
     await expect(page.getByText('Renata Renter')).toHaveCount(0);
 
     const countBeforeRetry = getCount;
@@ -416,7 +418,8 @@ test.describe('Admin messages', () => {
 
     // Fails gracefully: a toast surfaces the real backend error...
     await expect(page.getByText("Couldn't open conversation")).toBeVisible();
-    await expect(page.getByText('Member not found')).toBeVisible();
+    await expect(page.getByText(enText('errors.notFound'))).toBeVisible();
+    await expect(page.getByText('Member not found')).toHaveCount(0);
 
     // ...the `?userId=` param is stripped regardless of success/failure (no perpetual
     // re-open-on-refresh loop)...

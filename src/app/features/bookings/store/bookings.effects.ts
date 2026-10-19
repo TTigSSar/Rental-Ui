@@ -1,40 +1,19 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { TranslateService } from '@ngx-translate/core';
 import { catchError, concatMap, map, of, switchMap, tap } from 'rxjs';
 
-import { type ApiErrorCode, getApiErrorCode } from '../../../api/api-error.model';
-import { toApiErrorMessage } from '../../../api/http-error-message.util';
+import { ApiErrorMapper } from '../../../api/api-error-mapper';
+import { getApiErrorCode } from '../../../api/api-error.model';
 import { BookingsApiService } from '../services/bookings-api.service';
 import { OwnerRequestsBadgeService } from '../services/owner-requests-badge.service';
 import * as BookingsActions from './bookings.actions';
 
-/**
- * Server ServiceError codes → i18n keys, for the (currently few) booking.* codes whose
- * backend `title` isn't a fit for direct display. Unmapped codes fall through to the
- * generic ProblemDetails `title` via `toApiErrorMessage` — see `ChatEffects` for the
- * pattern this mirrors.
- */
-const BOOKING_ERROR_MESSAGE_KEYS: Readonly<Partial<Record<ApiErrorCode, string>>> = {
-  'booking.note_too_long': 'listings.booking.noteTooLongError',
-  // ADR-043. Generic (no N): the effect has no listing; the page already shows the live minimum.
-  'booking.below_min_rental': 'listings.booking.belowMinRentalError',
-};
-
 @Injectable()
 export class BookingsEffects {
   private readonly actions$ = inject(Actions);
+  private readonly apiErrors = inject(ApiErrorMapper);
   private readonly bookingsApi = inject(BookingsApiService);
-  private readonly translate = inject(TranslateService);
   private readonly ownerRequestsBadge = inject(OwnerRequestsBadgeService);
-
-  private toErrorMessage(error: unknown): string {
-    const key = BOOKING_ERROR_MESSAGE_KEYS[getApiErrorCode(error) ?? ''];
-    if (key === undefined) {
-      return toApiErrorMessage(error);
-    }
-    return this.translate.instant(key, { max: 280 });
-  }
 
   readonly createBooking$ = createEffect(() =>
     this.actions$.pipe(
@@ -45,7 +24,7 @@ export class BookingsEffects {
           catchError((error: unknown) =>
             of(
               BookingsActions.createBookingFailure({
-                error: this.toErrorMessage(error),
+                error: this.apiErrors.message(error),
                 errorCode: getApiErrorCode(error),
               }),
             ),
@@ -71,7 +50,7 @@ export class BookingsEffects {
           catchError((error: unknown) =>
             of(
               BookingsActions.loadMyBookingsFailure({
-                error: this.toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -91,7 +70,7 @@ export class BookingsEffects {
           catchError((error: unknown) =>
             of(
               BookingsActions.loadBookingRequestsFailure({
-                error: this.toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -115,7 +94,7 @@ export class BookingsEffects {
             of(
               BookingsActions.approveBookingRequestFailure({
                 bookingId,
-                error: this.toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -140,7 +119,7 @@ export class BookingsEffects {
             of(
               BookingsActions.rejectBookingRequestFailure({
                 bookingId,
-                error: this.toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -180,7 +159,7 @@ export class BookingsEffects {
           catchError((error: unknown) =>
             of(
               BookingsActions.loadBookingDetailFailure({
-                error: this.toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -199,7 +178,7 @@ export class BookingsEffects {
             of(
               BookingsActions.bookingActionFailure({
                 bookingId,
-                error: this.toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -218,7 +197,7 @@ export class BookingsEffects {
             of(
               BookingsActions.bookingActionFailure({
                 bookingId,
-                error: this.toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -244,7 +223,7 @@ export class BookingsEffects {
           catchError((error: unknown) =>
             of(
               BookingsActions.cancelBookingFailure({
-                error: this.toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),

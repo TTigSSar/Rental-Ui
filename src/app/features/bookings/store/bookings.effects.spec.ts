@@ -79,7 +79,7 @@ describe('BookingsEffects', () => {
       harness.send(BookingsActions.createBooking({ payload: { listingId: 'l1', startDate: 'a', endDate: 'b' } }));
       harness.complete();
 
-      expect(await result).toEqual([BookingsActions.createBookingFailure({ error: 'nope', errorCode: null })]);
+      expect(await result).toEqual([BookingsActions.createBookingFailure({ error: 'errors.generic', errorCode: null })]);
     });
 
     it('maps booking.note_too_long to the translated i18n message, not the raw ProblemDetails title', async () => {
@@ -154,7 +154,7 @@ describe('BookingsEffects', () => {
 
       expect(await result).toEqual([
         BookingsActions.createBookingFailure({
-          error: 'Phone number is required.',
+          error: 'errors.phoneRequired',
           errorCode: 'booking.phone_required',
         }),
       ]);
@@ -190,7 +190,7 @@ describe('BookingsEffects', () => {
       harness.send(BookingsActions.approveBookingRequest({ bookingId: 'b1' }));
       harness.complete();
       expect(await result).toEqual([
-        BookingsActions.approveBookingRequestFailure({ bookingId: 'b1', error: 'x' }),
+        BookingsActions.approveBookingRequestFailure({ bookingId: 'b1', error: 'errors.generic' }),
       ]);
     });
   });
@@ -267,7 +267,7 @@ describe('BookingsEffects', () => {
       harness.send(BookingsActions.completeBooking({ bookingId: 'b1' }));
       harness.complete();
       expect(await result).toEqual([
-        BookingsActions.bookingActionFailure({ bookingId: 'b1', error: 'boom' }),
+        BookingsActions.bookingActionFailure({ bookingId: 'b1', error: 'errors.generic' }),
       ]);
     });
 

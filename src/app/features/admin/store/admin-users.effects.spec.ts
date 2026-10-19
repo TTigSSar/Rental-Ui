@@ -104,7 +104,7 @@ describe('AdminUsersEffects', () => {
       harness.send(AdminUsersActions.loadAdminUserLookup({ userId: 'u1' }));
       harness.complete();
       expect(await result).toEqual([
-        AdminUsersActions.loadAdminUserLookupFailure({ userId: 'u1', error: 'Not found' }),
+        AdminUsersActions.loadAdminUserLookupFailure({ userId: 'u1', error: 'admin.users.errors.userNotFound' }),
       ]);
     });
   });
@@ -133,7 +133,7 @@ describe('AdminUsersEffects', () => {
       expect(await result).toEqual([
         AdminUsersActions.verifyUserFailure({
           userId: 'u1',
-          error: 'Not found',
+          error: 'admin.users.errors.userNotFound',
           errorCode: 'admin.user_not_found',
         }),
       ]);
@@ -164,7 +164,7 @@ describe('AdminUsersEffects', () => {
       expect(await result).toEqual([
         AdminUsersActions.suspendUserFailure({
           userId: 'u1',
-          error: 'Cannot suspend an admin',
+          error: 'admin.users.errors.cannotSuspendAdmin',
           errorCode: 'admin.cannot_suspend_admin',
         }),
       ]);
@@ -196,25 +196,25 @@ describe('AdminUsersEffects', () => {
       );
     });
 
-    it('shows the dedicated cannot_suspend_self message instead of the raw error', () => {
+    it('shows the already-translated store message in the error toast', () => {
       const { harness, messageService, effects } = setup();
       effects.actionFailureToast$.subscribe();
       harness.send(
         AdminUsersActions.suspendUserFailure({
           userId: 'u1',
-          error: 'You cannot suspend your own account.',
+          error: 'Translated message',
           errorCode: 'admin.cannot_suspend_self',
         }),
       );
       expect(messageService.add).toHaveBeenCalledWith(
         expect.objectContaining({
           severity: 'error',
-          detail: 'admin.users.errors.cannotSuspendSelf',
+          detail: 'Translated message',
         }),
       );
     });
 
-    it('falls back to the raw error message for an unknown error code', () => {
+    it('shows the store message when the failure carries no error code', () => {
       const { harness, messageService, effects } = setup();
       effects.actionFailureToast$.subscribe();
       harness.send(

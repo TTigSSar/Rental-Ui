@@ -5,18 +5,15 @@ import { TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import { catchError, map, mergeMap, of, switchMap, tap, withLatestFrom } from 'rxjs';
 
-import { toApiErrorMessage } from '../../../api/http-error-message.util';
+import { ApiErrorMapper } from '../../../api/api-error-mapper';
 import { AdminListingsApiService } from '../services/admin-listings-api.service';
 import * as AdminModerationActions from './admin-moderation.actions';
 import { selectQueueRequestParams } from './admin-moderation.selectors';
 
-function toErrorMessage(error: unknown): string {
-  return toApiErrorMessage(error);
-}
-
 @Injectable()
 export class AdminModerationEffects {
   private readonly actions$ = inject(Actions);
+  private readonly apiErrors = inject(ApiErrorMapper);
   private readonly store = inject(Store);
   private readonly adminListingsApi = inject(AdminListingsApiService);
   private readonly messageService = inject(MessageService);
@@ -31,7 +28,7 @@ export class AdminModerationEffects {
         this.adminListingsApi.getListingQueue(params).pipe(
           map((queue) => AdminModerationActions.loadListingQueueSuccess({ queue })),
           catchError((error: unknown) =>
-            of(AdminModerationActions.loadListingQueueFailure({ error: toErrorMessage(error) })),
+            of(AdminModerationActions.loadListingQueueFailure({ error: this.apiErrors.message(error) })),
           ),
         ),
       ),
@@ -71,7 +68,7 @@ export class AdminModerationEffects {
             of(
               AdminModerationActions.approveListingFailure({
                 listingId,
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -90,7 +87,7 @@ export class AdminModerationEffects {
             of(
               AdminModerationActions.rejectListingFailure({
                 listingId,
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -112,7 +109,7 @@ export class AdminModerationEffects {
             of(
               AdminModerationActions.updateListingCategoryFailure({
                 listingId,
-                error: toErrorMessage(error),
+                error: this.apiErrors.message(error),
               }),
             ),
           ),
@@ -129,7 +126,7 @@ export class AdminModerationEffects {
         this.adminListingsApi.getListingDetail(listingId).pipe(
           map((detail) => AdminModerationActions.loadListingDetailSuccess({ detail })),
           catchError((error: unknown) =>
-            of(AdminModerationActions.loadListingDetailFailure({ error: toErrorMessage(error) })),
+            of(AdminModerationActions.loadListingDetailFailure({ error: this.apiErrors.message(error) })),
           ),
         ),
       ),

@@ -118,7 +118,7 @@ describe('AdminMessagesEffects', () => {
     harness.send(AdminMessagesActions.loadMessageThreads());
     harness.complete();
     expect(await result).toEqual([
-      AdminMessagesActions.loadMessageThreadsFailure({ error: 'boom' }),
+      AdminMessagesActions.loadMessageThreadsFailure({ error: 'errors.generic' }),
     ]);
   });
 
@@ -157,7 +157,7 @@ describe('AdminMessagesEffects', () => {
     harness.send(AdminMessagesActions.selectMessageThread({ conversationId: 'c1' }));
     harness.complete();
     expect(await result).toEqual([
-      AdminMessagesActions.loadMessageThreadDetailFailure({ error: 'nope' }),
+      AdminMessagesActions.loadMessageThreadDetailFailure({ error: 'errors.generic' }),
     ]);
   });
 
@@ -191,7 +191,7 @@ describe('AdminMessagesEffects', () => {
     harness.send(AdminMessagesActions.markMessageThreadRead({ conversationId: 'c1' }));
     harness.complete();
     expect(await result).toEqual([
-      AdminMessagesActions.markMessageThreadReadFailure({ error: 'boom' }),
+      AdminMessagesActions.markMessageThreadReadFailure({ error: 'errors.generic' }),
     ]);
   });
 
@@ -220,7 +220,7 @@ describe('AdminMessagesEffects', () => {
     );
     harness.complete();
     expect(await result).toEqual([
-      AdminMessagesActions.sendMessageThreadMessageFailure({ error: 'boom' }),
+      AdminMessagesActions.sendMessageThreadMessageFailure({ error: 'errors.generic' }),
     ]);
   });
 
@@ -245,7 +245,7 @@ describe('AdminMessagesEffects', () => {
     harness.send(AdminMessagesActions.openMessageThreadForUser({ userId: 'user-9' }));
     harness.complete();
     expect(await result).toEqual([
-      AdminMessagesActions.openMessageThreadForUserFailure({ error: 'boom' }),
+      AdminMessagesActions.openMessageThreadForUserFailure({ error: 'errors.generic' }),
     ]);
   });
 

@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideTranslateService } from '@ngx-translate/core';
 import { Router } from '@angular/router';
 import { Actions } from '@ngrx/effects';
 import { Store, createAction, createReducer, on, provideStore } from '@ngrx/store';
@@ -24,6 +25,7 @@ const favReducer = createReducer(
 function setup() {
   TestBed.configureTestingModule({
     providers: [
+      provideTranslateService({ lang: 'en', fallbackLang: 'en' }),
       provideStore(
         { [authFeatureKey]: authReducer, fav: favReducer },
         { metaReducers: sessionResetMetaReducers },

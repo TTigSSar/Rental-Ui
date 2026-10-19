@@ -12,7 +12,7 @@ import { Store } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { StarRatingComponent } from '../../../../shared/ui/star-rating/star-rating.component';
-import { toApiErrorMessage } from '../../../../api/http-error-message.util';
+import { ApiErrorMapper } from '../../../../api/api-error-mapper';
 import { ReviewsApiService } from '../../../reviews/services/reviews-api.service';
 import * as BookingsActions from '../../store/bookings.actions';
 import { selectMyBookingById } from '../../store/bookings.selectors';
@@ -45,6 +45,7 @@ export class SubmitReviewPageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly api = inject(ReviewsApiService);
+  private readonly apiErrors = inject(ApiErrorMapper);
 
   protected readonly bookingId = this.route.snapshot.paramMap.get('bookingId') ?? '';
 
@@ -172,7 +173,7 @@ export class SubmitReviewPageComponent implements OnInit {
         },
         error: (e: unknown) => {
           this.submitting.set(false);
-          this.error.set(toApiErrorMessage(e));
+          this.error.set(this.apiErrors.message(e));
         },
       });
   }
@@ -211,7 +212,7 @@ export class SubmitReviewPageComponent implements OnInit {
         },
         error: (e: unknown) => {
           this.submitting.set(false);
-          this.error.set(toApiErrorMessage(e));
+          this.error.set(this.apiErrors.message(e));
         },
       });
   }
