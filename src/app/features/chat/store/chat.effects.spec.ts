@@ -39,6 +39,10 @@ function makeRealtimeMessage(overrides: Partial<ChatRealtimeMessage> = {}): Chat
   };
 }
 
+function makeResolvedMessage(): ChatMessage {
+  return { ...makeRealtimeMessage(), isMine: false, seen: false };
+}
+
 function makeActiveConversation(
   overrides: Partial<ChatConversationDetails> = {},
 ): ChatConversationDetails {
@@ -107,13 +111,14 @@ function setup(chatApi: Partial<ChatApiService> = {}) {
   const harness = actionsHarness();
   const router = { navigate: vi.fn().mockResolvedValue(true) };
   const messageService = { add: vi.fn() };
+  const badge = { setUnreadCount: vi.fn(), requestRefresh: vi.fn() };
   TestBed.configureTestingModule({
     providers: [
       ChatEffects,
       harness.provider,
       provideMockStore(),
       { provide: ChatApiService, useValue: chatApi },
-      { provide: ChatBadgeService, useValue: { setUnreadCount: vi.fn() } },
+      { provide: ChatBadgeService, useValue: badge },
       { provide: TranslateService, useValue: translateStub() },
       { provide: Router, useValue: router },
       { provide: MessageService, useValue: messageService },
@@ -129,10 +134,48 @@ function setup(chatApi: Partial<ChatApiService> = {}) {
     effects: TestBed.inject(ChatEffects),
     router,
     messageService,
+    badge,
   };
 }
 
 describe('ChatEffects', () => {
+  describe('refreshBadge$', () => {
+    it('requests a badge refresh on a realtime message and on own booking actions', async () => {
+      const { harness, effects, badge } = setup();
+      const result = collect(effects.refreshBadge$);
+      harness.send(ChatActions.realtimeMessageResolved({ message: makeResolvedMessage() }));
+      harness.send(BookingsActions.cancelBookingSuccess({ bookingId: 'b1' }));
+      harness.send(
+        BookingsActions.approveBookingRequestSuccess({ bookingId: 'b1', status: 'Approved' }),
+      );
+      harness.complete();
+      await result;
+      expect(badge.requestRefresh).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe('inbox row after a not-open system line', () => {
+    it('re-fetches the inbox once for a system line on a known, non-open thread', async () => {
+      const { harness, store, effects } = setup();
+      store.overrideSelector(selectConversations, [{ id: 'c2' } as ChatConversationPreview]);
+      store.refreshState();
+      const result = collect(effects.realtimeMessageReceived$);
+      harness.send(
+        ChatActions.realtimeMessageReceived({
+          message: makeRealtimeMessage({
+            conversationId: 'c2',
+            type: 'system',
+            systemKind: 'approved',
+            senderId: null,
+          }),
+        }),
+      );
+      harness.complete();
+      const emitted = await result;
+      expect(emitted.filter((a) => a.type === ChatActions.loadConversations.type)).toHaveLength(1);
+    });
+  });
+
   describe('reloadAfterBookingAction$', () => {
     it('re-fetches the open conversation when its booking transitions', async () => {
       const { harness, effects } = setup();

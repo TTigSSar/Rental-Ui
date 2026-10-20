@@ -1,7 +1,11 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Subscription, timer } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, Subscription, debounceTime, timer } from 'rxjs';
 
 import { ChatApiService } from './chat-api.service';
+
+/** Coalescing window for event-driven refreshes (ms). */
+const REFRESH_DEBOUNCE_MS = 300;
 
 /** How often the global badge re-polls the unread count (ms). */
 const POLL_INTERVAL_MS = 60_000;
@@ -27,6 +31,14 @@ export class ChatBadgeService {
   readonly unreadCount = this.unreadCountSignal.asReadonly();
 
   private pollSubscription: Subscription | null = null;
+
+  private readonly refreshRequests = new Subject<void>();
+
+  constructor() {
+    this.refreshRequests
+      .pipe(debounceTime(REFRESH_DEBOUNCE_MS), takeUntilDestroyed())
+      .subscribe(() => this.refresh());
+  }
 
   /** Begin polling the unread count. Idempotent. Call once the user signs in. */
   start(): void {
@@ -59,6 +71,15 @@ export class ChatBadgeService {
       // poll tick retries.
       error: () => {},
     });
+  }
+
+  /**
+   * Debounced {@link refresh}: several triggers in a burst (a realtime system line
+   * plus the viewer's own action success) collapse into ONE fetch. Not a loop —
+   * it fires once per burst.
+   */
+  requestRefresh(): void {
+    this.refreshRequests.next();
   }
 
   /** Optimistically set the count (e.g. after opening a conversation). */

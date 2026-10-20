@@ -256,6 +256,17 @@ export class ChatEffects {
           );
         }
 
+        // A system line for a thread that is NOT open changes its derived status,
+        // which the message alone cannot give the inbox row: reconcile once with
+        // the server list (unknown threads already got this above).
+        if (
+          !isOpen &&
+          message.type === 'system' &&
+          conversations.some((c) => c.id === message.conversationId)
+        ) {
+          actions.push(ChatActions.loadConversations());
+        }
+
         // A system message fires only on a real booking transition. Re-fetch the
         // open conversation so the server re-derives the authoritative `status`
         // and `isClosed` (ADR-001: "closed" also depends on both reviews being
@@ -297,6 +308,27 @@ export class ChatEffects {
           : [];
       }),
     ),
+  );
+
+  /**
+   * Refresh the global badge from the server right away (debounced in the
+   * service) instead of waiting for the 60 s poll: a rental status change is an
+   * unread message for the OTHER party, and the viewer's own action can change
+   * what the server counts as unread for them (ADR-001 amendment).
+   */
+  readonly refreshBadge$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(
+          ChatActions.realtimeMessageResolved,
+          BookingsActions.approveBookingRequestSuccess,
+          BookingsActions.rejectBookingRequestSuccess,
+          BookingsActions.cancelBookingSuccess,
+          BookingsActions.bookingActionSuccess,
+        ),
+        tap(() => this.chatBadge.requestRefresh()),
+      ),
+    { dispatch: false },
   );
 
   /** Resolve the `conversationRead` reader identity against the current user. */

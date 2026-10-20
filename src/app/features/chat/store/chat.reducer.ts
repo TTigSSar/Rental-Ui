@@ -77,6 +77,40 @@ function toInboxPreview(details: ChatConversationDetails): ChatConversationPrevi
 }
 
 /**
+ * Refresh the inbox row of a conversation from freshly loaded details: status
+ * and the last-message preview (from the tail of the messages). `unreadCount`
+ * is deliberately untouched — opening/loading details never bumps it, so the
+ * actor's own action cannot create an unread. Rows not in the inbox are left
+ * alone (the open-from-booking flow adds them separately).
+ */
+function patchInboxFromDetails(
+  conversations: ChatConversationPreview[],
+  details: ChatConversationDetails,
+): ChatConversationPreview[] {
+  if (!conversations.some((c) => c.id === details.id)) {
+    return conversations;
+  }
+  const last = details.messages.at(-1) ?? null;
+  return conversations.map((c) =>
+    c.id !== details.id
+      ? c
+      : {
+          ...c,
+          status: details.status,
+          ...(last === null
+            ? {}
+            : {
+                lastMessageSnippet: last.body,
+                lastMessageType: last.type,
+                lastMessageSystemKind: last.systemKind,
+                lastMessageIsMine: last.isMine,
+                lastMessageAt: last.sentAt,
+              }),
+        },
+  );
+}
+
+/**
  * Append `message` to the open conversation, deduped by the stable server id.
  *
  * A sent message reaches the client through TWO channels — the HTTP response of
@@ -134,6 +168,7 @@ export const chatReducer = createReducer(
     ChatActions.loadConversationDetailsSuccess,
     (state, { conversation }): ChatState => ({
       ...state,
+      conversations: patchInboxFromDetails(state.conversations, conversation),
       activeConversation: conversation,
       activeConversationLoading: false,
       activeConversationError: null,
