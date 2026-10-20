@@ -36,6 +36,7 @@ function applyMessageToInbox(
       // previous (now stale) snippet.
       lastMessageSnippet: message.body,
       lastMessageType: message.type,
+      lastMessageSystemKind: message.systemKind,
       lastMessageIsMine: message.isMine,
       lastMessageAt: message.sentAt,
       unreadCount: bumpsUnread
@@ -69,6 +70,7 @@ function toInboxPreview(details: ChatConversationDetails): ChatConversationPrevi
     lastMessageSnippet: last?.body ?? null,
     lastMessageAt: last?.sentAt ?? null,
     lastMessageType: last?.type ?? null,
+    lastMessageSystemKind: last?.systemKind ?? null,
     lastMessageIsMine: last?.isMine ?? false,
     unreadCount: 0,
   };

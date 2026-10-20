@@ -21,6 +21,7 @@ function preview(overrides: Partial<ChatConversationPreview>): ChatConversationP
     lastMessageSnippet: 'Enjoy! Ping me any time.',
     lastMessageAt: '2026-07-07T10:00:00.000Z',
     lastMessageType: 'text',
+    lastMessageSystemKind: null,
     lastMessageIsMine: false,
     unreadCount: 0,
     ...overrides,

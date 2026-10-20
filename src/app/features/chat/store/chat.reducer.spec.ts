@@ -20,6 +20,7 @@ function makePreview(overrides: Partial<ChatConversationPreview> = {}): ChatConv
     lastMessageSnippet: 'See you soon',
     lastMessageAt: '2026-07-07T10:00:00.000Z',
     lastMessageType: 'text',
+    lastMessageSystemKind: null,
     lastMessageIsMine: false,
     unreadCount: 3,
     ...overrides,

@@ -75,6 +75,12 @@ export interface ChatConversationPreview {
    * the server never bakes in a literal display string.
    */
   lastMessageType: ChatMessageType | null;
+  /**
+   * System-line kind token of the last message when it is a system message
+   * (`lastMessageType === 'system'`); null for text/image or when there is no
+   * last message. The UI localizes the snippet from it (ADR-051).
+   */
+  lastMessageSystemKind: ChatSystemKind | null;
   lastMessageIsMine: boolean;
   unreadCount: number;
 }

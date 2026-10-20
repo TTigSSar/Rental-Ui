@@ -326,6 +326,7 @@ export function e2eChatConversationPreview(overrides: Record<string, unknown> = 
     lastMessageSnippet: null,
     lastMessageAt: null,
     lastMessageType: null,
+    lastMessageSystemKind: null,
     lastMessageIsMine: false,
     unreadCount: 0,
     ...overrides,

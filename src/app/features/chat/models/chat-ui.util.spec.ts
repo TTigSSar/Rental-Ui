@@ -236,6 +236,7 @@ function preview(overrides: Partial<ChatConversationPreview>): ChatConversationP
     lastMessageSnippet: null,
     lastMessageAt: null,
     lastMessageType: null,
+    lastMessageSystemKind: null,
     lastMessageIsMine: false,
     unreadCount: 0,
     ...overrides,
