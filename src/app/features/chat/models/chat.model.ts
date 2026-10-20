@@ -20,7 +20,20 @@ export type ChatStatus =
 
 export type ChatMessageType = 'text' | 'image' | 'system' | 'moderationNote';
 
-export type ChatSystemKind = 'request' | 'approved' | 'handover' | 'return' | 'closed';
+export type ChatSystemKind =
+  | 'request'
+  | 'approved'
+  | 'rejected'
+  | 'cancelled'
+  | 'handover'
+  | 'return'
+  | 'closed';
+
+/** Which party the viewer is in a booking conversation. */
+export type ChatViewerRole = 'owner' | 'renter';
+
+/** Whose move it is in the booking flow (`none` = nobody). */
+export type ChatTurn = 'owner' | 'renter' | 'none';
 
 /**
  * Admin-action token for a `moderationNote` message (see
@@ -100,7 +113,23 @@ export interface ChatConversationDetails {
   bookingDates: string | null;
   /** Null for a Moderation conversation. */
   bookingPrice: number | null;
+  /** True once the chat is closed, and also for Completed bookings. */
   isClosed: boolean;
+  /** Same token vocabulary as `status`. Null for a Moderation conversation / no booking. */
+  bookingStatus: ChatStatus | null;
+  /** Null for a Moderation conversation / no booking. */
+  viewerRole: ChatViewerRole | null;
+  /** Null for a Moderation conversation / no booking. */
+  turn: ChatTurn | null;
+  /** ISO UTC datetime (Pending: request expiry). Null otherwise. */
+  deadlineAt: string | null;
+  /** 'yyyy-MM-dd'. Null for a Moderation conversation / no booking. */
+  startDate: string | null;
+  /** 'yyyy-MM-dd'. Null for a Moderation conversation / no booking. */
+  endDate: string | null;
+  rentalDays: number | null;
+  /** Reason code (e.g. "dates_unavailable") or free text. */
+  rejectionReason: string | null;
   messages: ChatMessage[];
 }
 
