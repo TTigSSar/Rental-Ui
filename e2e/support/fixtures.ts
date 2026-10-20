@@ -289,6 +289,19 @@ export function e2eChatConversation(overrides: Record<string, unknown> = {}) {
     bookingDates: '2026-09-10 – 2026-09-12',
     bookingPrice: 15,
     isClosed: false,
+    // Rental-card fields (RC-1 / RC-2b). Defaults: the viewer is the RENTER of a Pending
+    // request, so it is the owner's turn. Override `viewerRole: 'owner'` + `turn: 'owner'` for the
+    // owner's "Your turn" card.
+    bookingStatus: 'requested',
+    viewerRole: 'renter',
+    turn: 'owner',
+    deadlineAt: '2026-09-09T10:05:00.000Z',
+    startDate: '2026-09-10',
+    endDate: '2026-09-12',
+    rentalDays: 2,
+    rejectionReason: null,
+    listingId: 'listing-e2e-1',
+    renterNote: null,
     messages: [],
     ...overrides,
   };
@@ -340,6 +353,16 @@ export function e2eModerationConversationDetails(overrides: Record<string, unkno
     bookingDates: null,
     bookingPrice: null,
     isClosed: false,
+    bookingStatus: null,
+    viewerRole: null,
+    turn: null,
+    deadlineAt: null,
+    startDate: null,
+    endDate: null,
+    rentalDays: null,
+    rejectionReason: null,
+    listingId: null,
+    renterNote: null,
     messages: [],
     ...overrides,
   };

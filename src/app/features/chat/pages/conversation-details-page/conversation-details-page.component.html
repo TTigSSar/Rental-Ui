@@ -1,5 +1,9 @@
-<section class="chat-thread">
-  @if (viewModel$ | async; as vm) {
+@let vm = viewModel$ | async;
+<section
+  class="chat-thread"
+  [class.chat-thread--rental]="vm?.conversation ? hasRental(vm!.conversation!) : false"
+>
+  @if (vm) {
     <header class="chat-thread__header">
       <a
         class="chat-thread__back"
@@ -83,12 +87,24 @@
     }
 
     @if (vm.conversation; as conversation) {
+      <!-- Rental card: pinned under the header (mobile: collapses to a compact row while the
+           feed is scrolled / when it is too tall) and, on wide screens, its own right column.
+           Moderation and no-booking threads have none. -->
+      @if (hasRental(conversation)) {
+        <div class="chat-thread__rental">
+          <h2 class="chat-thread__rental-label">{{ 'chat.rental.aria' | translate }}</h2>
+          <app-rental-card
+            [conversation]="conversation"
+            [collapsed]="isRentalCollapsed(conversation)"
+            (expandRequested)="expandRental()"
+            (fullHeight)="onRentalHeight($event)"
+          />
+        </div>
+      }
+
       <div class="chat-thread__panel">
-        <!-- Pinned context header: a booking's toy strip, or — for a Moderation
-             conversation (`kind === 'moderation'`, no linked booking; bookingId /
-             toyTitle / bookingDates / bookingPrice are all null) — a moderation
-             banner instead. The "View booking" link is never rendered for a
-             Moderation thread, so it can never navigate to `/bookings/null`. -->
+        <!-- Moderation conversation (`kind === 'moderation'`, no linked booking): a banner
+             instead of the rental card. -->
         @if (conversation.kind === 'moderation') {
           <header class="chat-thread__context chat-thread__context--moderation">
             <span class="chat-thread__moderation-icon" aria-hidden="true">
@@ -103,54 +119,10 @@
               </p>
             </div>
           </header>
-        } @else {
-          <header class="chat-thread__context">
-            @if (conversation.toyImageUrl) {
-              <img
-                class="chat-thread__toy-img"
-                [src]="conversation.toyImageUrl"
-                [alt]="conversation.toyTitle"
-                loading="lazy"
-              />
-            } @else {
-              <span
-                class="chat-thread__toy-img chat-thread__toy-img--placeholder"
-                aria-hidden="true"
-              >
-                <i class="pi pi-image"></i>
-              </span>
-            }
-
-            <div class="chat-thread__context-body">
-              <h2 class="chat-thread__toy-title">{{ conversation.toyTitle }}</h2>
-              <p class="chat-thread__context-meta">
-                <i class="pi pi-calendar" aria-hidden="true"></i>
-                <span>{{ conversation.bookingDates }}</span>
-                <span class="chat-thread__dot" aria-hidden="true"></span>
-                <span class="chat-thread__price">
-                  {{ conversation.bookingPrice | dram }}
-                </span>
-              </p>
-            </div>
-
-            <div class="chat-thread__context-actions">
-              <span [class]="'chat-status chat-status--' + statusTone(conversation.status)">
-                <i [class]="statusIcon(conversation.status)" aria-hidden="true"></i>
-                <span>{{ statusLabelKey(conversation.status) | translate }}</span>
-              </span>
-              <a
-                class="chat-thread__view-booking"
-                [routerLink]="['/bookings', conversation.bookingId]"
-              >
-                {{ 'chat.details.viewBooking' | translate }}
-                <i class="pi pi-chevron-right" aria-hidden="true"></i>
-              </a>
-            </div>
-          </header>
         }
 
         <!-- Message list -->
-        <div class="chat-thread__messages" #messagesPane>
+        <div class="chat-thread__messages" #messagesPane (scroll)="onFeedScroll($event)">
           @if (vm.threadItems.length === 0) {
             <p class="chat-thread__no-messages">
               {{ 'chat.details.noMessages' | translate }}
@@ -300,21 +272,12 @@
           </p-message>
         }
 
-        <!-- Composer (or closed banner) -->
+        <!-- Composer, or the read-only footer once the rental is finished -->
         @if (conversation.isClosed) {
           <div class="chat-thread__closed" role="status">
             <div class="chat-thread__closed-card">
-              <span class="chat-thread__closed-icon" aria-hidden="true">
-                <i class="pi pi-lock"></i>
-              </span>
-              <div class="chat-thread__closed-body">
-                <p class="chat-thread__closed-title">
-                  {{ 'chat.details.closedBannerTitle' | translate }}
-                </p>
-                <p class="chat-thread__closed-text">
-                  {{ 'chat.details.closedBannerSubtitle' | translate }}
-                </p>
-              </div>
+              <i class="pi pi-lock chat-thread__closed-icon" aria-hidden="true"></i>
+              <span>{{ 'chat.details.readOnly' | translate }}</span>
             </div>
           </div>
         } @else {

@@ -8,6 +8,8 @@
  * distinct, non-progressing pill for a Moderation conversation (`kind ===
  * 'moderation'`) — see `ChatTokens.ModerationStatusToken` on the backend;
  * such a thread has no booking so none of the other pills ever apply to it.
+ * `not_happened` is the terminal pill for a Rejected / Cancelled / Expired
+ * booking (previously these were reported as `requested`; ADR-001 amended).
  */
 export type ChatStatus =
   | 'requested'
@@ -16,11 +18,25 @@ export type ChatStatus =
   | 'return_due'
   | 'completed'
   | 'closed'
-  | 'moderation';
+  | 'moderation'
+  | 'not_happened';
 
 export type ChatMessageType = 'text' | 'image' | 'system' | 'moderationNote';
 
-export type ChatSystemKind = 'request' | 'approved' | 'handover' | 'return' | 'closed';
+export type ChatSystemKind =
+  | 'request'
+  | 'approved'
+  | 'rejected'
+  | 'cancelled'
+  | 'handover'
+  | 'return'
+  | 'closed';
+
+/** Which party the viewer is in a booking conversation. */
+export type ChatViewerRole = 'owner' | 'renter';
+
+/** Whose move it is in the booking flow (`none` = nobody). */
+export type ChatTurn = 'owner' | 'renter' | 'none';
 
 /**
  * Admin-action token for a `moderationNote` message (see
@@ -100,7 +116,27 @@ export interface ChatConversationDetails {
   bookingDates: string | null;
   /** Null for a Moderation conversation. */
   bookingPrice: number | null;
+  /** True once the chat is closed, and also for Completed bookings. */
   isClosed: boolean;
+  /** Same token vocabulary as `status`. Null for a Moderation conversation / no booking. */
+  bookingStatus: ChatStatus | null;
+  /** Null for a Moderation conversation / no booking. */
+  viewerRole: ChatViewerRole | null;
+  /** Null for a Moderation conversation / no booking. */
+  turn: ChatTurn | null;
+  /** ISO UTC datetime (Pending: request expiry). Null otherwise. */
+  deadlineAt: string | null;
+  /** 'yyyy-MM-dd'. Null for a Moderation conversation / no booking. */
+  startDate: string | null;
+  /** 'yyyy-MM-dd'. Null for a Moderation conversation / no booking. */
+  endDate: string | null;
+  rentalDays: number | null;
+  /** Reason code (e.g. "dates_unavailable") or free text. */
+  rejectionReason: string | null;
+  /** Listing the rental is about. Null for a Moderation conversation. */
+  listingId: string | null;
+  /** Renter note from the booking request. Null for moderation threads or when no note was left. */
+  renterNote: string | null;
   messages: ChatMessage[];
 }
 

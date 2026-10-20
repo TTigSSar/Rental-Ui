@@ -1,0 +1,484 @@
+/*
+ * Rental card (design: rc-parts.jsx RentalCard, approved style A "bar").
+ * Tokens used where one matches the design value; hardcoded (no token):
+ *   --rc-shadow    card shadow from the design
+ *   --rc-grey/mute void-badge fill #f1efea (no token), text uses --ui-color-text-secondary
+ * The primary button is --ui-color-primary-strong (#c24600), never the #ff6008
+ * brand orange (ADR-031 / ADR-034); the 5px bar is the brand orange (non-text).
+ */
+:host {
+  display: block;
+  --rc-shadow: 0 1px 2px rgba(26, 27, 38, 0.04), 0 6px 18px -10px rgba(26, 27, 38, 0.16);
+  --rc-grey: #f1efea;
+}
+
+.rental-card {
+  position: relative;
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-card);
+  box-shadow: var(--rc-shadow);
+  overflow: hidden;
+}
+
+.rental-card__bar {
+  height: 5px;
+  background: var(--ui-color-primary);
+}
+
+.rental-card__body {
+  padding: var(--ui-space-16);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rental-card__toy {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-12);
+}
+
+.rental-card__img {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--ui-radius-12);
+  object-fit: cover;
+}
+
+.rental-card__img--placeholder {
+  display: grid;
+  place-items: center;
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-hint);
+  font-size: 1.25rem;
+}
+
+.rental-card__toy-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.rental-card__title {
+  font-size: 16px;
+  font-weight: var(--ui-font-weight-semibold);
+  line-height: 22px;
+  color: var(--ui-color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rental-card__meta {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ui-color-text-secondary);
+}
+
+.rental-card__title + .rental-card__meta {
+  margin-top: 2px;
+}
+
+.rental-card__total {
+  font-weight: var(--ui-font-weight-bold);
+  color: var(--ui-color-text-primary);
+}
+
+/* 44px touch target, pulled into the card corner like the design. */
+.rental-card__more {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -10px -10px 0 0;
+  border: 0;
+  border-radius: var(--ui-radius-pill);
+  background: transparent;
+  color: var(--ui-color-text-primary);
+  cursor: pointer;
+}
+
+.rental-card__more:hover,
+.rental-card__more[aria-expanded='true'] {
+  background: var(--rc-grey);
+}
+
+.rental-card__more:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
+}
+
+.rental-card__rule {
+  height: 1px;
+  margin: 0 calc(-1 * var(--ui-space-16));
+  border: 0;
+  background: var(--ui-color-border);
+}
+
+/* ── Turn badge ─────────────────────────────────────────────────────────── */
+.rental-badge {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: var(--ui-space-8);
+  max-width: 100%;
+  padding: 7px 14px 7px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-pill);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.rental-badge__icon {
+  padding-top: 2px;
+  display: block;
+  line-height: 0;
+}
+
+.rental-badge__lead {
+  font-weight: var(--ui-font-weight-bold);
+}
+
+.rental-badge__rest {
+  font-weight: var(--ui-font-weight-medium);
+}
+
+.rental-badge--turn {
+  background: var(--ui-color-primary-strong);
+  border-color: var(--ui-color-primary-strong);
+  color: var(--ui-color-on-primary);
+}
+
+.rental-badge--wait,
+.rental-badge--info {
+  background: var(--ui-color-neutral-badge-surface);
+  border-color: var(--ui-color-neutral-badge-surface);
+  color: var(--ui-color-text-primary);
+}
+
+.rental-badge--done {
+  background: var(--ui-color-success-surface);
+  border-color: var(--ui-color-success-surface);
+  color: var(--ui-color-success);
+}
+
+.rental-badge--void {
+  background: var(--rc-grey);
+  border-color: var(--rc-grey);
+  color: var(--ui-color-text-secondary);
+}
+
+.rental-card__sentence {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--ui-color-text-primary);
+  text-wrap: pretty;
+}
+
+.rental-card__quote {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-12);
+  background: var(--ui-color-background);
+  display: flex;
+  gap: 10px;
+}
+
+.rental-card__quote-icon {
+  flex-shrink: 0;
+  padding-top: 2px;
+  color: var(--ui-color-text-secondary);
+  line-height: 0;
+}
+
+.rental-card__quote-body {
+  min-width: 0;
+}
+
+.rental-card__confirm-text {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.rental-card__quote-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ui-color-text-primary);
+  overflow-wrap: anywhere;
+}
+
+.rental-card__quote-caption {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ui-color-text-secondary);
+}
+
+.rental-card__error {
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--ui-color-error-border);
+  border-radius: var(--ui-radius-12);
+  background: var(--ui-color-error-surface);
+  color: var(--ui-color-rejected);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+.rental-card__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-8);
+}
+
+.rental-btn {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 20px;
+  border-radius: var(--ui-radius-pill);
+  font: inherit;
+  font-size: 14px;
+  font-weight: var(--ui-font-weight-semibold);
+  line-height: 20px;
+  cursor: pointer;
+  transition:
+    background var(--ui-duration-fast) var(--ui-ease),
+    border-color var(--ui-duration-fast) var(--ui-ease);
+}
+
+.rental-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
+}
+
+.rental-btn--primary {
+  border: 0;
+  background: var(--ui-color-primary-strong);
+  color: var(--ui-color-on-primary);
+}
+
+.rental-btn--primary:hover:not(:disabled) {
+  background: var(--ui-color-primary-strong-hover);
+}
+
+.rental-btn--primary:active:not(:disabled) {
+  background: var(--ui-color-primary-strong-active);
+}
+
+.rental-btn--secondary {
+  border: 1.5px solid var(--ui-color-border);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-primary);
+}
+
+.rental-btn--secondary:hover:not(:disabled) {
+  border-color: var(--ui-color-border-strong);
+}
+
+.rental-btn:disabled {
+  background: var(--ui-color-primary-disabled);
+  border-color: var(--ui-color-primary-disabled);
+  color: var(--ui-color-primary-disabled-text);
+  cursor: default;
+}
+
+/* ── Collapse (mobile) ──────────────────────────────────────────────────────
+ * Two layers - the one-row compact and the full card - trade height through the
+ * grid-rows 0fr/1fr trick so the collapse can animate. The hidden layer is
+ * visibility:hidden (after the transition), i.e. out of the tab order and the
+ * accessibility tree. */
+.rental-fold {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+}
+
+.rental-fold--open {
+  grid-template-rows: 1fr;
+  visibility: visible;
+}
+
+/* Animated only after the first moments (see `animated` in the component). */
+.rental-fold--animated {
+  transition:
+    grid-template-rows var(--ui-duration-slow) var(--ui-ease),
+    visibility 0s linear var(--ui-duration-slow);
+}
+
+.rental-fold--animated.rental-fold--open {
+  transition:
+    grid-template-rows var(--ui-duration-slow) var(--ui-ease),
+    visibility 0s;
+}
+
+.rental-fold__inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rental-fold--animated,
+  .rental-fold--animated.rental-fold--open {
+    transition: none;
+  }
+}
+
+/* ── Compact row (design: RentalCompact in rc-layout.jsx) ───────────────── */
+.rental-compact {
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-card);
+  box-shadow: var(--rc-shadow);
+  overflow: hidden;
+}
+
+.rental-compact__bar {
+  height: 4px;
+  background: var(--ui-color-primary);
+}
+
+.rental-compact__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 60px;
+  padding: 8px 8px 8px 10px;
+}
+
+/* The tappable part (everything but the action button): expands the card. */
+.rental-compact__toggle {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-12);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rental-compact__toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
+}
+
+.rental-compact__img {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.rental-compact__img--placeholder {
+  display: grid;
+  place-items: center;
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-hint);
+}
+
+.rental-compact__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.rental-compact__status,
+.rental-compact__sub {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.rental-compact__status {
+  gap: 6px;
+  color: var(--ui-color-text-primary);
+}
+
+.rental-compact__status svg {
+  flex-shrink: 0;
+}
+
+.rental-compact__status b {
+  font-weight: var(--ui-font-weight-bold);
+}
+
+.rental-compact__status--turn {
+  color: var(--ui-color-primary-strong);
+}
+
+.rental-compact__status--done {
+  color: var(--ui-color-success);
+}
+
+.rental-compact__status--void {
+  color: var(--ui-color-text-secondary);
+}
+
+.rental-compact__sub {
+  gap: 2px;
+  color: var(--ui-color-text-secondary);
+}
+
+.rental-compact__chevron {
+  flex-shrink: 0;
+}
+
+/* Long hy/ru strings ellipsize; they never push the action button off-screen. */
+.rental-compact__ellipsis {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rental-compact__btn {
+  flex-shrink: 0;
+  max-width: 46%;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-primary-strong);
+  color: var(--ui-color-on-primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: var(--ui-font-weight-semibold);
+  line-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: background var(--ui-duration-fast) var(--ui-ease);
+}
+
+.rental-compact__btn:hover:not(:disabled) {
+  background: var(--ui-color-primary-strong-hover);
+}
+
+.rental-compact__btn:active:not(:disabled) {
+  background: var(--ui-color-primary-strong-active);
+}
+
+.rental-compact__btn:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
+}
+
+.rental-compact__btn:disabled {
+  background: var(--ui-color-primary-disabled);
+  color: var(--ui-color-primary-disabled-text);
+  cursor: default;
+}

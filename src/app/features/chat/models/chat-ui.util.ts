@@ -28,6 +28,8 @@ export function mapChatStatusTone(status: ChatStatus): BadgeTone {
       return 'neutral';
     case 'moderation':
       return 'neutral';
+    case 'not_happened':
+      return 'neutral';
     default:
       return 'neutral';
   }
@@ -35,7 +37,7 @@ export function mapChatStatusTone(status: ChatStatus): BadgeTone {
 
 /**
  * Maps a conversation status to the primeicon shown inside its status pill
- * (design: clock / check / calendar / lock / shield — one glyph per status family).
+ * (design: clock / check / calendar / lock / shield / times-circle — one glyph per status family).
  */
 export function mapChatStatusIcon(status: ChatStatus): string {
   switch (status) {
@@ -49,6 +51,8 @@ export function mapChatStatusIcon(status: ChatStatus): string {
       return 'pi pi-calendar';
     case 'closed':
       return 'pi pi-lock';
+    case 'not_happened':
+      return 'pi pi-times-circle';
     case 'moderation':
       return 'pi pi-shield';
     default:
@@ -73,6 +77,8 @@ export function mapChatStatusLabelKey(status: ChatStatus): string {
       return 'chat.status.closed';
     case 'moderation':
       return 'chat.status.moderation';
+    case 'not_happened':
+      return 'chat.status.notHappened';
     default:
       return 'chat.status.closed';
   }
@@ -129,6 +135,10 @@ export function mapChatSystemMeta(kind: ChatSystemKind | null): ChatSystemMeta {
       return { icon: 'pi pi-calendar', labelKey: 'chat.system.request', tone: 'primary' };
     case 'approved':
       return { icon: 'pi pi-check', labelKey: 'chat.system.approved', tone: 'success' };
+    case 'rejected':
+      return { icon: 'pi pi-times', labelKey: 'chat.system.rejected', tone: 'warn' };
+    case 'cancelled':
+      return { icon: 'pi pi-ban', labelKey: 'chat.system.cancelled', tone: 'neutral' };
     case 'handover':
       return { icon: 'pi pi-shield', labelKey: 'chat.system.handover', tone: 'primary' };
     case 'return':

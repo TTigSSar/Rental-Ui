@@ -3,6 +3,7 @@ import { provideState } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';
 
 import { authGuard } from '../auth/guards/auth.guard';
+import { BookingsEffects } from '../bookings/store/bookings.effects';
 import { ChatEffects } from './store/chat.effects';
 import { chatFeatureKey, chatReducer } from './store/chat.reducer';
 
@@ -10,7 +11,13 @@ export const chatRoutes: Routes = [
   {
     path: '',
     canActivate: [authGuard],
-    providers: [provideState(chatFeatureKey, chatReducer), provideEffects(ChatEffects)],
+    providers: [
+      provideState(chatFeatureKey, chatReducer),
+      // BookingsEffects (no bookings state needed): the rental card dispatches the bookings
+      // transition actions, which are handled there. `ChatEffects` reloads the open
+      // conversation when one succeeds.
+      provideEffects(ChatEffects, BookingsEffects),
+    ],
     // ChatShellComponent is the persistent master-detail layout: the
     // conversations list lives in its left rail, the thread renders in the
     // right-pane <router-outlet>. On desktop both panes show side by side; on

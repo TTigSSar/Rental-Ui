@@ -6,6 +6,7 @@ import {
   mapChatStatusIcon,
   mapChatStatusLabelKey,
   mapChatStatusTone,
+  mapChatSystemMeta,
   mapModerationNoteMeta,
 } from './chat-ui.util';
 
@@ -25,11 +26,19 @@ describe('mapChatStatusTone', () => {
   it('maps moderation to neutral (a Moderation thread never progresses like a booking)', () => {
     expect(mapChatStatusTone('moderation')).toBe('neutral');
   });
+
+  it('maps not_happened to neutral', () => {
+    expect(mapChatStatusTone('not_happened')).toBe('neutral');
+  });
 });
 
 describe('mapChatStatusIcon', () => {
   it('maps moderation to the shield glyph', () => {
     expect(mapChatStatusIcon('moderation')).toBe('pi pi-shield');
+  });
+
+  it('maps not_happened to the times-circle glyph', () => {
+    expect(mapChatStatusIcon('not_happened')).toBe('pi pi-times-circle');
   });
 });
 
@@ -48,6 +57,10 @@ describe('mapChatStatusLabelKey', () => {
 
   it('maps moderation to its own label key (not the closed fallback)', () => {
     expect(mapChatStatusLabelKey('moderation')).toBe('chat.status.moderation');
+  });
+
+  it('maps not_happened to its own label key (not the closed fallback)', () => {
+    expect(mapChatStatusLabelKey('not_happened')).toBe('chat.status.notHappened');
   });
 });
 
@@ -228,3 +241,25 @@ function preview(overrides: Partial<ChatConversationPreview>): ChatConversationP
     ...overrides,
   };
 }
+
+describe('mapChatSystemMeta', () => {
+  it('maps rejected to its own label key and icon', () => {
+    expect(mapChatSystemMeta('rejected')).toEqual({
+      icon: 'pi pi-times',
+      labelKey: 'chat.system.rejected',
+      tone: 'warn',
+    });
+  });
+
+  it('maps cancelled to its own label key and icon', () => {
+    expect(mapChatSystemMeta('cancelled')).toEqual({
+      icon: 'pi pi-ban',
+      labelKey: 'chat.system.cancelled',
+      tone: 'neutral',
+    });
+  });
+
+  it('falls back to default for null', () => {
+    expect(mapChatSystemMeta(null).labelKey).toBe('chat.system.default');
+  });
+});

@@ -2398,8 +2398,7 @@
       "imageTooLarge": "This photo is too large. Maximum size is {{max}} MB.",
       "imageInvalidType": "Unsupported file type. Use a JPEG, PNG, WebP or GIF image.",
       "closedBanner": "This conversation is closed. The rental is complete and both reviews are in — it's now read-only.",
-      "closedBannerTitle": "This conversation is closed",
-      "closedBannerSubtitle": "The rental is complete and both reviews are in — it's now read-only.",
+      "readOnly": "This rental is finished. The chat is read-only.",
       "charCounter": "{{count}} / {{max}}",
       "limitReached": "Message limit of {{max}} characters reached",
       "moderationTitle": "DoRent moderation",
@@ -2412,12 +2411,86 @@
       "returnDue": "Return due",
       "completed": "Completed",
       "closed": "Closed",
-      "moderation": "Moderation"
+      "moderation": "Moderation",
+      "notHappened": "Did not happen"
+    },
+    "rental": {
+      "aria": "Rental",
+      "moreActions": "More actions",
+      "day": "{{count}} day",
+      "days": "{{count}} days",
+      "reasonBy": "{{name}}'s note",
+      "reasonYou": "Your note",
+      "noteBy": "{{name}}'s note",
+      "noteYou": "Your note",
+      "badge": {
+        "yourTurn": "Your turn",
+        "replyBy": "reply by {{deadline}}",
+        "nothingNeeded": "Nothing needed from you",
+        "waitingUntil": "waiting for {{name}} until {{deadline}}",
+        "agreed": "Agreed",
+        "meetingOn": "meeting on {{startDate}}",
+        "withRenter": "The toy is with {{name}}",
+        "withYou": "The toy is with you",
+        "backBy": "back by {{endDate}}",
+        "returnBy": "return by {{endDate}}",
+        "completed": "Completed",
+        "didNotHappen": "Did not happen"
+      },
+      "requested": {
+        "owner": "{{name}} wants to rent this toy.",
+        "renter": "Your request is with {{name}}. You'll see the answer here."
+      },
+      "approved": {
+        "owner": "Agree with {{name}} where to meet. Press the button once you've handed over the toy.",
+        "renter": "Your request was approved. Agree with {{name}} in the chat where to meet."
+      },
+      "active": {
+        "owner": "When {{name}} gives the toy back, check it and close the rental.",
+        "renter": "Agree with {{name}} where to hand the toy back."
+      },
+      "completed": "Rental completed. How was it with {{name}}?",
+      "completedReviewed": "Rental completed. Thanks for your review!",
+      "notHappened": {
+        "declined": "{{name}} declined this request.",
+        "declinedByYou": "You declined this request.",
+        "generic": "This rental did not happen."
+      },
+      "action": {
+        "accept": "Accept",
+        "decline": "Decline",
+        "handedOver": "I handed it over",
+        "receivedBack": "Received back, close rental",
+        "review": "Leave a review",
+        "findSimilar": "Find similar toys"
+      },
+      "menu": {
+        "withdraw": "Withdraw request",
+        "cancelBooking": "Cancel booking",
+        "viewListing": "Show toy listing",
+        "viewBooking": "View booking details"
+      },
+      "confirm": {
+        "withdraw": {
+          "title": "Withdraw your request?",
+          "text": "{{name}} will no longer see this request. You can send a new one later.",
+          "confirm": "Withdraw request",
+          "keep": "Keep request"
+        },
+        "cancelBooking": {
+          "title": "Cancel this booking?",
+          "text": "The booking will be cancelled and {{name}} will be told.",
+          "confirm": "Cancel booking",
+          "keep": "Keep booking"
+        }
+      }
     },
     "system": {
       "request": "Booking requested",
       "requestDetail": "{{name}} requested this toy · {{dates}} · {{price}}",
       "approved": "Request approved",
+      "rejected": "The owner declined the request",
+      "cancelled": "The renter cancelled the booking",
       "handover": "Toy handed over",
       "return": "Toy returned",
       "closed": "Conversation closed",

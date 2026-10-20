@@ -8,6 +8,7 @@ import { of, throwError } from 'rxjs';
 
 import { actionsHarness, collect } from '../../../../testing/ngrx.helpers';
 import { selectAuthUser } from '../../auth/store/auth.selectors';
+import * as BookingsActions from '../../bookings/store/bookings.actions';
 import type {
   ChatConversationDetails,
   ChatConversationPreview,
@@ -55,6 +56,16 @@ function makeActiveConversation(
     bookingDates: 'Jul 1 – Jul 3',
     bookingPrice: 10,
     isClosed: false,
+    bookingStatus: null,
+    listingId: null,
+    renterNote: null,
+    viewerRole: null,
+    turn: null,
+    deadlineAt: null,
+    startDate: null,
+    endDate: null,
+    rentalDays: null,
+    rejectionReason: null,
     messages: [],
     ...overrides,
   };
@@ -122,6 +133,26 @@ function setup(chatApi: Partial<ChatApiService> = {}) {
 }
 
 describe('ChatEffects', () => {
+  describe('reloadAfterBookingAction$', () => {
+    it('re-fetches the open conversation when its booking transitions', async () => {
+      const { harness, effects } = setup();
+      const result = collect(effects.reloadAfterBookingAction$);
+      harness.send(
+        BookingsActions.approveBookingRequestSuccess({ bookingId: 'b1', status: 'Approved' }),
+      );
+      harness.complete();
+      expect(await result).toEqual([ChatActions.loadConversationDetails({ conversationId: 'c1' })]);
+    });
+
+    it('ignores a transition of some other booking', async () => {
+      const { harness, effects } = setup();
+      const result = collect(effects.reloadAfterBookingAction$);
+      harness.send(BookingsActions.cancelBookingSuccess({ bookingId: 'other' }));
+      harness.complete();
+      expect(await result).toEqual([]);
+    });
+  });
+
   describe('sendImageMessage$', () => {
     it('uploads the file and revokes the optimistic preview URL on success', async () => {
       const message: ChatMessage = {
@@ -182,9 +213,7 @@ describe('ChatEffects', () => {
       harness.complete();
 
       const emitted = await result;
-      expect(emitted).toEqual([
-        ChatActions.sendImageMessageFailure({ error: 'errors.generic' }),
-      ]);
+      expect(emitted).toEqual([ChatActions.sendImageMessageFailure({ error: 'errors.generic' })]);
     });
 
     // A text file renamed to .jpg reports `File.type === "image/jpeg"`, so the
@@ -344,9 +373,7 @@ describe('ChatEffects', () => {
 
     it('does NOT reload the inbox when the conversation is already listed', async () => {
       const { harness, store, effects } = setup();
-      store.overrideSelector(selectConversations, [
-        { id: 'c1' } as ChatConversationPreview,
-      ]);
+      store.overrideSelector(selectConversations, [{ id: 'c1' } as ChatConversationPreview]);
       store.refreshState();
 
       const result = collect(effects.realtimeMessageReceived$);

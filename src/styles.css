@@ -573,3 +573,16 @@ select:focus {
   line-height: 1;
   color: var(--ui-msg-icon);
 }
+
+/* Rental card ⋯ menu (features/chat rental-card): popup is portalled to <body>, so these
+   cannot live in the component stylesheet. 44px targets; destructive entries in danger. */
+.p-menu .rental-card__menu-item--danger .p-menu-item-label,
+.p-menu .rental-card__menu-item--danger .p-menu-item-icon {
+  color: var(--ui-color-danger);
+}
+
+/* 44px touch targets for the rental card menu only (scoped by the p-menu styleClass). */
+.p-menu.rental-card__menu .p-menu-item-link {
+  min-height: 44px;
+  box-sizing: border-box;
+}
