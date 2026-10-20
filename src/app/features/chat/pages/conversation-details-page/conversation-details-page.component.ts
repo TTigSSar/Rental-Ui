@@ -467,6 +467,8 @@ export class ConversationDetailsPageComponent implements OnInit {
     const onResize = (): void =>
       this.viewport.set({ width: window.innerWidth, height: window.innerHeight });
     window.addEventListener('resize', onResize);
+    // Leaving the thread route closes the conversation in the store.
+    this.destroyRef.onDestroy(() => this.store.dispatch(ChatActions.leaveConversation()));
     this.destroyRef.onDestroy(() => window.removeEventListener('resize', onResize));
 
     // A different conversation starts with a fresh card layout.

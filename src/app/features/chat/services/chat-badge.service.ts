@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Subject, Subscription, debounceTime, timer } from 'rxjs';
+import { Subject, Subscription, debounceTime, filter, timer } from 'rxjs';
 
 import { ChatApiService } from './chat-api.service';
 
@@ -36,7 +36,13 @@ export class ChatBadgeService {
 
   constructor() {
     this.refreshRequests
-      .pipe(debounceTime(REFRESH_DEBOUNCE_MS), takeUntilDestroyed())
+      .pipe(
+        debounceTime(REFRESH_DEBOUNCE_MS),
+        // Signed-in gate evaluated when the debounce fires, so a request made
+        // just before stop()/a user switch is dropped (ADR-036).
+        filter(() => this.pollSubscription !== null),
+        takeUntilDestroyed(),
+      )
       .subscribe(() => this.refresh());
   }
 
@@ -61,6 +67,10 @@ export class ChatBadgeService {
   refresh(): void {
     this.api.getConversations().subscribe({
       next: (conversations) => {
+        // A response that lands after stop()/sign-out must not repaint the badge.
+        if (this.pollSubscription === null) {
+          return;
+        }
         const total = conversations.reduce(
           (sum, c) => sum + Math.max(0, c.unreadCount),
           0,
@@ -79,6 +89,9 @@ export class ChatBadgeService {
    * it fires once per burst.
    */
   requestRefresh(): void {
+    if (this.pollSubscription === null) {
+      return;
+    }
     this.refreshRequests.next();
   }
 

@@ -14,6 +14,9 @@ describe('ChatBadgeService.requestRefresh', () => {
       providers: [{ provide: ChatApiService, useValue: { getConversations } }],
     });
     const badge = TestBed.inject(ChatBadgeService);
+    badge.start();
+    vi.advanceTimersByTime(0);
+    getConversations.mockClear();
 
     badge.requestRefresh();
     badge.requestRefresh();
@@ -23,5 +26,27 @@ describe('ChatBadgeService.requestRefresh', () => {
     vi.advanceTimersByTime(1000);
     expect(getConversations).toHaveBeenCalledTimes(1);
     expect(badge.unreadCount()).toBe(3);
+  });
+
+  it('drops a request made while signed out and one pending when stop() runs', () => {
+    vi.useFakeTimers();
+    const getConversations = vi.fn(() => of([{ unreadCount: 5 }]));
+    TestBed.configureTestingModule({
+      providers: [{ provide: ChatApiService, useValue: { getConversations } }],
+    });
+    const badge = TestBed.inject(ChatBadgeService);
+
+    badge.requestRefresh();
+    vi.advanceTimersByTime(1000);
+    expect(getConversations).not.toHaveBeenCalled();
+
+    badge.start();
+    vi.advanceTimersByTime(0);
+    getConversations.mockClear();
+    badge.requestRefresh();
+    badge.stop();
+    vi.advanceTimersByTime(1000);
+    expect(getConversations).not.toHaveBeenCalled();
+    expect(badge.unreadCount()).toBe(0);
   });
 });

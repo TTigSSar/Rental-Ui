@@ -28,7 +28,10 @@ function applyMessageToInbox(
       return conversation;
     }
 
-    const bumpsUnread = !message.isMine && !isOpenConversation;
+    // System lines never bump locally: the server does not count them for their
+    // actor, and the badge/list refresh reconciles the other party's count.
+    const bumpsUnread =
+      !message.isMine && !isOpenConversation && message.type !== 'system';
     return {
       ...conversation,
       // An image with no caption has a null body — the row then renders the
@@ -170,6 +173,15 @@ export const chatReducer = createReducer(
       ...state,
       conversations: patchInboxFromDetails(state.conversations, conversation),
       activeConversation: conversation,
+      activeConversationLoading: false,
+      activeConversationError: null,
+    }),
+  ),
+  on(
+    ChatActions.leaveConversation,
+    (state): ChatState => ({
+      ...state,
+      activeConversation: null,
       activeConversationLoading: false,
       activeConversationError: null,
     }),

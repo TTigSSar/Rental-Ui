@@ -352,6 +352,35 @@ describe('chatReducer', () => {
     });
   });
 
+  describe('leaveConversation', () => {
+    it('clears the open conversation', () => {
+      const start = stateWith({ activeConversation: makeDetails({ id: 'c1' }) });
+      expect(chatReducer(start, ChatActions.leaveConversation()).activeConversation).toBeNull();
+    });
+
+    it('a later incoming text bumps unread (the thread is no longer open)', () => {
+      const start = stateWith({
+        conversations: [makePreview({ id: 'c1', unreadCount: 0 })],
+        activeConversation: makeDetails({ id: 'c1' }),
+      });
+      const left = chatReducer(start, ChatActions.leaveConversation());
+      const next = chatReducer(
+        left,
+        ChatActions.realtimeMessageResolved({ message: makeMessage({ id: 'x', isMine: false }) }),
+      );
+      expect(next.conversations[0].unreadCount).toBe(1);
+    });
+  });
+
+  describe('incoming system line', () => {
+    it('does not bump unread locally (the server reconciles it)', () => {
+      const start = stateWith({ conversations: [makePreview({ id: 'c1', unreadCount: 0 })] });
+      const sys = makeMessage({ id: 's2', type: 'system', systemKind: 'approved', isMine: false });
+      const next = chatReducer(start, ChatActions.realtimeMessageResolved({ message: sys }));
+      expect(next.conversations[0].unreadCount).toBe(0);
+    });
+  });
+
   describe('own system line', () => {
     it('does not bump unread for my own action', () => {
       const start = stateWith({ conversations: [makePreview({ id: 'c1', unreadCount: 0 })] });

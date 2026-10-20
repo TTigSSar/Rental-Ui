@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import { actionsHarness, collect } from '../../../../testing/ngrx.helpers';
 import { selectAuthUser } from '../../auth/store/auth.selectors';
@@ -140,17 +140,47 @@ function setup(chatApi: Partial<ChatApiService> = {}) {
 
 describe('ChatEffects', () => {
   describe('refreshBadge$', () => {
-    it('requests a badge refresh on a realtime message and on own booking actions', async () => {
+    it('requests a badge refresh on a realtime message', async () => {
       const { harness, effects, badge } = setup();
       const result = collect(effects.refreshBadge$);
       harness.send(ChatActions.realtimeMessageResolved({ message: makeResolvedMessage() }));
-      harness.send(BookingsActions.cancelBookingSuccess({ bookingId: 'b1' }));
-      harness.send(
-        BookingsActions.approveBookingRequestSuccess({ bookingId: 'b1', status: 'Approved' }),
-      );
       harness.complete();
       await result;
-      expect(badge.requestRefresh).toHaveBeenCalledTimes(3);
+      expect(badge.requestRefresh).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('after the thread route is left', () => {
+    it('a realtime system line for it is not marked read and re-fetches the inbox', async () => {
+      const { harness, store, effects } = setup();
+      // leaveConversation clears the active conversation in the reducer.
+      store.overrideSelector(selectActiveConversation, null);
+      store.overrideSelector(selectConversations, [{ id: 'c1' } as ChatConversationPreview]);
+      store.refreshState();
+      const result = collect(effects.realtimeMessageReceived$);
+      harness.send(
+        ChatActions.realtimeMessageReceived({
+          message: makeRealtimeMessage({ type: 'system', systemKind: 'approved', senderId: null }),
+        }),
+      );
+      harness.complete();
+      const emitted = await result;
+      expect(emitted.some((a) => a.type === ChatActions.markConversationRead.type)).toBe(false);
+      expect(emitted.some((a) => a.type === ChatActions.loadConversationDetails.type)).toBe(false);
+      expect(emitted.filter((a) => a.type === ChatActions.loadConversations.type)).toHaveLength(1);
+    });
+
+    it('cancels an in-flight details load', async () => {
+      const pending = new Subject<ChatConversationDetails>();
+      const { harness, effects } = setup({
+        getConversationDetails: vi.fn(() => pending),
+      } as unknown as Partial<ChatApiService>);
+      const result = collect(effects.loadConversationDetails$);
+      harness.send(ChatActions.loadConversationDetails({ conversationId: 'c1' }));
+      harness.send(ChatActions.leaveConversation());
+      pending.next(makeActiveConversation());
+      harness.complete();
+      expect(await result).toEqual([]);
     });
   });
 

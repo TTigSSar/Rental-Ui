@@ -24,6 +24,12 @@ export const loadConversationDetails = createAction(
   props<{ conversationId: string }>(),
 );
 
+/**
+ * The thread route was left: nothing is "open" any more, so later realtime
+ * messages for it must not be auto-marked read.
+ */
+export const leaveConversation = createAction('[Chat] Leave Conversation');
+
 export const loadConversationDetailsSuccess = createAction(
   '[Chat] Load Conversation Details Success',
   props<{ conversation: ChatConversationDetails }>(),

@@ -5,6 +5,7 @@ import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import {
+  EMPTY,
   catchError,
   concatMap,
   map,
@@ -77,9 +78,13 @@ export class ChatEffects {
 
   readonly loadConversationDetails$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(ChatActions.loadConversationDetails),
-      switchMap(({ conversationId }) =>
-        this.chatApi.getConversationDetails(conversationId).pipe(
+      ofType(ChatActions.loadConversationDetails, ChatActions.leaveConversation),
+      switchMap((action) =>
+        // Leaving the thread cancels an in-flight details load so it cannot
+        // re-open the conversation after the page is gone.
+        action.type === ChatActions.leaveConversation.type
+          ? EMPTY
+          : this.chatApi.getConversationDetails(action.conversationId).pipe(
           map((conversation) =>
             ChatActions.loadConversationDetailsSuccess({ conversation }),
           ),
@@ -321,10 +326,6 @@ export class ChatEffects {
       this.actions$.pipe(
         ofType(
           ChatActions.realtimeMessageResolved,
-          BookingsActions.approveBookingRequestSuccess,
-          BookingsActions.rejectBookingRequestSuccess,
-          BookingsActions.cancelBookingSuccess,
-          BookingsActions.bookingActionSuccess,
         ),
         tap(() => this.chatBadge.requestRefresh()),
       ),

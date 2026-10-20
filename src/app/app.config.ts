@@ -15,6 +15,7 @@ import Aura from '@primeuix/themes/aura';
 import { providePrimeNG } from 'primeng/config';
 
 import { AuthEffects } from './features/auth/store/auth.effects';
+import { ChatBadgeEffects } from './features/chat/store/chat-badge.effects';
 import { authInterceptor } from './features/auth/services/auth.interceptor';
 import { authFeatureKey, authReducer } from './features/auth/store/auth.reducer';
 import { sessionResetMetaReducers } from './features/auth/store/session-reset.meta-reducer';
@@ -144,7 +145,7 @@ export const appConfig: ApplicationConfig = {
     // slice is registered lazily on the route(s) that consume it (see each
     // feature's routes.ts).
     provideState(authFeatureKey, authReducer),
-    provideEffects(AuthEffects),
+    provideEffects(AuthEffects, ChatBadgeEffects),
     translateHttpLoaderProviders[0],
     ...provideTranslateService({
       fallbackLang: 'en',
