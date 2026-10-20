@@ -1,4 +1,4 @@
-import type { ChatStatus, ChatViewerRole } from '../../models/chat.model';
+import type { ChatStatus, ChatTurn, ChatViewerRole } from '../../models/chat.model';
 
 /** Visual kind of the turn badge (design: `RC_BADGE` in rc-parts.jsx). */
 export type RentalBadgeKind = 'turn' | 'wait' | 'info' | 'done' | 'void';
@@ -33,6 +33,8 @@ export interface RentalCardReason {
 export interface RentalCardInput {
   readonly status: ChatStatus;
   readonly role: ChatViewerRole;
+  /** The server's whose-move value; decides the badge. Null counts as `none`. */
+  readonly turn: ChatTurn | null;
   readonly counterpartName: string;
   /** Formatted `deadlineAt` (Yerevan time); empty when the booking has no deadline. */
   readonly deadlineText: string;
@@ -89,20 +91,73 @@ function reasonOf(raw: string | null): RentalCardReason | null {
 }
 
 /**
- * Maps a booking's chat status and the viewer's role to what the rental card shows:
- * badge kind, i18n keys, and the actions. Pure — it never decides WHOSE TURN it is
- * (the server's `turn` does; the card's top bar compares `turn === viewerRole`), it
- * only decides what to say and offer for a given state.
+ * Maps a booking's chat status, the viewer's role and the server's `turn` to what the
+ * rental card shows: badge kind, i18n keys, and the actions. Pure — it never decides WHOSE
+ * TURN it is: the server's `turn` does (ADR-046 §8). In the live states (requested,
+ * approved, active, return due) the badge follows `turn` alone — `turn === role` is the
+ * "turn" badge, the other role's turn is "wait", `none` is a neutral "info" badge — and
+ * the status only picks the rest/sentence copy. The card's top bar compares the same
+ * `turn === viewerRole`. Finished states (completed, closed, not_happened) keep their
+ * done/void badge.
+ *
+ * Actions are still derived from status + role. ADR-046's `availableActions` replaces them.
  *
  * Returns null for states the card does not render (moderation threads).
  */
 export function mapRentalCardView(input: RentalCardInput): RentalCardView | null {
-  const view = mapBaseView(input);
+  const view = applyTurn(input, mapBaseView(input));
   if (!view || !input.hasListing) {
     return view;
   }
   // "View booking details" is always last; the listing link goes right before it.
   return { ...view, menu: [...view.menu.slice(0, -1), VIEW_LISTING, VIEW_BOOKING] };
+}
+
+/** Overrides the badge (kind + lead, and the requested/approved rest) from the server's `turn`. */
+function applyTurn(input: RentalCardInput, view: RentalCardView | null): RentalCardView | null {
+  if (!view) {
+    return null;
+  }
+  const status = input.status;
+  if (
+    status !== 'requested' &&
+    status !== 'approved' &&
+    status !== 'active' &&
+    status !== 'return_due'
+  ) {
+    return view;
+  }
+  const turn = input.turn ?? 'none';
+  const kind: RentalBadgeKind = turn === 'none' ? 'info' : turn === input.role ? 'turn' : 'wait';
+
+  let leadKey: string;
+  switch (kind) {
+    case 'turn':
+      leadKey = 'chat.rental.badge.yourTurn';
+      break;
+    case 'wait':
+      leadKey = 'chat.rental.badge.nothingNeeded';
+      break;
+    default:
+      // Nobody's move: approved reads "Agreed"; active keeps its "toy is with …" lead.
+      leadKey =
+        status === 'approved'
+          ? 'chat.rental.badge.agreed'
+          : status === 'requested'
+            ? 'chat.rental.badge.nothingNeeded'
+            : view.leadKey;
+  }
+
+  let restKey = view.restKey;
+  if (status === 'requested') {
+    restKey =
+      kind === 'turn'
+        ? 'chat.rental.badge.replyBy'
+        : kind === 'wait'
+          ? 'chat.rental.badge.waitingUntil'
+          : null;
+  }
+  return { ...view, badgeKind: kind, leadKey, restKey };
 }
 
 function mapBaseView(input: RentalCardInput): RentalCardView | null {

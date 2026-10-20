@@ -150,6 +150,25 @@ export function mapChatSystemMeta(kind: ChatSystemKind | null): ChatSystemMeta {
   }
 }
 
+const KNOWN_CHAT_SYSTEM_KINDS: readonly string[] = [
+  'request',
+  'approved',
+  'rejected',
+  'cancelled',
+  'handover',
+  'return',
+  'closed',
+];
+
+/**
+ * Inbox-row preview for a system line (ADR-051): the same icon + `chat.system.*`
+ * label the thread uses. Null for a null or unknown kind, so the caller falls
+ * back to the server's snippet.
+ */
+export function mapChatSystemPreview(kind: ChatSystemKind | null): ChatSystemMeta | null {
+  return kind !== null && KNOWN_CHAT_SYSTEM_KINDS.includes(kind) ? mapChatSystemMeta(kind) : null;
+}
+
 /**
  * A day-divider label for the message thread. `today` / `yesterday` are rendered
  * via ngx-translate keys; `date` carries an already-formatted, locale-aware

@@ -138,7 +138,15 @@
 
                 <div class="chat-row__bottom">
                   <p class="chat-row__snippet">
-                    @if (conversation.lastMessageSnippet) {
+                    @let systemMeta = systemPreview(conversation.lastMessageSystemKind);
+                    @if (systemMeta) {
+                      <!-- ADR-051: system lines are localized here, not read from the server snippet. -->
+                      <i
+                        [class]="systemMeta.icon + ' chat-row__snippet-icon'"
+                        aria-hidden="true"
+                      ></i>
+                      {{ systemMeta.labelKey | translate }}
+                    } @else if (conversation.lastMessageSnippet) {
                       @if (conversation.lastMessageIsMine) {
                         <span class="chat-row__snippet-prefix">{{
                           'chat.conversations.youPrefix' | translate

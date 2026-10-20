@@ -99,6 +99,11 @@ export class RentalCardComponent {
   private readonly reviewsApi = inject(ReviewsApiService);
 
   private readonly menu = viewChild<Menu>('menu');
+  /** Status + turn seen by the previous run of the busy-reset effect (null before the first). */
+  private lastState: {
+    bookingStatus: ChatConversationDetails['bookingStatus'];
+    turn: ChatConversationDetails['turn'];
+  } | null = null;
 
   protected readonly rejectDialogVisible = signal(false);
   /** True from click until the server answers (state changes) or the action fails. */
@@ -164,6 +169,7 @@ export class RentalCardComponent {
       hasListing: c.listingId !== null,
       status: c.bookingStatus,
       role: c.viewerRole,
+      turn: c.turn,
       counterpartName: c.counterpartName,
       deadlineText: c.deadlineAt
         ? formatDate(c.deadlineAt, 'd MMM, H:mm', this.locale, YEREVAN_UTC_OFFSET)
@@ -252,12 +258,22 @@ export class RentalCardComponent {
       onCleanup(() => sub.unsubscribe());
     });
 
-    // The server answered (status or turn changed): the action is no longer in flight.
+    // The server answered (status or turn actually changed): the action is no longer in
+    // flight. A new conversation object with the same status/turn (e.g. a realtime text
+    // message) must not re-enable the buttons mid-action.
     effect(() => {
-      const c = this.conversation();
-      void c.bookingStatus;
-      void c.turn;
-      untracked(() => this.busy.set(false));
+      const { bookingStatus, turn } = this.conversation();
+      const previous = this.lastState;
+      this.lastState = { bookingStatus, turn };
+      if (previous && previous.bookingStatus === bookingStatus && previous.turn === turn) {
+        return;
+      }
+      untracked(() => {
+        this.busy.set(false);
+        if (previous) {
+          this.actionError.set(null);
+        }
+      });
     });
 
     this.actions$

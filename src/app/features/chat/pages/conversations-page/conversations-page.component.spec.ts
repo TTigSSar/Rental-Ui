@@ -69,6 +69,38 @@ describe('ConversationsPageComponent', () => {
     expect(host.querySelector('.chat-row__snippet-prefix')).toBeNull();
   });
 
+  describe('system last message (ADR-051)', () => {
+    it('shows the localized chat.system label with its icon instead of the server snippet', () => {
+      const fixture = createFixture([
+        preview({
+          id: 'sys',
+          lastMessageType: 'system',
+          lastMessageSystemKind: 'approved',
+          lastMessageSnippet: 'Raw server text',
+        }),
+      ]);
+
+      const host = fixture.nativeElement as HTMLElement;
+      const snippet = host.querySelector('.chat-row__snippet');
+      expect(snippet?.textContent?.trim()).toBe('chat.system.approved');
+      expect(snippet?.querySelector('.pi-check')).not.toBeNull();
+    });
+
+    it('falls back to the snippet for an unknown kind', () => {
+      const fixture = createFixture([
+        preview({
+          id: 'unknown',
+          lastMessageType: 'system',
+          lastMessageSystemKind: 'brand_new' as never,
+          lastMessageSnippet: 'Raw server text',
+        }),
+      ]);
+
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelector('.chat-row__snippet')?.textContent?.trim()).toBe('Raw server text');
+    });
+  });
+
   describe('image last message', () => {
     it('labels an uncaptioned image row instead of leaving the snippet empty', () => {
       const fixture = createFixture([

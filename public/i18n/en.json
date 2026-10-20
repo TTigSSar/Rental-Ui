@@ -2397,7 +2397,6 @@
       "imageDismiss": "Dismiss",
       "imageTooLarge": "This photo is too large. Maximum size is {{max}} MB.",
       "imageInvalidType": "Unsupported file type. Use a JPEG, PNG, WebP or GIF image.",
-      "closedBanner": "This conversation is closed. The rental is complete and both reviews are in — it's now read-only.",
       "readOnly": "This rental is finished. The chat is read-only.",
       "charCounter": "{{count}} / {{max}}",
       "limitReached": "Message limit of {{max}} characters reached",

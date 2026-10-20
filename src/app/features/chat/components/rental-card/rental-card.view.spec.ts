@@ -1,4 +1,4 @@
-import type { ChatStatus, ChatViewerRole } from '../../models/chat.model';
+import type { ChatStatus, ChatTurn, ChatViewerRole } from '../../models/chat.model';
 import { type RentalCardInput, mapRentalCardView } from './rental-card.view';
 
 function input(
@@ -9,6 +9,7 @@ function input(
   return {
     status,
     role,
+    turn: 'none',
     counterpartName: 'Anna',
     deadlineText: '21 Oct, 14:05',
     startDateText: '12 Oct',
@@ -40,7 +41,7 @@ describe('mapRentalCardView', () => {
 
   describe('requested', () => {
     it('owner: turn badge, Accept primary, Decline secondary', () => {
-      const v = mapRentalCardView(input('requested', 'owner'));
+      const v = mapRentalCardView(input('requested', 'owner', { turn: 'owner' }));
       expect(v?.badgeKind).toBe('turn');
       expect(v?.leadKey).toBe('chat.rental.badge.yourTurn');
       expect(v?.restKey).toBe('chat.rental.badge.replyBy');
@@ -49,7 +50,7 @@ describe('mapRentalCardView', () => {
     });
 
     it('renter: wait badge, no button, Withdraw in the menu', () => {
-      const v = mapRentalCardView(input('requested', 'renter'));
+      const v = mapRentalCardView(input('requested', 'renter', { turn: 'owner' }));
       expect(v?.badgeKind).toBe('wait');
       expect(v?.sentenceKey).toBe('chat.rental.requested.renter');
       expect(ids(v)).toEqual({ primary: null, secondary: null, menu: ['withdraw', 'viewBooking'] });
@@ -58,15 +59,16 @@ describe('mapRentalCardView', () => {
   });
 
   describe('approved', () => {
-    it('owner: info badge with the meeting date, "I handed it over" primary', () => {
-      const v = mapRentalCardView(input('approved', 'owner'));
-      expect(v?.badgeKind).toBe('info');
+    it('owner: turn badge with the meeting date, "I handed it over" primary', () => {
+      const v = mapRentalCardView(input('approved', 'owner', { turn: 'owner' }));
+      expect(v?.badgeKind).toBe('turn');
+      expect(v?.leadKey).toBe('chat.rental.badge.yourTurn');
       expect(v?.restKey).toBe('chat.rental.badge.meetingOn');
       expect(ids(v)).toEqual({ primary: 'handedOver', secondary: null, menu: ['viewBooking'] });
     });
 
     it('renter: wait badge, cancel offered only before the start date', () => {
-      const before = mapRentalCardView(input('approved', 'renter', { canCancelApproved: true }));
+      const before = mapRentalCardView(input('approved', 'renter', { turn: 'owner', canCancelApproved: true }));
       expect(before?.badgeKind).toBe('wait');
       expect(ids(before)).toEqual({
         primary: null,
@@ -140,6 +142,82 @@ describe('mapRentalCardView', () => {
       const v = mapRentalCardView(input('not_happened', 'renter', { rejectionReason: '   ' }));
       expect(v?.reason).toBeNull();
       expect(v?.sentenceKey).toBe('chat.rental.notHappened.generic');
+    });
+  });
+
+  describe('badge follows the server turn (ADR-046 §8)', () => {
+    const live = ['requested', 'approved', 'active', 'return_due'] as const;
+    const roles = ['owner', 'renter'] as const;
+    const turns: readonly ChatTurn[] = ['owner', 'renter', 'none'];
+
+    const cases = live.flatMap((status) =>
+      roles.flatMap((role) => turns.map((turn) => [status, role, turn] as const)),
+    );
+
+    it.each(cases)('%s / %s / turn %s', (status, role, turn) => {
+      const v = mapRentalCardView(input(status, role, { turn }));
+      if (turn === role) {
+        expect(v?.badgeKind).toBe('turn');
+        expect(v?.leadKey).toBe('chat.rental.badge.yourTurn');
+      } else if (turn === 'none') {
+        expect(v?.badgeKind).toBe('info');
+        expect(v?.leadKey).not.toBe('chat.rental.badge.yourTurn');
+      } else {
+        expect(v?.badgeKind).toBe('wait');
+        expect(v?.leadKey).toBe('chat.rental.badge.nothingNeeded');
+      }
+    });
+
+    it('status requested but turn none: no turn/wait badge for either role', () => {
+      for (const role of roles) {
+        const v = mapRentalCardView(input('requested', role, { turn: 'none' }));
+        expect(v?.badgeKind).toBe('info');
+        expect(v?.restKey).toBeNull();
+      }
+    });
+
+    it('requested: rest copy is replyBy on my turn, waitingUntil otherwise', () => {
+      expect(mapRentalCardView(input('requested', 'owner', { turn: 'owner' }))?.restKey).toBe(
+        'chat.rental.badge.replyBy',
+      );
+      expect(mapRentalCardView(input('requested', 'renter', { turn: 'owner' }))?.restKey).toBe(
+        'chat.rental.badge.waitingUntil',
+      );
+    });
+
+    it('approved keeps the meeting date in every turn; none reads "Agreed"', () => {
+      for (const turn of turns) {
+        expect(mapRentalCardView(input('approved', 'owner', { turn }))?.restKey).toBe(
+          'chat.rental.badge.meetingOn',
+        );
+      }
+      expect(mapRentalCardView(input('approved', 'owner', { turn: 'none' }))?.leadKey).toBe(
+        'chat.rental.badge.agreed',
+      );
+    });
+
+    it('active keeps its role-specific rest copy', () => {
+      expect(mapRentalCardView(input('active', 'owner', { turn: 'owner' }))?.restKey).toBe(
+        'chat.rental.badge.backBy',
+      );
+      expect(mapRentalCardView(input('active', 'renter', { turn: 'owner' }))?.restKey).toBe(
+        'chat.rental.badge.returnBy',
+      );
+    });
+
+    it('finished states ignore the turn', () => {
+      expect(mapRentalCardView(input('completed', 'owner', { turn: 'owner' }))?.badgeKind).toBe(
+        'done',
+      );
+      expect(mapRentalCardView(input('not_happened', 'renter', { turn: 'renter' }))?.badgeKind).toBe(
+        'void',
+      );
+    });
+
+    it('actions stay status-derived whatever the turn is', () => {
+      expect(ids(mapRentalCardView(input('requested', 'owner', { turn: 'none' }))).primary).toBe(
+        'accept',
+      );
     });
   });
 
