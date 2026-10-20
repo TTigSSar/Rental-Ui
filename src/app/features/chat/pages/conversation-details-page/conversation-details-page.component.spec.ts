@@ -3,9 +3,10 @@ import { TestBed } from '@angular/core/testing';
 import type { FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import type { Action, Store } from '@ngrx/store';
+import { provideMockActions } from '@ngrx/effects/testing';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { of } from 'rxjs';
+import { EMPTY, of } from 'rxjs';
 import type { MockInstance } from 'vitest';
 
 import type { ChatConversationDetails, ChatMessage } from '../../models/chat.model';
@@ -125,6 +126,7 @@ function createFixture() {
     imports: [ConversationDetailsPageComponent, TranslateModule.forRoot()],
     providers: [
       provideRouter([]),
+      provideMockActions(() => EMPTY),
       provideMockStore({ initialState: { [chatFeatureKey]: initialChatState } }),
       {
         provide: ActivatedRoute,
@@ -254,15 +256,42 @@ describe('ConversationDetailsPageComponent', () => {
 
       const host = fixture.nativeElement as HTMLElement;
       expect(host.querySelector('.chat-thread__context--moderation')).not.toBeNull();
-      // The booking-only elements never render: no toy image, no dates/price
-      // context, no "View booking" link (which would otherwise point at
-      // `/bookings/null`, since `bookingId` is null for a Moderation thread).
-      expect(host.querySelector('.chat-thread__toy-img')).toBeNull();
+      // The booking-only elements never render: no rental card, no booking
+      // link (which would otherwise point at `/bookings/null`, since
+      // `bookingId` is null for a Moderation thread).
+      expect(host.querySelector('app-rental-card')).toBeNull();
+      expect(host.querySelector('.rental-card')).toBeNull();
       expect(host.querySelector('.chat-thread__view-booking')).toBeNull();
       expect(host.querySelector('a[href*="/bookings/"]')).toBeNull();
     });
 
-    it('renders the ordinary booking header for a booking conversation (regression guard)', () => {
+    it('renders the rental card (not the old strip, pill or "View booking" link) for a booking conversation', () => {
+      const { fixture, store } = createFixture();
+      store.setState({
+        [chatFeatureKey]: {
+          ...initialChatState,
+          activeConversation: conversationWith([], {
+            bookingStatus: 'requested',
+            viewerRole: 'owner',
+            turn: 'owner',
+            deadlineAt: '2026-10-21T10:05:00Z',
+            startDate: '2026-10-25',
+            endDate: '2026-10-29',
+            rentalDays: 4,
+          }),
+        },
+      });
+
+      fixture.detectChanges();
+
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelector('.chat-thread__context--moderation')).toBeNull();
+      expect(host.querySelector('.rental-card')).not.toBeNull();
+      expect(host.querySelector('.chat-status')).toBeNull();
+      expect(host.querySelector('.chat-thread__view-booking')).toBeNull();
+    });
+
+    it('renders no rental card while the booking status is unknown', () => {
       const { fixture, store } = createFixture();
       store.setState({
         [chatFeatureKey]: {
@@ -273,9 +302,7 @@ describe('ConversationDetailsPageComponent', () => {
 
       fixture.detectChanges();
 
-      const host = fixture.nativeElement as HTMLElement;
-      expect(host.querySelector('.chat-thread__context--moderation')).toBeNull();
-      expect(host.querySelector('.chat-thread__view-booking')).not.toBeNull();
+      expect((fixture.nativeElement as HTMLElement).querySelector('.rental-card')).toBeNull();
     });
 
     it('renders a moderationNote message as the note card, not a chat bubble', () => {

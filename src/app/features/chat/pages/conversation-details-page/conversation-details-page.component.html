@@ -87,8 +87,8 @@
         <!-- Pinned context header: a booking's toy strip, or — for a Moderation
              conversation (`kind === 'moderation'`, no linked booking; bookingId /
              toyTitle / bookingDates / bookingPrice are all null) — a moderation
-             banner instead. The "View booking" link is never rendered for a
-             Moderation thread, so it can never navigate to `/bookings/null`. -->
+             banner instead. The rental card renders only for a booking thread, so
+             nothing can ever navigate to `/bookings/null`. -->
         @if (conversation.kind === 'moderation') {
           <header class="chat-thread__context chat-thread__context--moderation">
             <span class="chat-thread__moderation-icon" aria-hidden="true">
@@ -104,49 +104,9 @@
             </div>
           </header>
         } @else {
-          <header class="chat-thread__context">
-            @if (conversation.toyImageUrl) {
-              <img
-                class="chat-thread__toy-img"
-                [src]="conversation.toyImageUrl"
-                [alt]="conversation.toyTitle"
-                loading="lazy"
-              />
-            } @else {
-              <span
-                class="chat-thread__toy-img chat-thread__toy-img--placeholder"
-                aria-hidden="true"
-              >
-                <i class="pi pi-image"></i>
-              </span>
-            }
-
-            <div class="chat-thread__context-body">
-              <h2 class="chat-thread__toy-title">{{ conversation.toyTitle }}</h2>
-              <p class="chat-thread__context-meta">
-                <i class="pi pi-calendar" aria-hidden="true"></i>
-                <span>{{ conversation.bookingDates }}</span>
-                <span class="chat-thread__dot" aria-hidden="true"></span>
-                <span class="chat-thread__price">
-                  {{ conversation.bookingPrice | dram }}
-                </span>
-              </p>
-            </div>
-
-            <div class="chat-thread__context-actions">
-              <span [class]="'chat-status chat-status--' + statusTone(conversation.status)">
-                <i [class]="statusIcon(conversation.status)" aria-hidden="true"></i>
-                <span>{{ statusLabelKey(conversation.status) | translate }}</span>
-              </span>
-              <a
-                class="chat-thread__view-booking"
-                [routerLink]="['/bookings', conversation.bookingId]"
-              >
-                {{ 'chat.details.viewBooking' | translate }}
-                <i class="pi pi-chevron-right" aria-hidden="true"></i>
-              </a>
-            </div>
-          </header>
+          <div class="chat-thread__rental">
+            <app-rental-card [conversation]="conversation" />
+          </div>
         }
 
         <!-- Message list -->

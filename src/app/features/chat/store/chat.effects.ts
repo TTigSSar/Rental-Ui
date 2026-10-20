@@ -17,6 +17,7 @@ import {
 
 import { ApiErrorMapper } from '../../../api/api-error-mapper';
 import { selectAuthUser } from '../../auth/store/auth.selectors';
+import * as BookingsActions from '../../bookings/store/bookings.actions';
 import {
   type ChatMessage,
   type ChatRealtimeMessage,
@@ -269,6 +270,31 @@ export class ChatEffects {
         }
 
         return actions;
+      }),
+    ),
+  );
+
+  /**
+   * A booking transition made from the rental card (approve / decline / hand over /
+   * receive back / cancel) changes what the card shows. Re-fetch the open conversation so
+   * the server re-derives `bookingStatus`, `turn` and `deadlineAt`; the realtime system
+   * message does this too, but only if the hub is connected. Skipped when the booking is
+   * not the one open in the thread (the same actions fire from the bookings pages).
+   */
+  readonly reloadAfterBookingAction$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(
+        BookingsActions.approveBookingRequestSuccess,
+        BookingsActions.rejectBookingRequestSuccess,
+        BookingsActions.cancelBookingSuccess,
+        BookingsActions.bookingActionSuccess,
+      ),
+      withLatestFrom(this.store.select(selectActiveConversation)),
+      mergeMap(([action, active]) => {
+        const bookingId = 'detail' in action ? action.detail.id : action.bookingId;
+        return active !== null && active.bookingId === bookingId
+          ? [ChatActions.loadConversationDetails({ conversationId: active.id })]
+          : [];
       }),
     ),
   );

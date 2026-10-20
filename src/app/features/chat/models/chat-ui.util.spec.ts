@@ -26,11 +26,19 @@ describe('mapChatStatusTone', () => {
   it('maps moderation to neutral (a Moderation thread never progresses like a booking)', () => {
     expect(mapChatStatusTone('moderation')).toBe('neutral');
   });
+
+  it('maps not_happened to neutral', () => {
+    expect(mapChatStatusTone('not_happened')).toBe('neutral');
+  });
 });
 
 describe('mapChatStatusIcon', () => {
   it('maps moderation to the shield glyph', () => {
     expect(mapChatStatusIcon('moderation')).toBe('pi pi-shield');
+  });
+
+  it('maps not_happened to the times-circle glyph', () => {
+    expect(mapChatStatusIcon('not_happened')).toBe('pi pi-times-circle');
   });
 });
 
@@ -49,6 +57,10 @@ describe('mapChatStatusLabelKey', () => {
 
   it('maps moderation to its own label key (not the closed fallback)', () => {
     expect(mapChatStatusLabelKey('moderation')).toBe('chat.status.moderation');
+  });
+
+  it('maps not_happened to its own label key (not the closed fallback)', () => {
+    expect(mapChatStatusLabelKey('not_happened')).toBe('chat.status.notHappened');
   });
 });
 

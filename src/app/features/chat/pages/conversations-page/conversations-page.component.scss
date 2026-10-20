@@ -2,7 +2,7 @@
  * Chat-local design colors with no global `--ui-color-*` token (kept in sync
  * with the thread's copy of the same list):
  *   --chat-warn        #D97706  requested / return_due status.
- *   --chat-closed      #9A99A3  closed status.
+ *   --chat-closed      #9A99A3  closed / not_happened status (neutral tone).
  *   --chat-row-unread  #FFFDFB  the barely-there warm tint on an unread row.
  */
 :host {
@@ -376,7 +376,9 @@
  * Both the dot AND the toy title carry the status color (the title is not a
  * neutral caption here — the color IS the status signal). `--chat-row-status`
  * is set per tone and consumed by both. Tone names come from the shared
- * `mapChatStatusTone()` vocabulary.
+ * `mapChatStatusTone()` vocabulary:
+ *   pending  -> requested / return_due     approved -> approved / completed
+ *   booked   -> active                     neutral  -> closed / moderation / not_happened
  */
 .chat-row__meta {
   display: flex;

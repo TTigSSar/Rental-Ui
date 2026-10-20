@@ -25,14 +25,12 @@ import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import { compressImageFile } from '../../../../shared/utils/image-compression.utils';
 import { ModerationNoteCardComponent } from '../../components/moderation-note-card/moderation-note-card.component';
+import { RentalCardComponent } from '../../components/rental-card/rental-card.component';
 import {
   type ChatDayLabel,
   type ChatSystemMeta,
   chatDayKey,
   chatDayLabel,
-  mapChatStatusIcon,
-  mapChatStatusLabelKey,
-  mapChatStatusTone,
   mapChatSystemMeta,
 } from '../../models/chat-ui.util';
 import {
@@ -280,6 +278,7 @@ function buildThreadItems(conversation: ChatConversationDetails): ThreadItem[] {
     MessageModule,
     ModerationNoteCardComponent,
     ReactiveFormsModule,
+    RentalCardComponent,
     RouterLink,
     SkeletonModule,
     TranslatePipe,
@@ -299,10 +298,6 @@ export class ConversationDetailsPageComponent implements OnInit {
     map((params) => params.get('conversationId')),
     distinctUntilChanged(),
   );
-
-  protected readonly statusTone = mapChatStatusTone;
-  protected readonly statusLabelKey = mapChatStatusLabelKey;
-  protected readonly statusIcon = mapChatStatusIcon;
 
   /**
    * First name of the counterpart, for the personalised composer placeholder

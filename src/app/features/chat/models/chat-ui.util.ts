@@ -28,6 +28,8 @@ export function mapChatStatusTone(status: ChatStatus): BadgeTone {
       return 'neutral';
     case 'moderation':
       return 'neutral';
+    case 'not_happened':
+      return 'neutral';
     default:
       return 'neutral';
   }
@@ -35,7 +37,7 @@ export function mapChatStatusTone(status: ChatStatus): BadgeTone {
 
 /**
  * Maps a conversation status to the primeicon shown inside its status pill
- * (design: clock / check / calendar / lock / shield — one glyph per status family).
+ * (design: clock / check / calendar / lock / shield / times-circle — one glyph per status family).
  */
 export function mapChatStatusIcon(status: ChatStatus): string {
   switch (status) {
@@ -49,6 +51,8 @@ export function mapChatStatusIcon(status: ChatStatus): string {
       return 'pi pi-calendar';
     case 'closed':
       return 'pi pi-lock';
+    case 'not_happened':
+      return 'pi pi-times-circle';
     case 'moderation':
       return 'pi pi-shield';
     default:
@@ -73,6 +77,8 @@ export function mapChatStatusLabelKey(status: ChatStatus): string {
       return 'chat.status.closed';
     case 'moderation':
       return 'chat.status.moderation';
+    case 'not_happened':
+      return 'chat.status.notHappened';
     default:
       return 'chat.status.closed';
   }
