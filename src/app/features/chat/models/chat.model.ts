@@ -30,7 +30,8 @@ export type ChatSystemKind =
   | 'cancelled'
   | 'handover'
   | 'return'
-  | 'closed';
+  | 'closed'
+  | 'expired';
 
 /** Which party the viewer is in a booking conversation. */
 export type ChatViewerRole = 'owner' | 'renter';
