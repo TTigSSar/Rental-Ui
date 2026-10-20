@@ -1,181 +1,286 @@
 @if (view(); as v) {
-  <section
-    class="rental-card"
-    [class.rental-card--turn]="isViewerTurn()"
-    [attr.aria-label]="'chat.rental.aria' | translate"
+  <!-- Collapsed (mobile: feed scrolled away / card too tall): the one-row compact. Both layers stay
+       in the DOM and trade height, so the collapse can animate; the hidden layer is
+       visibility:hidden (out of the tab order and the accessibility tree). -->
+  <div
+    class="rental-fold"
+    [class.rental-fold--open]="collapsed()"
+    [class.rental-fold--animated]="animated()"
   >
-    @if (isViewerTurn()) {
-      <div class="rental-card__bar" aria-hidden="true"></div>
-    }
-
-    <div class="rental-card__body">
-      <div class="rental-card__toy">
-        @if (conversation().toyImageUrl) {
-          <img class="rental-card__img" [src]="conversation().toyImageUrl" alt="" loading="lazy" />
-        } @else {
-          <span class="rental-card__img rental-card__img--placeholder" aria-hidden="true">
-            <i class="pi pi-image"></i>
-          </span>
+    <div class="rental-fold__inner">
+      <section class="rental-compact" [attr.aria-label]="'chat.rental.aria' | translate">
+        @if (isViewerTurn()) {
+          <div class="rental-compact__bar" aria-hidden="true"></div>
         }
-
-        <div class="rental-card__toy-text">
-          <div class="rental-card__title">{{ conversation().toyTitle }}</div>
-          @if (datesText(); as d) {
-            <div class="rental-card__meta">
-              {{ d.start }} → {{ d.end }}
-              @if (d.days !== null) {
-                ·
-                {{
-                  (d.days === 1 ? 'chat.rental.day' : 'chat.rental.days')
-                    | translate: { count: d.days }
-                }}
-              }
-            </div>
-          }
-          @if (conversation().bookingPrice !== null) {
-            <div class="rental-card__meta">
-              <b class="rental-card__total">{{ conversation().bookingPrice | dram }}</b>
-            </div>
-          }
-        </div>
-
-        <button
-          type="button"
-          class="rental-card__more"
-          aria-haspopup="menu"
-          [attr.aria-label]="'chat.rental.moreActions' | translate"
-          (click)="toggleMenu($event)"
-        >
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            stroke="none"
-            aria-hidden="true"
+        <div class="rental-compact__row">
+          <button
+            type="button"
+            class="rental-compact__toggle"
+            [attr.aria-expanded]="!collapsed()"
+            [attr.aria-controls]="fullCardId"
+            (click)="expandRequested.emit()"
           >
-            <circle cx="5" cy="12" r="1.6" />
-            <circle cx="12" cy="12" r="1.6" />
-            <circle cx="19" cy="12" r="1.6" />
-          </svg>
-        </button>
-        <p-menu
-          #menu
-          [popup]="true"
-          styleClass="rental-card__menu"
-          [model]="menuItems()"
-          appendTo="body"
-          [ariaLabel]="'chat.rental.moreActions' | translate"
-        />
-      </div>
-
-      <hr class="rental-card__rule" />
-
-      <div>
-        <div class="rental-badge" [class]="'rental-badge--' + v.badgeKind">
-          <span class="rental-badge__icon">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              @switch (v.badgeKind) {
-                @case ('turn') {
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M12 7v5l3 2" />
-                }
-                @case ('wait') {
-                  <path d="M7 3h10M7 21h10M8 3c0 5 8 5 8 9s-8 4-8 9M16 3c0 5-8 5-8 9" />
-                }
-                @case ('info') {
-                  <rect x="4" y="9" width="16" height="9" rx="2" />
-                  <circle cx="8" cy="19" r="1.6" />
-                  <circle cx="16" cy="19" r="1.6" />
-                  <path d="M8 9V6h5v3" />
-                }
-                @case ('done') {
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M8 12.3l2.8 2.8L16.2 9.6" />
-                }
-                @case ('void') {
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M9 9l6 6M15 9l-6 6" />
-                }
-              }
-            </svg>
-          </span>
-          <span class="rental-badge__text">
-            <b class="rental-badge__lead">{{ v.leadKey | translate: v.params }}</b>
-            @if (v.restKey) {
-              <span class="rental-badge__rest"> · {{ v.restKey | translate: v.params }}</span>
+            @if (conversation().toyImageUrl) {
+              <img
+                class="rental-compact__img"
+                [src]="conversation().toyImageUrl"
+                alt=""
+                loading="lazy"
+              />
+            } @else {
+              <span class="rental-compact__img rental-compact__img--placeholder" aria-hidden="true">
+                <i class="pi pi-image"></i>
+              </span>
             }
-          </span>
-        </div>
-      </div>
-
-      <p class="rental-card__sentence">{{ v.sentenceKey | translate: v.params }}</p>
-
-      @if (v.reason; as reason) {
-        <ng-container
-          [ngTemplateOutlet]="quote"
-          [ngTemplateOutletContext]="{
-            kind: reason.kind,
-            value: reason.value,
-            caption: reasonCaptionKey(),
-          }"
-        />
-      }
-
-      @if (renterNote(); as note) {
-        <ng-container
-          [ngTemplateOutlet]="quote"
-          [ngTemplateOutletContext]="{ kind: 'text', value: note, caption: noteCaptionKey() }"
-        />
-      }
-
-      @if (actionError(); as error) {
-        <p class="rental-card__error" role="alert">{{ error }}</p>
-      }
-
-      @if (v.primary || v.secondary) {
-        <div class="rental-card__actions">
+            <span class="rental-compact__text">
+              <span [class]="'rental-compact__status rental-compact__status--' + v.badgeKind">
+                <ng-container
+                  [ngTemplateOutlet]="badgeIcon"
+                  [ngTemplateOutletContext]="{ kind: v.badgeKind, size: 16 }"
+                />
+                <span class="rental-compact__ellipsis">
+                  <b>{{ v.leadKey | translate: v.params }}</b>
+                  @if (v.restKey) {
+                    <span> · {{ v.restKey | translate: v.params }}</span>
+                  }
+                </span>
+              </span>
+              <span class="rental-compact__sub">
+                <span class="rental-compact__ellipsis">{{
+                  v.sentenceKey | translate: v.params
+                }}</span>
+                <svg
+                  class="rental-compact__chevron"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </span>
+            </span>
+          </button>
           @if (v.primary; as primary) {
             <button
               type="button"
-              class="rental-btn rental-btn--primary"
+              class="rental-compact__btn"
               [disabled]="busy()"
+              [attr.title]="primary.labelKey | translate"
               (click)="onPrimary()"
             >
               {{ primary.labelKey | translate }}
             </button>
           }
-          @if (v.secondary; as secondary) {
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div
+    class="rental-fold rental-fold--full"
+    [class.rental-fold--open]="!collapsed()"
+    [class.rental-fold--animated]="animated()"
+    [id]="fullCardId"
+  >
+    <div class="rental-fold__inner">
+      <section
+        #fullCard
+        class="rental-card"
+        [class.rental-card--turn]="isViewerTurn()"
+        [attr.aria-label]="'chat.rental.aria' | translate"
+      >
+        @if (isViewerTurn()) {
+          <div class="rental-card__bar" aria-hidden="true"></div>
+        }
+
+        <div class="rental-card__body">
+          <div class="rental-card__toy">
+            @if (conversation().toyImageUrl) {
+              <img
+                class="rental-card__img"
+                [src]="conversation().toyImageUrl"
+                alt=""
+                loading="lazy"
+              />
+            } @else {
+              <span class="rental-card__img rental-card__img--placeholder" aria-hidden="true">
+                <i class="pi pi-image"></i>
+              </span>
+            }
+
+            <div class="rental-card__toy-text">
+              <div class="rental-card__title">{{ conversation().toyTitle }}</div>
+              @if (datesText(); as d) {
+                <div class="rental-card__meta">
+                  {{ d.start }} → {{ d.end }}
+                  @if (d.days !== null) {
+                    ·
+                    {{
+                      (d.days === 1 ? 'chat.rental.day' : 'chat.rental.days')
+                        | translate: { count: d.days }
+                    }}
+                  }
+                </div>
+              }
+              @if (conversation().bookingPrice !== null) {
+                <div class="rental-card__meta">
+                  <b class="rental-card__total">{{ conversation().bookingPrice | dram }}</b>
+                </div>
+              }
+            </div>
+
             <button
               type="button"
-              class="rental-btn rental-btn--secondary"
-              [disabled]="busy()"
-              (click)="onSecondary()"
+              class="rental-card__more"
+              aria-haspopup="menu"
+              [attr.aria-label]="'chat.rental.moreActions' | translate"
+              (click)="toggleMenu($event)"
             >
-              {{ secondary.labelKey | translate }}
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                stroke="none"
+                aria-hidden="true"
+              >
+                <circle cx="5" cy="12" r="1.6" />
+                <circle cx="12" cy="12" r="1.6" />
+                <circle cx="19" cy="12" r="1.6" />
+              </svg>
             </button>
+            <p-menu
+              #menu
+              [popup]="true"
+              styleClass="rental-card__menu"
+              [model]="menuItems()"
+              appendTo="body"
+              [ariaLabel]="'chat.rental.moreActions' | translate"
+            />
+          </div>
+
+          <hr class="rental-card__rule" />
+
+          <div>
+            <div class="rental-badge" [class]="'rental-badge--' + v.badgeKind">
+              <span class="rental-badge__icon">
+                <ng-container
+                  [ngTemplateOutlet]="badgeIcon"
+                  [ngTemplateOutletContext]="{ kind: v.badgeKind, size: 16 }"
+                />
+              </span>
+              <span class="rental-badge__text">
+                <b class="rental-badge__lead">{{ v.leadKey | translate: v.params }}</b>
+                @if (v.restKey) {
+                  <span class="rental-badge__rest"> · {{ v.restKey | translate: v.params }}</span>
+                }
+              </span>
+            </div>
+          </div>
+
+          <p class="rental-card__sentence">{{ v.sentenceKey | translate: v.params }}</p>
+
+          @if (v.reason; as reason) {
+            <ng-container
+              [ngTemplateOutlet]="quote"
+              [ngTemplateOutletContext]="{
+                kind: reason.kind,
+                value: reason.value,
+                caption: reasonCaptionKey(),
+              }"
+            />
+          }
+
+          @if (renterNote(); as note) {
+            <ng-container
+              [ngTemplateOutlet]="quote"
+              [ngTemplateOutletContext]="{ kind: 'text', value: note, caption: noteCaptionKey() }"
+            />
+          }
+
+          @if (actionError(); as error) {
+            <p class="rental-card__error" role="alert">{{ error }}</p>
+          }
+
+          @if (v.primary || v.secondary) {
+            <div class="rental-card__actions">
+              @if (v.primary; as primary) {
+                <button
+                  type="button"
+                  class="rental-btn rental-btn--primary"
+                  [disabled]="busy()"
+                  (click)="onPrimary()"
+                >
+                  {{ primary.labelKey | translate }}
+                </button>
+              }
+              @if (v.secondary; as secondary) {
+                <button
+                  type="button"
+                  class="rental-btn rental-btn--secondary"
+                  [disabled]="busy()"
+                  (click)="onSecondary()"
+                >
+                  {{ secondary.labelKey | translate }}
+                </button>
+              }
+            </div>
           }
         </div>
-      }
+      </section>
     </div>
-
-    <app-booking-reject-dialog
-      [visible]="rejectDialogVisible()"
-      (confirmed)="confirmReject($event)"
-      (cancelled)="closeRejectDialog()"
-    />
-  </section>
+  </div>
 }
+
+<app-booking-reject-dialog
+  [visible]="rejectDialogVisible()"
+  (confirmed)="confirmReject($event)"
+  (cancelled)="closeRejectDialog()"
+/>
+
+<ng-template #badgeIcon let-kind="kind" let-size="size">
+  <svg
+    [attr.width]="size"
+    [attr.height]="size"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    @switch (kind) {
+      @case ('turn') {
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3 2" />
+      }
+      @case ('wait') {
+        <path d="M7 3h10M7 21h10M8 3c0 5 8 5 8 9s-8 4-8 9M16 3c0 5-8 5-8 9" />
+      }
+      @case ('info') {
+        <rect x="4" y="9" width="16" height="9" rx="2" />
+        <circle cx="8" cy="19" r="1.6" />
+        <circle cx="16" cy="19" r="1.6" />
+        <path d="M8 9V6h5v3" />
+      }
+      @case ('done') {
+        <circle cx="12" cy="12" r="9" />
+        <path d="M8 12.3l2.8 2.8L16.2 9.6" />
+      }
+      @case ('void') {
+        <circle cx="12" cy="12" r="9" />
+        <path d="M9 9l6 6M15 9l-6 6" />
+      }
+    }
+  </svg>
+</ng-template>
 
 <ng-template #quote let-kind="kind" let-value="value" let-caption="caption">
   <figure class="rental-card__quote">

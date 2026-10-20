@@ -6,7 +6,9 @@ import {
   ElementRef,
   OnInit,
   afterRenderEffect,
+  computed,
   inject,
+  signal,
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -51,6 +53,19 @@ import {
   selectSendingMessageError,
 } from '../../store/chat.selectors';
 import type { PendingChatImage } from '../../store/chat.state';
+
+/**
+ * Rental-card layout breakpoints (keep in sync with the media queries in the scss).
+ *   >= 1280  the card lives in its own right column and is never compact;
+ *   768-1279 the card sits under the header; it collapses only when it is too tall;
+ *   <  768   the card is also pinned collapsed while the feed is scrolled away from the bottom.
+ */
+const RENTAL_COLUMN_MIN_WIDTH = 1280;
+const RENTAL_MOBILE_MAX_WIDTH = 768;
+/** A card taller than this share of the viewport collapses to the compact row. */
+const RENTAL_TALL_RATIO = 0.45;
+/** Within this many px of the end the feed counts as "at the bottom". */
+const FEED_BOTTOM_TOLERANCE_PX = 48;
 
 /** A run of consecutive same-sender text/image messages, rendered as a bubble stack. */
 interface MessageGroup {
@@ -401,7 +416,70 @@ export class ConversationDetailsPageComponent implements OnInit {
     ),
   );
 
+  private readonly viewport = signal({ width: window.innerWidth, height: window.innerHeight });
+  /** Natural height of the full rental card (reported by the card, even while collapsed). */
+  private readonly rentalFullHeight = signal(0);
+  /** The feed is scrolled away from its bottom (the viewer is reading history). */
+  private readonly feedScrolledAway = signal(false);
+  /** The viewer tapped the compact row: stay expanded until the scroll position changes class. */
+  private readonly rentalPinnedOpen = signal(false);
+
+  /** Whether the rental card shows as the one-row compact (see the breakpoint note above). */
+  protected readonly rentalCollapsed = computed(() => {
+    const { width, height } = this.viewport();
+    if (width >= RENTAL_COLUMN_MIN_WIDTH || this.rentalPinnedOpen()) {
+      return false;
+    }
+    const tooTall = this.rentalFullHeight() > height * RENTAL_TALL_RATIO;
+    return tooTall || (width < RENTAL_MOBILE_MAX_WIDTH && this.feedScrolledAway());
+  });
+
+  /** A booking thread shows the rental card; moderation and no-booking threads do not. */
+  protected hasRental(conversation: ChatConversationDetails): boolean {
+    return (
+      conversation.kind !== 'moderation' &&
+      conversation.bookingStatus !== null &&
+      conversation.viewerRole !== null
+    );
+  }
+
+  protected onFeedScroll(event: Event): void {
+    const pane = event.target as HTMLElement;
+    const away = pane.scrollHeight - pane.scrollTop - pane.clientHeight > FEED_BOTTOM_TOLERANCE_PX;
+    if (away !== this.feedScrolledAway()) {
+      this.feedScrolledAway.set(away);
+      // Leaving the bottom collapses again; returning to it expands again.
+      this.rentalPinnedOpen.set(false);
+    }
+  }
+
+  protected expandRental(): void {
+    this.rentalPinnedOpen.set(true);
+  }
+
+  protected onRentalHeight(height: number): void {
+    this.rentalFullHeight.set(height);
+  }
+
   constructor() {
+    const onResize = (): void =>
+      this.viewport.set({ width: window.innerWidth, height: window.innerHeight });
+    window.addEventListener('resize', onResize);
+    this.destroyRef.onDestroy(() => window.removeEventListener('resize', onResize));
+
+    // A different conversation starts with a fresh card layout.
+    this.viewModel$
+      .pipe(
+        map((vm) => vm.conversation?.id ?? null),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        this.rentalFullHeight.set(0);
+        this.feedScrolledAway.set(false);
+        this.rentalPinnedOpen.set(false);
+      });
+
     // Pin the pane to the newest message. afterRenderEffect runs after the DOM
     // has been updated, so scrollHeight already reflects freshly appended
     // messages (initial load and post-send alike).

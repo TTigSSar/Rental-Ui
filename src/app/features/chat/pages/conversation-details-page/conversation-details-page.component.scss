@@ -12,8 +12,6 @@
   --chat-warn: #a75c05;
   --chat-seen: #4a5fe3;
   --chat-closed: #9a99a3;
-  --chat-lock-chip-bg: #eae7e0;
-  --chat-lock-chip-fg: #8b8a93;
 }
 
 .chat-thread {
@@ -241,13 +239,24 @@
 }
 
 /* ── Rental card slot ─────────────────────────────────────────────────── */
-/* The card (RC-2) sits on the white panel under the header; pinning / compact
-   mobile / desktop column are RC-3. */
+/* Pinned under the header (a flex-shrink:0 sibling above the scrolling feed, so it never
+   scrolls away). Below 1280px the card itself collapses to a compact row (see
+   RentalCardComponent); at >= 1280px the slot becomes the right column (end of file). */
 .chat-thread__rental {
   flex-shrink: 0;
   padding: 12px 14px;
   background: var(--ui-color-surface);
   border-bottom: 1px solid var(--ui-color-border);
+}
+
+/* "Rental" label: only the right column shows it. */
+.chat-thread__rental-label {
+  display: none;
+  margin: 0 4px 10px;
+  font-size: 14px;
+  font-weight: var(--ui-font-weight-semibold);
+  line-height: 20px;
+  color: var(--ui-color-text-secondary);
 }
 
 /* ── Moderation banner strip ──────────────────────────────────────────── */
@@ -700,10 +709,11 @@
   font-size: 18px;
 }
 
-/* ── Closed banner ────────────────────────────────────────────────────────
- * A two-line card inside the white bar that replaces the composer. */
+/* ── Read-only footer ─────────────────────────────────────────────────────
+ * Replaces the composer once the rental is finished: a lock + one plain line,
+ * on the page tint inside the white bar (design: Composer `done` in rc-layout.jsx). */
 .chat-thread__closed {
-  padding: 12px 14px;
+  padding: 12px 16px;
   background: var(--ui-color-surface);
   border-top: 1px solid var(--ui-color-border);
 }
@@ -712,43 +722,18 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border: 1px solid var(--ui-color-border);
-  border-radius: 14px;
-  background: var(--ui-color-surface-muted);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-background);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ui-color-text-secondary);
 }
 
 .chat-thread__closed-icon {
   flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
-  background: var(--chat-lock-chip-bg);
-  color: var(--chat-lock-chip-fg);
-}
-
-.chat-thread__closed-icon .pi {
-  font-size: 15px;
-}
-
-.chat-thread__closed-body {
-  min-width: 0;
-}
-
-.chat-thread__closed-title {
-  margin: 0;
-  font-size: 12.5px;
-  font-weight: var(--ui-font-weight-bold);
-  color: var(--ui-color-text-primary);
-}
-
-.chat-thread__closed-text {
-  margin: 1px 0 0;
-  font-size: 11.5px;
-  color: var(--ui-color-text-secondary);
+  font-size: 18px;
 }
 
 /*
@@ -903,21 +888,33 @@
     width: 42px;
     height: 42px;
   }
+}
 
-  .chat-thread__closed {
-    padding: 14px 18px;
+/*
+ * Desktop with a rental (>= 1280px): grid 320px | thread | 400px. The shell supplies the
+ * 320px rail; here the thread reserves a 400px right column for the full card (never
+ * compact), labelled "Rental". Threads without a rental (moderation, no booking) keep
+ * the two panes. The column is absolutely placed so a stray alert/skeleton in the
+ * thread flow can never be pushed into it.
+ */
+@media (min-width: 1280px) {
+  :host-context(.chat-shell__pane) .chat-thread--rental {
+    position: relative;
+    padding-right: 400px;
   }
 
-  .chat-thread__closed-card {
-    padding: 11px 14px;
+  :host-context(.chat-shell__pane) .chat-thread--rental .chat-thread__rental {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: 400px;
+    padding: 20px;
+    overflow-y: auto;
+    border-bottom: none;
+    border-left: 1px solid var(--ui-color-border);
   }
 
-  .chat-thread__closed-title {
-    font-size: 13px;
-  }
-
-  .chat-thread__closed-text {
-    font-size: 12px;
+  :host-context(.chat-shell__pane) .chat-thread--rental .chat-thread__rental-label {
+    display: block;
   }
 }
 

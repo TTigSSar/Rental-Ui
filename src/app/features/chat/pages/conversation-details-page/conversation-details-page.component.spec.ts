@@ -324,6 +324,93 @@ describe('ConversationDetailsPageComponent', () => {
     });
   });
 
+  describe('rental card layout', () => {
+    const bookingThread = (overrides: Partial<ChatConversationDetails> = {}) =>
+      conversationWith([], {
+        bookingStatus: 'requested',
+        viewerRole: 'owner',
+        turn: 'owner',
+        deadlineAt: '2026-10-21T10:05:00Z',
+        startDate: '2026-10-25',
+        endDate: '2026-10-29',
+        rentalDays: 4,
+        ...overrides,
+      });
+
+    function setWidth(width: number): void {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });
+    }
+
+    function scrollFeed(host: HTMLElement, scrollTop: number): void {
+      const pane = host.querySelector<HTMLElement>('.chat-thread__messages')!;
+      Object.defineProperty(pane, 'scrollHeight', { configurable: true, value: 1000 });
+      Object.defineProperty(pane, 'clientHeight', { configurable: true, value: 300 });
+      pane.scrollTop = scrollTop;
+      pane.dispatchEvent(new Event('scroll'));
+    }
+
+    const toggleOf = (host: HTMLElement) =>
+      host.querySelector<HTMLButtonElement>('.rental-compact__toggle')!;
+
+    function open(width: number, conversation: ChatConversationDetails = bookingThread()) {
+      setWidth(width);
+      const { fixture, store } = createFixture();
+      store.setState({
+        [chatFeatureKey]: { ...initialChatState, activeConversation: conversation },
+      });
+      fixture.detectChanges();
+      return { fixture, host: fixture.nativeElement as HTMLElement };
+    }
+
+    afterEach(() => setWidth(1024));
+
+    it('on a phone the card collapses while the feed is scrolled up, and expands back at the bottom', () => {
+      const { fixture, host } = open(390);
+      expect(toggleOf(host).getAttribute('aria-expanded')).toBe('true');
+
+      scrollFeed(host, 0);
+      fixture.detectChanges();
+      expect(toggleOf(host).getAttribute('aria-expanded')).toBe('false');
+
+      scrollFeed(host, 700);
+      fixture.detectChanges();
+      expect(toggleOf(host).getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('tapping the compact row expands the card', () => {
+      const { fixture, host } = open(390);
+      scrollFeed(host, 0);
+      fixture.detectChanges();
+
+      toggleOf(host).click();
+      fixture.detectChanges();
+      expect(toggleOf(host).getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('does not collapse on scroll at tablet width and above (only a too-tall card collapses there)', () => {
+      const { fixture, host } = open(1024);
+      scrollFeed(host, 0);
+      fixture.detectChanges();
+      expect(toggleOf(host).getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('a thread without a booking has no rental slot at all', () => {
+      const { host } = open(390, conversationWith([]));
+      expect(host.querySelector('.chat-thread__rental')).toBeNull();
+    });
+
+    it('replaces the composer with the read-only note once the rental is finished', () => {
+      const { host } = open(
+        390,
+        bookingThread({ isClosed: true, bookingStatus: 'completed', turn: 'none' }),
+      );
+      expect(host.querySelector('.chat-thread__closed')?.textContent).toContain(
+        'chat.details.readOnly',
+      );
+      expect(host.querySelector('.chat-thread__composer')).toBeNull();
+    });
+  });
+
   describe('composer character counter', () => {
     it('stays hidden for short content', () => {
       const { fixture, store } = createFixture();

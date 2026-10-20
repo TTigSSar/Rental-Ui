@@ -3,11 +3,14 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
   LOCALE_ID,
   computed,
+  afterNextRender,
   effect,
   inject,
   input,
+  output,
   signal,
   untracked,
   viewChild,
@@ -38,6 +41,9 @@ import { type RentalActionId, type RentalCardView, mapRentalCardView } from './r
 /** Armenia has no DST: Yerevan is a fixed UTC+4 (the calendar the deadline is shown in). */
 const YEREVAN_UTC_OFFSET = '+0400';
 
+/** Gives each card instance a unique id for `aria-controls`. */
+let nextCardId = 0;
+
 /**
  * The rental card pinned under the thread header: toy row + one turn badge, one
  * sentence and one primary button (design: `RentalCard` in rc-parts.jsx). It replaces
@@ -65,6 +71,23 @@ const YEREVAN_UTC_OFFSET = '+0400';
 })
 export class RentalCardComponent {
   readonly conversation = input.required<ChatConversationDetails>();
+  /**
+   * Show the one-row compact instead of the full card (the page decides: mobile scroll /
+   * tall card). The full card stays in the DOM, hidden, so it can be measured and animated.
+   */
+  readonly collapsed = input(false);
+  /** The compact row (not its button) was tapped: the viewer wants the full card back. */
+  readonly expandRequested = output<void>();
+  /** Natural height (px) of the full card, whether or not it is currently shown. */
+  readonly fullHeight = output<number>();
+
+  protected readonly fullCardId = `rental-card-full-${nextCardId++}`;
+  /**
+   * False for the first moments after mount: the initial measure may collapse a tall card, and
+   * that first collapse must not visibly animate a card the viewer never saw expanded.
+   */
+  protected readonly animated = signal(false);
+  private readonly fullCard = viewChild<ElementRef<HTMLElement>>('fullCard');
 
   private readonly store = inject(Store);
   private readonly router = inject(Router);
@@ -194,6 +217,23 @@ export class RentalCardComponent {
   });
 
   constructor() {
+    afterNextRender(() => {
+      const timer = setTimeout(() => this.animated.set(true), 500);
+      this.destroyRef.onDestroy(() => clearTimeout(timer));
+    });
+
+    // Report the full card's natural height so the page can collapse a card that would take
+    // too much of the viewport. Absent in non-browser test environments.
+    effect((onCleanup) => {
+      const el = this.fullCard()?.nativeElement;
+      if (!el || typeof ResizeObserver === 'undefined') {
+        return;
+      }
+      const observer = new ResizeObserver(() => this.fullHeight.emit(Math.round(el.offsetHeight)));
+      observer.observe(el);
+      onCleanup(() => observer.disconnect());
+    });
+
     // Review eligibility is fetched only for completed/closed bookings, once per booking.
     effect((onCleanup) => {
       const c = this.conversation();

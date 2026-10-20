@@ -1012,6 +1012,25 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
       return json(route, seed.bookingDetail ? 200 : 404, seed.bookingDetail ?? { detail: 'Not found' });
     }
 
+    // POST /api/bookings/{id}/approve — the owner's Accept. Flips every seeded chat-detail
+    // fixture linked to that booking from Pending to Approved (the same "mutate the working set"
+    // convention as the admin queues), so the re-fetch the rental card triggers afterwards sees
+    // the new state: approved, and the meeting is now the owner's to hand over.
+    const bookingApproveId = pathname.match(/^\/api\/bookings\/([^/]+)\/approve$/)?.[1];
+    if (bookingApproveId && method === 'POST') {
+      for (const detail of Object.values(chatConversationDetailsState)) {
+        if (detail['bookingId'] === bookingApproveId && detail['bookingStatus'] === 'requested') {
+          Object.assign(detail, {
+            status: 'approved',
+            bookingStatus: 'approved',
+            turn: 'owner',
+            deadlineAt: null,
+          });
+        }
+      }
+      return json(route, 200, {});
+    }
+
     // GET /api/reviews/listing/{id} — toy-review aggregate + comments for the
     // listing detail page's reviews section.
     if (/^\/api\/reviews\/listing\/[^/]+$/.test(pathname) && method === 'GET') {

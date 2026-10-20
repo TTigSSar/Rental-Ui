@@ -378,6 +378,57 @@ describe('RentalCardComponent', () => {
     });
   });
 
+  describe('compact row (collapsed)', () => {
+    function compactSetup(c: ChatConversationDetails) {
+      const ctx = setup(c);
+      ctx.fixture.componentRef.setInput('collapsed', true);
+      ctx.fixture.detectChanges();
+      const expand = vi.fn();
+      ctx.fixture.componentInstance.expandRequested.subscribe(expand);
+      return { ...ctx, expand };
+    }
+    const toggle = (host: HTMLElement) =>
+      host.querySelector<HTMLButtonElement>('.rental-compact__toggle')!;
+
+    it('announces the state on the toggle and emits expandRequested when the row is tapped', () => {
+      const { host, expand } = compactSetup(conversation());
+      expect(toggle(host).getAttribute('aria-expanded')).toBe('false');
+      const fullId = host.querySelector('.rental-card')!.closest('.rental-fold')!.id;
+      expect(toggle(host).getAttribute('aria-controls')).toBe(fullId);
+      toggle(host).click();
+      expect(expand).toHaveBeenCalledTimes(1);
+    });
+
+    it('reuses the badge lead/rest and the sentence', () => {
+      const { host } = compactSetup(conversation());
+      const status = host.querySelector('.rental-compact__status')!.textContent ?? '';
+      expect(status).toContain('chat.rental.badge.yourTurn');
+      expect(status).toContain('chat.rental.badge.replyBy');
+      expect(host.querySelector('.rental-compact__sub')?.textContent).toContain(
+        'chat.rental.requested.owner',
+      );
+    });
+
+    it('its action button runs the primary action without expanding the card', () => {
+      const { host, dispatch, expand } = compactSetup(conversation());
+      host.querySelector<HTMLButtonElement>('.rental-compact__btn')!.click();
+      expect(dispatch).toHaveBeenCalledWith(
+        BookingsActions.approveBookingRequest({ bookingId: 'b1' }),
+      );
+      expect(expand).not.toHaveBeenCalled();
+    });
+
+    it("shows the bar only on the viewer's turn, and no button without a primary action", () => {
+      const owner = compactSetup(conversation());
+      expect(owner.host.querySelector('.rental-compact__bar')).not.toBeNull();
+      TestBed.resetTestingModule();
+
+      const renter = compactSetup(conversation({ viewerRole: 'renter', turn: 'owner' }));
+      expect(renter.host.querySelector('.rental-compact__bar')).toBeNull();
+      expect(renter.host.querySelector('.rental-compact__btn')).toBeNull();
+    });
+  });
+
   it('scopes the ⋯ popup with the rental-card__menu class that carries the 44px item rule', () => {
     // jsdom does not load styles.css, so the 44px height itself is verified live; here we
     // pin the hook the global rule depends on.
