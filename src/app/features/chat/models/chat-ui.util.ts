@@ -129,6 +129,10 @@ export function mapChatSystemMeta(kind: ChatSystemKind | null): ChatSystemMeta {
       return { icon: 'pi pi-calendar', labelKey: 'chat.system.request', tone: 'primary' };
     case 'approved':
       return { icon: 'pi pi-check', labelKey: 'chat.system.approved', tone: 'success' };
+    case 'rejected':
+      return { icon: 'pi pi-times', labelKey: 'chat.system.rejected', tone: 'warn' };
+    case 'cancelled':
+      return { icon: 'pi pi-ban', labelKey: 'chat.system.cancelled', tone: 'neutral' };
     case 'handover':
       return { icon: 'pi pi-shield', labelKey: 'chat.system.handover', tone: 'primary' };
     case 'return':

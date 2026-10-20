@@ -2418,6 +2418,8 @@
       "request": "Booking requested",
       "requestDetail": "{{name}} requested this toy · {{dates}} · {{price}}",
       "approved": "Request approved",
+      "rejected": "The owner declined the request",
+      "cancelled": "The renter cancelled the booking",
       "handover": "Toy handed over",
       "return": "Toy returned",
       "closed": "Conversation closed",

@@ -6,6 +6,7 @@ import {
   mapChatStatusIcon,
   mapChatStatusLabelKey,
   mapChatStatusTone,
+  mapChatSystemMeta,
   mapModerationNoteMeta,
 } from './chat-ui.util';
 
@@ -228,3 +229,25 @@ function preview(overrides: Partial<ChatConversationPreview>): ChatConversationP
     ...overrides,
   };
 }
+
+describe('mapChatSystemMeta', () => {
+  it('maps rejected to its own label key and icon', () => {
+    expect(mapChatSystemMeta('rejected')).toEqual({
+      icon: 'pi pi-times',
+      labelKey: 'chat.system.rejected',
+      tone: 'warn',
+    });
+  });
+
+  it('maps cancelled to its own label key and icon', () => {
+    expect(mapChatSystemMeta('cancelled')).toEqual({
+      icon: 'pi pi-ban',
+      labelKey: 'chat.system.cancelled',
+      tone: 'neutral',
+    });
+  });
+
+  it('falls back to default for null', () => {
+    expect(mapChatSystemMeta(null).labelKey).toBe('chat.system.default');
+  });
+});
