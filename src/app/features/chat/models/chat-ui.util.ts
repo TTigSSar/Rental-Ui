@@ -139,6 +139,8 @@ export function mapChatSystemMeta(kind: ChatSystemKind | null): ChatSystemMeta {
       return { icon: 'pi pi-times', labelKey: 'chat.system.rejected', tone: 'warn' };
     case 'cancelled':
       return { icon: 'pi pi-ban', labelKey: 'chat.system.cancelled', tone: 'neutral' };
+    case 'expired':
+      return { icon: 'pi pi-clock', labelKey: 'chat.system.expired', tone: 'neutral' };
     case 'handover':
       return { icon: 'pi pi-shield', labelKey: 'chat.system.handover', tone: 'primary' };
     case 'return':
@@ -155,6 +157,7 @@ const KNOWN_CHAT_SYSTEM_KINDS: readonly string[] = [
   'approved',
   'rejected',
   'cancelled',
+  'expired',
   'handover',
   'return',
   'closed',

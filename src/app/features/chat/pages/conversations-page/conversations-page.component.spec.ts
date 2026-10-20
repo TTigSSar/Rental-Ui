@@ -86,6 +86,21 @@ describe('ConversationsPageComponent', () => {
       expect(snippet?.querySelector('.pi-check')).not.toBeNull();
     });
 
+    it('localizes an expired line with the clock icon', () => {
+      const fixture = createFixture([
+        preview({
+          id: 'exp',
+          lastMessageType: 'system',
+          lastMessageSystemKind: 'expired',
+          lastMessageSnippet: 'Raw server text',
+        }),
+      ]);
+
+      const snippet = (fixture.nativeElement as HTMLElement).querySelector('.chat-row__snippet');
+      expect(snippet?.textContent?.trim()).toBe('chat.system.expired');
+      expect(snippet?.querySelector('.pi-clock')).not.toBeNull();
+    });
+
     it('falls back to the snippet for an unknown kind', () => {
       const fixture = createFixture([
         preview({

@@ -7,6 +7,7 @@ import {
   mapChatStatusLabelKey,
   mapChatStatusTone,
   mapChatSystemMeta,
+  mapChatSystemPreview,
   mapModerationNoteMeta,
 } from './chat-ui.util';
 
@@ -258,6 +259,15 @@ describe('mapChatSystemMeta', () => {
       labelKey: 'chat.system.cancelled',
       tone: 'neutral',
     });
+  });
+
+  it('maps expired to a neutral clock line', () => {
+    expect(mapChatSystemMeta('expired')).toEqual({
+      icon: 'pi pi-clock',
+      labelKey: 'chat.system.expired',
+      tone: 'neutral',
+    });
+    expect(mapChatSystemPreview('expired')).toEqual(mapChatSystemMeta('expired'));
   });
 
   it('falls back to default for null', () => {

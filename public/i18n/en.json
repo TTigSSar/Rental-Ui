@@ -2490,6 +2490,7 @@
       "approved": "Request approved",
       "rejected": "The owner declined the request",
       "cancelled": "The renter cancelled the booking",
+      "expired": "The request expired without an answer",
       "handover": "Toy handed over",
       "return": "Toy returned",
       "closed": "Conversation closed",
