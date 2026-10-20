@@ -394,6 +394,23 @@ describe('ConversationDetailsPageComponent', () => {
       expect(toggleOf(host).getAttribute('aria-expanded')).toBe('true');
     });
 
+    it("a too-tall card stays expanded on the viewer's turn but collapses off-turn", () => {
+      const tall = (
+        host: HTMLElement,
+        fixture: { componentInstance: unknown; detectChanges(): void },
+      ) => {
+        (fixture.componentInstance as { onRentalHeight(h: number): void }).onRentalHeight(5000);
+        fixture.detectChanges();
+        return toggleOf(host).getAttribute('aria-expanded');
+      };
+      const own = open(390);
+      expect(tall(own.host, own.fixture)).toBe('true');
+      TestBed.resetTestingModule();
+
+      const other = open(390, bookingThread({ viewerRole: 'renter', turn: 'owner' }));
+      expect(tall(other.host, other.fixture)).toBe('false');
+    });
+
     it('a thread without a booking has no rental slot at all', () => {
       const { host } = open(390, conversationWith([]));
       expect(host.querySelector('.chat-thread__rental')).toBeNull();

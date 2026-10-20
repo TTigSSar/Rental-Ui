@@ -95,7 +95,7 @@
           <h2 class="chat-thread__rental-label">{{ 'chat.rental.aria' | translate }}</h2>
           <app-rental-card
             [conversation]="conversation"
-            [collapsed]="rentalCollapsed()"
+            [collapsed]="isRentalCollapsed(conversation)"
             (expandRequested)="expandRental()"
             (fullHeight)="onRentalHeight($event)"
           />

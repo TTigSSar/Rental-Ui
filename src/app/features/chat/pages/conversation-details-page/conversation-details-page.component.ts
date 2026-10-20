@@ -6,7 +6,6 @@ import {
   ElementRef,
   OnInit,
   afterRenderEffect,
-  computed,
   inject,
   signal,
   viewChild,
@@ -425,14 +424,17 @@ export class ConversationDetailsPageComponent implements OnInit {
   private readonly rentalPinnedOpen = signal(false);
 
   /** Whether the rental card shows as the one-row compact (see the breakpoint note above). */
-  protected readonly rentalCollapsed = computed(() => {
+  protected isRentalCollapsed(conversation: ChatConversationDetails): boolean {
     const { width, height } = this.viewport();
     if (width >= RENTAL_COLUMN_MIN_WIDTH || this.rentalPinnedOpen()) {
       return false;
     }
-    const tooTall = this.rentalFullHeight() > height * RENTAL_TALL_RATIO;
+    // The viewer's own turn (Accept/Decline, the note) is never collapsed for height alone.
+    const viewerTurn =
+      conversation.viewerRole !== null && conversation.turn === conversation.viewerRole;
+    const tooTall = !viewerTurn && this.rentalFullHeight() > height * RENTAL_TALL_RATIO;
     return tooTall || (width < RENTAL_MOBILE_MAX_WIDTH && this.feedScrolledAway());
-  });
+  }
 
   /** A booking thread shows the rental card; moderation and no-booking threads do not. */
   protected hasRental(conversation: ChatConversationDetails): boolean {

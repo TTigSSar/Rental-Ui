@@ -173,6 +173,25 @@ test.describe('Chat rental card - layout', () => {
     ).toBeVisible();
   });
 
+  test("mobile: the owner's Pending card with a note starts expanded (their turn is never collapsed for height)", async ({
+    page,
+  }) => {
+    await page.setViewportSize(MOBILE);
+    await seed(page, ownerPending({ renterNote: 'Please wrap it as a gift' }));
+    await page.goto(`/chat/${CHAT_ID}`);
+    await waitForBootScreenHidden(page);
+    // Give the first measurement and any (wrongly) triggered collapse time to happen.
+    await page.waitForTimeout(1000);
+
+    await expect(visibleText(page, 'Please wrap it as a gift')).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Accept' }).filter({ visible: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Decline' }).filter({ visible: true }),
+    ).toBeVisible();
+  });
+
   test('a finished rental replaces the composer with the read-only note', async ({ page }) => {
     await page.setViewportSize(DESKTOP);
     await seed(
