@@ -8,6 +8,8 @@
  * distinct, non-progressing pill for a Moderation conversation (`kind ===
  * 'moderation'`) — see `ChatTokens.ModerationStatusToken` on the backend;
  * such a thread has no booking so none of the other pills ever apply to it.
+ * `not_happened` is the terminal pill for a Rejected / Cancelled / Expired
+ * booking (previously these were reported as `requested`; ADR-001 amended).
  */
 export type ChatStatus =
   | 'requested'
@@ -16,7 +18,8 @@ export type ChatStatus =
   | 'return_due'
   | 'completed'
   | 'closed'
-  | 'moderation';
+  | 'moderation'
+  | 'not_happened';
 
 export type ChatMessageType = 'text' | 'image' | 'system' | 'moderationNote';
 
