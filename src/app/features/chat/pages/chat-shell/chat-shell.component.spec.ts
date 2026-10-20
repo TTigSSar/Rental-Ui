@@ -1,12 +1,18 @@
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { Component } from '@angular/core';
-import { provideMockStore } from '@ngrx/store/testing';
+import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { chatFeatureKey } from '../../store/chat.reducer';
 import { initialChatState } from '../../store/chat.state';
-import { ChatShellComponent, isThreadOpenUrl } from './chat-shell.component';
+import type { ChatConversationPreview } from '../../models/chat.model';
+import {
+  ChatShellComponent,
+  deriveRentalLayout,
+  isThreadOpenUrl,
+  threadIdFromUrl,
+} from './chat-shell.component';
 
 @Component({ standalone: true, template: 'thread' })
 class ThreadStubComponent {}
@@ -42,6 +48,46 @@ describe('isThreadOpenUrl', () => {
   });
 });
 
+function row(id: string): ChatConversationPreview {
+  return { id, kind: 'booking', bookingId: `b-${id}` } as ChatConversationPreview;
+}
+
+describe('threadIdFromUrl', () => {
+  it('reads the id, or null without one', () => {
+    expect(threadIdFromUrl('/chat/abc?x=1')).toBe('abc');
+    expect(threadIdFromUrl('/chat')).toBeNull();
+    expect(threadIdFromUrl('/chat/')).toBeNull();
+  });
+});
+
+describe('deriveRentalLayout', () => {
+  const inbox = [
+    row('r1'),
+    row('r2'),
+    { ...row('m1'), kind: 'moderation', bookingId: null } as ChatConversationPreview,
+  ];
+
+  it('is true for a booking row and false for a moderation row', () => {
+    expect(deriveRentalLayout('/chat/r1', inbox, false)).toBe(true);
+    expect(deriveRentalLayout('/chat/m1', inbox, true)).toBe(false);
+  });
+
+  it('is false on the empty /chat state', () => {
+    expect(deriveRentalLayout('/chat', inbox, true)).toBe(false);
+  });
+
+  it('keeps the previous answer while the row is unknown (inbox not loaded)', () => {
+    expect(deriveRentalLayout('/chat/r1', [], false)).toBe(false);
+    expect(deriveRentalLayout('/chat/r1', [], true)).toBe(true);
+  });
+
+  it('rental to rental never changes the answer', () => {
+    expect(deriveRentalLayout('/chat/r2', inbox, deriveRentalLayout('/chat/r1', inbox, false))).toBe(
+      true,
+    );
+  });
+});
+
 describe('ChatShellComponent', () => {
   it('renders the rail + empty pane without throwing (no thread selected)', () => {
     const fixture = createFixture();
@@ -74,5 +120,21 @@ describe('ChatShellComponent', () => {
     // the desktop empty-state pane is suppressed.
     expect(host.querySelector('.chat-shell--thread-open')).not.toBeNull();
     expect(host.querySelector('.chat-shell__empty')).toBeNull();
+  });
+
+  it('sets the rental layout class from the inbox row before any details load', async () => {
+    const fixture = createFixture();
+    const store = TestBed.inject(MockStore);
+    store.setState({
+      [chatFeatureKey]: {
+        ...initialChatState,
+        conversations: [row('r1')],
+      },
+    });
+    await TestBed.inject(Router).navigateByUrl('/chat/r1');
+    fixture.detectChanges();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.chat-shell--rental'),
+    ).not.toBeNull();
   });
 });

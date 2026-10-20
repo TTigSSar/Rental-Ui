@@ -2,8 +2,11 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { filter, map, startWith } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { combineLatest, filter, map, scan, startWith } from 'rxjs';
 
+import type { ChatConversationPreview } from '../../models/chat.model';
+import { selectConversations } from '../../store/chat.selectors';
 import { ConversationsPageComponent } from '../conversations-page/conversations-page.component';
 
 /**
@@ -18,6 +21,36 @@ export function isThreadOpenUrl(url: string): boolean {
   const path = url.split('?')[0].split('#')[0];
   const match = /^\/chat\/([^/]+)/.exec(path);
   return match !== null && match[1].length > 0;
+}
+
+/** The `:conversationId` of an open thread URL, or null (inbox / bare `/chat/`). */
+export function threadIdFromUrl(url: string): string | null {
+  const path = url.split('?')[0].split('#')[0];
+  const match = /^\/chat\/([^/]+)/.exec(path);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+/**
+ * Whether the shell uses the wide "rental" grid (320px rail + the thread's 400px Rental
+ * column). Decided from data that exists BEFORE the thread's details load: the selected
+ * inbox row (booking vs moderation). While the row is unknown (inbox still loading on a
+ * cold deep-link) the previous answer is kept, so the layout never moves during a load.
+ * No thread open (empty /chat) is never a rental layout.
+ */
+export function deriveRentalLayout(
+  url: string,
+  conversations: readonly ChatConversationPreview[],
+  previous: boolean,
+): boolean {
+  const id = threadIdFromUrl(url);
+  if (id === null) {
+    return false;
+  }
+  const row = conversations.find((c) => c.id === id);
+  if (!row) {
+    return previous;
+  }
+  return row.kind !== 'moderation' && row.bookingId !== null;
 }
 
 /**
@@ -43,6 +76,7 @@ export function isThreadOpenUrl(url: string): boolean {
 })
 export class ChatShellComponent {
   private readonly router = inject(Router);
+  private readonly store = inject(Store);
 
   /**
    * True when a `:conversationId` thread is open. Drives the single-column
@@ -57,5 +91,23 @@ export class ChatShellComponent {
       startWith(isThreadOpenUrl(this.router.url)),
     ),
     { initialValue: isThreadOpenUrl(this.router.url) },
+  );
+
+  /** Rental grid (24px gutters / 320px rail at >= 1280px); see {@link deriveRentalLayout}. */
+  protected readonly rentalLayout = toSignal(
+    combineLatest([
+      this.router.events.pipe(
+        filter((event) => event instanceof NavigationEnd),
+        map(() => this.router.url),
+        startWith(this.router.url),
+      ),
+      this.store.select(selectConversations),
+    ]).pipe(
+      scan(
+        (previous, [url, conversations]) => deriveRentalLayout(url, conversations, previous),
+        false,
+      ),
+    ),
+    { initialValue: false },
   );
 }

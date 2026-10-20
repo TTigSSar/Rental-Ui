@@ -196,24 +196,25 @@
 
 /*
  * ── Wide desktop with a rental column (>= 1280px) ─────────────────────────
- * Only a booking thread that shows the 400px "Rental" column (the details page marks its
- * root `.chat-thread--rental`, see conversation-details-page.scss) gets the design grid
+ * Only a booking thread that shows the 400px "Rental" column (the shell sets
+ * `.chat-shell--rental` from the selected inbox row, before the details load, so the grid
+ * never moves while a thread loads; see deriveRentalLayout) gets the design grid
  * 320 | thread | 400: the rail is exactly 320px and the 70px gutters tighten to 24px so
  * the thread keeps a readable width next to the column. Moderation threads, threads
  * without a booking and the empty /chat state keep the two-pane layout above (70px
  * gutters, rail 320-380px). From 1440px the original 70px (aligned with the header)
- * comes back for every layout. The shell reads the thread type from the rendered DOM
- * (`:has`) instead of a second source of truth.
+ * comes back for every layout; the rental rail stays 320px there (it never flips while
+ * the right column is shown).
  */
 @media (min-width: 1280px) {
-  .chat-shell:has(.chat-thread--rental) {
+  .chat-shell--rental {
     grid-template-columns: 320px minmax(0, 1fr);
     padding-inline: 24px;
   }
 }
 
 @media (min-width: 1440px) {
-  .chat-shell:has(.chat-thread--rental) {
+  .chat-shell--rental {
     padding-inline: 70px;
   }
 }

@@ -1,4 +1,8 @@
-<div class="chat-shell" [class.chat-shell--thread-open]="threadOpen()">
+<div
+  class="chat-shell"
+  [class.chat-shell--thread-open]="threadOpen()"
+  [class.chat-shell--rental]="rentalLayout()"
+>
   <aside class="chat-shell__rail">
     <app-conversations-page />
   </aside>
