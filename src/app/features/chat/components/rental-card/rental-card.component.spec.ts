@@ -172,4 +172,13 @@ describe('RentalCardComponent', () => {
     expect(host.querySelector('.rental-card__error')?.textContent).toContain('Already decided');
     expect(buttons(host).every((b) => !b.disabled)).toBe(true);
   });
+
+  it('scopes the ⋯ popup with the rental-card__menu class that carries the 44px item rule', () => {
+    // jsdom does not load styles.css, so the 44px height itself is verified live; here we
+    // pin the hook the global rule depends on.
+    const { fixture, host } = setup(conversation({ viewerRole: 'renter', turn: 'owner' }));
+    host.querySelector<HTMLButtonElement>('.rental-card__more')!.click();
+    fixture.detectChanges();
+    expect(document.body.querySelector('.p-menu.rental-card__menu')).not.toBeNull();
+  });
 });
