@@ -13,7 +13,8 @@ export type RentalActionId =
   | 'receivedBack'
   | 'review'
   | 'findSimilar'
-  | 'viewBooking';
+  | 'viewBooking'
+  | 'viewListing';
 
 export interface RentalCardAction {
   readonly id: RentalActionId;
@@ -41,6 +42,8 @@ export interface RentalCardInput {
   readonly rejectionReason: string | null;
   /** Renter may still cancel an Approved booking (start date is in the future). */
   readonly canCancelApproved: boolean;
+  /** The conversation knows its listing: the menu gets "Show toy listing". */
+  readonly hasListing?: boolean;
 }
 
 export interface RentalCardView {
@@ -68,6 +71,11 @@ const VIEW_BOOKING: RentalCardAction = {
   labelKey: 'chat.rental.menu.viewBooking',
 };
 
+const VIEW_LISTING: RentalCardAction = {
+  id: 'viewListing',
+  labelKey: 'chat.rental.menu.viewListing',
+};
+
 function action(id: RentalActionId, labelKey: string, danger = false): RentalCardAction {
   return danger ? { id, labelKey, danger } : { id, labelKey };
 }
@@ -89,6 +97,15 @@ function reasonOf(raw: string | null): RentalCardReason | null {
  * Returns null for states the card does not render (moderation threads).
  */
 export function mapRentalCardView(input: RentalCardInput): RentalCardView | null {
+  const view = mapBaseView(input);
+  if (!view || !input.hasListing) {
+    return view;
+  }
+  // "View booking details" is always last; the listing link goes right before it.
+  return { ...view, menu: [...view.menu.slice(0, -1), VIEW_LISTING, VIEW_BOOKING] };
+}
+
+function mapBaseView(input: RentalCardInput): RentalCardView | null {
   const owner = input.role === 'owner';
   const params = {
     name: input.counterpartName,

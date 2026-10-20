@@ -1,4 +1,4 @@
-import { formatDate } from '@angular/common';
+import { NgTemplateOutlet, formatDate } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -18,6 +18,8 @@ import { Actions, ofType } from '@ngrx/effects';
 import { type Action, Store } from '@ngrx/store';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import type { MenuItem } from 'primeng/api';
+import { ButtonModule } from 'primeng/button';
+import { DialogModule } from 'primeng/dialog';
 import { Menu, MenuModule } from 'primeng/menu';
 
 import { LanguageService } from '../../../../shared/services/language.service';
@@ -28,6 +30,8 @@ import {
   BookingRejectDialogComponent,
 } from '../../../bookings/components/booking-reject-dialog/booking-reject-dialog.component';
 import * as BookingsActions from '../../../bookings/store/bookings.actions';
+import type { BookingReviewStatus } from '../../../reviews/models/review.model';
+import { ReviewsApiService } from '../../../reviews/services/reviews-api.service';
 import type { ChatConversationDetails } from '../../models/chat.model';
 import { type RentalActionId, type RentalCardView, mapRentalCardView } from './rental-card.view';
 
@@ -46,7 +50,15 @@ const YEREVAN_UTC_OFFSET = '+0400';
 @Component({
   selector: 'app-rental-card',
   standalone: true,
-  imports: [BookingRejectDialogComponent, DramCurrencyPipe, MenuModule, TranslatePipe],
+  imports: [
+    BookingRejectDialogComponent,
+    ButtonModule,
+    DialogModule,
+    DramCurrencyPipe,
+    MenuModule,
+    NgTemplateOutlet,
+    TranslatePipe,
+  ],
   templateUrl: './rental-card.component.html',
   styleUrl: './rental-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -61,6 +73,7 @@ export class RentalCardComponent {
   private readonly languageService = inject(LanguageService);
   private readonly locale = inject(LOCALE_ID);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly reviewsApi = inject(ReviewsApiService);
 
   private readonly menu = viewChild<Menu>('menu');
 
@@ -69,6 +82,40 @@ export class RentalCardComponent {
   protected readonly busy = signal(false);
   /** Already-translated failure message from the shared errorCode mapper (ADR-045). */
   protected readonly actionError = signal<string | null>(null);
+
+  /** Which destructive action awaits the viewer's confirmation (null = no dialog). */
+  protected readonly confirmAction = signal<'withdraw' | 'cancelBooking' | null>(null);
+
+  /**
+   * Review eligibility from the same `GET /reviews/booking/{id}/status` call the booking
+   * details page uses. Null while loading or after an error, so the button stays hidden
+   * until the real answer is known (no flicker into a wrong state).
+   */
+  private readonly reviewStatus = signal<BookingReviewStatus | null>(null);
+
+  private readonly canLeaveReview = computed(() => {
+    const rs = this.reviewStatus();
+    if (!rs) {
+      return false;
+    }
+    return rs.role === 'owner' ? rs.canReviewRenter : rs.canReviewToy || rs.canReviewOwner;
+  });
+
+  /** The renter's note for the quote block; null when absent or blank. */
+  protected readonly renterNote = computed(() => {
+    const c = this.conversation();
+    const note = c.renterNote?.trim() ?? '';
+    return c.bookingStatus === 'requested' && note.length > 0 ? note : null;
+  });
+
+  protected readonly noteCaptionKey = computed(() =>
+    this.conversation().viewerRole === 'renter' ? 'chat.rental.noteYou' : 'chat.rental.noteBy',
+  );
+
+  /** Interpolation params for captions and dialog text rendered outside the main view. */
+  protected readonly conversationParams = computed(() => ({
+    name: this.conversation().counterpartName,
+  }));
 
   /** The viewer's turn: the only case the top bar shows (`turn === viewerRole`). */
   protected readonly isViewerTurn = computed(() => {
@@ -81,7 +128,8 @@ export class RentalCardComponent {
     if (c.bookingStatus === null || c.viewerRole === null) {
       return null;
     }
-    return mapRentalCardView({
+    const base = mapRentalCardView({
+      hasListing: c.listingId !== null,
       status: c.bookingStatus,
       role: c.viewerRole,
       counterpartName: c.counterpartName,
@@ -93,6 +141,10 @@ export class RentalCardComponent {
       rejectionReason: c.rejectionReason,
       canCancelApproved: c.startDate !== null && c.startDate > todayUtcDateString(),
     });
+    // "Leave a review" only once the server says the viewer can still review.
+    return base && base.primary?.id === 'review' && !this.canLeaveReview()
+      ? { ...base, primary: null }
+      : base;
   });
 
   protected readonly reasonCaptionKey = computed(() =>
@@ -125,6 +177,24 @@ export class RentalCardComponent {
   });
 
   constructor() {
+    // Review eligibility is fetched only for completed/closed bookings, once per booking.
+    effect((onCleanup) => {
+      const c = this.conversation();
+      const bookingId = c.bookingId;
+      if (!bookingId || (c.bookingStatus !== 'completed' && c.bookingStatus !== 'closed')) {
+        return;
+      }
+      if (untracked(() => this.reviewStatus())?.bookingId === bookingId) {
+        return;
+      }
+      untracked(() => this.reviewStatus.set(null));
+      const sub = this.reviewsApi.getBookingStatus(bookingId).subscribe({
+        next: (status) => this.reviewStatus.set(status),
+        error: () => undefined,
+      });
+      onCleanup(() => sub.unsubscribe());
+    });
+
     // The server answered (status or turn changed): the action is no longer in flight.
     effect(() => {
       const c = this.conversation();
@@ -182,6 +252,24 @@ export class RentalCardComponent {
     }
   }
 
+  protected closeConfirm(): void {
+    this.confirmAction.set(null);
+  }
+
+  protected confirmCancel(): void {
+    this.confirmAction.set(null);
+    const bookingId = this.conversation().bookingId;
+    if (bookingId && !this.busy()) {
+      this.start(BookingsActions.cancelBooking({ bookingId }));
+    }
+  }
+
+  protected onConfirmVisibleChange(visible: boolean): void {
+    if (!visible) {
+      this.closeConfirm();
+    }
+  }
+
   private run(id: RentalActionId): void {
     const c = this.conversation();
     const bookingId = c.bookingId;
@@ -198,7 +286,8 @@ export class RentalCardComponent {
         break;
       case 'withdraw':
       case 'cancelBooking':
-        this.start(BookingsActions.cancelBooking({ bookingId }));
+        this.actionError.set(null);
+        this.confirmAction.set(id);
         break;
       case 'handedOver':
         this.start(BookingsActions.markActive({ bookingId }));
@@ -215,6 +304,11 @@ export class RentalCardComponent {
         break;
       case 'findSimilar':
         void this.router.navigate(['/listings']);
+        break;
+      case 'viewListing':
+        if (c.listingId) {
+          void this.router.navigate(['/listings', c.listingId]);
+        }
         break;
       case 'viewBooking':
         void this.router.navigate(['/bookings', bookingId]);

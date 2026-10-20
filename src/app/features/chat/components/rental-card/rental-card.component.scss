@@ -183,6 +183,24 @@
   border: 1px solid var(--ui-color-border);
   border-radius: var(--ui-radius-12);
   background: var(--ui-color-background);
+  display: flex;
+  gap: 10px;
+}
+
+.rental-card__quote-icon {
+  flex-shrink: 0;
+  padding-top: 2px;
+  color: var(--ui-color-text-secondary);
+  line-height: 0;
+}
+
+.rental-card__quote-body {
+  min-width: 0;
+}
+
+.rental-card__confirm-text {
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .rental-card__quote-text {

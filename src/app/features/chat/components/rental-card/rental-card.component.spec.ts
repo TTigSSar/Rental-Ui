@@ -3,9 +3,11 @@ import { Router, provideRouter } from '@angular/router';
 import { Actions } from '@ngrx/effects';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule } from '@ngx-translate/core';
-import { Subject } from 'rxjs';
+import { type Observable, NEVER, Subject, of, throwError } from 'rxjs';
 
 import * as BookingsActions from '../../../bookings/store/bookings.actions';
+import type { BookingReviewStatus } from '../../../reviews/models/review.model';
+import { ReviewsApiService } from '../../../reviews/services/reviews-api.service';
 import type { ChatConversationDetails } from '../../models/chat.model';
 import { RentalCardComponent } from './rental-card.component';
 
@@ -39,11 +41,34 @@ function conversation(overrides: Partial<ChatConversationDetails> = {}): ChatCon
   };
 }
 
-function setup(c: ChatConversationDetails) {
+function reviewStatus(overrides: Partial<BookingReviewStatus> = {}): BookingReviewStatus {
+  return {
+    bookingId: 'b1',
+    role: 'owner',
+    isCompleted: true,
+    canReviewToy: false,
+    canReviewOwner: false,
+    canReviewRenter: true,
+    hasToyReview: false,
+    hasOwnerReview: false,
+    hasRenterReview: false,
+    ...overrides,
+  };
+}
+
+function setup(
+  c: ChatConversationDetails,
+  review$: Observable<BookingReviewStatus> = of(reviewStatus()),
+) {
   const actions$ = new Subject<unknown>();
   TestBed.configureTestingModule({
     imports: [RentalCardComponent, TranslateModule.forRoot()],
-    providers: [provideRouter([]), provideMockStore(), { provide: Actions, useValue: actions$ }],
+    providers: [
+      provideRouter([]),
+      provideMockStore(),
+      { provide: Actions, useValue: actions$ },
+      { provide: ReviewsApiService, useValue: { getBookingStatus: vi.fn(() => review$) } },
+    ],
   });
   const store = TestBed.inject(MockStore);
   const dispatch = vi.spyOn(store, 'dispatch');
@@ -173,6 +198,163 @@ describe('RentalCardComponent', () => {
     fixture.detectChanges();
     expect(host.querySelector('.rental-card__error')?.textContent).toContain('Already decided');
     expect(buttons(host).every((b) => !b.disabled)).toBe(true);
+  });
+
+  describe('⋯ menu', () => {
+    function menuLabels(host: HTMLElement, fixture: { detectChanges(): void }): string[] {
+      host.querySelector<HTMLButtonElement>('.rental-card__more')!.click();
+      fixture.detectChanges();
+      return Array.from(document.body.querySelectorAll('.p-menu .p-menu-item-label')).map(
+        (e) => e.textContent?.trim() ?? '',
+      );
+    }
+
+    it('has "Show toy listing" only when the conversation has a listingId', () => {
+      const withListing = setup(
+        conversation({ viewerRole: 'renter', turn: 'owner', listingId: 'l1' }),
+      );
+      expect(menuLabels(withListing.host, withListing.fixture)).toContain(
+        'chat.rental.menu.viewListing',
+      );
+      TestBed.resetTestingModule();
+
+      const without = setup(conversation({ viewerRole: 'renter', turn: 'owner', listingId: null }));
+      const labels = menuLabels(without.host, without.fixture);
+      expect(labels).not.toContain('chat.rental.menu.viewListing');
+      expect(labels).toContain('chat.rental.menu.viewBooking');
+    });
+
+    it('"Show toy listing" opens the public listing route', () => {
+      const { fixture, host, navigate } = setup(
+        conversation({ viewerRole: 'renter', turn: 'owner', listingId: 'l1' }),
+      );
+      menuLabels(host, fixture);
+      const item = Array.from(
+        document.body.querySelectorAll<HTMLElement>('.p-menu .p-menu-item-link'),
+      ).find((e) => e.textContent?.includes('viewListing'));
+      item!.click();
+      expect(navigate).toHaveBeenCalledWith(['/listings', 'l1']);
+    });
+  });
+
+  describe('review button', () => {
+    const completed = { bookingStatus: 'completed', turn: 'none' } as const;
+
+    it('shows while the viewer has not reviewed', () => {
+      const { fixture, host } = setup(conversation(completed));
+      fixture.detectChanges();
+      expect(buttons(host)).toHaveLength(1);
+    });
+
+    it('is hidden once the viewer has reviewed (no button, done card stays)', () => {
+      const { fixture, host } = setup(
+        conversation(completed),
+        of(reviewStatus({ canReviewRenter: false, hasRenterReview: true })),
+      );
+      fixture.detectChanges();
+      expect(buttons(host)).toHaveLength(0);
+      expect(host.querySelector('.rental-badge--done')).not.toBeNull();
+    });
+
+    it('is hidden while loading and when the status call fails', () => {
+      const loading = setup(conversation(completed), NEVER);
+      loading.fixture.detectChanges();
+      expect(buttons(loading.host)).toHaveLength(0);
+      TestBed.resetTestingModule();
+
+      const failed = setup(
+        conversation(completed),
+        throwError(() => new Error('x')),
+      );
+      failed.fixture.detectChanges();
+      expect(buttons(failed.host)).toHaveLength(0);
+    });
+
+    it('is not fetched for non-completed bookings', () => {
+      setup(conversation());
+      const api = TestBed.inject(ReviewsApiService);
+      expect(api.getBookingStatus).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('confirmation before cancelling', () => {
+    function openConfirm(c: ChatConversationDetails) {
+      const ctx = setup(c);
+      ctx.host.querySelector<HTMLButtonElement>('.rental-card__more')!.click();
+      ctx.fixture.detectChanges();
+      const item = Array.from(
+        document.body.querySelectorAll<HTMLElement>('.p-menu .p-menu-item-link'),
+      ).find((e) => e.textContent?.includes('chat.rental.menu.'));
+      return { ...ctx, item };
+    }
+
+    function clickMenu(label: string): void {
+      Array.from(document.body.querySelectorAll<HTMLElement>('.p-menu .p-menu-item-link'))
+        .find((e) => e.textContent?.includes(label))!
+        .click();
+    }
+
+    function dialogButtons(): HTMLButtonElement[] {
+      return Array.from(
+        document.body.querySelectorAll<HTMLButtonElement>('.p-dialog-footer button'),
+      );
+    }
+
+    it.each([
+      ['requested', 'withdraw'],
+      ['approved', 'cancelBooking'],
+    ] as const)('%s: confirming dispatches cancelBooking', (status, label) => {
+      const { fixture, dispatch } = openConfirm(
+        conversation({ bookingStatus: status, viewerRole: 'renter', turn: 'owner' }),
+      );
+      clickMenu(`chat.rental.menu.${label}`);
+      fixture.detectChanges();
+      expect(dispatch).not.toHaveBeenCalled();
+
+      const [, confirm] = dialogButtons();
+      confirm.click();
+      expect(dispatch).toHaveBeenCalledWith(BookingsActions.cancelBooking({ bookingId: 'b1' }));
+    });
+
+    it('rejecting (keep) does not dispatch and closes the dialog', () => {
+      const { fixture, dispatch } = openConfirm(
+        conversation({ viewerRole: 'renter', turn: 'owner' }),
+      );
+      clickMenu('chat.rental.menu.withdraw');
+      fixture.detectChanges();
+      const [keep] = dialogButtons();
+      keep.click();
+      fixture.detectChanges();
+      expect(dispatch).not.toHaveBeenCalled();
+      const comp = fixture.componentInstance as unknown as { confirmAction: () => unknown };
+      expect(comp.confirmAction()).toBeNull();
+    });
+  });
+
+  describe('renter note', () => {
+    function noteText(host: HTMLElement): string | null {
+      return host.querySelector('.rental-card__quote')?.textContent ?? null;
+    }
+
+    it('shows for the owner with the counterpart caption', () => {
+      const { host } = setup(conversation({ renterNote: 'Please wrap it as a gift' }));
+      expect(noteText(host)).toContain('Please wrap it as a gift');
+      expect(noteText(host)).toContain('chat.rental.noteBy');
+      expect(host.querySelector('.rental-card__quote-icon')).not.toBeNull();
+    });
+
+    it('shows for the renter with the "Your note" caption', () => {
+      const { host } = setup(
+        conversation({ viewerRole: 'renter', turn: 'owner', renterNote: 'Thanks!' }),
+      );
+      expect(noteText(host)).toContain('Thanks!');
+      expect(noteText(host)).toContain('chat.rental.noteYou');
+    });
+
+    it.each([null, '', '   '])('is hidden when the note is %j', (note) => {
+      const { host } = setup(conversation({ renterNote: note }));
+      expect(host.querySelector('.rental-card__quote')).toBeNull();
+    });
   });
 
   it('scopes the ⋯ popup with the rental-card__menu class that carries the 44px item rule', () => {

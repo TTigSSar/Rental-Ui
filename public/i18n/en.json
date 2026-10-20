@@ -2422,6 +2422,8 @@
       "days": "{{count}} days",
       "reasonBy": "{{name}}'s note",
       "reasonYou": "Your note",
+      "noteBy": "{{name}}'s note",
+      "noteYou": "Your note",
       "badge": {
         "yourTurn": "Your turn",
         "replyBy": "reply by {{deadline}}",
@@ -2465,7 +2467,22 @@
       "menu": {
         "withdraw": "Withdraw request",
         "cancelBooking": "Cancel booking",
+        "viewListing": "Show toy listing",
         "viewBooking": "View booking details"
+      },
+      "confirm": {
+        "withdraw": {
+          "title": "Withdraw your request?",
+          "text": "{{name}} will no longer see this request. You can send a new one later.",
+          "confirm": "Withdraw request",
+          "keep": "Keep request"
+        },
+        "cancelBooking": {
+          "title": "Cancel this booking?",
+          "text": "The booking will be cancelled and {{name}} will be told.",
+          "confirm": "Cancel booking",
+          "keep": "Keep booking"
+        }
       }
     },
     "system": {

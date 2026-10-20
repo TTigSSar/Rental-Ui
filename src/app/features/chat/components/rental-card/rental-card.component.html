@@ -122,18 +122,21 @@
       <p class="rental-card__sentence">{{ v.sentenceKey | translate: v.params }}</p>
 
       @if (v.reason; as reason) {
-        <figure class="rental-card__quote">
-          <blockquote class="rental-card__quote-text">
-            @if (reason.kind === 'code') {
-              {{ 'bookings.rejectReason.' + reason.value | translate }}
-            } @else {
-              {{ reason.value }}
-            }
-          </blockquote>
-          <figcaption class="rental-card__quote-caption">
-            {{ reasonCaptionKey() | translate: v.params }}
-          </figcaption>
-        </figure>
+        <ng-container
+          [ngTemplateOutlet]="quote"
+          [ngTemplateOutletContext]="{
+            kind: reason.kind,
+            value: reason.value,
+            caption: reasonCaptionKey(),
+          }"
+        />
+      }
+
+      @if (renterNote(); as note) {
+        <ng-container
+          [ngTemplateOutlet]="quote"
+          [ngTemplateOutletContext]="{ kind: 'text', value: note, caption: noteCaptionKey() }"
+        />
       }
 
       @if (actionError(); as error) {
@@ -173,3 +176,60 @@
     />
   </section>
 }
+
+<ng-template #quote let-kind="kind" let-value="value" let-caption="caption">
+  <figure class="rental-card__quote">
+    <span class="rental-card__quote-icon" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+        <path
+          d="M7 17c-2 0-3-1.5-3-3.5C4 10 6 8 9 7l.5 1.2C7.8 9 7 10.2 7 11.5h2V17zm9 0c-2 0-3-1.5-3-3.5 0-3.5 2-5.5 5-6.5l.5 1.2c-1.7.8-2.5 2-2.5 3.3h2V17z"
+        />
+      </svg>
+    </span>
+    <div class="rental-card__quote-body">
+      <blockquote class="rental-card__quote-text">
+        @if (kind === 'code') {
+          {{ 'bookings.rejectReason.' + value | translate }}
+        } @else {
+          {{ value }}
+        }
+      </blockquote>
+      <figcaption class="rental-card__quote-caption">
+        {{ caption | translate: conversationParams() }}
+      </figcaption>
+    </div>
+  </figure>
+</ng-template>
+
+<p-dialog
+  [header]="'chat.rental.confirm.' + (confirmAction() ?? 'withdraw') + '.title' | translate"
+  [visible]="confirmAction() !== null"
+  (visibleChange)="onConfirmVisibleChange($event)"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  [closeAriaLabel]="'common.close' | translate"
+  appendTo="body"
+  [style]="{ width: '92vw', maxWidth: '420px' }"
+>
+  <p class="rental-card__confirm-text">
+    {{
+      'chat.rental.confirm.' + (confirmAction() ?? 'withdraw') + '.text'
+        | translate: conversationParams()
+    }}
+  </p>
+  <ng-template pTemplate="footer">
+    <p-button
+      type="button"
+      [text]="true"
+      [label]="'chat.rental.confirm.' + (confirmAction() ?? 'withdraw') + '.keep' | translate"
+      (onClick)="closeConfirm()"
+    />
+    <p-button
+      type="button"
+      severity="danger"
+      [label]="'chat.rental.confirm.' + (confirmAction() ?? 'withdraw') + '.confirm' | translate"
+      (onClick)="confirmCancel()"
+    />
+  </ng-template>
+</p-dialog>

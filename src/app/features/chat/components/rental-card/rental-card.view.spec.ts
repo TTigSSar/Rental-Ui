@@ -28,6 +28,16 @@ function ids(view: ReturnType<typeof mapRentalCardView>) {
 }
 
 describe('mapRentalCardView', () => {
+  it('adds the listing link before "view booking" only when hasListing', () => {
+    expect(ids(mapRentalCardView(input('requested', 'renter', { hasListing: true }))).menu).toEqual(
+      ['withdraw', 'viewListing', 'viewBooking'],
+    );
+    expect(ids(mapRentalCardView(input('requested', 'renter'))).menu).toEqual([
+      'withdraw',
+      'viewBooking',
+    ]);
+  });
+
   describe('requested', () => {
     it('owner: turn badge, Accept primary, Decline secondary', () => {
       const v = mapRentalCardView(input('requested', 'owner'));
