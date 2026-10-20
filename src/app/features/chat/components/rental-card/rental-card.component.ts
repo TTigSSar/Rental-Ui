@@ -101,6 +101,15 @@ export class RentalCardComponent {
     return rs.role === 'owner' ? rs.canReviewRenter : rs.canReviewToy || rs.canReviewOwner;
   });
 
+  /** The viewer has already left their review (same rule as booking details). */
+  private readonly reviewSubmitted = computed(() => {
+    const rs = this.reviewStatus();
+    if (!rs) {
+      return false;
+    }
+    return rs.role === 'owner' ? rs.hasRenterReview : rs.hasToyReview && rs.hasOwnerReview;
+  });
+
   /** The renter's note for the quote block; null when absent or blank. */
   protected readonly renterNote = computed(() => {
     const c = this.conversation();
@@ -141,10 +150,18 @@ export class RentalCardComponent {
       rejectionReason: c.rejectionReason,
       canCancelApproved: c.startDate !== null && c.startDate > todayUtcDateString(),
     });
+    if (!base || base.primary?.id !== 'review') {
+      return base;
+    }
     // "Leave a review" only once the server says the viewer can still review.
-    return base && base.primary?.id === 'review' && !this.canLeaveReview()
-      ? { ...base, primary: null }
-      : base;
+    if (this.canLeaveReview()) {
+      return base;
+    }
+    return {
+      ...base,
+      primary: null,
+      sentenceKey: this.reviewSubmitted() ? 'chat.rental.completedReviewed' : base.sentenceKey,
+    };
   });
 
   protected readonly reasonCaptionKey = computed(() =>

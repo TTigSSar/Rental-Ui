@@ -256,6 +256,27 @@ describe('RentalCardComponent', () => {
       expect(host.querySelector('.rental-badge--done')).not.toBeNull();
     });
 
+    it('swaps the sentence to the thanks text once reviewed, and keeps it while loading', () => {
+      const reviewed = setup(
+        conversation(completed),
+        of(reviewStatus({ canReviewRenter: false, hasRenterReview: true })),
+      );
+      reviewed.fixture.detectChanges();
+      expect(reviewed.host.querySelector('.rental-card__sentence')?.textContent).toContain(
+        'chat.rental.completedReviewed',
+      );
+      TestBed.resetTestingModule();
+
+      const loading = setup(conversation(completed), NEVER);
+      loading.fixture.detectChanges();
+      expect(loading.host.querySelector('.rental-card__sentence')?.textContent).toContain(
+        'chat.rental.completed',
+      );
+      expect(loading.host.querySelector('.rental-card__sentence')?.textContent).not.toContain(
+        'Reviewed',
+      );
+    });
+
     it('is hidden while loading and when the status call fails', () => {
       const loading = setup(conversation(completed), NEVER);
       loading.fixture.detectChanges();
