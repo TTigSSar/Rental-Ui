@@ -25,6 +25,8 @@ function conversation(overrides: Partial<ChatConversationDetails> = {}): ChatCon
     bookingPrice: 14000,
     isClosed: false,
     bookingStatus: 'requested',
+    listingId: null,
+    renterNote: null,
     viewerRole: 'owner',
     turn: 'owner',
     deadlineAt: '2026-10-21T10:05:00Z',

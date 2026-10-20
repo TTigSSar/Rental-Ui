@@ -96,6 +96,8 @@ function conversationWith(
     bookingPrice: 6000,
     isClosed: false,
     bookingStatus: null,
+    listingId: null,
+    renterNote: null,
     viewerRole: null,
     turn: null,
     deadlineAt: null,

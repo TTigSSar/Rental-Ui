@@ -133,6 +133,10 @@ export interface ChatConversationDetails {
   rentalDays: number | null;
   /** Reason code (e.g. "dates_unavailable") or free text. */
   rejectionReason: string | null;
+  /** Listing the rental is about. Null for a Moderation conversation. */
+  listingId: string | null;
+  /** Renter note from the booking request. Null for moderation threads or when no note was left. */
+  renterNote: string | null;
   messages: ChatMessage[];
 }
 
