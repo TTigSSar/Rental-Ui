@@ -17,12 +17,13 @@ import {
   BookingRejectDialogComponent,
   type BookingRejectResult,
 } from '../booking-reject-dialog/booking-reject-dialog.component';
-import { UiDatePipe } from '../../../../shared/utils/ui-date.pipe';
+import { UiDateRangePipe } from '../../../../shared/utils/ui-date.pipe';
+import { TimeAgoPipe } from '../../../notifications/pipes/time-ago.pipe';
 
 @Component({
   selector: 'app-booking-request-card',
   standalone: true,
-  imports: [BookingRejectDialogComponent, DramCurrencyPipe, UiDatePipe, TranslatePipe],
+  imports: [BookingRejectDialogComponent, DramCurrencyPipe, UiDateRangePipe, TimeAgoPipe, TranslatePipe],
   templateUrl: './booking-request-card.component.html',
   styleUrl: './booking-request-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -51,17 +52,6 @@ export class BookingRequestCardComponent {
     const r = this.request();
     const lastInitial = r.renterLastName[0]?.toUpperCase() ?? '';
     return `${r.renterFirstName} ${lastInitial}.`;
-  });
-
-  protected readonly timeAgo = computed((): string => {
-    const created = this.request().createdAt;
-    if (!created) return '';
-    const diffMs = Date.now() - new Date(created).getTime();
-    const diffMin = Math.floor(diffMs / 60_000);
-    if (diffMin < 60) return `${diffMin}m ago`;
-    const diffH = Math.floor(diffMin / 60);
-    if (diffH < 24) return `${diffH}h ago`;
-    return `${Math.floor(diffH / 24)}d ago`;
   });
 
   protected approve(event: Event): void {

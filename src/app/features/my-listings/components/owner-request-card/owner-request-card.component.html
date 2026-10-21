@@ -35,7 +35,7 @@
   <div class="orc__summary">
     <span class="orc__dates">
       <i class="pi pi-calendar" aria-hidden="true"></i>
-      {{ request().startDate | uiDate: 'MMM d' }} – {{ request().endDate | uiDate: 'MMM d' }}
+      {{ request().startDate | uiDateRange: request().endDate : { withYear: false } }}
     </span>
     <span class="orc__earnings">
       <strong>{{ request().ownerEarnings | dram }}</strong>

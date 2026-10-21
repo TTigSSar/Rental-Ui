@@ -6,7 +6,7 @@ import { ButtonModule } from 'primeng/button';
 
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import type { OwnerBookingRequest } from '../../models/owner-listing.model';
-import { UiDatePipe } from '../../../../shared/utils/ui-date.pipe';
+import { UiDateRangePipe } from '../../../../shared/utils/ui-date.pipe';
 
 interface RequestedAgoI18n {
   readonly key: string;
@@ -50,7 +50,7 @@ const DECIDED_STATUS_META: Readonly<
 @Component({
   selector: 'app-owner-request-card',
   standalone: true,
-  imports: [ButtonModule, DramCurrencyPipe, UiDatePipe, DecimalPipe, TranslatePipe],
+  imports: [ButtonModule, DramCurrencyPipe, UiDateRangePipe, DecimalPipe, TranslatePipe],
   templateUrl: './owner-request-card.component.html',
   styleUrl: './owner-request-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

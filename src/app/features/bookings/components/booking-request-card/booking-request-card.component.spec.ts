@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { makeBookingRequest } from '../../../../../testing/fixtures';
 import { BookingRequestCardComponent } from './booking-request-card.component';
@@ -32,5 +32,41 @@ describe('BookingRequestCardComponent renter note (ADR-013)', () => {
 
   it('renders no note block when the note is null', () => {
     expect(render(null).querySelector('.brc__note')).toBeNull();
+  });
+});
+
+describe('BookingRequestCardComponent range and request age (ADR-052)', () => {
+  function renderWith(lang: string, createdAt: string | null) {
+    TestBed.configureTestingModule({
+      imports: [BookingRequestCardComponent, TranslateModule.forRoot()],
+      providers: [provideRouter([])],
+    });
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('en', { notifications: { time: { days: '{{value}}d ago' } } });
+    translate.use('en');
+    const fixture = TestBed.createComponent(BookingRequestCardComponent);
+    fixture.componentRef.setInput(
+      'request',
+      makeBookingRequest({ startDate: '2026-10-17', endDate: '2026-10-24', createdAt }),
+    );
+    fixture.detectChanges();
+
+    return fixture.nativeElement as HTMLElement;
+  }
+
+  it('shows a yearless day-month range', () => {
+    const el = renderWith('en', null);
+    expect(el.textContent).toContain('17 Oct – 24 Oct');
+    expect(el.textContent).not.toContain('2026');
+  });
+
+  it('no longer prints the hard-coded English age for old requests', () => {
+    const old = new Date(Date.now() - 36 * 86_400_000).toISOString();
+    expect(renderWith('en', old).querySelector('.brc__time')?.textContent).not.toContain('36d ago');
+  });
+
+  it('localizes a recent request age through the notifications time keys', () => {
+    const recent = new Date(Date.now() - 2 * 86_400_000).toISOString();
+    expect(renderWith('en', recent).querySelector('.brc__time')?.textContent).toContain('2d ago');
   });
 });

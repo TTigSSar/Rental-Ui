@@ -60,6 +60,27 @@ export function formatUiDate(
 }
 
 /**
+ * A date range with the day before the month and the year once, at the end:
+ * en "17 Oct – 24 Oct, 2026", ru "17 окт. – 24 окт. 2026", hy "17 հոկ – 24 հոկ 2026".
+ * With `withYear: false` the range stays yearless ("17 Oct – 24 Oct"). Both ends are
+ * date-only by default (booking dates); pass `dateOnly: false` for instants.
+ */
+export function formatUiDateRange(
+  start: UiDateValue,
+  end: UiDateValue,
+  lang: string | null | undefined,
+  options: { withYear?: boolean; dateOnly?: boolean } = {},
+): string {
+  const dateOnly = options.dateOnly !== false;
+  const endPattern = options.withYear === false ? 'd MMM' : uiLocaleId(lang) === 'en' ? 'd MMM, y' : 'd MMM y';
+  const from = formatUiDate(start, 'd MMM', lang, { dateOnly });
+  const to = formatUiDate(end, endPattern, lang, { dateOnly });
+  if (!from) return to;
+  if (!to) return from;
+  return `${from} – ${to}`;
+}
+
+/**
  * Holds the current UI language as a signal (ngx-translate's `onLangChange`), so computeds and
  * impure pipes that format through it re-run when the language is switched.
  */
@@ -70,6 +91,15 @@ export class UiDateService {
   readonly lang = toSignal(this.translate.onLangChange.pipe(map((event) => event.lang)), {
     initialValue: this.translate.getCurrentLang(),
   });
+
+  /** Date range in the current UI language; see {@link formatUiDateRange}. */
+  formatRange(
+    start: UiDateValue,
+    end: UiDateValue,
+    options?: { withYear?: boolean; dateOnly?: boolean },
+  ): string {
+    return formatUiDateRange(start, end, this.lang(), options);
+  }
 
   /** Formats in the current UI language; reading it inside `computed`/a template tracks the language. */
   format(value: UiDateValue, pattern: string, options?: UiDateOptions): string {

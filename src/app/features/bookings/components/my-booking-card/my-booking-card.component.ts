@@ -6,14 +6,14 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { BookingProgressComponent } from '../../../../shared/ui/booking-progress/booking-progress.component';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import type { MyBooking } from '../../models/booking.model';
-import { UiDatePipe } from '../../../../shared/utils/ui-date.pipe';
+import { UiDateRangePipe } from '../../../../shared/utils/ui-date.pipe';
 
 export type CardHeaderTone = 'active' | 'return-marked' | 'approved' | 'pending' | 'completed' | 'past';
 
 @Component({
   selector: 'app-my-booking-card',
   standalone: true,
-  imports: [DramCurrencyPipe, UiDatePipe, UpperCasePipe, BookingProgressComponent, TranslatePipe],
+  imports: [DramCurrencyPipe, UiDateRangePipe, UpperCasePipe, BookingProgressComponent, TranslatePipe],
   templateUrl: './my-booking-card.component.html',
   styleUrl: './my-booking-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

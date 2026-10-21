@@ -46,3 +46,20 @@ export class UiDatePipe implements PipeTransform {
     return this.lastResult;
   }
 }
+
+/**
+ * `{{ start | uiDateRange: end }}` - day-before-month range with the year once at the end;
+ * `{ withYear: false }` keeps it yearless. Date-only by default (booking dates).
+ */
+@Pipe({ name: 'uiDateRange', standalone: true, pure: false })
+export class UiDateRangePipe implements PipeTransform {
+  private readonly dates = inject(UiDateService);
+
+  transform(
+    start: UiDateValue,
+    end: UiDateValue,
+    options?: { withYear?: boolean; dateOnly?: boolean },
+  ): string {
+    return this.dates.formatRange(start, end, options);
+  }
+}

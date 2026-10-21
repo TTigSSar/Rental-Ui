@@ -4,7 +4,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Subject } from 'rxjs';
 
 import { UiDatePipe } from './ui-date.pipe';
-import { UiDateService, formatUiDate, uiLocaleId } from './ui-date';
+import { UiDateService, formatUiDate, formatUiDateRange, uiLocaleId } from './ui-date';
 
 // 2026-10-21T10:00:00Z = 14:00 in Yerevan (+04:00)
 const INSTANT = '2026-10-21T10:00:00Z';
@@ -59,6 +59,26 @@ describe('formatUiDate (ADR-052)', () => {
     expect(formatUiDate(undefined, 'MMM d', 'en')).toBe('');
     expect(formatUiDate('', 'MMM d', 'en')).toBe('');
     expect(formatUiDate('not-a-date', 'MMM d', 'en')).toBe('');
+  });
+});
+
+describe('formatUiDateRange (ADR-052 follow-up)', () => {
+  it('puts the year once at the end, day before month', () => {
+    expect(formatUiDateRange('2026-10-17', '2026-10-24', 'en')).toBe('17 Oct – 24 Oct, 2026');
+    expect(formatUiDateRange('2026-10-17', '2026-10-24', 'ru')).toBe('17 окт. – 24 окт. 2026');
+    const hy = formatUiDateRange('2026-10-17', '2026-10-24', 'hy');
+    expect(hy).toMatch(/^17 .+ – 24 .+ 2026$/);
+  });
+
+  it('keeps a yearless range yearless', () => {
+    expect(formatUiDateRange('2026-10-17', '2026-10-24', 'en', { withYear: false })).toBe('17 Oct – 24 Oct');
+    expect(formatUiDateRange('2026-10-17', '2026-10-24', 'ru', { withYear: false })).toBe('17 окт. – 24 окт.');
+    expect(formatUiDateRange('2026-10-17', '2026-10-24', 'hy', { withYear: false })).not.toContain('2026');
+  });
+
+  it('does not shift date-only values and tolerates a missing end', () => {
+    expect(formatUiDateRange('2026-01-01', '2026-01-02', 'en')).toBe('1 Jan – 2 Jan, 2026');
+    expect(formatUiDateRange('2026-10-17', null, 'en')).toBe('17 Oct');
   });
 });
 
