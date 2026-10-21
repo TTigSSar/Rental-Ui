@@ -4,7 +4,13 @@
     "clear": "Մաքրել",
     "clearCategory": "Մաքրել կատեգորիան",
     "close": "Փակել",
-    "retry": "Կրկնել"
+    "retry": "Կրկնել",
+    "time": {
+      "justNow": "Հենց հիմա",
+      "minutes": "{{value}} ր առաջ",
+      "hours": "{{value}} ժ առաջ",
+      "days": "{{value}} օր առաջ"
+    }
   },
   "errors": {
     "network": "Չհաջողվեց կապվել DoRent-ի հետ։ Ստուգեք կապը և փորձեք կրկին։",
@@ -3283,12 +3289,6 @@
       "return": "Այսօր վերադարձ",
       "review": "Գնահատական",
       "message": "Հաղորդագրություն"
-    },
-    "time": {
-      "justNow": "Հենց հիմա",
-      "minutes": "{{value}} ր առաջ",
-      "hours": "{{value}} ժ առաջ",
-      "days": "{{value}} օր առաջ"
     }
   },
   "homePoint": {

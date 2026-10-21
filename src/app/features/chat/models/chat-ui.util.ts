@@ -206,12 +206,12 @@ export function chatDayKey(sentAt: string): string {
 /**
  * Divider label for a message's day relative to `now` (local time):
  * Today / Yesterday / short weekday (last week) / day-month (older).
+ *
+ * Dividers group by the viewer's DEVICE day (ADR-052 amendment, see `chatDayKey`), so the
+ * weekday / day-month text is also rendered in the device frame (`dateOnly`: no +04:00 shift);
+ * otherwise a device west of Yerevan could show a Monday bucket labelled "Tue".
  */
-export function chatDayLabel(
-  sentAt: string,
-  lang: string,
-  now: Date = new Date(),
-): ChatDayLabel {
+export function chatDayLabel(sentAt: string, lang: string, now: Date = new Date()): ChatDayLabel {
   const then = new Date(sentAt);
   if (Number.isNaN(then.getTime())) {
     return { kind: 'date', text: sentAt };
@@ -227,11 +227,11 @@ export function chatDayLabel(
     return { kind: 'yesterday' };
   }
   if (diffDays < 7) {
-    return { kind: 'date', text: formatUiDate(then, 'EEE', lang) };
+    return { kind: 'date', text: formatUiDate(then, 'EEE', lang, { dateOnly: true }) };
   }
   return {
     kind: 'date',
-    text: formatUiDate(then, 'd MMM', lang),
+    text: formatUiDate(then, 'd MMM', lang, { dateOnly: true }),
   };
 }
 

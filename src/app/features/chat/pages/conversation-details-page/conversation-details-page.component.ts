@@ -86,7 +86,8 @@ interface MessageGroup {
 interface SystemRequestContext {
   /** Owner view names the requesting renter; renter view says "You requested…". */
   readonly textKey: 'chat.system.requestDetail' | 'chat.system.requestDetailYou';
-  readonly requesterName: string;
+  /** Set for the owner view only; the renter view says "You" and needs no name. */
+  readonly requesterName: string | null;
   readonly bookingDates: string;
   readonly bookingPrice: number;
 }
@@ -242,7 +243,8 @@ function buildThreadItems(conversation: ChatConversationDetails, lang: string): 
                   conversation.viewerRole === 'owner'
                     ? 'chat.system.requestDetail'
                     : 'chat.system.requestDetailYou',
-                requesterName: conversation.counterpartName,
+                requesterName:
+                  conversation.viewerRole === 'owner' ? conversation.counterpartName : null,
                 bookingDates: conversation.bookingDates,
                 bookingPrice: conversation.bookingPrice,
               }

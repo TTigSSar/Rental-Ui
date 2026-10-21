@@ -168,6 +168,32 @@ describe('chatDayLabel', () => {
     expect(chatDayLabel(older, 'en', now)).toEqual({ kind: 'date', text: '20 Apr' });
     expect(chatDayLabel(older, 'ru', now)).toEqual({ kind: 'date', text: '20 апр.' });
   });
+
+  describe('device-day label (ADR-052 amendment)', () => {
+    // The spec tsconfig has no Node typings; Vitest runs in Node, where assigning TZ re-reads the zone.
+    const process = (
+      globalThis as unknown as { process: { env: Record<string, string | undefined> } }
+    ).process;
+    const originalTz = process.env['TZ'];
+    afterEach(() => {
+      if (originalTz === undefined) delete process.env['TZ'];
+      else process.env['TZ'] = originalTz;
+    });
+
+    it('labels the bucket by the device day, not by Yerevan time', () => {
+      process.env['TZ'] = 'America/New_York'; // UTC-4 in May; Yerevan is UTC+4
+      const deviceNow = new Date(2026, 4, 18, 12, 0);
+      // 02:00Z is Fri 06:00 in Yerevan but Thu 22:00 on the device: the bucket is Thursday.
+      const sentAt = '2026-05-15T02:00:00Z';
+      expect(chatDayKey(sentAt)).toBe('2026-05-14');
+      expect(chatDayLabel(sentAt, 'en', deviceNow)).toEqual({ kind: 'date', text: 'Thu' });
+      // 05-01T02:00Z is Apr 30 on the device (Yerevan: 1 May): day-month agrees with the bucket.
+      expect(chatDayLabel('2026-05-01T02:00:00Z', 'en', deviceNow)).toEqual({
+        kind: 'date',
+        text: '30 Apr',
+      });
+    });
+  });
 });
 
 describe('filterConversations', () => {

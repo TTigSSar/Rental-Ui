@@ -3,7 +3,7 @@ import { formatUiDate } from '../../../shared/utils/ui-date';
 /**
  * Compact relative time ("2m ago", "5h ago", "3d ago") for a report's `createdAt`, in the
  * `{ key, params }` shape `TranslatePipe` takes directly (`{{ relativeTimeKey | translate:
- * relativeTimeParams }}`) — same logic as `features/notifications/pipes/time-ago.pipe.ts`,
+ * relativeTimeParams }}`) — same logic as `shared/utils/time-ago.pipe.ts`,
  * reimplemented here (rather than importing that pipe cross-feature) so the reports screen
  * owns its own `admin.reports.time.*` translation keys instead of borrowing notifications'.
  * Anything older than a week falls back to an absolute short date, which needs no i18n key at

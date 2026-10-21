@@ -1,17 +1,17 @@
 import { Pipe, inject, type PipeTransform } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
-import { UiDateService } from '../../../shared/utils/ui-date';
+import { UiDateService } from './ui-date';
 
 /**
- * Compact relative time ("2m", "5h", "3d") for notification timestamps, with a
- * locale-aware "just now" for very recent items. Anything older than a week
+ * Compact relative time ("2m ago", "5h ago", "3d ago") shared by notifications and booking
+ * requests (`common.time.*` keys), with a locale-aware "just now" for very recent items. Anything older than a week
  * falls back to an absolute short date so the label stays meaningful.
  *
  * Impure so the relative text and the absolute date follow a language switch (ADR-052);
  * the work per check is a few integer operations.
  */
-@Pipe({ name: 'notifTimeAgo', standalone: true, pure: false })
+@Pipe({ name: 'timeAgo', standalone: true, pure: false })
 export class TimeAgoPipe implements PipeTransform {
   private readonly translate = inject(TranslateService);
   private readonly dates = inject(UiDateService);
@@ -29,19 +29,19 @@ export class TimeAgoPipe implements PipeTransform {
     const diffSec = Math.max(0, Math.floor(diffMs / 1000));
 
     if (diffSec < 60) {
-      return this.translate.instant('notifications.time.justNow');
+      return this.translate.instant('common.time.justNow');
     }
     const diffMin = Math.floor(diffSec / 60);
     if (diffMin < 60) {
-      return this.translate.instant('notifications.time.minutes', { value: diffMin });
+      return this.translate.instant('common.time.minutes', { value: diffMin });
     }
     const diffHour = Math.floor(diffMin / 60);
     if (diffHour < 24) {
-      return this.translate.instant('notifications.time.hours', { value: diffHour });
+      return this.translate.instant('common.time.hours', { value: diffHour });
     }
     const diffDay = Math.floor(diffHour / 24);
     if (diffDay < 7) {
-      return this.translate.instant('notifications.time.days', { value: diffDay });
+      return this.translate.instant('common.time.days', { value: diffDay });
     }
 
     return this.dates.format(then, 'd MMM');

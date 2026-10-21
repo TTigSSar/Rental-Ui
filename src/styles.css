@@ -53,6 +53,7 @@
   --ui-color-success-border: #c6ebd2;
   --ui-color-warning: #8a5c00;
   --ui-color-warning-surface: #fff4d6;
+  --ui-color-amber-ink: #a45a05; /* amber TEXT/icon ink, the one shared copy (ADR-034): 4.58 on #ffeedc, 4.84 on #fff1dc */
   --ui-color-approved: #0e6245;
   --ui-color-approved-surface: #dff8ee;
   --ui-color-rejected: #8a2133;
@@ -191,7 +192,6 @@
 
   /* —— Dashboard page tokens —— */
   --dash-warn: #d97706; /* amber FILL / dot: carries dark text, never white (ADR-034) */
-  --ui-color-amber-ink: #a45a05; /* amber TEXT/icon ink, the one shared copy (ADR-034): 4.58 on #ffeedc, 4.84 on #fff1dc */
   --dash-warn-ink: var(--ui-color-amber-ink); /* amber TEXT on light backgrounds (4.5+) */
   --dash-warn-surface: #fef3c7;
   --dash-warn-text: #92400e;

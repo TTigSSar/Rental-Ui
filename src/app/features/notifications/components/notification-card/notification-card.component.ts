@@ -10,7 +10,7 @@ import type {
   NotificationAction,
   NotificationItem,
 } from '../../models/notification.model';
-import { TimeAgoPipe } from '../../pipes/time-ago.pipe';
+import { TimeAgoPipe } from '../../../../shared/utils/time-ago.pipe';
 
 /**
  * The shipped "Avatar" notification card: circular actor avatar (photo, or an

@@ -51,7 +51,8 @@ export function formatUiDate(
   options: UiDateOptions = {},
 ): string {
   if (value === null || value === undefined || value === '') return '';
-  const dateOnly = options.dateOnly === true || (typeof value === 'string' && DATE_ONLY.test(value));
+  const dateOnly =
+    options.dateOnly === true || (typeof value === 'string' && DATE_ONLY.test(value));
   try {
     return formatDate(value, pattern, uiLocaleId(lang), dateOnly ? undefined : YEREVAN_UTC_OFFSET);
   } catch {
@@ -72,7 +73,8 @@ export function formatUiDateRange(
   options: { withYear?: boolean; dateOnly?: boolean } = {},
 ): string {
   const dateOnly = options.dateOnly !== false;
-  const endPattern = options.withYear === false ? 'd MMM' : uiLocaleId(lang) === 'en' ? 'd MMM, y' : 'd MMM y';
+  const endPattern =
+    options.withYear === false ? 'd MMM' : uiLocaleId(lang) === 'en' ? 'd MMM, y' : 'd MMM y';
   const from = formatUiDate(start, 'd MMM', lang, { dateOnly });
   const to = formatUiDate(end, endPattern, lang, { dateOnly });
   if (!from) return to;
@@ -88,6 +90,7 @@ export function formatUiDateRange(
 export class UiDateService {
   private readonly translate = inject(TranslateService);
 
+  // Own signal from onLangChange (not LanguageService.current): dates must switch together with the loaded translations.
   readonly lang = toSignal(this.translate.onLangChange.pipe(map((event) => event.lang)), {
     initialValue: this.translate.getCurrentLang(),
   });

@@ -18,7 +18,7 @@ import {
   type BookingRejectResult,
 } from '../booking-reject-dialog/booking-reject-dialog.component';
 import { UiDateRangePipe } from '../../../../shared/utils/ui-date.pipe';
-import { TimeAgoPipe } from '../../../notifications/pipes/time-ago.pipe';
+import { TimeAgoPipe } from '../../../../shared/utils/time-ago.pipe';
 
 @Component({
   selector: 'app-booking-request-card',
