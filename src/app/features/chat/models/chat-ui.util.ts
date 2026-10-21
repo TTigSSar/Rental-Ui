@@ -1,4 +1,5 @@
 import type { BadgeTone } from '../../../shared/ui/badge/badge.component';
+import { formatUiDate } from '../../../shared/utils/ui-date';
 import type {
   ChatConversationPreview,
   ChatModerationNoteKind,
@@ -206,7 +207,11 @@ export function chatDayKey(sentAt: string): string {
  * Divider label for a message's day relative to `now` (local time):
  * Today / Yesterday / short weekday (last week) / day-month (older).
  */
-export function chatDayLabel(sentAt: string, now: Date = new Date()): ChatDayLabel {
+export function chatDayLabel(
+  sentAt: string,
+  lang: string,
+  now: Date = new Date(),
+): ChatDayLabel {
   const then = new Date(sentAt);
   if (Number.isNaN(then.getTime())) {
     return { kind: 'date', text: sentAt };
@@ -222,11 +227,11 @@ export function chatDayLabel(sentAt: string, now: Date = new Date()): ChatDayLab
     return { kind: 'yesterday' };
   }
   if (diffDays < 7) {
-    return { kind: 'date', text: then.toLocaleDateString(undefined, { weekday: 'short' }) };
+    return { kind: 'date', text: formatUiDate(then, 'EEE', lang) };
   }
   return {
     kind: 'date',
-    text: then.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }),
+    text: formatUiDate(then, 'd MMM', lang),
   };
 }
 

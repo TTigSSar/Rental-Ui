@@ -26,7 +26,7 @@
   </div>
 
   <footer class="mod-note__footer">
-    <time [attr.datetime]="message().sentAt">{{ message().sentAt | date: 'd MMM, H:mm' }}</time>
+    <time [attr.datetime]="message().sentAt">{{ message().sentAt | uiDate: 'd MMM, H:mm' }}</time>
     <span aria-hidden="true">·</span>
     <span>
       {{

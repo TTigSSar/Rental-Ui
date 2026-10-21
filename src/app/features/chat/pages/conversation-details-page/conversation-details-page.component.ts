@@ -1,4 +1,4 @@
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -10,7 +10,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
@@ -52,6 +52,8 @@ import {
   selectSendingMessageError,
 } from '../../store/chat.selectors';
 import type { PendingChatImage } from '../../store/chat.state';
+import { UiDatePipe } from '../../../../shared/utils/ui-date.pipe';
+import { UiDateService } from '../../../../shared/utils/ui-date';
 
 /**
  * Rental-card layout breakpoints (keep in sync with the media queries in the scss).
@@ -180,7 +182,7 @@ const selectConversationDetailsRouteState = createSelector(
   }),
 );
 
-function buildThreadItems(conversation: ChatConversationDetails): ThreadItem[] {
+function buildThreadItems(conversation: ChatConversationDetails, lang: string): ThreadItem[] {
   const messages = conversation.messages;
   const items: ThreadItem[] = [];
 
@@ -204,7 +206,7 @@ function buildThreadItems(conversation: ChatConversationDetails): ThreadItem[] {
       items.push({
         kind: 'day',
         id: `day:${dayKey}`,
-        ...toDayDividerFields(chatDayLabel(message.sentAt)),
+        ...toDayDividerFields(chatDayLabel(message.sentAt, lang)),
       });
     }
 
@@ -287,7 +289,7 @@ function buildThreadItems(conversation: ChatConversationDetails): ThreadItem[] {
     AvatarComponent,
     ButtonModule,
     DramCurrencyPipe,
-    DatePipe,
+    UiDatePipe,
     IconComponent,
     MessageModule,
     ModerationNoteCardComponent,
@@ -308,6 +310,7 @@ export class ConversationDetailsPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
+  private readonly dates = inject(UiDateService);
   private readonly routeConversationId$ = this.route.paramMap.pipe(
     map((params) => params.get('conversationId')),
     distinctUntilChanged(),
@@ -329,6 +332,7 @@ export class ConversationDetailsPageComponent implements OnInit {
     pendingImage: this.store.select(selectPendingImage),
     sendingImageError: this.store.select(selectSendingImageError),
     routeConversationId: this.routeConversationId$,
+    lang: toObservable(this.dates.lang),
   }).pipe(
     map(
       ({
@@ -338,6 +342,7 @@ export class ConversationDetailsPageComponent implements OnInit {
         pendingImage,
         sendingImageError,
         routeConversationId,
+        lang,
       }): ConversationDetailsPageViewModel => {
         const conversation = routeState.conversation;
         const isMatch =
@@ -350,7 +355,7 @@ export class ConversationDetailsPageComponent implements OnInit {
         return {
           routeConversationId,
           conversation: activeConversation,
-          threadItems: activeConversation ? buildThreadItems(activeConversation) : [],
+          threadItems: activeConversation ? buildThreadItems(activeConversation, lang) : [],
           loading: routeState.loading,
           error: routeState.error,
           sendingMessage,

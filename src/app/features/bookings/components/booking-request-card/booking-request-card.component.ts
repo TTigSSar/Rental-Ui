@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -18,11 +17,12 @@ import {
   BookingRejectDialogComponent,
   type BookingRejectResult,
 } from '../booking-reject-dialog/booking-reject-dialog.component';
+import { UiDatePipe } from '../../../../shared/utils/ui-date.pipe';
 
 @Component({
   selector: 'app-booking-request-card',
   standalone: true,
-  imports: [BookingRejectDialogComponent, DramCurrencyPipe, DatePipe, TranslatePipe],
+  imports: [BookingRejectDialogComponent, DramCurrencyPipe, UiDatePipe, TranslatePipe],
   templateUrl: './booking-request-card.component.html',
   styleUrl: './booking-request-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -59,6 +58,7 @@ import {
 } from '../../store/admin-users.selectors';
 import { AdminBreakpointService } from '../../utils/admin-breakpoint.service';
 import { canSuspendUser, suspendDisabledReasonKey } from '../../utils/admin-user-guards.util';
+import { UiDatePipe } from '../../../../shared/utils/ui-date.pipe';
 
 const FILTERS: readonly { id: AdminMessageThreadFilter; labelKey: string }[] = [
   { id: 'all', labelKey: 'admin.messages.filters.all' },
@@ -106,7 +106,7 @@ const FILTERS: readonly { id: AdminMessageThreadFilter; labelKey: string }[] = [
     AdminUserProfileDialogComponent,
     AdminUserStatusPillComponent,
     AvatarComponent,
-    DatePipe,
+    UiDatePipe,
     IconComponent,
     MessageModule,
     ModerationNoteCardComponent,

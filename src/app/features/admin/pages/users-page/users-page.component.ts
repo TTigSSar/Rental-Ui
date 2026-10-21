@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -52,6 +51,7 @@ import {
 } from '../../store/admin-users.selectors';
 import { AdminBreakpointService } from '../../utils/admin-breakpoint.service';
 import { canSuspendUser, suspendDisabledReasonKey } from '../../utils/admin-user-guards.util';
+import { UiDatePipe } from '../../../../shared/utils/ui-date.pipe';
 
 const SORT_OPTIONS: readonly { id: AdminUserSortOption; labelKey: string }[] = [
   { id: 'name', labelKey: 'admin.users.sort.name' },
@@ -82,7 +82,7 @@ const SORT_OPTIONS: readonly { id: AdminUserSortOption; labelKey: string }[] = [
     AdminUserProfileDialogComponent,
     AdminUserStatusPillComponent,
     AvatarComponent,
-    DatePipe,
+    UiDatePipe,
     EmptyStateComponent,
     IconComponent,
     MessageModule,

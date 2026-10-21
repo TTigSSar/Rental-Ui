@@ -1,10 +1,10 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import { mapModerationNoteMeta } from '../../models/chat-ui.util';
 import type { ChatMessage } from '../../models/chat.model';
+import { UiDatePipe } from '../../../../shared/utils/ui-date.pipe';
 
 /**
  * Renders a single `type === 'moderationNote'` chat message as the distinct
@@ -17,7 +17,7 @@ import type { ChatMessage } from '../../models/chat.model';
 @Component({
   selector: 'app-moderation-note-card',
   standalone: true,
-  imports: [DatePipe, TranslatePipe, IconComponent],
+  imports: [UiDatePipe, TranslatePipe, IconComponent],
   templateUrl: './moderation-note-card.component.html',
   styleUrl: './moderation-note-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -138,26 +138,35 @@ describe('chatDayLabel', () => {
 
   it('labels the same day as today', () => {
     const sameDay = new Date(2026, 4, 18, 8, 0).toISOString();
-    expect(chatDayLabel(sameDay, now)).toEqual({ kind: 'today' });
+    expect(chatDayLabel(sameDay, 'en', now)).toEqual({ kind: 'today' });
   });
 
   it('labels the previous day as yesterday', () => {
     const dayBefore = new Date(2026, 4, 17, 23, 0).toISOString();
-    expect(chatDayLabel(dayBefore, now)).toEqual({ kind: 'yesterday' });
+    expect(chatDayLabel(dayBefore, 'en', now)).toEqual({ kind: 'yesterday' });
   });
 
   it('labels 2-6 days ago with a short weekday', () => {
     const threeDaysAgo = new Date(2026, 4, 15, 10, 0).toISOString();
-    const label = chatDayLabel(threeDaysAgo, now);
+    const label = chatDayLabel(threeDaysAgo, 'en', now);
     expect(label.kind).toBe('date');
     expect(label.kind === 'date' && label.text.length).toBeGreaterThan(0);
   });
 
   it('labels a week or more ago with a day-month string', () => {
     const older = new Date(2026, 3, 20, 10, 0).toISOString();
-    const label = chatDayLabel(older, now);
+    const label = chatDayLabel(older, 'en', now);
     expect(label.kind).toBe('date');
     expect(label.kind === 'date' && label.text.length).toBeGreaterThan(0);
+  });
+
+  it('formats the weekday and day-month text in the UI language (ADR-052)', () => {
+    const friday = '2026-05-15T10:00:00Z';
+    const older = '2026-04-20T10:00:00Z';
+    expect(chatDayLabel(friday, 'en', now)).toEqual({ kind: 'date', text: 'Fri' });
+    expect(chatDayLabel(friday, 'ru', now)).toEqual({ kind: 'date', text: 'пт' });
+    expect(chatDayLabel(older, 'en', now)).toEqual({ kind: 'date', text: '20 Apr' });
+    expect(chatDayLabel(older, 'ru', now)).toEqual({ kind: 'date', text: '20 апр.' });
   });
 });
 

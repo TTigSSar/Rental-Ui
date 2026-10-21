@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -39,6 +38,7 @@ import {
   selectQueueActionIds,
 } from '../../store/admin-moderation.selectors';
 import { AdminBreakpointService } from '../../utils/admin-breakpoint.service';
+import { UiDatePipe } from '../../../../shared/utils/ui-date.pipe';
 
 /**
  * `/admin/review/:id` — the item dossier (`AdminInspectDesktop` /
@@ -63,7 +63,7 @@ import { AdminBreakpointService } from '../../utils/admin-breakpoint.service';
   imports: [
     AdminCatSelectComponent,
     AdminStatusBadgeComponent,
-    DatePipe,
+    UiDatePipe,
     DramCurrencyPipe,
     IconComponent,
     MessageModule,

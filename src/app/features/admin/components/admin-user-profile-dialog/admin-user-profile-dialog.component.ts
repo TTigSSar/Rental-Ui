@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -18,6 +17,7 @@ import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import type { AdminUser } from '../../models/admin-user.model';
 import { AdminUserStatusPillComponent } from '../admin-user-status-pill/admin-user-status-pill.component';
+import { UiDatePipe } from '../../../../shared/utils/ui-date.pipe';
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -34,7 +34,7 @@ const FOCUSABLE_SELECTOR =
 @Component({
   selector: 'app-admin-user-profile-dialog',
   standalone: true,
-  imports: [AdminUserStatusPillComponent, AvatarComponent, DatePipe, IconComponent, TranslatePipe],
+  imports: [AdminUserStatusPillComponent, AvatarComponent, UiDatePipe, IconComponent, TranslatePipe],
   templateUrl: './admin-user-profile-dialog.component.html',
   styleUrl: './admin-user-profile-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

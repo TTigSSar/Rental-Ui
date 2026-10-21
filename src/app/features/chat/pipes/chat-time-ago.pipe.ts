@@ -1,14 +1,17 @@
 import { Pipe, inject, type PipeTransform } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 
+import { UiDateService } from '../../../shared/utils/ui-date';
+
 /**
  * Compact relative time ("2m", "5h", "3d") for chat timestamps, with a
  * locale-aware "just now" for very recent items. Anything older than a week
  * falls back to an absolute short date so the label stays meaningful.
  */
-@Pipe({ name: 'chatTimeAgo', standalone: true })
+@Pipe({ name: 'chatTimeAgo', standalone: true, pure: false })
 export class ChatTimeAgoPipe implements PipeTransform {
   private readonly translate = inject(TranslateService);
+  private readonly dates = inject(UiDateService);
 
   transform(value: string | null | undefined): string {
     if (!value) {
@@ -37,9 +40,6 @@ export class ChatTimeAgoPipe implements PipeTransform {
       return this.translate.instant('chat.time.days', { value: diffDay });
     }
 
-    return new Date(then).toLocaleDateString(undefined, {
-      day: 'numeric',
-      month: 'short',
-    });
+    return this.dates.format(then, 'd MMM');
   }
 }

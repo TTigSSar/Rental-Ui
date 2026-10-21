@@ -4,6 +4,7 @@ import {
   computed,
   effect,
   EventEmitter,
+  inject,
   input,
   Output,
   signal,
@@ -17,6 +18,7 @@ import {
   countRentalDays,
   rentalEffectiveEnd,
 } from '../../../../shared/utils/rental-days.utils';
+import { UiDateService } from '../../../../shared/utils/ui-date';
 import type { BookedDateRange } from '../../models/listing.model';
 
 /**
@@ -92,6 +94,7 @@ function normalizeRangeSelection(
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookingCalendarComponent {
+  private readonly dates = inject(UiDateService);
   readonly bookedDates = input.required<BookedDateRange[]>();
   readonly pricePerDay = input.required<number>();
   readonly value = input<Date[] | null>(null);
@@ -150,9 +153,7 @@ export class BookingCalendarComponent {
 
   private formatDate(date: Date | null): string {
     if (!date) return '—';
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    return this.dates.format(date, 'EEE d MMM y', { dateOnly: true });
   }
 
   protected onRangeChange(value: Date | Date[] | null | undefined): void {

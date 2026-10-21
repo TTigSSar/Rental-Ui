@@ -14,7 +14,7 @@
     </div>
     <p class="brc__meta">
       <i class="pi pi-calendar"></i>
-      {{ request().startDate | date: 'MMM d' }} – {{ request().endDate | date: 'MMM d' }}
+      {{ request().startDate | uiDate: 'MMM d' }} – {{ request().endDate | uiDate: 'MMM d' }}
       &middot;
       {{ request().totalPrice | dram }}
     </p>

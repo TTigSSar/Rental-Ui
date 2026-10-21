@@ -80,7 +80,7 @@
       </div>
       <div class="admin-user-profile-dialog__info-row">
         <span>{{ 'admin.users.profile.memberSince' | translate }}</span>
-        <span>{{ user().createdAt | date: 'MMM y' }}</span>
+        <span>{{ user().createdAt | uiDate: 'MMM y' }}</span>
       </div>
       <div class="admin-user-profile-dialog__info-row">
         <span>{{ 'admin.users.profile.identity' | translate }}</span>

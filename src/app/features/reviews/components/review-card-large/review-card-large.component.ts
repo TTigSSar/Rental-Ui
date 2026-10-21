@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import type { ReviewComment } from '../../models/review.model';
+import { UiDateService } from '../../../../shared/utils/ui-date';
 
 interface RelativeDateI18n {
   readonly key: string;
@@ -18,6 +19,7 @@ interface RelativeDateI18n {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ReviewCardLargeComponent {
+  private readonly dates = inject(UiDateService);
   readonly review = input.required<ReviewComment>();
 
   protected readonly stars = [1, 2, 3, 4, 5];
@@ -45,10 +47,6 @@ export class ReviewCardLargeComponent {
   });
 
   protected readonly fullDate = computed(() =>
-    new Date(this.review().createdAt).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    }),
+    this.dates.format(this.review().createdAt, 'longDate'),
   );
 }

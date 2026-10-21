@@ -249,7 +249,7 @@
                             ('admin.users.role.' + user.marketplaceRole.toLowerCase() | translate),
                           listings: user.listingCount,
                           rentals: user.rentalCount,
-                          joined: (user.createdAt | date: 'MMM y'),
+                          joined: (user.createdAt | uiDate: 'MMM y'),
                         }
                 }}
               </div>
