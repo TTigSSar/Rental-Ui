@@ -2487,6 +2487,7 @@
     "system": {
       "request": "Запрос на бронирование",
       "requestDetail": "{{name}} запросил(а) эту игрушку · {{dates}} · {{price}}",
+      "requestDetailYou": "Вы запросили эту игрушку · {{dates}} · {{price}}",
       "approved": "Запрос одобрен",
       "rejected": "Владелец отклонил заявку",
       "cancelled": "Арендатор отменил бронирование",

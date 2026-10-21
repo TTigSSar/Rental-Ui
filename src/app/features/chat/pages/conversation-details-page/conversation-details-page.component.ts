@@ -84,7 +84,9 @@ interface MessageGroup {
 
 /** The booking context threaded into the enriched `request` system line. */
 interface SystemRequestContext {
-  readonly counterpartName: string;
+  /** Owner view names the requesting renter; renter view says "You requested…". */
+  readonly textKey: 'chat.system.requestDetail' | 'chat.system.requestDetailYou';
+  readonly requesterName: string;
   readonly bookingDates: string;
   readonly bookingPrice: number;
 }
@@ -231,9 +233,16 @@ function buildThreadItems(conversation: ChatConversationDetails, lang: string): 
         request:
           message.systemKind === 'request' &&
           conversation.bookingDates !== null &&
-          conversation.bookingPrice !== null
+          conversation.bookingPrice !== null &&
+          conversation.viewerRole !== null
             ? {
-                counterpartName: conversation.counterpartName,
+                // The requester is always the renter: for the owner that is the
+                // counterpart; for the renter it is the viewer ("You").
+                textKey:
+                  conversation.viewerRole === 'owner'
+                    ? 'chat.system.requestDetail'
+                    : 'chat.system.requestDetailYou',
+                requesterName: conversation.counterpartName,
                 bookingDates: conversation.bookingDates,
                 bookingPrice: conversation.bookingPrice,
               }

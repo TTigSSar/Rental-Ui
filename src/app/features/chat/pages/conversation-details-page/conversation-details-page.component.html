@@ -153,10 +153,10 @@
                       </span>
                       <span class="chat-system__body">
                         {{
-                          'chat.system.requestDetail'
+                          request.textKey
                             | translate
                               : {
-                                  name: request.counterpartName,
+                                  name: request.requesterName,
                                   dates: request.bookingDates,
                                   price: request.bookingPrice | dram,
                                 }

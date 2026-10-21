@@ -223,10 +223,13 @@ describe('ConversationDetailsPageComponent', () => {
     store.setState({
       [chatFeatureKey]: {
         ...initialChatState,
-        activeConversation: conversationWith([
-          systemMessage({ id: 'req', systemKind: 'request' }),
-          systemMessage({ id: 'apr', systemKind: 'approved' }),
-        ]),
+        activeConversation: conversationWith(
+          [
+            systemMessage({ id: 'req', systemKind: 'request' }),
+            systemMessage({ id: 'apr', systemKind: 'approved' }),
+          ],
+          { viewerRole: 'owner' },
+        ),
       },
     });
 
@@ -242,6 +245,54 @@ describe('ConversationDetailsPageComponent', () => {
     expect(allLines).toHaveLength(2);
     const plainLines = host.querySelectorAll('.chat-system__line:not(.chat-system__line--request)');
     expect(plainLines).toHaveLength(1);
+  });
+
+  describe('the request system line names the requester by viewer role', () => {
+    function renderRequest(viewerRole: 'owner' | 'renter' | null, counterpartName: string) {
+      const { fixture, store } = createFixture();
+      TestBed.inject(TranslateService).setTranslation(
+        'en',
+        {
+          chat: {
+            system: {
+              request: 'Booking request',
+              requestDetail: '{{name}} requested this toy · {{dates}} · {{price}}',
+              requestDetailYou: 'You requested this toy · {{dates}} · {{price}}',
+            },
+          },
+        },
+        true,
+      );
+      store.setState({
+        [chatFeatureKey]: {
+          ...initialChatState,
+          activeConversation: conversationWith(
+            [systemMessage({ id: 'req', systemKind: 'request' })],
+            { viewerRole, counterpartName },
+          ),
+        },
+      });
+      fixture.detectChanges();
+      return (fixture.nativeElement as HTMLElement).querySelector('.chat-system')!
+        .textContent as string;
+    }
+
+    it('owner sees the renter (counterpart) name', () => {
+      const text = renderRequest('owner', 'Rita Renter');
+      expect(text).toContain('Rita Renter requested this toy');
+    });
+
+    it('renter sees "You requested" and never the owner name', () => {
+      const text = renderRequest('renter', 'Olivia Owner');
+      expect(text).toContain('You requested this toy');
+      expect(text).not.toContain('Olivia Owner');
+    });
+
+    it('falls back to the plain label when viewerRole is null', () => {
+      const text = renderRequest(null, 'Olivia Owner');
+      expect(text).not.toContain('Olivia Owner');
+      expect(text).not.toContain('requested this toy');
+    });
   });
 
   describe('a Moderation conversation (kind === "moderation")', () => {

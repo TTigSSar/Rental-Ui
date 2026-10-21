@@ -2487,6 +2487,7 @@
     "system": {
       "request": "Booking requested",
       "requestDetail": "{{name}} requested this toy · {{dates}} · {{price}}",
+      "requestDetailYou": "You requested this toy · {{dates}} · {{price}}",
       "approved": "Request approved",
       "rejected": "The owner declined the request",
       "cancelled": "The renter cancelled the booking",
