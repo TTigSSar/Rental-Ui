@@ -1,17 +1,15 @@
 /*
  * Chat-local design colors that have no global `--ui-color-*` token. Everything
  * else MUST come from the global palette — do not add hex literals below.
- *   --chat-warn        #D97706  `return` system icon (the status pill moved into the rental card, RC-2).
- *                               (`--ui-color-warning` is #8a5c00 — a different
- *                               color, used elsewhere; the design wants #D97706.)
+ *   --chat-warn        -> --ui-color-amber-ink (#A45A05)  `return` system icon (the status
+ *                               pill moved into the rental card, RC-2).
+ *                               (`--ui-color-warning` is #8a5c00 — a different color.)
  *   --chat-seen        #4A5FE3  message identity — the "Seen" receipt ONLY.
  *                               Orange is reserved for actions + unread.
- *   --chat-closed      #9A99A3  `closed` system icon.
  */
 :host {
-  --chat-warn: #a75c05;
+  --chat-warn: var(--ui-color-amber-ink);
   --chat-seen: #4a5fe3;
-  --chat-closed: #9a99a3;
 }
 
 .chat-thread {
@@ -566,7 +564,7 @@
 }
 
 .chat-system__line--neutral {
-  --chat-system-tint: var(--chat-closed);
+  --chat-system-tint: var(--ui-color-text-hint);
 }
 
 /* Enriched booking-request line: "{name} requested this toy · dates · price". */

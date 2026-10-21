@@ -76,7 +76,7 @@ export const NOTIFICATION_KIND_META: Record<NotificationKind, NotificationKindMe
   pickup: {
     icon: 'truck',
     color: '#d97706',
-    strong: '#a75c05',
+    strong: '#a45a05',
     fill: '#d97706',
     onFill: '#1a1b26',
     soft: '#fff1dc',
@@ -93,7 +93,7 @@ export const NOTIFICATION_KIND_META: Record<NotificationKind, NotificationKindMe
   return: {
     icon: 'clock',
     color: '#d97706',
-    strong: '#a75c05',
+    strong: '#a45a05',
     fill: '#d97706',
     onFill: '#1a1b26',
     soft: '#fff1dc',

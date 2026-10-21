@@ -1,11 +1,11 @@
 /*
  * Chat-local design colors with no global `--ui-color-*` token (kept in sync
  * with the thread's copy of the same list):
- *   --chat-warn        #A45A05  requested / return_due status text (4.58 on the active row's #FFEEDC).
+ *   --chat-warn        -> --ui-color-amber-ink  requested / return_due status text (4.58 on the active row's #FFEEDC).
  *   --chat-row-unread  #FFFDFB  the barely-there warm tint on an unread row.
  */
 :host {
-  --chat-warn: #a45a05;
+  --chat-warn: var(--ui-color-amber-ink);
   --chat-row-unread: #fffdfb;
 }
 

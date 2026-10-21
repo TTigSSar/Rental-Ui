@@ -20,7 +20,7 @@
   display: flex;
   justify-content: center;
   margin: 4px 0;
-  --note-warn: #a75c05;
+  --note-warn: var(--ui-color-amber-ink);
   --note-warn-surface: #fff1dc;
 }
 

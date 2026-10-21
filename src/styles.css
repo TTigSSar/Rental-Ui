@@ -191,7 +191,8 @@
 
   /* —— Dashboard page tokens —— */
   --dash-warn: #d97706; /* amber FILL / dot: carries dark text, never white (ADR-034) */
-  --dash-warn-ink: #a75c05; /* amber TEXT on light backgrounds (4.5+) */
+  --ui-color-amber-ink: #a45a05; /* amber TEXT/icon ink, the one shared copy (ADR-034): 4.58 on #ffeedc, 4.84 on #fff1dc */
+  --dash-warn-ink: var(--ui-color-amber-ink); /* amber TEXT on light backgrounds (4.5+) */
   --dash-warn-surface: #fef3c7;
   --dash-warn-text: #92400e;
   --dash-blue: #465ce2; /* was #4a5fe3 (4.37 on #e8eaff) */
