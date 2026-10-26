@@ -279,7 +279,7 @@ p {
 
 @media (max-width: 560px) {
   .page-container {
-    padding-inline: var(--ui-space-16);
+    padding-inline: var(--ui-space-8);
     padding-top: var(--ui-space-16);
   }
 }
