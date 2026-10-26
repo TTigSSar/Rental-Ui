@@ -362,7 +362,14 @@ describe('RentalCardComponent', () => {
       ['approved', 'cancelBooking'],
     ] as const)('%s: confirming dispatches cancelBooking', (status, label) => {
       const { fixture, dispatch } = openConfirm(
-        conversation({ bookingStatus: status, viewerRole: 'renter', turn: 'owner' }),
+        // Approved-cancel is only offered before the start date, so use a far-future range.
+        conversation({
+          bookingStatus: status,
+          viewerRole: 'renter',
+          turn: 'owner',
+          startDate: '2999-01-01',
+          endDate: '2999-01-05',
+        }),
       );
       clickMenu(`chat.rental.menu.${label}`);
       fixture.detectChanges();
