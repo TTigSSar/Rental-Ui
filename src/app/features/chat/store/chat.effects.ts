@@ -355,7 +355,17 @@ export class ChatEffects {
     () =>
       this.actions$.pipe(
         ofType(ChatActions.markConversationReadSuccess),
-        tap(() => this.chatBadge.discardInFlight()),
+        withLatestFrom(this.store.select(selectConversations)),
+        tap(([, conversations]) => {
+          if (conversations.length > 0) {
+            this.chatBadge.discardInFlight();
+          } else {
+            // Inbox not loaded (cold deep link): syncNavBadge$ will not repaint,
+            // so ask the server for the post-read count instead.
+            this.chatBadge.requestRefresh();
+          }
+        }),
+        map(([action]) => action),
       ),
     { dispatch: false },
   );

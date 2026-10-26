@@ -190,13 +190,26 @@ describe('ChatEffects', () => {
   });
 
   describe('discardStaleBadgeAfterRead$', () => {
-    it('drops in-flight badge responses once a thread is marked read', async () => {
-      const { harness, effects, badge } = setup();
+    it('drops in-flight badge responses once a thread is marked read (inbox loaded)', async () => {
+      const { harness, store, effects, badge } = setup();
+      store.overrideSelector(selectConversations, [{ id: 'c1' } as ChatConversationPreview]);
+      store.refreshState();
       const result = collect(effects.discardStaleBadgeAfterRead$);
       harness.send(ChatActions.markConversationReadSuccess({ conversationId: 'c1' }));
       harness.complete();
       await result;
       expect(badge.discardInFlight).toHaveBeenCalledTimes(1);
+      expect(badge.requestRefresh).not.toHaveBeenCalled();
+    });
+
+    it('requests a fresh refresh instead when the inbox is not loaded', async () => {
+      const { harness, effects, badge } = setup();
+      const result = collect(effects.discardStaleBadgeAfterRead$);
+      harness.send(ChatActions.markConversationReadSuccess({ conversationId: 'c1' }));
+      harness.complete();
+      await result;
+      expect(badge.discardInFlight).not.toHaveBeenCalled();
+      expect(badge.requestRefresh).toHaveBeenCalledTimes(1);
     });
   });
 
