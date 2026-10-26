@@ -50,6 +50,14 @@
   }
 }
 
+@media (max-width: 560px) {
+  /* Keep the bleed equal to `.page-container` padding-inline at this width (styles.css). */
+  .lp-sticky-header {
+    margin-inline: calc(-1 * var(--ui-space-8));
+    padding-inline: var(--ui-space-8);
+  }
+}
+
 @media (min-width: 961px) {
   .lp-sticky-header {
     display: none;

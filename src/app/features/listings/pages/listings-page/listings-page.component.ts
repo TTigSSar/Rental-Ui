@@ -4,6 +4,7 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  HostListener,
   computed,
   effect,
   inject,
@@ -525,6 +526,15 @@ export class ListingsPageComponent {
 
   protected toggleSortMenu(): void {
     this.sortMenuOpen.update(v => !v);
+  }
+
+  /** The open menu (z-index 50) would otherwise slide over the sticky
+   *  search header (z-index 10) while the page scrolls underneath it. */
+  @HostListener('window:scroll')
+  protected onWindowScroll(): void {
+    if (this.sortMenuOpen()) {
+      this.sortMenuOpen.set(false);
+    }
   }
 
   protected selectSort(value: SortBy): void {
