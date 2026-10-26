@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { TranslateService } from '@ngx-translate/core';
+import { Subject } from 'rxjs';
 
 import { MapComponent, resolveTileSource, TILE_PROVIDER_CONFIG } from './map.component';
 import type { MapBounds, MapLatLng, MapMarkerAnchor, MapMarkerGroup } from './map.component';
@@ -47,6 +49,13 @@ const state = vi.hoisted(() => ({
   fakeBounds: { getNorth: 40.2, getSouth: 40.1, getEast: 44.6, getWest: 44.5 },
   mapRemoved: false,
   mapThrows: false,
+  // MapLibre vector base layer (`L.maplibreGL`) fakes — see the vector describe.
+  glLayerCalls: [] as {
+    options: Record<string, unknown>;
+    handlers: Record<string, ((e?: unknown) => void)[]>;
+    setLayoutProperty: ReturnType<typeof vi.fn>;
+  }[],
+  glThrows: false,
   // Reassigned to the most recently created fake map's `invalidateSize` spy —
   // lets tests assert the ResizeObserver wiring calls it without needing a
   // handle on the map instance itself (which `map.component.ts` never exposes).
@@ -288,6 +297,34 @@ vi.mock('leaflet', () => ({
   },
 }));
 
+// Real MapLibre is ~1 MB of WebGL code jsdom can't run; the component only needs these two.
+vi.mock('maplibre-gl', () => ({ setWorkerUrl: vi.fn(), getVersion: () => 'test' }));
+// The plugin's `maplibreGL` factory builds the vector base layer — faked here.
+vi.mock('@maplibre/maplibre-gl-leaflet', () => ({
+  maplibreGL: vi.fn((options: Record<string, unknown>) => {
+    const handlers: Record<string, ((e?: unknown) => void)[]> = {};
+    const setLayoutProperty = vi.fn();
+    state.glLayerCalls.push({ options, handlers, setLayoutProperty });
+    const glMap = {
+      on: vi.fn((event: string, handler: (e?: unknown) => void) => {
+        (handlers[event] ??= []).push(handler);
+      }),
+      isStyleLoaded: vi.fn(() => true),
+      getLayer: vi.fn(() => ({})),
+      setLayoutProperty,
+    };
+    const layer = {
+      addTo: vi.fn(() => {
+        if (state.glThrows) throw new Error('webgl context lost');
+        return layer;
+      }),
+      getMaplibreMap: vi.fn(() => glMap),
+    getCanvas: vi.fn(() => document.createElement('canvas')),
+    };
+    return layer;
+  }),
+}));
+
 @Component({
   standalone: true,
   imports: [MapComponent],
@@ -399,6 +436,8 @@ describe('MapComponent', () => {
     state.fakeBounds = { getNorth: 40.2, getSouth: 40.1, getEast: 44.6, getWest: 44.5 };
     state.mapRemoved = false;
     state.mapThrows = false;
+    state.glLayerCalls = [];
+    state.glThrows = false;
     state.lastInvalidateSize = null;
     state.lastSetView = null;
     state.centerAfterResize = null;
@@ -957,11 +996,9 @@ describe('MapComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.received).toEqual(afterPan);
-    expect(state.lastSetView).toHaveBeenCalledWith(
-      { lat: 40.2, lng: 44.55 },
-      13,
-      { animate: false },
-    );
+    expect(state.lastSetView).toHaveBeenCalledWith({ lat: 40.2, lng: 44.55 }, 13, {
+      animate: false,
+    });
   });
 
   it('disconnects the ResizeObserver on destroy', async () => {
@@ -1138,6 +1175,179 @@ describe('MapComponent', () => {
     state.tileLayerCalls[0].handlers['load']?.forEach((h) => h());
 
     expect(fixture.componentInstance.errorCount).toBe(0);
+  });
+
+  describe('MapLibre vector base layer', () => {
+    const vectorConfig = {
+      urlTemplate: 'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key={key}',
+      apiKey: 'test-key-123',
+      attribution: '<a href="https://www.maptiler.com/copyright/">&copy; MapTiler</a>',
+      maxZoom: 19,
+      styleUrl: '/map/style.json',
+    };
+    const styleJson = {
+      version: 8,
+      sources: { s: { url: 'https://x/tiles.json?key={key}', type: 'vector' } },
+      layers: [
+        { id: 'city', type: 'symbol', layout: { 'text-field': '{name:en}' } },
+        { id: 'house', type: 'symbol', layout: { 'text-field': '{housenumber}' } },
+      ],
+    };
+
+    let lang: string;
+    let langChange: Subject<unknown>;
+
+    const originalFetch = globalThis.fetch;
+    let webGlSpy: { mockRestore(): void } | null = null;
+    afterEach(() => {
+      webGlSpy?.mockRestore();
+      vi.stubGlobal('fetch', originalFetch);
+      vi.stubGlobal('WebGLRenderingContext', undefined);
+      webGlSpy = null;
+    });
+    function enableWebGl(): void {
+      vi.stubGlobal('WebGLRenderingContext', class {});
+      webGlSpy = vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({} as never);
+    }
+    function stubStyleFetch(ok = true): void {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => ({ ok, status: ok ? 200 : 500, json: async () => styleJson })),
+      );
+    }
+    async function mount(config: object = vectorConfig) {
+      lang = 'hy';
+      langChange = new Subject();
+      TestBed.configureTestingModule({
+        imports: [MapHostComponent],
+        providers: [
+          { provide: TILE_PROVIDER_CONFIG, useValue: config },
+          {
+            provide: TranslateService,
+            useValue: { getCurrentLang: () => lang, onLangChange: langChange },
+          },
+        ],
+      });
+      const fixture = TestBed.createComponent(MapHostComponent);
+      fixture.detectChanges();
+      await vi.runAllTimersAsync();
+      return fixture;
+    }
+
+    it('uses MapLibre (no raster layer) with the localised, key-substituted style when WebGL is available', async () => {
+      enableWebGl();
+      stubStyleFetch();
+      await mount();
+
+      expect(state.tileLayerCalls).toHaveLength(0);
+      expect(state.glLayerCalls).toHaveLength(1);
+      const options = state.glLayerCalls[0].options;
+      expect(options['attributionControl']).toBe(false);
+      const style = options['style'] as typeof styleJson;
+      expect(style.sources.s.url).toBe('https://x/tiles.json?key=test-key-123');
+      expect(style.layers[0].layout['text-field']).toEqual([
+        'coalesce',
+        ['get', 'name:hy'],
+        ['get', 'name:latin'],
+        ['get', 'name'],
+      ]);
+      expect(style.layers[1].layout['text-field']).toBe('{housenumber}');
+    });
+
+    it('re-labels the live map on a language change without recreating it', async () => {
+      enableWebGl();
+      stubStyleFetch();
+      await mount();
+      const { setLayoutProperty } = state.glLayerCalls[0];
+
+      lang = 'ru';
+      langChange.next({ lang: 'ru' });
+
+      expect(state.glLayerCalls).toHaveLength(1);
+      expect(setLayoutProperty).toHaveBeenCalledTimes(1);
+      expect(setLayoutProperty).toHaveBeenCalledWith('city', 'text-field', [
+        'coalesce',
+        ['get', 'name:ru'],
+        ['get', 'name:latin'],
+        ['get', 'name'],
+      ]);
+    });
+
+    it('falls back to the raster tile layer when WebGL is unavailable', async () => {
+      // jsdom: getContext() yields null.
+      stubStyleFetch();
+      await mount();
+
+      expect(state.glLayerCalls).toHaveLength(0);
+      expect(state.tileLayerCalls).toHaveLength(1);
+      expect(state.tileLayerCalls[0].url).toBe(
+        'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=test-key-123',
+      );
+    });
+
+    it('falls back to the raster tile layer when MapLibre init throws', async () => {
+      enableWebGl();
+      stubStyleFetch();
+      state.glThrows = true;
+      const fixture = await mount();
+
+      expect(state.tileLayerCalls).toHaveLength(1);
+      expect(fixture.componentInstance.errorCount).toBe(0);
+    });
+
+    it('falls back to the raster tile layer when the style cannot be fetched', async () => {
+      enableWebGl();
+      stubStyleFetch(false);
+      await mount();
+
+      expect(state.glLayerCalls).toHaveLength(0);
+      expect(state.tileLayerCalls).toHaveLength(1);
+    });
+
+    it('keeps the OSM raster fallback when no provider key is configured', async () => {
+      enableWebGl();
+      stubStyleFetch();
+      await mount({ ...vectorConfig, apiKey: '' });
+
+      expect(state.glLayerCalls).toHaveLength(0);
+      expect(state.tileLayerCalls[0].url).toBe('https://tile.openstreetmap.org/{z}/{x}/{y}.png');
+    });
+
+    it('emits mapError when the TileJSON source fails (dead tile host)', async () => {
+      enableWebGl();
+      stubStyleFetch();
+      const fixture = await mount();
+
+      state.glLayerCalls[0].handlers['error']?.forEach((h) => h({ sourceId: 'maptiler_planet' }));
+
+      expect(fixture.componentInstance.errorCount).toBe(1);
+    });
+
+    it('emits mapError when every tile errors and none loads by idle', async () => {
+      enableWebGl();
+      stubStyleFetch();
+      const fixture = await mount();
+      const { handlers } = state.glLayerCalls[0];
+
+      handlers['error']?.forEach((h) => h({ sourceId: 'maptiler_planet', tile: {} }));
+      expect(fixture.componentInstance.errorCount).toBe(0);
+      handlers['idle']?.forEach((h) => h());
+
+      expect(fixture.componentInstance.errorCount).toBe(1);
+    });
+
+    it('does NOT emit mapError when a tile loaded, even if another errored', async () => {
+      enableWebGl();
+      stubStyleFetch();
+      const fixture = await mount();
+      const { handlers } = state.glLayerCalls[0];
+
+      handlers['sourcedata']?.forEach((h) => h({ sourceId: 'maptiler_planet', tile: {} }));
+      handlers['error']?.forEach((h) => h({ sourceId: 'maptiler_planet', tile: {} }));
+      handlers['idle']?.forEach((h) => h());
+
+      expect(fixture.componentInstance.errorCount).toBe(0);
+    });
   });
 
   describe('scrollGate — desktop (non-touch)', () => {

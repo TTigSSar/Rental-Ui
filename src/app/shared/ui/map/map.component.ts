@@ -14,10 +14,16 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+// Type-only: pulls in the `L.maplibreGL` augmentation of Leaflet's types.
+import type {} from '@maplibre/maplibre-gl-leaflet';
+import type { Map as MaplibreMap, StyleSpecification } from 'maplibre-gl';
 import type * as Leaflet from 'leaflet';
+import type { Subscription } from 'rxjs';
 
 import { environment } from '../../../../environments/environment';
 import { dorentSymbolMarkup } from '../dorent-symbol/dorent-symbol.markup';
+import { localizeStyle, localizedTextFields, type MapStyleLike } from './localize-style';
 
 /**
  * A latitude/longitude pair. The only "coordinate" shape this component's
@@ -112,6 +118,11 @@ interface ResolvedTileSource {
    * markup in map.component.html need revisiting together.
    */
   isFallback: boolean;
+  /** Vector style URL (`/map/style.json`), or `null` when none is configured
+   *  or the OSM fallback is active — `null` means "raster only". */
+  styleUrl: string | null;
+  /** The provider key, substituted for `{key}` in the vector style. */
+  apiKey: string;
 }
 
 /**
@@ -126,6 +137,8 @@ interface TileProviderConfig {
   apiKey: string;
   attribution: string;
   maxZoom: number;
+  /** Optional: MapLibre vector style rendered inside Leaflet. Absent = raster only. */
+  styleUrl?: string;
 }
 
 /**
@@ -198,6 +211,8 @@ export function resolveTileSource(
       attribution: OSM_FALLBACK_ATTRIBUTION,
       maxZoom: OSM_FALLBACK_MAX_ZOOM,
       isFallback: true,
+      styleUrl: null,
+      apiKey: '',
     };
   }
   return {
@@ -205,7 +220,30 @@ export function resolveTileSource(
     attribution: provider.attribution,
     maxZoom: provider.maxZoom,
     isFallback: false,
+    styleUrl: provider.styleUrl || null,
+    apiKey: provider.apiKey,
   };
+}
+
+// Copied from `node_modules/maplibre-gl/dist` by the `assets` entry in angular.json.
+const MAPLIBRE_WORKER_URL = '/map/maplibre-gl-worker.mjs';
+
+/** What `loadVectorStyle()` resolves: the raw style JSON + the layer factory. */
+interface VectorBase {
+  style: MapStyleLike;
+  maplibreGL: typeof Leaflet.maplibreGL;
+}
+
+/** MapLibre needs a WebGL context; without one the raster layer is used. */
+function isWebGlAvailable(): boolean {
+  // Cheap pre-check; also keeps jsdom's "getContext not implemented" noise out.
+  if (typeof WebGLRenderingContext === 'undefined') return false;
+  try {
+    const canvas = document.createElement('canvas');
+    return !!(canvas.getContext('webgl2') || canvas.getContext('webgl'));
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -351,10 +389,25 @@ function sanitizeForClipId(raw: string): string {
  * actually serving the OSM fallback (see `ResolvedTileSource.isFallback`'s
  * doc comment).
  *
+ * Base layer: with a provider key and `tileProvider.styleUrl`, the base map is
+ * a MapLibre GL VECTOR layer rendered inside Leaflet (`L.maplibreGL`, from
+ * `@maplibre/maplibre-gl-leaflet`) — Leaflet still owns the map, markers,
+ * circles and interaction; only the tiles underneath change. The style is the
+ * MapTiler `streets-v2` JSON in `public/map/style.json` (`{key}` placeholder),
+ * localised by `localizeStyle()` so labels follow the UI language (hy / ru /
+ * en) and re-labelled live on `onLangChange` via `setLayoutProperty` (no map
+ * recreation). `maplibre-gl` is imported only here and only dynamically, next
+ * to Leaflet itself. The raster `L.tileLayer` below is the fallback: no WebGL,
+ * a MapLibre/style-fetch failure, or no provider key (OSM) all take it
+ * unchanged. MapLibre's own attribution control is off; the configured
+ * attribution string goes through Leaflet's control exactly as for raster.
+ *
  * `mapError` fires once if the map fails to come up at all: the dynamic
  * `import('leaflet')` rejects, `L.map()`/tile-layer setup throws, or every
  * tile in the initial viewport fails (dead tile host / offline) — see the
- * `tileload`/`tileerror`/`load` wiring in `init()`. Note `GridLayer`'s own
+ * `tileload`/`tileerror`/`load` wiring in `init()` (the vector layer maps
+ * MapLibre's `sourcedata`-with-tile / tile `error` / `idle` onto the same three
+ * signals, and a failed TileJSON — no tile can ever load — fails at once). Note `GridLayer`'s own
  * `load` event fires once the tile-loading queue is empty, i.e. once every
  * requested tile has *settled* — NOT once every tile has *succeeded*; it
  * fires the same way whether tiles loaded or errored. So "the map failed" is
@@ -645,6 +698,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
   // (`TILE_PROVIDER_CONFIG`, defined above) rather than a direct `environment`
   // import, so which provider this renders with is whatever got provided —
   // see that token's doc comment.
+  private readonly translate = inject(TranslateService, { optional: true });
+  private langSub: Subscription | null = null;
   private readonly tileSource = resolveTileSource(inject(TILE_PROVIDER_CONFIG));
 
   /**
@@ -899,6 +954,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       });
       this.wheelListenerAttached = false;
     }
+    this.langSub?.unsubscribe();
+    this.langSub = null;
     this.map?.remove();
     this.map = null;
     // `map.remove()` already tears down every layer it owns — this just
@@ -915,6 +972,14 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       if (this.destroyed) return;
       const L = resolveLeafletModule(imported);
       this.leaflet = L;
+
+      // Everything the vector layer needs from the network is fetched BEFORE
+      // the Leaflet map exists, so once `L.map()` returns the rest of init
+      // runs synchronously exactly as with the raster layer — an `await`
+      // after map creation would leave a live, draggable map whose
+      // `moveend`/crosshair wiring below isn't attached yet.
+      const vectorStyle = this.tileSource.styleUrl ? await this.loadVectorStyle() : null;
+      if (this.destroyed) return;
 
       const interactive = this.interactive();
       // Starting state for the touch half of the scroll gate: if the gate
@@ -951,27 +1016,11 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       }
 
       const tileSource = this.tileSource;
-      const tileLayer = L.tileLayer(tileSource.url, {
-        maxZoom: tileSource.maxZoom,
-        attribution: tileSource.attribution,
-      }).addTo(map);
-
-      // Detect a dead tile server. `tileload`/`tileerror` fire per tile;
-      // `load` fires once the whole batch has settled either way (see the
-      // class doc comment) — that's the point at which "at least one error,
-      // and not a single success" means every tile in view failed, i.e. the
-      // tile host itself is unreachable rather than one stray 404.
-      tileLayer.on('tileload', () => {
-        this.anyTileLoaded = true;
-      });
-      tileLayer.on('tileerror', () => {
-        this.anyTileErrored = true;
-      });
-      tileLayer.on('load', () => {
-        if (this.anyTileErrored && !this.anyTileLoaded && !this.destroyed) {
-          this.reportError();
-        }
-      });
+      // Vector first (only when configured and WebGL exists); anything that
+      // goes wrong there returns `false` and the raster layer takes over.
+      if (!vectorStyle || !this.addVectorBaseLayer(map, tileSource, vectorStyle)) {
+        this.addRasterBaseLayer(L, map, tileSource);
+      }
 
       if (this.crosshair()) {
         const emitCenter = () => {
@@ -1130,6 +1179,144 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       // synchronously (e.g. no canvas/SVG support). Report and bail — no
       // partial map is left behind for the caller to render around.
       this.reportError();
+    }
+  }
+
+  private addRasterBaseLayer(
+    L: typeof Leaflet,
+    map: Leaflet.Map,
+    tileSource: ResolvedTileSource,
+  ): void {
+    const tileLayer = L.tileLayer(tileSource.url, {
+      maxZoom: tileSource.maxZoom,
+      attribution: tileSource.attribution,
+    }).addTo(map);
+
+    // Detect a dead tile server. `tileload`/`tileerror` fire per tile;
+    // `load` fires once the whole batch has settled either way (see the
+    // class doc comment) — that's the point at which "at least one error,
+    // and not a single success" means every tile in view failed, i.e. the
+    // tile host itself is unreachable rather than one stray 404.
+    tileLayer.on('tileload', () => {
+      this.anyTileLoaded = true;
+    });
+    tileLayer.on('tileerror', () => {
+      this.anyTileErrored = true;
+    });
+    tileLayer.on('load', () => {
+      if (this.anyTileErrored && !this.anyTileLoaded && !this.destroyed) {
+        this.reportError();
+      }
+    });
+  }
+
+  private currentLang(): string {
+    return this.translate?.getCurrentLang() || 'en';
+  }
+
+  /**
+   * Fetches the vector style and the MapLibre-in-Leaflet plugin. Resolves `null`
+   * (-> raster) when the vector path isn't configured, WebGL is missing, or
+   * the style/chunk can't be loaded.
+   */
+  private async loadVectorStyle(): Promise<VectorBase | null> {
+    const { styleUrl } = this.tileSource;
+    if (!styleUrl || !isWebGlAvailable()) return null;
+    try {
+      const [response, plugin, maplibre] = await Promise.all([
+        fetch(styleUrl),
+        import('@maplibre/maplibre-gl-leaflet'),
+        import('maplibre-gl'),
+      ]);
+      // MapLibre starts its tile worker from a file next to its own module,
+      // which no longer exists once an app bundler has moved that module into
+      // a chunk ("Worker failed to load"). `angular.json` copies the worker
+      // to `/map/` as an asset; point MapLibre at it.
+      maplibre.setWorkerUrl(`${MAPLIBRE_WORKER_URL}?v=${maplibre.getVersion()}`);
+      if (!response.ok) throw new Error(`style ${response.status}`);
+      // The plugin's own named export, not `L.maplibreGL`: it patches the
+      // Leaflet it imported itself, which under `ng serve` is not the
+      // flattened namespace `resolveLeafletModule()` hands back.
+      return { style: (await response.json()) as MapStyleLike, maplibreGL: plugin.maplibreGL };
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Adds the MapLibre vector base layer. Returns `true` when it is in place,
+   * `false` for any MapLibre/WebGL init failure so the caller falls back to
+   * the raster layer; nothing here reaches `mapError` on its own.
+   */
+  private addVectorBaseLayer(
+    map: Leaflet.Map,
+    tileSource: ResolvedTileSource,
+    { style: rawStyle, maplibreGL }: VectorBase,
+  ): boolean {
+    let layer: Leaflet.MaplibreGL | null = null;
+    try {
+      let appliedLang = this.currentLang();
+      const style = localizeStyle(rawStyle, appliedLang, tileSource.apiKey);
+      layer = maplibreGL({
+        style: style as unknown as StyleSpecification,
+        // Leaflet reads this to bound the map's zoom (the raster layer did too).
+        maxZoom: tileSource.maxZoom,
+        // MapLibre's own control would duplicate the MapTiler/OSM string below.
+        attributionControl: false,
+      });
+      layer.addTo(map);
+      const gl: MaplibreMap = layer.getMaplibreMap();
+      map.attributionControl?.addAttribution(tileSource.attribution);
+      // The GL canvas is only a backdrop: Leaflet's container is the one
+      // keyboard-focusable, labelled "map" element, so strip MapLibre's own.
+      const canvas = layer.getCanvas();
+      canvas.removeAttribute('tabindex');
+      canvas.setAttribute('aria-hidden', 'true');
+      canvas.removeAttribute('aria-label');
+      canvas.removeAttribute('role');
+
+      // Same semantics as the raster `tileload`/`tileerror`/`load` trio.
+      gl.on('sourcedata', (e) => {
+        if ((e as { tile?: unknown }).tile) this.anyTileLoaded = true;
+      });
+      gl.on('error', (e) => {
+        const ev = e as { sourceId?: string; tile?: unknown };
+        if (ev.tile) {
+          this.anyTileErrored = true;
+        } else if (ev.sourceId && !this.anyTileLoaded && !this.destroyed) {
+          // The source's TileJSON itself failed: no tile can ever load.
+          this.reportError();
+        }
+      });
+      gl.on('idle', () => {
+        if (this.anyTileErrored && !this.anyTileLoaded && !this.destroyed) {
+          this.reportError();
+        }
+      });
+
+      // Re-label on language change without recreating the map. A change that
+      // lands before the style finished loading is applied on `load`.
+      const applyLang = () => {
+        const lang = this.currentLang();
+        if (lang === appliedLang || this.destroyed || !gl.isStyleLoaded()) return;
+        for (const [id, field] of localizedTextFields(rawStyle, lang)) {
+          if (gl.getLayer(id)) gl.setLayoutProperty(id, 'text-field', field as never);
+        }
+        appliedLang = lang;
+      };
+      gl.on('load', applyLang);
+      this.langSub = this.translate?.onLangChange.subscribe(applyLang) ?? null;
+      return true;
+    } catch {
+      // Half-built layer (e.g. WebGL context creation threw inside onAdd).
+      try {
+        if (layer) map.removeLayer(layer);
+      } catch {
+        /* nothing left to clean */
+      }
+      this.langSub?.unsubscribe();
+      this.langSub = null;
+      return false;
     }
   }
 

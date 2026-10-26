@@ -15,6 +15,18 @@
 // their own "currently animating" selector instead.
 @use '../dorent-symbol/dorent-symbol-motion' as dr-symbol-motion;
 
+// MapLibre GL base layer (see map.component.ts): only the two rules the GL container and
+// canvas need (`.app-map` already clips overflow). `maplibre-gl/dist/maplibre-gl.css` itself is ~83 kB (controls, popups,
+// embedded SVG icons — none of which this app uses: Leaflet owns every control, marker
+// and popup) and would blow this component's style budget on its own.
+.maplibregl-map {
+  position: relative;
+}
+.maplibregl-canvas {
+  position: absolute;
+}
+
+
 /* `isolation: isolate` — contains every z-index this component (and its
    Leaflet-owned descendants) sets, from 200 (`.leaflet-tile-pane`) up through
    1005 (`.app-map__gate` below), inside `.app-map`'s OWN stacking context.
