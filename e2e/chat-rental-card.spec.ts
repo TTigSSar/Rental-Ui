@@ -98,8 +98,10 @@ for (const [name, viewport] of [
       await expect(
         page.getByRole('button', { name: 'I handed it over' }).filter({ visible: true }),
       ).toBeVisible();
-      await expect(visibleText(page, /^Agreed/)).toBeVisible();
-      await expect(visibleText(page, /^Your turn/)).toHaveCount(0);
+      // The owner still has the next move (hand the toy over): the badge follows `turn`.
+      await expect(visibleText(page, /^Your turn/)).toBeVisible();
+      await expect(visibleText(page, /meeting on/)).toBeVisible();
+      await expect(visibleText(page, /^Agreed/)).toHaveCount(0);
       await expect(
         page.getByRole('button', { name: 'Accept' }).filter({ visible: true }),
       ).toHaveCount(0);

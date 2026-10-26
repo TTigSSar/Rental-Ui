@@ -200,6 +200,42 @@ describe('RentalCardComponent', () => {
     expect(buttons(host).every((b) => !b.disabled)).toBe(true);
   });
 
+  describe('in-flight action vs. conversation updates', () => {
+    it('a realtime text message (same status and turn) keeps the buttons disabled', () => {
+      const { fixture, host } = setup(conversation());
+      buttons(host)[0].click();
+      fixture.detectChanges();
+      expect(buttons(host).every((b) => b.disabled)).toBe(true);
+
+      fixture.componentRef.setInput(
+        'conversation',
+        conversation({
+          messages: [{ id: 'm1' } as ChatConversationDetails['messages'][number]],
+        }),
+      );
+      fixture.detectChanges();
+      expect(buttons(host).every((b) => b.disabled)).toBe(true);
+    });
+
+    it('a real status change re-enables the buttons and clears the error', () => {
+      const { fixture, host, actions$ } = setup(conversation());
+      buttons(host)[0].click();
+      actions$.next(
+        BookingsActions.approveBookingRequestFailure({ bookingId: 'b1', error: 'Already decided' }),
+      );
+      fixture.detectChanges();
+      expect(host.querySelector('.rental-card__error')).not.toBeNull();
+
+      fixture.componentRef.setInput(
+        'conversation',
+        conversation({ bookingStatus: 'approved', turn: 'owner' }),
+      );
+      fixture.detectChanges();
+      expect(host.querySelector('.rental-card__error')).toBeNull();
+      expect(buttons(host).every((b) => !b.disabled)).toBe(true);
+    });
+  });
+
   describe('⋯ menu', () => {
     function menuLabels(host: HTMLElement, fixture: { detectChanges(): void }): string[] {
       host.querySelector<HTMLButtonElement>('.rental-card__more')!.click();
@@ -326,7 +362,14 @@ describe('RentalCardComponent', () => {
       ['approved', 'cancelBooking'],
     ] as const)('%s: confirming dispatches cancelBooking', (status, label) => {
       const { fixture, dispatch } = openConfirm(
-        conversation({ bookingStatus: status, viewerRole: 'renter', turn: 'owner' }),
+        // Approved-cancel is only offered before the start date, so use a far-future range.
+        conversation({
+          bookingStatus: status,
+          viewerRole: 'renter',
+          turn: 'owner',
+          startDate: '2999-01-01',
+          endDate: '2999-01-05',
+        }),
       );
       clickMenu(`chat.rental.menu.${label}`);
       fixture.detectChanges();

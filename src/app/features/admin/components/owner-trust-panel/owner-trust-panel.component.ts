@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -6,6 +5,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import type { AdminListingDetail } from '../../models/admin-listing-queue.model';
+import { UiDatePipe } from '../../../../shared/utils/ui-date.pipe';
 
 /**
  * The design's owner-trust panel (`AdminInspectDesktop`'s right-rail card /
@@ -20,7 +20,7 @@ import type { AdminListingDetail } from '../../models/admin-listing-queue.model'
 @Component({
   selector: 'app-owner-trust-panel',
   standalone: true,
-  imports: [AvatarComponent, DatePipe, IconComponent, RouterLink, TranslatePipe],
+  imports: [AvatarComponent, UiDatePipe, IconComponent, RouterLink, TranslatePipe],
   templateUrl: './owner-trust-panel.component.html',
   styleUrl: './owner-trust-panel.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

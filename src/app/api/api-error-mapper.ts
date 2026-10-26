@@ -96,7 +96,7 @@ export const API_ERROR_MESSAGE_KEYS: Readonly<Record<KnownApiErrorCode, string>>
   'chat.not_participant': 'errors.forbidden',
   'chat.conversation_not_found': 'errors.conversationNotFound',
   'chat.booking_not_found': 'errors.bookingNotFound',
-  'chat.conversation_closed': 'chat.details.closedBanner',
+  'chat.conversation_closed': 'chat.details.readOnly',
   'chat.message_too_long': 'errors.messageTooLong',
   'chat.attachment_too_large': 'chat.details.imageTooLarge',
   'chat.attachment_invalid_type': 'chat.details.imageInvalidType',

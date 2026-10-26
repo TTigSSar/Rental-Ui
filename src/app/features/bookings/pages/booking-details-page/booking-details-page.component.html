@@ -99,11 +99,11 @@
       <dl class="booking-details__facts">
         <div>
           <dt>{{ 'bookings.details.startDate' | translate }}</dt>
-          <dd>{{ d.startDate | date: 'mediumDate' }}</dd>
+          <dd>{{ d.startDate | uiDate: 'mediumDate' }}</dd>
         </div>
         <div>
           <dt>{{ 'bookings.details.endDate' | translate }}</dt>
-          <dd>{{ d.endDate | date: 'mediumDate' }}</dd>
+          <dd>{{ d.endDate | uiDate: 'mediumDate' }}</dd>
         </div>
         <div>
           <dt>{{ 'bookings.details.duration' | translate }}</dt>
@@ -156,7 +156,7 @@
             <span class="booking-timeline__label">{{ item.labelKey | translate }}</span>
             <span class="booking-timeline__date">
               @if (item.date) {
-                {{ item.date | date: 'medium' }}
+                {{ item.date | uiDate: 'medium' }}
               } @else {
                 —
               }

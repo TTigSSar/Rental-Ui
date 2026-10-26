@@ -7,6 +7,7 @@ import {
   mapChatStatusLabelKey,
   mapChatStatusTone,
   mapChatSystemMeta,
+  mapChatSystemPreview,
   mapModerationNoteMeta,
 } from './chat-ui.util';
 
@@ -137,26 +138,61 @@ describe('chatDayLabel', () => {
 
   it('labels the same day as today', () => {
     const sameDay = new Date(2026, 4, 18, 8, 0).toISOString();
-    expect(chatDayLabel(sameDay, now)).toEqual({ kind: 'today' });
+    expect(chatDayLabel(sameDay, 'en', now)).toEqual({ kind: 'today' });
   });
 
   it('labels the previous day as yesterday', () => {
     const dayBefore = new Date(2026, 4, 17, 23, 0).toISOString();
-    expect(chatDayLabel(dayBefore, now)).toEqual({ kind: 'yesterday' });
+    expect(chatDayLabel(dayBefore, 'en', now)).toEqual({ kind: 'yesterday' });
   });
 
   it('labels 2-6 days ago with a short weekday', () => {
     const threeDaysAgo = new Date(2026, 4, 15, 10, 0).toISOString();
-    const label = chatDayLabel(threeDaysAgo, now);
+    const label = chatDayLabel(threeDaysAgo, 'en', now);
     expect(label.kind).toBe('date');
     expect(label.kind === 'date' && label.text.length).toBeGreaterThan(0);
   });
 
   it('labels a week or more ago with a day-month string', () => {
     const older = new Date(2026, 3, 20, 10, 0).toISOString();
-    const label = chatDayLabel(older, now);
+    const label = chatDayLabel(older, 'en', now);
     expect(label.kind).toBe('date');
     expect(label.kind === 'date' && label.text.length).toBeGreaterThan(0);
+  });
+
+  it('formats the weekday and day-month text in the UI language (ADR-052)', () => {
+    const friday = '2026-05-15T10:00:00Z';
+    const older = '2026-04-20T10:00:00Z';
+    expect(chatDayLabel(friday, 'en', now)).toEqual({ kind: 'date', text: 'Fri' });
+    expect(chatDayLabel(friday, 'ru', now)).toEqual({ kind: 'date', text: 'пт' });
+    expect(chatDayLabel(older, 'en', now)).toEqual({ kind: 'date', text: '20 Apr' });
+    expect(chatDayLabel(older, 'ru', now)).toEqual({ kind: 'date', text: '20 апр.' });
+  });
+
+  describe('device-day label (ADR-052 amendment)', () => {
+    // The spec tsconfig has no Node typings; Vitest runs in Node, where assigning TZ re-reads the zone.
+    const process = (
+      globalThis as unknown as { process: { env: Record<string, string | undefined> } }
+    ).process;
+    const originalTz = process.env['TZ'];
+    afterEach(() => {
+      if (originalTz === undefined) delete process.env['TZ'];
+      else process.env['TZ'] = originalTz;
+    });
+
+    it('labels the bucket by the device day, not by Yerevan time', () => {
+      process.env['TZ'] = 'America/New_York'; // UTC-4 in May; Yerevan is UTC+4
+      const deviceNow = new Date(2026, 4, 18, 12, 0);
+      // 02:00Z is Fri 06:00 in Yerevan but Thu 22:00 on the device: the bucket is Thursday.
+      const sentAt = '2026-05-15T02:00:00Z';
+      expect(chatDayKey(sentAt)).toBe('2026-05-14');
+      expect(chatDayLabel(sentAt, 'en', deviceNow)).toEqual({ kind: 'date', text: 'Thu' });
+      // 05-01T02:00Z is Apr 30 on the device (Yerevan: 1 May): day-month agrees with the bucket.
+      expect(chatDayLabel('2026-05-01T02:00:00Z', 'en', deviceNow)).toEqual({
+        kind: 'date',
+        text: '30 Apr',
+      });
+    });
   });
 });
 
@@ -236,6 +272,7 @@ function preview(overrides: Partial<ChatConversationPreview>): ChatConversationP
     lastMessageSnippet: null,
     lastMessageAt: null,
     lastMessageType: null,
+    lastMessageSystemKind: null,
     lastMessageIsMine: false,
     unreadCount: 0,
     ...overrides,
@@ -257,6 +294,15 @@ describe('mapChatSystemMeta', () => {
       labelKey: 'chat.system.cancelled',
       tone: 'neutral',
     });
+  });
+
+  it('maps expired to a neutral clock line', () => {
+    expect(mapChatSystemMeta('expired')).toEqual({
+      icon: 'pi pi-clock',
+      labelKey: 'chat.system.expired',
+      tone: 'neutral',
+    });
+    expect(mapChatSystemPreview('expired')).toEqual(mapChatSystemMeta('expired'));
   });
 
   it('falls back to default for null', () => {

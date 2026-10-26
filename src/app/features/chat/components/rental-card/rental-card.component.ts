@@ -1,10 +1,9 @@
-import { NgTemplateOutlet, formatDate } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
   ElementRef,
-  LOCALE_ID,
   computed,
   afterNextRender,
   effect,
@@ -26,6 +25,7 @@ import { DialogModule } from 'primeng/dialog';
 import { Menu, MenuModule } from 'primeng/menu';
 
 import { LanguageService } from '../../../../shared/services/language.service';
+import { UiDateService } from '../../../../shared/utils/ui-date';
 import { todayUtcDateString } from '../../../../shared/utils/date.utils';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import {
@@ -37,9 +37,6 @@ import type { BookingReviewStatus } from '../../../reviews/models/review.model';
 import { ReviewsApiService } from '../../../reviews/services/reviews-api.service';
 import type { ChatConversationDetails } from '../../models/chat.model';
 import { type RentalActionId, type RentalCardView, mapRentalCardView } from './rental-card.view';
-
-/** Armenia has no DST: Yerevan is a fixed UTC+4 (the calendar the deadline is shown in). */
-const YEREVAN_UTC_OFFSET = '+0400';
 
 /** Gives each card instance a unique id for `aria-controls`. */
 let nextCardId = 0;
@@ -94,11 +91,16 @@ export class RentalCardComponent {
   private readonly actions$ = inject(Actions);
   private readonly translate = inject(TranslateService);
   private readonly languageService = inject(LanguageService);
-  private readonly locale = inject(LOCALE_ID);
+  private readonly dates = inject(UiDateService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly reviewsApi = inject(ReviewsApiService);
 
   private readonly menu = viewChild<Menu>('menu');
+  /** Status + turn seen by the previous run of the busy-reset effect (null before the first). */
+  private lastState: {
+    bookingStatus: ChatConversationDetails['bookingStatus'];
+    turn: ChatConversationDetails['turn'];
+  } | null = null;
 
   protected readonly rejectDialogVisible = signal(false);
   /** True from click until the server answers (state changes) or the action fails. */
@@ -164,9 +166,10 @@ export class RentalCardComponent {
       hasListing: c.listingId !== null,
       status: c.bookingStatus,
       role: c.viewerRole,
+      turn: c.turn,
       counterpartName: c.counterpartName,
       deadlineText: c.deadlineAt
-        ? formatDate(c.deadlineAt, 'd MMM, H:mm', this.locale, YEREVAN_UTC_OFFSET)
+        ? this.dates.format(c.deadlineAt, 'd MMM, H:mm')
         : '',
       startDateText: this.dateOnly(c.startDate),
       endDateText: this.dateOnly(c.endDate),
@@ -252,12 +255,22 @@ export class RentalCardComponent {
       onCleanup(() => sub.unsubscribe());
     });
 
-    // The server answered (status or turn changed): the action is no longer in flight.
+    // The server answered (status or turn actually changed): the action is no longer in
+    // flight. A new conversation object with the same status/turn (e.g. a realtime text
+    // message) must not re-enable the buttons mid-action.
     effect(() => {
-      const c = this.conversation();
-      void c.bookingStatus;
-      void c.turn;
-      untracked(() => this.busy.set(false));
+      const { bookingStatus, turn } = this.conversation();
+      const previous = this.lastState;
+      this.lastState = { bookingStatus, turn };
+      if (previous && previous.bookingStatus === bookingStatus && previous.turn === turn) {
+        return;
+      }
+      untracked(() => {
+        this.busy.set(false);
+        if (previous) {
+          this.actionError.set(null);
+        }
+      });
     });
 
     this.actions$
@@ -381,6 +394,6 @@ export class RentalCardComponent {
 
   /** 'yyyy-MM-dd' -> '12 Oct'; empty when absent. */
   private dateOnly(value: string | null): string {
-    return value ? formatDate(value, 'd MMM', this.locale) : '';
+    return value ? this.dates.format(value, 'd MMM') : '';
   }
 }

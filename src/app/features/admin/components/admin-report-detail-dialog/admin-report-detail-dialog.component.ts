@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -21,6 +20,7 @@ import { reportReasonLabelKey } from '../../../reports/models/report-reason.mode
 import type { AdminReportRow } from '../../models/admin-report.model';
 import { AdminReportSeverityPillComponent } from '../admin-report-severity-pill/admin-report-severity-pill.component';
 import { AdminReportStatusPillComponent } from '../admin-report-status-pill/admin-report-status-pill.component';
+import { UiDatePipe } from '../../../../shared/utils/ui-date.pipe';
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -69,7 +69,7 @@ export interface ReportMessageableContact {
     AdminReportSeverityPillComponent,
     AdminReportStatusPillComponent,
     AvatarComponent,
-    DatePipe,
+    UiDatePipe,
     IconComponent,
     TranslatePipe,
   ],

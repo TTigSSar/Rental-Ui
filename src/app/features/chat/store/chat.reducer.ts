@@ -28,7 +28,10 @@ function applyMessageToInbox(
       return conversation;
     }
 
-    const bumpsUnread = !message.isMine && !isOpenConversation;
+    // System lines never bump locally: the server does not count them for their
+    // actor, and the badge/list refresh reconciles the other party's count.
+    const bumpsUnread =
+      !message.isMine && !isOpenConversation && message.type !== 'system';
     return {
       ...conversation,
       // An image with no caption has a null body — the row then renders the
@@ -36,6 +39,7 @@ function applyMessageToInbox(
       // previous (now stale) snippet.
       lastMessageSnippet: message.body,
       lastMessageType: message.type,
+      lastMessageSystemKind: message.systemKind,
       lastMessageIsMine: message.isMine,
       lastMessageAt: message.sentAt,
       unreadCount: bumpsUnread
@@ -69,9 +73,44 @@ function toInboxPreview(details: ChatConversationDetails): ChatConversationPrevi
     lastMessageSnippet: last?.body ?? null,
     lastMessageAt: last?.sentAt ?? null,
     lastMessageType: last?.type ?? null,
+    lastMessageSystemKind: last?.systemKind ?? null,
     lastMessageIsMine: last?.isMine ?? false,
     unreadCount: 0,
   };
+}
+
+/**
+ * Refresh the inbox row of a conversation from freshly loaded details: status
+ * and the last-message preview (from the tail of the messages). `unreadCount`
+ * is deliberately untouched — opening/loading details never bumps it, so the
+ * actor's own action cannot create an unread. Rows not in the inbox are left
+ * alone (the open-from-booking flow adds them separately).
+ */
+function patchInboxFromDetails(
+  conversations: ChatConversationPreview[],
+  details: ChatConversationDetails,
+): ChatConversationPreview[] {
+  if (!conversations.some((c) => c.id === details.id)) {
+    return conversations;
+  }
+  const last = details.messages.at(-1) ?? null;
+  return conversations.map((c) =>
+    c.id !== details.id
+      ? c
+      : {
+          ...c,
+          status: details.status,
+          ...(last === null
+            ? {}
+            : {
+                lastMessageSnippet: last.body,
+                lastMessageType: last.type,
+                lastMessageSystemKind: last.systemKind,
+                lastMessageIsMine: last.isMine,
+                lastMessageAt: last.sentAt,
+              }),
+        },
+  );
 }
 
 /**
@@ -132,7 +171,17 @@ export const chatReducer = createReducer(
     ChatActions.loadConversationDetailsSuccess,
     (state, { conversation }): ChatState => ({
       ...state,
+      conversations: patchInboxFromDetails(state.conversations, conversation),
       activeConversation: conversation,
+      activeConversationLoading: false,
+      activeConversationError: null,
+    }),
+  ),
+  on(
+    ChatActions.leaveConversation,
+    (state): ChatState => ({
+      ...state,
+      activeConversation: null,
       activeConversationLoading: false,
       activeConversationError: null,
     }),

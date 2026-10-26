@@ -153,10 +153,10 @@
                       </span>
                       <span class="chat-system__body">
                         {{
-                          'chat.system.requestDetail'
+                          request.textKey
                             | translate
                               : {
-                                  name: request.counterpartName,
+                                  name: request.requesterName,
                                   dates: request.bookingDates,
                                   price: request.bookingPrice | dram,
                                 }
@@ -207,7 +207,7 @@
                   }
 
                   <div class="chat-group__footer">
-                    <time class="chat-group__time">{{ item.time | date: 'H:mm' }}</time>
+                    <time class="chat-group__time">{{ item.time | uiDate: 'H:mm' }}</time>
                     @if (item.showSeen) {
                       <span class="chat-group__seen">
                         <i class="pi pi-check" aria-hidden="true"></i>

@@ -1,7 +1,11 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Subscription, timer } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, Subscription, debounceTime, filter, timer } from 'rxjs';
 
 import { ChatApiService } from './chat-api.service';
+
+/** Coalescing window for event-driven refreshes (ms). */
+const REFRESH_DEBOUNCE_MS = 300;
 
 /** How often the global badge re-polls the unread count (ms). */
 const POLL_INTERVAL_MS = 60_000;
@@ -28,6 +32,23 @@ export class ChatBadgeService {
 
   private pollSubscription: Subscription | null = null;
 
+  /** Bumped on every session change (stop) and local overtake; see refresh(). */
+  private generation = 0;
+
+  private readonly refreshRequests = new Subject<void>();
+
+  constructor() {
+    this.refreshRequests
+      .pipe(
+        debounceTime(REFRESH_DEBOUNCE_MS),
+        // Signed-in gate evaluated when the debounce fires, so a request made
+        // just before stop()/a user switch is dropped (ADR-036).
+        filter(() => this.pollSubscription !== null),
+        takeUntilDestroyed(),
+      )
+      .subscribe(() => this.refresh());
+  }
+
   /** Begin polling the unread count. Idempotent. Call once the user signs in. */
   start(): void {
     if (this.pollSubscription !== null) {
@@ -42,13 +63,33 @@ export class ChatBadgeService {
   stop(): void {
     this.pollSubscription?.unsubscribe();
     this.pollSubscription = null;
+    this.generation++;
     this.unreadCountSignal.set(0);
+  }
+
+  /**
+   * Drop every badge response still in flight. Called when the chat store has just
+   * applied an authoritative change (a thread marked read) that an older GET could
+   * overwrite with a stale count.
+   */
+  discardInFlight(): void {
+    this.generation++;
   }
 
   /** One-off fetch of the authoritative unread count across all conversations. */
   refresh(): void {
+    const requestGeneration = this.generation;
     this.api.getConversations().subscribe({
       next: (conversations) => {
+        // A response from another session (stop() bumps the generation, so a fast
+        // logout -> login is caught too) or one overtaken by a local change must
+        // not repaint the badge.
+        if (
+          this.pollSubscription === null ||
+          requestGeneration !== this.generation
+        ) {
+          return;
+        }
         const total = conversations.reduce(
           (sum, c) => sum + Math.max(0, c.unreadCount),
           0,
@@ -59,6 +100,18 @@ export class ChatBadgeService {
       // poll tick retries.
       error: () => {},
     });
+  }
+
+  /**
+   * Debounced {@link refresh}: several triggers in a burst (a realtime system line
+   * plus the viewer's own action success) collapse into ONE fetch. Not a loop —
+   * it fires once per burst.
+   */
+  requestRefresh(): void {
+    if (this.pollSubscription === null) {
+      return;
+    }
+    this.refreshRequests.next();
   }
 
   /** Optimistically set the count (e.g. after opening a conversation). */

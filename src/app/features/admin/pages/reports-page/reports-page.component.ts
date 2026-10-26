@@ -44,6 +44,7 @@ import {
   selectReportTotalPages,
 } from '../../store/admin-reports.selectors';
 import { AdminBreakpointService } from '../../utils/admin-breakpoint.service';
+import { UiDateService } from '../../../../shared/utils/ui-date';
 import { reportRelativeTime } from '../../utils/admin-report-time.util';
 
 const TYPE_ICON: Record<AdminReportRow['targetType'], string> = {
@@ -92,6 +93,7 @@ export class ReportsPageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly translate = inject(TranslateService);
+  private readonly dates = inject(UiDateService);
   private readonly actions$ = inject(Actions);
 
   private readonly breakpoint = inject(AdminBreakpointService);
@@ -213,7 +215,7 @@ export class ReportsPageComponent implements OnInit {
   /** Resolves the relative-time display (`admin-report-time.util.ts`) to plain text — a
    *  translated "2h ago" or the absolute-date fallback for anything older than a week. */
   protected relativeTimeText(row: AdminReportRow): string {
-    const display = reportRelativeTime(row.createdAt);
+    const display = reportRelativeTime(row.createdAt, this.dates.lang());
     if (display.key === null) return display.absolute ?? '';
     return this.translate.instant(display.key, display.params);
   }

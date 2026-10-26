@@ -65,7 +65,7 @@
         <span class="mbc__meta-label">{{ 'bookings.myBookings.rentalDates' | translate | uppercase }}</span>
         <span class="mbc__meta-value">
           <i class="pi pi-calendar" aria-hidden="true"></i>
-          {{ booking().startDate | date: 'MMM d' }} – {{ booking().endDate | date: 'MMM d, y' }}
+          {{ booking().startDate | uiDateRange: booking().endDate }}
         </span>
       </div>
       <div class="mbc__meta-total">

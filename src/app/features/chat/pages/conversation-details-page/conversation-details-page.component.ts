@@ -1,4 +1,4 @@
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -10,7 +10,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Store, createSelector } from '@ngrx/store';
@@ -52,6 +52,8 @@ import {
   selectSendingMessageError,
 } from '../../store/chat.selectors';
 import type { PendingChatImage } from '../../store/chat.state';
+import { UiDatePipe } from '../../../../shared/utils/ui-date.pipe';
+import { UiDateService } from '../../../../shared/utils/ui-date';
 
 /**
  * Rental-card layout breakpoints (keep in sync with the media queries in the scss).
@@ -82,7 +84,10 @@ interface MessageGroup {
 
 /** The booking context threaded into the enriched `request` system line. */
 interface SystemRequestContext {
-  readonly counterpartName: string;
+  /** Owner view names the requesting renter; renter view says "You requested…". */
+  readonly textKey: 'chat.system.requestDetail' | 'chat.system.requestDetailYou';
+  /** Set for the owner view only; the renter view says "You" and needs no name. */
+  readonly requesterName: string | null;
   readonly bookingDates: string;
   readonly bookingPrice: number;
 }
@@ -180,7 +185,7 @@ const selectConversationDetailsRouteState = createSelector(
   }),
 );
 
-function buildThreadItems(conversation: ChatConversationDetails): ThreadItem[] {
+function buildThreadItems(conversation: ChatConversationDetails, lang: string): ThreadItem[] {
   const messages = conversation.messages;
   const items: ThreadItem[] = [];
 
@@ -204,7 +209,7 @@ function buildThreadItems(conversation: ChatConversationDetails): ThreadItem[] {
       items.push({
         kind: 'day',
         id: `day:${dayKey}`,
-        ...toDayDividerFields(chatDayLabel(message.sentAt)),
+        ...toDayDividerFields(chatDayLabel(message.sentAt, lang)),
       });
     }
 
@@ -229,9 +234,17 @@ function buildThreadItems(conversation: ChatConversationDetails): ThreadItem[] {
         request:
           message.systemKind === 'request' &&
           conversation.bookingDates !== null &&
-          conversation.bookingPrice !== null
+          conversation.bookingPrice !== null &&
+          conversation.viewerRole !== null
             ? {
-                counterpartName: conversation.counterpartName,
+                // The requester is always the renter: for the owner that is the
+                // counterpart; for the renter it is the viewer ("You").
+                textKey:
+                  conversation.viewerRole === 'owner'
+                    ? 'chat.system.requestDetail'
+                    : 'chat.system.requestDetailYou',
+                requesterName:
+                  conversation.viewerRole === 'owner' ? conversation.counterpartName : null,
                 bookingDates: conversation.bookingDates,
                 bookingPrice: conversation.bookingPrice,
               }
@@ -287,7 +300,7 @@ function buildThreadItems(conversation: ChatConversationDetails): ThreadItem[] {
     AvatarComponent,
     ButtonModule,
     DramCurrencyPipe,
-    DatePipe,
+    UiDatePipe,
     IconComponent,
     MessageModule,
     ModerationNoteCardComponent,
@@ -308,6 +321,7 @@ export class ConversationDetailsPageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
+  private readonly dates = inject(UiDateService);
   private readonly routeConversationId$ = this.route.paramMap.pipe(
     map((params) => params.get('conversationId')),
     distinctUntilChanged(),
@@ -329,6 +343,7 @@ export class ConversationDetailsPageComponent implements OnInit {
     pendingImage: this.store.select(selectPendingImage),
     sendingImageError: this.store.select(selectSendingImageError),
     routeConversationId: this.routeConversationId$,
+    lang: toObservable(this.dates.lang),
   }).pipe(
     map(
       ({
@@ -338,6 +353,7 @@ export class ConversationDetailsPageComponent implements OnInit {
         pendingImage,
         sendingImageError,
         routeConversationId,
+        lang,
       }): ConversationDetailsPageViewModel => {
         const conversation = routeState.conversation;
         const isMatch =
@@ -350,7 +366,7 @@ export class ConversationDetailsPageComponent implements OnInit {
         return {
           routeConversationId,
           conversation: activeConversation,
-          threadItems: activeConversation ? buildThreadItems(activeConversation) : [],
+          threadItems: activeConversation ? buildThreadItems(activeConversation, lang) : [],
           loading: routeState.loading,
           error: routeState.error,
           sendingMessage,
@@ -467,6 +483,8 @@ export class ConversationDetailsPageComponent implements OnInit {
     const onResize = (): void =>
       this.viewport.set({ width: window.innerWidth, height: window.innerHeight });
     window.addEventListener('resize', onResize);
+    // Leaving the thread route closes the conversation in the store.
+    this.destroyRef.onDestroy(() => this.store.dispatch(ChatActions.leaveConversation()));
     this.destroyRef.onDestroy(() => window.removeEventListener('resize', onResize));
 
     // A different conversation starts with a fresh card layout.

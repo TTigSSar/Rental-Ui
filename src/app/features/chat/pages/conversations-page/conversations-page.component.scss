@@ -1,13 +1,11 @@
 /*
  * Chat-local design colors with no global `--ui-color-*` token (kept in sync
  * with the thread's copy of the same list):
- *   --chat-warn        #D97706  requested / return_due status.
- *   --chat-closed      #9A99A3  closed / not_happened status (neutral tone).
+ *   --chat-warn        -> --ui-color-amber-ink  requested / return_due status text (4.58 on the active row's #FFEEDC).
  *   --chat-row-unread  #FFFDFB  the barely-there warm tint on an unread row.
  */
 :host {
-  --chat-warn: #a75c05;
-  --chat-closed: #9a99a3;
+  --chat-warn: var(--ui-color-amber-ink);
   --chat-row-unread: #fffdfb;
 }
 
@@ -400,6 +398,8 @@
 
 .chat-row__meta--booked {
   --chat-row-status: var(--ui-color-primary);
+  /* Orange text needs the dark step (ADR-034): #ff6008 is 3.03 on white. The dot keeps the brand orange. */
+  --chat-row-ink: var(--ui-color-primary-strong-hover);
 }
 
 .chat-row__meta--rejected {
@@ -407,7 +407,7 @@
 }
 
 .chat-row__meta--neutral {
-  --chat-row-status: var(--chat-closed);
+  --chat-row-status: var(--ui-color-text-secondary);
 }
 
 .chat-row__status-dot {
@@ -422,7 +422,7 @@
   min-width: 0;
   font-size: 11.5px;
   font-weight: var(--ui-font-weight-bold);
-  color: var(--chat-row-status);
+  color: var(--chat-row-ink, var(--chat-row-status));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

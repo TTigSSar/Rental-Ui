@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -45,6 +44,7 @@ import {
   selectCancelBookingPending,
   selectCancelBookingSuccessId,
 } from '../../store/bookings.selectors';
+import { UiDatePipe } from '../../../../shared/utils/ui-date.pipe';
 
 type PrimaryAction = 'none' | 'markActive' | 'complete' | 'review';
 
@@ -74,7 +74,7 @@ function parseLocalIsoDate(value: string): Date | null {
   standalone: true,
   imports: [
     DramCurrencyPipe,
-    DatePipe,
+    UiDatePipe,
     RouterLink,
     TranslatePipe,
     ButtonModule,

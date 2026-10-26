@@ -15,6 +15,7 @@ import {
   filterConversations,
   mapChatStatusLabelKey,
   mapChatStatusTone,
+  mapChatSystemPreview,
 } from '../../models/chat-ui.util';
 import type { ChatConversationPreview } from '../../models/chat.model';
 import { ChatTimeAgoPipe } from '../../pipes/chat-time-ago.pipe';
@@ -108,6 +109,7 @@ export class ConversationsPageComponent implements OnInit {
 
   protected readonly statusTone = mapChatStatusTone;
   protected readonly statusLabelKey = mapChatStatusLabelKey;
+  protected readonly systemPreview = mapChatSystemPreview;
 
   ngOnInit(): void {
     this.store.dispatch(ChatActions.loadConversations());

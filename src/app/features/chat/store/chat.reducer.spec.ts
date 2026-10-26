@@ -20,6 +20,7 @@ function makePreview(overrides: Partial<ChatConversationPreview> = {}): ChatConv
     lastMessageSnippet: 'See you soon',
     lastMessageAt: '2026-07-07T10:00:00.000Z',
     lastMessageType: 'text',
+    lastMessageSystemKind: null,
     lastMessageIsMine: false,
     unreadCount: 3,
     ...overrides,
@@ -319,6 +320,73 @@ describe('chatReducer', () => {
       expect(row?.lastMessageType).toBe('image');
       expect(row?.lastMessageSnippet).toBeNull();
       expect(row?.lastMessageIsMine).toBe(false);
+    });
+  });
+
+  describe('loadConversationDetailsSuccess inbox patch', () => {
+    it('updates status and last-message fields of the inbox row, keeping unread', () => {
+      const start = stateWith({
+        conversations: [makePreview({ id: 'c1', status: 'requested', unreadCount: 0 })],
+      });
+      const sys = makeMessage({
+        id: 'sys',
+        type: 'system',
+        systemKind: 'approved',
+        body: 'Approved',
+        isMine: true,
+        sentAt: '2026-07-08T09:00:00.000Z',
+      });
+      const next = chatReducer(
+        start,
+        ChatActions.loadConversationDetailsSuccess({
+          conversation: makeDetails({ id: 'c1', status: 'approved', messages: [sys] }),
+        }),
+      );
+      const row = next.conversations[0];
+      expect(row.status).toBe('approved');
+      expect(row.lastMessageSystemKind).toBe('approved');
+      expect(row.lastMessageSnippet).toBe('Approved');
+      expect(row.lastMessageAt).toBe('2026-07-08T09:00:00.000Z');
+      // The actor's own action never creates an unread on their row.
+      expect(row.unreadCount).toBe(0);
+    });
+  });
+
+  describe('leaveConversation', () => {
+    it('clears the open conversation', () => {
+      const start = stateWith({ activeConversation: makeDetails({ id: 'c1' }) });
+      expect(chatReducer(start, ChatActions.leaveConversation()).activeConversation).toBeNull();
+    });
+
+    it('a later incoming text bumps unread (the thread is no longer open)', () => {
+      const start = stateWith({
+        conversations: [makePreview({ id: 'c1', unreadCount: 0 })],
+        activeConversation: makeDetails({ id: 'c1' }),
+      });
+      const left = chatReducer(start, ChatActions.leaveConversation());
+      const next = chatReducer(
+        left,
+        ChatActions.realtimeMessageResolved({ message: makeMessage({ id: 'x', isMine: false }) }),
+      );
+      expect(next.conversations[0].unreadCount).toBe(1);
+    });
+  });
+
+  describe('incoming system line', () => {
+    it('does not bump unread locally (the server reconciles it)', () => {
+      const start = stateWith({ conversations: [makePreview({ id: 'c1', unreadCount: 0 })] });
+      const sys = makeMessage({ id: 's2', type: 'system', systemKind: 'approved', isMine: false });
+      const next = chatReducer(start, ChatActions.realtimeMessageResolved({ message: sys }));
+      expect(next.conversations[0].unreadCount).toBe(0);
+    });
+  });
+
+  describe('own system line', () => {
+    it('does not bump unread for my own action', () => {
+      const start = stateWith({ conversations: [makePreview({ id: 'c1', unreadCount: 0 })] });
+      const mine = makeMessage({ id: 's1', type: 'system', systemKind: 'approved', isMine: true });
+      const next = chatReducer(start, ChatActions.realtimeMessageResolved({ message: mine }));
+      expect(next.conversations[0].unreadCount).toBe(0);
     });
   });
 

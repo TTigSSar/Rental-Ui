@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import { actionsHarness, collect } from '../../../../testing/ngrx.helpers';
 import { selectAuthUser } from '../../auth/store/auth.selectors';
@@ -37,6 +37,10 @@ function makeRealtimeMessage(overrides: Partial<ChatRealtimeMessage> = {}): Chat
     sentAt: '2026-07-08T10:00:00.000Z',
     ...overrides,
   };
+}
+
+function makeResolvedMessage(): ChatMessage {
+  return { ...makeRealtimeMessage(), isMine: false, seen: false };
 }
 
 function makeActiveConversation(
@@ -107,13 +111,18 @@ function setup(chatApi: Partial<ChatApiService> = {}) {
   const harness = actionsHarness();
   const router = { navigate: vi.fn().mockResolvedValue(true) };
   const messageService = { add: vi.fn() };
+  const badge = {
+    setUnreadCount: vi.fn(),
+    requestRefresh: vi.fn(),
+    discardInFlight: vi.fn(),
+  };
   TestBed.configureTestingModule({
     providers: [
       ChatEffects,
       harness.provider,
       provideMockStore(),
       { provide: ChatApiService, useValue: chatApi },
-      { provide: ChatBadgeService, useValue: { setUnreadCount: vi.fn() } },
+      { provide: ChatBadgeService, useValue: badge },
       { provide: TranslateService, useValue: translateStub() },
       { provide: Router, useValue: router },
       { provide: MessageService, useValue: messageService },
@@ -129,10 +138,137 @@ function setup(chatApi: Partial<ChatApiService> = {}) {
     effects: TestBed.inject(ChatEffects),
     router,
     messageService,
+    badge,
   };
 }
 
 describe('ChatEffects', () => {
+  describe('refreshBadge$', () => {
+    it('requests a badge refresh on a realtime message', async () => {
+      const { harness, effects, badge } = setup();
+      const result = collect(effects.refreshBadge$);
+      harness.send(ChatActions.realtimeMessageResolved({ message: makeResolvedMessage() }));
+      harness.complete();
+      await result;
+      expect(badge.requestRefresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('skips the GET for a not-open system line when the inbox is loaded (the list reload feeds the badge)', async () => {
+      const { harness, store, effects, badge } = setup();
+      store.overrideSelector(selectConversations, [{ id: 'c2' } as ChatConversationPreview]);
+      store.refreshState();
+      const result = collect(effects.refreshBadge$);
+      harness.send(
+        ChatActions.realtimeMessageResolved({
+          message: {
+            ...makeResolvedMessage(),
+            conversationId: 'c2',
+            type: 'system',
+            senderId: null,
+          },
+        }),
+      );
+      harness.complete();
+      await result;
+      expect(badge.requestRefresh).not.toHaveBeenCalled();
+    });
+
+    it('still requests the GET for a text message on a known thread', async () => {
+      const { harness, store, effects, badge } = setup();
+      store.overrideSelector(selectConversations, [{ id: 'c2' } as ChatConversationPreview]);
+      store.refreshState();
+      const result = collect(effects.refreshBadge$);
+      harness.send(
+        ChatActions.realtimeMessageResolved({
+          message: { ...makeResolvedMessage(), conversationId: 'c2' },
+        }),
+      );
+      harness.complete();
+      await result;
+      expect(badge.requestRefresh).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('discardStaleBadgeAfterRead$', () => {
+    it('drops in-flight badge responses once a thread is marked read (inbox loaded)', async () => {
+      const { harness, store, effects, badge } = setup();
+      store.overrideSelector(selectConversations, [{ id: 'c1' } as ChatConversationPreview]);
+      store.refreshState();
+      const result = collect(effects.discardStaleBadgeAfterRead$);
+      harness.send(ChatActions.markConversationReadSuccess({ conversationId: 'c1' }));
+      harness.complete();
+      await result;
+      expect(badge.discardInFlight).toHaveBeenCalledTimes(1);
+      expect(badge.requestRefresh).not.toHaveBeenCalled();
+    });
+
+    it('requests a fresh refresh instead when the inbox is not loaded', async () => {
+      const { harness, effects, badge } = setup();
+      const result = collect(effects.discardStaleBadgeAfterRead$);
+      harness.send(ChatActions.markConversationReadSuccess({ conversationId: 'c1' }));
+      harness.complete();
+      await result;
+      expect(badge.discardInFlight).not.toHaveBeenCalled();
+      expect(badge.requestRefresh).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('after the thread route is left', () => {
+    it('a realtime system line for it is not marked read and re-fetches the inbox', async () => {
+      const { harness, store, effects } = setup();
+      // leaveConversation clears the active conversation in the reducer.
+      store.overrideSelector(selectActiveConversation, null);
+      store.overrideSelector(selectConversations, [{ id: 'c1' } as ChatConversationPreview]);
+      store.refreshState();
+      const result = collect(effects.realtimeMessageReceived$);
+      harness.send(
+        ChatActions.realtimeMessageReceived({
+          message: makeRealtimeMessage({ type: 'system', systemKind: 'approved', senderId: null }),
+        }),
+      );
+      harness.complete();
+      const emitted = await result;
+      expect(emitted.some((a) => a.type === ChatActions.markConversationRead.type)).toBe(false);
+      expect(emitted.some((a) => a.type === ChatActions.loadConversationDetails.type)).toBe(false);
+      expect(emitted.filter((a) => a.type === ChatActions.loadConversations.type)).toHaveLength(1);
+    });
+
+    it('cancels an in-flight details load', async () => {
+      const pending = new Subject<ChatConversationDetails>();
+      const { harness, effects } = setup({
+        getConversationDetails: vi.fn(() => pending),
+      } as unknown as Partial<ChatApiService>);
+      const result = collect(effects.loadConversationDetails$);
+      harness.send(ChatActions.loadConversationDetails({ conversationId: 'c1' }));
+      harness.send(ChatActions.leaveConversation());
+      pending.next(makeActiveConversation());
+      harness.complete();
+      expect(await result).toEqual([]);
+    });
+  });
+
+  describe('inbox row after a not-open system line', () => {
+    it('re-fetches the inbox once for a system line on a known, non-open thread', async () => {
+      const { harness, store, effects } = setup();
+      store.overrideSelector(selectConversations, [{ id: 'c2' } as ChatConversationPreview]);
+      store.refreshState();
+      const result = collect(effects.realtimeMessageReceived$);
+      harness.send(
+        ChatActions.realtimeMessageReceived({
+          message: makeRealtimeMessage({
+            conversationId: 'c2',
+            type: 'system',
+            systemKind: 'approved',
+            senderId: null,
+          }),
+        }),
+      );
+      harness.complete();
+      const emitted = await result;
+      expect(emitted.filter((a) => a.type === ChatActions.loadConversations.type)).toHaveLength(1);
+    });
+  });
+
   describe('reloadAfterBookingAction$', () => {
     it('re-fetches the open conversation when its booking transitions', async () => {
       const { harness, effects } = setup();

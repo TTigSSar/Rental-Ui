@@ -10,11 +10,11 @@
   <div class="brc__body">
     <div class="brc__header">
       <h3 class="brc__title">{{ request().listingTitle }}</h3>
-      <span class="brc__time">{{ timeAgo() }}</span>
+      <span class="brc__time">{{ request().createdAt | timeAgo }}</span>
     </div>
     <p class="brc__meta">
       <i class="pi pi-calendar"></i>
-      {{ request().startDate | date: 'MMM d' }} – {{ request().endDate | date: 'MMM d' }}
+      {{ request().startDate | uiDateRange: request().endDate : { withYear: false } }}
       &middot;
       {{ request().totalPrice | dram }}
     </p>

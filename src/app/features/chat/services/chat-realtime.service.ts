@@ -135,7 +135,11 @@ export class ChatRealtimeService {
     }
     const isMine =
       message.senderId !== null && message.senderId === this.currentUser()?.id;
-    if (!isMine) {
+    if (message.type === 'system') {
+      // The server does not count a system line for its actor, so a local +1
+      // would stick for them: let the server decide.
+      this.chatBadge.requestRefresh();
+    } else if (!isMine) {
       this.chatBadge.increment();
     }
   }

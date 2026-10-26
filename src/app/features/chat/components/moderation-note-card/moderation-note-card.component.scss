@@ -6,21 +6,17 @@
  *   info (category/info)    -> `--ui-color-info` / `--ui-color-info-surface`
  *                              (same hue family as the design's #4A5FE3/#E8EAFF;
  *                              closest existing token, per ADR-016).
- *   warn (warn)              -> NO `--ui-color-*` token matches: `--ui-color-warning`
- *                              (#8a5c00) is a different, unrelated brownish-yellow
- *                              used elsewhere. #D97706 is already established
- *                              in this feature as chat-local `--chat-warn` (see
- *                              conversation-details-page/conversations-page
- *                              scss) and repo-wide as `--dash-warn` in the admin
- *                              dashboard — reused verbatim here as a raw hex
- *                              rather than invented, and rather than promoting
- *                              a new global token (out of this task's scope).
+ *   warn (warn)              -> text/icon use the shared amber ink
+ *                              `--ui-color-amber-ink` (#A45A05, ADR-034), the same
+ *                              copy as chat-local `--chat-warn`; the surface is the
+ *                              design's #FFF1DC. `--ui-color-warning` (#8a5c00) is
+ *                              a different, unrelated brownish-yellow.
  */
 :host {
   display: flex;
   justify-content: center;
   margin: 4px 0;
-  --note-warn: #a75c05;
+  --note-warn: var(--ui-color-amber-ink);
   --note-warn-surface: #fff1dc;
 }
 

@@ -57,7 +57,7 @@
   <div class="owner-trust-panel__rows">
     <div class="owner-trust-panel__row">
       <span>{{ 'admin.inspect.owner.memberSince' | translate }}</span>
-      <span>{{ listing().ownerJoinedAt | date: 'mediumDate' }}</span>
+      <span>{{ listing().ownerJoinedAt | uiDate: 'mediumDate' }}</span>
     </div>
     <div class="owner-trust-panel__row">
       <span>{{ 'admin.inspect.owner.identity' | translate }}</span>

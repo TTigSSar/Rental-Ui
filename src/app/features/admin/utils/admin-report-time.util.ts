@@ -1,11 +1,13 @@
+import { formatUiDate } from '../../../shared/utils/ui-date';
+
 /**
  * Compact relative time ("2m ago", "5h ago", "3d ago") for a report's `createdAt`, in the
  * `{ key, params }` shape `TranslatePipe` takes directly (`{{ relativeTimeKey | translate:
- * relativeTimeParams }}`) — same logic as `features/notifications/pipes/time-ago.pipe.ts`,
+ * relativeTimeParams }}`) — same logic as `shared/utils/time-ago.pipe.ts`,
  * reimplemented here (rather than importing that pipe cross-feature) so the reports screen
  * owns its own `admin.reports.time.*` translation keys instead of borrowing notifications'.
  * Anything older than a week falls back to an absolute short date, which needs no i18n key at
- * all — `toLocaleDateString` already localizes it.
+ * all — it is formatted in the UI language by `formatUiDate` (ADR-052).
  */
 export interface RelativeTimeDisplay {
   readonly key: string | null;
@@ -15,7 +17,7 @@ export interface RelativeTimeDisplay {
   readonly absolute?: string;
 }
 
-export function reportRelativeTime(createdAt: string): RelativeTimeDisplay {
+export function reportRelativeTime(createdAt: string, lang: string): RelativeTimeDisplay {
   const then = new Date(createdAt).getTime();
   if (!createdAt || Number.isNaN(then)) {
     return { key: null };
@@ -42,6 +44,6 @@ export function reportRelativeTime(createdAt: string): RelativeTimeDisplay {
 
   return {
     key: null,
-    absolute: new Date(then).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }),
+    absolute: formatUiDate(then, 'd MMM', lang),
   };
 }

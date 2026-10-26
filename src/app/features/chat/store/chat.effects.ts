@@ -5,6 +5,7 @@ import { Store } from '@ngrx/store';
 import { TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import {
+  EMPTY,
   catchError,
   concatMap,
   map,
@@ -77,9 +78,13 @@ export class ChatEffects {
 
   readonly loadConversationDetails$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(ChatActions.loadConversationDetails),
-      switchMap(({ conversationId }) =>
-        this.chatApi.getConversationDetails(conversationId).pipe(
+      ofType(ChatActions.loadConversationDetails, ChatActions.leaveConversation),
+      switchMap((action) =>
+        // Leaving the thread cancels an in-flight details load so it cannot
+        // re-open the conversation after the page is gone.
+        action.type === ChatActions.leaveConversation.type
+          ? EMPTY
+          : this.chatApi.getConversationDetails(action.conversationId).pipe(
           map((conversation) =>
             ChatActions.loadConversationDetailsSuccess({ conversation }),
           ),
@@ -256,6 +261,17 @@ export class ChatEffects {
           );
         }
 
+        // A system line for a thread that is NOT open changes its derived status,
+        // which the message alone cannot give the inbox row: reconcile once with
+        // the server list (unknown threads already got this above).
+        if (
+          !isOpen &&
+          message.type === 'system' &&
+          conversations.some((c) => c.id === message.conversationId)
+        ) {
+          actions.push(ChatActions.loadConversations());
+        }
+
         // A system message fires only on a real booking transition. Re-fetch the
         // open conversation so the server re-derives the authoritative `status`
         // and `isClosed` (ADR-001: "closed" also depends on both reviews being
@@ -297,6 +313,61 @@ export class ChatEffects {
           : [];
       }),
     ),
+  );
+
+  /**
+   * Refresh the global badge from the server right away (debounced in the
+   * service) instead of waiting for the 60 s poll: a rental status change is an
+   * unread message for the OTHER party, and the viewer's own action can change
+   * what the server counts as unread for them (ADR-001 amendment).
+   */
+  readonly refreshBadge$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(ChatActions.realtimeMessageResolved),
+        withLatestFrom(
+          this.store.select(selectActiveConversation),
+          this.store.select(selectConversations),
+        ),
+        tap(([{ message }, activeConversation, conversations]) => {
+          // With the inbox loaded, a not-open system line (or an unknown thread)
+          // already triggers loadConversations, whose result syncNavBadge$ turns
+          // into the badge — a second GET would be redundant.
+          const isOpen = activeConversation?.id === message.conversationId;
+          const known = conversations.some((c) => c.id === message.conversationId);
+          const inboxReloads =
+            conversations.length > 0 && (!known || (!isOpen && message.type === 'system'));
+          if (!inboxReloads) {
+            this.chatBadge.requestRefresh();
+          }
+        }),
+        map(([action]) => action),
+      ),
+    { dispatch: false },
+  );
+
+  /**
+   * A badge GET that started before the thread was marked read can land after it
+   * and repaint a stale count; syncNavBadge$ has the authoritative value from the
+   * store, so drop whatever is still in flight.
+   */
+  readonly discardStaleBadgeAfterRead$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(ChatActions.markConversationReadSuccess),
+        withLatestFrom(this.store.select(selectConversations)),
+        tap(([, conversations]) => {
+          if (conversations.length > 0) {
+            this.chatBadge.discardInFlight();
+          } else {
+            // Inbox not loaded (cold deep link): syncNavBadge$ will not repaint,
+            // so ask the server for the post-read count instead.
+            this.chatBadge.requestRefresh();
+          }
+        }),
+        map(([action]) => action),
+      ),
+    { dispatch: false },
   );
 
   /** Resolve the `conversationRead` reader identity against the current user. */

@@ -84,10 +84,9 @@ export interface DistanceUnitLabels {
  * control, UNLIKE the app's dram-currency formatting (`DramCurrencyPipe`),
  * which is deliberately locale-INDEPENDENT (always `en-US` grouping) for
  * cross-language consistency of prices. Uses the native `Intl.NumberFormat`
- * rather than Angular's `formatNumber`/`DecimalPipe`: the app never calls
- * `registerLocaleData` for `ru`/`hy` (only `en-US` ships with Angular by
- * default), so `formatNumber(x, 'ru-RU', ...)` would throw "Missing locale
- * data for locale" at runtime — `Intl.NumberFormat` needs no such
+ * rather than Angular's `formatNumber`/`DecimalPipe`: locale data for
+ * `ru`/`hy` is registered only for dates (`shared/utils/ui-date.ts`, ADR-052),
+ * and `formatNumber` wants the full 'ru-RU' id; `Intl.NumberFormat` needs no
  * registration, it reads straight off the JS engine's built-in ICU data.
  * Unit words (`labels`) come from ngx-translate at the call site, never
  * hardcoded here.
