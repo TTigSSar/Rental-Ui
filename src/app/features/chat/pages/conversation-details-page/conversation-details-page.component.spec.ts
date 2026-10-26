@@ -218,6 +218,18 @@ describe('ConversationDetailsPageComponent', () => {
     });
   });
 
+  it('dispatches leaveConversation when the page is destroyed', () => {
+    const { fixture, store } = createFixture();
+    fixture.detectChanges();
+    const dispatchSpy = vi.spyOn(store, 'dispatch');
+
+    fixture.destroy();
+
+    expect(dispatchSpy.mock.calls.map(([action]) => action)).toContainEqual({
+      type: '[Chat] Leave Conversation',
+    });
+  });
+
   it('renders the enriched request system line only for the request kind', () => {
     const { fixture, store } = createFixture();
     store.setState({

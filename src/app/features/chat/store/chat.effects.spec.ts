@@ -111,7 +111,11 @@ function setup(chatApi: Partial<ChatApiService> = {}) {
   const harness = actionsHarness();
   const router = { navigate: vi.fn().mockResolvedValue(true) };
   const messageService = { add: vi.fn() };
-  const badge = { setUnreadCount: vi.fn(), requestRefresh: vi.fn() };
+  const badge = {
+    setUnreadCount: vi.fn(),
+    requestRefresh: vi.fn(),
+    discardInFlight: vi.fn(),
+  };
   TestBed.configureTestingModule({
     providers: [
       ChatEffects,
@@ -147,6 +151,52 @@ describe('ChatEffects', () => {
       harness.complete();
       await result;
       expect(badge.requestRefresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('skips the GET for a not-open system line when the inbox is loaded (the list reload feeds the badge)', async () => {
+      const { harness, store, effects, badge } = setup();
+      store.overrideSelector(selectConversations, [{ id: 'c2' } as ChatConversationPreview]);
+      store.refreshState();
+      const result = collect(effects.refreshBadge$);
+      harness.send(
+        ChatActions.realtimeMessageResolved({
+          message: {
+            ...makeResolvedMessage(),
+            conversationId: 'c2',
+            type: 'system',
+            senderId: null,
+          },
+        }),
+      );
+      harness.complete();
+      await result;
+      expect(badge.requestRefresh).not.toHaveBeenCalled();
+    });
+
+    it('still requests the GET for a text message on a known thread', async () => {
+      const { harness, store, effects, badge } = setup();
+      store.overrideSelector(selectConversations, [{ id: 'c2' } as ChatConversationPreview]);
+      store.refreshState();
+      const result = collect(effects.refreshBadge$);
+      harness.send(
+        ChatActions.realtimeMessageResolved({
+          message: { ...makeResolvedMessage(), conversationId: 'c2' },
+        }),
+      );
+      harness.complete();
+      await result;
+      expect(badge.requestRefresh).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('discardStaleBadgeAfterRead$', () => {
+    it('drops in-flight badge responses once a thread is marked read', async () => {
+      const { harness, effects, badge } = setup();
+      const result = collect(effects.discardStaleBadgeAfterRead$);
+      harness.send(ChatActions.markConversationReadSuccess({ conversationId: 'c1' }));
+      harness.complete();
+      await result;
+      expect(badge.discardInFlight).toHaveBeenCalledTimes(1);
     });
   });
 

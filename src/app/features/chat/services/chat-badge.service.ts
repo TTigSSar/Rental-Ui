@@ -32,6 +32,9 @@ export class ChatBadgeService {
 
   private pollSubscription: Subscription | null = null;
 
+  /** Bumped on every session change (stop) and local overtake; see refresh(). */
+  private generation = 0;
+
   private readonly refreshRequests = new Subject<void>();
 
   constructor() {
@@ -60,15 +63,31 @@ export class ChatBadgeService {
   stop(): void {
     this.pollSubscription?.unsubscribe();
     this.pollSubscription = null;
+    this.generation++;
     this.unreadCountSignal.set(0);
+  }
+
+  /**
+   * Drop every badge response still in flight. Called when the chat store has just
+   * applied an authoritative change (a thread marked read) that an older GET could
+   * overwrite with a stale count.
+   */
+  discardInFlight(): void {
+    this.generation++;
   }
 
   /** One-off fetch of the authoritative unread count across all conversations. */
   refresh(): void {
+    const requestGeneration = this.generation;
     this.api.getConversations().subscribe({
       next: (conversations) => {
-        // A response that lands after stop()/sign-out must not repaint the badge.
-        if (this.pollSubscription === null) {
+        // A response from another session (stop() bumps the generation, so a fast
+        // logout -> login is caught too) or one overtaken by a local change must
+        // not repaint the badge.
+        if (
+          this.pollSubscription === null ||
+          requestGeneration !== this.generation
+        ) {
           return;
         }
         const total = conversations.reduce(

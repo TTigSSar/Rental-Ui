@@ -324,10 +324,38 @@ export class ChatEffects {
   readonly refreshBadge$ = createEffect(
     () =>
       this.actions$.pipe(
-        ofType(
-          ChatActions.realtimeMessageResolved,
+        ofType(ChatActions.realtimeMessageResolved),
+        withLatestFrom(
+          this.store.select(selectActiveConversation),
+          this.store.select(selectConversations),
         ),
-        tap(() => this.chatBadge.requestRefresh()),
+        tap(([{ message }, activeConversation, conversations]) => {
+          // With the inbox loaded, a not-open system line (or an unknown thread)
+          // already triggers loadConversations, whose result syncNavBadge$ turns
+          // into the badge — a second GET would be redundant.
+          const isOpen = activeConversation?.id === message.conversationId;
+          const known = conversations.some((c) => c.id === message.conversationId);
+          const inboxReloads =
+            conversations.length > 0 && (!known || (!isOpen && message.type === 'system'));
+          if (!inboxReloads) {
+            this.chatBadge.requestRefresh();
+          }
+        }),
+        map(([action]) => action),
+      ),
+    { dispatch: false },
+  );
+
+  /**
+   * A badge GET that started before the thread was marked read can land after it
+   * and repaint a stale count; syncNavBadge$ has the authoritative value from the
+   * store, so drop whatever is still in flight.
+   */
+  readonly discardStaleBadgeAfterRead$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(ChatActions.markConversationReadSuccess),
+        tap(() => this.chatBadge.discardInFlight()),
       ),
     { dispatch: false },
   );
