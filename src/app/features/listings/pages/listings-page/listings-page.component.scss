@@ -314,15 +314,10 @@
   white-space: nowrap;
   flex-shrink: 0;
 
-  /* Below desktop, the toggle + sort controls must stay fully reachable —
-     this is the only toolbar item allowed to give up space, so let it
-     shrink and truncate instead of pushing siblings off-screen
-     (mobile-overflow fix for the Maps P2-2 view-toggle addition). */
+  /* Hidden on mobile: it does not reliably fit beside the view toggle and
+     sort control (Tigran's decision); desktop keeps it. */
   @media (max-width: 960px) {
-    flex-shrink: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: none;
   }
 }
 
