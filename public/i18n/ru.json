@@ -716,9 +716,7 @@
       "ctaExistingHint": "У вас уже есть активный запрос на эту игрушку.",
       "eyebrow": {
         "overview": "Обзор",
-        "host": "Владелец",
-        "reviews": "Отзывы",
-        "gettingIt": "Как получить"
+        "reviews": "Отзывы"
       },
       "highlights": {
         "hygieneSub": "Детали чистки от владельца",

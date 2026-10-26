@@ -1058,15 +1058,19 @@
   letter-spacing: -0.02em;
 }
 
-/* Small orange small-caps eyebrow above section titles (prototype IDHead) */
-.detail-page__section-eyebrow {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ui-color-primary-strong);
-  margin: 0 0 6px;
+/* Review count sits beside the reviews title; wraps under it on narrow screens. */
+.detail-page__section-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 12px;
+  row-gap: 2px;
+}
+
+.detail-page__section-count {
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--ui-color-text-secondary);
 }
 
 .detail-page__section-body {
