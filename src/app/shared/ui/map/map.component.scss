@@ -15,18 +15,6 @@
 // their own "currently animating" selector instead.
 @use '../dorent-symbol/dorent-symbol-motion' as dr-symbol-motion;
 
-// MapLibre GL base layer (see map.component.ts): only the two rules the GL container and
-// canvas need (`.app-map` already clips overflow). `maplibre-gl/dist/maplibre-gl.css` itself is ~83 kB (controls, popups,
-// embedded SVG icons — none of which this app uses: Leaflet owns every control, marker
-// and popup) and would blow this component's style budget on its own.
-.maplibregl-map {
-  position: relative;
-}
-.maplibregl-canvas {
-  position: absolute;
-}
-
-
 /* `isolation: isolate` — contains every z-index this component (and its
    Leaflet-owned descendants) sets, from 200 (`.leaflet-tile-pane`) up through
    1005 (`.app-map__gate` below), inside `.app-map`'s OWN stacking context.
@@ -37,10 +25,8 @@
    stacking context this component's caller happens to sit in — for a map
    inside a normal scrolling page, that's the ROOT stacking context. There it
    competed number-for-number against page chrome that also uses explicit
-   z-index — and won: the sticky app header (`z-index: 100`, the LIVE rule is
-   `app-header.component.css`'s `:host`; `app.css`'s `.app-shell__header-wrap`
-   duplicates the same value but that class is not present in `app.html` and
-   is currently dead CSS — see that file's own note), the mobile bottom nav
+   z-index — and won: the sticky app header (`z-index: 100`, `app-header.component.css`'s
+   `:host`), the mobile bottom nav
    (`z-index: 99`, `app.css` `.app-bottom-nav`), and Home's mobile
    scroll-revealed search pill (`z-index: 95`,
    `home-page.component.scss`'s `.home__mobile-search`) are all ≤100, so a

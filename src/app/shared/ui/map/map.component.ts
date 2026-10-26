@@ -225,8 +225,8 @@ export function resolveTileSource(
   };
 }
 
-// Copied from `node_modules/maplibre-gl/dist` by the `assets` entry in angular.json.
-const MAPLIBRE_WORKER_URL = '/map/maplibre-gl-worker.mjs';
+// Copied (as `.js`, for nginx's MIME map) by scripts/copy-maplibre-worker.js.
+const MAPLIBRE_WORKER_URL = '/map/maplibre-gl-worker.js';
 
 /** What `loadVectorStyle()` resolves: the raw style JSON + the layer factory. */
 interface VectorBase {
@@ -1230,8 +1230,8 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       ]);
       // MapLibre starts its tile worker from a file next to its own module,
       // which no longer exists once an app bundler has moved that module into
-      // a chunk ("Worker failed to load"). `angular.json` copies the worker
-      // to `/map/` as an asset; point MapLibre at it.
+      // a chunk ("Worker failed to load"). `scripts/copy-maplibre-worker.js`
+      // copies the worker to `public/map/`; point MapLibre at it.
       maplibre.setWorkerUrl(`${MAPLIBRE_WORKER_URL}?v=${maplibre.getVersion()}`);
       if (!response.ok) throw new Error(`style ${response.status}`);
       // The plugin's own named export, not `L.maplibreGL`: it patches the
