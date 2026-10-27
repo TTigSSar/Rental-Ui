@@ -208,6 +208,8 @@ export const ApiContract = {
     messages: '/api/chat/messages',
     sendImageMessage: (conversationId: string): ApiPath =>
       `/api/chat/conversations/${encodeURIComponent(conversationId)}/messages/image`,
+    meetingPoint: (conversationId: string): ApiPath =>
+      `/api/chat/conversations/${encodeURIComponent(conversationId)}/meeting-point`,
     hub: '/hubs/chat',
   },
   notifications: {

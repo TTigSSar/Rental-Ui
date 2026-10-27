@@ -7,6 +7,7 @@ import type {
   ChatConversationDetails,
   ChatConversationPreview,
   ChatMessage,
+  ShareMeetingPointRequest,
 } from '../models/chat.model';
 
 @Injectable({ providedIn: 'root' })
@@ -56,6 +57,17 @@ export class ChatApiService {
     return this.http.post<ChatMessage>(
       toApiUrl(ApiContract.chat.sendImageMessage(conversationId)),
       formData,
+    );
+  }
+
+  /** Owner shares the meeting point (ADR-053); returns the created `location` message. */
+  shareMeetingPoint(
+    conversationId: string,
+    request: ShareMeetingPointRequest,
+  ): Observable<ChatMessage> {
+    return this.http.post<ChatMessage>(
+      toApiUrl(ApiContract.chat.meetingPoint(conversationId)),
+      request,
     );
   }
 

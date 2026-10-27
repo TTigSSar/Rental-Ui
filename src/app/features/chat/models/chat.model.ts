@@ -21,7 +21,23 @@ export type ChatStatus =
   | 'moderation'
   | 'not_happened';
 
-export type ChatMessageType = 'text' | 'image' | 'system' | 'moderationNote';
+export type ChatMessageType = 'text' | 'image' | 'system' | 'moderationNote' | 'location';
+
+/** `"home" | "other"` — which meeting point a `location` message carries (ADR-053). */
+export type ChatMeetingPointKind = 'home' | 'other';
+
+/**
+ * Body of `POST /api/chat/conversations/{id}/meeting-point` (owner only).
+ * For `kind === 'home'` the coordinates are ignored by the server.
+ * Errors: `chat.meeting_point_owner_only` 403, `chat.meeting_point_unavailable` 409,
+ * `chat.home_point_required` 409, `chat.meeting_point_invalid` 400,
+ * `chat.meeting_point_outside_yerevan` 400, `chat.conversation_closed` 409.
+ */
+export interface ShareMeetingPointRequest {
+  kind: ChatMeetingPointKind;
+  latitude?: number | null;
+  longitude?: number | null;
+}
 
 export type ChatSystemKind =
   | 'request'
@@ -101,6 +117,12 @@ export interface ChatMessage {
   noteReason: string | null;
   body: string | null;
   attachmentUrl: string | null;
+  /** Set only when `type === 'location'`; null otherwise. */
+  latitude: number | null;
+  /** Set only when `type === 'location'`; null otherwise. */
+  longitude: number | null;
+  /** Set only when `type === 'location'`; null otherwise. */
+  meetingPointKind: ChatMeetingPointKind | null;
   sentAt: string;
   isMine: boolean;
   seen: boolean;
@@ -212,6 +234,12 @@ export interface ChatRealtimeMessage {
   noteReason: string | null;
   body: string | null;
   attachmentUrl: string | null;
+  /** Set only when `type === 'location'`; null otherwise. */
+  latitude: number | null;
+  /** Set only when `type === 'location'`; null otherwise. */
+  longitude: number | null;
+  /** Set only when `type === 'location'`; null otherwise. */
+  meetingPointKind: ChatMeetingPointKind | null;
   /** ISO UTC (ends in `Z`). */
   sentAt: string;
 }
