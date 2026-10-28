@@ -1106,6 +1106,49 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
       return json(route, 200, {});
     }
 
+    // POST /api/chat/conversations/{id}/meeting-point (ADR-053) — owner shares a meeting point.
+    // Home: the exact home point of the signed-in user (seed.me.homePoint); other: the posted
+    // pair. Appends the `location` message to the seeded detail, like the text-message route.
+    const meetingPointId = pathname.match(
+      /^\/api\/chat\/conversations\/([^/]+)\/meeting-point$/,
+    )?.[1];
+    if (meetingPointId && method === 'POST') {
+      const body =
+        (request.postDataJSON() as {
+          kind?: string;
+          latitude?: number | null;
+          longitude?: number | null;
+        } | null) ?? {};
+      const home = (seed.me as { homePoint?: { latitude: number; longitude: number } | null } | null)
+        ?.homePoint;
+      const isHome = body.kind === 'home';
+      const message: Record<string, unknown> = {
+        id: `chat-message-e2e-sent-${++chatMessageCounter}`,
+        conversationId: meetingPointId,
+        senderId: 'me-e2e-1',
+        senderName: null,
+        type: 'location',
+        systemKind: null,
+        noteKind: null,
+        noteSubject: null,
+        noteReason: null,
+        body: null,
+        attachmentUrl: null,
+        latitude: isHome ? (home?.latitude ?? null) : (body.latitude ?? null),
+        longitude: isHome ? (home?.longitude ?? null) : (body.longitude ?? null),
+        meetingPointKind: isHome ? 'home' : 'other',
+        sentAt: new Date().toISOString(),
+        isMine: true,
+        seen: false,
+      };
+      const detail = chatConversationDetailsState[meetingPointId];
+      if (detail) {
+        const messages = Array.isArray(detail['messages']) ? detail['messages'] : [];
+        detail['messages'] = [...messages, message];
+      }
+      return json(route, 200, message);
+    }
+
     // POST /api/chat/messages — send a text message. Appends the echoed message to the
     // conversation's seeded detail (if any) so a subsequent detail fetch reflects it, same
     // "mutate the working set in place" convention as the admin queues above.
