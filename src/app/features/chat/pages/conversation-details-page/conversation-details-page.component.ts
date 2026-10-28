@@ -6,6 +6,8 @@ import {
   ElementRef,
   OnInit,
   afterRenderEffect,
+  computed,
+  effect,
   inject,
   signal,
   viewChild,
@@ -20,11 +22,23 @@ import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, filter, map } from 'rxjs';
 
+import { selectHomePoint } from '../../../auth/store/auth.selectors';
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
+import {
+  LocationPickerComponent,
+  type LocationPickerMeetingPoint,
+} from '../../../../shared/ui/location-picker/location-picker.component';
+import type { MapLatLng } from '../../../../shared/ui/map/map.component';
+import { YEREVAN_CENTER } from '../../../../shared/ui/map/map.constants';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import { compressImageFile } from '../../../../shared/utils/image-compression.utils';
+import { MeetingPointBubbleComponent } from '../../components/meeting-point-bubble/meeting-point-bubble.component';
+import {
+  type MeetingPointChoice,
+  MeetingPointChooserComponent,
+} from '../../components/meeting-point-chooser/meeting-point-chooser.component';
 import { ModerationNoteCardComponent } from '../../components/moderation-note-card/moderation-note-card.component';
 import { RentalCardComponent } from '../../components/rental-card/rental-card.component';
 import {
@@ -32,6 +46,7 @@ import {
   type ChatSystemMeta,
   chatDayKey,
   chatDayLabel,
+  canShareMeetingPoint,
   mapChatSystemMeta,
 } from '../../models/chat-ui.util';
 import {
@@ -47,11 +62,12 @@ import {
   selectActiveConversationError,
   selectActiveConversationLoading,
   selectPendingImage,
+  selectPendingMeetingPoint,
   selectSendingImageError,
   selectSendingMessage,
   selectSendingMessageError,
 } from '../../store/chat.selectors';
-import type { PendingChatImage } from '../../store/chat.state';
+import type { PendingChatImage, PendingMeetingPoint } from '../../store/chat.state';
 import { UiDatePipe } from '../../../../shared/utils/ui-date.pipe';
 import { UiDateService } from '../../../../shared/utils/ui-date';
 
@@ -161,6 +177,10 @@ interface ConversationDetailsPageViewModel {
   /** Optimistic image bubble for THIS conversation (uploading or failed). */
   readonly pendingImage: PendingChatImage | null;
   readonly sendingImageError: string | null;
+  /** The share in flight / just failed for THIS conversation (ADR-053). */
+  readonly pendingMeetingPoint: PendingMeetingPoint | null;
+  /** Owner of an Approved/Active booking in a live chat: the composer shows the pin. */
+  readonly canShareMeetingPoint: boolean;
   readonly showInitialSkeleton: boolean;
   readonly showEmpty: boolean;
   readonly hasError: boolean;
@@ -306,6 +326,9 @@ function buildThreadItems(conversation: ChatConversationDetails, lang: string): 
     ModerationNoteCardComponent,
     ReactiveFormsModule,
     RentalCardComponent,
+    LocationPickerComponent,
+    MeetingPointBubbleComponent,
+    MeetingPointChooserComponent,
     RouterLink,
     SkeletonModule,
     TranslatePipe,
@@ -342,6 +365,7 @@ export class ConversationDetailsPageComponent implements OnInit {
     sendingMessageError: this.store.select(selectSendingMessageError),
     pendingImage: this.store.select(selectPendingImage),
     sendingImageError: this.store.select(selectSendingImageError),
+    pendingMeetingPoint: this.store.select(selectPendingMeetingPoint),
     routeConversationId: this.routeConversationId$,
     lang: toObservable(this.dates.lang),
   }).pipe(
@@ -352,6 +376,7 @@ export class ConversationDetailsPageComponent implements OnInit {
         sendingMessageError,
         pendingImage,
         sendingImageError,
+        pendingMeetingPoint,
         routeConversationId,
         lang,
       }): ConversationDetailsPageViewModel => {
@@ -378,6 +403,14 @@ export class ConversationDetailsPageComponent implements OnInit {
               ? pendingImage
               : null,
           sendingImageError,
+          pendingMeetingPoint:
+            pendingMeetingPoint !== null &&
+            activeConversation !== null &&
+            pendingMeetingPoint.conversationId === activeConversation.id
+              ? pendingMeetingPoint
+              : null,
+          canShareMeetingPoint:
+            activeConversation !== null && canShareMeetingPoint(activeConversation),
           showInitialSkeleton: routeState.loading && !isMatch,
           showEmpty: !routeState.loading && !isMatch && !hasError,
           hasError,
@@ -500,6 +533,21 @@ export class ConversationDetailsPageComponent implements OnInit {
         this.rentalPinnedOpen.set(false);
       });
 
+    // The picker owns its send: success (the pending share cleared) closes it; a chat that
+    // turned read-only closes it too, and the thread then shows the read-only note.
+    effect(() => {
+      const pending = this.pendingMeetingPoint();
+      if (this.pickerOpen() && this.pickerSubmitted && pending === null) {
+        this.pickerSubmitted = false;
+        this.pickerOpen.set(false);
+        this.focusPinButton();
+      } else if (this.isReadOnlyFailure(pending)) {
+        this.pickerSubmitted = false;
+        this.pickerOpen.set(false);
+        this.chooserOpen.set(false);
+      }
+    });
+
     // Pin the pane to the newest message. afterRenderEffect runs after the DOM
     // has been updated, so scrollHeight already reflects freshly appended
     // messages (initial load and post-send alike).
@@ -598,6 +646,145 @@ export class ConversationDetailsPageComponent implements OnInit {
         error: this.translate.instant(messageKey, params),
       }),
     );
+  }
+
+  // -- Share meeting point (ADR-053) ----------------------------------------
+  private readonly homePoint = toSignal(this.store.select(selectHomePoint), {
+    initialValue: null,
+  });
+  private readonly pendingMeetingPoint = toSignal(this.store.select(selectPendingMeetingPoint), {
+    initialValue: null,
+  });
+  private readonly pinButton = viewChild<ElementRef<HTMLButtonElement>>('pinButton');
+
+  protected readonly hasHomePoint = computed(() => this.homePoint() !== null);
+  protected readonly chooserOpen = signal(false);
+  protected readonly pickerOpen = signal(false);
+  protected readonly meetingChoice = signal<MeetingPointChoice>('home');
+  /** The picker sent its point and is waiting for the outcome (success closes it). */
+  private pickerSubmitted = false;
+
+  /** Map start for "Another place": the owner's home point, else the Yerevan centre. */
+  protected readonly pickerCenter = computed<MapLatLng>(() => {
+    const home = this.homePoint();
+    return home ? { lat: home.latitude, lng: home.longitude } : YEREVAN_CENTER;
+  });
+
+  /** Inputs of the shared picker's meeting-point mode, for the thread's counterpart. */
+  private readonly activeConversation = toSignal(this.store.select(selectActiveConversation), {
+    initialValue: null,
+  });
+
+  protected readonly pickerMeetingPoint = computed<LocationPickerMeetingPoint>(() => {
+    const counterpartName = this.activeConversation()?.counterpartName ?? '';
+    const pending = this.pendingMeetingPoint();
+    const picking = pending !== null && pending.request.kind === 'other';
+    return {
+      copy: {
+        hintInitTitleKey: 'chat.meetingPoint.picker.hintInitTitle',
+        hintInitCityTitleKey: 'chat.meetingPoint.picker.hintInitCityTitle',
+        hintInitTextKey: 'chat.meetingPoint.picker.hintInitText',
+        hintPanTitleKey: 'chat.meetingPoint.picker.hintPanTitle',
+        hintPanTextKey: 'chat.meetingPoint.picker.hintPanText',
+        hintOkTitleKey: 'chat.meetingPoint.picker.hintOkTitle',
+        hintOkTextKey: 'chat.meetingPoint.picker.hintOkText',
+        chipUpdatingKey: 'chat.meetingPoint.picker.chipUpdating',
+        statusNoneKey: 'chat.meetingPoint.picker.statusNone',
+        statusOkKey: 'chat.meetingPoint.picker.statusOk',
+        sendingKey: 'chat.meetingPoint.sending',
+        outsideKey: 'chat.meetingPoint.picker.outside',
+        failedKey: 'chat.meetingPoint.failA',
+        failedRetryKey: 'chat.meetingPoint.failB',
+        noteKey: 'chat.meetingPoint.picker.note',
+      },
+      params: { name: this.firstName(counterpartName) },
+      startedOnCityCentre: !this.hasHomePoint(),
+      sendError: picking && pending.status === 'failed' ? pending.error : null,
+    };
+  });
+
+  /** The picker's send is in flight (spinner on confirm, Back inert). */
+  protected pickerSending(pending: PendingMeetingPoint | null): boolean {
+    return pending !== null && pending.request.kind === 'other' && pending.status === 'sending';
+  }
+
+  protected openMeetingChooser(): void {
+    this.meetingChoice.set(this.hasHomePoint() ? 'home' : 'other');
+    this.chooserOpen.set(true);
+  }
+
+  protected closeMeetingChooser(): void {
+    this.chooserOpen.set(false);
+    this.focusPinButton();
+  }
+
+  protected shareHomePoint(conversationId: string): void {
+    this.chooserOpen.set(false);
+    this.dispatchShare(conversationId, { kind: 'home' });
+    this.focusPinButton();
+  }
+
+  protected chooseOnMap(): void {
+    this.chooserOpen.set(false);
+    this.pickerOpen.set(true);
+  }
+
+  /** The picker's Back: return to the chooser with "Another place" still selected. */
+  protected pickerBack(): void {
+    this.pickerOpen.set(false);
+    this.meetingChoice.set('other');
+    this.chooserOpen.set(true);
+  }
+
+  protected closeMeetingPicker(): void {
+    this.pickerOpen.set(false);
+    this.pickerSubmitted = false;
+    // A send still in flight keeps running: its outcome then surfaces in the thread.
+    if (this.pendingMeetingPoint()?.status !== 'sending') {
+      this.store.dispatch(ChatActions.dismissPendingMeetingPoint());
+    }
+    this.focusPinButton();
+  }
+
+  protected sharePickedPoint(conversationId: string, point: MapLatLng): void {
+    this.pickerSubmitted = true;
+    this.dispatchShare(conversationId, {
+      kind: 'other',
+      latitude: point.lat,
+      longitude: point.lng,
+    });
+  }
+
+  /** "Try again." on a failed home share. */
+  protected retryMeetingPoint(conversationId: string): void {
+    const pending = this.pendingMeetingPoint();
+    if (pending !== null) {
+      this.dispatchShare(conversationId, pending.request);
+    }
+  }
+
+  protected dismissPendingMeetingPoint(): void {
+    this.store.dispatch(ChatActions.dismissPendingMeetingPoint());
+  }
+
+  /** The share failed because the chat turned read-only meanwhile (`chat.conversation_closed`). */
+  protected isReadOnlyFailure(pending: PendingMeetingPoint | null): boolean {
+    return (
+      pending !== null &&
+      pending.status === 'failed' &&
+      pending.errorCode === 'chat.conversation_closed'
+    );
+  }
+
+  private dispatchShare(
+    conversationId: string,
+    request: Parameters<typeof ChatActions.shareMeetingPoint>[0]['request'],
+  ): void {
+    this.store.dispatch(ChatActions.shareMeetingPoint({ conversationId, request }));
+  }
+
+  private focusPinButton(): void {
+    queueMicrotask(() => this.pinButton()?.nativeElement.focus());
   }
 
   protected sendMessage(conversationId: string): void {

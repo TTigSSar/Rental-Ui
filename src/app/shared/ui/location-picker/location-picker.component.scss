@@ -152,7 +152,11 @@
   line-height: 1.5;
   color: var(--ui-color-text-secondary);
 
-  .pi { color: var(--ui-color-primary); flex-shrink: 0; margin-top: 1px; }
+  .pi {
+    color: var(--ui-color-primary);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
 }
 
 .location-picker__actions {
@@ -177,22 +181,30 @@
   white-space: nowrap;
   transition: filter 150ms ease;
 
-  &:focus-visible { outline: 2px solid var(--ui-color-primary-strong); outline-offset: 2px; }
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary-strong);
+    outline-offset: 2px;
+  }
 }
 
 .location-picker__btn--cancel {
   background: var(--ui-color-surface-muted);
   color: var(--ui-color-text-primary);
   border: 1.5px solid var(--ui-color-border);
-  &:hover { filter: brightness(0.96); }
+  &:hover {
+    filter: brightness(0.96);
+  }
 }
 
 .location-picker__btn--confirm {
   flex: 1;
-  background: var(--ui-color-primary);
-  color: #fff;
+  /* ADR-031: white text sits on primary-strong (#C24600), never on the brand #FF6008. */
+  background: var(--ui-color-primary-strong);
+  color: var(--ui-color-on-primary);
   box-shadow: var(--ui-shadow-primary-button);
-  &:hover { filter: brightness(0.94); }
+  &:hover:not(:disabled) {
+    background: var(--ui-color-primary-strong-hover);
+  }
 
   // Screen 5's "not aimed yet" state (`confirmDisabledUntilMoved`) — grey,
   // no shadow, matching the approved design's `.btn.disabled.dark`.
@@ -267,9 +279,7 @@
     padding-bottom: var(--ui-space-16);
   }
 
-  .p-dialog.location-picker-dialog--home-point
-    .p-dialog-footer
-    .location-picker__actions {
+  .p-dialog.location-picker-dialog--home-point .p-dialog-footer .location-picker__actions {
     margin-left: auto;
     flex: none;
   }
@@ -277,5 +287,157 @@
   .p-dialog.location-picker-dialog--home-point .location-picker__btn--confirm {
     flex: none;
     min-width: 200px;
+  }
+}
+
+/* ── Meeting-point mode (`meetingPoint`, ADR-053) ─────────────────
+   Rides on the home-point shell above (full-screen mobile, 1040x720 dialog from 1100px);
+   everything here is the design's stage-2 picker chrome (mp2-parts.jsx `PickerBody`). */
+.location-picker__hint--meeting {
+  /* Keep the card clear of app-map's top-right zoom stack (44px + 12px inset), which the
+     design's mock map does not have. */
+  right: 68px;
+}
+
+.location-picker__hint--meeting .location-picker__hint-card {
+  gap: var(--ui-space-12);
+  align-items: center;
+  padding: 10px 14px 10px 10px;
+  border-radius: 14px;
+  background: var(--ui-color-surface);
+  box-shadow: 0 6px 18px -8px rgba(20, 15, 5, 0.35);
+}
+
+.location-picker__hint--meeting .location-picker__hint-icon {
+  width: 36px;
+  height: 36px;
+}
+
+.location-picker__hint--meeting .location-picker__hint-copy b {
+  font-size: 14px;
+  line-height: 19px;
+  font-weight: 700;
+}
+
+.location-picker__hint--meeting .location-picker__hint-copy small {
+  font-size: 12.5px;
+  line-height: 17px;
+}
+
+.location-picker__meeting-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.location-picker__mp-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13.5px;
+  line-height: 19px;
+  font-weight: 600;
+  color: var(--ui-color-text-primary);
+
+  .pi {
+    flex: none;
+    margin-top: 2px;
+    font-size: 16px;
+  }
+}
+
+.location-picker__mp-muted {
+  color: var(--ui-color-text-secondary);
+}
+
+.location-picker__mp-ok {
+  color: var(--ui-color-success);
+}
+
+.location-picker__mp-ring {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin: 6px 4px 0;
+  border: 2px solid var(--ui-color-text-secondary);
+  border-radius: 99px;
+}
+
+.location-picker__mp-status--error {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--ui-color-error-surface);
+  border: 1px solid var(--ui-color-error-border);
+  color: var(--ui-color-danger);
+
+  .pi {
+    color: var(--ui-color-error);
+  }
+}
+
+.location-picker__mp-detail {
+  display: block;
+  font-weight: 500;
+}
+
+.location-picker__mp-note {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--ui-color-text-secondary);
+}
+
+/* Mobile: the footer is a rounded white sheet lifted 20px over the map. */
+.p-dialog.location-picker-dialog--meeting-point .p-dialog-footer {
+  position: relative;
+  z-index: 7;
+  margin-top: -20px;
+  border-top: 0;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -10px 30px -14px rgba(20, 15, 5, 0.35);
+}
+
+.p-dialog.location-picker-dialog--meeting-point .location-picker__footer {
+  padding-top: 16px;
+  gap: 10px;
+}
+
+.p-dialog.location-picker-dialog--meeting-point .location-picker__btn--cancel {
+  flex: none;
+}
+
+.p-dialog.location-picker-dialog--meeting-point .location-picker__btn--confirm {
+  flex: 1;
+  min-width: 0;
+  white-space: normal;
+  /* The design's confirm has no glow. */
+  box-shadow: none;
+}
+
+/* Disabled confirm = the neutral disabled primary (ADR-031 tokens), as in the design. */
+.p-dialog.location-picker-dialog--meeting-point .location-picker__btn--confirm:disabled {
+  background: var(--ui-color-primary-disabled);
+  color: var(--ui-color-primary-disabled-text);
+}
+
+@media (min-width: 1100px) {
+  /* Desktop: the footer is a flat row — status + note left, Back + confirm right. */
+  .p-dialog.location-picker-dialog--meeting-point .p-dialog-footer {
+    margin-top: 0;
+    border-top: 1px solid var(--ui-color-border);
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .p-dialog.location-picker-dialog--meeting-point .location-picker__footer {
+    gap: 24px;
+    padding: 16px 24px;
+  }
+
+  .p-dialog.location-picker-dialog--meeting-point .location-picker__btn--confirm {
+    flex: none;
+    min-width: 220px;
   }
 }

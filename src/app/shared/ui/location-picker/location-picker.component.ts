@@ -13,13 +13,54 @@ import {
 import { TranslatePipe } from '@ngx-translate/core';
 import { DialogModule } from 'primeng/dialog';
 
+import { districtDisplayName } from '../../../features/listings/models/district-ui.util';
 import { GeolocationService } from '../../services/geolocation.service';
+import type { LanguageCode } from '../../services/language.service';
+import { UiDateService } from '../../utils/ui-date';
 import { HomePointMapComponent } from '../home-point-map/home-point-map.component';
 import type { HomePointSelection } from '../home-point-map/home-point-map.model';
 import { HomePointStatusComponent } from '../home-point-map/home-point-status.component';
 import { MapComponent } from '../map/map.component';
 import type { MapLatLng } from '../map/map.component';
 import { DEFAULT_PICKER_ZOOM, YEREVAN_CENTER } from '../map/map.constants';
+
+/**
+ * Copy keys for the picker's MEETING-POINT mode (ADR-053). Keys, not strings: the host
+ * owns the wording (this component lives in `shared/ui` and knows no feature copy); the
+ * picker only decides WHICH line shows. `{{...}}` params come from
+ * {@link LocationPickerMeetingPoint.params}; the district name is added as `district`.
+ */
+export interface LocationPickerMeetingPointCopy {
+  readonly hintInitTitleKey: string;
+  /** Replaces `hintInitTitleKey` when the map opened on the city centre (no saved point). */
+  readonly hintInitCityTitleKey: string;
+  readonly hintInitTextKey: string;
+  readonly hintPanTitleKey: string;
+  readonly hintPanTextKey: string;
+  readonly hintOkTitleKey: string;
+  readonly hintOkTextKey: string;
+  /** District chip second line while a lookup is in flight ("Updating…"). */
+  readonly chipUpdatingKey: string;
+  readonly statusNoneKey: string;
+  /** Receives `{{district}}`. */
+  readonly statusOkKey: string;
+  readonly sendingKey: string;
+  readonly outsideKey: string;
+  readonly failedKey: string;
+  readonly failedRetryKey: string;
+  /** Footer note, e.g. "This exact spot is sent to {{name}}…". */
+  readonly noteKey: string;
+}
+
+/** Turns the picker into the meeting-point picker; `null` (default) leaves it unchanged. */
+export interface LocationPickerMeetingPoint {
+  readonly copy: LocationPickerMeetingPointCopy;
+  readonly params: Readonly<Record<string, unknown>>;
+  /** The map opened on the default city centre rather than a saved point. */
+  readonly startedOnCityCentre: boolean;
+  /** Already-mapped (ADR-045) message of the last failed send; `null` when none. */
+  readonly sendError: string | null;
+}
 
 /**
  * Full-screen "drop a pin" picker.
@@ -87,6 +128,13 @@ import { DEFAULT_PICKER_ZOOM, YEREVAN_CENTER } from '../map/map.constants';
 export class LocationPickerComponent {
   private readonly geolocation = inject(GeolocationService);
   private readonly document = inject(DOCUMENT);
+  private readonly dates = inject(UiDateService);
+
+  /** UI language for the chosen spot's district name (district names are data, not i18n keys). */
+  private readonly uiLang = computed<LanguageCode>(() => {
+    const lang = this.dates.lang();
+    return lang === 'ru' || lang === 'hy' ? lang : 'en';
+  });
 
   readonly open = input.required<boolean>();
   /** Re-centres on the already-picked pin when re-opening; else Yerevan. */
@@ -116,6 +164,15 @@ export class LocationPickerComponent {
    * even if the client-side district lookup happened to disagree.
    */
   readonly serverOutsideYerevan = input<boolean>(false);
+
+  /**
+   * Meeting-point mode (ADR-053, "Share meeting point"): the home-point map with the
+   * `pin` look, a live hint card, and a footer with status line + note + Back + confirm.
+   * Reuses everything the home-point mode already does — district lookup, the
+   * outside-Yerevan block, "moved" gating — and changes only the chrome around it.
+   * `saving` doubles as "sending" (spinner on confirm, Back inert).
+   */
+  readonly meetingPoint = input<LocationPickerMeetingPoint | null>(null);
 
   /**
    * Translate keys for the dialog chrome — all default to the wizard's
@@ -189,6 +246,8 @@ export class LocationPickerComponent {
    */
   readonly confirmedHomePoint = output<HomePointSelection>();
   readonly cancelled = output<void>();
+  /** Meeting-point mode only: the footer's Back button (the host returns to its chooser). */
+  readonly backRequested = output<void>();
 
   /** Home-point mode: the live state of the embedded map, mirrored here so the
    *  footer can gate Confirm on it. */
@@ -209,9 +268,68 @@ export class LocationPickerComponent {
   private resetTokenCounter = 0;
   protected readonly homePointResetToken = signal(0);
 
+  /** Home-point OR meeting-point mode: the body is `app-home-point-map` and Confirm is gated. */
+  protected readonly mappedMode = computed(
+    () => this.homePointMode() || this.meetingPoint() !== null,
+  );
+
+  /** A failed send's message stops showing once the owner moves the map again. */
+  private readonly sendErrorStale = signal(false);
+  protected readonly visibleSendError = computed<string | null>(() =>
+    this.sendErrorStale() ? null : (this.meetingPoint()?.sendError ?? null),
+  );
+
   protected onHomePointSelectionChange(selection: HomePointSelection): void {
+    const previous = this.homePointSelection();
     this.homePointSelection.set(selection);
+    if (
+      previous !== null &&
+      (previous.center.lat !== selection.center.lat || previous.center.lng !== selection.center.lng)
+    ) {
+      this.sendErrorStale.set(true);
+    }
   }
+
+  /** Meeting-point hint card state: initial → while panning → settled on a spot. */
+  protected readonly meetingHint = computed<{
+    titleKey: string;
+    textKey: string;
+  } | null>(() => {
+    const mp = this.meetingPoint();
+    if (mp === null) return null;
+    const selection = this.homePointSelection();
+    if (selection !== null && selection.outsideYerevan) return null;
+    if (selection === null || !selection.deliberate) {
+      return {
+        titleKey: mp.startedOnCityCentre ? mp.copy.hintInitCityTitleKey : mp.copy.hintInitTitleKey,
+        textKey: mp.copy.hintInitTextKey,
+      };
+    }
+    return selection.resolving
+      ? { titleKey: mp.copy.hintPanTitleKey, textKey: mp.copy.hintPanTextKey }
+      : { titleKey: mp.copy.hintOkTitleKey, textKey: mp.copy.hintOkTextKey };
+  });
+
+  /** Footer status line, in priority order: sending, failed, outside Yerevan, chosen, none. */
+  protected readonly meetingStatus = computed<'sending' | 'failed' | 'outside' | 'ok' | 'none'>(
+    () => {
+      if (this.saving()) return 'sending';
+      if (this.visibleSendError() !== null) return 'failed';
+      const selection = this.homePointSelection();
+      if (selection !== null && (selection.outsideYerevan || this.serverOutsideYerevan())) {
+        return 'outside';
+      }
+      return selection !== null && selection.canConfirm ? 'ok' : 'none';
+    },
+  );
+
+  protected readonly meetingParams = computed<Record<string, unknown>>(() => {
+    const district = this.homePointSelection()?.district ?? null;
+    return {
+      ...(this.meetingPoint()?.params ?? {}),
+      district: district ? districtDisplayName(district, this.uiLang()) : '',
+    };
+  });
 
   protected readonly homePointConfirmDisabled = computed(() => {
     if (this.saving()) return true;
@@ -305,6 +423,7 @@ export class LocationPickerComponent {
           const active = this.document.activeElement;
           this.triggerElement = active instanceof HTMLElement ? active : null;
         }
+        this.sendErrorStale.set(false);
         this.resetTokenCounter += 1;
         this.homePointResetToken.set(this.resetTokenCounter);
         this.homePointSelection.set(null);
@@ -368,19 +487,30 @@ export class LocationPickerComponent {
   }
 
   protected confirm(): void {
-    if (this.homePointMode()) {
+    if (this.mappedMode()) {
       const selection = this.homePointSelection();
       // `homePointConfirmDisabled` already blocks this path, so a null
       // selection here can only mean the map never reported one — do nothing
       // rather than emit the stale generic-mode centre.
       if (selection === null || !selection.canConfirm) return;
+      // A new send starts: a failure of THIS send must show (only a later pan hides it).
+      this.sendErrorStale.set(false);
       this.confirmedHomePoint.emit(selection);
       this.confirmed.emit(selection.center);
-      this.restoreFocusToTrigger();
+      // Meeting-point mode stays open while the send is in flight (and after a failure),
+      // so the host — not this component — decides when and where focus goes.
+      if (this.meetingPoint() === null) {
+        this.restoreFocusToTrigger();
+      }
       return;
     }
     this.confirmed.emit(this.currentCenter());
     this.restoreFocusToTrigger();
+  }
+
+  /** Meeting-point mode's Back: leave without cancelling the whole flow. */
+  protected back(): void {
+    this.backRequested.emit();
   }
 
   protected cancel(): void {

@@ -8,6 +8,7 @@ import {
   EMPTY,
   catchError,
   concatMap,
+  filter,
   map,
   mergeMap,
   of,
@@ -16,28 +17,20 @@ import {
   withLatestFrom,
 } from 'rxjs';
 
+import { getApiErrorCode } from '../../../api/api-error.model';
 import { ApiErrorMapper } from '../../../api/api-error-mapper';
 import { selectAuthUser } from '../../auth/store/auth.selectors';
 import * as BookingsActions from '../../bookings/store/bookings.actions';
-import {
-  type ChatMessage,
-  type ChatRealtimeMessage,
-} from '../models/chat.model';
+import { type ChatMessage, type ChatRealtimeMessage } from '../models/chat.model';
 import { ChatBadgeService } from '../services/chat-badge.service';
 import { ChatApiService } from '../services/chat-api.service';
 import * as ChatActions from './chat.actions';
-import {
-  selectActiveConversation,
-  selectConversations,
-} from './chat.selectors';
+import { selectActiveConversation, selectConversations } from './chat.selectors';
 
 const CHAT_TOAST_LIFE_MS = 7000;
 
 /** Map a viewer-neutral hub message to the local, viewer-relative shape. */
-function toChatMessage(
-  raw: ChatRealtimeMessage,
-  currentUserId: string | null,
-): ChatMessage {
+function toChatMessage(raw: ChatRealtimeMessage, currentUserId: string | null): ChatMessage {
   return {
     ...raw,
     isMine: raw.senderId !== null && raw.senderId === currentUserId,
@@ -61,9 +54,7 @@ export class ChatEffects {
       ofType(ChatActions.loadConversations),
       switchMap(() =>
         this.chatApi.getConversations().pipe(
-          map((conversations) =>
-            ChatActions.loadConversationsSuccess({ conversations }),
-          ),
+          map((conversations) => ChatActions.loadConversationsSuccess({ conversations })),
           catchError((error: unknown) =>
             of(
               ChatActions.loadConversationsFailure({
@@ -85,17 +76,15 @@ export class ChatEffects {
         action.type === ChatActions.leaveConversation.type
           ? EMPTY
           : this.chatApi.getConversationDetails(action.conversationId).pipe(
-          map((conversation) =>
-            ChatActions.loadConversationDetailsSuccess({ conversation }),
-          ),
-          catchError((error: unknown) =>
-            of(
-              ChatActions.loadConversationDetailsFailure({
-                error: this.apiErrors.message(error),
-              }),
+              map((conversation) => ChatActions.loadConversationDetailsSuccess({ conversation })),
+              catchError((error: unknown) =>
+                of(
+                  ChatActions.loadConversationDetailsFailure({
+                    error: this.apiErrors.message(error),
+                  }),
+                ),
+              ),
             ),
-          ),
-        ),
       ),
     ),
   );
@@ -145,6 +134,41 @@ export class ChatEffects {
     ),
   );
 
+  /** Owner shares the meeting point (ADR-053); the optimistic/failed state lives in the reducer. */
+  readonly shareMeetingPoint$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ChatActions.shareMeetingPoint),
+      concatMap(({ conversationId, request }) =>
+        this.chatApi.shareMeetingPoint(conversationId, request).pipe(
+          map((message) => ChatActions.shareMeetingPointSuccess({ message })),
+          catchError((error: unknown) =>
+            of(
+              ChatActions.shareMeetingPointFailure({
+                error: this.apiErrors.message(error),
+                errorCode: getApiErrorCode(error),
+              }),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  /**
+   * The chat turned read-only while the owner was sharing: re-fetch the thread so
+   * `isClosed` flips and the composer / pin button / picker react (the realtime
+   * `closed` system line does the same, but only when the hub is connected).
+   */
+  readonly reloadAfterMeetingPointClosed$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ChatActions.shareMeetingPointFailure),
+      filter(({ errorCode }) => errorCode === 'chat.conversation_closed'),
+      withLatestFrom(this.store.select(selectActiveConversation)),
+      filter(([, active]) => active !== null),
+      map(([, active]) => ChatActions.loadConversationDetails({ conversationId: active!.id })),
+    ),
+  );
+
   readonly markConversationRead$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ChatActions.markConversationRead),
@@ -174,9 +198,7 @@ export class ChatEffects {
       ofType(ChatActions.openConversationFromBooking),
       switchMap(({ bookingId }) =>
         this.chatApi.getOrCreateFromBooking(bookingId).pipe(
-          map((conversation) =>
-            ChatActions.openConversationFromBookingSuccess({ conversation }),
-          ),
+          map((conversation) => ChatActions.openConversationFromBookingSuccess({ conversation })),
           catchError((error: unknown) =>
             of(
               ChatActions.openConversationFromBookingFailure({
@@ -236,8 +258,7 @@ export class ChatEffects {
       mergeMap(([{ message: raw }, user, activeConversation, conversations]) => {
         const message = toChatMessage(raw, user?.id ?? null);
         const isOpen =
-          activeConversation !== null &&
-          activeConversation.id === message.conversationId;
+          activeConversation !== null && activeConversation.id === message.conversationId;
 
         const actions: ReturnType<
           | typeof ChatActions.realtimeMessageResolved
@@ -408,10 +429,7 @@ export class ChatEffects {
           if (conversations.length === 0) {
             return;
           }
-          const total = conversations.reduce(
-            (sum, c) => sum + Math.max(0, c.unreadCount),
-            0,
-          );
+          const total = conversations.reduce((sum, c) => sum + Math.max(0, c.unreadCount), 0);
           this.chatBadge.setUnreadCount(total);
         }),
       ),

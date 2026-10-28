@@ -7,15 +7,17 @@
   [draggable]="false"
   [resizable]="false"
   [closeAriaLabel]="'common.close' | translate"
-  [header]="homePointMode() ? '' : (headerKey() | translate)"
+  [header]="mappedMode() ? '' : (headerKey() | translate)"
   [styleClass]="
-    homePointMode()
-      ? 'location-picker-dialog location-picker-dialog--home-point'
-      : 'location-picker-dialog'
+    meetingPoint()
+      ? 'location-picker-dialog location-picker-dialog--home-point location-picker-dialog--meeting-point'
+      : homePointMode()
+        ? 'location-picker-dialog location-picker-dialog--home-point'
+        : 'location-picker-dialog'
   "
   appendTo="body"
 >
-  @if (homePointMode()) {
+  @if (mappedMode()) {
     <!-- Home-point mode has a two-line header (title + subtitle), which
          `p-dialog`'s plain `[header]` string cannot express.
 
@@ -45,20 +47,39 @@
 
   <div class="location-picker__map-wrap">
     @if (open()) {
-      @if (homePointMode()) {
+      @if (mappedMode()) {
         <app-home-point-map
           [initialCenter]="initialCenter()"
           [initialZoom]="initialZoom()"
           [openedOnExistingPoint]="openedOnExistingPoint()"
           [resetToken]="homePointResetToken()"
+          [chipVariant]="meetingPoint() ? 'pin' : 'default'"
+          [chipUpdatingKey]="meetingPoint()?.copy?.chipUpdatingKey ?? 'homePoint.map.resolving'"
           height="100%"
           (selectionChange)="onHomePointSelectionChange($event)"
         />
+        @if (meetingHint(); as hint) {
+          <!-- Meeting-point hint card (design `HintCard`): same hollow-box + visible-card
+               split as the generic hint below (M-022). -->
+          <div class="location-picker__hint location-picker__hint--meeting">
+            <div class="location-picker__hint-card" role="status">
+              <span class="location-picker__hint-icon" aria-hidden="true">
+                <i class="pi pi-map"></i>
+              </span>
+              <span class="location-picker__hint-copy">
+                <b>{{ hint.titleKey | translate: meetingParams() }}</b>
+                <small>{{ hint.textKey | translate: meetingParams() }}</small>
+              </span>
+            </div>
+          </div>
+        }
       } @else {
         <app-map
           [center]="mapCenter()"
           [zoom]="initialZoom()"
           [interactive]="true"
+          [zoomInLabel]="'listings.details.location.zoomIn' | translate"
+          [zoomOutLabel]="'listings.details.location.zoomOut' | translate"
           [crosshair]="true"
           [circleRadiusMeters]="effectiveRadiusPreviewMeters()"
           [circleDashed]="true"
@@ -117,8 +138,57 @@
   </div>
 
   <ng-template pTemplate="footer">
-    <div class="location-picker__footer">
-      @if (homePointMode()) {
+    <div class="location-picker__footer" [class.location-picker__footer--meeting]="meetingPoint()">
+      @if (meetingPoint(); as mp) {
+        <div class="location-picker__meeting-info">
+          @switch (meetingStatus()) {
+            @case ('sending') {
+              <div class="location-picker__mp-status" role="status">
+                <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+                <span class="location-picker__mp-muted">{{ mp.copy.sendingKey | translate }}</span>
+              </div>
+            }
+            @case ('failed') {
+              <div
+                class="location-picker__mp-status location-picker__mp-status--error"
+                role="alert"
+              >
+                <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+                <span>
+                  {{ mp.copy.failedKey | translate }} {{ mp.copy.failedRetryKey | translate }}
+                  @if (visibleSendError(); as detail) {
+                    <span class="location-picker__mp-detail">{{ detail }}</span>
+                  }
+                </span>
+              </div>
+            }
+            @case ('outside') {
+              <div
+                class="location-picker__mp-status location-picker__mp-status--error"
+                role="alert"
+              >
+                <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+                <span>{{ mp.copy.outsideKey | translate }}</span>
+              </div>
+            }
+            @case ('ok') {
+              <div class="location-picker__mp-status" role="status">
+                <i class="pi pi-check location-picker__mp-ok" aria-hidden="true"></i>
+                <span>{{ mp.copy.statusOkKey | translate: meetingParams() }}</span>
+              </div>
+            }
+            @default {
+              <div class="location-picker__mp-status" role="status">
+                <span class="location-picker__mp-ring" aria-hidden="true"></span>
+                <span class="location-picker__mp-muted">{{
+                  mp.copy.statusNoneKey | translate
+                }}</span>
+              </div>
+            }
+          }
+          <p class="location-picker__mp-note">{{ mp.copy.noteKey | translate: meetingParams() }}</p>
+        </div>
+      } @else if (homePointMode()) {
         <app-home-point-status
           [selection]="homePointSelection()"
           [serverOutsideYerevan]="serverOutsideYerevan()"
@@ -134,7 +204,7 @@
           type="button"
           class="location-picker__btn location-picker__btn--cancel"
           [disabled]="saving()"
-          (click)="cancel()"
+          (click)="meetingPoint() ? back() : cancel()"
         >
           {{ cancelLabelKey() | translate }}
         </button>
@@ -142,15 +212,14 @@
           type="button"
           class="location-picker__btn location-picker__btn--confirm"
           [disabled]="
-            homePointMode()
-              ? homePointConfirmDisabled()
-              : confirmDisabledUntilMoved() && !hasMoved()
+            mappedMode() ? homePointConfirmDisabled() : confirmDisabledUntilMoved() && !hasMoved()
           "
+          [attr.aria-busy]="saving() ? 'true' : null"
           (click)="confirm()"
         >
           @if (saving()) {
             <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
-          } @else {
+          } @else if (!meetingPoint()) {
             <i class="pi pi-check" aria-hidden="true"></i>
           }
           {{ confirmLabelKey() | translate }}

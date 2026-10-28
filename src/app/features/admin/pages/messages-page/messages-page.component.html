@@ -266,18 +266,27 @@
                   [class.messages-page__bubble-row--mine]="message.isMine"
                 >
                   <div class="messages-page__bubble-wrap">
-                    <div class="messages-page__bubble">
-                      @if (message.attachmentUrl) {
-                        <img
-                          class="messages-page__bubble-image"
-                          [src]="message.attachmentUrl"
-                          [alt]="'chat.details.imageAlt' | translate"
-                        />
-                      }
-                      @if (message.body) {
-                        <p class="messages-page__bubble-text">{{ message.body }}</p>
-                      }
-                    </div>
+                    @if (message.type === 'location') {
+                      <app-meeting-point-bubble
+                        [latitude]="message.latitude"
+                        [longitude]="message.longitude"
+                        [kind]="message.meetingPointKind"
+                        [mine]="message.isMine"
+                      />
+                    } @else {
+                      <div class="messages-page__bubble">
+                        @if (message.attachmentUrl) {
+                          <img
+                            class="messages-page__bubble-image"
+                            [src]="message.attachmentUrl"
+                            [alt]="'chat.details.imageAlt' | translate"
+                          />
+                        }
+                        @if (message.body) {
+                          <p class="messages-page__bubble-text">{{ message.body }}</p>
+                        }
+                      </div>
+                    }
                     <span class="messages-page__bubble-time">{{
                       message.sentAt | uiDate: 'shortTime'
                     }}</span>
@@ -423,18 +432,27 @@
                 [class.messages-page__bubble-row--mine]="message.isMine"
               >
                 <div class="messages-page__bubble-wrap">
-                  <div class="messages-page__bubble">
-                    @if (message.attachmentUrl) {
-                      <img
-                        class="messages-page__bubble-image"
-                        [src]="message.attachmentUrl"
-                        [alt]="'chat.details.imageAlt' | translate"
-                      />
-                    }
-                    @if (message.body) {
-                      <p class="messages-page__bubble-text">{{ message.body }}</p>
-                    }
-                  </div>
+                  @if (message.type === 'location') {
+                    <app-meeting-point-bubble
+                      [latitude]="message.latitude"
+                      [longitude]="message.longitude"
+                      [kind]="message.meetingPointKind"
+                      [mine]="message.isMine"
+                    />
+                  } @else {
+                    <div class="messages-page__bubble">
+                      @if (message.attachmentUrl) {
+                        <img
+                          class="messages-page__bubble-image"
+                          [src]="message.attachmentUrl"
+                          [alt]="'chat.details.imageAlt' | translate"
+                        />
+                      }
+                      @if (message.body) {
+                        <p class="messages-page__bubble-text">{{ message.body }}</p>
+                      }
+                    </div>
+                  }
                   <span class="messages-page__bubble-time">{{
                     message.sentAt | uiDate: 'shortTime'
                   }}</span>

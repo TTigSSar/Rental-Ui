@@ -1,0 +1,121 @@
+<p-dialog
+  [visible]="open()"
+  (visibleChange)="onVisibleChange($event)"
+  header=""
+  [modal]="true"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  appendTo="body"
+  styleClass="mp-chooser-dialog"
+  [style]="{ width: '92vw', maxWidth: '420px' }"
+>
+  <ng-template pTemplate="header" let-dialogTitleId="ariaLabelledBy">
+    <div class="mpc__head">
+      <span class="mpc__tile" aria-hidden="true"><app-icon name="pin" [size]="21" /></span>
+      <h2 class="mpc__title" [id]="dialogTitleId">
+        {{ 'chat.meetingPoint.chooser.title' | translate }}
+      </h2>
+    </div>
+  </ng-template>
+
+  <div class="mpc__body">
+    <div
+      class="mpc__group"
+      role="radiogroup"
+      [attr.aria-label]="'chat.meetingPoint.chooser.title' | translate"
+    >
+      <div
+        class="mpc__card"
+        [class.mpc__card--on]="selected() === 'home'"
+        [class.mpc__card--disabled]="!hasHomePoint()"
+        role="none"
+      >
+        <div
+          class="mpc__radio"
+          role="radio"
+          data-choice="home"
+          [attr.aria-checked]="selected() === 'home'"
+          [attr.aria-disabled]="!hasHomePoint() ? 'true' : null"
+          [attr.tabindex]="hasHomePoint() && selected() === 'home' ? 0 : -1"
+          (click)="select('home')"
+          (keydown)="onRadioKeydown($event, 'home')"
+        >
+          <span class="mpc__icon" aria-hidden="true"><i class="pi pi-home"></i></span>
+          <span class="mpc__text">
+            <span class="mpc__card-title">{{
+              'chat.meetingPoint.chooser.homeTitle' | translate
+            }}</span>
+            <span class="mpc__card-line">
+              {{
+                (hasHomePoint()
+                  ? 'chat.meetingPoint.chooser.homeText'
+                  : 'chat.meetingPoint.chooser.noHome'
+                ) | translate
+              }}
+            </span>
+          </span>
+          @if (hasHomePoint()) {
+            <span class="mpc__mark" aria-hidden="true">
+              @if (selected() === 'home') {
+                <i class="pi pi-check"></i>
+              }
+            </span>
+          }
+        </div>
+        @if (!hasHomePoint()) {
+          <a class="mpc__set-home" routerLink="/profile" (click)="setHomePoint.emit()">
+            {{ 'chat.meetingPoint.chooser.setHome' | translate }}
+          </a>
+        }
+      </div>
+
+      <div class="mpc__card" [class.mpc__card--on]="selected() === 'other'" role="none">
+        <div
+          class="mpc__radio"
+          role="radio"
+          data-choice="other"
+          [attr.aria-checked]="selected() === 'other'"
+          [attr.tabindex]="selected() === 'other' ? 0 : -1"
+          (click)="select('other')"
+          (keydown)="onRadioKeydown($event, 'other')"
+        >
+          <span class="mpc__icon" aria-hidden="true"><i class="pi pi-map"></i></span>
+          <span class="mpc__text">
+            <span class="mpc__card-title">{{
+              'chat.meetingPoint.chooser.otherTitle' | translate
+            }}</span>
+            <span class="mpc__card-line">{{
+              'chat.meetingPoint.chooser.otherText' | translate
+            }}</span>
+          </span>
+          <span class="mpc__mark" aria-hidden="true">
+            @if (selected() === 'other') {
+              <i class="pi pi-check"></i>
+            }
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <p class="mpc__info">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      <span>{{ 'chat.meetingPoint.chooser.history' | translate }}</span>
+    </p>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="mpc__actions" [class.mpc__actions--stacked]="stacked()">
+      <button type="button" class="mpc__btn mpc__btn--ghost" (click)="cancelled.emit()">
+        {{ 'chat.meetingPoint.chooser.notNow' | translate }}
+      </button>
+      <button type="button" class="mpc__btn mpc__btn--primary" (click)="confirm()">
+        @if (selected() === 'other') {
+          <i class="pi pi-map" aria-hidden="true"></i>
+        }
+        <span>{{ primaryLabelKey() | translate }}</span>
+      </button>
+    </div>
+  </ng-template>
+</p-dialog>

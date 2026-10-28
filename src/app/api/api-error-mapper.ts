@@ -100,6 +100,12 @@ export const API_ERROR_MESSAGE_KEYS: Readonly<Record<KnownApiErrorCode, string>>
   'chat.message_too_long': 'errors.messageTooLong',
   'chat.attachment_too_large': 'chat.details.imageTooLarge',
   'chat.attachment_invalid_type': 'chat.details.imageInvalidType',
+  // ADR-053 (share meeting point)
+  'chat.meeting_point_owner_only': 'errors.ownerOnly',
+  'chat.meeting_point_unavailable': 'errors.meetingPointUnavailable',
+  'chat.home_point_required': 'chat.meetingPoint.noHomePoint',
+  'chat.meeting_point_invalid': 'errors.validation',
+  'chat.meeting_point_outside_yerevan': 'chat.meetingPoint.picker.outside',
   // favorite.*
   'favorite.unauthenticated': 'errors.sessionExpired',
   'favorite.user_blocked': 'errors.userBlocked',

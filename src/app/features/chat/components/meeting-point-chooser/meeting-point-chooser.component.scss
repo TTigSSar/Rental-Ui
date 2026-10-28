@@ -1,0 +1,275 @@
+/* ViewEncapsulation.None (see the component): `.mp-chooser-dialog` styles PrimeNG's portalled
+   shell, every other selector is namespaced `mpc__*`.
+   Design: mp2-parts.jsx `MChooser` — shell 92vw / max 420px, radius 20, padding 20 20 16, gap 12. */
+
+.p-dialog.mp-chooser-dialog {
+  border-radius: 20px;
+  background: var(--ui-color-surface);
+  box-shadow: 0 30px 70px -20px rgba(20, 15, 5, 0.45);
+  border: 0;
+}
+
+.p-dialog.mp-chooser-dialog .p-dialog-header {
+  padding: 20px 20px 0;
+  background: transparent;
+}
+
+.p-dialog.mp-chooser-dialog .p-dialog-content {
+  padding: 12px 20px 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.p-dialog.mp-chooser-dialog .p-dialog-footer {
+  padding: 14px 20px 16px;
+  background: transparent;
+}
+
+.mpc__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mpc__tile {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--ui-color-primary-soft);
+  color: var(--ui-color-primary);
+}
+
+.mpc__title {
+  margin: 0;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+  color: var(--ui-color-text-primary);
+  text-wrap: pretty;
+}
+
+.mpc__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mpc__group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Option card: 1.5px border (brand orange when selected), 16px radius. Selection is also
+   shown by the check mark, never colour alone. */
+.mpc__card {
+  position: relative;
+  border: 1.5px solid var(--ui-color-border);
+  border-radius: 16px;
+  background: var(--ui-color-surface);
+}
+
+.mpc__card--on {
+  border-color: var(--ui-color-primary);
+  background: var(--ui-color-primary-wash);
+}
+
+.mpc__card--disabled {
+  background: var(--ui-color-surface-muted);
+}
+
+.mpc__radio {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 44px 14px 14px;
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.mpc__card--disabled .mpc__radio {
+  cursor: default;
+  padding-bottom: 4px;
+}
+
+.mpc__radio:focus-visible {
+  outline: 2px solid var(--ui-color-primary-strong);
+  outline-offset: 2px;
+}
+
+.mpc__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--ui-color-primary-soft);
+  color: var(--ui-color-primary);
+
+  .pi {
+    font-size: 19px;
+  }
+}
+
+.mpc__card--disabled .mpc__icon {
+  /* Design value for the disabled tile (no token). */
+  background: #e9e7e1;
+  color: var(--ui-color-text-secondary);
+}
+
+.mpc__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.mpc__card-title {
+  font-size: 15px;
+  line-height: 21px;
+  font-weight: 700;
+  color: var(--ui-color-text-primary);
+}
+
+.mpc__card--disabled .mpc__card-title {
+  color: var(--ui-color-text-secondary);
+}
+
+.mpc__card-line {
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 19px;
+  color: var(--ui-color-text-secondary);
+  text-wrap: pretty;
+}
+
+.mpc__mark {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--ui-color-surface);
+  border: 1.5px solid #cfcbc2;
+  color: #fff;
+
+  .pi {
+    font-size: 12px;
+    font-weight: 700;
+  }
+}
+
+.mpc__card--on .mpc__mark {
+  background: var(--ui-color-primary-strong);
+  border: 0;
+}
+
+.mpc__set-home {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin: 0 0 4px 62px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ui-color-primary-strong);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary-strong);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+.mpc__info {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 18px;
+  color: var(--ui-color-text-secondary);
+
+  .pi {
+    flex: none;
+    margin-top: 2px;
+    font-size: 15px;
+  }
+}
+
+.mpc__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.mpc__actions--stacked {
+  flex-direction: column-reverse;
+  gap: 4px;
+}
+
+.mpc__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  border: 0;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary-strong);
+    outline-offset: 2px;
+  }
+}
+
+.mpc__btn--ghost {
+  flex-shrink: 0;
+  padding: 0 14px;
+  background: none;
+  color: var(--ui-color-text-primary);
+  white-space: nowrap;
+}
+
+/* Primary action: primary-strong (#C24600) with white text — ADR-031. */
+.mpc__btn--primary {
+  padding: 10px 22px;
+  background: var(--ui-color-primary-strong);
+  color: var(--ui-color-on-primary);
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--ui-color-primary-strong-hover);
+  }
+
+  .pi {
+    font-size: 17px;
+  }
+}
+
+.mpc__actions--stacked .mpc__btn {
+  width: 100%;
+  white-space: normal;
+}
+
+/* `closable` must stay true for PrimeNG's Escape / mask-click to fire, but the design has no
+   close icon (the "Not now" button is the visible exit). */
+.p-dialog.mp-chooser-dialog .p-dialog-header-actions {
+  display: none;
+}

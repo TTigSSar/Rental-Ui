@@ -9,7 +9,10 @@ import { ListingsApiService } from '../../../features/listings/services/listings
 import type { HomePointSelection } from '../home-point-map/home-point-map.model';
 
 import { GeolocationService } from '../../services/geolocation.service';
-import { LocationPickerComponent } from './location-picker.component';
+import {
+  LocationPickerComponent,
+  type LocationPickerMeetingPoint,
+} from './location-picker.component';
 import { MapComponent } from '../map/map.component';
 import type { MapLatLng } from '../map/map.component';
 import { YEREVAN_CENTER } from '../map/map.constants';
@@ -674,5 +677,245 @@ describe('LocationPickerComponent — focus return to the trigger (F5.2)', () =>
     fixture.detectChanges();
 
     expect(document.activeElement).toBe(other);
+  });
+});
+
+/**
+ * Meeting-point mode (ADR-053): the home-point map with the `pin` look, a live hint card
+ * and a footer with status + note + Back + confirm. Confirm stays disabled until the owner
+ * has deliberately moved the map and let go, and a spot outside Yerevan blocks it.
+ */
+describe('LocationPickerComponent — meeting-point mode', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  const MEETING: LocationPickerMeetingPoint = {
+    copy: {
+      hintInitTitleKey: 'k.hintInit',
+      hintInitCityTitleKey: 'k.hintInitCity',
+      hintInitTextKey: 'k.hintInitText',
+      hintPanTitleKey: 'k.hintPan',
+      hintPanTextKey: 'k.hintPanText',
+      hintOkTitleKey: 'k.hintOk',
+      hintOkTextKey: 'k.hintOkText',
+      chipUpdatingKey: 'k.updating',
+      statusNoneKey: 'k.statusNone',
+      statusOkKey: 'k.statusOk',
+      sendingKey: 'k.sending',
+      outsideKey: 'k.outside',
+      failedKey: 'k.failA',
+      failedRetryKey: 'k.failB',
+      noteKey: 'k.note',
+    },
+    params: { name: 'Anna' },
+    startedOnCityCentre: false,
+    sendError: null,
+  };
+
+  const SELECTION: HomePointSelection = {
+    center: { lat: 40.19, lng: 44.51 },
+    district: {
+      id: 'd1111111-1111-1111-1111-111111111111',
+      code: 'arabkir',
+      nameEn: 'Arabkir',
+      nameHy: 'Արաբկիր',
+      nameRu: 'Арабкир',
+    },
+    resolving: false,
+    outsideYerevan: false,
+    deliberate: true,
+    geoState: 'idle',
+    lowAccuracyMeters: null,
+    canConfirm: true,
+  };
+
+  interface MeetingTestable {
+    onHomePointSelectionChange(selection: HomePointSelection): void;
+    homePointConfirmDisabled(): boolean;
+    confirm(): void;
+    onVisibleChange(visible: boolean): void;
+  }
+
+  async function createMeetingPicker(extra: Record<string, unknown> = {}) {
+    TestBed.configureTestingModule({
+      imports: [LocationPickerComponent, TranslateModule.forRoot()],
+      providers: [
+        provideMockStore(),
+        { provide: GeolocationService, useValue: { getCurrentPosition: vi.fn() } },
+        {
+          provide: ListingsApiService,
+          useValue: { getDistrictAt: vi.fn(() => of(SELECTION.district)) },
+        },
+      ],
+    });
+    const fixture = TestBed.createComponent(LocationPickerComponent);
+    fixture.componentRef.setInput('open', true);
+    fixture.componentRef.setInput('meetingPoint', MEETING);
+    for (const [key, value] of Object.entries(extra)) {
+      fixture.componentRef.setInput(key, value);
+    }
+    fixture.detectChanges();
+    await vi.runAllTimersAsync();
+    fixture.detectChanges();
+    return {
+      fixture,
+      component: fixture.componentInstance as unknown as MeetingTestable,
+      instance: fixture.componentInstance,
+    };
+  }
+
+  const confirmBtn = () =>
+    document.body.querySelector<HTMLButtonElement>('.location-picker__btn--confirm');
+  const backBtn = () =>
+    document.body.querySelector<HTMLButtonElement>('.location-picker__btn--cancel');
+  const footerText = () =>
+    document.body.querySelector('.location-picker__meeting-info')?.textContent ?? '';
+  const hintText = () =>
+    document.body.querySelector('.location-picker__hint--meeting')?.textContent ?? '';
+
+  it('renders the pin map, the starting hint and the "no spot yet" status', async () => {
+    await createMeetingPicker();
+    expect(document.querySelector('app-home-point-map .hp-map--pin')).toBeTruthy();
+    expect(hintText()).toContain('k.hintInit');
+    expect(footerText()).toContain('k.statusNone');
+    expect(footerText()).toContain('k.note');
+  });
+
+  it('uses the city-centre hint title when the map did not start on a saved home point', async () => {
+    await createMeetingPicker({ meetingPoint: { ...MEETING, startedOnCityCentre: true } });
+    expect(hintText()).toContain('k.hintInitCity');
+  });
+
+  it('confirm is disabled until the map has moved, even though the start spot resolved to a district', async () => {
+    const { component, fixture } = await createMeetingPicker();
+    expect(confirmBtn()?.disabled).toBe(true);
+
+    component.onHomePointSelectionChange({ ...SELECTION, deliberate: false, canConfirm: false });
+    fixture.detectChanges();
+    expect(confirmBtn()?.disabled).toBe(true);
+
+    component.onHomePointSelectionChange(SELECTION);
+    fixture.detectChanges();
+    expect(confirmBtn()?.disabled).toBe(false);
+    expect(footerText()).toContain('k.statusOk');
+    expect(hintText()).toContain('k.hintOk');
+  });
+
+  it('while the map is still being dragged the hint reads "keep moving" and confirm stays disabled', async () => {
+    const { component, fixture } = await createMeetingPicker();
+    component.onHomePointSelectionChange({ ...SELECTION, resolving: true, canConfirm: false });
+    fixture.detectChanges();
+    expect(confirmBtn()?.disabled).toBe(true);
+    expect(hintText()).toContain('k.hintPan');
+  });
+
+  it('outside Yerevan: confirm disabled, red inline status, no hint, nothing emitted', async () => {
+    const { component, fixture, instance } = await createMeetingPicker();
+    let emitted = 0;
+    instance.confirmed.subscribe(() => (emitted += 1));
+
+    component.onHomePointSelectionChange({
+      ...SELECTION,
+      district: null,
+      outsideYerevan: true,
+      canConfirm: false,
+    });
+    fixture.detectChanges();
+
+    expect(confirmBtn()?.disabled).toBe(true);
+    expect(document.querySelector('.location-picker__mp-status--error')?.textContent).toContain(
+      'k.outside',
+    );
+    expect(document.querySelector('.location-picker__hint--meeting')).toBeNull();
+    component.confirm();
+    expect(emitted).toBe(0);
+  });
+
+  it('confirm emits the coordinate under the pin', async () => {
+    const { component, instance } = await createMeetingPicker();
+    let coord: MapLatLng | null = null;
+    instance.confirmed.subscribe((c) => (coord = c));
+    component.onHomePointSelectionChange(SELECTION);
+    component.confirm();
+    expect(coord).toEqual(SELECTION.center);
+  });
+
+  it('sending: spinner on confirm, confirm and Back inert', async () => {
+    const { component, fixture } = await createMeetingPicker({ saving: true });
+    component.onHomePointSelectionChange(SELECTION);
+    fixture.detectChanges();
+
+    expect(confirmBtn()?.disabled).toBe(true);
+    expect(confirmBtn()?.querySelector('.pi-spinner')).not.toBeNull();
+    expect(backBtn()?.disabled).toBe(true);
+    expect(footerText()).toContain('k.sending');
+  });
+
+  it('a failed send shows the inline error with the selection kept, and clears it once the map moves', async () => {
+    const { component, fixture } = await createMeetingPicker({
+      meetingPoint: { ...MEETING, sendError: 'Server said no' },
+    });
+    component.onHomePointSelectionChange({ ...SELECTION, center: YEREVAN_CENTER });
+    fixture.detectChanges();
+
+    const error = () => document.querySelector('.location-picker__mp-status--error');
+    expect(error()?.textContent).toContain('k.failA');
+    expect(error()?.textContent).toContain('Server said no');
+    // Selection kept: confirm is available again for a retry.
+    expect(confirmBtn()?.disabled).toBe(false);
+
+    component.onHomePointSelectionChange({ ...SELECTION, center: { lat: 40.2, lng: 44.52 } });
+    fixture.detectChanges();
+    expect(error()).toBeNull();
+  });
+
+  it('open -> pan -> confirm -> send fails: the error is visible; a later pan hides it', async () => {
+    const { component, fixture } = await createMeetingPicker();
+    component.onHomePointSelectionChange({ ...SELECTION, center: { lat: 40.17, lng: 44.5 } });
+    component.onHomePointSelectionChange(SELECTION); // the pan that enables confirm
+    fixture.detectChanges();
+
+    component.confirm();
+    fixture.componentRef.setInput('meetingPoint', { ...MEETING, sendError: 'Boom' });
+    fixture.detectChanges();
+
+    const error = () => document.querySelector('.location-picker__mp-status--error');
+    expect(error()?.textContent).toContain('Boom');
+
+    component.onHomePointSelectionChange({ ...SELECTION, center: { lat: 40.2, lng: 44.52 } });
+    fixture.detectChanges();
+    expect(error()).toBeNull();
+  });
+
+  it('the zoom buttons have an accessible name', async () => {
+    await createMeetingPicker();
+    const labels = Array.from(document.body.querySelectorAll('.app-map__zoom-btn')).map((b) =>
+      b.getAttribute('aria-label'),
+    );
+    expect(labels).toEqual([
+      'listings.details.location.zoomIn',
+      'listings.details.location.zoomOut',
+    ]);
+  });
+
+  it('Back asks the host to return to its chooser instead of cancelling the whole flow', async () => {
+    const { instance } = await createMeetingPicker();
+    let back = 0;
+    let cancelled = 0;
+    instance.backRequested.subscribe(() => (back += 1));
+    instance.cancelled.subscribe(() => (cancelled += 1));
+
+    backBtn()?.click();
+
+    expect(back).toBe(1);
+    expect(cancelled).toBe(0);
+  });
+
+  it('the dialog closing itself (x / Escape) is a plain cancel', async () => {
+    const { component, instance } = await createMeetingPicker();
+    let cancelled = 0;
+    instance.cancelled.subscribe(() => (cancelled += 1));
+    component.onVisibleChange(false);
+    expect(cancelled).toBe(1);
   });
 });

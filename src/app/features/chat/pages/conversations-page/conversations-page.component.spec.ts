@@ -116,6 +116,36 @@ describe('ConversationsPageComponent', () => {
     });
   });
 
+  describe('location last message (ADR-053)', () => {
+    it('shows the pin and the localized label, with no snippet, no "No messages yet"', () => {
+      const fixture = createFixture([
+        preview({ id: 'loc', lastMessageType: 'location', lastMessageSnippet: null }),
+      ]);
+
+      const snippet = (fixture.nativeElement as HTMLElement).querySelector('.chat-row__snippet');
+      expect(snippet?.textContent?.trim()).toBe('chat.meetingPoint.title');
+      expect(snippet?.querySelector('app-icon[name="pin"]')).not.toBeNull();
+      expect(snippet?.querySelector('.chat-row__snippet-prefix')).toBeNull();
+    });
+
+    it('prefixes "You:" when the owner shared it', () => {
+      const fixture = createFixture([
+        preview({
+          id: 'loc',
+          lastMessageType: 'location',
+          lastMessageSnippet: null,
+          lastMessageIsMine: true,
+        }),
+      ]);
+
+      const snippet = (fixture.nativeElement as HTMLElement).querySelector('.chat-row__snippet');
+      expect(snippet?.querySelector('.chat-row__snippet-prefix')?.textContent?.trim()).toBe(
+        'chat.conversations.youPrefix',
+      );
+      expect(snippet?.textContent).toContain('chat.meetingPoint.title');
+    });
+  });
+
   describe('image last message', () => {
     it('labels an uncaptioned image row instead of leaving the snippet empty', () => {
       const fixture = createFixture([
