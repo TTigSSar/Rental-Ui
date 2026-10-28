@@ -1,7 +1,10 @@
 <div
   class="hp-map"
-  [class.hp-map--muted]="!deliberate() || geoState() === 'locating'"
+  [class.hp-map--muted]="
+    chipVariant() === 'default' && (!deliberate() || geoState() === 'locating')
+  "
   [class.hp-map--error]="outsideYerevan()"
+  [class.hp-map--pin]="chipVariant() === 'pin'"
 >
   <app-map
     [center]="mapCenter()"
@@ -46,46 +49,75 @@
        kills both the zoom buttons and map dragging, and lowering z-index alone
        does not fix the drag case. -->
   <div class="hp-map__chip-slot">
-    <!-- Until the point is a deliberate choice the chip shows the instruction,
-         not a verdict: resolving the district for wherever the map happened to
-         open would read as "ready" while Confirm is still disabled, which is
-         the one combination guaranteed to confuse. This is the boards' `fresh`
-         state. -->
-    <div
-      class="hp-map__chip"
-      [class.hp-map__chip--ok]="deliberate() && district() !== null && !resolving()"
-      [class.hp-map__chip--error]="deliberate() && outsideYerevan()"
-      [class.hp-map__chip--neutral]="deliberate() && resolving()"
-      role="status"
-      aria-live="polite"
-    >
-      <span class="hp-map__chip-icon" aria-hidden="true">
-        @if (!deliberate()) {
-          <i class="pi pi-arrows-alt"></i>
-        } @else if (resolving()) {
-          <i class="pi pi-compass"></i>
-        } @else if (outsideYerevan()) {
-          <i class="pi pi-exclamation-triangle"></i>
-        } @else if (district() !== null) {
-          <i class="pi pi-check"></i>
-        } @else {
-          <i class="pi pi-arrows-alt"></i>
-        }
-      </span>
-      <span class="hp-map__chip-copy">
-        @if (!deliberate()) {
-          <b>{{ 'homePoint.map.moveHint' | translate }}</b>
-        } @else if (resolving()) {
-          <b>{{ 'homePoint.map.resolving' | translate }}</b>
-        } @else if (outsideYerevan()) {
-          <b>{{ 'homePoint.map.outsideChip' | translate }}</b>
-        } @else if (district() !== null) {
-          <b>{{ districtLabel() }}</b>
-          <small>{{ 'homePoint.city' | translate }}</small>
-        } @else {
-          <b>{{ 'homePoint.map.moveHint' | translate }}</b>
-        }
-      </span>
-    </div>
+    @if (chipVariant() === 'pin') {
+      <!-- Meeting-point look: live district chip centred above the pin. Unlike the
+           default chip it never shows an instruction — the host's hint card does. -->
+      <div
+        class="hp-map__chip hp-map__chip--pin"
+        [class.hp-map__chip--pin-error]="outsideYerevan()"
+        role="status"
+        aria-live="polite"
+      >
+        <span class="hp-map__chip-pin-icon" aria-hidden="true">
+          @if (outsideYerevan()) {
+            <i class="pi pi-exclamation-triangle"></i>
+          } @else if (resolving()) {
+            <i class="pi pi-spin pi-spinner"></i>
+          } @else {
+            <i class="pi pi-map-marker"></i>
+          }
+        </span>
+        <span class="hp-map__chip-pin-copy">
+          @if (outsideYerevan()) {
+            <b>{{ 'homePoint.map.outsideChip' | translate }}</b>
+          } @else {
+            <b>{{ districtLabel() || ('homePoint.city' | translate) }}</b>
+            <small>{{ (resolving() ? chipUpdatingKey() : 'homePoint.city') | translate }}</small>
+          }
+        </span>
+      </div>
+    } @else {
+      <!-- Until the point is a deliberate choice the chip shows the instruction,
+           not a verdict: resolving the district for wherever the map happened to
+           open would read as "ready" while Confirm is still disabled, which is
+           the one combination guaranteed to confuse. This is the boards' `fresh`
+           state. -->
+      <div
+        class="hp-map__chip"
+        [class.hp-map__chip--ok]="deliberate() && district() !== null && !resolving()"
+        [class.hp-map__chip--error]="deliberate() && outsideYerevan()"
+        [class.hp-map__chip--neutral]="deliberate() && resolving()"
+        role="status"
+        aria-live="polite"
+      >
+        <span class="hp-map__chip-icon" aria-hidden="true">
+          @if (!deliberate()) {
+            <i class="pi pi-arrows-alt"></i>
+          } @else if (resolving()) {
+            <i class="pi pi-compass"></i>
+          } @else if (outsideYerevan()) {
+            <i class="pi pi-exclamation-triangle"></i>
+          } @else if (district() !== null) {
+            <i class="pi pi-check"></i>
+          } @else {
+            <i class="pi pi-arrows-alt"></i>
+          }
+        </span>
+        <span class="hp-map__chip-copy">
+          @if (!deliberate()) {
+            <b>{{ 'homePoint.map.moveHint' | translate }}</b>
+          } @else if (resolving()) {
+            <b>{{ 'homePoint.map.resolving' | translate }}</b>
+          } @else if (outsideYerevan()) {
+            <b>{{ 'homePoint.map.outsideChip' | translate }}</b>
+          } @else if (district() !== null) {
+            <b>{{ districtLabel() }}</b>
+            <small>{{ 'homePoint.city' | translate }}</small>
+          } @else {
+            <b>{{ 'homePoint.map.moveHint' | translate }}</b>
+          }
+        </span>
+      </div>
+    }
   </div>
 </div>

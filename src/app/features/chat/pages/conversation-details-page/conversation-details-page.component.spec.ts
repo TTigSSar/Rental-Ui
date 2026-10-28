@@ -581,6 +581,192 @@ describe('ConversationDetailsPageComponent', () => {
     });
   });
 
+  describe('share meeting point (ADR-053)', () => {
+    function pinState(
+      conversation: Partial<ChatConversationDetails>,
+      extra: Partial<typeof initialChatState> = {},
+      homePoint: unknown = { latitude: 40.18, longitude: 44.51 },
+    ) {
+      return {
+        [chatFeatureKey]: {
+          ...initialChatState,
+          activeConversation: conversationWith([], {
+            viewerRole: 'owner',
+            bookingStatus: 'approved',
+            ...conversation,
+          }),
+          ...extra,
+        },
+        auth: { user: { id: 'owner-1', homePoint } },
+      };
+    }
+    const pin = (fixture: ComponentFixture<ConversationDetailsPageComponent>) =>
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>(
+        '.chat-thread__composer-icon--pin',
+      );
+
+    it('shows the pin button to the owner of an approved booking, right after the photo button', () => {
+      const { fixture, store } = createFixture();
+      store.setState(pinState({}));
+      fixture.detectChanges();
+
+      const button = pin(fixture);
+      expect(button).not.toBeNull();
+      expect(button?.getAttribute('aria-label')).toBe('chat.meetingPoint.button');
+      expect(button?.getAttribute('data-tooltip')).toBe('chat.meetingPoint.button');
+      expect(button?.previousElementSibling?.querySelector('.pi-image')).not.toBeNull();
+    });
+
+    it('shows it for an active booking too', () => {
+      const { fixture, store } = createFixture();
+      store.setState(pinState({ bookingStatus: 'active' }));
+      fixture.detectChanges();
+      expect(pin(fixture)).not.toBeNull();
+    });
+
+    it('never shows it to the renter', () => {
+      const { fixture, store } = createFixture();
+      store.setState(pinState({ viewerRole: 'renter' }));
+      fixture.detectChanges();
+      expect(pin(fixture)).toBeNull();
+    });
+
+    it.each(['requested', 'completed', 'closed'] as const)(
+      'hides it for a %s booking',
+      (bookingStatus) => {
+        const { fixture, store } = createFixture();
+        store.setState(pinState({ bookingStatus }));
+        fixture.detectChanges();
+        expect(pin(fixture)).toBeNull();
+      },
+    );
+
+    it('hides it (and the composer) when the chat is read-only', () => {
+      const { fixture, store } = createFixture();
+      store.setState(pinState({ isClosed: true }));
+      fixture.detectChanges();
+      expect(pin(fixture)).toBeNull();
+    });
+
+    it('opens the chooser with "My home point" preselected when the owner has a home point', () => {
+      const { fixture, store } = createFixture();
+      store.setState(pinState({}));
+      fixture.detectChanges();
+
+      pin(fixture)?.click();
+      fixture.detectChanges();
+
+      const page = fixture.componentInstance as unknown as {
+        chooserOpen(): boolean;
+        meetingChoice(): string;
+      };
+      expect(page.chooserOpen()).toBe(true);
+      expect(page.meetingChoice()).toBe('home');
+    });
+
+    it('preselects "Another place" when there is no home point', () => {
+      const { fixture, store } = createFixture();
+      store.setState(pinState({}, {}, null));
+      fixture.detectChanges();
+
+      pin(fixture)?.click();
+      fixture.detectChanges();
+
+      const page = fixture.componentInstance as unknown as { meetingChoice(): string };
+      expect(page.meetingChoice()).toBe('other');
+    });
+
+    it('renders a location message as the meeting bubble: subtitle for home, maps link, no coordinates', () => {
+      const { fixture, store } = createFixture();
+      store.setState(
+        pinState({
+          messages: [
+            imageMessage({
+              id: 'loc-1',
+              type: 'location',
+              attachmentUrl: null,
+              body: null,
+              latitude: 40.1811,
+              longitude: 44.5136,
+              meetingPointKind: 'home',
+            }),
+          ],
+        }),
+      );
+      fixture.detectChanges();
+
+      const host = fixture.nativeElement as HTMLElement;
+      const bubble = host.querySelector('app-meeting-point-bubble');
+      expect(bubble).not.toBeNull();
+      expect(bubble?.textContent).toContain('chat.meetingPoint.ownerHome');
+      const link = bubble?.querySelector<HTMLAnchorElement>('a.mp-bubble__link');
+      expect(link?.getAttribute('href')).toBe(
+        'https://www.google.com/maps/search/?api=1&query=40.1811,44.5136',
+      );
+      expect(link?.getAttribute('target')).toBe('_blank');
+      expect(link?.getAttribute('rel')).toBe('noopener noreferrer');
+      expect(bubble?.textContent).not.toContain('40.1811');
+      expect(host.querySelector('.chat-bubble__text')).toBeNull();
+    });
+
+    it('renders the optimistic home share dimmed with "Sending…", and the failed state with retry and dismiss', () => {
+      const { fixture, store } = createFixture();
+      const sending = {
+        conversationId: CONVERSATION_ID,
+        request: { kind: 'home' as const },
+        status: 'sending' as const,
+        error: null,
+        errorCode: null,
+      };
+      store.setState(pinState({}, { pendingMeetingPoint: sending }));
+      fixture.detectChanges();
+
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelector('.mp-bubble--idle')).not.toBeNull();
+      expect(host.querySelector('.chat-mp-status')?.textContent).toContain(
+        'chat.meetingPoint.sending',
+      );
+
+      store.setState(
+        pinState({}, { pendingMeetingPoint: { ...sending, status: 'failed', error: 'Oops' } }),
+      );
+      fixture.detectChanges();
+
+      expect(host.querySelector('.chat-mp-status--failed')).not.toBeNull();
+      expect(host.querySelector('.chat-mp-status__retry')).not.toBeNull();
+      const dispatchSpy = vi.spyOn(store, 'dispatch');
+      host.querySelector<HTMLButtonElement>('.chat-mp-status__dismiss')?.click();
+      expect(dispatchSpy.mock.calls.map(([a]) => a)).toContainEqual({
+        type: '[Chat] Dismiss Pending Meeting Point',
+      });
+    });
+
+    it('shows the read-only note when the share failed because the chat closed', () => {
+      const { fixture, store } = createFixture();
+      store.setState(
+        pinState(
+          { isClosed: true },
+          {
+            pendingMeetingPoint: {
+              conversationId: CONVERSATION_ID,
+              request: { kind: 'home' },
+              status: 'failed',
+              error: 'closed',
+              errorCode: 'chat.conversation_closed',
+            },
+          },
+        ),
+      );
+      fixture.detectChanges();
+
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelector('.chat-thread__mp-note')?.textContent).toContain(
+        'chat.meetingPoint.readOnly',
+      );
+      expect(host.querySelector('.chat-mp-status--failed')).toBeNull();
+    });
+  });
+
   describe('image picker validation (client-side, before upload)', () => {
     /** Invokes the component's protected file-input handler with a picked file. */
     async function pick(

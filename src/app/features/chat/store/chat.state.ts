@@ -1,6 +1,7 @@
 import type {
   ChatConversationDetails,
   ChatConversationPreview,
+  ShareMeetingPointRequest,
 } from '../models/chat.model';
 
 /**
@@ -16,6 +17,21 @@ export interface PendingChatImage {
   readonly failed: boolean;
 }
 
+/**
+ * The meeting-point share in flight (or the one that just failed), ADR-053. A home
+ * share renders as an optimistic "sending / failed" bubble in the thread; an
+ * "other place" share is owned by the map picker, which reads the same state.
+ * `errorCode` is the raw API code (e.g. `chat.conversation_closed`) so the page can
+ * react to a chat that became read-only; `error` is the already-mapped display string.
+ */
+export interface PendingMeetingPoint {
+  readonly conversationId: string;
+  readonly request: ShareMeetingPointRequest;
+  readonly status: 'sending' | 'failed';
+  readonly error: string | null;
+  readonly errorCode: string | null;
+}
+
 export interface ChatState {
   conversations: ChatConversationPreview[];
   conversationsLoading: boolean;
@@ -27,6 +43,7 @@ export interface ChatState {
   sendingMessageError: string | null;
   pendingImage: PendingChatImage | null;
   sendingImageError: string | null;
+  pendingMeetingPoint: PendingMeetingPoint | null;
   /** In flight for `openConversationFromBooking` (the "Message {owner}" CTA). */
   openingConversationFromBooking: boolean;
 }
@@ -42,5 +59,6 @@ export const initialChatState: ChatState = {
   sendingMessageError: null,
   pendingImage: null,
   sendingImageError: null,
+  pendingMeetingPoint: null,
   openingConversationFromBooking: false,
 };

@@ -23,7 +23,9 @@ function leaf(bundle: unknown, path: string): string | undefined {
     .split('.')
     .reduce<unknown>(
       (node, part) =>
-        node !== null && typeof node === 'object' ? (node as Record<string, unknown>)[part] : undefined,
+        node !== null && typeof node === 'object'
+          ? (node as Record<string, unknown>)[part]
+          : undefined,
       bundle,
     );
   return typeof value === 'string' ? value : undefined;
@@ -58,7 +60,9 @@ describe('ApiErrorMapper', () => {
       expect(mapper.message(error)).toBe('Այս ամսաթվերն արդեն զբաղված են։ Ընտրեք այլ ամսաթվեր։');
 
       translate.use('en');
-      expect(mapper.message(error)).toBe('These dates are already booked. Please choose different dates.');
+      expect(mapper.message(error)).toBe(
+        'These dates are already booked. Please choose different dates.',
+      );
     });
 
     it('prefers the code over the status', () => {
@@ -81,6 +85,21 @@ describe('ApiErrorMapper', () => {
       const error = problem(403, { errorCode: 'auth.user_blocked', title: 'User is blocked' });
       expect(mapper.message(error)).not.toContain('User is blocked');
       expect(mapper.message(error)).toBe(leaf(en, 'errors.userBlocked'));
+    });
+  });
+
+  describe('meeting point codes (ADR-053)', () => {
+    it.each([
+      ['chat.meeting_point_owner_only', 'errors.ownerOnly'],
+      ['chat.meeting_point_unavailable', 'errors.meetingPointUnavailable'],
+      ['chat.home_point_required', 'chat.meetingPoint.noHomePoint'],
+      ['chat.meeting_point_invalid', 'errors.validation'],
+      ['chat.meeting_point_outside_yerevan', 'chat.meetingPoint.picker.outside'],
+    ])('maps %s to %s without leaking the server text', (code, key) => {
+      const error = problem(400, { errorCode: code, title: 'English server text' });
+      expect(resolveApiErrorKey(error)).toBe(key);
+      expect(mapper.message(error)).toBe(leaf(en, key));
+      expect(mapper.message(error)).not.toContain('English server text');
     });
   });
 

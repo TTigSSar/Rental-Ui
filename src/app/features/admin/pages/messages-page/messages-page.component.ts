@@ -22,6 +22,7 @@ import { debounceTime, distinctUntilChanged, filter as rxFilter, map, skip } fro
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import { selectAuthUser } from '../../../auth/store/auth.selectors';
+import { MeetingPointBubbleComponent } from '../../../chat/components/meeting-point-bubble/meeting-point-bubble.component';
 import { ModerationNoteCardComponent } from '../../../chat/components/moderation-note-card/moderation-note-card.component';
 import { CHAT_MESSAGE_MAX_LENGTH, type ChatMessage } from '../../../chat/models/chat.model';
 import { AdminPageHeaderComponent } from '../../components/admin-page-header/admin-page-header.component';
@@ -108,6 +109,7 @@ const FILTERS: readonly { id: AdminMessageThreadFilter; labelKey: string }[] = [
     AvatarComponent,
     UiDatePipe,
     IconComponent,
+    MeetingPointBubbleComponent,
     MessageModule,
     ModerationNoteCardComponent,
     SkeletonModule,
@@ -319,6 +321,9 @@ export class MessagesPageComponent implements OnInit {
       return subject && subject.length > 0
         ? this.translate.instant('admin.messages.list.notePreview', { subject })
         : this.translate.instant('admin.messages.list.noteNoSubject');
+    }
+    if (thread.lastMessageType === 'location') {
+      return this.translate.instant('chat.meetingPoint.title');
     }
     const snippet = thread.lastMessageSnippet?.trim();
     return snippet && snippet.length > 0

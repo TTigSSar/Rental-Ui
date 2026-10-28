@@ -393,6 +393,123 @@ describe('chatReducer', () => {
     });
   });
 
+  describe('meeting point share (ADR-053)', () => {
+    const request = { kind: 'other', latitude: 40.18, longitude: 44.51 } as const;
+    const location = (overrides: Partial<ChatMessage> = {}): ChatMessage =>
+      makeMessage({
+        id: 'loc-1',
+        type: 'location',
+        body: null,
+        latitude: 40.18,
+        longitude: 44.51,
+        meetingPointKind: 'other',
+        ...overrides,
+      });
+
+    it('shareMeetingPoint puts the share in the sending state', () => {
+      const next = chatReducer(
+        initialChatState,
+        ChatActions.shareMeetingPoint({ conversationId: 'c1', request }),
+      );
+      expect(next.pendingMeetingPoint).toEqual({
+        conversationId: 'c1',
+        request,
+        status: 'sending',
+        error: null,
+        errorCode: null,
+      });
+    });
+
+    it('failure keeps the request and records the mapped message and the raw code', () => {
+      const sending = chatReducer(
+        initialChatState,
+        ChatActions.shareMeetingPoint({ conversationId: 'c1', request }),
+      );
+      const failed = chatReducer(
+        sending,
+        ChatActions.shareMeetingPointFailure({
+          error: 'Outside Yerevan',
+          errorCode: 'chat.meeting_point_outside_yerevan',
+        }),
+      );
+      expect(failed.pendingMeetingPoint).toMatchObject({
+        status: 'failed',
+        request,
+        error: 'Outside Yerevan',
+        errorCode: 'chat.meeting_point_outside_yerevan',
+      });
+    });
+
+    it('success clears the share and appends the location message once (echo dedupe)', () => {
+      const state: ChatState = {
+        ...initialChatState,
+        activeConversation: makeDetails(),
+        pendingMeetingPoint: {
+          conversationId: 'c1',
+          request,
+          status: 'sending',
+          error: null,
+          errorCode: null,
+        },
+      };
+      const once = chatReducer(
+        state,
+        ChatActions.shareMeetingPointSuccess({ message: location() }),
+      );
+      expect(once.pendingMeetingPoint).toBeNull();
+      expect(once.activeConversation?.messages.map((m) => m.id)).toEqual(['loc-1']);
+
+      const echoed = chatReducer(
+        once,
+        ChatActions.realtimeMessageResolved({ message: location() }),
+      );
+      expect(echoed.activeConversation?.messages).toHaveLength(1);
+    });
+
+    it('dismiss and leaveConversation clear a failed share', () => {
+      const failed: ChatState = {
+        ...initialChatState,
+        pendingMeetingPoint: {
+          conversationId: 'c1',
+          request,
+          status: 'failed',
+          error: 'x',
+          errorCode: null,
+        },
+      };
+      expect(
+        chatReducer(failed, ChatActions.dismissPendingMeetingPoint()).pendingMeetingPoint,
+      ).toBeNull();
+      expect(chatReducer(failed, ChatActions.leaveConversation()).pendingMeetingPoint).toBeNull();
+    });
+
+    it('a live location message from the counterpart counts unread like a text message', () => {
+      const state: ChatState = {
+        ...initialChatState,
+        conversations: [makePreview({ unreadCount: 0 })],
+      };
+      const next = chatReducer(
+        state,
+        ChatActions.realtimeMessageResolved({ message: location({ isMine: false }) }),
+      );
+      expect(next.conversations[0].unreadCount).toBe(1);
+      expect(next.conversations[0].lastMessageType).toBe('location');
+      expect(next.conversations[0].lastMessageSnippet).toBeNull();
+    });
+
+    it('appends a live location message to the open conversation', () => {
+      const state: ChatState = { ...initialChatState, activeConversation: makeDetails() };
+      const next = chatReducer(
+        state,
+        ChatActions.realtimeMessageResolved({ message: location({ isMine: false }) }),
+      );
+      expect(next.activeConversation?.messages[0]).toMatchObject({
+        type: 'location',
+        meetingPointKind: 'other',
+      });
+    });
+  });
+
   describe('realtimeMessageResolved', () => {
     it('appends an incoming message to the open conversation', () => {
       const start = stateWith({

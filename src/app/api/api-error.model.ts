@@ -167,6 +167,12 @@ export type KnownApiErrorCode =
   | 'chat.message_too_long'
   | 'chat.attachment_too_large'
   | 'chat.attachment_invalid_type'
+  // ADR-053 — POST /api/chat/conversations/{id}/meeting-point
+  | 'chat.meeting_point_owner_only'
+  | 'chat.meeting_point_unavailable'
+  | 'chat.home_point_required'
+  | 'chat.meeting_point_invalid'
+  | 'chat.meeting_point_outside_yerevan'
   // favorite.* — FavoritesService
   | 'favorite.unauthenticated'
   | 'favorite.user_blocked'

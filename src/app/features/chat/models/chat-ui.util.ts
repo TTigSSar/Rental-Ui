@@ -1,10 +1,13 @@
 import type { BadgeTone } from '../../../shared/ui/badge/badge.component';
 import { formatUiDate } from '../../../shared/utils/ui-date';
 import type {
+  ChatConversationKind,
   ChatConversationPreview,
+  ChatMeetingPointKind,
   ChatModerationNoteKind,
   ChatStatus,
   ChatSystemKind,
+  ChatViewerRole,
 } from './chat.model';
 
 /**
@@ -258,4 +261,42 @@ export function filterConversations(
       conversation.counterpartName.toLowerCase().includes(normalized) ||
       (conversation.toyTitle !== null && conversation.toyTitle.toLowerCase().includes(normalized)),
   );
+}
+
+/** The conversation fields the meeting-point rules read (subset of `ChatConversationDetails`). */
+export interface MeetingPointShareContext {
+  readonly kind: ChatConversationKind;
+  readonly viewerRole: ChatViewerRole | null;
+  readonly bookingStatus: ChatStatus | null;
+  readonly isClosed: boolean;
+}
+
+/**
+ * Whether the composer shows the "Share meeting point" pin (ADR-053): booking threads
+ * only, viewer is the booking owner, the handover is still ahead (booking Approved or
+ * Active — the Active booking's derived `return_due` pill included), and the chat is
+ * not read-only. A renter never sees it. The server re-checks every rule.
+ */
+export function canShareMeetingPoint(conversation: MeetingPointShareContext): boolean {
+  return (
+    conversation.kind === 'booking' &&
+    conversation.viewerRole === 'owner' &&
+    !conversation.isClosed &&
+    (conversation.bookingStatus === 'approved' ||
+      conversation.bookingStatus === 'active' ||
+      conversation.bookingStatus === 'return_due')
+  );
+}
+
+/** External "Open in maps" link for a shared point. Coordinates are never rendered as text. */
+export function meetingPointMapsUrl(latitude: number, longitude: number): string {
+  return `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+}
+
+/**
+ * Bubble subtitle key: "Owner's home" only for a home share; an "other place" share has
+ * no subtitle (approved design, Proposal A).
+ */
+export function meetingPointSubtitleKey(kind: ChatMeetingPointKind | null): string | null {
+  return kind === 'home' ? 'chat.meetingPoint.ownerHome' : null;
 }

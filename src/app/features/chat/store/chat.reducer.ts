@@ -30,8 +30,7 @@ function applyMessageToInbox(
 
     // System lines never bump locally: the server does not count them for their
     // actor, and the badge/list refresh reconciles the other party's count.
-    const bumpsUnread =
-      !message.isMine && !isOpenConversation && message.type !== 'system';
+    const bumpsUnread = !message.isMine && !isOpenConversation && message.type !== 'system';
     return {
       ...conversation,
       // An image with no caption has a null body — the row then renders the
@@ -42,9 +41,7 @@ function applyMessageToInbox(
       lastMessageSystemKind: message.systemKind,
       lastMessageIsMine: message.isMine,
       lastMessageAt: message.sentAt,
-      unreadCount: bumpsUnread
-        ? conversation.unreadCount + 1
-        : conversation.unreadCount,
+      unreadCount: bumpsUnread ? conversation.unreadCount + 1 : conversation.unreadCount,
     };
   });
 
@@ -184,6 +181,7 @@ export const chatReducer = createReducer(
       activeConversation: null,
       activeConversationLoading: false,
       activeConversationError: null,
+      pendingMeetingPoint: null,
     }),
   ),
   on(
@@ -202,33 +200,27 @@ export const chatReducer = createReducer(
       sendingMessageError: null,
     }),
   ),
-  on(
-    ChatActions.sendMessageSuccess,
-    (state, { message }): ChatState => {
-      if (
-        state.activeConversation === null ||
-        state.activeConversation.id !== message.conversationId
-      ) {
-        return {
-          ...state,
-          sendingMessage: false,
-          sendingMessageError: null,
-        };
-      }
-
-      // Deduped against the SignalR echo: the hub broadcasts `messageReceived`
-      // to the sender too, and it can land before this POST response (M-006).
+  on(ChatActions.sendMessageSuccess, (state, { message }): ChatState => {
+    if (
+      state.activeConversation === null ||
+      state.activeConversation.id !== message.conversationId
+    ) {
       return {
         ...state,
         sendingMessage: false,
         sendingMessageError: null,
-        activeConversation: appendMessageDeduped(
-          state.activeConversation,
-          message,
-        ),
       };
-    },
-  ),
+    }
+
+    // Deduped against the SignalR echo: the hub broadcasts `messageReceived`
+    // to the sender too, and it can land before this POST response (M-006).
+    return {
+      ...state,
+      sendingMessage: false,
+      sendingMessageError: null,
+      activeConversation: appendMessageDeduped(state.activeConversation, message),
+    };
+  }),
   on(
     ChatActions.sendMessageFailure,
     (state, { error }): ChatState => ({
@@ -245,41 +237,32 @@ export const chatReducer = createReducer(
       sendingImageError: null,
     }),
   ),
-  on(
-    ChatActions.sendImageMessageSuccess,
-    (state, { message }): ChatState => {
-      const base: ChatState = {
-        ...state,
-        pendingImage: null,
-        sendingImageError: null,
-      };
+  on(ChatActions.sendImageMessageSuccess, (state, { message }): ChatState => {
+    const base: ChatState = {
+      ...state,
+      pendingImage: null,
+      sendingImageError: null,
+    };
 
-      if (
-        state.activeConversation === null ||
-        state.activeConversation.id !== message.conversationId
-      ) {
-        return base;
-      }
+    if (
+      state.activeConversation === null ||
+      state.activeConversation.id !== message.conversationId
+    ) {
+      return base;
+    }
 
-      // Same two-channel race as the text send: the hub echoes the image back to
-      // the uploader, so this HTTP response may be the SECOND arrival (M-006).
-      return {
-        ...base,
-        activeConversation: appendMessageDeduped(
-          state.activeConversation,
-          message,
-        ),
-      };
-    },
-  ),
+    // Same two-channel race as the text send: the hub echoes the image back to
+    // the uploader, so this HTTP response may be the SECOND arrival (M-006).
+    return {
+      ...base,
+      activeConversation: appendMessageDeduped(state.activeConversation, message),
+    };
+  }),
   on(
     ChatActions.sendImageMessageFailure,
     (state, { error }): ChatState => ({
       ...state,
-      pendingImage:
-        state.pendingImage === null
-          ? null
-          : { ...state.pendingImage, failed: true },
+      pendingImage: state.pendingImage === null ? null : { ...state.pendingImage, failed: true },
       sendingImageError: error,
     }),
   ),
@@ -292,45 +275,73 @@ export const chatReducer = createReducer(
     }),
   ),
   on(
+    ChatActions.shareMeetingPoint,
+    (state, { conversationId, request }): ChatState => ({
+      ...state,
+      pendingMeetingPoint: {
+        conversationId,
+        request,
+        status: 'sending',
+        error: null,
+        errorCode: null,
+      },
+    }),
+  ),
+  on(ChatActions.shareMeetingPointSuccess, (state, { message }): ChatState => {
+    const base: ChatState = { ...state, pendingMeetingPoint: null };
+    if (
+      state.activeConversation === null ||
+      state.activeConversation.id !== message.conversationId
+    ) {
+      return base;
+    }
+    // Same two-channel race as text/image (the hub echoes it back): dedupe (M-006).
+    return {
+      ...base,
+      activeConversation: appendMessageDeduped(state.activeConversation, message),
+    };
+  }),
+  on(
+    ChatActions.shareMeetingPointFailure,
+    (state, { error, errorCode }): ChatState => ({
+      ...state,
+      pendingMeetingPoint:
+        state.pendingMeetingPoint === null
+          ? null
+          : { ...state.pendingMeetingPoint, status: 'failed', error, errorCode },
+    }),
+  ),
+  on(
+    ChatActions.dismissPendingMeetingPoint,
+    (state): ChatState => ({ ...state, pendingMeetingPoint: null }),
+  ),
+  on(
     ChatActions.markConversationRead,
     (state, { conversationId }): ChatState => ({
       ...state,
       conversations: state.conversations.map((conversation) =>
-        conversation.id === conversationId
-          ? { ...conversation, unreadCount: 0 }
-          : conversation,
+        conversation.id === conversationId ? { ...conversation, unreadCount: 0 } : conversation,
       ),
     }),
   ),
-  on(
-    ChatActions.realtimeMessageResolved,
-    (state, { message }): ChatState => {
-      const isOpenConversation =
-        state.activeConversation !== null &&
-        state.activeConversation.id === message.conversationId;
+  on(ChatActions.realtimeMessageResolved, (state, { message }): ChatState => {
+    const isOpenConversation =
+      state.activeConversation !== null && state.activeConversation.id === message.conversationId;
 
-      const conversations = applyMessageToInbox(
-        state.conversations,
-        message,
-        isOpenConversation,
-      );
+    const conversations = applyMessageToInbox(state.conversations, message, isOpenConversation);
 
-      if (!isOpenConversation) {
-        return { ...state, conversations };
-      }
+    if (!isOpenConversation) {
+      return { ...state, conversations };
+    }
 
-      // Deduped against the HTTP response of our own send (text or image) —
-      // whichever channel arrives first wins, the other is a no-op (M-006).
-      return {
-        ...state,
-        conversations,
-        activeConversation: appendMessageDeduped(
-          state.activeConversation!,
-          message,
-        ),
-      };
-    },
-  ),
+    // Deduped against the HTTP response of our own send (text or image) —
+    // whichever channel arrives first wins, the other is a no-op (M-006).
+    return {
+      ...state,
+      conversations,
+      activeConversation: appendMessageDeduped(state.activeConversation!, message),
+    };
+  }),
   on(
     ChatActions.realtimeConversationReadResolved,
     (state, { conversationId, readAtUtc, readerIsMe }): ChatState => {
@@ -339,18 +350,13 @@ export const chatReducer = createReducer(
         return {
           ...state,
           conversations: state.conversations.map((conversation) =>
-            conversation.id === conversationId
-              ? { ...conversation, unreadCount: 0 }
-              : conversation,
+            conversation.id === conversationId ? { ...conversation, unreadCount: 0 } : conversation,
           ),
         };
       }
 
       // The counterpart read the open thread → mark my delivered messages "Seen".
-      if (
-        state.activeConversation === null ||
-        state.activeConversation.id !== conversationId
-      ) {
+      if (state.activeConversation === null || state.activeConversation.id !== conversationId) {
         return state;
       }
 

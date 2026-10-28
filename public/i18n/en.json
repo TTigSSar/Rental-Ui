@@ -46,6 +46,7 @@
     "ownerOnly": "Only the owner of the toy can do this.",
     "phoneRequired": "Add a phone number to your profile first.",
     "homePointRequired": "Set your home point in your profile before listing a toy.",
+    "meetingPointUnavailable": "A meeting point can only be shared for an approved or active booking.",
     "conversationNotFound": "This conversation no longer exists.",
     "messageTooLong": "Your message is too long. Keep it to {{max}} characters or fewer.",
     "imageEmpty": "The selected file is empty. Choose another image.",
@@ -2363,6 +2364,49 @@
     "shell": {
       "emptyTitle": "Select a conversation",
       "emptyText": "Choose a conversation from the list to view messages."
+    },
+    "meetingPoint": {
+      "button": "Share meeting point",
+      "title": "Meeting point",
+      "ownerHome": "Owner’s home",
+      "link": "Open in maps",
+      "sending": "Sending…",
+      "failA": "Couldn’t send the meeting point.",
+      "failB": "Try again.",
+      "dismiss": "Dismiss",
+      "readOnly": "This chat is now read-only. The meeting point was not sent.",
+      "noHomePoint": "Add your home point in your profile first.",
+      "chooser": {
+        "title": "What do you want to share?",
+        "homeTitle": "My home point",
+        "homeText": "The exact location of your home, where renters collect toys.",
+        "otherTitle": "Another place",
+        "otherText": "Pick a spot on the map, such as a park or a metro exit. Your home point is not shared.",
+        "noHome": "No home point saved yet.",
+        "setHome": "Set home point",
+        "history": "Either way, the point stays in the chat history.",
+        "shareHome": "Share home point",
+        "chooseMap": "Choose on map",
+        "notNow": "Not now"
+      },
+      "picker": {
+        "title": "Pick a meeting place",
+        "subtitle": "Move the map so the pin is on the spot.",
+        "back": "Back",
+        "confirm": "Share this point",
+        "outside": "This spot is outside Yerevan. Choose a place in Yerevan.",
+        "hintInitTitle": "Starting from your home point",
+        "hintInitCityTitle": "Starting from the city centre",
+        "hintInitText": "Move the map to a park, a mall or a metro exit.",
+        "hintPanTitle": "Keep moving",
+        "hintPanText": "Let go when the pin is on the spot.",
+        "hintOkTitle": "Is this the right spot?",
+        "hintOkText": "{{name}} gets a link to open it in maps.",
+        "chipUpdating": "Updating…",
+        "statusNone": "No spot selected yet",
+        "statusOk": "Spot selected · {{district}}",
+        "note": "This exact spot is sent to {{name}} and stays in the chat history."
+      }
     },
     "conversations": {
       "title": "Messages",

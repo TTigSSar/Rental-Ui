@@ -5,6 +5,7 @@ import type {
   ChatConversationPreview,
   ChatMessage,
   ChatRealtimeMessage,
+  ShareMeetingPointRequest,
 } from '../models/chat.model';
 
 export const loadConversations = createAction('[Chat] Load Conversations');
@@ -87,6 +88,26 @@ export const sendImageMessageFailure = createAction(
 
 /** Dismisses the failed optimistic image bubble + its error banner. */
 export const dismissPendingImage = createAction('[Chat] Dismiss Pending Image');
+
+/** Owner shares the meeting point (ADR-053): `home` or a picked `other` place. */
+export const shareMeetingPoint = createAction(
+  '[Chat] Share Meeting Point',
+  props<{ conversationId: string; request: ShareMeetingPointRequest }>(),
+);
+
+export const shareMeetingPointSuccess = createAction(
+  '[Chat] Share Meeting Point Success',
+  props<{ message: ChatMessage }>(),
+);
+
+/** `error` is the mapped display string (ADR-045); `errorCode` the raw API code, if any. */
+export const shareMeetingPointFailure = createAction(
+  '[Chat] Share Meeting Point Failure',
+  props<{ error: string; errorCode: string | null }>(),
+);
+
+/** Clears the failed share (bubble dismissed / picker closed / read-only note dismissed). */
+export const dismissPendingMeetingPoint = createAction('[Chat] Dismiss Pending Meeting Point');
 
 export const markConversationRead = createAction(
   '[Chat] Mark Conversation Read',

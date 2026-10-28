@@ -87,6 +87,16 @@ export class HomePointMapComponent {
    */
   readonly openedOnExistingPoint = input<boolean>(false);
   readonly height = input<string>('100%');
+  /**
+   * `default` is the home-point chip (instruction until a deliberate choice, then the
+   * verdict, top-left). `pin` is the "share a meeting place" look (ADR-053): a drawn
+   * teardrop pin, a chip centred above it that ALWAYS shows the live district (with an
+   * updating state) and turns red outside Yerevan. Behaviour and the emitted selection
+   * are identical in both.
+   */
+  readonly chipVariant = input<'default' | 'pin'>('default');
+  /** `pin` variant only: the "Updating…" line shown while a district lookup is in flight. */
+  readonly chipUpdatingKey = input<string>('homePoint.map.resolving');
   /** Bumping this re-arms the map (re-centres, clears "moved"/"denied") — hosts
    *  that keep the component alive across open/close cycles increment it on
    *  open, since there is no `ngOnInit` to hook for that. */

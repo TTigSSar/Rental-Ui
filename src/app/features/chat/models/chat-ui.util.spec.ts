@@ -1,5 +1,6 @@
 import type { ChatConversationPreview } from './chat.model';
 import {
+  canShareMeetingPoint,
   chatDayKey,
   chatDayLabel,
   filterConversations,
@@ -9,6 +10,8 @@ import {
   mapChatSystemMeta,
   mapChatSystemPreview,
   mapModerationNoteMeta,
+  meetingPointMapsUrl,
+  meetingPointSubtitleKey,
 } from './chat-ui.util';
 
 describe('mapChatStatusTone', () => {
@@ -307,5 +310,56 @@ describe('mapChatSystemMeta', () => {
 
   it('falls back to default for null', () => {
     expect(mapChatSystemMeta(null).labelKey).toBe('chat.system.default');
+  });
+});
+
+describe('canShareMeetingPoint (ADR-053 pin button visibility)', () => {
+  const base = {
+    kind: 'booking',
+    viewerRole: 'owner',
+    bookingStatus: 'approved',
+    isClosed: false,
+  } as const;
+
+  it.each(['approved', 'active', 'return_due'] as const)(
+    'shows the pin to the owner of a %s booking in a live chat',
+    (bookingStatus) => {
+      expect(canShareMeetingPoint({ ...base, bookingStatus })).toBe(true);
+    },
+  );
+
+  it('never shows it to the renter', () => {
+    expect(canShareMeetingPoint({ ...base, viewerRole: 'renter' })).toBe(false);
+  });
+
+  it.each(['requested', 'completed', 'closed', 'not_happened', 'moderation'] as const)(
+    'hides it for a %s booking',
+    (bookingStatus) => {
+      expect(canShareMeetingPoint({ ...base, bookingStatus })).toBe(false);
+    },
+  );
+
+  it('hides it when the chat is read-only', () => {
+    expect(canShareMeetingPoint({ ...base, isClosed: true })).toBe(false);
+  });
+
+  it('hides it in a moderation thread and when the role or status is unknown', () => {
+    expect(canShareMeetingPoint({ ...base, kind: 'moderation' })).toBe(false);
+    expect(canShareMeetingPoint({ ...base, viewerRole: null })).toBe(false);
+    expect(canShareMeetingPoint({ ...base, bookingStatus: null })).toBe(false);
+  });
+});
+
+describe('meeting point bubble helpers', () => {
+  it('builds the Google Maps search link from the coordinates', () => {
+    expect(meetingPointMapsUrl(40.1811, 44.5136)).toBe(
+      'https://www.google.com/maps/search/?api=1&query=40.1811,44.5136',
+    );
+  });
+
+  it("has the Owner's home subtitle for a home share only", () => {
+    expect(meetingPointSubtitleKey('home')).toBe('chat.meetingPoint.ownerHome');
+    expect(meetingPointSubtitleKey('other')).toBeNull();
+    expect(meetingPointSubtitleKey(null)).toBeNull();
   });
 });

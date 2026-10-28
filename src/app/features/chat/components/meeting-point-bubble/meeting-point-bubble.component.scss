@@ -1,0 +1,121 @@
+/* Design: mp-parts.jsx `MeetingBubble` — 240px on mobile, 264px on desktop (>= 1024, the
+   thread's own desktop breakpoint); the existing chat-bubble shape (18px radius, 6px tail
+   corner), white with a hairline on the counterpart side, navy on the viewer's. */
+:host {
+  display: block;
+}
+
+.mp-bubble {
+  width: 240px;
+  max-width: 100%;
+  overflow: hidden;
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-primary);
+  border: 1px solid var(--ui-color-border);
+  border-radius: 18px;
+  border-bottom-left-radius: 6px;
+  box-shadow: 0 1px 2px rgba(20, 15, 5, 0.04);
+}
+
+.mp-bubble--mine {
+  background: var(--ui-color-secondary);
+  border-color: var(--ui-color-secondary);
+  color: var(--ui-color-on-primary);
+  border-bottom-left-radius: 18px;
+  border-bottom-right-radius: 6px;
+  box-shadow: 0 2px 8px -3px rgba(42, 44, 65, 0.4);
+}
+
+.mp-bubble--idle {
+  opacity: 0.55;
+}
+
+.mp-bubble__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px 10px;
+}
+
+/* 36px tile, 10px radius, primary-soft fill, brand-orange icon (non-text, so the brand
+   colour rather than primary-strong — ADR-031). */
+.mp-bubble__tile {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--ui-color-primary-soft);
+  color: var(--ui-color-primary);
+}
+
+.mp-bubble__copy {
+  min-width: 0;
+}
+
+.mp-bubble__title {
+  display: block;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+}
+
+.mp-bubble__subtitle {
+  display: block;
+  font-size: 12.5px;
+  line-height: 17px;
+  font-weight: 500;
+  color: var(--ui-color-text-secondary);
+}
+
+.mp-bubble--mine .mp-bubble__subtitle {
+  /* No token for this tint on navy (design value). */
+  color: #c9cad6;
+}
+
+.mp-bubble__link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-top: 1px solid var(--ui-color-border);
+  color: var(--ui-color-primary-strong);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mp-bubble__link .pi {
+  font-size: 13px;
+}
+
+.mp-bubble__link:hover {
+  text-decoration: underline;
+}
+
+.mp-bubble__link:focus-visible {
+  outline: 2px solid var(--ui-color-primary-strong);
+  outline-offset: -2px;
+}
+
+.mp-bubble--mine .mp-bubble__link {
+  border-top-color: rgba(255, 255, 255, 0.16);
+  /* Design value on navy (no token): 9.9:1 on #2a2c41. */
+  color: #ffd3b3;
+}
+
+.mp-bubble--mine .mp-bubble__link:focus-visible {
+  outline-color: #ffd3b3;
+}
+
+.mp-bubble--idle .mp-bubble__link {
+  pointer-events: none;
+}
+
+@media (min-width: 1024px) {
+  .mp-bubble {
+    width: 264px;
+  }
+}

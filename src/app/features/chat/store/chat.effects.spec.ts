@@ -292,6 +292,80 @@ describe('ChatEffects', () => {
     });
   });
 
+  describe('shareMeetingPoint$ (ADR-053)', () => {
+    const location: ChatMessage = {
+      ...makeResolvedMessage(),
+      id: 'loc-1',
+      type: 'location',
+      body: null,
+      latitude: 40.18,
+      longitude: 44.51,
+      meetingPointKind: 'other',
+      isMine: true,
+    };
+
+    it('posts the request and maps the response to shareMeetingPointSuccess', async () => {
+      const shareMeetingPoint = vi.fn(() => of(location));
+      const { harness, effects } = setup({
+        shareMeetingPoint,
+      } as unknown as Partial<ChatApiService>);
+
+      const result = collect(effects.shareMeetingPoint$);
+      const request = { kind: 'other', latitude: 40.18, longitude: 44.51 } as const;
+      harness.send(ChatActions.shareMeetingPoint({ conversationId: 'c1', request }));
+      harness.complete();
+
+      expect(shareMeetingPoint).toHaveBeenCalledWith('c1', request);
+      expect(await result).toEqual([ChatActions.shareMeetingPointSuccess({ message: location })]);
+    });
+
+    it('maps a failure through the error mapper and keeps the raw code', async () => {
+      const { harness, effects } = setup({
+        shareMeetingPoint: vi.fn(() =>
+          throwError(() =>
+            problemDetails(
+              400,
+              'chat.meeting_point_outside_yerevan',
+              'For now DoRent works only in Yerevan.',
+            ),
+          ),
+        ),
+      } as unknown as Partial<ChatApiService>);
+
+      const result = collect(effects.shareMeetingPoint$);
+      harness.send(
+        ChatActions.shareMeetingPoint({
+          conversationId: 'c1',
+          request: { kind: 'other', latitude: 0, longitude: 0 },
+        }),
+      );
+      harness.complete();
+
+      expect(await result).toEqual([
+        ChatActions.shareMeetingPointFailure({
+          error: 'chat.meetingPoint.picker.outside',
+          errorCode: 'chat.meeting_point_outside_yerevan',
+        }),
+      ]);
+    });
+
+    it('re-fetches the open conversation when the share failed because the chat closed', async () => {
+      const { harness, effects } = setup();
+
+      const result = collect(effects.reloadAfterMeetingPointClosed$);
+      harness.send(
+        ChatActions.shareMeetingPointFailure({
+          error: 'closed',
+          errorCode: 'chat.conversation_closed',
+        }),
+      );
+      harness.send(ChatActions.shareMeetingPointFailure({ error: 'x', errorCode: null }));
+      harness.complete();
+
+      expect(await result).toEqual([ChatActions.loadConversationDetails({ conversationId: 'c1' })]);
+    });
+  });
+
   describe('sendImageMessage$', () => {
     it('uploads the file and revokes the optimistic preview URL on success', async () => {
       const message: ChatMessage = {

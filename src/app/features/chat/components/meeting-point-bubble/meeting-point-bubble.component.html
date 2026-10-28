@@ -1,0 +1,30 @@
+<div
+  class="mp-bubble"
+  [class.mp-bubble--mine]="mine()"
+  [class.mp-bubble--idle]="idle()"
+  role="group"
+  [attr.aria-label]="'chat.meetingPoint.title' | translate"
+>
+  <div class="mp-bubble__head">
+    <span class="mp-bubble__tile" aria-hidden="true">
+      <app-icon name="pin" [size]="19" />
+    </span>
+    <div class="mp-bubble__copy">
+      <b class="mp-bubble__title">{{ 'chat.meetingPoint.title' | translate }}</b>
+      @if (subtitleKey(); as key) {
+        <span class="mp-bubble__subtitle">{{ key | translate }}</span>
+      }
+    </div>
+  </div>
+  <a
+    class="mp-bubble__link"
+    [attr.href]="mapsUrl()"
+    target="_blank"
+    rel="noopener noreferrer"
+    [attr.tabindex]="idle() ? -1 : null"
+    [attr.aria-disabled]="idle() ? 'true' : null"
+  >
+    <span>{{ 'chat.meetingPoint.link' | translate }}</span>
+    <i class="pi pi-external-link" aria-hidden="true"></i>
+  </a>
+</div>

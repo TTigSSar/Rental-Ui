@@ -458,6 +458,13 @@
   vertical-align: -1px;
 }
 
+/* Pin glyph marking a shared meeting point (ADR-053) in primary-strong (#C24600). */
+.chat-row__snippet-pin {
+  margin-right: 4px;
+  vertical-align: -3px;
+  color: var(--ui-color-primary-strong);
+}
+
 /* "You:" prefix on own last-message rows. */
 .chat-row__snippet-prefix {
   font-weight: var(--ui-font-weight-semibold);

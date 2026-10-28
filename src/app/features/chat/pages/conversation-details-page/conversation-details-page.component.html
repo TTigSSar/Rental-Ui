@@ -185,25 +185,36 @@
                   }
 
                   @for (message of item.messages; track message.id) {
-                    <div
-                      class="chat-bubble"
-                      [class.chat-bubble--mine]="item.isMine"
-                      [class.chat-bubble--image]="message.type === 'image' && message.attachmentUrl"
-                    >
-                      @if (message.type === 'image' && message.attachmentUrl) {
-                        <img
-                          class="chat-bubble__image"
-                          [src]="message.attachmentUrl"
-                          [alt]="message.body || ('chat.details.imageAlt' | translate)"
-                          loading="lazy"
-                        />
-                        @if (message.body) {
-                          <p class="chat-bubble__text chat-bubble__caption">{{ message.body }}</p>
+                    @if (message.type === 'location') {
+                      <app-meeting-point-bubble
+                        [latitude]="message.latitude"
+                        [longitude]="message.longitude"
+                        [kind]="message.meetingPointKind"
+                        [mine]="item.isMine"
+                      />
+                    } @else {
+                      <div
+                        class="chat-bubble"
+                        [class.chat-bubble--mine]="item.isMine"
+                        [class.chat-bubble--image]="
+                          message.type === 'image' && message.attachmentUrl
+                        "
+                      >
+                        @if (message.type === 'image' && message.attachmentUrl) {
+                          <img
+                            class="chat-bubble__image"
+                            [src]="message.attachmentUrl"
+                            [alt]="message.body || ('chat.details.imageAlt' | translate)"
+                            loading="lazy"
+                          />
+                          @if (message.body) {
+                            <p class="chat-bubble__text chat-bubble__caption">{{ message.body }}</p>
+                          }
+                        } @else {
+                          <p class="chat-bubble__text">{{ message.body }}</p>
                         }
-                      } @else {
-                        <p class="chat-bubble__text">{{ message.body }}</p>
-                      }
-                    </div>
+                      </div>
+                    }
                   }
 
                   <div class="chat-group__footer">
@@ -258,6 +269,49 @@
               </div>
             </div>
           }
+
+          <!-- Optimistic bubble for a HOME meeting-point share in flight / failed (ADR-053).
+               An "Another place" share is owned by the map picker, so it has no bubble here;
+               a share that failed because the chat went read-only is explained by the
+               read-only note below instead. -->
+          @if (vm.pendingMeetingPoint; as mp) {
+            @if (mp.request.kind === 'home' && !isReadOnlyFailure(mp)) {
+              <div class="chat-group chat-group--mine">
+                <app-meeting-point-bubble kind="home" [mine]="true" [state]="mp.status" />
+                @if (mp.status === 'failed') {
+                  <div class="chat-mp-status chat-mp-status--failed" role="alert">
+                    <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+                    <span class="chat-mp-status__text">
+                      {{ 'chat.meetingPoint.failA' | translate }}
+                      <button
+                        type="button"
+                        class="chat-mp-status__retry"
+                        (click)="retryMeetingPoint(conversation.id)"
+                      >
+                        {{ 'chat.meetingPoint.failB' | translate }}
+                      </button>
+                      @if (mp.error) {
+                        <span class="chat-mp-status__detail">{{ mp.error }}</span>
+                      }
+                    </span>
+                    <button
+                      type="button"
+                      class="chat-mp-status__dismiss"
+                      [attr.aria-label]="'chat.meetingPoint.dismiss' | translate"
+                      (click)="dismissPendingMeetingPoint()"
+                    >
+                      <i class="pi pi-times" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                } @else {
+                  <p class="chat-mp-status" role="status">
+                    <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+                    {{ 'chat.meetingPoint.sending' | translate }}
+                  </p>
+                }
+              </div>
+            }
+          }
         </div>
 
         @if (vm.sendingMessageError; as sendingError) {
@@ -270,6 +324,24 @@
           <p-message severity="error" styleClass="chat-thread__message">
             <span>{{ imageError }}</span>
           </p-message>
+        }
+
+        <!-- The share failed because the chat turned read-only meanwhile (dismissible). -->
+        @if (isReadOnlyFailure(vm.pendingMeetingPoint)) {
+          <div class="chat-thread__mp-note-wrap">
+            <div class="chat-thread__mp-note" role="status">
+              <i class="pi pi-lock" aria-hidden="true"></i>
+              <span>{{ 'chat.meetingPoint.readOnly' | translate }}</span>
+              <button
+                type="button"
+                class="chat-thread__mp-note-dismiss"
+                [attr.aria-label]="'chat.meetingPoint.dismiss' | translate"
+                (click)="dismissPendingMeetingPoint()"
+              >
+                <i class="pi pi-times" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
         }
 
         <!-- Composer, or the read-only footer once the rental is finished -->
@@ -297,6 +369,20 @@
             >
               <i class="pi pi-image" aria-hidden="true"></i>
             </button>
+            <!-- Owner only, Approved/Active booking, live chat (ADR-053): opens the chooser. -->
+            @if (vm.canShareMeetingPoint) {
+              <button
+                #pinButton
+                type="button"
+                class="chat-thread__composer-icon chat-thread__composer-icon--pin"
+                (click)="openMeetingChooser()"
+                [attr.data-tooltip]="'chat.meetingPoint.button' | translate"
+                [attr.aria-label]="'chat.meetingPoint.button' | translate"
+                aria-haspopup="dialog"
+              >
+                <app-icon name="pin" [size]="20" />
+              </button>
+            }
             <input
               #imageInput
               type="file"
@@ -371,6 +457,31 @@
           </form>
         }
       </div>
+
+      @if (vm.canShareMeetingPoint || chooserOpen() || pickerOpen()) {
+        <app-meeting-point-chooser
+          [open]="chooserOpen()"
+          [hasHomePoint]="hasHomePoint()"
+          [(choice)]="meetingChoice"
+          (cancelled)="closeMeetingChooser()"
+          (shareHome)="shareHomePoint(conversation.id)"
+          (chooseOnMap)="chooseOnMap()"
+          (setHomePoint)="chooserOpen.set(false)"
+        />
+        <app-location-picker
+          [open]="pickerOpen()"
+          [meetingPoint]="pickerMeetingPoint(conversation.counterpartName, vm.pendingMeetingPoint)"
+          [initialCenter]="pickerCenter()"
+          [saving]="pickerSending(vm.pendingMeetingPoint)"
+          headerKey="chat.meetingPoint.picker.title"
+          subtitleKey="chat.meetingPoint.picker.subtitle"
+          confirmLabelKey="chat.meetingPoint.picker.confirm"
+          cancelLabelKey="chat.meetingPoint.picker.back"
+          (confirmed)="sharePickedPoint(conversation.id, $event)"
+          (backRequested)="pickerBack()"
+          (cancelled)="closeMeetingPicker()"
+        />
+      }
     }
   }
 </section>

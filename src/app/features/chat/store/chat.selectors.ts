@@ -1,11 +1,8 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 
-import type {
-  ChatConversationDetails,
-  ChatConversationPreview,
-} from '../models/chat.model';
+import type { ChatConversationDetails, ChatConversationPreview } from '../models/chat.model';
 import { chatFeatureKey } from './chat.reducer';
-import type { ChatState, PendingChatImage } from './chat.state';
+import type { ChatState, PendingChatImage, PendingMeetingPoint } from './chat.state';
 
 export const selectChatState = createFeatureSelector<ChatState>(chatFeatureKey);
 
@@ -57,6 +54,11 @@ export const selectPendingImage = createSelector(
 export const selectSendingImageError = createSelector(
   selectChatState,
   (state: ChatState): string | null => state.sendingImageError,
+);
+
+export const selectPendingMeetingPoint = createSelector(
+  selectChatState,
+  (state: ChatState): PendingMeetingPoint | null => state.pendingMeetingPoint,
 );
 
 export const selectOpeningConversationFromBooking = createSelector(

@@ -952,3 +952,173 @@
     font-size: 1rem;
   }
 }
+
+/* ── Share meeting point (ADR-053) ────────────────────────────────────────
+   Owner-only pin button right after the photo button. Design: mp-parts.jsx — 44px circle,
+   wash fill (#fff2e9), 1.5px #f6d5bf border (no token: the nearest, primary-wash-border
+   #ffd9bd, is a different tint), primary-strong icon; pressed = primary-soft. */
+.chat-thread__composer-icon--pin {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border: 1.5px solid #f6d5bf;
+  background: var(--ui-color-primary-wash);
+  color: var(--ui-color-primary-strong);
+}
+
+.chat-thread__composer-icon--pin:hover {
+  border-color: #f6d5bf;
+  color: var(--ui-color-primary-strong-hover);
+}
+
+.chat-thread__composer-icon--pin:active {
+  background: var(--ui-color-primary-soft);
+}
+
+/* Desktop tooltip (navy bubble, 12.5px/600 white, 6px 10px, radius 8, arrow), 54px above the
+   button. Pointer devices at the desktop breakpoint only; touch uses the aria-label. */
+@media (hover: hover) and (min-width: 1024px) {
+  .chat-thread__composer-icon--pin::after,
+  .chat-thread__composer-icon--pin::before {
+    position: absolute;
+    left: 50%;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease;
+    z-index: 30;
+  }
+
+  .chat-thread__composer-icon--pin::after {
+    content: attr(data-tooltip);
+    bottom: 54px;
+    transform: translateX(-50%);
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--ui-color-secondary);
+    color: var(--ui-color-on-primary);
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+
+  .chat-thread__composer-icon--pin::before {
+    content: '';
+    bottom: 48px;
+    width: 8px;
+    height: 8px;
+    background: var(--ui-color-secondary);
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  .chat-thread__composer-icon--pin:hover::after,
+  .chat-thread__composer-icon--pin:hover::before,
+  .chat-thread__composer-icon--pin:focus-visible::after,
+  .chat-thread__composer-icon--pin:focus-visible::before {
+    opacity: 1;
+  }
+}
+
+/* Optimistic home-share status (under the dimmed bubble), mirrors the image upload's. */
+.chat-mp-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0 4px;
+  font-size: 12px;
+  color: var(--ui-color-text-secondary);
+}
+
+.chat-mp-status--failed {
+  align-items: flex-start;
+  max-width: 300px;
+  padding-top: 2px;
+  font-size: 12.5px;
+  line-height: 18px;
+  font-weight: 600;
+  color: var(--ui-color-danger);
+
+  > .pi {
+    margin-top: 1px;
+    font-size: 16px;
+    color: var(--ui-color-error);
+  }
+}
+
+.chat-mp-status__text {
+  text-align: right;
+}
+
+.chat-mp-status__detail {
+  display: block;
+  font-weight: 500;
+}
+
+.chat-mp-status__retry {
+  border: 0;
+  background: none;
+  padding: 13px 2px;
+  margin: -13px -2px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--ui-color-primary-strong);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.chat-mp-status__dismiss,
+.chat-thread__mp-note-dismiss {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -6px -10px -6px 0;
+  border: 0;
+  background: none;
+  color: var(--ui-color-text-secondary);
+  cursor: pointer;
+}
+
+.chat-mp-status__retry:focus-visible,
+.chat-mp-status__dismiss:focus-visible,
+.chat-thread__mp-note-dismiss:focus-visible {
+  outline: 2px solid var(--ui-color-primary-strong);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* "This chat is now read-only. The meeting point was not sent." (design MNote 'ro'). */
+.chat-thread__mp-note-wrap {
+  padding: 0 12px 8px;
+  background: var(--ui-color-surface);
+}
+
+.chat-thread__mp-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 6px 6px 12px;
+  border: 1px solid var(--ui-color-border);
+  border-radius: 14px;
+  background: var(--ui-color-surface-muted);
+  font-size: 13.5px;
+  line-height: 19px;
+  font-weight: 500;
+  color: var(--ui-color-text-primary);
+
+  > span {
+    flex: 1;
+  }
+
+  > .pi {
+    font-size: 18px;
+    color: var(--ui-color-text-secondary);
+  }
+}
+
+.chat-thread__mp-note-dismiss {
+  margin: 0;
+}

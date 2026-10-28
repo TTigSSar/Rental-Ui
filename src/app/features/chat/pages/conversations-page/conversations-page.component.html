@@ -146,6 +146,15 @@
                         aria-hidden="true"
                       ></i>
                       {{ systemMeta.labelKey | translate }}
+                    } @else if (conversation.lastMessageType === 'location') {
+                      <!-- ADR-053: a shared meeting point has no text snippet — localized here. -->
+                      @if (conversation.lastMessageIsMine) {
+                        <span class="chat-row__snippet-prefix">{{
+                          'chat.conversations.youPrefix' | translate
+                        }}</span>
+                      }
+                      <app-icon name="pin" [size]="15" class="chat-row__snippet-pin" />
+                      {{ 'chat.meetingPoint.title' | translate }}
                     } @else if (conversation.lastMessageSnippet) {
                       @if (conversation.lastMessageIsMine) {
                         <span class="chat-row__snippet-prefix">{{

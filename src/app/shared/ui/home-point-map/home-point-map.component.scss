@@ -232,3 +232,98 @@
 .hp-map--error .app-map__crosshair-dot {
   background: var(--ui-color-error);
 }
+
+/* ── `pin` variant (meeting point, ADR-053) ───────────────────────────
+   Design: mp2-parts.jsx `CenterPin` + `DistrictChip`. The crosshair is drawn as the
+   design's 40x52 teardrop pin whose TIP sits on the map centre (orange; red outside
+   Yerevan), with a small blurred ground shadow, and the chip floats centred 10px above
+   its top. The SVG colours are literal hexes (a data URI cannot read a CSS variable):
+   #ff6008 = --ui-color-primary, #d43f5e = --ui-color-error. */
+.hp-map--pin .app-map__crosshair-halo {
+  width: 16px;
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(20, 15, 5, 0.28);
+  filter: blur(1px);
+}
+
+.hp-map--pin .app-map__crosshair-dot {
+  width: 40px;
+  height: 52px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='52' viewBox='0 0 40 52'%3E%3Cpath d='M20 50C20 50 4 31 4 19a16 16 0 0132 0c0 12-16 31-16 31z' fill='%23ff6008' stroke='white' stroke-width='2.5'/%3E%3Ccircle cx='20' cy='19' r='6' fill='white'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  filter: drop-shadow(0 4px 6px rgba(20, 15, 5, 0.3));
+  transform: translateY(-26px);
+}
+
+.hp-map--pin.hp-map--error .app-map__crosshair-halo {
+  background: rgba(20, 15, 5, 0.28);
+}
+
+.hp-map--pin.hp-map--error .app-map__crosshair-dot {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='52' viewBox='0 0 40 52'%3E%3Cpath d='M20 50C20 50 4 31 4 19a16 16 0 0132 0c0 12-16 31-16 31z' fill='%23d43f5e' stroke='white' stroke-width='2.5'/%3E%3Ccircle cx='20' cy='19' r='6' fill='white'/%3E%3C/svg%3E");
+}
+
+.hp-map--pin .hp-map__chip-slot {
+  top: calc(50% - 62px);
+  left: 50%;
+  right: auto;
+  width: max-content;
+  max-width: calc(100% - 136px);
+  transform: translate(-50%, -100%);
+}
+
+.hp-map__chip--pin {
+  gap: 8px;
+  padding: 7px 14px 7px 10px;
+  border: 1.5px solid var(--ui-color-surface);
+  border-radius: 14px;
+  background: var(--ui-color-surface);
+  box-shadow: 0 6px 18px -6px rgba(20, 15, 5, 0.35);
+  white-space: nowrap;
+}
+
+.hp-map__chip--pin-error {
+  border-color: var(--ui-color-error);
+}
+
+.hp-map__chip-pin-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--ui-color-primary-strong);
+
+  .pi {
+    font-size: 1rem;
+  }
+}
+
+.hp-map__chip--pin-error .hp-map__chip-pin-icon {
+  color: var(--ui-color-error);
+}
+
+.hp-map__chip-pin-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  b {
+    font-size: 14px;
+    line-height: 19px;
+    font-weight: 700;
+    color: var(--ui-color-text-primary);
+  }
+
+  small {
+    font-size: 12px;
+    line-height: 16px;
+    color: var(--ui-color-text-secondary);
+  }
+}
+
+.hp-map__chip--pin-error .hp-map__chip-pin-copy b {
+  color: var(--ui-color-danger);
+}
