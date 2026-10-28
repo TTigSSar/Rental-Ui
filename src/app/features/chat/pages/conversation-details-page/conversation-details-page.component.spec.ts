@@ -741,6 +741,33 @@ describe('ConversationDetailsPageComponent', () => {
       });
     });
 
+    it('closing the picker while its send is in flight keeps the share; a failure then shows in the thread', () => {
+      const { fixture, store } = createFixture();
+      const sending = {
+        conversationId: CONVERSATION_ID,
+        request: { kind: 'other' as const, latitude: 40.18, longitude: 44.51 },
+        status: 'sending' as const,
+        error: null,
+        errorCode: null,
+      };
+      store.setState(pinState({}, { pendingMeetingPoint: sending }));
+      fixture.detectChanges();
+      const dispatchSpy = vi.spyOn(store, 'dispatch');
+
+      (fixture.componentInstance as unknown as { closeMeetingPicker(): void }).closeMeetingPicker();
+      expect(dispatchSpy.mock.calls.map(([a]) => a)).not.toContainEqual({
+        type: '[Chat] Dismiss Pending Meeting Point',
+      });
+
+      store.setState(
+        pinState({}, { pendingMeetingPoint: { ...sending, status: 'failed', error: 'Oops' } }),
+      );
+      fixture.detectChanges();
+      expect(
+        (fixture.nativeElement as HTMLElement).querySelector('.chat-mp-status--failed'),
+      ).not.toBeNull();
+    });
+
     it('shows the read-only note when the share failed because the chat closed', () => {
       const { fixture, store } = createFixture();
       store.setState(

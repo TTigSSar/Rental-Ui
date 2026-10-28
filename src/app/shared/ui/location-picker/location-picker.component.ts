@@ -423,6 +423,7 @@ export class LocationPickerComponent {
           const active = this.document.activeElement;
           this.triggerElement = active instanceof HTMLElement ? active : null;
         }
+        this.sendErrorStale.set(false);
         this.resetTokenCounter += 1;
         this.homePointResetToken.set(this.resetTokenCounter);
         this.homePointSelection.set(null);
@@ -492,6 +493,8 @@ export class LocationPickerComponent {
       // selection here can only mean the map never reported one — do nothing
       // rather than emit the stale generic-mode centre.
       if (selection === null || !selection.canConfirm) return;
+      // A new send starts: a failure of THIS send must show (only a later pan hides it).
+      this.sendErrorStale.set(false);
       this.confirmedHomePoint.emit(selection);
       this.confirmed.emit(selection.center);
       // Meeting-point mode stays open while the send is in flight (and after a failure),

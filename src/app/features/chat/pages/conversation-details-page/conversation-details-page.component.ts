@@ -671,10 +671,13 @@ export class ConversationDetailsPageComponent implements OnInit {
   });
 
   /** Inputs of the shared picker's meeting-point mode, for the thread's counterpart. */
-  protected pickerMeetingPoint(
-    counterpartName: string,
-    pending: PendingMeetingPoint | null,
-  ): LocationPickerMeetingPoint {
+  private readonly activeConversation = toSignal(this.store.select(selectActiveConversation), {
+    initialValue: null,
+  });
+
+  protected readonly pickerMeetingPoint = computed<LocationPickerMeetingPoint>(() => {
+    const counterpartName = this.activeConversation()?.counterpartName ?? '';
+    const pending = this.pendingMeetingPoint();
     const picking = pending !== null && pending.request.kind === 'other';
     return {
       copy: {
@@ -698,7 +701,7 @@ export class ConversationDetailsPageComponent implements OnInit {
       startedOnCityCentre: !this.hasHomePoint(),
       sendError: picking && pending.status === 'failed' ? pending.error : null,
     };
-  }
+  });
 
   /** The picker's send is in flight (spinner on confirm, Back inert). */
   protected pickerSending(pending: PendingMeetingPoint | null): boolean {
@@ -736,7 +739,10 @@ export class ConversationDetailsPageComponent implements OnInit {
   protected closeMeetingPicker(): void {
     this.pickerOpen.set(false);
     this.pickerSubmitted = false;
-    this.store.dispatch(ChatActions.dismissPendingMeetingPoint());
+    // A send still in flight keeps running: its outcome then surfaces in the thread.
+    if (this.pendingMeetingPoint()?.status !== 'sending') {
+      this.store.dispatch(ChatActions.dismissPendingMeetingPoint());
+    }
     this.focusPinButton();
   }
 

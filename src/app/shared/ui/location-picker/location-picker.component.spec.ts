@@ -869,6 +869,24 @@ describe('LocationPickerComponent — meeting-point mode', () => {
     expect(error()).toBeNull();
   });
 
+  it('open -> pan -> confirm -> send fails: the error is visible; a later pan hides it', async () => {
+    const { component, fixture } = await createMeetingPicker();
+    component.onHomePointSelectionChange({ ...SELECTION, center: { lat: 40.17, lng: 44.5 } });
+    component.onHomePointSelectionChange(SELECTION); // the pan that enables confirm
+    fixture.detectChanges();
+
+    component.confirm();
+    fixture.componentRef.setInput('meetingPoint', { ...MEETING, sendError: 'Boom' });
+    fixture.detectChanges();
+
+    const error = () => document.querySelector('.location-picker__mp-status--error');
+    expect(error()?.textContent).toContain('Boom');
+
+    component.onHomePointSelectionChange({ ...SELECTION, center: { lat: 40.2, lng: 44.52 } });
+    fixture.detectChanges();
+    expect(error()).toBeNull();
+  });
+
   it('Back asks the host to return to its chooser instead of cancelling the whole flow', async () => {
     const { instance } = await createMeetingPicker();
     let back = 0;

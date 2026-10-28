@@ -275,9 +275,9 @@
                a share that failed because the chat went read-only is explained by the
                read-only note below instead. -->
           @if (vm.pendingMeetingPoint; as mp) {
-            @if (mp.request.kind === 'home' && !isReadOnlyFailure(mp)) {
+            @if ((mp.request.kind === 'home' || !pickerOpen()) && !isReadOnlyFailure(mp)) {
               <div class="chat-group chat-group--mine">
-                <app-meeting-point-bubble kind="home" [mine]="true" [state]="mp.status" />
+                <app-meeting-point-bubble [kind]="mp.request.kind" [mine]="true" [state]="mp.status" />
                 @if (mp.status === 'failed') {
                   <div class="chat-mp-status chat-mp-status--failed" role="alert">
                     <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
@@ -470,7 +470,7 @@
         />
         <app-location-picker
           [open]="pickerOpen()"
-          [meetingPoint]="pickerMeetingPoint(conversation.counterpartName, vm.pendingMeetingPoint)"
+          [meetingPoint]="pickerMeetingPoint()"
           [initialCenter]="pickerCenter()"
           [saving]="pickerSending(vm.pendingMeetingPoint)"
           headerKey="chat.meetingPoint.picker.title"
