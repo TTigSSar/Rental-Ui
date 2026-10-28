@@ -225,6 +225,9 @@ export function resolveTileSource(
   };
 }
 
+// MapLibre's Dispatcher fires this message when the worker's `error` event runs.
+const WORKER_FAILED_RE = /worker failed to load/i;
+
 // Copied (as `.js`, for nginx's MIME map) by scripts/copy-maplibre-worker.js.
 const MAPLIBRE_WORKER_URL = '/map/maplibre-gl-worker.js';
 
@@ -1018,7 +1021,14 @@ export class MapComponent implements AfterViewInit, OnDestroy {
       const tileSource = this.tileSource;
       // Vector first (only when configured and WebGL exists); anything that
       // goes wrong there returns `false` and the raster layer takes over.
-      if (!vectorStyle || !this.addVectorBaseLayer(map, tileSource, vectorStyle)) {
+      if (
+        !vectorStyle ||
+        !this.addVectorBaseLayer(map, tileSource, vectorStyle, () => {
+          // MapLibre's tile worker failed to load (404 / blocked / wrong MIME /
+          // CSP) — the GL layer has already been removed; raster takes over.
+          if (!this.destroyed) this.addRasterBaseLayer(L, map, tileSource);
+        })
+      ) {
         this.addRasterBaseLayer(L, map, tileSource);
       }
 
@@ -1252,8 +1262,12 @@ export class MapComponent implements AfterViewInit, OnDestroy {
     map: Leaflet.Map,
     tileSource: ResolvedTileSource,
     { style: rawStyle, maplibreGL }: VectorBase,
+    onWorkerFailed: () => void,
   ): boolean {
     let layer: Leaflet.MaplibreGL | null = null;
+    // Set once the GL layer has been given up on (worker failure): every GL
+    // handler below goes inert so a later error/idle can't also report.
+    let abandoned = false;
     try {
       let appliedLang = this.currentLang();
       const style = localizeStyle(rawStyle, appliedLang, tileSource.apiKey);
@@ -1277,10 +1291,35 @@ export class MapComponent implements AfterViewInit, OnDestroy {
 
       // Same semantics as the raster `tileload`/`tileerror`/`load` trio.
       gl.on('sourcedata', (e) => {
+        if (abandoned) return;
         if ((e as { tile?: unknown }).tile) this.anyTileLoaded = true;
       });
       gl.on('error', (e) => {
-        const ev = e as { sourceId?: string; tile?: unknown };
+        if (abandoned) return;
+        const ev = e as { sourceId?: string; tile?: unknown; error?: { message?: string } };
+        // A tile worker that cannot start never raises a tile/source error:
+        // MapLibre's Dispatcher just fires an ErrorEvent with this message
+        // (no sourceId, no tile) and the map stays blank. Fall back to raster.
+        if (WORKER_FAILED_RE.test(ev.error?.message ?? '')) {
+          abandoned = true;
+          // Deferred: the GL map must not be removed from inside its own emit.
+          queueMicrotask(() => {
+            if (this.destroyed) return;
+            try {
+              if (layer) map.removeLayer(layer);
+            } catch {
+              /* nothing left to clean */
+            }
+            this.langSub?.unsubscribe();
+            this.langSub = null;
+            map.attributionControl?.removeAttribution(tileSource.attribution);
+            // The raster layer judges its own tiles from a clean slate.
+            this.anyTileLoaded = false;
+            this.anyTileErrored = false;
+            onWorkerFailed();
+          });
+          return;
+        }
         if (ev.tile) {
           this.anyTileErrored = true;
         } else if (ev.sourceId && !this.anyTileLoaded && !this.destroyed) {
@@ -1289,6 +1328,7 @@ export class MapComponent implements AfterViewInit, OnDestroy {
         }
       });
       gl.on('idle', () => {
+        if (abandoned) return;
         if (this.anyTileErrored && !this.anyTileLoaded && !this.destroyed) {
           this.reportError();
         }
