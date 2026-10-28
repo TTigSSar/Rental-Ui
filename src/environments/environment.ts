@@ -9,6 +9,10 @@ export const environment = {
    */
   tileProvider: {
     /** `{z}`/`{x}`/`{y}`/`{key}` placeholders, substituted by `app-map`. */
+    /** Vector base layer: MapTiler streets-v2 style served by this app (`public/map/style.json`,
+     *  `{key}` placeholder substituted by `app-map`). `urlTemplate` above stays as the raster
+     *  fallback for browsers without WebGL. */
+    styleUrl: '/map/style.json',
     urlTemplate: 'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key={key}',
     // This is a client-side MapTiler key restricted to specific HTTP origins
     // (allowlist configured on the MapTiler account side) — that origin

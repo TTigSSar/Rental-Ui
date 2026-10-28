@@ -235,8 +235,8 @@ test.describe('Listings — map view (Maps P2-2)', () => {
     // -screen at 375px — `document.documentElement.scrollWidth` measured 460
     // against a 375 `window.innerWidth` (confirmed via git-stash A/B: the
     // pre-feature baseline measured 375/375). Fixed in
-    // `listings-page.component.scss` by hiding `.lp-toolbar__count` on
-    // mobile and making the view-toggle go icon-only below 560px. This property
+    // `listings-page.component.scss` by letting `.lp-toolbar__count` shrink/
+    // ellipsize below desktop (and hiding it below 560px) and making the view-toggle go icon-only below 560px. This property
     // is invisible to jsdom unit tests — it needs a real browser laying out
     // a real viewport — so this is the one place it can be caught
     // automatically. Deliberately narrow: one viewport, one property

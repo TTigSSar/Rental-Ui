@@ -3,6 +3,10 @@ export const environment = {
   apiBaseUrl: '',
   // See environment.ts for field docs.
   tileProvider: {
+    /** Vector base layer: MapTiler streets-v2 style served by this app (`public/map/style.json`,
+     *  `{key}` placeholder substituted by `app-map`). `urlTemplate` above stays as the raster
+     *  fallback for browsers without WebGL. */
+    styleUrl: '/map/style.json',
     urlTemplate: 'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key={key}',
     // See environment.ts's field comment: origin-restricted client key,
     // safe to commit given the MapTiler-side allowlist.

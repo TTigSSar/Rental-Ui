@@ -41,6 +41,11 @@ export interface ApiSeed {
   listingsDistanceKm?: number;
   /** GET /api/listings/:id — a single listing's full detail payload. */
   listingDetails?: unknown;
+  /**
+   * GET /api/users/:id/public-profile — optional. When omitted, the request falls through to the
+   * generic `[]` fallback (the pre-existing behaviour every other spec relies on).
+   */
+  publicProfile?: unknown;
   /** GET /api/admin/listings/pending — legacy unpaged queue, superseded by `adminListings` below. */
   pendingListings?: unknown[];
   /**
@@ -960,6 +965,15 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
         items: seed.mapPins ?? [],
         isTruncated: seed.mapPinsTruncated ?? false,
       });
+    }
+
+    // GET /api/users/{id}/public-profile — only when a spec seeds `publicProfile`.
+    if (
+      seed.publicProfile !== undefined &&
+      /^\/api\/users\/[^/]+\/public-profile$/.test(pathname) &&
+      method === 'GET'
+    ) {
+      return json(route, 200, seed.publicProfile);
     }
 
     // GET /api/listings/{id} — a single listing's detail payload. Excludes

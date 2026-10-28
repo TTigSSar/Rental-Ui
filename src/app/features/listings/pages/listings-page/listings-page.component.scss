@@ -50,6 +50,14 @@
   }
 }
 
+@media (max-width: 560px) {
+  /* Keep the bleed equal to `.page-container` padding-inline at this width (styles.css). */
+  .lp-sticky-header {
+    margin-inline: calc(-1 * var(--ui-space-8));
+    padding-inline: var(--ui-space-8);
+  }
+}
+
 @media (min-width: 961px) {
   .lp-sticky-header {
     display: none;
@@ -314,9 +322,20 @@
   white-space: nowrap;
   flex-shrink: 0;
 
-  /* Hidden on mobile: it does not reliably fit beside the view toggle and
-     sort control (Tigran's decision); desktop keeps it. */
+  /* Below desktop, the toggle + sort controls must stay fully reachable —
+     this is the only toolbar item allowed to give up space, so let it
+     shrink and truncate instead of pushing siblings off-screen
+     (mobile-overflow fix for the Maps P2-2 view-toggle addition). */
   @media (max-width: 960px) {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Hidden on phones: it does not fit beside the toggle and sort
+     (Tigran's decision). */
+  @media (max-width: 560px) {
     display: none;
   }
 }

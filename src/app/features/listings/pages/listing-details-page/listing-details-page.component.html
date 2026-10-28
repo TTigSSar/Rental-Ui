@@ -314,9 +314,6 @@
 
               <!-- 2. Description -->
               <section class="detail-page__section" aria-labelledby="detail-description-heading">
-                <span class="detail-page__section-eyebrow">{{
-                  'listings.details.eyebrow.overview' | translate
-                }}</span>
                 <h2 id="detail-description-heading" class="detail-page__section-title">
                   {{ 'listings.details.descriptionHeading' | translate }}
                 </h2>
@@ -329,9 +326,6 @@
 
               <!-- 3. Getting it / Pickup & delivery -->
               <section class="detail-page__section" aria-labelledby="detail-pickup-heading">
-                <span class="detail-page__section-eyebrow">{{
-                  'listings.details.eyebrow.gettingIt' | translate
-                }}</span>
                 <h2 id="detail-pickup-heading" class="detail-page__section-title">
                   {{ 'listings.details.pickupDelivery.heading' | translate }}
                 </h2>
@@ -378,9 +372,6 @@
                 class="detail-page__section detail-page__section--owner"
                 aria-labelledby="detail-owner-heading"
               >
-                <span class="detail-page__section-eyebrow">{{
-                  'listings.details.eyebrow.host' | translate
-                }}</span>
                 <h2 id="detail-owner-heading" class="detail-page__section-title">
                   {{ 'listings.details.hostHeading' | translate }}
                 </h2>
@@ -473,21 +464,21 @@
 
               <!-- 5. Reviews -->
               <section class="detail-page__section" aria-labelledby="detail-reviews-heading">
-                <span class="detail-page__section-eyebrow">
+                <div class="detail-page__section-title-row">
+                  <h2 id="detail-reviews-heading" class="detail-page__section-title">
+                    {{ 'listings.details.reviews.whatTheySay' | translate }}
+                  </h2>
                   @let ratingSum = ratingSummary();
                   @if (ratingSum && ratingSum.reviewCount === 1) {
-                    {{ 'reviews.summary.oneReview' | translate }}
+                    <span class="detail-page__section-count">{{
+                      'reviews.summary.oneReview' | translate
+                    }}</span>
                   } @else if (ratingSum && ratingSum.reviewCount > 1) {
-                    {{
+                    <span class="detail-page__section-count">{{
                       'reviews.summary.countReviews' | translate: { count: ratingSum.reviewCount }
-                    }}
-                  } @else {
-                    {{ 'listings.details.eyebrow.reviews' | translate }}
+                    }}</span>
                   }
-                </span>
-                <h2 id="detail-reviews-heading" class="detail-page__section-title">
-                  {{ 'listings.details.reviews.whatTheySay' | translate }}
-                </h2>
+                </div>
 
                 @if (reviewsLoading()) {
                   <div class="detail-page__reviews-skeleton">

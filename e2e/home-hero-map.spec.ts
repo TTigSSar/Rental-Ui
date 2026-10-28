@@ -512,8 +512,9 @@ test.describe('Home hero map — scroll gate', () => {
     await context.clearPermissions();
     await mockTiles(page);
     page.on('request', (req) => {
-      if (req.resourceType() !== 'image') return;
-      const m = /\/(\d{1,2})\/\d+\/\d+\.png$/.exec(new URL(req.url()).pathname);
+      // Raster `.png` tiles or, with the MapLibre vector base layer, `.pbf` ones: either way
+      // the `/{z}/{x}/{y}` path carries the zoom this probe reads.
+      const m = /\/(\d{1,2})\/\d+\/\d+\.(?:png|pbf)$/.exec(new URL(req.url()).pathname);
       if (m) tileZooms.push(Number(m[1]));
     });
     await mockApi(page, { mapPins: [e2eMapPin()], mapPinsTruncated: false });

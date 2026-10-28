@@ -526,3 +526,77 @@ describe('ListingDetailsPageComponent — loss & damage compensation amount', ()
     },
   );
 });
+
+describe('ListingDetailsPageComponent — section headings & review count', () => {
+  function setup(reviewCount: number | null) {
+    const listing = makeListingDetails({ id: 'listing-1' });
+    const entry =
+      reviewCount === null
+        ? {}
+        : {
+            'listing-1': {
+              data: {
+                overallAverage: 4.5,
+                reviewCount,
+                hasAggregate: reviewCount > 0,
+                distribution: [0, 0, 0, 0, reviewCount],
+                comments: [],
+              },
+              isLoading: false,
+              error: null,
+            },
+          };
+    TestBed.configureTestingModule({
+      imports: [ListingDetailsPageComponent, TranslateModule.forRoot()],
+      providers: [
+        provideRouter([]),
+        MessageService,
+        provideMockStore({
+          initialState: {
+            [listingsFeatureKey]: {
+              ...initialListingsState,
+              selectedListing: listing,
+              isDetailsLoading: false,
+            },
+            [bookingsFeatureKey]: initialBookingsState,
+            [reviewsFeatureKey]: { ...initialReviewsState, listingToyReviews: entry },
+            [publicProfilesFeatureKey]: initialPublicProfilesState,
+            [favoritesFeatureKey]: initialFavoritesState,
+            [authFeatureKey]: initialAuthState,
+          },
+        }),
+        {
+          provide: ActivatedRoute,
+          useValue: { paramMap: of(convertToParamMap({ id: listing.id })) },
+        },
+      ],
+    });
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation(
+      'en',
+      { reviews: { summary: { countReviews: '{{count}} reviews' } } },
+      true,
+    );
+    translate.use('en');
+    const fixture = TestBed.createComponent(ListingDetailsPageComponent);
+    fixture.detectChanges();
+    return fixture.nativeElement as HTMLElement;
+  }
+
+  it('renders no section eyebrow labels', () => {
+    const root = setup(null);
+    expect(root.querySelector('.detail-page__section-eyebrow')).toBeNull();
+  });
+
+  it('shows the review count beside the reviews title, outside the h2', () => {
+    const root = setup(3);
+    const count = root.querySelector<HTMLElement>('.detail-page__section-count');
+    expect(count?.textContent?.trim()).toBe('3 reviews');
+    expect(root.querySelector('#detail-reviews-heading')?.textContent).not.toContain('3 reviews');
+  });
+
+  it('shows no count when there are no reviews', () => {
+    const root = setup(0);
+    expect(root.querySelector('.detail-page__section-count')).toBeNull();
+  });
+});

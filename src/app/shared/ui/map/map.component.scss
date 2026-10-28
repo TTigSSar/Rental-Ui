@@ -25,10 +25,8 @@
    stacking context this component's caller happens to sit in — for a map
    inside a normal scrolling page, that's the ROOT stacking context. There it
    competed number-for-number against page chrome that also uses explicit
-   z-index — and won: the sticky app header (`z-index: 100`, the LIVE rule is
-   `app-header.component.css`'s `:host`; `app.css`'s `.app-shell__header-wrap`
-   duplicates the same value but that class is not present in `app.html` and
-   is currently dead CSS — see that file's own note), the mobile bottom nav
+   z-index — and won: the sticky app header (`z-index: 100`, `app-header.component.css`'s
+   `:host`), the mobile bottom nav
    (`z-index: 99`, `app.css` `.app-bottom-nav`), and Home's mobile
    scroll-revealed search pill (`z-index: 95`,
    `home-page.component.scss`'s `.home__mobile-search`) are all ≤100, so a

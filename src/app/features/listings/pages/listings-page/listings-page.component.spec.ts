@@ -433,3 +433,20 @@ describe('ListingsPageComponent — clearing the origin (Trello #80)', () => {
     expect(router.url).toContain('categoryId=abc-123');
   });
 });
+
+describe('ListingsPageComponent — sort menu', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('closes the open sort menu when the window scrolls', async () => {
+    const { harness, el } = await navigateToListings('/listings');
+
+    el.querySelector<HTMLButtonElement>('.lp-toolbar__sort')!.click();
+    harness.detectChanges();
+    expect(el.querySelector('.lp-sort-menu')).not.toBeNull();
+
+    window.dispatchEvent(new Event('scroll'));
+    harness.detectChanges();
+    expect(el.querySelector('.lp-sort-menu')).toBeNull();
+  });
+});

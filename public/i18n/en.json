@@ -716,9 +716,7 @@
       "ctaExistingHint": "You already have an active request for this toy.",
       "eyebrow": {
         "overview": "Overview",
-        "host": "Your host",
-        "reviews": "Reviews",
-        "gettingIt": "Getting it"
+        "reviews": "Reviews"
       },
       "highlights": {
         "hygieneSub": "Cleaning details from the owner",
