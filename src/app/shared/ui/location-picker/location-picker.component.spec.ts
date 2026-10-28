@@ -887,6 +887,17 @@ describe('LocationPickerComponent — meeting-point mode', () => {
     expect(error()).toBeNull();
   });
 
+  it('the zoom buttons have an accessible name', async () => {
+    await createMeetingPicker();
+    const labels = Array.from(document.body.querySelectorAll('.app-map__zoom-btn')).map((b) =>
+      b.getAttribute('aria-label'),
+    );
+    expect(labels).toEqual([
+      'listings.details.location.zoomIn',
+      'listings.details.location.zoomOut',
+    ]);
+  });
+
   it('Back asks the host to return to its chooser instead of cancelling the whole flow', async () => {
     const { instance } = await createMeetingPicker();
     let back = 0;

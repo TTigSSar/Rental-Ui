@@ -107,4 +107,26 @@ describe('MeetingPointChooserComponent', () => {
     document.body.querySelector<HTMLButtonElement>('.mpc__btn--ghost')?.click();
     expect(cancelled).toBe(1);
   });
+
+  it('Escape and a mask click behave like "Not now" (cancelled)', async () => {
+    const fixture = await open(true);
+    let cancelled = 0;
+    fixture.componentInstance.cancelled.subscribe(() => (cancelled += 1));
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    fixture.detectChanges();
+    expect(cancelled).toBe(1);
+
+    fixture.componentRef.setInput('open', false);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.componentRef.setInput('open', true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const mask = document.body.querySelector<HTMLElement>('.p-dialog-mask');
+    mask?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    fixture.detectChanges();
+    expect(cancelled).toBe(2);
+  });
 });

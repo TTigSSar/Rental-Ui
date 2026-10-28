@@ -267,3 +267,9 @@
   width: 100%;
   white-space: normal;
 }
+
+/* `closable` must stay true for PrimeNG's Escape / mask-click to fire, but the design has no
+   close icon (the "Not now" button is the visible exit). */
+.p-dialog.mp-chooser-dialog .p-dialog-header-actions {
+  display: none;
+}
