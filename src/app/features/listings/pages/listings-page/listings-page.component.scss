@@ -887,3 +887,112 @@
     padding-top: 0;
   }
 }
+
+/* A new search (not a re-rank): previous cards at 50 %. */
+.listings-page__grid--searching {
+  opacity: 0.5;
+}
+
+/* ── AI search: loading status, notices, notes (stage 2 + 3) ── */
+.lp-ai-status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-block: var(--ui-space-8);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ui-color-text-secondary);
+}
+
+/* Thin indeterminate bar. */
+.lp-ai-bar {
+  display: block;
+  position: relative;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--ui-color-border);
+  overflow: hidden;
+}
+
+.lp-ai-bar > span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 35%;
+  border-radius: 999px;
+  background: var(--ui-color-primary-strong);
+  animation: lp-ai-slide 1.6s ease-in-out infinite;
+}
+
+@keyframes lp-ai-slide {
+  0% { left: -35%; }
+  100% { left: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-ai-bar > span {
+    animation: none;
+    left: 0;
+  }
+}
+
+.lp-ai-explain:focus {
+  outline: none;
+}
+
+.lp-ai-explain:focus-visible {
+  outline: 2px solid var(--ui-color-primary-strong);
+  outline-offset: 2px;
+}
+
+/* `ui-msg` info notice in the explanation-line slot. */
+.lp-ai-slot {
+  padding-top: var(--ui-space-8);
+}
+
+.lp-ai-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: var(--ui-space-8);
+}
+
+.lp-ai-note {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ui-color-text-secondary);
+  text-wrap: pretty;
+}
+
+.lp-ai-note .pi {
+  flex: none;
+  margin-top: 3px;
+  font-size: 13px;
+}
+
+/* Inline link inside a Note; the ::before widens the touch target to ~44px. */
+.lp-ai-note__link {
+  position: relative;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ui-color-primary-strong);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.lp-ai-note__link::before {
+  content: '';
+  position: absolute;
+  inset: -12px -6px;
+}
+
+.lp-ai-note__link:hover {
+  color: var(--ui-color-primary-strong-hover);
+}

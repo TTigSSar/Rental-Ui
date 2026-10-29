@@ -6,6 +6,9 @@ import {
   DestroyRef,
   EventEmitter,
   inject,
+  Injector,
+  afterNextRender,
+  viewChild,
   input,
   OnDestroy,
   OnInit,
@@ -98,6 +101,7 @@ interface ActiveChip {
 })
 export class ListingsFiltersComponent implements OnInit, OnDestroy {
   private readonly doc = inject(DOCUMENT);
+  private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
   private readonly store = inject(Store);
@@ -384,6 +388,35 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     });
     this.sheetOpen.set(true);
     this.doc.body.classList.add('body--sheet-open');
+  }
+
+  private readonly aiField = viewChild(AiSearchFieldComponent);
+
+  /**
+   * Opens the sheet scrolled to a section with its first control focused - the mobile half of the
+   * no-results "Increase the budget" (price "To") and the "Choose a district" note link.
+   */
+  openSheetAt(section: 'price' | 'districts'): void {
+    this.openSheet();
+    afterNextRender(
+      () => {
+        const field = this.doc.getElementById(section === 'price' ? 'lf-field-price' : 'lf-field-districts');
+        field?.scrollIntoView({ block: 'center' });
+        const control = this.doc.getElementById(section === 'price' ? 'lf-max-price' : 'lf-districts-input');
+        control?.focus({ preventScroll: true });
+      },
+      { injector: this.injector },
+    );
+  }
+
+  /** The mobile AI field, for "Edit description". */
+  focusAiField(): void {
+    this.aiField()?.focusEnd();
+  }
+
+  /** Whether the mobile search bar is the visible one (below the desktop breakpoint). */
+  isBarVisible(): boolean {
+    return this.aiField()?.isVisible() ?? false;
   }
 
   protected closeSheet(): void {

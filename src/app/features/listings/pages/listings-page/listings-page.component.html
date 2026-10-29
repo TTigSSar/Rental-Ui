@@ -6,7 +6,7 @@
       <app-listings-filters
         [showChips]="false"
         (filtersChanged)="onFiltersChanged($event)"
-        (authRequired)="showAuthDialog.set(true)"
+        (authRequired)="onAiAuthRequired()"
       />
     </div>
   </div>
@@ -18,7 +18,7 @@
   <div class="lp-layout">
 
     <!-- ── Desktop filter sidebar ──────────────────────────────── -->
-    <aside class="lp-sidebar" aria-label="Filters">
+    <aside #sidebar class="lp-sidebar" aria-label="Filters">
 
       <div class="lp-sidebar__header">
         <h2 class="lp-sidebar__title">{{ 'listings.filters.sidebar.title' | translate }}</h2>
@@ -48,7 +48,7 @@
       <div class="lp-sidebar__divider"></div>
 
       <!-- Districts -->
-      <div class="lp-sidebar__section">
+      <div #districtSection class="lp-sidebar__section">
         <p class="lp-sidebar__section-label">{{ 'listings.filters.sidebar.districts' | translate }}</p>
         @for (d of districtOptions(); track d.id) {
           <label class="lp-sidebar__checkbox-row">
@@ -100,6 +100,7 @@
           <div class="lp-sidebar__price-wrap" [class.lp-sidebar__price-wrap--set]="activeMaxPrice() != null">
             <span class="lp-sidebar__price-prefix">{{ dramSymbol }}</span>
             <input
+              #maxPriceInput
               type="number"
               class="lp-sidebar__price-input"
               [value]="activeMaxPrice() ?? ''"
@@ -135,7 +136,7 @@
           layout="block"
           [query]="activeQuery()"
           (queryChange)="onDesktopQueryChange($event)"
-          (authRequired)="showAuthDialog.set(true)"
+          (authRequired)="onAiAuthRequired()"
         />
         <app-ai-example />
       </div>
@@ -159,77 +160,8 @@
           </div>
         }
 
-        @if (viewMode() === 'list' && v.showInitialSkeleton) {
-          <app-ui-loading-skeleton [items]="skeletonCount(v)" />
-        }
-
-        @if (viewMode() === 'list' && v.showEmpty) {
-          @if (v.hasActiveFilters) {
-            <div class="lp-empty-search">
-              <div class="lp-empty-search__icon-wrap" aria-hidden="true">
-                <i class="pi pi-search lp-empty-search__icon"></i>
-                <span class="lp-empty-search__emoji">🧸</span>
-              </div>
-              @if (activeQuery()) {
-                <h2 class="lp-empty-search__title">
-                  {{ 'listings.page.emptySearchTitle' | translate }}
-                  <span class="lp-empty-search__query">"{{ activeQuery() }}"</span>
-                </h2>
-              } @else {
-                <h2 class="lp-empty-search__title">
-                  {{ 'listings.page.emptyFilterTitle' | translate }}
-                </h2>
-              }
-              <p class="lp-empty-search__desc">
-                {{ 'listings.page.emptySearchDescription' | translate }}
-              </p>
-              <div class="lp-empty-search__actions">
-                <button
-                  type="button"
-                  class="lp-empty-search__btn lp-empty-search__btn--outline"
-                  (click)="clearFilters()"
-                >
-                  {{ 'listings.page.emptyFilterCta' | translate }}
-                </button>
-                <button
-                  type="button"
-                  class="lp-empty-search__btn lp-empty-search__btn--filled"
-                  (click)="onNotifyMe()"
-                >
-                  <i class="pi pi-bell" aria-hidden="true"></i>
-                  {{ 'listings.page.notifyMe' | translate }}
-                </button>
-              </div>
-              @if (categoriesSignal().length > 0) {
-                <div class="lp-empty-search__try">
-                  <span class="lp-empty-search__try-label">
-                    {{ 'listings.page.tryInstead' | translate }}
-                  </span>
-                  <div class="lp-empty-search__cats">
-                    @for (cat of categoriesSignal().slice(0, 4); track cat.id) {
-                      <button
-                        type="button"
-                        class="lp-empty-search__cat-chip"
-                        (click)="selectCategory(cat.id)"
-                      >
-                        {{ cat.name }}
-                      </button>
-                    }
-                  </div>
-                </div>
-              }
-            </div>
-          } @else {
-            <app-ui-empty-state
-              icon="pi pi-gift"
-              [title]="'listings.page.emptyTitle' | translate"
-              [description]="'listings.page.empty' | translate"
-            />
-          }
-        }
-
         <!-- Results toolbar: count + active chips + sort dropdown -->
-        @if (!v.showInitialSkeleton && (v.items.length > 0 || v.hasMore)) {
+        @if (!v.showInitialSkeleton && !aiSkeleton() && (v.items.length > 0 || v.hasMore)) {
           <div class="lp-toolbar">
             @if (aiBusy() === 'reranking') {
               <!-- Re-rank: replaces the count line (announced politely). -->
@@ -333,19 +265,141 @@
           </div>
         }
 
-        <!-- Explanation line: the intent only, while the order is ranked. Kept through re-ranks. -->
-        @if (aiExplanation(); as intent) {
-          <p class="lp-ai-explain">{{ intent }}</p>
+        <!-- Results region: busy while a search / re-rank is in flight. -->
+        <div class="lp-results" [attr.aria-busy]="aiBusy() !== 'idle'">
+        <!-- AI search status: the previous cards stay (dimmed) under one status line + bar. -->
+        @if (viewMode() === 'list' && aiStatusLine()) {
+          <div class="lp-ai-status" role="status" aria-live="polite">
+            <span class="lp-ai-status__text">{{ 'listings.ai.status' | translate }}</span>
+            <span class="lp-ai-bar" aria-hidden="true"><span></span></span>
+          </div>
         }
 
+        <!-- Explanation line (the intent, only while ranked) or, after a fallback, the info notice. -->
+        @if (aiExplanation(); as intent) {
+          <p #aiExplain class="lp-ai-explain" tabindex="-1">{{ intent }}</p>
+        }
+        @if (aiFallbackNotice()) {
+          <div class="lp-ai-slot">
+            <app-ai-notice kind="info">{{ 'listings.ai.unavailable' | translate }}</app-ai-notice>
+          </div>
+        }
+
+        <!-- Notes: dates first, then location, then purpose; at most two. -->
+        @if (aiNotes().length > 0) {
+          <div class="lp-ai-notes">
+            @for (note of aiNotes(); track note) {
+              <p class="lp-ai-note">
+                <i class="pi pi-info-circle" aria-hidden="true"></i>
+                <span>
+                  @switch (note) {
+                    @case ('dates') {
+                      {{ 'listings.ai.datesNote' | translate }}
+                    }
+                    @case ('location') {
+                      {{ 'listings.ai.locationNote' | translate }}
+                      <button type="button" class="lp-ai-note__link" (click)="chooseDistrict()">
+                        {{ 'listings.ai.chooseDistrict' | translate }}
+                      </button>
+                    }
+                    @case ('purpose') {
+                      {{ 'listings.ai.purposeNote' | translate }}
+                    }
+                  }
+                </span>
+              </p>
+            }
+          </div>
+        }
+
+        @if (viewMode() === 'list' && (v.showInitialSkeleton || aiSkeleton())) {
+          <app-ui-loading-skeleton [items]="skeletonCount(v)" />
+        }
+
+        @if (viewMode() === 'list' && v.showEmpty && !aiSkeleton()) {
+          @if (aiNoResults()) {
+            <app-ai-no-results
+              [hasDistrictFilter]="hasDistrictFilter()"
+              [categories]="otherCategories()"
+              (widen)="widenArea()"
+              (increaseBudget)="increaseBudget()"
+              (editDescription)="editDescription()"
+              (categorySelected)="selectCategory($event)"
+            />
+          } @else if (v.hasActiveFilters) {
+            <div class="lp-empty-search">
+              <div class="lp-empty-search__icon-wrap" aria-hidden="true">
+                <i class="pi pi-search lp-empty-search__icon"></i>
+                <span class="lp-empty-search__emoji">🧸</span>
+              </div>
+              @if (activeQuery()) {
+                <h2 class="lp-empty-search__title">
+                  {{ 'listings.page.emptySearchTitle' | translate }}
+                  <span class="lp-empty-search__query">"{{ activeQuery() }}"</span>
+                </h2>
+              } @else {
+                <h2 class="lp-empty-search__title">
+                  {{ 'listings.page.emptyFilterTitle' | translate }}
+                </h2>
+              }
+              <p class="lp-empty-search__desc">
+                {{ 'listings.page.emptySearchDescription' | translate }}
+              </p>
+              <div class="lp-empty-search__actions">
+                <button
+                  type="button"
+                  class="lp-empty-search__btn lp-empty-search__btn--outline"
+                  (click)="clearFilters()"
+                >
+                  {{ 'listings.page.emptyFilterCta' | translate }}
+                </button>
+                <button
+                  type="button"
+                  class="lp-empty-search__btn lp-empty-search__btn--filled"
+                  (click)="onNotifyMe()"
+                >
+                  <i class="pi pi-bell" aria-hidden="true"></i>
+                  {{ 'listings.page.notifyMe' | translate }}
+                </button>
+              </div>
+              @if (categoriesSignal().length > 0) {
+                <div class="lp-empty-search__try">
+                  <span class="lp-empty-search__try-label">
+                    {{ 'listings.page.tryInstead' | translate }}
+                  </span>
+                  <div class="lp-empty-search__cats">
+                    @for (cat of categoriesSignal().slice(0, 4); track cat.id) {
+                      <button
+                        type="button"
+                        class="lp-empty-search__cat-chip"
+                        (click)="selectCategory(cat.id)"
+                      >
+                        {{ cat.name }}
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <app-ui-empty-state
+              icon="pi pi-gift"
+              [title]="'listings.page.emptyTitle' | translate"
+              [description]="'listings.page.empty' | translate"
+            />
+          }
+        }
+
+
         @if (viewMode() === 'list') {
-          @if (v.items.length > 0) {
+          @if (v.items.length > 0 && !aiSkeleton()) {
             <!-- Under a search/re-rank the previous cards stay, dimmed and inert. -->
             <div
               class="listings-page__grid cards-grid"
               [class.listings-page__grid--busy]="aiBusy() !== 'idle'"
+              [class.listings-page__grid--searching]="aiBusy() === 'searching'"
               [attr.inert]="aiBusy() !== 'idle' ? '' : null"
-              [attr.aria-busy]="aiBusy() !== 'idle'"
+              [attr.aria-hidden]="aiBusy() !== 'idle' ? 'true' : null"
             >
               @for (listing of v.items; track listing.id; let i = $index) {
                 @if (aiRanked() && aiRankedCount() > 0 && i === aiRankedCount()) {
@@ -399,10 +453,11 @@
         } @else {
           <app-listings-map class="listings-page__map" />
         }
+        </div><!-- /lp-results -->
       }
 
     </div><!-- /lp-main -->
   </div><!-- /lp-layout -->
 </div>
 
-<app-auth-dialog [visible]="showAuthDialog()" (closed)="showAuthDialog.set(false)" />
+<app-auth-dialog [visible]="showAuthDialog()" (closed)="onAuthDialogClosed()" />

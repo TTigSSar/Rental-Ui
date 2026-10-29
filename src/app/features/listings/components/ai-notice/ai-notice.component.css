@@ -1,0 +1,47 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.msg {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border: 1px solid;
+  border-radius: 12px;
+  padding: 11px 13px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.msg .pi {
+  margin-top: 1px;
+  font-size: 17px;
+  flex: none;
+}
+
+.msg__text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* No token matches these two tints (design stage 3): hardcoded on purpose. */
+.msg--info {
+  background: #fff8f0;
+  border-color: #ffe0c2;
+  color: var(--ui-color-text-secondary);
+}
+
+.msg--info .pi {
+  color: var(--ui-color-primary);
+}
+
+.msg--warn {
+  background: #fff1dc;
+  border-color: #f7dcae;
+  color: #6d4a10;
+}
+
+.msg--warn .pi {
+  color: #d97706;
+}

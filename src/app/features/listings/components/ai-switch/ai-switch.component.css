@@ -1,4 +1,5 @@
 :host {
+  position: relative;
   display: inline-flex;
   flex: none;
 }
@@ -77,4 +78,53 @@
       border-color 120ms ease,
       color 120ms ease;
   }
+}
+
+/* Daily budget used up: aria-disabled, still focusable (design .tg.dis). */
+.ai-switch--dis {
+  background: var(--ui-color-surface-muted);
+  border-color: var(--ui-color-border-input);
+  color: var(--ui-color-text-secondary);
+  cursor: not-allowed;
+}
+
+.ai-switch--dis .ai-switch__track {
+  border-color: #b5b6b7;
+  background: var(--ui-color-surface-muted);
+}
+
+.ai-switch--dis .ai-switch__knob {
+  background: #b5b6b7;
+}
+
+/* Desktop tooltip under the switch (design .tip). */
+.ai-switch__tip {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: -4px;
+  z-index: 5;
+  width: max-content;
+  max-width: 260px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #2a2c41;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.ai-switch__tip[hidden] {
+  display: none;
+}
+
+.ai-switch__tip::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  right: 22px;
+  width: 10px;
+  height: 10px;
+  background: #2a2c41;
+  transform: rotate(45deg);
 }

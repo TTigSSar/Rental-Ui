@@ -35,7 +35,11 @@ export interface ListingsAiState {
   purposeWidened: boolean;
   datesMentioned: boolean;
   locationNotConsidered: boolean;
-  aiUnavailable: boolean;
+  /**
+   * The last search fell back to the ordinary catalogue (`aiUnavailable`). The switch has been
+   * turned off, but the info notice stays until the next search is submitted.
+   */
+  fallbackNotice: boolean;
   /** Page-1 ids in ranked order (empty when not ranked). Drives the "More listings" divider. */
   rankedIds: string[];
   /** The last page-1 `appliedFilters`; sent back as `filters` for page 2+. */
@@ -64,7 +68,7 @@ export const initialListingsAiState: ListingsAiState = {
   purposeWidened: false,
   datesMentioned: false,
   locationNotConsidered: false,
-  aiUnavailable: false,
+  fallbackNotice: false,
   rankedIds: [],
   appliedFilters: null,
   epoch: 0,

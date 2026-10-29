@@ -222,9 +222,11 @@ export class ListingsEffects {
         ofType(ListingsActions.aiSearchSuccess),
         filter(({ kind }) => kind !== 'page'),
         withLatestFrom(this.store.select(selectListingsFilters)),
-        tap(([, filters]) => {
+        tap(([{ response }, filters]) => {
+          // `aiUnavailable`: the switch has been turned off (reducer), so `ai` leaves the URL and
+          // the plain text search on the description carries on as an ordinary `q` search.
           void this.router.navigate([], {
-            queryParams: { ...filtersToQueryParams(filters), ai: '1' },
+            queryParams: { ...filtersToQueryParams(filters), ai: response.aiUnavailable ? null : '1' },
             queryParamsHandling: 'merge',
           });
         }),

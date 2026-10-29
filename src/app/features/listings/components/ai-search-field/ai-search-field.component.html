@@ -58,7 +58,10 @@
       <app-ai-switch
         [checked]="aiMode()"
         [ariaLabel]="'listings.ai.switchAria' | translate"
+        [unavailable]="budgetSpent()"
+        [tooltip]="layout() === 'block' ? ('listings.ai.budgetSpent' | translate) : ''"
         (toggled)="onToggle($event)"
+        (blocked)="onBlockedTap()"
       />
     </div>
   </div>
@@ -68,6 +71,17 @@
       <i class="pi pi-info-circle" aria-hidden="true"></i>
       {{ 'listings.ai.privacy' | translate }}
     </p>
+  }
+
+  @if (budgetSpent() && budgetNote()) {
+    <p class="aisf__note" role="status" aria-live="polite">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      {{ 'listings.ai.budgetSpent' | translate }}
+    </p>
+  }
+
+  @if (aiMode() && rateLimited()) {
+    <app-ai-notice kind="warn">{{ 'listings.ai.rateLimited' | translate }}</app-ai-notice>
   }
 
   @if (aiMode() && error(); as message) {

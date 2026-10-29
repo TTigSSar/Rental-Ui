@@ -8,7 +8,7 @@ import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 import * as ListingsActions from '../../store/listings.actions';
 import { selectListingsAi } from '../../store/listings.selectors';
 import { initialListingsAiState, type ListingsAiState } from '../../store/listings.state';
-import { AiSearchFieldComponent } from './ai-search-field.component';
+import { AI_BUDGET_NOTE_MS, AiSearchFieldComponent } from './ai-search-field.component';
 
 async function setup(
   options: {
@@ -268,9 +268,121 @@ describe('AiSearchFieldComponent', () => {
       expect(blur).toHaveBeenCalled();
     });
 
-    it('shows a rejected search (e.g. the rate limit) under the field', async () => {
-      const { el } = await setup({ ai: { mode: true, error: 'Too many searches' } });
-      expect(q(el, '.aisf__error')?.textContent).toContain('Too many searches');
+    it('shows another rejected search (e.g. an invalid description) under the field', async () => {
+      const { el } = await setup({
+        ai: { mode: true, error: 'Describe it', errorCode: 'ai_search.invalid_description' },
+      });
+      expect(q(el, '.aisf__error')?.textContent).toContain('Describe it');
+    });
+
+    it('the rate limit is a warn notice under the field, by errorCode, without the server text', async () => {
+      const { el } = await setup({
+        ai: { mode: true, description: 'a bike', error: 'Raw prose', errorCode: 'ai_search.rate_limited' },
+      });
+
+      const notice = q(el, 'app-ai-notice .msg')!;
+      expect(notice.classList.contains('msg--warn')).toBe(true);
+      expect(notice.textContent).toContain('listings.ai.rateLimited');
+      expect(el.textContent).not.toContain('Raw prose');
+      expect(q(el, '.aisf__error')).toBeNull();
+      // the description stays in the field
+      expect((q(el, 'textarea') as HTMLTextAreaElement).value).toBe('a bike');
+    });
+  });
+
+  describe('daily budget used up', () => {
+    const SPENT = { aiStatus: { available: false } };
+
+    it('mobile: tapping the aria-disabled switch shows a Note for ~5 s; AI stays off', async () => {
+      const { harness, el, dispatched, router } = await setup({ ai: SPENT });
+      const sw = q(el, 'button[role="switch"]')!;
+      expect(sw.getAttribute('aria-disabled')).toBe('true');
+      expect(q(el, '.aisf__note')).toBeNull();
+
+      sw.click();
+      harness.detectChanges();
+
+      const note = q(el, '.aisf__note')!;
+      expect(note.getAttribute('role')).toBe('status');
+      expect(note.textContent).toContain('listings.ai.budgetSpent');
+      expect(dispatched().some((a) => a.type === ListingsActions.setAiMode.type)).toBe(false);
+      expect(router.url).not.toContain('ai=1');
+
+      await vi.advanceTimersByTimeAsync(AI_BUDGET_NOTE_MS + 10);
+      harness.detectChanges();
+      expect(q(el, '.aisf__note')).toBeNull();
+    });
+
+    it('mobile: no tooltip is rendered (the Note replaces it)', async () => {
+      const { el } = await setup({ ai: SPENT });
+      expect(q(el, '[role="tooltip"]')).toBeNull();
+    });
+
+    it('desktop (block layout): a tooltip is wired through aria-describedby and no Note appears', async () => {
+      TestBed.configureTestingModule({
+        imports: [TranslateModule.forRoot()],
+        providers: [
+          provideRouter([]),
+          provideMockStore({
+            selectors: [
+              { selector: selectIsAuthenticated, value: true },
+              { selector: selectListingsAi, value: { ...initialListingsAiState, ...SPENT } },
+            ],
+          }),
+        ],
+      });
+      const fixture = TestBed.createComponent(AiSearchFieldComponent);
+      fixture.componentRef.setInput('layout', 'block');
+      fixture.detectChanges();
+      const el = fixture.nativeElement as HTMLElement;
+
+      const sw = q(el, 'button[role="switch"]')!;
+      const tip = q(el, '[role="tooltip"]')!;
+      expect(sw.getAttribute('aria-describedby')).toBe(tip.id);
+      expect(tip.textContent).toContain('listings.ai.budgetSpent');
+
+      sw.click();
+      fixture.detectChanges();
+      expect(q(el, '.aisf__note')).toBeNull();
+    });
+
+    it('the field is a plain text search', async () => {
+      const { el } = await setup({ ai: SPENT });
+      expect(q(el, 'input[type="search"]')).not.toBeNull();
+      expect(q(el, 'textarea')).toBeNull();
+    });
+
+    it('while the status is unknown or available the switch is usable', async () => {
+      const unknown = await setup();
+      expect(q(unknown.el, 'button[role="switch"]')!.hasAttribute('aria-disabled')).toBe(false);
+    });
+  });
+
+  describe('focusEnd (no-results "Edit description")', () => {
+    it('focuses the textarea with the caret at the end', async () => {
+      const { component, el } = await setup({ ai: { mode: true, description: 'a balance bike' } });
+      const textarea = q(el, 'textarea') as HTMLTextAreaElement;
+
+      component.focusEnd();
+
+      expect(document.activeElement).toBe(textarea);
+      expect(textarea.selectionStart).toBe('a balance bike'.length);
+      expect(textarea.selectionEnd).toBe('a balance bike'.length);
+    });
+
+    it('expands the collapsed one-line state first (mobile)', async () => {
+      const { harness, component, el } = await setup({
+        ai: { mode: true, hasSearched: true, description: 'a balance bike' },
+      });
+      expect(q(el, '.aisf__collapsed')).not.toBeNull();
+
+      component.focusEnd();
+      harness.detectChanges();
+      await vi.advanceTimersByTimeAsync(0);
+      harness.detectChanges();
+
+      expect(q(el, '.aisf__collapsed')).toBeNull();
+      expect(document.activeElement).toBe(q(el, 'textarea'));
     });
   });
 });

@@ -362,6 +362,7 @@ export const listingsReducer = createReducer(
       busy: 'searching',
       error: null,
       errorCode: null,
+      fallbackNotice: false,
       exampleSeen: true,
       epoch: state.ai.epoch + 1,
     }),
@@ -409,6 +410,30 @@ export const listingsReducer = createReducer(
         error: null,
       };
     }
+    if (response.aiUnavailable) {
+      // AI could not run: the response is a plain catalogue text search on the description.
+      // The switch goes OFF (it stays enabled), the description is kept for the next attempt and
+      // the info notice stays; the effect mirrors the text into `q` so the ordinary catalogue
+      // continues from there.
+      return {
+        ...state,
+        items: [...response.items],
+        page: response.page,
+        pageSize: response.pageSize,
+        hasMore: response.hasMore,
+        isLoading: false,
+        error: null,
+        filters: { ...fromAiSearchFilters(response.appliedFilters), query: state.ai.description.trim() || null },
+        ai: {
+          ...initialListingsAiState,
+          description: state.ai.description,
+          aiStatus: state.ai.aiStatus,
+          exampleSeen: true,
+          epoch: state.ai.epoch + 1,
+          fallbackNotice: true,
+        },
+      };
+    }
     return {
       ...state,
       items: [...response.items],
@@ -427,9 +452,11 @@ export const listingsReducer = createReducer(
         intent: response.intent ?? (kind === 'rerank' ? state.ai.intent : null),
         widenedDistrictIds: [...response.widenedDistrictIds],
         purposeWidened: response.purposeWidened,
-        datesMentioned: response.datesMentioned,
+        // A re-rank does not re-read the description, so the server reports no dates then:
+        // the note stays as long as the description does.
+        datesMentioned: response.datesMentioned || (kind === 'rerank' && state.ai.datesMentioned),
         locationNotConsidered: response.locationNotConsidered,
-        aiUnavailable: response.aiUnavailable,
+        fallbackNotice: false,
         rankedIds: response.ranked ? response.items.map((i) => i.id) : [],
         appliedFilters: response.appliedFilters,
         error: null,

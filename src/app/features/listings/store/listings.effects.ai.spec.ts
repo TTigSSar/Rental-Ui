@@ -314,6 +314,28 @@ describe('ListingsEffects — AI search (ADR-054)', () => {
       expect(JSON.stringify(extras)).not.toContain('balance');
     });
 
+    it('aiUnavailable: ai leaves the URL and the plain text search carries on as q', () => {
+      const { harness, store, effects } = setup();
+      store.overrideSelector(selectListingsFilters, { ...FILTERS, query: 'a balance bike' });
+      store.refreshState();
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      effects.syncAiFiltersToUrl$.subscribe();
+
+      harness.send(
+        ListingsActions.aiSearchSuccess({
+          kind: 'search',
+          response: makeResponse({ aiUnavailable: true, ranked: false, intent: null }),
+          epoch: 7,
+        }),
+      );
+
+      const [, extras] = navigate.mock.calls[0];
+      expect(extras).toMatchObject({
+        queryParamsHandling: 'merge',
+        queryParams: { ai: null, q: 'a balance bike' },
+      });
+    });
+
     it('does nothing for a page-2+ response', () => {
       const { harness, effects } = setup();
       const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);

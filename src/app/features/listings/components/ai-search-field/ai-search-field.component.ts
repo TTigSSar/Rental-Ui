@@ -1,7 +1,9 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   ElementRef,
+  Injector,
   afterNextRender,
   computed,
   effect,
@@ -18,15 +20,20 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 import * as ListingsActions from '../../store/listings.actions';
 import {
+  selectAiBudgetSpent,
   selectAiDescription,
-  selectAiError,
   selectAiHasSearched,
   selectAiMode,
+  selectAiOtherError,
+  selectAiRateLimited,
   selectAiSnapshot,
 } from '../../store/listings.selectors';
+import { AiNoticeComponent } from '../ai-notice/ai-notice.component';
 import { AiSwitchComponent } from '../ai-switch/ai-switch.component';
 
 export const AI_DESCRIPTION_MAX_LENGTH = 500;
+/** How long the mobile "AI search is unavailable today" Note stays after a tap. */
+export const AI_BUDGET_NOTE_MS = 5000;
 /** ~5 lines; the textarea scrolls inside beyond this. */
 const TEXTAREA_MAX_HEIGHT_PX = 120;
 
@@ -46,7 +53,7 @@ const TEXTAREA_MAX_HEIGHT_PX = 120;
 @Component({
   selector: 'app-ai-search-field',
   standalone: true,
-  imports: [AiSwitchComponent, TranslatePipe],
+  imports: [AiNoticeComponent, AiSwitchComponent, TranslatePipe],
   templateUrl: './ai-search-field.component.html',
   styleUrl: './ai-search-field.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -55,6 +62,7 @@ export class AiSearchFieldComponent {
   private readonly store = inject(Store);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly injector = inject(Injector);
 
   readonly layout = input<'bar' | 'block'>('bar');
   /** The ordinary text query (switch off). */
@@ -69,7 +77,15 @@ export class AiSearchFieldComponent {
   protected readonly aiMode = this.store.selectSignal(selectAiMode);
   protected readonly description = this.store.selectSignal(selectAiDescription);
   protected readonly hasSearched = this.store.selectSignal(selectAiHasSearched);
-  protected readonly error = this.store.selectSignal(selectAiError);
+  protected readonly error = this.store.selectSignal(selectAiOtherError);
+  /** 429: a warn notice directly under the field (description and cards stay). */
+  protected readonly rateLimited = this.store.selectSignal(selectAiRateLimited);
+  /** Daily budget used up: the switch is aria-disabled and the field is a plain text search. */
+  protected readonly budgetSpent = this.store.selectSignal(selectAiBudgetSpent);
+  /** Mobile only: the reason Note shown for ~5 s after tapping the disabled switch. */
+  protected readonly budgetNote = signal(false);
+  private budgetNoteTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
   private readonly snapshot = this.store.selectSignal(selectAiSnapshot);
 
@@ -110,6 +126,9 @@ export class AiSearchFieldComponent {
         this.focusAfterRender = false;
         queueMicrotask(() => el.focus());
       }
+    });
+    inject(DestroyRef).onDestroy(() => {
+      if (this.budgetNoteTimer !== null) clearTimeout(this.budgetNoteTimer);
     });
     afterNextRender(() => {
       const el = this.textarea()?.nativeElement;
@@ -174,6 +193,45 @@ export class AiSearchFieldComponent {
       return;
     }
     this.store.dispatch(ListingsActions.submitAiSearch({ description }));
+  }
+
+  /** Tap on the aria-disabled switch. Desktop explains on hover/focus; mobile shows a Note. */
+  protected onBlockedTap(): void {
+    if (this.layout() !== 'bar') return;
+    this.budgetNote.set(true);
+    if (this.budgetNoteTimer !== null) clearTimeout(this.budgetNoteTimer);
+    this.budgetNoteTimer = setTimeout(() => {
+      this.budgetNote.set(false);
+      this.budgetNoteTimer = null;
+    }, AI_BUDGET_NOTE_MS);
+  }
+
+  /** `false` while this instance sits in a `display: none` container (the other breakpoint's copy). */
+  isVisible(): boolean {
+    return this.host.nativeElement.offsetParent !== null;
+  }
+
+  /** "Edit description": expand the field, focus it and put the caret at the end. */
+  focusEnd(): void {
+    const el = this.textarea()?.nativeElement;
+    if (el) {
+      el.focus();
+      const end = el.value.length;
+      el.setSelectionRange(end, end);
+      return;
+    }
+    // Collapsed one-line state (mobile): expanding focuses the textarea once it renders.
+    this.expand();
+    afterNextRender(
+      () => {
+        const target = this.textarea()?.nativeElement;
+        if (target) {
+          target.focus();
+          target.setSelectionRange(target.value.length, target.value.length);
+        }
+      },
+      { injector: this.injector },
+    );
   }
 
   protected expand(): void {

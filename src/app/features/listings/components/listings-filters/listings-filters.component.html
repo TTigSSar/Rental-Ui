@@ -96,7 +96,7 @@
       </div>
 
       <!-- Districts -->
-      <div class="lf-field" [class.lf-field--set]="draftForm.controls.districtIds.value.length > 0">
+      <div class="lf-field" id="lf-field-districts" [class.lf-field--set]="draftForm.controls.districtIds.value.length > 0">
         <span class="lf-field__label" id="lf-districts-label">
           {{ 'listings.filters.districtIds' | translate }}
         </span>
@@ -110,6 +110,7 @@
           [showToggleAll]="false"
           [showClear]="true"
           [placeholder]="'listings.filters.districtsPlaceholder' | translate"
+          inputId="lf-districts-input"
           [ariaLabelledBy]="'lf-districts-label'"
           styleClass="lf-field__input lf-field__multiselect"
           appendTo="body"
@@ -118,7 +119,7 @@
       </div>
 
       <!-- Price range -->
-      <div class="lf-field-row">
+      <div class="lf-field-row" id="lf-field-price">
         <div class="lf-field" [class.lf-field--set]="draftForm.controls.minPrice.value != null">
           <label class="lf-field__label" for="lf-min-price">
             {{ 'listings.filters.minPrice' | translate }}

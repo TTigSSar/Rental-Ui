@@ -491,7 +491,20 @@
       "relevantFirst": "most relevant first",
       "sortRelevant": "Most relevant first",
       "updating": "Updating the order",
-      "moreListings": "More listings matching your criteria"
+      "moreListings": "More listings matching your criteria",
+      "status": "Finding toys that match your description",
+      "purposeNote": "Not many exact matches, so the purpose was read more broadly.",
+      "emptyTitle": "No toys match this description yet",
+      "widen": "Widen the area",
+      "budget": "Increase the budget",
+      "edit": "Edit description",
+      "browse": "Or browse other categories",
+      "unavailable": "AI search is unavailable right now, showing regular search results.",
+      "budgetSpent": "AI search is unavailable today. Try again tomorrow.",
+      "rateLimited": "Too many searches. Try again in a minute.",
+      "datesNote": "Rental dates aren’t considered here, check availability on the listing.",
+      "locationNote": "Location isn’t considered.",
+      "chooseDistrict": "Choose a district"
     },
     "common": {
       "retry": "Try again",

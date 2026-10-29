@@ -152,7 +152,8 @@ interface ListingsPageSelectorOverrides {
   readonly error?: string | null;
   readonly filters?: ListingsFilter;
   readonly originCoords?: { lat: number; lng: number } | null;
-  readonly originSource?: 'geo' | 'manual' | null;
+  readonly originSource?: 'geo' | 'manual' | 'home' | null;
+  readonly categories?: { id: string; name: string }[];
   readonly ai?: Partial<ListingsAiState>;
   readonly items?: ListingPreview[];
 }
@@ -168,7 +169,7 @@ async function navigateToListings(url: string, overrides: ListingsPageSelectorOv
         selectors: [
           { selector: selectIsAuthenticated, value: false },
           { selector: selectFavoriteIds, value: new Set<string>() },
-          { selector: selectListingCategories, value: [] },
+          { selector: selectListingCategories, value: overrides.categories ?? [] },
           { selector: selectListingsAi, value: { ...initialListingsAiState, ...overrides.ai } },
           { selector: selectListingItems, value: overrides.items ?? [makeListingPreview()] },
           { selector: selectListingsError, value: overrides.error ?? null },
@@ -603,5 +604,441 @@ describe('ListingsPageComponent — AI search', () => {
   it('the desktop AI field sits above the results', async () => {
     const { el } = await navigateToListings('/listings');
     expect(el.querySelector('.lp-main .lp-ai-top app-ai-search-field')).not.toBeNull();
+  });
+});
+
+// ── AI search: the non-happy-path states (stage 2 + 3) ───────────────────
+
+describe('ListingsPageComponent — AI search states', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    // jsdom has no layout: scrollIntoView does not exist.
+    HTMLElement.prototype.scrollIntoView = vi.fn();
+  });
+  afterEach(() => vi.useRealTimers());
+
+  async function flush(harness: RouterTestingHarness) {
+    harness.detectChanges();
+    await vi.advanceTimersByTimeAsync(0);
+    harness.detectChanges();
+  }
+
+  const NO_RESULTS_AI = { ...AI_RESULTS, ranked: false, intent: null, rankedIds: [] };
+
+  describe('loading', () => {
+    it('keeps the previous cards dimmed, inert and aria-hidden under a status line + bar', async () => {
+      const { el } = await navigateToListings('/listings?ai=1', { ai: { ...AI_RESULTS, busy: 'searching' } });
+
+      const status = el.querySelector('.lp-ai-status')!;
+      expect(status.getAttribute('role')).toBe('status');
+      expect(status.getAttribute('aria-live')).toBe('polite');
+      expect(status.textContent).toContain('listings.ai.status');
+      expect(status.querySelector('.lp-ai-bar')).not.toBeNull();
+
+      const grid = el.querySelector('.listings-page__grid')!;
+      expect(grid.classList.contains('listings-page__grid--busy')).toBe(true);
+      expect(grid.classList.contains('listings-page__grid--searching')).toBe(true);
+      expect(grid.hasAttribute('inert')).toBe(true);
+      expect(grid.getAttribute('aria-hidden')).toBe('true');
+      expect(el.querySelector('app-ui-loading-skeleton')).toBeNull();
+      expect(el.querySelector('.lp-results')!.getAttribute('aria-busy')).toBe('true');
+    });
+
+    it('a first search puts the status line above the existing skeleton (no old cards)', async () => {
+      const { el } = await navigateToListings('/listings?ai=1', {
+        ai: { ...initialListingsAiState, mode: true, description: 'bike', busy: 'searching' },
+      });
+
+      expect(el.querySelector('.lp-ai-status')).not.toBeNull();
+      expect(el.querySelector('app-ui-loading-skeleton')).not.toBeNull();
+      expect(el.querySelector('.listings-page__grid')).toBeNull();
+      expect(el.querySelector('app-ai-no-results')).toBeNull();
+    });
+
+    it('a re-rank dims the cards at the re-rank level and shows no status line', async () => {
+      const { el } = await navigateToListings('/listings?ai=1', { ai: { ...AI_RESULTS, busy: 'reranking' } });
+
+      const grid = el.querySelector('.listings-page__grid')!;
+      expect(grid.classList.contains('listings-page__grid--busy')).toBe(true);
+      expect(grid.classList.contains('listings-page__grid--searching')).toBe(false);
+      expect(el.querySelector('.lp-ai-status')).toBeNull();
+    });
+
+    it('idle: cards are live (not dimmed, no inert, no aria-hidden)', async () => {
+      const { el } = await navigateToListings('/listings?ai=1', { ai: AI_RESULTS });
+
+      const grid = el.querySelector('.listings-page__grid')!;
+      expect(grid.hasAttribute('inert')).toBe(false);
+      expect(grid.hasAttribute('aria-hidden')).toBe(false);
+      expect(el.querySelector('.lp-ai-status')).toBeNull();
+      expect(el.querySelector('.lp-results')!.getAttribute('aria-busy')).toBe('false');
+    });
+
+    it('moves focus to the explanation line when the results arrive', async () => {
+      const { harness, store } = await navigateToListings('/listings?ai=1', {
+        ai: { ...AI_RESULTS, busy: 'searching' },
+      });
+
+      store.overrideSelector(selectListingsAi, { ...initialListingsAiState, ...AI_RESULTS, busy: 'idle' });
+      store.refreshState();
+      await flush(harness);
+      await flush(harness);
+
+      expect(document.activeElement?.classList.contains('lp-ai-explain')).toBe(true);
+    });
+  });
+
+  describe('no results (option A)', () => {
+    const NO_RESULTS_OPTS = { items: [] as ListingPreview[], ai: NO_RESULTS_AI };
+
+    it('with a district filter: "Widen the area" is primary, then budget + edit; no clear-filters, no bell', async () => {
+      const { el } = await navigateToListings('/listings?ai=1&districtIds=d-1', {
+        ...NO_RESULTS_OPTS,
+        filters: { ...BASE_FILTERS, districtIds: ['d-1'] },
+      });
+
+      const empty = el.querySelector('app-ai-no-results')!;
+      expect(empty.querySelector('h3')!.textContent).toContain('listings.ai.emptyTitle');
+      const primary = empty.querySelector('.ai-empty__primary')!;
+      expect(primary.textContent).toContain('listings.ai.widen');
+      const outline = Array.from(empty.querySelectorAll('.ai-empty__outline')).map((b) => b.textContent!.trim());
+      expect(outline).toEqual(['listings.ai.budget', 'listings.ai.edit']);
+      expect(el.querySelector('.lp-empty-search')).toBeNull();
+      expect(el.querySelector('.pi-bell')).toBeNull();
+      expect(empty.textContent).not.toContain('emptyFilterCta');
+    });
+
+    it('without a district filter the primary is "Edit description" and the Edit button is not repeated', async () => {
+      const { el } = await navigateToListings('/listings?ai=1', NO_RESULTS_OPTS);
+
+      const empty = el.querySelector('app-ai-no-results')!;
+      expect(empty.querySelector('.ai-empty__primary')!.textContent).toContain('listings.ai.edit');
+      expect(empty.textContent).not.toContain('listings.ai.widen');
+      expect(Array.from(empty.querySelectorAll('.ai-empty__outline')).map((b) => b.textContent!.trim())).toEqual([
+        'listings.ai.budget',
+      ]);
+    });
+
+    it('"Widen the area" drops only the districts (the URL change re-ranks without them)', async () => {
+      const { el, router } = await navigateToListings('/listings?ai=1&districtIds=d-1&categoryId=c1', {
+        ...NO_RESULTS_OPTS,
+        filters: { ...BASE_FILTERS, districtIds: ['d-1'], categoryId: 'c1' },
+      });
+
+      el.querySelector<HTMLButtonElement>('.ai-empty__primary')!.click();
+      await vi.advanceTimersByTimeAsync(50);
+
+      expect(router.url).not.toContain('districtIds');
+      expect(router.url).toContain('categoryId=c1');
+      expect(router.url).toContain('ai=1');
+    });
+
+    it('category pills list the OTHER categories; a pill replaces only the category', async () => {
+      const { el, router } = await navigateToListings('/listings?ai=1&categoryId=c1&maxPrice=2000', {
+        ...NO_RESULTS_OPTS,
+        categories: [
+          { id: 'c1', name: 'Bikes' },
+          { id: 'c2', name: 'Puzzles' },
+        ],
+        filters: { ...BASE_FILTERS, categoryId: 'c1', maxPrice: 2000 },
+      });
+
+      const pills = Array.from(el.querySelectorAll<HTMLButtonElement>('.ai-empty__pill'));
+      expect(pills.map((p) => p.textContent!.trim())).toEqual(['Puzzles']);
+
+      pills[0].click();
+      await vi.advanceTimersByTimeAsync(50);
+
+      expect(router.url).toContain('categoryId=c2');
+      expect(router.url).toContain('maxPrice=2000');
+    });
+
+    it('"Increase the budget" opens the filter sheet at the price on mobile (sidebar hidden)', async () => {
+      const { harness, el } = await navigateToListings('/listings?ai=1', NO_RESULTS_OPTS);
+
+      el.querySelector<HTMLButtonElement>('.ai-empty__outline')!.click();
+      await flush(harness);
+
+      expect(el.querySelector('.lf-sheet')).not.toBeNull();
+      expect(el.querySelector('#lf-field-price')).not.toBeNull();
+    });
+
+    it('"Increase the budget" focuses the sidebar price "To" on desktop', async () => {
+      const spy = vi.spyOn(HTMLElement.prototype, 'offsetParent', 'get').mockReturnValue(document.body);
+      try {
+        const { el } = await navigateToListings('/listings?ai=1', NO_RESULTS_OPTS);
+
+        el.querySelector<HTMLButtonElement>('.ai-empty__outline')!.click();
+
+        const input = el.querySelectorAll<HTMLInputElement>('.lp-sidebar__price-input')[1];
+        expect(document.activeElement).toBe(input);
+        expect(el.querySelector('.lf-sheet')).toBeNull();
+      } finally {
+        spy.mockRestore();
+      }
+    });
+
+    it('no results in ordinary mode keep the generic empty state', async () => {
+      const { el } = await navigateToListings('/listings', {
+        items: [],
+        filters: { ...BASE_FILTERS, categoryId: 'c1' },
+      });
+
+      expect(el.querySelector('app-ai-no-results')).toBeNull();
+      expect(el.querySelector('.lp-empty-search')).not.toBeNull();
+    });
+  });
+
+  describe('AI unavailable (fallback)', () => {
+    const FALLBACK = { ...initialListingsAiState, mode: false, description: 'bike', fallbackNotice: true };
+
+    it('shows the info notice (role=status) with ordinary results: no explanation, no "most relevant first"', async () => {
+      const { el } = await navigateToListings('/listings', { ai: FALLBACK });
+
+      const notice = el.querySelector('.lp-ai-slot app-ai-notice .msg')!;
+      expect(notice.classList.contains('msg--info')).toBe(true);
+      expect(notice.getAttribute('role')).toBe('status');
+      expect(notice.textContent).toContain('listings.ai.unavailable');
+      expect(el.querySelector('.lp-ai-explain')).toBeNull();
+      expect(el.querySelector('.lp-toolbar__relevant')).toBeNull();
+      expect(el.querySelector('.lp-ai-divider')).toBeNull();
+    });
+
+    it('is not shown without a fallback', async () => {
+      const { el } = await navigateToListings('/listings', { ai: AI_RESULTS });
+      expect(el.querySelector('.lp-ai-slot')).toBeNull();
+    });
+
+    it('the switch is OFF but still enabled (focusable, not aria-disabled)', async () => {
+      const { el } = await navigateToListings('/listings', { ai: FALLBACK });
+
+      const sw = el.querySelector<HTMLButtonElement>('.lp-ai-top .ai-switch')!;
+      expect(sw.getAttribute('aria-checked')).toBe('false');
+      expect(sw.hasAttribute('aria-disabled')).toBe(false);
+      expect(sw.disabled).toBe(false);
+    });
+  });
+
+  describe('notes', () => {
+    const NOTES_AI = {
+      ...AI_RESULTS,
+      datesMentioned: true,
+      locationNotConsidered: true,
+      purposeWidened: true,
+    };
+
+    it('shows at most two notes, dates first then location; the purpose note drops', async () => {
+      const { el } = await navigateToListings('/listings?ai=1', { ai: NOTES_AI });
+
+      const notes = Array.from(el.querySelectorAll('.lp-ai-note'));
+      expect(notes).toHaveLength(2);
+      expect(notes[0].textContent).toContain('listings.ai.datesNote');
+      expect(notes[1].textContent).toContain('listings.ai.locationNote');
+      expect(notes[1].querySelector('.lp-ai-note__link')!.textContent).toContain('listings.ai.chooseDistrict');
+      expect(el.textContent).not.toContain('listings.ai.purposeNote');
+    });
+
+    it('the purpose note shows on its own, under the explanation line', async () => {
+      const { el } = await navigateToListings('/listings?ai=1', { ai: { ...AI_RESULTS, purposeWidened: true } });
+
+      const explain = el.querySelector('.lp-ai-explain')!;
+      const note = el.querySelector('.lp-ai-note')!;
+      expect(note.textContent).toContain('listings.ai.purposeNote');
+      expect(explain.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it('no notes without flags', async () => {
+      const { el } = await navigateToListings('/listings?ai=1', { ai: AI_RESULTS });
+      expect(el.querySelector('.lp-ai-notes')).toBeNull();
+    });
+
+    it('"Choose a district" opens the sheet at District on mobile', async () => {
+      const { harness, el } = await navigateToListings('/listings?ai=1', { ai: NOTES_AI });
+
+      el.querySelector<HTMLButtonElement>('.lp-ai-note__link')!.click();
+      await flush(harness);
+
+      expect(el.querySelector('.lf-sheet')).not.toBeNull();
+      expect(el.querySelector('#lf-field-districts')).not.toBeNull();
+    });
+
+    it('"Choose a district" focuses the sidebar District section on desktop', async () => {
+      const spy = vi.spyOn(HTMLElement.prototype, 'offsetParent', 'get').mockReturnValue(document.body);
+      try {
+        const { el } = await navigateToListings('/listings?ai=1', { ai: NOTES_AI });
+        // Districts load from the API; give the section a checkbox to receive focus.
+        const section = el.querySelectorAll<HTMLElement>('.lp-sidebar__section')[1];
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        section.appendChild(checkbox);
+
+        el.querySelector<HTMLButtonElement>('.lp-ai-note__link')!.click();
+
+        expect(document.activeElement).toBe(checkbox);
+        expect(el.querySelector('.lf-sheet')).toBeNull();
+      } finally {
+        spy.mockRestore();
+      }
+    });
+  });
+
+  describe('rate limit (429)', () => {
+    const LIMITED = {
+      ...AI_RESULTS,
+      error: 'Raw server prose that must never be rendered',
+      errorCode: 'ai_search.rate_limited' as const,
+    };
+
+    it('shows a warn notice directly under the search bar; the description and the cards stay', async () => {
+      const { el } = await navigateToListings('/listings?ai=1', { ai: LIMITED });
+
+      const notice = el.querySelector('.lp-ai-top app-ai-notice .msg')!;
+      expect(notice.classList.contains('msg--warn')).toBe(true);
+      expect(notice.textContent).toContain('listings.ai.rateLimited');
+      expect(el.textContent).not.toContain('Raw server prose');
+      expect((el.querySelector('.lp-ai-top textarea') as HTMLTextAreaElement).value).toBe('a balance bike');
+
+      const grid = el.querySelector('.listings-page__grid')!;
+      expect(grid.hasAttribute('inert')).toBe(false);
+      expect(grid.classList.contains('listings-page__grid--busy')).toBe(false);
+    });
+
+    it('does not move focus to the explanation line (nothing new arrived)', async () => {
+      const { harness, store } = await navigateToListings('/listings?ai=1', {
+        ai: { ...AI_RESULTS, busy: 'searching' },
+      });
+      store.overrideSelector(selectListingsAi, { ...initialListingsAiState, ...LIMITED, busy: 'idle' });
+      store.refreshState();
+      await flush(harness);
+      await flush(harness);
+
+      expect(document.activeElement?.classList.contains('lp-ai-explain')).toBe(false);
+    });
+
+    it('is cleared once the error is gone (next successful search)', async () => {
+      const { harness, el, store } = await navigateToListings('/listings?ai=1', { ai: LIMITED });
+      store.overrideSelector(selectListingsAi, { ...initialListingsAiState, ...AI_RESULTS });
+      store.refreshState();
+      await flush(harness);
+
+      expect(el.querySelector('.lp-ai-top app-ai-notice')).toBeNull();
+    });
+  });
+
+  describe('daily budget used up', () => {
+    const SPENT = { ...initialListingsAiState, aiStatus: { available: false } };
+
+    it('the switch is aria-disabled (still focusable) with a described-by tooltip on desktop', async () => {
+      const { harness, el } = await navigateToListings('/listings', { ai: SPENT });
+
+      const sw = el.querySelector<HTMLButtonElement>('.lp-ai-top .ai-switch')!;
+      expect(sw.getAttribute('aria-checked')).toBe('false');
+      expect(sw.getAttribute('aria-disabled')).toBe('true');
+      expect(sw.disabled).toBe(false);
+      const tip = el.querySelector<HTMLElement>('.lp-ai-top [role="tooltip"]')!;
+      expect(sw.getAttribute('aria-describedby')).toBe(tip.id);
+      expect(tip.hidden).toBe(true);
+
+      sw.dispatchEvent(new Event('focus'));
+      await flush(harness);
+      expect(tip.hidden).toBe(false);
+      expect(tip.textContent).toContain('listings.ai.budgetSpent');
+
+      sw.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      await flush(harness);
+      expect(tip.hidden).toBe(true);
+    });
+
+    it('clicking it does not turn AI on', async () => {
+      const { harness, el, router } = await navigateToListings('/listings', { ai: SPENT });
+
+      el.querySelector<HTMLButtonElement>('.lp-ai-top .ai-switch')!.click();
+      await flush(harness);
+
+      expect(router.url).not.toContain('ai=1');
+    });
+
+    it('a guest gets the status too: it is loaded on init regardless of sign-in', async () => {
+      const { store } = await navigateToListings('/listings');
+      expect(dispatchedTypes(store)).toContain(ListingsActions.loadAiStatus.type);
+    });
+
+    it('leaves AI mode when the page opens as ?ai=1 and the budget is already spent', async () => {
+      const { harness, router } = await navigateToListings('/listings?ai=1', {
+        ai: { ...SPENT, mode: true },
+      });
+      await flush(harness);
+      await vi.advanceTimersByTimeAsync(50);
+
+      expect(router.url).not.toContain('ai=1');
+    });
+
+    it('the field is a plain text search (no description textarea)', async () => {
+      const { el } = await navigateToListings('/listings', { ai: SPENT });
+      expect(el.querySelector('.lp-ai-top input[type="search"]')).not.toBeNull();
+      expect(el.querySelector('.lp-ai-top textarea')).toBeNull();
+    });
+  });
+
+  describe('near me with a home point', () => {
+    it('shows the removable chip "Within 1 km of home" for the distance filter', async () => {
+      const { el } = await navigateToListings('/listings?ai=1&radiusKm=1', {
+        ai: AI_RESULTS,
+        filters: { ...BASE_FILTERS, radiusKm: 1 },
+        originCoords: { lat: 40.18, lng: 44.51 },
+        originSource: 'home',
+      });
+
+      const chips = Array.from(el.querySelectorAll('.lp-active-chip')).map((c) => c.textContent!.trim());
+      expect(chips).toEqual(['listings.filters.distance.withinHome']);
+    });
+  });
+
+  describe('guest', () => {
+    function submitButton(el: HTMLElement): HTMLButtonElement {
+      return el.querySelector<HTMLButtonElement>('.lp-ai-top .aisf__submit')!;
+    }
+
+    const GUEST_AI = { ...initialListingsAiState, mode: true, description: 'a balance bike' };
+
+    it('submitting opens the EXISTING sign-in dialog, keeps the description and runs nothing', async () => {
+      const { harness, el, store } = await navigateToListings('/listings?ai=1', { ai: GUEST_AI });
+
+      submitButton(el).click();
+      await flush(harness);
+
+      expect(dispatchedTypes(store)).not.toContain(ListingsActions.submitAiSearch.type);
+      expect(el.querySelector('app-auth-dialog')).not.toBeNull();
+      expect((el.querySelector('.lp-ai-top textarea') as HTMLTextAreaElement).value).toBe('a balance bike');
+    });
+
+    it('after sign-in the search runs automatically with the kept description', async () => {
+      const { harness, el, store } = await navigateToListings('/listings?ai=1', { ai: GUEST_AI });
+
+      submitButton(el).click();
+      await flush(harness);
+      store.overrideSelector(selectIsAuthenticated, true);
+      store.refreshState();
+      await flush(harness);
+      await flush(harness);
+
+      const calls = (store.dispatch as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[0]);
+      expect(calls).toContainEqual(ListingsActions.submitAiSearch({ description: 'a balance bike' }));
+    });
+
+    it('closing the dialog runs nothing - not even if the user signs in later by another route', async () => {
+      const { harness, el, component, store } = await navigateToListings('/listings?ai=1', { ai: GUEST_AI });
+
+      submitButton(el).click();
+      await flush(harness);
+      (component as unknown as { onAuthDialogClosed(): void }).onAuthDialogClosed();
+      store.overrideSelector(selectIsAuthenticated, true);
+      store.refreshState();
+      await flush(harness);
+      await flush(harness);
+
+      expect(dispatchedTypes(store)).not.toContain(ListingsActions.submitAiSearch.type);
+      store.overrideSelector(selectIsAuthenticated, false);
+    });
   });
 });

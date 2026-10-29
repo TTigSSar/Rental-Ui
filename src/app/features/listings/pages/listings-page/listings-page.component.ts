@@ -5,6 +5,8 @@ import {
   DestroyRef,
   ElementRef,
   HostListener,
+  Injector,
+  afterNextRender,
   computed,
   effect,
   inject,
@@ -18,7 +20,18 @@ import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
-import { Subject, catchError, combineLatest, debounceTime, map, of, startWith, switchMap } from 'rxjs';
+import {
+  Subject,
+  catchError,
+  combineLatest,
+  debounceTime,
+  filter,
+  map,
+  of,
+  pairwise,
+  startWith,
+  switchMap,
+} from 'rxjs';
 
 import { LanguageService } from '../../../../shared/services/language.service';
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
@@ -32,6 +45,8 @@ import type { BookingStatus } from '../../../bookings/models/booking.model';
 import { selectMyBookings } from '../../../bookings/store/bookings.selectors';
 import { selectFavoriteIds } from '../../../favorites/store/favorites.selectors';
 import { AiExampleComponent } from '../../components/ai-example/ai-example.component';
+import { AiNoResultsComponent } from '../../components/ai-no-results/ai-no-results.component';
+import { AiNoticeComponent } from '../../components/ai-notice/ai-notice.component';
 import { AiSearchFieldComponent } from '../../components/ai-search-field/ai-search-field.component';
 import { ListingCardComponent } from '../../components/listing-card/listing-card.component';
 import { ListingsFiltersComponent } from '../../components/listings-filters/listings-filters.component';
@@ -55,12 +70,18 @@ import { ListingsApiService } from '../../services/listings-api.service';
 import * as ListingsActions from '../../store/listings.actions';
 
 import {
+  selectAiBudgetSpent,
   selectAiBusy,
+  selectAiDescription,
   selectAiExplanation,
+  selectAiFallbackNotice,
   selectAiHasSearched,
   selectAiMode,
+  selectAiNotes,
+  selectAiOtherError,
   selectAiRanked,
   selectAiRankedCount,
+  selectAiRateLimited,
   selectAiResultsActive,
   selectListingCategories,
   selectListingItems,
@@ -193,6 +214,8 @@ function applySort(items: ListingPreview[], sortBy: string): ListingPreview[] {
   standalone: true,
   imports: [
     AiExampleComponent,
+    AiNoResultsComponent,
+    AiNoticeComponent,
     AiSearchFieldComponent,
     AuthDialogComponent,
     ButtonModule,
@@ -280,7 +303,25 @@ export class ListingsPageComponent {
   protected readonly aiExplanation = this.store.selectSignal(selectAiExplanation);
   protected readonly aiRanked = this.store.selectSignal(selectAiRanked);
   protected readonly aiRankedCount = this.store.selectSignal(selectAiRankedCount);
+  protected readonly aiNotes = this.store.selectSignal(selectAiNotes);
+  /** The last search fell back to the ordinary catalogue: info notice, switch already off. */
+  protected readonly aiFallbackNotice = this.store.selectSignal(selectAiFallbackNotice);
+  private readonly aiBudgetSpent = this.store.selectSignal(selectAiBudgetSpent);
+  private readonly aiRateLimited = this.store.selectSignal(selectAiRateLimited);
+  private readonly aiOtherError = this.store.selectSignal(selectAiOtherError);
+  private readonly aiDescription = this.store.selectSignal(selectAiDescription);
   private sortBeforeAi: SortBy | null = null;
+
+  private readonly injector = inject(Injector);
+  private readonly sidebarRef = viewChild<ElementRef<HTMLElement>>('sidebar');
+  private readonly maxPriceRef = viewChild<ElementRef<HTMLInputElement>>('maxPriceInput');
+  private readonly districtSectionRef = viewChild<ElementRef<HTMLElement>>('districtSection');
+  private readonly aiExplainRef = viewChild<ElementRef<HTMLElement>>('aiExplain');
+  private readonly desktopField = viewChild(AiSearchFieldComponent);
+  private readonly filtersCmp = viewChild(ListingsFiltersComponent);
+  /** A guest submitted a description: the search runs by itself once they have signed in. */
+  private pendingAiSubmit = false;
+  private prevAiBusy = this.aiBusy();
   private readonly desktopQuery$ = new Subject<string>();
 
   protected readonly sortOptions = computed<readonly SortOption[]>(() =>
@@ -425,6 +466,25 @@ export class ListingsPageComponent {
     return `${n}${suffix}`;
   });
 
+  /** First search (no AI results yet), or a search/re-rank with nothing to dim: the skeleton shows. */
+  protected readonly aiSkeleton = computed(() => {
+    const busy = this.aiBusy();
+    if (busy === 'idle') return false;
+    return this.itemsSignal().length === 0 || (busy === 'searching' && !this.aiHasSearched());
+  });
+  /** The "Finding toys that match your description" status line + indeterminate bar. */
+  protected readonly aiStatusLine = computed(() => this.aiBusy() === 'searching' || this.aiSkeleton());
+
+  /** AI search found nothing (option A): the AI-specific empty state replaces the generic one. */
+  protected readonly aiNoResults = computed(
+    () => this.aiHasSearched() && this.aiBusy() === 'idle' && this.itemsSignal().length === 0,
+  );
+  protected readonly hasDistrictFilter = computed(() => this.activeDistrictIds().length > 0);
+  /** "Or browse other categories": every category except the one already applied. */
+  protected readonly otherCategories = computed(() =>
+    this.categoriesSignal().filter((c) => c.id !== this.activeCategoryId()),
+  );
+
   protected readonly viewModel$ = combineLatest([
     this.store.select(selectListingsPageViewModel),
     toObservable(this.sortBy),
@@ -454,8 +514,51 @@ export class ListingsPageComponent {
         this.store.dispatch(ListingsActions.loadListings());
       });
 
-    // Budget state for the switch (the disabled-state UI is a later card; the data is kept).
+    // Budget state for the switch (loaded for guests too - the endpoint is anonymous).
     this.store.dispatch(ListingsActions.loadAiStatus());
+
+    // Daily budget used up while AI mode is on (deep link `?ai=1`): leave AI mode, the field is
+    // then a plain text search and the switch shows its disabled state.
+    effect(() => {
+      if (this.aiBudgetSpent() && this.aiMode()) {
+        untracked(() => {
+          void this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: { ai: null },
+            queryParamsHandling: 'merge',
+          });
+        });
+      }
+    });
+
+    // Guest flow: after signing in, the kept description is searched automatically.
+    toObservable(this.isAuthenticated)
+      .pipe(
+        pairwise(),
+        filter(([was, now]) => !was && now),
+        takeUntilDestroyed(),
+      )
+      .subscribe(() => {
+        const description = this.aiDescription().trim();
+        if (this.pendingAiSubmit && this.aiMode() && description) {
+          this.store.dispatch(ListingsActions.submitAiSearch({ description }));
+        }
+        this.pendingAiSubmit = false;
+      });
+
+    // On results, focus moves to the explanation line (the field keeps focus while loading).
+    effect(() => {
+      const busy = this.aiBusy();
+      const finishedSearch = this.prevAiBusy === 'searching' && busy === 'idle';
+      this.prevAiBusy = busy;
+      if (!finishedSearch) return;
+      untracked(() => {
+        if (this.aiRateLimited() || this.aiOtherError()) return;
+        afterNextRender(() => this.aiExplainRef()?.nativeElement.focus(), {
+          injector: this.injector,
+        });
+      });
+    });
 
     // Desktop plain-text search (the header search is hidden on this page).
     this.desktopQuery$
@@ -595,6 +698,66 @@ export class ListingsPageComponent {
       queryParams: { radiusKm: null },
       queryParamsHandling: 'merge',
     });
+  }
+
+  /** A guest submitted in AI mode: remember it, open the EXISTING sign-in dialog. */
+  protected onAiAuthRequired(): void {
+    this.pendingAiSubmit = true;
+    this.showAuthDialog.set(true);
+  }
+
+  protected onAuthDialogClosed(): void {
+    this.showAuthDialog.set(false);
+    // Closed without signing in: nothing runs.
+    if (!this.isAuthenticated()) {
+      this.pendingAiSubmit = false;
+    }
+  }
+
+  /** The desktop sidebar is `display: none` below the breakpoint - then the sheet is the way in. */
+  private isSidebarVisible(): boolean {
+    return this.sidebarRef()?.nativeElement.offsetParent != null;
+  }
+
+  /** No results, primary: drop the districts (whole Yerevan); the URL change re-runs the search. */
+  protected widenArea(): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { districtIds: null },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  /** No results: "Edit description" - expand the field, caret at the end, focused. */
+  protected editDescription(): void {
+    const desktop = this.desktopField();
+    if (desktop?.isVisible()) {
+      desktop.focusEnd();
+    } else {
+      this.filtersCmp()?.focusAiField();
+    }
+  }
+
+  /** No results: desktop focuses the sidebar price "To"; mobile opens the sheet scrolled to price. */
+  protected increaseBudget(): void {
+    if (this.isSidebarVisible()) {
+      const input = this.maxPriceRef()?.nativeElement;
+      input?.scrollIntoView({ block: 'center' });
+      input?.focus({ preventScroll: true });
+    } else {
+      this.filtersCmp()?.openSheetAt('price');
+    }
+  }
+
+  /** The location Note's "Choose a district" link. */
+  protected chooseDistrict(): void {
+    if (this.isSidebarVisible()) {
+      const section = this.districtSectionRef()?.nativeElement;
+      section?.scrollIntoView({ block: 'center' });
+      section?.querySelector<HTMLInputElement>('input')?.focus({ preventScroll: true });
+    } else {
+      this.filtersCmp()?.openSheetAt('districts');
+    }
   }
 
   protected onNotifyMe(): void {

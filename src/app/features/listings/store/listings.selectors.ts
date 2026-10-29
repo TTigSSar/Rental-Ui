@@ -167,6 +167,38 @@ export const selectAiStatus = createSelector(selectListingsAi, (ai) => ai.aiStat
 
 export const selectAiError = createSelector(selectListingsAi, (ai): string | null => ai.error);
 
+/** Daily budget used up: loaded on page init; `null` until known (then the switch stays usable). */
+export const selectAiBudgetSpent = createSelector(
+  selectAiStatus,
+  (status): boolean => status !== null && !status.available,
+);
+
+/** The last search fell back to the ordinary catalogue: the info notice shows (switch is off). */
+export const selectAiFallbackNotice = createSelector(selectListingsAi, (ai): boolean => ai.fallbackNotice);
+
+/** 429 `ai_search.rate_limited` (by errorCode, never by server prose - ADR-045). */
+export const selectAiRateLimited = createSelector(
+  selectListingsAi,
+  (ai): boolean => ai.errorCode === 'ai_search.rate_limited',
+);
+
+/** Any other AI failure message (the rate limit has its own notice). */
+export const selectAiOtherError = createSelector(selectListingsAi, (ai): string | null =>
+  ai.errorCode === 'ai_search.rate_limited' ? null : ai.error,
+);
+
+export type AiNoteKind = 'dates' | 'location' | 'purpose';
+
+/** Notes under the count/explanation lines: dates first, at most two. */
+export const selectAiNotes = createSelector(selectListingsAi, (ai): AiNoteKind[] => {
+  if (!ai.mode || !ai.hasSearched) return [];
+  const notes: AiNoteKind[] = [];
+  if (ai.datesMentioned) notes.push('dates');
+  if (ai.locationNotConsidered) notes.push('location');
+  if (ai.purposeWidened) notes.push('purpose');
+  return notes.slice(0, 2);
+});
+
 export const selectAiExampleSeen = createSelector(selectListingsAi, (ai): boolean => ai.exampleSeen);
 
 export const selectAiSnapshot = createSelector(selectListingsAi, (ai) => ai.snapshot);
