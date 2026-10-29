@@ -72,13 +72,19 @@ test.describe('Location picker — hint card must not swallow zoom/drag input', 
   });
 
   test('a drag started under the hint strip pans the map', async ({ page }) => {
-    await mockTiles(page);
+    const tiles = await mockTiles(page);
     await mockApi(page, { listings: [] });
 
     await page.goto('/listings');
     await page.getByRole('button', { name: 'or pick a point on the map' }).click();
 
     const dialog = page.locator('.p-dialog.location-picker-dialog');
+    // Readiness gate: since 2a1432f the base layer is MapLibre inside Leaflet and
+    // `app-map` initialises asynchronously (lazy imports + style fetch). A drag
+    // fired before that finishes hits a map with no handlers yet and is lost
+    // (Done stays disabled) — a test race, not a product defect: a real drag after
+    // the map is up pans it. The first tile fetch proves the map is initialised.
+    await expect.poll(() => tiles.count()).toBeGreaterThan(0);
     const doneBtn = dialog.getByRole('button', { name: 'Done' });
     // `confirmDisabledUntilMoved` (RadiusOriginFilterComponent's own picker
     // config) keeps Done disabled until the crosshair has genuinely panned —
