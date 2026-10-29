@@ -21,6 +21,7 @@ import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 import * as ListingsActions from '../../store/listings.actions';
 import {
   selectAiBudgetSpent,
+  selectAiDailyLimited,
   selectAiDescription,
   selectAiHasSearched,
   selectAiMode,
@@ -80,6 +81,8 @@ export class AiSearchFieldComponent {
   protected readonly error = this.store.selectSignal(selectAiOtherError);
   /** 429: a warn notice directly under the field (description and cards stay). */
   protected readonly rateLimited = this.store.selectSignal(selectAiRateLimited);
+  /** 429 `ai_search.daily_limit`: same warn notice, its own text (no countdown). */
+  protected readonly dailyLimited = this.store.selectSignal(selectAiDailyLimited);
   /** Daily budget used up: the switch is aria-disabled and the field is a plain text search. */
   protected readonly budgetSpent = this.store.selectSignal(selectAiBudgetSpent);
   /** Mobile only: the reason Note shown for ~5 s after tapping the disabled switch. */

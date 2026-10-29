@@ -4,6 +4,7 @@ import * as ListingsActions from './listings.actions';
 import { listingsReducer } from './listings.reducer';
 import {
   selectAiBudgetSpent,
+  selectAiDailyLimited,
   selectAiFallbackNotice,
   selectAiNotes,
   selectAiOtherError,
@@ -218,7 +219,15 @@ describe('AI state selectors', () => {
     expect(selectAiRateLimited(root({ errorCode: null, error: 'Too many searches' }))).toBe(false);
   });
 
-  it('selectAiOtherError hides the rate-limit message (it has its own notice)', () => {
+  it('selectAiDailyLimited is decided by the errorCode and is distinct from the rate limit', () => {
+    expect(selectAiDailyLimited(root({ errorCode: 'ai_search.daily_limit', error: 'anything' }))).toBe(true);
+    expect(selectAiDailyLimited(root({ errorCode: 'ai_search.rate_limited', error: 'x' }))).toBe(false);
+    expect(selectAiRateLimited(root({ errorCode: 'ai_search.daily_limit', error: 'x' }))).toBe(false);
+    expect(selectAiDailyLimited(root({ errorCode: null, error: 'Daily limit' }))).toBe(false);
+  });
+
+  it('selectAiOtherError hides the rate-limit and daily-limit messages (own notices)', () => {
+    expect(selectAiOtherError(root({ errorCode: 'ai_search.daily_limit', error: 'x' }))).toBeNull();
     expect(selectAiOtherError(root({ errorCode: 'ai_search.rate_limited', error: 'x' }))).toBeNull();
     expect(selectAiOtherError(root({ errorCode: 'ai_search.invalid_description', error: 'y' }))).toBe('y');
   });

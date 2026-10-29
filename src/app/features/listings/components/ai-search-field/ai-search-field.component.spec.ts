@@ -288,6 +288,20 @@ describe('AiSearchFieldComponent', () => {
       // the description stays in the field
       expect((q(el, 'textarea') as HTMLTextAreaElement).value).toBe('a bike');
     });
+
+    it('the daily limit is the same warn notice with its own text, by errorCode', async () => {
+      const { el } = await setup({
+        ai: { mode: true, description: 'a bike', error: 'Raw prose', errorCode: 'ai_search.daily_limit' },
+      });
+
+      const notice = q(el, 'app-ai-notice .msg')!;
+      expect(notice.classList.contains('msg--warn')).toBe(true);
+      expect(notice.textContent).toContain('errors.aiSearchDailyLimit');
+      expect(notice.textContent).not.toContain('listings.ai.rateLimited');
+      expect(el.textContent).not.toContain('Raw prose');
+      expect(q(el, '.aisf__error')).toBeNull();
+      expect((q(el, 'textarea') as HTMLTextAreaElement).value).toBe('a bike');
+    });
   });
 
   describe('daily budget used up', () => {

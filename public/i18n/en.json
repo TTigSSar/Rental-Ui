@@ -58,6 +58,7 @@
     "reviewAlreadySubmitted": "You've already reviewed this booking.",
     "aiSearchInvalidDescription": "Describe what you are looking for in 1 to 500 characters.",
     "aiSearchRateLimited": "Too many searches. Please wait a minute and try again.",
+    "aiSearchDailyLimit": "You've used today's AI searches. Regular search still works.",
     "invalidLanguage": "Choose a supported language: English, Russian or Armenian.",
     "cannotMessageSelf": "You can't open a conversation with your own account.",
     "cannotMessageAdmin": "You can't open a conversation with another admin."

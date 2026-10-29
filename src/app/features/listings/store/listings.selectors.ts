@@ -182,9 +182,15 @@ export const selectAiRateLimited = createSelector(
   (ai): boolean => ai.errorCode === 'ai_search.rate_limited',
 );
 
-/** Any other AI failure message (the rate limit has its own notice). */
+/** 429 `ai_search.daily_limit`: the per-user daily AI quota is used up (by errorCode, ADR-045). */
+export const selectAiDailyLimited = createSelector(
+  selectListingsAi,
+  (ai): boolean => ai.errorCode === 'ai_search.daily_limit',
+);
+
+/** Any other AI failure message (the rate and daily limits have their own notice). */
 export const selectAiOtherError = createSelector(selectListingsAi, (ai): string | null =>
-  ai.errorCode === 'ai_search.rate_limited' ? null : ai.error,
+  ai.errorCode === 'ai_search.rate_limited' || ai.errorCode === 'ai_search.daily_limit' ? null : ai.error,
 );
 
 export type AiNoteKind = 'dates' | 'location' | 'purpose';

@@ -80,6 +80,7 @@ import {
   selectAiOtherError,
   selectAiRanked,
   selectAiRankedCount,
+  selectAiDailyLimited,
   selectAiRateLimited,
   selectAiResultsActive,
   selectListingCategories,
@@ -306,6 +307,7 @@ export class ListingsPageComponent {
   protected readonly aiFallbackNotice = this.store.selectSignal(selectAiFallbackNotice);
   private readonly aiBudgetSpent = this.store.selectSignal(selectAiBudgetSpent);
   private readonly aiRateLimited = this.store.selectSignal(selectAiRateLimited);
+  private readonly aiDailyLimited = this.store.selectSignal(selectAiDailyLimited);
   private readonly aiOtherError = this.store.selectSignal(selectAiOtherError);
   private readonly aiDescription = this.store.selectSignal(selectAiDescription);
   private sortBeforeAi: SortBy | null = null;
@@ -565,7 +567,7 @@ export class ListingsPageComponent {
       this.prevAiBusy = busy;
       if (!finishedSearch) return;
       untracked(() => {
-        if (this.aiRateLimited() || this.aiOtherError()) return;
+        if (this.aiRateLimited() || this.aiDailyLimited() || this.aiOtherError()) return;
         afterNextRender(() => this.resultsRef()?.nativeElement.focus({ preventScroll: true }), {
           injector: this.injector,
         });

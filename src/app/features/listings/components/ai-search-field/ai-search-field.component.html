@@ -84,6 +84,10 @@
     <app-ai-notice kind="warn">{{ 'listings.ai.rateLimited' | translate }}</app-ai-notice>
   }
 
+  @if (aiMode() && dailyLimited()) {
+    <app-ai-notice kind="warn">{{ 'errors.aiSearchDailyLimit' | translate }}</app-ai-notice>
+  }
+
   @if (aiMode() && error(); as message) {
     <p class="aisf__error" role="alert">{{ message }}</p>
   }
