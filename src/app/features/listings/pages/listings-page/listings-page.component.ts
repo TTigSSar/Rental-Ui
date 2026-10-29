@@ -74,6 +74,7 @@ import {
   selectAiBusy,
   selectAiDescription,
   selectAiFallbackNotice,
+  selectAiFallbackResults,
   selectAiHasSearched,
   selectAiMode,
   selectAiNotes,
@@ -304,6 +305,7 @@ export class ListingsPageComponent {
   protected readonly aiNotes = this.store.selectSignal(selectAiNotes);
   /** The last search fell back to the ordinary catalogue: info notice, switch already off. */
   protected readonly aiFallbackNotice = this.store.selectSignal(selectAiFallbackNotice);
+  private readonly aiFallbackResults = this.store.selectSignal(selectAiFallbackResults);
   private readonly aiBudgetSpent = this.store.selectSignal(selectAiBudgetSpent);
   private readonly aiRateLimited = this.store.selectSignal(selectAiRateLimited);
   private readonly aiOtherError = this.store.selectSignal(selectAiOtherError);
@@ -526,7 +528,7 @@ export class ListingsPageComponent {
         // their filters: do not wipe them with a catalogue reload.
         if (
           !aiActive &&
-          this.aiFallbackNotice() &&
+          this.aiFallbackResults() &&
           this.itemsSignal().length > 0 &&
           sameFilters(filters, this.filtersSignal())
         ) {
@@ -658,6 +660,7 @@ export class ListingsPageComponent {
     // visible and there is more to load.
     effect(() => {
       if (!this.scrollSentinelIntersecting()) return;
+      if (this.aiFallbackResults()) return;
       if (this.viewMode() !== 'list') return;
 
       const v = this.vm();

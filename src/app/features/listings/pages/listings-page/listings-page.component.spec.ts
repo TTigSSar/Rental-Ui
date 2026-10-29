@@ -805,7 +805,13 @@ describe('ListingsPageComponent — AI search states', () => {
   });
 
   describe('AI unavailable (fallback)', () => {
-    const FALLBACK = { ...initialListingsAiState, mode: false, description: 'bike', fallbackNotice: true };
+    const FALLBACK = {
+      ...initialListingsAiState,
+      mode: false,
+      description: 'bike',
+      fallbackNotice: true,
+      fallbackResults: true,
+    };
 
     it('shows the info notice (role=status) with ordinary results: no explanation, no "most relevant first"', async () => {
       const { el } = await navigateToListings('/listings', { ai: FALLBACK });
@@ -824,6 +830,15 @@ describe('ListingsPageComponent — AI search states', () => {
       expect(dispatchedTypes(store)).not.toContain(ListingsActions.loadListings.type);
       expect(dispatchedTypes(store)).not.toContain(ListingsActions.updateFilters.type);
       expect(router.url).not.toContain('q=');
+    });
+
+    it('infinite scroll dispatches nothing while the fallback page is showing', async () => {
+      const { harness, store } = await navigateToListings('/listings', { ai: FALLBACK, hasMore: true });
+
+      FakeIntersectionObserver.instances.forEach((o) => o.trigger(true));
+      await flush(harness);
+
+      expect(dispatchedTypes(store)).not.toContain(ListingsActions.loadNextPage.type);
     });
 
     it('is not shown without a fallback', async () => {

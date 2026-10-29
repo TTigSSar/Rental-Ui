@@ -105,6 +105,28 @@ describe('AiSwitchComponent', () => {
       expect(tip.hidden).toBe(false);
     });
 
+    it('Esc dismisses a hover-only tooltip (focus never moved) and it stays dismissed until re-entry', () => {
+      const { fixture, button } = setup({ unavailable: true, tooltip: 'AI search is unavailable today.' });
+      const tip = fixture.nativeElement.querySelector('[role="tooltip"]') as HTMLElement;
+
+      button.dispatchEvent(new Event('mouseenter'));
+      fixture.detectChanges();
+      expect(tip.hidden).toBe(false);
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      fixture.detectChanges();
+      expect(tip.hidden).toBe(true);
+
+      // still hovered, still dismissed
+      fixture.detectChanges();
+      expect(tip.hidden).toBe(true);
+
+      button.dispatchEvent(new Event('mouseleave'));
+      button.dispatchEvent(new Event('mouseenter'));
+      fixture.detectChanges();
+      expect(tip.hidden).toBe(false);
+    });
+
     it('without a tooltip (mobile) nothing is rendered or referenced', () => {
       const { fixture, button } = setup({ unavailable: true });
       expect(fixture.nativeElement.querySelector('[role="tooltip"]')).toBeNull();

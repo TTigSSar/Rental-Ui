@@ -78,15 +78,20 @@ export const listingsReducer = createReducer(
   ),
   on(
     ListingsActions.loadListingsSuccess,
-    (state, { items, page, pageSize, hasMore }): ListingsState => ({
-      ...state,
-      items: page <= 1 ? [...items] : [...state.items, ...items],
-      page,
-      pageSize,
-      hasMore,
-      isLoading: false,
-      error: null,
-    }),
+    (state, { items, page, pageSize, hasMore }): ListingsState =>
+      // A catalogue response that lands after the AI fallback must not replace its single page
+      // or re-open paging.
+      state.ai.fallbackResults
+        ? { ...state, isLoading: false }
+        : {
+            ...state,
+            items: page <= 1 ? [...items] : [...state.items, ...items],
+            page,
+            pageSize,
+            hasMore,
+            isLoading: false,
+            error: null,
+          },
   ),
   on(
     ListingsActions.loadListingsFailure,
@@ -100,6 +105,8 @@ export const listingsReducer = createReducer(
     ListingsActions.updateFilters,
     (state, { filters }): ListingsState => ({
       ...state,
+      // A real filter change leaves the fallback page: the catalogue pages normally again.
+      ai: state.ai.fallbackResults ? { ...state.ai, fallbackResults: false } : state.ai,
       filters: { ...filters },
       page: 1,
       items: [],
@@ -363,6 +370,7 @@ export const listingsReducer = createReducer(
       error: null,
       errorCode: null,
       fallbackNotice: false,
+      fallbackResults: false,
       exampleSeen: true,
       epoch: state.ai.epoch + 1,
     }),
@@ -432,6 +440,7 @@ export const listingsReducer = createReducer(
           exampleSeen: true,
           epoch: state.ai.epoch + 1,
           fallbackNotice: true,
+          fallbackResults: true,
         },
       };
     }
@@ -458,6 +467,7 @@ export const listingsReducer = createReducer(
         datesMentioned: response.datesMentioned || (kind === 'rerank' && state.ai.datesMentioned),
         locationNotConsidered: response.locationNotConsidered,
         fallbackNotice: false,
+        fallbackResults: false,
         rankedIds: response.ranked ? response.items.map((i) => i.id) : [],
         appliedFilters: response.appliedFilters,
         error: null,

@@ -26,6 +26,7 @@ import { ListingsApiService } from '../services/listings-api.service';
 import * as ListingsActions from './listings.actions';
 import {
   selectAiNextPageContext,
+  selectAiFallbackResults,
   selectAiRequestContext,
   selectAiResultsActive,
   selectListingsFilters,
@@ -89,9 +90,11 @@ export class ListingsEffects {
         this.store.select(selectListingsPageSize),
         this.store.select(selectListingsOriginCoords),
         this.store.select(selectAiResultsActive),
+        this.store.select(selectAiFallbackResults),
       ),
-      // AI-ordered results page through `loadAiNextPage$` instead.
-      filter(([, hasMore, , , , , aiActive]) => hasMore && !aiActive),
+      // AI-ordered results page through `loadAiNextPage$` instead; the AI-unavailable fallback
+      // is a single page and never continues.
+      filter(([, hasMore, , , , , aiActive, fallback]) => hasMore && !aiActive && !fallback),
       switchMap(([, , page, filters, pageSize, originCoords]) =>
         this.listingsApi.getListings(filters, page + 1, pageSize, originCoords).pipe(
           map((result) =>

@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  computed,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 
 let nextTooltipId = 0;
 
@@ -69,10 +77,15 @@ export class AiSwitchComponent {
     this.focused.set(false);
   }
 
-  protected onKeydown(event: KeyboardEvent): void {
+  /**
+   * WCAG 1.4.13: Esc dismisses the tooltip whether it opened on hover or on focus, so this
+   * listens on the document (hover alone does not move focus to the switch). It stays dismissed
+   * until the pointer re-enters or focus changes.
+   */
+  @HostListener('document:keydown', ['$event'])
+  protected onDocumentKeydown(event: KeyboardEvent): void {
     if (event.key === 'Escape' && this.showTooltip()) {
       this.dismissed.set(true);
-      event.stopPropagation();
     }
   }
 }

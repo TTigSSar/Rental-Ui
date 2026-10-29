@@ -90,6 +90,47 @@ describe('listingsReducer — AI unavailable (fallback)', () => {
     expect(next.isLoading).toBe(false);
   });
 
+  it('a late catalogue response cannot replace the fallback page or re-open paging', () => {
+    const fallback = listingsReducer(
+      aiOn({ description: 'bike', busy: 'searching' }),
+      ListingsActions.aiSearchSuccess({ kind: 'search', response: unavailable, epoch: 3 }),
+    );
+    expect(fallback.ai.fallbackResults).toBe(true);
+
+    const late = listingsReducer(
+      { ...fallback, isLoading: true },
+      ListingsActions.loadListingsSuccess({
+        items: [makeListingPreview({ id: 'z' })],
+        page: 1,
+        pageSize: 20,
+        hasMore: true,
+      }),
+    );
+    expect(late.items.map((i) => i.id)).toEqual(['x']);
+    expect(late.hasMore).toBe(false);
+    expect(late.isLoading).toBe(false);
+  });
+
+  it('a real filter change leaves the fallback page, so the catalogue pages normally again', () => {
+    const fallback = listingsReducer(
+      aiOn({ busy: 'searching' }),
+      ListingsActions.aiSearchSuccess({ kind: 'search', response: unavailable, epoch: 3 }),
+    );
+    const changed = listingsReducer(fallback, ListingsActions.updateFilters({ filters: fallback.filters }));
+    expect(changed.ai.fallbackResults).toBe(false);
+
+    const loaded = listingsReducer(
+      changed,
+      ListingsActions.loadListingsSuccess({
+        items: [makeListingPreview({ id: 'z' })],
+        page: 1,
+        pageSize: 20,
+        hasMore: true,
+      }),
+    );
+    expect(loaded.hasMore).toBe(true);
+  });
+
   it('a later search with the switch on retries AI: submitting clears the notice', () => {
     const off: ListingsState = {
       ...initialListingsState,
