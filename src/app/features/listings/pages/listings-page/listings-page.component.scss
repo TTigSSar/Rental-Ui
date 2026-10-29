@@ -433,14 +433,11 @@
 
   @media (min-width: 961px) {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: var(--ui-space-6);
-    flex: 1 1 240px;
+    gap: 10px 8px;
+    flex: 1 1 300px;
     min-width: 0;
-    overflow-x: auto;
-    scrollbar-width: none;
-
-    &::-webkit-scrollbar { display: none; }
   }
 }
 
