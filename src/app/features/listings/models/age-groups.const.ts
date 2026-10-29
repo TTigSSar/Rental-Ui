@@ -4,9 +4,9 @@
  * are the same ones the AI search returns in `AiSearchFilters.ageGroup`.
  */
 export const AGE_GROUPS = [
-  { value: '0-12', label: '0–1 yr' },
-  { value: '12-36', label: '1–3 yr' },
-  { value: '36-72', label: '3–6 yr' },
-  { value: '72-120', label: '6–10 yr' },
-  { value: '120+', label: '10+ yr' },
+  { value: '0-12', labelKey: 'listings.filters.ageGroups.g0_12' },
+  { value: '12-36', labelKey: 'listings.filters.ageGroups.g12_36' },
+  { value: '36-72', labelKey: 'listings.filters.ageGroups.g36_72' },
+  { value: '72-120', labelKey: 'listings.filters.ageGroups.g72_120' },
+  { value: '120+', labelKey: 'listings.filters.ageGroups.g120_plus' },
 ] as const;

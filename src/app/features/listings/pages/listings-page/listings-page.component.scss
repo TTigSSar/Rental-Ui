@@ -412,7 +412,8 @@
   justify-content: space-between;
   gap: var(--ui-space-10);
   padding-top: var(--ui-space-4);
-  flex-wrap: nowrap;
+  /* Wraps instead of overflowing: long ru/hy count + relevance-sort labels (AI search). */
+  flex-wrap: wrap;
 }
 
 .lp-toolbar__count {
@@ -448,7 +449,7 @@
     display: flex;
     align-items: center;
     gap: var(--ui-space-6);
-    flex: 1;
+    flex: 1 1 240px;
     min-width: 0;
     overflow-x: auto;
     scrollbar-width: none;
@@ -547,7 +548,9 @@
 /* ── Sort dropdown ──────────────────────────────────────────── */
 .lp-sort-wrapper {
   position: relative;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .lp-sort-backdrop {
@@ -557,7 +560,9 @@
 }
 
 .lp-toolbar__sort {
-  flex-shrink: 0;
+  flex-shrink: 1;
+  max-width: 100%;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   gap: var(--ui-space-6);
@@ -576,6 +581,12 @@
     border-color 120ms ease,
     background-color 120ms ease,
     color 120ms ease;
+}
+
+.lp-toolbar__sort > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .lp-toolbar__sort .pi {

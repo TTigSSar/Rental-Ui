@@ -17,6 +17,7 @@
   grid-template-areas: 'icon body actions';
   align-items: start;
   column-gap: 10px;
+  box-sizing: border-box;
   min-height: 44px;
   padding: 0 6px 0 14px;
   border: 1px solid transparent;
@@ -49,7 +50,7 @@
 .aisf__body {
   grid-area: body;
   min-width: 0;
-  padding: 10px 0;
+  padding: 9px 0;
 }
 
 .aisf__input {
@@ -105,8 +106,8 @@
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: 6px;
-  margin-bottom: 6px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 /* Round submit button (design .sub): 36px with a 44px hit area. */

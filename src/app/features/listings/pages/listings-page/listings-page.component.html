@@ -75,7 +75,7 @@
               class="lp-sidebar__pill"
               [class.lp-sidebar__pill--active]="activeAgeGroup() === ag.value"
               (click)="selectAgeGroup(ag.value)"
-            >{{ ag.label }}</button>
+            >{{ ag.labelKey | translate }}</button>
           }
         </div>
       </div>

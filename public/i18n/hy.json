@@ -538,6 +538,13 @@
       "districtsPlaceholder": "Բոլոր թաղամասերը",
       "filterBtn": "Ֆիլտրներ",
       "ageGroup": "Երեխայի տարիքը",
+      "ageGroups": {
+        "g0_12": "0–1 տ.",
+        "g12_36": "1–3 տ.",
+        "g36_72": "3–6 տ.",
+        "g72_120": "6–10 տ.",
+        "g120_plus": "10+ տ."
+      },
       "chips": {
         "minPrice": "Սկսած {{amount}}-ից",
         "maxPrice": "Մինչև {{amount}}"

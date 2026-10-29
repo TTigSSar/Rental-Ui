@@ -538,6 +538,13 @@
       "districtsPlaceholder": "Все районы",
       "filterBtn": "Фильтры",
       "ageGroup": "Возраст ребёнка",
+      "ageGroups": {
+        "g0_12": "0–1 год",
+        "g12_36": "1–3 года",
+        "g36_72": "3–6 лет",
+        "g72_120": "6–10 лет",
+        "g120_plus": "10+ лет"
+      },
       "chips": {
         "minPrice": "От {{amount}}",
         "maxPrice": "До {{amount}}"

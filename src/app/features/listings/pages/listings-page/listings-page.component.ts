@@ -388,7 +388,10 @@ export class ListingsPageComponent {
     }
     if (f.ageGroup) {
       const ag = AGE_GROUPS.find((a) => a.value === f.ageGroup);
-      chips.push({ key: 'ageGroup', label: ag?.label ?? f.ageGroup });
+      chips.push({
+        key: 'ageGroup',
+        label: ag ? this.translate.instant(ag.labelKey) : f.ageGroup,
+      });
     }
     // Gated on `originCoordsSignal()`, not just `f.radiusKm` — see that
     // field's own doc comment. Showing this chip with no origin in memory

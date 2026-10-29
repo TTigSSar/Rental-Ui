@@ -90,7 +90,7 @@
               [class.lf-age-pill--active]="draftForm.controls.ageGroup.value === ag.value"
               [attr.aria-pressed]="draftForm.controls.ageGroup.value === ag.value"
               (click)="toggleDraftAge(ag.value)"
-            >{{ ag.label }}</button>
+            >{{ ag.labelKey | translate }}</button>
           }
         </div>
       </div>

@@ -538,6 +538,13 @@
       "districtsPlaceholder": "All districts",
       "filterBtn": "Filters",
       "ageGroup": "Child’s age",
+      "ageGroups": {
+        "g0_12": "0–1 yr",
+        "g12_36": "1–3 yr",
+        "g36_72": "3–6 yr",
+        "g72_120": "6–10 yr",
+        "g120_plus": "10+ yr"
+      },
       "chips": {
         "minPrice": "From {{amount}}",
         "maxPrice": "Up to {{amount}}"

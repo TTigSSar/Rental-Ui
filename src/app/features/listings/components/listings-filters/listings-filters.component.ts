@@ -254,7 +254,10 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     }
     if (v.ageGroup) {
       const ag = AGE_GROUPS.find((a) => a.value === v.ageGroup);
-      chips.push({ key: 'ageGroup', label: ag?.label ?? v.ageGroup });
+      chips.push({
+        key: 'ageGroup',
+        label: ag ? this.translate.instant(ag.labelKey) : v.ageGroup,
+      });
     }
     if (v.minPrice != null) {
       chips.push({
