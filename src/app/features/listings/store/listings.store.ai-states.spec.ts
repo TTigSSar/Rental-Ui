@@ -77,15 +77,16 @@ describe('listingsReducer — AI unavailable (fallback)', () => {
     expect(next.ai).toMatchObject({ busy: 'idle', hasSearched: false, ranked: false, intent: null });
   });
 
-  it('shows the ordinary text-search results with the description as the plain text query', () => {
+  it('shows the response items, never copies the description into the filters, and turns paging off', () => {
     const next = listingsReducer(
       aiOn({ description: '  a balance bike ', busy: 'searching' }),
       ListingsActions.aiSearchSuccess({ kind: 'search', response: unavailable, epoch: 3 }),
     );
 
     expect(next.items.map((i) => i.id)).toEqual(['x']);
-    expect(next.hasMore).toBe(true);
-    expect(next.filters.query).toBe('a balance bike');
+    expect(next.hasMore).toBe(false);
+    expect(next.filters.query).toBeNull();
+    expect(JSON.stringify(next.filters)).not.toContain('balance');
     expect(next.isLoading).toBe(false);
   });
 

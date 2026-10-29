@@ -223,8 +223,8 @@ export class ListingsEffects {
         filter(({ kind }) => kind !== 'page'),
         withLatestFrom(this.store.select(selectListingsFilters)),
         tap(([{ response }, filters]) => {
-          // `aiUnavailable`: the switch has been turned off (reducer), so `ai` leaves the URL and
-          // the plain text search on the description carries on as an ordinary `q` search.
+          // `aiUnavailable`: the switch has been turned off (reducer), so `ai` leaves the URL.
+          // The description is never written to the URL (no `q`).
           void this.router.navigate([], {
             queryParams: { ...filtersToQueryParams(filters), ai: response.aiUnavailable ? null : '1' },
             queryParamsHandling: 'merge',

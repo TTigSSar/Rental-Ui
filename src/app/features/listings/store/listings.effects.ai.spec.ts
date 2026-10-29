@@ -314,10 +314,8 @@ describe('ListingsEffects — AI search (ADR-054)', () => {
       expect(JSON.stringify(extras)).not.toContain('balance');
     });
 
-    it('aiUnavailable: ai leaves the URL and the plain text search carries on as q', () => {
-      const { harness, store, effects } = setup();
-      store.overrideSelector(selectListingsFilters, { ...FILTERS, query: 'a balance bike' });
-      store.refreshState();
+    it('aiUnavailable: ai leaves the URL; no q and no description are written', () => {
+      const { harness, effects } = setup();
       const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
       effects.syncAiFiltersToUrl$.subscribe();
 
@@ -332,8 +330,9 @@ describe('ListingsEffects — AI search (ADR-054)', () => {
       const [, extras] = navigate.mock.calls[0];
       expect(extras).toMatchObject({
         queryParamsHandling: 'merge',
-        queryParams: { ai: null, q: 'a balance bike' },
+        queryParams: { ai: null, q: null },
       });
+      expect(JSON.stringify(extras)).not.toContain('balance');
     });
 
     it('does nothing for a page-2+ response', () => {

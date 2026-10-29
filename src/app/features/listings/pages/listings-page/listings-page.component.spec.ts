@@ -804,6 +804,14 @@ describe('ListingsPageComponent — AI search states', () => {
       expect(el.querySelector('.lp-ai-divider')).toBeNull();
     });
 
+    it('the URL echo of the fallback does not wipe its results with a catalogue reload', async () => {
+      const { store, router } = await navigateToListings('/listings', { ai: FALLBACK });
+
+      expect(dispatchedTypes(store)).not.toContain(ListingsActions.loadListings.type);
+      expect(dispatchedTypes(store)).not.toContain(ListingsActions.updateFilters.type);
+      expect(router.url).not.toContain('q=');
+    });
+
     it('is not shown without a fallback', async () => {
       const { el } = await navigateToListings('/listings', { ai: AI_RESULTS });
       expect(el.querySelector('.lp-ai-slot')).toBeNull();

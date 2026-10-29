@@ -504,6 +504,16 @@ export class ListingsPageComponent {
         // of the filters the AI itself just applied): re-rank, don't reload the catalogue.
         const aiActive = params.get('ai') === '1' && this.aiResultsActive();
         this.store.dispatch(ListingsActions.setAiMode({ on: params.get('ai') === '1' }));
+        // The fallback results (AI unavailable) are already in the store and the URL only echoes
+        // their filters: do not wipe them with a catalogue reload.
+        if (
+          !aiActive &&
+          this.aiFallbackNotice() &&
+          this.itemsSignal().length > 0 &&
+          sameFilters(filters, this.filtersSignal())
+        ) {
+          return;
+        }
         if (aiActive) {
           if (!sameFilters(filters, this.filtersSignal())) {
             this.store.dispatch(ListingsActions.aiFiltersChanged({ filters }));

@@ -413,17 +413,18 @@ export const listingsReducer = createReducer(
     if (response.aiUnavailable) {
       // AI could not run: the response is a plain catalogue text search on the description.
       // The switch goes OFF (it stays enabled), the description is kept for the next attempt and
-      // the info notice stays; the effect mirrors the text into `q` so the ordinary catalogue
-      // continues from there.
+      // the info notice stays. The description NEVER goes into `q` or the URL. Page 2+ of the AI
+      // endpoint ignores the description (it pages by filters only), so these text-search results
+      // cannot be continued: first page only, no infinite scroll (`hasMore: false`).
       return {
         ...state,
         items: [...response.items],
         page: response.page,
         pageSize: response.pageSize,
-        hasMore: response.hasMore,
+        hasMore: false,
         isLoading: false,
         error: null,
-        filters: { ...fromAiSearchFilters(response.appliedFilters), query: state.ai.description.trim() || null },
+        filters: fromAiSearchFilters(response.appliedFilters),
         ai: {
           ...initialListingsAiState,
           description: state.ai.description,
