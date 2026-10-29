@@ -1,0 +1,47 @@
+<section class="ai-empty" aria-labelledby="ai-empty-title">
+  <div class="ai-empty__icon" aria-hidden="true"><i class="pi pi-search"></i></div>
+  <h3 id="ai-empty-title" class="ai-empty__title">{{ 'listings.ai.emptyTitle' | translate }}</h3>
+
+  <div class="ai-empty__actions">
+    @if (hasDistrictFilter()) {
+      <!-- A district filter is set: widening it is the primary way out. -->
+      <button type="button" class="ai-empty__primary" (click)="widen.emit()">
+        <i class="pi pi-map" aria-hidden="true"></i>
+        {{ 'listings.ai.widen' | translate }}
+      </button>
+      <div class="ai-empty__secondary">
+        <button type="button" class="ai-empty__outline" (click)="increaseBudget.emit()">
+          <i class="pi pi-wallet" aria-hidden="true"></i>
+          {{ 'listings.ai.budget' | translate }}
+        </button>
+        <button type="button" class="ai-empty__outline" (click)="editDescription.emit()">
+          <i class="pi pi-pencil" aria-hidden="true"></i>
+          {{ 'listings.ai.edit' | translate }}
+        </button>
+      </div>
+    } @else {
+      <button type="button" class="ai-empty__primary" (click)="editDescription.emit()">
+        <i class="pi pi-pencil" aria-hidden="true"></i>
+        {{ 'listings.ai.edit' | translate }}
+      </button>
+      <div class="ai-empty__secondary">
+        <button type="button" class="ai-empty__outline" (click)="increaseBudget.emit()">
+          <i class="pi pi-wallet" aria-hidden="true"></i>
+          {{ 'listings.ai.budget' | translate }}
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- No "Clear filters" and no bell (the bell ships with Trello #220). -->
+  @if (categories().length > 0) {
+    <div class="ai-empty__browse">
+      <span class="ai-empty__browse-label" id="ai-empty-browse-label">{{ 'listings.ai.browse' | translate }}</span>
+      <div class="ai-empty__pills" role="group" aria-labelledby="ai-empty-browse-label">
+        @for (cat of categories(); track cat.id) {
+          <button type="button" class="ai-empty__pill" (click)="categorySelected.emit(cat.id)">{{ cat.name }}</button>
+        }
+      </div>
+    </div>
+  }
+</section>

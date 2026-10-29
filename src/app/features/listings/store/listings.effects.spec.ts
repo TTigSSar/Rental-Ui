@@ -20,6 +20,7 @@ import { ListingsApiService } from '../services/listings-api.service';
 import * as ListingsActions from './listings.actions';
 import { ListingsEffects } from './listings.effects';
 import {
+  selectListingsAi,
   selectListingsFilters,
   selectListingsHasMore,
   selectListingsOriginCoords,
@@ -27,7 +28,7 @@ import {
   selectListingsPage,
   selectListingsPageSize,
 } from './listings.selectors';
-import { initialListingsState } from './listings.state';
+import { initialListingsAiState, initialListingsState } from './listings.state';
 
 function setup(api: Partial<ListingsApiService> = {}) {
   const harness = actionsHarness();
@@ -41,6 +42,7 @@ function setup(api: Partial<ListingsApiService> = {}) {
     ],
   });
   const store = TestBed.inject(MockStore);
+  store.overrideSelector(selectListingsAi, initialListingsAiState);
   store.overrideSelector(selectListingsFilters, {} as ListingsFilter);
   store.overrideSelector(selectListingsPage, 1);
   store.overrideSelector(selectListingsPageSize, 20);

@@ -305,6 +305,92 @@
   }
 }
 
+/* Price input with a value (set by the user or by the AI search): strong-orange border. */
+.lp-sidebar__price-wrap--set {
+  border-color: var(--ui-color-primary-strong);
+}
+
+/* ── AI search (ADR-054) ────────────────────────────────────── */
+/* Desktop: the field block above the results (design: max-width 680, gap 10). */
+.lp-ai-top {
+  display: none;
+
+  @media (min-width: 961px) {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 680px;
+    margin-bottom: var(--ui-space-16);
+  }
+}
+
+/* Mobile: the first-use hint + example under the sticky bar. */
+.lp-ai-example-mobile {
+  @media (min-width: 961px) {
+    display: none;
+  }
+}
+
+/* Re-rank status: replaces the count line; stays visible on phones (the count is hidden there). */
+.lp-toolbar__updating {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-8);
+  min-width: 0;
+  flex-shrink: 1;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--ui-color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lp-toolbar__updating-icon {
+  font-size: 0.8125rem;
+  animation: lp-ai-spin 1.2s linear infinite;
+}
+
+@keyframes lp-ai-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-toolbar__updating-icon { animation: none; }
+}
+
+/* Cards under a search / re-rank: 60%, inert. */
+.listings-page__grid--busy {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* "More listings matching your criteria" before the first non-ranked card. */
+.lp-ai-divider {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-12);
+  color: var(--ui-color-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  padding-block: var(--ui-space-4);
+}
+
+.lp-ai-divider__line {
+  flex: 1;
+  min-width: 24px;
+  height: 1px;
+  background: var(--ui-color-border);
+}
+
+.lp-ai-divider__text {
+  max-width: 75%;
+  text-align: center;
+  text-wrap: balance;
+}
+
 /* ── Results toolbar ────────────────────────────────────────── */
 .lp-toolbar {
   display: flex;
@@ -312,32 +398,8 @@
   justify-content: space-between;
   gap: var(--ui-space-10);
   padding-top: var(--ui-space-4);
-  flex-wrap: nowrap;
-}
-
-.lp-toolbar__count {
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: var(--ui-color-text-primary);
-  white-space: nowrap;
-  flex-shrink: 0;
-
-  /* Below desktop, the toggle + sort controls must stay fully reachable —
-     this is the only toolbar item allowed to give up space, so let it
-     shrink and truncate instead of pushing siblings off-screen
-     (mobile-overflow fix for the Maps P2-2 view-toggle addition). */
-  @media (max-width: 960px) {
-    flex-shrink: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* Hidden on phones: it does not fit beside the toggle and sort
-     (Tigran's decision). */
-  @media (max-width: 560px) {
-    display: none;
-  }
+  /* Wraps instead of overflowing: long ru/hy count + relevance-sort labels (AI search). */
+  flex-wrap: wrap;
 }
 
 /* Active filter chips — desktop sidebar chips in toolbar */
@@ -346,14 +408,11 @@
 
   @media (min-width: 961px) {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: var(--ui-space-6);
-    flex: 1;
+    gap: 10px 8px;
+    flex: 1 1 300px;
     min-width: 0;
-    overflow-x: auto;
-    scrollbar-width: none;
-
-    &::-webkit-scrollbar { display: none; }
   }
 }
 
@@ -447,7 +506,9 @@
 /* ── Sort dropdown ──────────────────────────────────────────── */
 .lp-sort-wrapper {
   position: relative;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .lp-sort-backdrop {
@@ -457,7 +518,9 @@
 }
 
 .lp-toolbar__sort {
-  flex-shrink: 0;
+  flex-shrink: 1;
+  max-width: 100%;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   gap: var(--ui-space-6);
@@ -476,6 +539,12 @@
     border-color 120ms ease,
     background-color 120ms ease,
     color 120ms ease;
+}
+
+.lp-toolbar__sort > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .lp-toolbar__sort .pi {
@@ -775,4 +844,108 @@
     padding-bottom: var(--ui-space-16);
     padding-top: 0;
   }
+}
+
+/* A new search (not a re-rank): previous cards at 50 %. */
+.listings-page__grid--searching {
+  opacity: 0.5;
+}
+
+/* ── AI search: loading status, notices, notes (stage 2 + 3) ── */
+.lp-ai-status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-block: var(--ui-space-8);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ui-color-text-secondary);
+}
+
+/* Thin indeterminate bar. */
+.lp-ai-bar {
+  display: block;
+  position: relative;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--ui-color-border);
+  overflow: hidden;
+}
+
+.lp-ai-bar > span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 35%;
+  border-radius: 999px;
+  background: var(--ui-color-primary-strong);
+  animation: lp-ai-slide 1.6s ease-in-out infinite;
+}
+
+@keyframes lp-ai-slide {
+  0% { left: -35%; }
+  100% { left: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-ai-bar > span {
+    animation: none;
+    left: 0;
+  }
+}
+
+.lp-results:focus {
+  outline: none;
+}
+
+/* `ui-msg` info notice in the explanation-line slot. */
+.lp-ai-slot {
+  padding-top: var(--ui-space-8);
+}
+
+.lp-ai-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: var(--ui-space-8);
+}
+
+.lp-ai-note {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ui-color-text-secondary);
+  text-wrap: pretty;
+}
+
+.lp-ai-note .pi {
+  flex: none;
+  margin-top: 3px;
+  font-size: 13px;
+}
+
+/* Inline link inside a Note; the ::before widens the touch target to ~44px. */
+.lp-ai-note__link {
+  position: relative;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ui-color-primary-strong);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.lp-ai-note__link::before {
+  content: '';
+  position: absolute;
+  inset: -12px -6px;
+}
+
+.lp-ai-note__link:hover {
+  color: var(--ui-color-primary-strong-hover);
 }

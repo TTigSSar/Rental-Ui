@@ -188,6 +188,10 @@ export interface ApiSeed {
     body?: unknown;
     sequence?: { status: number; body?: unknown }[];
   };
+  /** GET /api/listings/ai-search/status — defaults to `available: true` (the daily AI budget is not spent). */
+  aiSearchStatus?: { available: boolean };
+  /** POST /api/listings/ai-search — defaults to an empty, unranked page-1 response. */
+  aiSearch?: { status?: number; body?: unknown };
   /** GET /api/listings/map-pins — items for the catalogue map view (Maps P2-2). */
   mapPins?: unknown[];
   /** GET /api/listings/map-pins — `isTruncated` flag on the same envelope. */
@@ -954,6 +958,39 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
     // singleListingId regex below for the same reason "map-pins" is.
     if (pathname.endsWith('/api/listings/mine') && method === 'GET') {
       return json(route, 200, seed.myListings ?? []);
+    }
+
+    // AI search (ADR-054). Two-segment paths, so they never reach the single-listing regex below.
+    if (pathname.endsWith('/api/listings/ai-search/status') && method === 'GET') {
+      return json(route, 200, seed.aiSearchStatus ?? { available: true });
+    }
+    if (pathname.endsWith('/api/listings/ai-search') && method === 'POST') {
+      return json(
+        route,
+        seed.aiSearch?.status ?? 200,
+        seed.aiSearch?.body ?? {
+          items: [],
+          page: 1,
+          pageSize: 20,
+          totalCount: 0,
+          hasMore: false,
+          appliedFilters: {
+            categoryId: null,
+            ageGroup: null,
+            maxPrice: null,
+            districtIds: null,
+            nearHome: false,
+            radiusKm: null,
+          },
+          ranked: false,
+          intent: null,
+          widenedDistrictIds: [],
+          purposeWidened: false,
+          datesMentioned: false,
+          locationNotConsidered: false,
+          aiUnavailable: false,
+        },
+      );
     }
 
     // GET /api/listings/map-pins — Maps P2-2 catalogue map view. Must be

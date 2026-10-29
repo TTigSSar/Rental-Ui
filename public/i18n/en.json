@@ -56,6 +56,9 @@
     "imageInvalidReorder": "The photo order couldn't be saved. Refresh the page and try again.",
     "bookingNotCompleted": "You can leave a review once the rental is completed.",
     "reviewAlreadySubmitted": "You've already reviewed this booking.",
+    "aiSearchInvalidDescription": "Describe what you are looking for in 1 to 500 characters.",
+    "aiSearchRateLimited": "Too many searches. Please wait a minute and try again.",
+    "aiSearchDailyLimit": "You've used today's AI searches. Regular search still works.",
     "invalidLanguage": "Choose a supported language: English, Russian or Armenian.",
     "cannotMessageSelf": "You can't open a conversation with your own account.",
     "cannotMessageAdmin": "You can't open a conversation with another admin."
@@ -475,6 +478,34 @@
     }
   },
   "listings": {
+    "ai": {
+      "switchAria": "Search by description",
+      "fieldAria": "Describe the toy you are looking for",
+      "placeholder": "Describe what you’re looking for: age, kind of toy, budget per day, district…",
+      "placeholderShort": "Describe the toy…",
+      "hintRest": "Describe what you’re looking for. Mention the age, kind of toy, budget per day, district.",
+      "privacy": "Your description is processed by an AI service.",
+      "exampleLabel": "Example · tap to use",
+      "exampleShort": "Balance bike for a 3-year-old, up to 3000 a day, Kentron",
+      "example": "A balance bike for my 3-year-old, up to 3000 a day, preferably in Kentron, something for outdoor play.",
+      "submit": "Search",
+      "sortRelevant": "Most relevant first",
+      "updating": "Updating the order",
+      "moreListings": "More listings matching your criteria",
+      "status": "Finding toys that match your description",
+      "purposeNote": "Not many exact matches, so the purpose was read more broadly.",
+      "emptyTitle": "No toys match this description yet",
+      "widen": "Widen the area",
+      "budget": "Increase the budget",
+      "edit": "Edit description",
+      "browse": "Or browse other categories",
+      "unavailable": "AI search is unavailable right now, showing regular search results.",
+      "budgetSpent": "AI search is unavailable today. Try again tomorrow.",
+      "rateLimited": "Too many searches. Try again in a minute.",
+      "datesNote": "Rental dates aren’t considered here, check availability on the listing.",
+      "locationNote": "Location isn’t considered.",
+      "chooseDistrict": "Choose a district"
+    },
     "common": {
       "retry": "Try again",
       "cancel": "Cancel"
@@ -519,9 +550,19 @@
       "districtIds": "Districts",
       "districtsPlaceholder": "All districts",
       "filterBtn": "Filters",
+      "ageGroup": "Child’s age",
+      "ageGroups": {
+        "g0_12": "0–1 yr",
+        "g12_36": "1–3 yr",
+        "g36_72": "3–6 yr",
+        "g72_120": "6–10 yr",
+        "g120_plus": "10+ yr"
+      },
       "chips": {
         "minPrice": "From {{amount}}",
-        "maxPrice": "Up to {{amount}}"
+        "maxPrice": "Up to {{amount}}",
+        "minPricePerDay": "From {{amount}} per day",
+        "maxPricePerDay": "Up to {{amount}} per day"
       },
       "sidebar": {
         "title": "Filters",
@@ -663,7 +704,6 @@
       "loading": "Loading toys",
       "loadingMore": "Loading more toys",
       "loadMore": "Load more toys",
-      "toysSuffix": "toys",
       "categoryAll": "All",
       "backAria": "Go back",
       "activeFiltersAria": "Active filters",
@@ -680,8 +720,7 @@
       "sortHighestRated": "Highest rated",
       "sortNewest": "Newest",
       "sortNearest": "Nearest first",
-      "sortBy": "Sort by",
-      "inYerevan": "in Yerevan"
+      "sortBy": "Sort by"
     },
     "details": {
       "back": "Back to toys",

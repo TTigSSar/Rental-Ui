@@ -7,6 +7,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { ApiContract, toApiUrl } from '../../../api/api-contract';
 import { makeListingMapPin } from '../../../../testing/fixtures';
+import type { AiSearchResponse } from '../models/ai-search.model';
 import type { ListingsFilter } from '../models/listings-filter.model';
 import type { MapPinsBounds } from '../models/map-pins-bounds.model';
 import { ListingsApiService } from './listings-api.service';
@@ -537,5 +538,86 @@ describe('ListingsApiService — getDistrictAt', () => {
       .flush({ district: null });
 
     expect(result).toBeNull();
+  });
+});
+
+describe('ListingsApiService — AI search (ADR-054)', () => {
+  let service: ListingsApiService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(ListingsApiService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  const request = {
+    description: 'a balance bike',
+    filters: null,
+    page: 1,
+    pageSize: 20,
+    excludeIds: null,
+  };
+
+  it('POSTs the request to the contract path and maps items like the catalogue does (primaryImageUrl -> mainImageUrl)', () => {
+    let result: AiSearchResponse | undefined;
+    service.aiSearch(request).subscribe((r) => (result = r));
+
+    const req = httpMock.expectOne(toApiUrl(ApiContract.listings.aiSearch));
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual(request);
+    req.flush({
+      items: [{ id: 'a', title: 'Balance bike', city: 'Yerevan', pricePerDay: 2000, primaryImageUrl: '/uploads/a.jpg' }],
+      page: 1,
+      pageSize: 20,
+      totalCount: 1,
+      hasMore: false,
+      appliedFilters: { categoryId: 'c', ageGroup: '36-72', maxPrice: 3000, districtIds: ['d'], nearHome: false, radiusKm: null },
+      ranked: true,
+      intent: '  Picked for outdoor play ',
+      widenedDistrictIds: ['d2'],
+      purposeWidened: false,
+      datesMentioned: false,
+      locationNotConsidered: false,
+      aiUnavailable: false,
+    });
+
+    expect(result?.items[0].mainImageUrl).toBe('/uploads/a.jpg');
+    expect(result?.intent).toBe('Picked for outdoor play');
+    expect(result?.widenedDistrictIds).toEqual(['d2']);
+    expect(result?.ranked).toBe(true);
+  });
+
+  it('tolerates a sparse response: null intent, no flags, empty lists', () => {
+    let got: unknown;
+    service.aiSearch(request).subscribe((r) => (got = r));
+    httpMock.expectOne(toApiUrl(ApiContract.listings.aiSearch)).flush({ items: [] });
+
+    expect(got).toMatchObject({
+      items: [],
+      page: 1,
+      pageSize: 20,
+      hasMore: false,
+      ranked: false,
+      intent: null,
+      widenedDistrictIds: [],
+      aiUnavailable: false,
+      appliedFilters: { categoryId: null, ageGroup: null, maxPrice: null, districtIds: null, nearHome: false, radiusKm: null },
+    });
+  });
+
+  it('reads the budget state from the anonymous status endpoint', () => {
+    let got: unknown;
+    service.aiSearchStatus().subscribe((r) => (got = r));
+    const req = httpMock.expectOne(toApiUrl(ApiContract.listings.aiSearchStatus));
+    expect(req.request.method).toBe('GET');
+    req.flush({ available: false });
+    expect(got).toEqual({ available: false });
   });
 });

@@ -1,0 +1,191 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.aisf {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-8);
+  min-width: 0;
+}
+
+/* Search field (design .sf2): muted fill off; white + orange border on. */
+.aisf__field {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'icon body actions';
+  align-items: start;
+  column-gap: 10px;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 0 6px 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-surface-muted);
+  font-size: 15px;
+  line-height: 24px;
+  color: var(--ui-color-text-primary);
+}
+
+.aisf__field--on {
+  background: var(--ui-color-surface);
+  border-color: var(--ui-color-primary);
+}
+
+.aisf__field--focus,
+.aisf__field:has(.aisf__input:focus-visible) {
+  outline: 2px solid var(--ui-color-primary-strong);
+  outline-offset: 2px;
+}
+
+.aisf__icon {
+  grid-area: icon;
+  margin-top: 14px;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--ui-color-text-secondary);
+}
+
+.aisf__body {
+  grid-area: body;
+  min-width: 0;
+  padding: 9px 0;
+}
+
+.aisf__input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  outline: none;
+  resize: none;
+}
+
+/* The ring is drawn once, on the whole field (global :focus-visible would add a second one inside it). */
+.aisf .aisf__input:focus,
+.aisf .aisf__input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.aisf__input::placeholder {
+  color: var(--ui-color-text-hint);
+  opacity: 1;
+}
+
+.aisf__textarea {
+  min-height: 24px;
+  max-height: 120px;
+  overflow-y: auto;
+  text-wrap: pretty;
+}
+
+.aisf__collapsed {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: text;
+}
+
+.aisf__actions {
+  grid-area: actions;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+/* Round submit button (design .sub): 36px with a 44px hit area. */
+.aisf__submit {
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-primary-strong);
+  color: var(--ui-color-on-primary);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.aisf__submit::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}
+
+.aisf__submit:hover {
+  background: var(--ui-color-primary-strong-hover);
+}
+
+.aisf__submit:focus-visible {
+  outline: 2px solid var(--ui-color-primary-strong);
+  outline-offset: 2px;
+}
+
+/* Mobile typing: the text uses the full width; switch + submit sit in a bottom row inside the field. */
+.aisf__field--typing {
+  grid-template-areas:
+    'icon body'
+    'actions actions';
+  padding: 0 6px 6px 14px;
+}
+
+.aisf__field--typing .aisf__body {
+  padding: 10px 8px 4px 0;
+}
+
+.aisf__field--typing .aisf__textarea {
+  min-height: 48px;
+}
+
+.aisf__field--typing .aisf__actions {
+  margin: 0;
+}
+
+.aisf__note {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ui-color-text-secondary);
+  text-wrap: pretty;
+}
+
+.aisf__note .pi {
+  flex: none;
+  margin-top: 3px;
+  font-size: 13px;
+}
+
+.aisf__error {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ui-color-danger);
+}
+
+/* The native search "x" clutters the field next to the switch. */
+.aisf__input[type='search']::-webkit-search-cancel-button {
+  display: none;
+}

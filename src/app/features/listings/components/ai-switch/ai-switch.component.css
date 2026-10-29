@@ -1,0 +1,130 @@
+:host {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+}
+
+.ai-switch {
+  position: relative;
+  height: 32px;
+  padding: 0 10px 0 6px;
+  border: 1px solid var(--ui-color-border-input);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+/* 44px hit area around the 32px visual */
+.ai-switch::before {
+  content: '';
+  position: absolute;
+  inset: -6px -2px;
+}
+
+.ai-switch:focus-visible {
+  outline: 2px solid var(--ui-color-primary-strong);
+  outline-offset: 2px;
+}
+
+.ai-switch__track {
+  position: relative;
+  width: 26px;
+  height: 16px;
+  border: 1.5px solid var(--ui-color-text-hint);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface);
+}
+
+.ai-switch__knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-text-hint);
+}
+
+.ai-switch--on {
+  background: var(--ui-color-primary-strong);
+  border-color: var(--ui-color-primary-strong);
+  color: var(--ui-color-on-primary);
+}
+
+.ai-switch--on .ai-switch__track {
+  border-color: var(--ui-color-on-primary);
+  background: var(--ui-color-on-primary);
+}
+
+.ai-switch--on .ai-switch__knob {
+  left: auto;
+  right: 2px;
+  background: var(--ui-color-primary-strong);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ai-switch,
+  .ai-switch__knob {
+    transition:
+      background-color 120ms ease,
+      border-color 120ms ease,
+      color 120ms ease;
+  }
+}
+
+/* Daily budget used up: aria-disabled, still focusable (design .tg.dis). */
+.ai-switch--dis {
+  background: var(--ui-color-surface-muted);
+  border-color: var(--ui-color-border-input);
+  color: var(--ui-color-text-secondary);
+  cursor: not-allowed;
+}
+
+.ai-switch--dis .ai-switch__track {
+  border-color: #b5b6b7;
+  background: var(--ui-color-surface-muted);
+}
+
+.ai-switch--dis .ai-switch__knob {
+  background: #b5b6b7;
+}
+
+/* Desktop tooltip under the switch (design .tip). */
+.ai-switch__tip {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: -4px;
+  z-index: 5;
+  width: max-content;
+  max-width: 260px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #2a2c41;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.ai-switch__tip[hidden] {
+  display: none;
+}
+
+.ai-switch__tip::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  right: 22px;
+  width: 10px;
+  height: 10px;
+  background: #2a2c41;
+  transform: rotate(45deg);
+}

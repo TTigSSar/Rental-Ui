@@ -1,5 +1,6 @@
 import { createAction, props } from '@ngrx/store';
 
+import type { AiSearchResponse, AiSearchStatusResponse } from '../models/ai-search.model';
 import type {
   CreateListingRequest,
   CreateListingResponse,
@@ -194,3 +195,62 @@ export const loadMapPinsFailure = createAction(
   '[Listings] Load Map Pins Failure',
   props<{ error: string }>(),
 );
+
+// ── AI search (ADR-054) ──────────────────────────────────────────────────
+
+/**
+ * The "AI" switch, mirrored from `?ai=1`. `snapshot` (only when turning on) is the URL's
+ * query params at that moment, restored when the switch goes off. Turning off clears every
+ * AI result flag but keeps the description.
+ */
+export const setAiMode = createAction(
+  '[Listings] Set AI Mode',
+  props<{ on: boolean; snapshot?: Record<string, string> }>(),
+);
+
+export const setAiDescription = createAction(
+  '[Listings] Set AI Description',
+  props<{ description: string }>(),
+);
+
+export const markAiExampleSeen = createAction('[Listings] Mark AI Example Seen');
+
+/** Run the description through the AI endpoint (filters: null → the server parses it). */
+export const submitAiSearch = createAction(
+  '[Listings] Submit AI Search',
+  props<{ description: string }>(),
+);
+
+/**
+ * A filter/chip changed while AI results are showing. Items stay (dimmed); the effect
+ * re-ranks after 400 ms with the same description and the edited filters (no re-parse).
+ */
+export const aiFiltersChanged = createAction(
+  '[Listings] AI Filters Changed',
+  props<{ filters: ListingsFilter }>(),
+);
+
+/** Sort switched back to "Most relevant first": re-rank at once, no debounce. */
+export const aiRerank = createAction('[Listings] AI Rerank');
+
+/** Another sort was chosen: the AI order is dropped and the ordinary catalogue loads. */
+export const dropAiOrder = createAction('[Listings] Drop AI Order');
+
+export const aiSearchSuccess = createAction(
+  '[Listings] AI Search Success',
+  props<{ kind: 'search' | 'rerank' | 'page'; response: AiSearchResponse; epoch: number }>(),
+);
+
+export const aiSearchFailure = createAction(
+  '[Listings] AI Search Failure',
+  props<{ error: string; errorCode: ApiErrorCode | null; epoch: number }>(),
+);
+
+export const loadAiStatus = createAction('[Listings] Load AI Status');
+
+export const loadAiStatusSuccess = createAction(
+  '[Listings] Load AI Status Success',
+  props<{ status: AiSearchStatusResponse }>(),
+);
+
+export const loadAiStatusFailure = createAction('[Listings] Load AI Status Failure');

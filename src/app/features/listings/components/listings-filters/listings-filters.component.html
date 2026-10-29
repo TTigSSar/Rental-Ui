@@ -1,10 +1,11 @@
 <!-- ── Search + filter button row ── -->
 <div class="lf-bar">
-  <app-ui-input
-    type="search"
-    variant="filled"
-    [formControl]="filterForm.controls.query"
-    [placeholder]="'listings.filters.queryPlaceholder' | translate"
+  <!-- Search field with the "AI" switch inside (ADR-054). Switch off: the ordinary `q` search. -->
+  <app-ai-search-field
+    layout="bar"
+    [query]="filterForm.controls.query.value"
+    (queryChange)="filterForm.controls.query.setValue($event)"
+    (authRequired)="authRequired.emit()"
   />
   <button
     type="button"
@@ -75,8 +76,27 @@
         />
       </div>
 
-      <!-- Districts -->
+      <!-- Child's age: the same AGE_GROUPS pills as the desktop sidebar (AI search maps the
+           child's age to one of these groups). -->
       <div class="lf-field">
+        <span class="lf-field__label" id="lf-age-label">
+          {{ 'listings.filters.ageGroup' | translate }}
+        </span>
+        <div class="lf-age-pills" role="group" aria-labelledby="lf-age-label">
+          @for (ag of ageGroups; track ag.value) {
+            <button
+              type="button"
+              class="lf-age-pill"
+              [class.lf-age-pill--active]="draftForm.controls.ageGroup.value === ag.value"
+              [attr.aria-pressed]="draftForm.controls.ageGroup.value === ag.value"
+              (click)="toggleDraftAge(ag.value)"
+            >{{ ag.labelKey | translate }}</button>
+          }
+        </div>
+      </div>
+
+      <!-- Districts -->
+      <div class="lf-field" id="lf-field-districts" [class.lf-field--set]="draftForm.controls.districtIds.value.length > 0">
         <span class="lf-field__label" id="lf-districts-label">
           {{ 'listings.filters.districtIds' | translate }}
         </span>
@@ -90,6 +110,7 @@
           [showToggleAll]="false"
           [showClear]="true"
           [placeholder]="'listings.filters.districtsPlaceholder' | translate"
+          inputId="lf-districts-input"
           [ariaLabelledBy]="'lf-districts-label'"
           styleClass="lf-field__input lf-field__multiselect"
           appendTo="body"
@@ -98,8 +119,8 @@
       </div>
 
       <!-- Price range -->
-      <div class="lf-field-row">
-        <div class="lf-field">
+      <div class="lf-field-row" id="lf-field-price">
+        <div class="lf-field" [class.lf-field--set]="draftForm.controls.minPrice.value != null">
           <label class="lf-field__label" for="lf-min-price">
             {{ 'listings.filters.minPrice' | translate }}
           </label>
@@ -114,7 +135,7 @@
             styleClass="lf-field__input"
           />
         </div>
-        <div class="lf-field">
+        <div class="lf-field" [class.lf-field--set]="draftForm.controls.maxPrice.value != null">
           <label class="lf-field__label" for="lf-max-price">
             {{ 'listings.filters.maxPrice' | translate }}
           </label>

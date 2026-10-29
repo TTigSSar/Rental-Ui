@@ -1,0 +1,23 @@
+<button
+  type="button"
+  role="switch"
+  class="ai-switch"
+  [class.ai-switch--on]="checked() && !unavailable()"
+  [class.ai-switch--dis]="unavailable()"
+  [attr.aria-checked]="checked() && !unavailable()"
+  [attr.aria-disabled]="unavailable() ? 'true' : null"
+  [attr.aria-describedby]="describedBy()"
+  [attr.aria-label]="ariaLabel() || null"
+  (click)="onClick()"
+  (mouseenter)="onEnter()"
+  (mouseleave)="onLeave()"
+  (focus)="onFocus()"
+  (blur)="onBlur()"
+>
+  <span class="ai-switch__track" aria-hidden="true"><span class="ai-switch__knob"></span></span>
+  <span class="ai-switch__label" aria-hidden="true">AI</span>
+</button>
+@if (unavailable() && tooltip()) {
+  <!-- Always in the DOM while unavailable so aria-describedby resolves; shown on hover/focus. -->
+  <span class="ai-switch__tip" role="tooltip" [id]="tooltipId" [hidden]="!showTooltip()">{{ tooltip() }}</span>
+}

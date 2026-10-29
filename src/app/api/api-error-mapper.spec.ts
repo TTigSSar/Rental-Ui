@@ -88,6 +88,18 @@ describe('ApiErrorMapper', () => {
     });
   });
 
+  describe('AI search limit codes (ADR-054)', () => {
+    it.each([
+      ['ai_search.rate_limited', 'errors.aiSearchRateLimited'],
+      ['ai_search.daily_limit', 'errors.aiSearchDailyLimit'],
+    ])('maps %s to %s without leaking the server text', (code, key) => {
+      const error = problem(429, { errorCode: code, title: 'English server text' });
+      expect(resolveApiErrorKey(error)).toBe(key);
+      expect(mapper.message(error)).toBe(leaf(en, key));
+      expect(mapper.message(error)).not.toContain('English server text');
+    });
+  });
+
   describe('meeting point codes (ADR-053)', () => {
     it.each([
       ['chat.meeting_point_owner_only', 'errors.ownerOnly'],
