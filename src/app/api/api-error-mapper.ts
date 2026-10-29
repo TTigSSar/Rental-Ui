@@ -149,6 +149,10 @@ export const API_ERROR_MESSAGE_KEYS: Readonly<Record<KnownApiErrorCode, string>>
   'review.forbidden': 'errors.forbidden',
   'review.user_blocked': 'errors.userBlocked',
   'review.already_submitted': 'errors.reviewAlreadySubmitted',
+  // ai_search.*
+  'ai_search.unauthenticated': 'errors.sessionExpired',
+  'ai_search.invalid_description': 'errors.aiSearchInvalidDescription',
+  'ai_search.rate_limited': 'errors.aiSearchRateLimited',
 };
 
 /**

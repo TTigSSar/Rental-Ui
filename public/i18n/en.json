@@ -56,6 +56,8 @@
     "imageInvalidReorder": "The photo order couldn't be saved. Refresh the page and try again.",
     "bookingNotCompleted": "You can leave a review once the rental is completed.",
     "reviewAlreadySubmitted": "You've already reviewed this booking.",
+    "aiSearchInvalidDescription": "Describe what you are looking for in 1 to 500 characters.",
+    "aiSearchRateLimited": "Too many searches. Please wait a minute and try again.",
     "invalidLanguage": "Choose a supported language: English, Russian or Armenian.",
     "cannotMessageSelf": "You can't open a conversation with your own account.",
     "cannotMessageAdmin": "You can't open a conversation with another admin."
