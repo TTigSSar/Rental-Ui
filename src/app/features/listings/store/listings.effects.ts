@@ -26,7 +26,6 @@ import { ListingsApiService } from '../services/listings-api.service';
 import * as ListingsActions from './listings.actions';
 import {
   selectAiNextPageContext,
-  selectAiFallbackResults,
   selectAiRequestContext,
   selectAiResultsActive,
   selectListingsFilters,
@@ -90,11 +89,9 @@ export class ListingsEffects {
         this.store.select(selectListingsPageSize),
         this.store.select(selectListingsOriginCoords),
         this.store.select(selectAiResultsActive),
-        this.store.select(selectAiFallbackResults),
       ),
-      // AI-ordered results page through `loadAiNextPage$` instead; the AI-unavailable fallback
-      // is a single page and never continues.
-      filter(([, hasMore, , , , , aiActive, fallback]) => hasMore && !aiActive && !fallback),
+      // AI-ordered results page through `loadAiNextPage$` instead.
+      filter(([, hasMore, , , , , aiActive]) => hasMore && !aiActive),
       switchMap(([, , page, filters, pageSize, originCoords]) =>
         this.listingsApi.getListings(filters, page + 1, pageSize, originCoords).pipe(
           map((result) =>
@@ -226,7 +223,8 @@ export class ListingsEffects {
         filter(({ kind }) => kind !== 'page'),
         withLatestFrom(this.store.select(selectListingsFilters)),
         tap(([{ response }, filters]) => {
-          // `aiUnavailable`: the switch has been turned off (reducer), so `ai` leaves the URL.
+          // `aiUnavailable`: the switch has been turned off (reducer), so `ai` leaves the URL and
+          // the page's URL subscription loads the ORDINARY catalogue with the applied filters.
           // The description is never written to the URL (no `q`).
           void this.router.navigate([], {
             queryParams: { ...filtersToQueryParams(filters), ai: response.aiUnavailable ? null : '1' },

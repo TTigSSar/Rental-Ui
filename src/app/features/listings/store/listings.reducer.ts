@@ -78,20 +78,15 @@ export const listingsReducer = createReducer(
   ),
   on(
     ListingsActions.loadListingsSuccess,
-    (state, { items, page, pageSize, hasMore }): ListingsState =>
-      // A catalogue response that lands after the AI fallback must not replace its single page
-      // or re-open paging.
-      state.ai.fallbackResults
-        ? { ...state, isLoading: false }
-        : {
-            ...state,
-            items: page <= 1 ? [...items] : [...state.items, ...items],
-            page,
-            pageSize,
-            hasMore,
-            isLoading: false,
-            error: null,
-          },
+    (state, { items, page, pageSize, hasMore }): ListingsState => ({
+      ...state,
+      items: page <= 1 ? [...items] : [...state.items, ...items],
+      page,
+      pageSize,
+      hasMore,
+      isLoading: false,
+      error: null,
+    }),
   ),
   on(
     ListingsActions.loadListingsFailure,
@@ -105,8 +100,6 @@ export const listingsReducer = createReducer(
     ListingsActions.updateFilters,
     (state, { filters }): ListingsState => ({
       ...state,
-      // A real filter change leaves the fallback page: the catalogue pages normally again.
-      ai: state.ai.fallbackResults ? { ...state.ai, fallbackResults: false } : state.ai,
       filters: { ...filters },
       page: 1,
       items: [],
@@ -370,7 +363,6 @@ export const listingsReducer = createReducer(
       error: null,
       errorCode: null,
       fallbackNotice: false,
-      fallbackResults: false,
       exampleSeen: true,
       epoch: state.ai.epoch + 1,
     }),
@@ -421,15 +413,15 @@ export const listingsReducer = createReducer(
     if (response.aiUnavailable) {
       // AI could not run: the response is a plain catalogue text search on the description.
       // The switch goes OFF (it stays enabled), the description is kept for the next attempt and
-      // the info notice stays. The description NEVER goes into `q` or the URL. Page 2+ of the AI
-      // endpoint ignores the description (it pages by filters only), so these text-search results
-      // cannot be continued: first page only, no infinite scroll (`hasMore: false`).
+      // the info notice stays. The description NEVER goes into `q` or the URL. The results are the
+      // ORDINARY catalogue (design-notes 13): these items are only shown until the page's URL
+      // subscription reloads the catalogue with the applied filters, which pages normally.
       return {
         ...state,
         items: [...response.items],
         page: response.page,
         pageSize: response.pageSize,
-        hasMore: false,
+        hasMore: response.hasMore,
         isLoading: false,
         error: null,
         filters: fromAiSearchFilters(response.appliedFilters),
@@ -440,7 +432,6 @@ export const listingsReducer = createReducer(
           exampleSeen: true,
           epoch: state.ai.epoch + 1,
           fallbackNotice: true,
-          fallbackResults: true,
         },
       };
     }
@@ -467,7 +458,6 @@ export const listingsReducer = createReducer(
         datesMentioned: response.datesMentioned || (kind === 'rerank' && state.ai.datesMentioned),
         locationNotConsidered: response.locationNotConsidered,
         fallbackNotice: false,
-        fallbackResults: false,
         rankedIds: response.ranked ? response.items.map((i) => i.id) : [],
         appliedFilters: response.appliedFilters,
         error: null,

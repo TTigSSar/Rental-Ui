@@ -77,58 +77,16 @@ describe('listingsReducer — AI unavailable (fallback)', () => {
     expect(next.ai).toMatchObject({ busy: 'idle', hasSearched: false, ranked: false, intent: null });
   });
 
-  it('shows the response items, never copies the description into the filters, and turns paging off', () => {
+  it('shows the response items meanwhile and never copies the description into the filters', () => {
     const next = listingsReducer(
       aiOn({ description: '  a balance bike ', busy: 'searching' }),
       ListingsActions.aiSearchSuccess({ kind: 'search', response: unavailable, epoch: 3 }),
     );
 
     expect(next.items.map((i) => i.id)).toEqual(['x']);
-    expect(next.hasMore).toBe(false);
     expect(next.filters.query).toBeNull();
     expect(JSON.stringify(next.filters)).not.toContain('balance');
     expect(next.isLoading).toBe(false);
-  });
-
-  it('a late catalogue response cannot replace the fallback page or re-open paging', () => {
-    const fallback = listingsReducer(
-      aiOn({ description: 'bike', busy: 'searching' }),
-      ListingsActions.aiSearchSuccess({ kind: 'search', response: unavailable, epoch: 3 }),
-    );
-    expect(fallback.ai.fallbackResults).toBe(true);
-
-    const late = listingsReducer(
-      { ...fallback, isLoading: true },
-      ListingsActions.loadListingsSuccess({
-        items: [makeListingPreview({ id: 'z' })],
-        page: 1,
-        pageSize: 20,
-        hasMore: true,
-      }),
-    );
-    expect(late.items.map((i) => i.id)).toEqual(['x']);
-    expect(late.hasMore).toBe(false);
-    expect(late.isLoading).toBe(false);
-  });
-
-  it('a real filter change leaves the fallback page, so the catalogue pages normally again', () => {
-    const fallback = listingsReducer(
-      aiOn({ busy: 'searching' }),
-      ListingsActions.aiSearchSuccess({ kind: 'search', response: unavailable, epoch: 3 }),
-    );
-    const changed = listingsReducer(fallback, ListingsActions.updateFilters({ filters: fallback.filters }));
-    expect(changed.ai.fallbackResults).toBe(false);
-
-    const loaded = listingsReducer(
-      changed,
-      ListingsActions.loadListingsSuccess({
-        items: [makeListingPreview({ id: 'z' })],
-        page: 1,
-        pageSize: 20,
-        hasMore: true,
-      }),
-    );
-    expect(loaded.hasMore).toBe(true);
   });
 
   it('a later search with the switch on retries AI: submitting clears the notice', () => {

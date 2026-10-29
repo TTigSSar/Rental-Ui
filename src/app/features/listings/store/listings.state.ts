@@ -40,12 +40,6 @@ export interface ListingsAiState {
    * turned off, but the info notice stays until the next search is submitted.
    */
   fallbackNotice: boolean;
-  /**
-   * The items on screen are the single page-1 fallback result: no further pages exist (the AI
-   * endpoint pages by filters only), and a late catalogue response must not overwrite them.
-   * Cleared by the next filter change, search or reset.
-   */
-  fallbackResults: boolean;
   /** Page-1 ids in ranked order (empty when not ranked). Drives the "More listings" divider. */
   rankedIds: string[];
   /** The last page-1 `appliedFilters`; sent back as `filters` for page 2+. */
@@ -75,7 +69,6 @@ export const initialListingsAiState: ListingsAiState = {
   datesMentioned: false,
   locationNotConsidered: false,
   fallbackNotice: false,
-  fallbackResults: false,
   rankedIds: [],
   appliedFilters: null,
   epoch: 0,

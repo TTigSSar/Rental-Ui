@@ -174,9 +174,6 @@ export const selectAiBudgetSpent = createSelector(
 );
 
 /** The last search fell back to the ordinary catalogue: the info notice shows (switch is off). */
-/** The items are the single fallback page: nothing more to load. */
-export const selectAiFallbackResults = createSelector(selectListingsAi, (ai): boolean => ai.fallbackResults);
-
 export const selectAiFallbackNotice = createSelector(selectListingsAi, (ai): boolean => ai.fallbackNotice);
 
 /** 429 `ai_search.rate_limited` (by errorCode, never by server prose - ADR-045). */
