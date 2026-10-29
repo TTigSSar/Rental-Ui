@@ -1304,6 +1304,32 @@ describe('MapComponent', () => {
       expect(state.tileLayerCalls).toHaveLength(1);
     });
 
+    it('falls back to raster exactly once when the MapLibre worker fails to load', async () => {
+      enableWebGl();
+      stubStyleFetch();
+      const fixture = await mount();
+      const removedBefore = state.removedLayers.length;
+      const glLayer = state.glLayerCalls[0];
+      const workerError = {
+        error: new Error('Worker failed to load. Check that the worker URL is correct.'),
+      };
+
+      glLayer.handlers['error']?.forEach((h) => h(workerError));
+      // A second worker error, a style error and an idle must not add a second layer or report.
+      glLayer.handlers['error']?.forEach((h) => h(workerError));
+      glLayer.handlers['error']?.forEach((h) => h({ sourceId: 'maptiler_planet' }));
+      glLayer.handlers['idle']?.forEach((h) => h());
+      await vi.runAllTimersAsync();
+
+      expect(state.glLayerCalls).toHaveLength(1);
+      expect(state.removedLayers.length).toBe(removedBefore + 1);
+      expect(state.tileLayerCalls).toHaveLength(1);
+      expect(state.tileLayerCalls[0].url).toBe(
+        'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=test-key-123',
+      );
+      expect(fixture.componentInstance.errorCount).toBe(0);
+    });
+
     it('keeps the OSM raster fallback when no provider key is configured', async () => {
       enableWebGl();
       stubStyleFetch();
