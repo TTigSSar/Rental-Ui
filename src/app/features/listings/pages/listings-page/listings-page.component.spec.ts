@@ -510,16 +510,22 @@ describe('ListingsPageComponent — AI search', () => {
     expect(types).not.toContain(ListingsActions.loadListings.type);
   });
 
-  it('shows the explanation and "· most relevant first" while the order is ranked', async () => {
+  it('shows the explanation and no count line while the order is ranked', async () => {
     const { el } = await navigateToListings('/listings?ai=1', { ai: AI_RESULTS });
     expect(el.querySelector('.lp-ai-explain')?.textContent).toContain('Picked for outdoor play');
-    expect(el.querySelector('.lp-toolbar__relevant')).not.toBeNull();
+    expect(el.querySelector('.lp-toolbar__count')).toBeNull();
+    expect(el.querySelector('.lp-toolbar__sort')).not.toBeNull();
   });
 
-  it('shows neither when ranking failed', async () => {
+  it('shows no explanation and no count line when ranking failed', async () => {
     const { el } = await navigateToListings('/listings?ai=1', { ai: { ...AI_RESULTS, ranked: false } });
     expect(el.querySelector('.lp-ai-explain')).toBeNull();
-    expect(el.querySelector('.lp-toolbar__relevant')).toBeNull();
+    expect(el.querySelector('.lp-toolbar__count')).toBeNull();
+  });
+
+  it('keeps the catalogue count line outside AI results', async () => {
+    const { el } = await navigateToListings('/listings');
+    expect(el.querySelector('.lp-toolbar__count')).not.toBeNull();
   });
 
   async function settle(harness: RouterTestingHarness) {
@@ -800,7 +806,6 @@ describe('ListingsPageComponent — AI search states', () => {
       expect(notice.getAttribute('role')).toBe('status');
       expect(notice.textContent).toContain('listings.ai.unavailable');
       expect(el.querySelector('.lp-ai-explain')).toBeNull();
-      expect(el.querySelector('.lp-toolbar__relevant')).toBeNull();
       expect(el.querySelector('.lp-ai-divider')).toBeNull();
     });
 

@@ -368,11 +368,6 @@
   .lp-toolbar__updating-icon { animation: none; }
 }
 
-.lp-toolbar__relevant {
-  font-weight: 500;
-  color: var(--ui-color-text-secondary);
-}
-
 /* Cards under a search / re-rank: 60%, inert. */
 .listings-page__grid--busy {
   opacity: 0.6;
