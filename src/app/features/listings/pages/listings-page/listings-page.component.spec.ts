@@ -532,9 +532,10 @@ describe('ListingsPageComponent — AI search', () => {
     expect(el.querySelector('.lp-toolbar__count')).toBeNull();
   });
 
-  it('keeps the catalogue count line outside AI results', async () => {
+  it('shows no count line in the ordinary catalogue either', async () => {
     const { el } = await navigateToListings('/listings');
-    expect(el.querySelector('.lp-toolbar__count')).not.toBeNull();
+    expect(el.querySelector('.lp-toolbar__count')).toBeNull();
+    expect(el.querySelector('.lp-toolbar__sort')).not.toBeNull();
   });
 
   async function settle(harness: RouterTestingHarness) {
@@ -603,7 +604,7 @@ describe('ListingsPageComponent — AI search', () => {
     expect(el.querySelector('.lp-ai-divider')).toBeNull();
   });
 
-  it('a re-rank replaces the count line with "Updating the order" and dims + inerts the cards', async () => {
+  it('a re-rank shows "Updating the order" in the toolbar and dims + inerts the cards', async () => {
     const { el } = await navigateToListings('/listings?ai=1', { ai: { ...AI_RESULTS, busy: 'reranking' } });
 
     const status = el.querySelector('.lp-toolbar__updating')!;
@@ -810,7 +811,6 @@ describe('ListingsPageComponent — AI search states', () => {
       mode: false,
       description: 'bike',
       fallbackNotice: true,
-      fallbackResults: true,
     };
 
     it('shows the info notice (role=status) with ordinary results: no explanation, no "most relevant first"', async () => {
@@ -824,21 +824,22 @@ describe('ListingsPageComponent — AI search states', () => {
       expect(el.querySelector('.lp-ai-divider')).toBeNull();
     });
 
-    it('the URL echo of the fallback does not wipe its results with a catalogue reload', async () => {
-      const { store, router } = await navigateToListings('/listings', { ai: FALLBACK });
+    it('after the fallback the ordinary catalogue loads (no q) and the notice stays', async () => {
+      const { el, store, router } = await navigateToListings('/listings', { ai: FALLBACK });
 
-      expect(dispatchedTypes(store)).not.toContain(ListingsActions.loadListings.type);
-      expect(dispatchedTypes(store)).not.toContain(ListingsActions.updateFilters.type);
+      expect(dispatchedTypes(store)).toContain(ListingsActions.updateFilters.type);
+      expect(dispatchedTypes(store)).toContain(ListingsActions.loadListings.type);
       expect(router.url).not.toContain('q=');
+      expect(el.querySelector('.lp-ai-slot app-ai-notice')).not.toBeNull();
     });
 
-    it('infinite scroll dispatches nothing while the fallback page is showing', async () => {
+    it('infinite scroll pages the ordinary catalogue as usual while the notice is up', async () => {
       const { harness, store } = await navigateToListings('/listings', { ai: FALLBACK, hasMore: true });
 
       FakeIntersectionObserver.instances.forEach((o) => o.trigger(true));
       await flush(harness);
 
-      expect(dispatchedTypes(store)).not.toContain(ListingsActions.loadNextPage.type);
+      expect(dispatchedTypes(store)).toContain(ListingsActions.loadNextPage.type);
     });
 
     it('is not shown without a fallback', async () => {

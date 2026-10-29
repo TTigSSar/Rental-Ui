@@ -74,7 +74,6 @@ import {
   selectAiBusy,
   selectAiDescription,
   selectAiFallbackNotice,
-  selectAiFallbackResults,
   selectAiHasSearched,
   selectAiMode,
   selectAiNotes,
@@ -305,7 +304,6 @@ export class ListingsPageComponent {
   protected readonly aiNotes = this.store.selectSignal(selectAiNotes);
   /** The last search fell back to the ordinary catalogue: info notice, switch already off. */
   protected readonly aiFallbackNotice = this.store.selectSignal(selectAiFallbackNotice);
-  private readonly aiFallbackResults = this.store.selectSignal(selectAiFallbackResults);
   private readonly aiBudgetSpent = this.store.selectSignal(selectAiBudgetSpent);
   private readonly aiRateLimited = this.store.selectSignal(selectAiRateLimited);
   private readonly aiOtherError = this.store.selectSignal(selectAiOtherError);
@@ -480,12 +478,6 @@ export class ListingsPageComponent {
     return chips;
   });
 
-  protected readonly resultCountLabel = computed(() => {
-    const n = this.itemsSignal().length;
-    const suffix = this.hasMoreSignal() ? '+' : '';
-    return `${n}${suffix}`;
-  });
-
   /** First search (no AI results yet), or a search/re-rank with nothing to dim: the skeleton shows. */
   protected readonly aiSkeleton = computed(() => {
     const busy = this.aiBusy();
@@ -524,16 +516,6 @@ export class ListingsPageComponent {
         // of the filters the AI itself just applied): re-rank, don't reload the catalogue.
         const aiActive = params.get('ai') === '1' && this.aiResultsActive();
         this.store.dispatch(ListingsActions.setAiMode({ on: params.get('ai') === '1' }));
-        // The fallback results (AI unavailable) are already in the store and the URL only echoes
-        // their filters: do not wipe them with a catalogue reload.
-        if (
-          !aiActive &&
-          this.aiFallbackResults() &&
-          this.itemsSignal().length > 0 &&
-          sameFilters(filters, this.filtersSignal())
-        ) {
-          return;
-        }
         if (aiActive) {
           if (!sameFilters(filters, this.filtersSignal())) {
             this.store.dispatch(ListingsActions.aiFiltersChanged({ filters }));
@@ -660,7 +642,6 @@ export class ListingsPageComponent {
     // visible and there is more to load.
     effect(() => {
       if (!this.scrollSentinelIntersecting()) return;
-      if (this.aiFallbackResults()) return;
       if (this.viewMode() !== 'list') return;
 
       const v = this.vm();

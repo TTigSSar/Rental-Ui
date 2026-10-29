@@ -703,7 +703,6 @@
       "loading": "Խաղալիքները բեռնվում են",
       "loadingMore": "Բեռնվում են նոր խաղալիքներ",
       "loadMore": "Բեռնել ավելին",
-      "toysSuffix": "խաղալիք",
       "categoryAll": "Բոլոր",
       "backAria": "Հետ",
       "activeFiltersAria": "Ակտիվ ֆիլտրեր",
@@ -720,8 +719,7 @@
       "sortHighestRated": "Ամենաբարձր վարկ.",
       "sortNewest": "Ամենանոր",
       "sortNearest": "Ամենամոտ",
-      "sortBy": "Դասավորել",
-      "inYerevan": "Երևանում"
+      "sortBy": "Դասավորել"
     },
     "details": {
       "back": "Վերադառնալ խաղալիքների ցանկ",

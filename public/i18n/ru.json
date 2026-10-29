@@ -703,7 +703,6 @@
       "loading": "Загрузка игрушек",
       "loadingMore": "Загружаем больше игрушек",
       "loadMore": "Загрузить ещё",
-      "toysSuffix": "игрушек",
       "categoryAll": "Все",
       "backAria": "Назад",
       "activeFiltersAria": "Активные фильтры",
@@ -720,8 +719,7 @@
       "sortHighestRated": "По рейтингу",
       "sortNewest": "Сначала новые",
       "sortNearest": "Ближайшие",
-      "sortBy": "Сортировка",
-      "inYerevan": "в Ереване"
+      "sortBy": "Сортировка"
     },
     "details": {
       "back": "Назад к каталогу",

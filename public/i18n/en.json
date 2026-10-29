@@ -703,7 +703,6 @@
       "loading": "Loading toys",
       "loadingMore": "Loading more toys",
       "loadMore": "Load more toys",
-      "toysSuffix": "toys",
       "categoryAll": "All",
       "backAria": "Go back",
       "activeFiltersAria": "Active filters",
@@ -720,8 +719,7 @@
       "sortHighestRated": "Highest rated",
       "sortNewest": "Newest",
       "sortNearest": "Nearest first",
-      "sortBy": "Sort by",
-      "inYerevan": "in Yerevan"
+      "sortBy": "Sort by"
     },
     "details": {
       "back": "Back to toys",
