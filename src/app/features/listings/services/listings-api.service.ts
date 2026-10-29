@@ -7,6 +7,11 @@ import { normalizeToyCondition } from '../../../shared/utils/listing-condition.u
 import { roundCoordForApi } from '../../../shared/utils/coord-precision.utils';
 import { compressImageFiles } from '../../../shared/utils/image-compression.utils';
 import type {
+  AiSearchRequest,
+  AiSearchResponse,
+  AiSearchStatusResponse,
+} from '../models/ai-search.model';
+import type {
   CreateListingRequest,
   CreateListingResponse,
   ListingCategoryOption,
@@ -166,6 +171,58 @@ export class ListingsApiService {
         items: (result.items ?? []).map((item) => normalizeListingPreview(item)),
       })),
     );
+  }
+
+  /**
+   * ADR-054: `POST /api/listings/ai-search` ([Authorize], 5/min/user). Items go through the same
+   * `normalizeListingPreview` as the catalogue (the wire sends `primaryImageUrl`). Errors surface
+   * as ProblemDetails `errorCode`s (`ai_search.*`), mapped by `ApiErrorMapper`.
+   */
+  aiSearch(request: AiSearchRequest): Observable<AiSearchResponse> {
+    return this.http
+      .post<AiSearchResponse>(toApiUrl(ApiContract.listings.aiSearch), request)
+      .pipe(map((response) => this.normalizeAiSearchResponse(response, request)));
+  }
+
+  /** `GET /api/listings/ai-search/status` (anonymous) — `available: false` once the daily budget is spent. */
+  aiSearchStatus(): Observable<AiSearchStatusResponse> {
+    return this.http
+      .get<AiSearchStatusResponse>(toApiUrl(ApiContract.listings.aiSearchStatus))
+      .pipe(map((status) => ({ available: status?.available === true })));
+  }
+
+  private normalizeAiSearchResponse(
+    response: AiSearchResponse,
+    request: AiSearchRequest,
+  ): AiSearchResponse {
+    const items = (Array.isArray(response.items) ? response.items : []).map((item) =>
+      normalizeListingPreview(item),
+    );
+    const applied = response.appliedFilters;
+    return {
+      items,
+      page: typeof response.page === 'number' ? response.page : request.page,
+      pageSize: typeof response.pageSize === 'number' ? response.pageSize : request.pageSize,
+      totalCount: typeof response.totalCount === 'number' ? response.totalCount : items.length,
+      hasMore: response.hasMore === true,
+      appliedFilters: {
+        categoryId: applied?.categoryId ?? null,
+        ageGroup: applied?.ageGroup ?? null,
+        maxPrice: applied?.maxPrice ?? null,
+        districtIds: Array.isArray(applied?.districtIds) ? applied.districtIds : null,
+        nearHome: applied?.nearHome === true,
+        radiusKm: applied?.radiusKm ?? null,
+      },
+      ranked: response.ranked === true,
+      intent: normalizeNonEmptyString(response.intent),
+      widenedDistrictIds: Array.isArray(response.widenedDistrictIds)
+        ? response.widenedDistrictIds
+        : [],
+      purposeWidened: response.purposeWidened === true,
+      datesMentioned: response.datesMentioned === true,
+      locationNotConsidered: response.locationNotConsidered === true,
+      aiUnavailable: response.aiUnavailable === true,
+    };
   }
 
   getListingById(id: string): Observable<ListingDetails> {

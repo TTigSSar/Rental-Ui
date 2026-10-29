@@ -305,6 +305,106 @@
   }
 }
 
+/* Price input with a value (set by the user or by the AI search): strong-orange border. */
+.lp-sidebar__price-wrap--set {
+  border-color: var(--ui-color-primary-strong);
+}
+
+/* ── AI search (ADR-054) ────────────────────────────────────── */
+/* Desktop: the field block above the results (design: max-width 680, gap 10). */
+.lp-ai-top {
+  display: none;
+
+  @media (min-width: 961px) {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 680px;
+    margin-bottom: var(--ui-space-16);
+  }
+}
+
+/* Mobile: the first-use hint + example under the sticky bar. */
+.lp-ai-example-mobile {
+  @media (min-width: 961px) {
+    display: none;
+  }
+}
+
+.lp-ai-explain {
+  margin: 0;
+  padding-top: var(--ui-space-8);
+  font-size: 1rem;
+  line-height: 1.5;
+  font-weight: 500;
+  color: var(--ui-color-text-primary);
+}
+
+/* Re-rank status: replaces the count line; stays visible on phones (the count is hidden there). */
+.lp-toolbar__updating {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-8);
+  min-width: 0;
+  flex-shrink: 1;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--ui-color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lp-toolbar__updating-icon {
+  font-size: 0.8125rem;
+  animation: lp-ai-spin 1.2s linear infinite;
+}
+
+@keyframes lp-ai-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-toolbar__updating-icon { animation: none; }
+}
+
+.lp-toolbar__relevant {
+  font-weight: 500;
+  color: var(--ui-color-text-secondary);
+}
+
+/* Cards under a search / re-rank: 60%, inert. */
+.listings-page__grid--busy {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* "More listings matching your criteria" before the first non-ranked card. */
+.lp-ai-divider {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-12);
+  color: var(--ui-color-text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  padding-block: var(--ui-space-4);
+}
+
+.lp-ai-divider__line {
+  flex: 1;
+  min-width: 24px;
+  height: 1px;
+  background: var(--ui-color-border);
+}
+
+.lp-ai-divider__text {
+  max-width: 75%;
+  text-align: center;
+  text-wrap: balance;
+}
+
 /* ── Results toolbar ────────────────────────────────────────── */
 .lp-toolbar {
   display: flex;

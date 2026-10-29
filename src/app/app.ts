@@ -202,8 +202,10 @@ export class App {
   // The scroll-revealed header search is a HOME-ONLY behaviour. Gating the
   // service flag on the route here means every other page keeps the header
   // search permanently visible even if Home fails to reset the flag.
+  // The catalogue (/listings) hides it for good: its own field above the results
+  // carries the search and the AI switch (ADR-054, design-notes 1; plan decision 1).
   protected readonly headerSearchHidden = computed(
-    () => this.isHomePage() && this.headerSearchVisibility.hidden(),
+    () => (this.isHomePage() && this.headerSearchVisibility.hidden()) || this.isBrowsePage(),
   );
 
   // ── Mobile app-open boot screen ──────────────────────────────────────

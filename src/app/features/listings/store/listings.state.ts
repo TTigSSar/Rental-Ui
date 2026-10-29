@@ -1,4 +1,5 @@
 import type { ApiErrorCode } from '../../../api/api-error.model';
+import type { AiSearchFilters, AiSearchStatusResponse } from '../models/ai-search.model';
 import type { ListingDetails } from '../models/listing-details.model';
 import type { ListingCategoryOption } from '../models/create-listing.model';
 import type { ListingMapPin } from '../models/listing-map-pin.model';
@@ -8,6 +9,71 @@ import type {
   ListingsOriginCoords,
   ListingsOriginSource,
 } from '../models/listings-filter.model';
+
+/** `searching`: first search / sort back to relevance; `reranking`: a filter change re-orders the same description. */
+export type ListingsAiBusy = 'idle' | 'searching' | 'reranking';
+
+/**
+ * AI search slice (ADR-054). The results themselves reuse `ListingsState.items/page/hasMore`;
+ * the AI-set filter values are written into `ListingsState.filters` (so the existing controls,
+ * chips and badge show them). The URL carries only `ai=1` for this feature.
+ */
+export interface ListingsAiState {
+  /** The "AI" switch. Mirrors `?ai=1`. */
+  mode: boolean;
+  /** Kept separately and NEVER written to `filters.query`; survives switching off. */
+  description: string;
+  /** A search has produced the current results. */
+  hasSearched: boolean;
+  /** The results are in AI order ("Most relevant first"); false once another sort is chosen. */
+  orderActive: boolean;
+  busy: ListingsAiBusy;
+  ranked: boolean;
+  /** Kept through re-ranks (a re-rank returns `intent: null`). */
+  intent: string | null;
+  widenedDistrictIds: string[];
+  purposeWidened: boolean;
+  datesMentioned: boolean;
+  locationNotConsidered: boolean;
+  aiUnavailable: boolean;
+  /** Page-1 ids in ranked order (empty when not ranked). Drives the "More listings" divider. */
+  rankedIds: string[];
+  /** The last page-1 `appliedFilters`; sent back as `filters` for page 2+. */
+  appliedFilters: AiSearchFilters | null;
+  /** Bumped by every state change that invalidates an in-flight request. */
+  epoch: number;
+  /** Daily-budget state, loaded on page init. `null` until known. */
+  aiStatus: AiSearchStatusResponse | null;
+  error: string | null;
+  errorCode: ApiErrorCode | null;
+  /** The first-use example has been shown/used (session-only). */
+  exampleSeen: boolean;
+  /** URL query params at the moment the switch was turned on — restored on switch-off. */
+  snapshot: Record<string, string> | null;
+}
+
+export const initialListingsAiState: ListingsAiState = {
+  mode: false,
+  description: '',
+  hasSearched: false,
+  orderActive: false,
+  busy: 'idle',
+  ranked: false,
+  intent: null,
+  widenedDistrictIds: [],
+  purposeWidened: false,
+  datesMentioned: false,
+  locationNotConsidered: false,
+  aiUnavailable: false,
+  rankedIds: [],
+  appliedFilters: null,
+  epoch: 0,
+  aiStatus: null,
+  error: null,
+  errorCode: null,
+  exampleSeen: false,
+  snapshot: null,
+};
 
 export interface ListingsState {
   items: ListingPreview[];
@@ -56,6 +122,7 @@ export interface ListingsState {
    *  "zoom in to see all pins" prompt rather than silently under-representing
    *  the viewport's listings. */
   mapPinsTruncated: boolean;
+  ai: ListingsAiState;
 }
 
 export const initialListingsState: ListingsState = {
@@ -92,4 +159,5 @@ export const initialListingsState: ListingsState = {
   mapPinsLoading: false,
   mapPinsError: null,
   mapPinsTruncated: false,
+  ai: initialListingsAiState,
 };

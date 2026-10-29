@@ -10,7 +10,7 @@ import type {
   ListingsOriginSource,
 } from '../models/listings-filter.model';
 import { listingsFeatureKey } from './listings.reducer';
-import type { ListingsState } from './listings.state';
+import type { ListingsAiState, ListingsState } from './listings.state';
 
 export const selectListingsState =
   createFeatureSelector<ListingsState>(listingsFeatureKey);
@@ -148,4 +148,85 @@ export const selectMapPinsError = createSelector(
 export const selectMapPinsTruncated = createSelector(
   selectListingsState,
   (state: ListingsState): boolean => state.mapPinsTruncated,
+);
+
+// ── AI search (ADR-054) ──────────────────────────────────────────────────
+
+export const selectListingsAi = createSelector(
+  selectListingsState,
+  (state: ListingsState): ListingsAiState => state.ai,
+);
+
+export const selectAiMode = createSelector(selectListingsAi, (ai): boolean => ai.mode);
+
+export const selectAiDescription = createSelector(selectListingsAi, (ai): string => ai.description);
+
+export const selectAiBusy = createSelector(selectListingsAi, (ai) => ai.busy);
+
+export const selectAiStatus = createSelector(selectListingsAi, (ai) => ai.aiStatus);
+
+export const selectAiError = createSelector(selectListingsAi, (ai): string | null => ai.error);
+
+export const selectAiExampleSeen = createSelector(selectListingsAi, (ai): boolean => ai.exampleSeen);
+
+export const selectAiSnapshot = createSelector(selectListingsAi, (ai) => ai.snapshot);
+
+/** AI mode is on and a search has produced the current results ("Most relevant first" is offered). */
+export const selectAiHasSearched = createSelector(
+  selectListingsAi,
+  (ai): boolean => ai.mode && ai.hasSearched,
+);
+
+/** The visible results are in AI order (not yet replaced by another sort). */
+export const selectAiResultsActive = createSelector(
+  selectListingsAi,
+  (ai): boolean => ai.mode && ai.hasSearched && ai.orderActive,
+);
+
+/** Explanation line: the intent, only while the order is ranked. */
+export const selectAiExplanation = createSelector(selectListingsAi, (ai): string | null =>
+  ai.mode && ai.hasSearched && ai.orderActive && ai.ranked ? ai.intent : null,
+);
+
+/** "· most relevant first" on the count line, and the page-1/page-2+ divider. */
+export const selectAiRanked = createSelector(
+  selectListingsAi,
+  (ai): boolean => ai.mode && ai.hasSearched && ai.orderActive && ai.ranked,
+);
+
+/** How many leading cards are the ranked page 1; the divider goes before the next one. */
+export const selectAiRankedCount = createSelector(selectListingsAi, (ai): number => ai.rankedIds.length);
+
+/** Everything a page-1 request (search / re-rank) needs, read when the request actually starts. */
+export const selectAiRequestContext = createSelector(
+  selectListingsAi,
+  selectListingsFilters,
+  selectListingsPageSize,
+  selectListingsOriginSource,
+  (ai, filters, pageSize, originSource) => ({
+    description: ai.description,
+    epoch: ai.epoch,
+    filters,
+    pageSize,
+    originSource,
+  }),
+);
+
+/** Everything a page 2+ request needs (no model call server-side; filters = page-1 `appliedFilters`). */
+export const selectAiNextPageContext = createSelector(
+  selectListingsAi,
+  selectListingItems,
+  selectListingsPage,
+  selectListingsPageSize,
+  selectListingsHasMore,
+  (ai, items, page, pageSize, hasMore) => ({
+    active: ai.mode && ai.hasSearched && ai.orderActive,
+    description: ai.description,
+    epoch: ai.epoch,
+    appliedFilters: ai.appliedFilters,
+    excludeIds: items.map((i) => i.id),
+    page,
+    pageSize,
+    hasMore,
+  }),
 );

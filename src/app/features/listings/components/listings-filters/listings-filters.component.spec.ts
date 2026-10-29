@@ -9,10 +9,12 @@ import { ListingsApiService } from '../../services/listings-api.service';
 import * as ListingsActions from '../../store/listings.actions';
 import {
   selectListingCategories,
+  selectListingsAi,
   selectListingsOriginCoords,
   selectListingsOriginDenied,
   selectListingsOriginSource,
 } from '../../store/listings.selectors';
+import { initialListingsAiState } from '../../store/listings.state';
 import { ListingsFiltersComponent } from './listings-filters.component';
 
 /** Access to the sheet's protected surface without loosening it for production code. */
@@ -24,6 +26,7 @@ interface SheetAccess {
   onDraftRadiusMetersChange(meters: number): void;
   onDraftOriginCleared(): void;
   onDraftDistrictsCleared(): void;
+  toggleDraftAge(value: string): void;
   removeChip(chip: { key: string; label: string; districtId?: string }): void;
   readonly activeChips: () => ReadonlyArray<{
     key: string;
@@ -85,6 +88,7 @@ async function navigateToListings(
       provideMockStore({
         selectors: [
           { selector: selectListingCategories, value: [] },
+          { selector: selectListingsAi, value: initialListingsAiState },
           { selector: selectListingsOriginCoords, value: null },
           { selector: selectListingsOriginSource, value: null },
           { selector: selectListingsOriginDenied, value: false },
@@ -131,9 +135,9 @@ describe('ListingsFiltersComponent — cross-surface query param preservation', 
     expect(router.url).toBe('/listings?ageGroup=0-12&radiusKm=5');
   });
 
-  it('tapping Clear resets the sheet-owned radiusKm to null but still preserves ageGroup (not sheet-owned)', async () => {
+  it('tapping Clear resets the sheet-owned radiusKm and ageGroup (the sheet owns age since AI search) but keeps unknown params', async () => {
     const { component, router } = await navigateToListings(
-      '/listings?ageGroup=0-12&radiusKm=5',
+      '/listings?ageGroup=0-12&radiusKm=5&view=map',
     );
 
     component.openSheet();
@@ -141,8 +145,9 @@ describe('ListingsFiltersComponent — cross-surface query param preservation', 
     await vi.advanceTimersByTimeAsync(350);
 
     const url = router.url;
-    expect(url).toContain('ageGroup=0-12');
+    expect(url).not.toContain('ageGroup=');
     expect(url).not.toContain('radiusKm=');
+    expect(url).toContain('view=map');
   });
 
   it('applying a sheet-owned filter (city) still merges in alongside ageGroup and an existing radiusKm', async () => {
@@ -163,7 +168,7 @@ describe('ListingsFiltersComponent — cross-surface query param preservation', 
 
   it('clearing a sheet-owned filter actually removes its own param from the URL (merge still deletes what it owns)', async () => {
     const { component, router } = await navigateToListings(
-      '/listings?ageGroup=0-12&radiusKm=5&city=Yerevan&categoryId=abc',
+      '/listings?view=map&radiusKm=5&city=Yerevan&categoryId=abc&ageGroup=0-12',
     );
 
     component.openSheet();
@@ -175,8 +180,31 @@ describe('ListingsFiltersComponent — cross-surface query param preservation', 
     expect(url).not.toContain('city=');
     expect(url).not.toContain('categoryId=');
     expect(url).not.toContain('radiusKm=');
-    // ...while a filter the sheet doesn't know about survives untouched.
-    expect(url).toContain('ageGroup=0-12');
+    expect(url).not.toContain('ageGroup=');
+    // ...while a param the sheet doesn't know about survives untouched.
+    expect(url).toContain('view=map');
+  });
+
+  it("the sheet's Child's age pills write ageGroup to the URL on Apply, and tapping the active pill clears it", async () => {
+    const { component, router } = await navigateToListings('/listings');
+
+    component.openSheet();
+    component.toggleDraftAge('36-72');
+    component.applySheet();
+    await vi.advanceTimersByTimeAsync(350);
+    expect(router.url).toContain('ageGroup=36-72');
+
+    component.openSheet();
+    component.toggleDraftAge('36-72');
+    component.applySheet();
+    await vi.advanceTimersByTimeAsync(350);
+    expect(router.url).not.toContain('ageGroup=');
+  });
+
+  it('an age set from the URL (e.g. by the AI search) counts as an active chip for the filter-button badge', async () => {
+    const { component } = await navigateToListings('/listings?ageGroup=12-36');
+
+    expect(component.activeChips().map((c) => c.key)).toContain('ageGroup');
   });
 
   it('adjusting the radius in the sheet and applying commits the new value to the URL, merged with ageGroup', async () => {

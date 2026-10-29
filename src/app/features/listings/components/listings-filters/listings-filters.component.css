@@ -1,12 +1,12 @@
 /* ── Search bar + filter button ─────────────────────────── */
 .lf-bar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--ui-space-8);
 }
 
-/* app-ui-input fills the bar's remaining flex space */
-.lf-bar app-ui-input {
+/* The search field (with the AI switch) fills the bar's remaining flex space. */
+.lf-bar app-ai-search-field {
   flex: 1;
   min-width: 0;
 }
@@ -341,6 +341,45 @@
   transition:
     border-color 120ms ease,
     box-shadow 120ms ease;
+}
+
+/* ── Child's age pills (same look as the desktop sidebar pills) ── */
+.lf-age-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ui-space-6);
+}
+
+.lf-age-pill {
+  min-height: 2.75rem;
+  padding: 0 var(--ui-space-14);
+  border: 1.5px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-secondary);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.lf-age-pill--active {
+  background: var(--ui-color-primary-strong);
+  border-color: var(--ui-color-primary-strong);
+  color: var(--ui-color-on-primary);
+  font-weight: 600;
+}
+
+.lf-age-pill:focus-visible {
+  outline: 2px solid var(--ui-color-primary-strong);
+  outline-offset: 2px;
+}
+
+/* A set control (by the user or by the AI) gets the strong-orange border. */
+.lf-field--set ::ng-deep .p-inputnumber-input,
+.lf-field--set ::ng-deep .p-multiselect {
+  border-color: var(--ui-color-primary-strong);
 }
 
 .lf-field__select:focus {

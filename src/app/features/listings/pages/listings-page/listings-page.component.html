@@ -3,9 +3,16 @@
   <!-- ── Mobile sticky header (hidden on desktop via CSS) ──────── -->
   <div class="lp-sticky-header">
     <div class="lp-bar">
-      <app-listings-filters [showChips]="false" (filtersChanged)="onFiltersChanged($event)" />
+      <app-listings-filters
+        [showChips]="false"
+        (filtersChanged)="onFiltersChanged($event)"
+        (authRequired)="showAuthDialog.set(true)"
+      />
     </div>
   </div>
+
+  <!-- ── AI search first-use hint + example, under the mobile bar (hidden on desktop) ── -->
+  <app-ai-example class="lp-ai-example-mobile" [withHint]="true" />
 
   <!-- ── Page layout: sidebar (desktop) + main content ─────────── -->
   <div class="lp-layout">
@@ -79,7 +86,7 @@
       <div class="lp-sidebar__section">
         <p class="lp-sidebar__section-label">{{ 'listings.filters.sidebar.pricePerDay' | translate }}</p>
         <div class="lp-sidebar__price-row">
-          <div class="lp-sidebar__price-wrap">
+          <div class="lp-sidebar__price-wrap" [class.lp-sidebar__price-wrap--set]="activeMinPrice() != null">
             <span class="lp-sidebar__price-prefix">{{ dramSymbol }}</span>
             <input
               type="number"
@@ -90,7 +97,7 @@
               (change)="setMinPrice($event)"
             />
           </div>
-          <div class="lp-sidebar__price-wrap">
+          <div class="lp-sidebar__price-wrap" [class.lp-sidebar__price-wrap--set]="activeMaxPrice() != null">
             <span class="lp-sidebar__price-prefix">{{ dramSymbol }}</span>
             <input
               type="number"
@@ -120,6 +127,18 @@
 
     <!-- ── Main content area ──────────────────────────────────── -->
     <div class="lp-main">
+
+      <!-- Desktop: the search field with the "AI" switch sits above the results; the header
+           search is hidden on this page (mobile uses the sticky bar above). -->
+      <div class="lp-ai-top">
+        <app-ai-search-field
+          layout="block"
+          [query]="activeQuery()"
+          (queryChange)="onDesktopQueryChange($event)"
+          (authRequired)="showAuthDialog.set(true)"
+        />
+        <app-ai-example />
+      </div>
 
       @if (vm(); as v) {
 
@@ -212,9 +231,20 @@
         <!-- Results toolbar: count + active chips + sort dropdown -->
         @if (!v.showInitialSkeleton && (v.items.length > 0 || v.hasMore)) {
           <div class="lp-toolbar">
-            <span class="lp-toolbar__count">
-              {{ resultCountLabel() }}&nbsp;{{ 'listings.page.toysSuffix' | translate }}&nbsp;{{ 'listings.page.inYerevan' | translate }}
-            </span>
+            @if (aiBusy() === 'reranking') {
+              <!-- Re-rank: replaces the count line (announced politely). -->
+              <span class="lp-toolbar__updating" role="status" aria-live="polite">
+                <i class="pi pi-spinner lp-toolbar__updating-icon" aria-hidden="true"></i>
+                <span>{{ 'listings.ai.updating' | translate }}</span>
+              </span>
+            } @else {
+              <span class="lp-toolbar__count">
+                {{ resultCountLabel() }}&nbsp;{{ 'listings.page.toysSuffix' | translate }}&nbsp;{{ 'listings.page.inYerevan' | translate }}
+                @if (aiRanked()) {
+                  <span class="lp-toolbar__relevant">&nbsp;·&nbsp;{{ 'listings.ai.relevantFirst' | translate }}</span>
+                }
+              </span>
+            }
 
             <!-- Active filter chips (desktop only) -->
             <div class="lp-toolbar__chips" role="list" aria-label="Active filters">
@@ -264,7 +294,7 @@
               <button
                 type="button"
                 class="lp-toolbar__sort"
-                [class.lp-toolbar__sort--active]="sortBy() !== ''"
+                [class.lp-toolbar__sort--active]="sortBy() !== '' && sortBy() !== 'relevance'"
                 [attr.aria-label]="'listings.page.sortLabel' | translate"
                 [attr.aria-expanded]="sortMenuOpen()"
                 (click)="toggleSortMenu()"
@@ -281,7 +311,7 @@
 
               @if (sortMenuOpen()) {
                 <div class="lp-sort-menu" role="listbox" [attr.aria-label]="'listings.page.sortLabel' | translate">
-                  @for (opt of sortOptions; track opt.value) {
+                  @for (opt of sortOptions(); track opt.value) {
                     <button
                       type="button"
                       class="lp-sort-menu__item"
@@ -303,10 +333,28 @@
           </div>
         }
 
+        <!-- Explanation line: the intent only, while the order is ranked. Kept through re-ranks. -->
+        @if (aiExplanation(); as intent) {
+          <p class="lp-ai-explain">{{ intent }}</p>
+        }
+
         @if (viewMode() === 'list') {
           @if (v.items.length > 0) {
-            <div class="listings-page__grid cards-grid">
-              @for (listing of v.items; track listing.id) {
+            <!-- Under a search/re-rank the previous cards stay, dimmed and inert. -->
+            <div
+              class="listings-page__grid cards-grid"
+              [class.listings-page__grid--busy]="aiBusy() !== 'idle'"
+              [attr.inert]="aiBusy() !== 'idle' ? '' : null"
+              [attr.aria-busy]="aiBusy() !== 'idle'"
+            >
+              @for (listing of v.items; track listing.id; let i = $index) {
+                @if (aiRanked() && aiRankedCount() > 0 && i === aiRankedCount()) {
+                  <div class="lp-ai-divider" role="separator">
+                    <span class="lp-ai-divider__line"></span>
+                    <span class="lp-ai-divider__text">{{ 'listings.ai.moreListings' | translate }}</span>
+                    <span class="lp-ai-divider__line"></span>
+                  </div>
+                }
                 <app-listing-card
                   [listing]="listing"
                   [isAuthenticated]="v.isAuthenticated"

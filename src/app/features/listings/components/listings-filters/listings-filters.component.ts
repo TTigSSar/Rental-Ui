@@ -10,6 +10,7 @@ import {
   OnDestroy,
   OnInit,
   Output,
+  output,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -26,8 +27,8 @@ import {
   CategorySelectorComponent,
   type CategoryOption,
 } from '../../../../shared/ui/category-selector/category-selector.component';
-import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
+import { AGE_GROUPS } from '../../models/age-groups.const';
 import type { ListingCategoryOption } from '../../models/create-listing.model';
 import { districtDisplayName } from '../../models/district-ui.util';
 import type { ListingDistrict } from '../../models/district.model';
@@ -45,6 +46,7 @@ import {
   metersToKm,
 } from '../../models/radius-scale.util';
 import { radiusChipLabel } from '../../models/radius-chip.util';
+import { AiSearchFieldComponent } from '../ai-search-field/ai-search-field.component';
 import { RadiusOriginFilterComponent } from '../radius-origin-filter/radius-origin-filter.component';
 import { ListingsApiService } from '../../services/listings-api.service';
 import * as ListingsActions from '../../store/listings.actions';
@@ -64,7 +66,7 @@ interface DistrictOption {
 }
 
 interface ActiveChip {
-  readonly key: 'city' | 'categoryId' | 'minPrice' | 'maxPrice' | 'districtId' | 'radiusKm';
+  readonly key: 'city' | 'categoryId' | 'ageGroup' | 'minPrice' | 'maxPrice' | 'districtId' | 'radiusKm';
   readonly label: string;
   /** Only set for `key: 'districtId'` — identifies which district this chip removes. */
   readonly districtId?: string;
@@ -74,13 +76,13 @@ interface ActiveChip {
   selector: 'app-listings-filters',
   standalone: true,
   imports: [
+    AiSearchFieldComponent,
     CategorySelectorComponent,
     InputNumberModule,
     MultiSelectModule,
     RadiusOriginFilterComponent,
     ReactiveFormsModule,
     TranslatePipe,
-    UiInputComponent,
   ],
   // `DramCurrencyPipe` is also `inject()`-ed directly below (for the price
   // chip labels, formatted outside the template — see `activeChips`).
@@ -107,6 +109,10 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
   private readonly dramPipe = inject(DramCurrencyPipe);
 
   @Output() readonly filtersChanged = new EventEmitter<ListingsFilter>();
+  /** A guest submitted an AI description — the page opens the sign-in dialog. */
+  readonly authRequired = output<void>();
+
+  protected readonly ageGroups = AGE_GROUPS;
 
   /** When false, the active-filter chip row is suppressed (parent renders chips instead). */
   readonly showChips = input(true);
@@ -147,6 +153,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     query: this.fb.nonNullable.control(''),
     city: this.fb.nonNullable.control(''),
     categoryId: this.fb.nonNullable.control(''),
+    ageGroup: this.fb.nonNullable.control(''),
     minPrice: this.fb.control<number | null>(null),
     maxPrice: this.fb.control<number | null>(null),
     radiusKm: this.fb.control<number | null>(null),
@@ -156,6 +163,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
   readonly draftForm = this.fb.group({
     city: this.fb.nonNullable.control(''),
     categoryId: this.fb.nonNullable.control(''),
+    ageGroup: this.fb.nonNullable.control(''),
     minPrice: this.fb.control<number | null>(null),
     maxPrice: this.fb.control<number | null>(null),
     radiusKm: this.fb.control<number | null>(null),
@@ -215,6 +223,11 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
    * the moment PrimeNG's clear fires, before anything else reads the
    * control.
    */
+  protected toggleDraftAge(value: string): void {
+    const control = this.draftForm.controls.ageGroup;
+    control.setValue(control.value === value ? '' : value);
+  }
+
   protected onDraftDistrictsCleared(): void {
     this.draftForm.controls.districtIds.setValue([]);
   }
@@ -238,6 +251,10 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     if (v.categoryId) {
       const cat = this.categories().find((c) => c.id === v.categoryId);
       chips.push({ key: 'categoryId', label: cat?.name ?? v.categoryId });
+    }
+    if (v.ageGroup) {
+      const ag = AGE_GROUPS.find((a) => a.value === v.ageGroup);
+      chips.push({ key: 'ageGroup', label: ag?.label ?? v.ageGroup });
     }
     if (v.minPrice != null) {
       chips.push({
@@ -279,6 +296,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     return !!(
       v.city.trim() ||
       v.categoryId ||
+      v.ageGroup ||
       v.minPrice != null ||
       v.maxPrice != null ||
       v.radiusKm != null ||
@@ -299,9 +317,9 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
           // 'merge' (not 'replace'): this form only ever knows about its own
           // OWNED fields (see `toQueryParams` below — M-021: a sibling filter
           // this form has no concept of would be silently dropped under
-          // 'replace'). `ageGroup` still lives ONLY in the desktop sidebar
-          // (`ListingsPageComponent`) and must survive a navigation triggered
-          // from here — `radiusKm`, by contrast, IS one of this form's own
+          // 'replace'). `ageGroup` is one of them since the AI-search card
+          // (the sheet gained the age pills; the desktop sidebar writes the
+          // same URL param) — `radiusKm`, likewise, IS one of this form's own
           // fields (below), exactly like `districtIds`: both surfaces read
           // and write the same URL param, so there is only ever one copy of
           // this state to drift. Each of this form's own keys is still
@@ -324,6 +342,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
             query: params.get('q') ?? '',
             city: params.get('city') ?? '',
             categoryId: params.get('categoryId') ?? '',
+            ageGroup: params.get('ageGroup') ?? '',
             minPrice:
               minPriceStr != null && !Number.isNaN(Number(minPriceStr))
                 ? Number(minPriceStr)
@@ -354,6 +373,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     this.draftForm.setValue({
       city: v.city,
       categoryId: v.categoryId,
+      ageGroup: v.ageGroup,
       minPrice: v.minPrice,
       maxPrice: v.maxPrice,
       radiusKm: v.radiusKm,
@@ -373,6 +393,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     this.filterForm.patchValue({
       city: draft.city,
       categoryId: draft.categoryId,
+      ageGroup: draft.ageGroup,
       minPrice: draft.minPrice,
       maxPrice: draft.maxPrice,
       radiusKm: draft.radiusKm,
@@ -392,6 +413,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
       query: currentQuery,
       city: '',
       categoryId: '',
+      ageGroup: '',
       minPrice: null,
       maxPrice: null,
       radiusKm: null,
@@ -407,6 +429,9 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
         break;
       case 'categoryId':
         this.filterForm.patchValue({ categoryId: '' });
+        break;
+      case 'ageGroup':
+        this.filterForm.patchValue({ ageGroup: '' });
         break;
       case 'minPrice':
         this.filterForm.patchValue({ minPrice: null });
@@ -438,7 +463,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
       categoryId: raw.categoryId.trim() || null,
       minPrice: raw.minPrice,
       maxPrice: raw.maxPrice,
-      ageGroup: null,
+      ageGroup: raw.ageGroup.trim() || null,
       radiusKm: raw.radiusKm,
       districtIds: raw.districtIds,
     };
@@ -449,6 +474,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
       q: filter.query,
       city: filter.city,
       categoryId: filter.categoryId,
+      ageGroup: filter.ageGroup,
       minPrice: filter.minPrice != null ? String(filter.minPrice) : null,
       maxPrice: filter.maxPrice != null ? String(filter.maxPrice) : null,
       radiusKm: serializeRadiusKmParam(filter.radiusKm),

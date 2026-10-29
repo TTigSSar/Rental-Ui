@@ -1,0 +1,12 @@
+<button
+  type="button"
+  role="switch"
+  class="ai-switch"
+  [class.ai-switch--on]="checked()"
+  [attr.aria-checked]="checked()"
+  [attr.aria-label]="ariaLabel() || null"
+  (click)="onClick()"
+>
+  <span class="ai-switch__track" aria-hidden="true"><span class="ai-switch__knob"></span></span>
+  <span class="ai-switch__label" aria-hidden="true">AI</span>
+</button>

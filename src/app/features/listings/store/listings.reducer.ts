@@ -4,7 +4,13 @@ import * as FavoritesActions from '../../favorites/store/favorites.actions';
 import type { ListingDetails } from '../models/listing-details.model';
 import type { ListingPreview } from '../models/listing.model';
 import * as ListingsActions from './listings.actions';
-import { initialListingsState, type ListingsState } from './listings.state';
+import { fromAiSearchFilters } from '../models/ai-search.util';
+import {
+  initialListingsAiState,
+  initialListingsState,
+  type ListingsAiState,
+  type ListingsState,
+} from './listings.state';
 
 export const listingsFeatureKey = 'listings' as const;
 
@@ -46,6 +52,10 @@ function mapItemsSetFavorite(
   return items.map((item) =>
     item.id === listingId ? { ...item, isFavorite } : item,
   );
+}
+
+function withAi(state: ListingsState, patch: Partial<ListingsAiState>): ListingsState {
+  return { ...state, ai: { ...state.ai, ...patch } };
 }
 
 export const listingsReducer = createReducer(
@@ -321,5 +331,122 @@ export const listingsReducer = createReducer(
       mapPinsLoading: false,
       mapPinsError: error,
     }),
+  ),
+  on(ListingsActions.setAiMode, (state, { on, snapshot }): ListingsState => {
+    if (on) {
+      // Idempotent: the page re-dispatches this on every query-param emission.
+      return state.ai.mode ? state : withAi(state, { mode: true, snapshot: snapshot ?? null });
+    }
+    if (!state.ai.mode) {
+      return state;
+    }
+    return withAi(state, {
+      ...initialListingsAiState,
+      // Kept across a switch-off: the description (returns when switched on again),
+      // the budget status and the first-use example flag.
+      description: state.ai.description,
+      aiStatus: state.ai.aiStatus,
+      exampleSeen: true,
+      epoch: state.ai.epoch + 1,
+    });
+  }),
+  on(ListingsActions.setAiDescription, (state, { description }): ListingsState =>
+    withAi(state, { description }),
+  ),
+  on(ListingsActions.markAiExampleSeen, (state): ListingsState =>
+    state.ai.exampleSeen ? state : withAi(state, { exampleSeen: true }),
+  ),
+  on(ListingsActions.submitAiSearch, (state, { description }): ListingsState =>
+    withAi(state, {
+      description,
+      busy: 'searching',
+      error: null,
+      errorCode: null,
+      exampleSeen: true,
+      epoch: state.ai.epoch + 1,
+    }),
+  ),
+  on(ListingsActions.aiFiltersChanged, (state, { filters }): ListingsState => ({
+    ...withAi(state, { busy: 'reranking', error: null, errorCode: null, epoch: state.ai.epoch + 1 }),
+    filters: { ...filters },
+  })),
+  on(ListingsActions.aiRerank, (state): ListingsState =>
+    withAi(state, {
+      orderActive: true,
+      busy: 'reranking',
+      error: null,
+      errorCode: null,
+      epoch: state.ai.epoch + 1,
+    }),
+  ),
+  on(ListingsActions.dropAiOrder, (state): ListingsState => ({
+    ...withAi(state, {
+      orderActive: false,
+      busy: 'idle',
+      ranked: false,
+      rankedIds: [],
+      error: null,
+      errorCode: null,
+      epoch: state.ai.epoch + 1,
+    }),
+    items: [],
+    page: 1,
+    hasMore: false,
+  })),
+  on(ListingsActions.aiSearchSuccess, (state, { kind, response, epoch }): ListingsState => {
+    if (epoch !== state.ai.epoch) {
+      return state; // superseded: switch off, drop-order, or a newer request
+    }
+    if (kind === 'page') {
+      const known = new Set(state.items.map((i) => i.id));
+      return {
+        ...state,
+        items: [...state.items, ...response.items.filter((i) => !known.has(i.id))],
+        page: response.page,
+        pageSize: response.pageSize,
+        hasMore: response.hasMore,
+        isLoading: false,
+        error: null,
+      };
+    }
+    return {
+      ...state,
+      items: [...response.items],
+      page: response.page,
+      pageSize: response.pageSize,
+      hasMore: response.hasMore,
+      isLoading: false,
+      error: null,
+      filters: fromAiSearchFilters(response.appliedFilters),
+      ai: {
+        ...state.ai,
+        hasSearched: true,
+        orderActive: true,
+        busy: 'idle',
+        ranked: response.ranked,
+        intent: response.intent ?? (kind === 'rerank' ? state.ai.intent : null),
+        widenedDistrictIds: [...response.widenedDistrictIds],
+        purposeWidened: response.purposeWidened,
+        datesMentioned: response.datesMentioned,
+        locationNotConsidered: response.locationNotConsidered,
+        aiUnavailable: response.aiUnavailable,
+        rankedIds: response.ranked ? response.items.map((i) => i.id) : [],
+        appliedFilters: response.appliedFilters,
+        error: null,
+        errorCode: null,
+      },
+    };
+  }),
+  on(ListingsActions.aiSearchFailure, (state, { error, errorCode, epoch }): ListingsState => {
+    if (epoch !== state.ai.epoch) {
+      return state;
+    }
+    return { ...withAi(state, { busy: 'idle', error, errorCode }), isLoading: false };
+  }),
+  on(ListingsActions.loadAiStatusSuccess, (state, { status }): ListingsState =>
+    withAi(state, { aiStatus: status }),
+  ),
+  on(ListingsActions.loadAiStatusFailure, (state): ListingsState =>
+    withAi(state, { aiStatus: null }),
   ),
 );

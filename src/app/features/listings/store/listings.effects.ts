@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
+import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import {
   catchError,
@@ -12,15 +13,21 @@ import {
   take,
   withLatestFrom,
   filter,
+  tap,
+  timer,
 } from 'rxjs';
 
 import { ApiErrorMapper } from '../../../api/api-error-mapper';
 import * as AuthActions from '../../auth/store/auth.actions';
 import { selectHomePoint } from '../../auth/store/auth.selectors';
 import { selectFavoriteIds } from '../../favorites/store/favorites.selectors';
+import { filtersToQueryParams, toAiSearchFilters } from '../models/ai-search.util';
 import { ListingsApiService } from '../services/listings-api.service';
 import * as ListingsActions from './listings.actions';
 import {
+  selectAiNextPageContext,
+  selectAiRequestContext,
+  selectAiResultsActive,
   selectListingsFilters,
   selectListingsHasMore,
   selectListingsOriginCoords,
@@ -31,12 +38,16 @@ import {
 import { initialListingsState } from './listings.state';
 import { getApiErrorCode } from '../../../api/api-error.model';
 
+/** A filter/chip change re-ranks after this long, so several quick edits cost one request. */
+export const AI_RERANK_DEBOUNCE_MS = 400;
+
 @Injectable()
 export class ListingsEffects {
   private readonly actions$ = inject(Actions);
   private readonly apiErrors = inject(ApiErrorMapper);
   private readonly store = inject(Store);
   private readonly listingsApi = inject(ListingsApiService);
+  private readonly router = inject(Router);
 
   readonly loadListings$ = createEffect(() =>
     this.actions$.pipe(
@@ -77,8 +88,10 @@ export class ListingsEffects {
         this.store.select(selectListingsFilters),
         this.store.select(selectListingsPageSize),
         this.store.select(selectListingsOriginCoords),
+        this.store.select(selectAiResultsActive),
       ),
-      filter(([, hasMore]) => hasMore),
+      // AI-ordered results page through `loadAiNextPage$` instead.
+      filter(([, hasMore, , , , , aiActive]) => hasMore && !aiActive),
       switchMap(([, , page, filters, pageSize, originCoords]) =>
         this.listingsApi.getListings(filters, page + 1, pageSize, originCoords).pipe(
           map((result) =>
@@ -96,6 +109,155 @@ export class ListingsEffects {
               }),
             ),
           ),
+        ),
+      ),
+    ),
+  );
+
+  /**
+   * ADR-054. One stream for every page-1 AI request, so a newer search / re-rank cancels the
+   * older timer or request ("the latest one wins"). A filter change waits 400 ms first; the
+   * request context is read AFTER the wait so it carries the latest filters and epoch.
+   * A first search sends `filters: null` (the server parses the description); a re-rank sends
+   * the user's filters (no re-parse).
+   */
+  readonly aiFirstPage$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(
+        ListingsActions.submitAiSearch,
+        ListingsActions.aiFiltersChanged,
+        ListingsActions.aiRerank,
+      ),
+      switchMap((action) => {
+        const isSearch = action.type === ListingsActions.submitAiSearch.type;
+        const wait$ =
+          action.type === ListingsActions.aiFiltersChanged.type
+            ? timer(AI_RERANK_DEBOUNCE_MS)
+            : of(0);
+        return wait$.pipe(
+          switchMap(() => this.store.select(selectAiRequestContext).pipe(take(1))),
+          switchMap((ctx) =>
+            this.listingsApi
+              .aiSearch({
+                description: ctx.description,
+                filters: isSearch ? null : toAiSearchFilters(ctx.filters, ctx.originSource),
+                page: 1,
+                pageSize: ctx.pageSize,
+                excludeIds: null,
+              })
+              .pipe(
+                map((response) =>
+                  ListingsActions.aiSearchSuccess({
+                    kind: isSearch ? 'search' : 'rerank',
+                    response,
+                    epoch: ctx.epoch,
+                  }),
+                ),
+                catchError((error: unknown) =>
+                  of(
+                    ListingsActions.aiSearchFailure({
+                      error: this.apiErrors.message(error),
+                      errorCode: getApiErrorCode(error),
+                      epoch: ctx.epoch,
+                    }),
+                  ),
+                ),
+              ),
+          ),
+        );
+      }),
+    ),
+  );
+
+  /** Page 2+ of AI-ordered results: the server makes no model call; it needs the page-1
+   *  `appliedFilters` and every id shown so far. */
+  readonly loadAiNextPage$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ListingsActions.loadNextPage),
+      withLatestFrom(this.store.select(selectAiNextPageContext)),
+      filter(([, ctx]) => ctx.active && ctx.hasMore && ctx.appliedFilters !== null),
+      switchMap(([, ctx]) =>
+        this.listingsApi
+          .aiSearch({
+            description: ctx.description,
+            filters: ctx.appliedFilters,
+            page: ctx.page + 1,
+            pageSize: ctx.pageSize,
+            excludeIds: ctx.excludeIds,
+          })
+          .pipe(
+            map((response) =>
+              ListingsActions.aiSearchSuccess({ kind: 'page', response, epoch: ctx.epoch }),
+            ),
+            catchError((error: unknown) =>
+              of(
+                ListingsActions.aiSearchFailure({
+                  error: this.apiErrors.message(error),
+                  errorCode: getApiErrorCode(error),
+                  epoch: ctx.epoch,
+                }),
+              ),
+            ),
+          ),
+      ),
+    ),
+  );
+
+  /** Choosing another sort drops the AI order: the ordinary catalogue loads with the same filters. */
+  readonly dropAiOrder$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ListingsActions.dropAiOrder),
+      map(() => ListingsActions.loadListings()),
+    ),
+  );
+
+  /**
+   * The AI-applied filters become the page's filters in the reducer; this mirrors them into the
+   * URL (the filter controls and chips are URL-driven), next to `ai=1`. The description never
+   * goes to the URL. The page's query-param subscription sees equal filters and does nothing.
+   */
+  readonly syncAiFiltersToUrl$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(ListingsActions.aiSearchSuccess),
+        filter(({ kind }) => kind !== 'page'),
+        withLatestFrom(this.store.select(selectListingsFilters)),
+        tap(([, filters]) => {
+          void this.router.navigate([], {
+            queryParams: { ...filtersToQueryParams(filters), ai: '1' },
+            queryParamsHandling: 'merge',
+          });
+        }),
+      ),
+    { dispatch: false },
+  );
+
+  /** "Near me" resolves to the user's HOME point: make the distance filter measure from it. */
+  readonly aiNearHomeOrigin$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ListingsActions.aiSearchSuccess),
+      filter(({ kind, response }) => kind !== 'page' && response.appliedFilters.nearHome),
+      withLatestFrom(
+        this.store.select(selectHomePoint),
+        this.store.select(selectListingsOriginSource),
+      ),
+      filter(([, homePoint, source]) => homePoint !== null && source !== 'home'),
+      map(([, homePoint]) =>
+        ListingsActions.setOriginCoords({
+          coords: { lat: homePoint!.latitude, lng: homePoint!.longitude },
+          source: 'home',
+        }),
+      ),
+    ),
+  );
+
+  readonly loadAiStatus$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(ListingsActions.loadAiStatus),
+      switchMap(() =>
+        this.listingsApi.aiSearchStatus().pipe(
+          map((status) => ListingsActions.loadAiStatusSuccess({ status })),
+          catchError(() => of(ListingsActions.loadAiStatusFailure())),
         ),
       ),
     ),

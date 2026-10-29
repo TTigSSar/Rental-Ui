@@ -1,0 +1,76 @@
+<div class="aisf" [class.aisf--block]="layout() === 'block'">
+  <div
+    class="aisf__field"
+    [class.aisf__field--on]="aiMode()"
+    [class.aisf__field--focus]="focused()"
+    [class.aisf__field--typing]="typing()"
+    [class.aisf__field--collapsed]="collapsed()"
+  >
+    <i class="pi pi-search aisf__icon" aria-hidden="true"></i>
+
+    <div class="aisf__body">
+      @if (!aiMode()) {
+        <input
+          type="search"
+          class="aisf__input"
+          autocomplete="off"
+          [value]="query()"
+          [placeholder]="'listings.filters.queryPlaceholder' | translate"
+          [attr.aria-label]="'listings.filters.queryPlaceholder' | translate"
+          (input)="onQueryInput($event)"
+        />
+      } @else if (collapsed()) {
+        <button type="button" class="aisf__collapsed" (click)="expand()">
+          {{ description() }}
+        </button>
+      } @else {
+        <textarea
+          #descriptionInput
+          class="aisf__input aisf__textarea"
+          rows="1"
+          [attr.maxlength]="maxLength"
+          [value]="description()"
+          [placeholder]="
+            (layout() === 'bar' ? 'listings.ai.placeholderShort' : 'listings.ai.placeholder')
+              | translate
+          "
+          [attr.aria-label]="'listings.ai.fieldAria' | translate"
+          (input)="onDescriptionInput($event)"
+          (keydown)="onKeydown($event)"
+          (focus)="onFocus()"
+          (blur)="onBlur()"
+        ></textarea>
+      }
+    </div>
+
+    <!-- mousedown is held so the textarea keeps focus until the click lands (the layout changes on blur) -->
+    <div class="aisf__actions" (mousedown)="$event.preventDefault()">
+      @if (aiMode() && canSubmit() && !collapsed()) {
+        <button
+          type="button"
+          class="aisf__submit"
+          [attr.aria-label]="'listings.ai.submit' | translate"
+          (click)="submit()"
+        >
+          <i class="pi pi-search" aria-hidden="true"></i>
+        </button>
+      }
+      <app-ai-switch
+        [checked]="aiMode()"
+        [ariaLabel]="'listings.ai.switchAria' | translate"
+        (toggled)="onToggle($event)"
+      />
+    </div>
+  </div>
+
+  @if (aiMode() && focused()) {
+    <p class="aisf__note">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      {{ 'listings.ai.privacy' | translate }}
+    </p>
+  }
+
+  @if (aiMode() && error(); as message) {
+    <p class="aisf__error" role="alert">{{ message }}</p>
+  }
+</div>

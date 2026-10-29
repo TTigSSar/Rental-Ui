@@ -9,6 +9,7 @@ import {
   effect,
   inject,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
@@ -17,7 +18,7 @@ import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
-import { catchError, combineLatest, map, of, startWith, switchMap } from 'rxjs';
+import { Subject, catchError, combineLatest, debounceTime, map, of, startWith, switchMap } from 'rxjs';
 
 import { LanguageService } from '../../../../shared/services/language.service';
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
@@ -30,10 +31,14 @@ import * as BookingsActions from '../../../bookings/store/bookings.actions';
 import type { BookingStatus } from '../../../bookings/models/booking.model';
 import { selectMyBookings } from '../../../bookings/store/bookings.selectors';
 import { selectFavoriteIds } from '../../../favorites/store/favorites.selectors';
+import { AiExampleComponent } from '../../components/ai-example/ai-example.component';
+import { AiSearchFieldComponent } from '../../components/ai-search-field/ai-search-field.component';
 import { ListingCardComponent } from '../../components/listing-card/listing-card.component';
 import { ListingsFiltersComponent } from '../../components/listings-filters/listings-filters.component';
 import { ListingsMapComponent } from '../../components/listings-map/listings-map.component';
 import { RadiusOriginFilterComponent } from '../../components/radius-origin-filter/radius-origin-filter.component';
+import { AGE_GROUPS } from '../../models/age-groups.const';
+import { sameFilters } from '../../models/ai-search.util';
 import { districtDisplayName } from '../../models/district-ui.util';
 import type { ListingDistrict } from '../../models/district.model';
 import {
@@ -50,6 +55,13 @@ import { ListingsApiService } from '../../services/listings-api.service';
 import * as ListingsActions from '../../store/listings.actions';
 
 import {
+  selectAiBusy,
+  selectAiExplanation,
+  selectAiHasSearched,
+  selectAiMode,
+  selectAiRanked,
+  selectAiRankedCount,
+  selectAiResultsActive,
   selectListingCategories,
   selectListingItems,
   selectListingsError,
@@ -138,7 +150,7 @@ interface ActiveFilterChip {
   readonly districtId?: string;
 }
 
-type SortBy = '' | 'price_asc' | 'price_desc' | 'rating_desc' | 'newest';
+type SortBy = '' | 'relevance' | 'price_asc' | 'price_desc' | 'rating_desc' | 'newest';
 
 /**
  * Maps P2-2: which surface the results area shows — `?view=map` in the URL,
@@ -163,24 +175,25 @@ const SORT_OPTIONS: readonly SortOption[] = [
   { value: 'newest',      labelKey: 'listings.page.sortNewest',        icon: 'pi pi-clock' },
 ];
 
+/** Offered only while AI results are showing; the default sort in AI mode (ADR-054). */
+const AI_SORT_OPTION: SortOption = {
+  value: 'relevance',
+  labelKey: 'listings.ai.sortRelevant',
+  icon: 'pi pi-sort-amount-down',
+};
+
 function applySort(items: ListingPreview[], sortBy: string): ListingPreview[] {
   if (sortBy === 'price_asc')  return [...items].sort((a, b) => a.pricePerDay - b.pricePerDay);
   if (sortBy === 'price_desc') return [...items].sort((a, b) => b.pricePerDay - a.pricePerDay);
   return items;
 }
 
-const AGE_GROUPS = [
-  { value: '0-12',   label: '0–1 yr' },
-  { value: '12-36',  label: '1–3 yr' },
-  { value: '36-72',  label: '3–6 yr' },
-  { value: '72-120', label: '6–10 yr' },
-  { value: '120+',   label: '10+ yr' },
-] as const;
-
 @Component({
   selector: 'app-listings-page',
   standalone: true,
   imports: [
+    AiExampleComponent,
+    AiSearchFieldComponent,
     AuthDialogComponent,
     ButtonModule,
     EmptyStateComponent,
@@ -256,7 +269,23 @@ export class ListingsPageComponent {
   });
   protected readonly sortBy = signal<SortBy>('');
   protected readonly sortMenuOpen = signal(false);
-  protected readonly sortOptions = SORT_OPTIONS;
+
+  // ── AI search (ADR-054) ────────────────────────────────────────────────
+  protected readonly aiMode = this.store.selectSignal(selectAiMode);
+  protected readonly aiBusy = this.store.selectSignal(selectAiBusy);
+  /** AI mode on and a search produced the current results ("Most relevant first" is offered). */
+  protected readonly aiHasSearched = this.store.selectSignal(selectAiHasSearched);
+  /** The visible results are in AI order. */
+  protected readonly aiResultsActive = this.store.selectSignal(selectAiResultsActive);
+  protected readonly aiExplanation = this.store.selectSignal(selectAiExplanation);
+  protected readonly aiRanked = this.store.selectSignal(selectAiRanked);
+  protected readonly aiRankedCount = this.store.selectSignal(selectAiRankedCount);
+  private sortBeforeAi: SortBy | null = null;
+  private readonly desktopQuery$ = new Subject<string>();
+
+  protected readonly sortOptions = computed<readonly SortOption[]>(() =>
+    this.aiHasSearched() ? [AI_SORT_OPTION, ...SORT_OPTIONS] : SORT_OPTIONS,
+  );
 
   /** `?view=map` — see `ListingsViewMode`'s own doc comment for why this is
    *  parsed independently of `ListingsFilter`/`parseFiltersFromParams()`.
@@ -269,7 +298,7 @@ export class ListingsPageComponent {
   );
 
   protected readonly activeSortOption = computed(() =>
-    SORT_OPTIONS.find(o => o.value === this.sortBy()) ?? null
+    this.sortOptions().find(o => o.value === this.sortBy()) ?? null
   );
 
   private readonly itemsSignal = this.store.selectSignal(selectListingItems);
@@ -407,9 +436,52 @@ export class ListingsPageComponent {
       .pipe(takeUntilDestroyed())
       .subscribe((params) => {
         const filters = this.parseFiltersFromParams(params);
+        // Read BEFORE mirroring `?ai` into the store: true only if the URL still says AI AND AI
+        // results are showing. In that case the URL change is a user filter/chip edit (or the echo
+        // of the filters the AI itself just applied): re-rank, don't reload the catalogue.
+        const aiActive = params.get('ai') === '1' && this.aiResultsActive();
+        this.store.dispatch(ListingsActions.setAiMode({ on: params.get('ai') === '1' }));
+        if (aiActive) {
+          if (!sameFilters(filters, this.filtersSignal())) {
+            this.store.dispatch(ListingsActions.aiFiltersChanged({ filters }));
+          }
+          return;
+        }
         this.store.dispatch(ListingsActions.updateFilters({ filters }));
         this.store.dispatch(ListingsActions.loadListings());
       });
+
+    // Budget state for the switch (the disabled-state UI is a later card; the data is kept).
+    this.store.dispatch(ListingsActions.loadAiStatus());
+
+    // Desktop plain-text search (the header search is hidden on this page).
+    this.desktopQuery$
+      .pipe(debounceTime(300), takeUntilDestroyed())
+      .subscribe((q) => {
+        void this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { q: q.trim() || null },
+          queryParamsHandling: 'merge',
+        });
+      });
+
+    // "Most relevant first" is the default sort while AI results show; switching the AI switch
+    // off puts back the sort that was active before.
+    effect(() => {
+      const active = this.aiResultsActive();
+      const mode = this.aiMode();
+      untracked(() => {
+        if (active) {
+          if (this.sortBy() !== 'relevance') {
+            if (this.sortBeforeAi === null) this.sortBeforeAi = this.sortBy();
+            this.sortBy.set('relevance');
+          }
+        } else if (!mode && this.sortBeforeAi !== null) {
+          this.sortBy.set(this.sortBeforeAi);
+          this.sortBeforeAi = null;
+        }
+      });
+    });
 
     effect(() => {
       if (this.isAuthenticated()) {
@@ -502,7 +574,11 @@ export class ListingsPageComponent {
     this.store.dispatch(ListingsActions.clearOrigin());
     void this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { view: this.route.snapshot.queryParamMap.get('view') },
+      queryParams: {
+        view: this.route.snapshot.queryParamMap.get('view'),
+        // Clearing filters is not leaving AI mode.
+        ai: this.route.snapshot.queryParamMap.get('ai'),
+      },
     });
   }
 
@@ -538,8 +614,25 @@ export class ListingsPageComponent {
   }
 
   protected selectSort(value: SortBy): void {
-    this.sortBy.set(this.sortBy() === value ? '' : value);
     this.sortMenuOpen.set(false);
+    if (this.aiHasSearched()) {
+      // With AI results showing, "Most relevant first" is a real option: choosing it re-ranks;
+      // choosing anything else drops the AI order (ordinary catalogue). No "deselect" here.
+      if (value === this.sortBy()) return;
+      this.sortBy.set(value);
+      if (value === 'relevance') {
+        this.store.dispatch(ListingsActions.aiRerank());
+      } else if (this.aiResultsActive()) {
+        this.store.dispatch(ListingsActions.dropAiOrder());
+      }
+      return;
+    }
+    this.sortBy.set(this.sortBy() === value ? '' : value);
+  }
+
+  /** Plain-text search from the desktop field above the results (switch off). */
+  protected onDesktopQueryChange(query: string): void {
+    this.desktopQuery$.next(query);
   }
 
   /** The List/Map toggle — merges `view` into the URL like every other

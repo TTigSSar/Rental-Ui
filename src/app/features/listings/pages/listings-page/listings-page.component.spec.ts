@@ -14,6 +14,7 @@ import { selectFavoriteIds } from '../../../favorites/store/favorites.selectors'
 import * as ListingsActions from '../../store/listings.actions';
 import {
   selectListingCategories,
+  selectListingsAi,
   selectListingItems,
   selectListingsError,
   selectListingsFilters,
@@ -28,8 +29,10 @@ import {
   selectMapPinsLoading,
   selectMapPinsTruncated,
 } from '../../store/listings.selectors';
+import type { ListingPreview } from '../../models/listing.model';
 import type { ListingsFilter } from '../../models/listings-filter.model';
 import { ListingsApiService } from '../../services/listings-api.service';
+import { initialListingsAiState, type ListingsAiState } from '../../store/listings.state';
 import { ListingsPageComponent } from './listings-page.component';
 
 /**
@@ -150,6 +153,8 @@ interface ListingsPageSelectorOverrides {
   readonly filters?: ListingsFilter;
   readonly originCoords?: { lat: number; lng: number } | null;
   readonly originSource?: 'geo' | 'manual' | null;
+  readonly ai?: Partial<ListingsAiState>;
+  readonly items?: ListingPreview[];
 }
 
 async function navigateToListings(url: string, overrides: ListingsPageSelectorOverrides = {}) {
@@ -164,7 +169,8 @@ async function navigateToListings(url: string, overrides: ListingsPageSelectorOv
           { selector: selectIsAuthenticated, value: false },
           { selector: selectFavoriteIds, value: new Set<string>() },
           { selector: selectListingCategories, value: [] },
-          { selector: selectListingItems, value: [makeListingPreview()] },
+          { selector: selectListingsAi, value: { ...initialListingsAiState, ...overrides.ai } },
+          { selector: selectListingItems, value: overrides.items ?? [makeListingPreview()] },
           { selector: selectListingsError, value: overrides.error ?? null },
           { selector: selectListingsFilters, value: overrides.filters ?? BASE_FILTERS },
           { selector: selectListingsHasMore, value: overrides.hasMore ?? false },
@@ -448,5 +454,154 @@ describe('ListingsPageComponent — sort menu', () => {
     window.dispatchEvent(new Event('scroll'));
     harness.detectChanges();
     expect(el.querySelector('.lp-sort-menu')).toBeNull();
+  });
+});
+
+// ── AI search (ADR-054) ──────────────────────────────────────────────────
+
+const AI_RESULTS = {
+  mode: true,
+  hasSearched: true,
+  orderActive: true,
+  ranked: true,
+  intent: 'Picked for outdoor play: balance bikes first.',
+  description: 'a balance bike',
+};
+
+function dispatchedTypes(store: MockStore): string[] {
+  return (store.dispatch as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[0].type);
+}
+
+describe('ListingsPageComponent — AI search', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('mirrors ?ai=1 into the store and loads the catalogue until a search has run', async () => {
+    const { store } = await navigateToListings('/listings?ai=1');
+
+    const calls = (store.dispatch as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[0]);
+    expect(calls).toContainEqual(ListingsActions.setAiMode({ on: true }));
+    expect(dispatchedTypes(store)).toContain(ListingsActions.loadListings.type);
+  });
+
+  it('loads the budget status on init', async () => {
+    const { store } = await navigateToListings('/listings');
+    expect(dispatchedTypes(store)).toContain(ListingsActions.loadAiStatus.type);
+  });
+
+  it('with AI results showing, a URL filter edit re-ranks instead of reloading the catalogue', async () => {
+    const { store } = await navigateToListings('/listings?ai=1&categoryId=abc-123', { ai: AI_RESULTS });
+
+    const types = dispatchedTypes(store);
+    expect(types).toContain(ListingsActions.aiFiltersChanged.type);
+    expect(types).not.toContain(ListingsActions.updateFilters.type);
+    expect(types).not.toContain(ListingsActions.loadListings.type);
+  });
+
+  it('the echo of the filters the AI itself applied (URL equals the store filters) does nothing', async () => {
+    const { store } = await navigateToListings('/listings?ai=1&categoryId=abc-123', {
+      ai: AI_RESULTS,
+      filters: { ...BASE_FILTERS, categoryId: 'abc-123' },
+    });
+
+    const types = dispatchedTypes(store);
+    expect(types).not.toContain(ListingsActions.aiFiltersChanged.type);
+    expect(types).not.toContain(ListingsActions.loadListings.type);
+  });
+
+  it('shows the explanation and "· most relevant first" while the order is ranked', async () => {
+    const { el } = await navigateToListings('/listings?ai=1', { ai: AI_RESULTS });
+    expect(el.querySelector('.lp-ai-explain')?.textContent).toContain('Picked for outdoor play');
+    expect(el.querySelector('.lp-toolbar__relevant')).not.toBeNull();
+  });
+
+  it('shows neither when ranking failed', async () => {
+    const { el } = await navigateToListings('/listings?ai=1', { ai: { ...AI_RESULTS, ranked: false } });
+    expect(el.querySelector('.lp-ai-explain')).toBeNull();
+    expect(el.querySelector('.lp-toolbar__relevant')).toBeNull();
+  });
+
+  async function settle(harness: RouterTestingHarness) {
+    harness.detectChanges();
+    await vi.advanceTimersByTimeAsync(0);
+    harness.detectChanges();
+  }
+
+  it('"Most relevant first" is the default sort and is offered only with AI results', async () => {
+    const { harness, el } = await navigateToListings('/listings?ai=1', { ai: AI_RESULTS });
+    await settle(harness);
+
+    expect(el.querySelector('.lp-toolbar__sort')?.textContent).toContain('listings.ai.sortRelevant');
+    el.querySelector<HTMLButtonElement>('.lp-toolbar__sort')!.click();
+    harness.detectChanges();
+    const labels = Array.from(el.querySelectorAll('.lp-sort-menu__item')).map((b) => b.textContent);
+    expect(labels[0]).toContain('listings.ai.sortRelevant');
+  });
+
+  it('the sort menu has no relevance option in the ordinary catalogue', async () => {
+    const { harness, el } = await navigateToListings('/listings');
+    el.querySelector<HTMLButtonElement>('.lp-toolbar__sort')!.click();
+    harness.detectChanges();
+    expect(el.querySelector('.lp-sort-menu')?.textContent).not.toContain('listings.ai.sortRelevant');
+  });
+
+  it('choosing another sort drops the AI order; choosing "Most relevant first" again re-ranks', async () => {
+    const { harness, el, store } = await navigateToListings('/listings?ai=1', { ai: AI_RESULTS });
+    await settle(harness);
+
+    el.querySelector<HTMLButtonElement>('.lp-toolbar__sort')!.click();
+    harness.detectChanges();
+    Array.from(el.querySelectorAll<HTMLButtonElement>('.lp-sort-menu__item'))
+      .find((b) => b.textContent?.includes('listings.page.sortLowestPrice'))!
+      .click();
+    expect(dispatchedTypes(store)).toContain(ListingsActions.dropAiOrder.type);
+
+    harness.detectChanges();
+    el.querySelector<HTMLButtonElement>('.lp-toolbar__sort')!.click();
+    harness.detectChanges();
+    Array.from(el.querySelectorAll<HTMLButtonElement>('.lp-sort-menu__item'))
+      .find((b) => b.textContent?.includes('listings.ai.sortRelevant'))!
+      .click();
+    expect(dispatchedTypes(store)).toContain(ListingsActions.aiRerank.type);
+  });
+
+  it('puts the divider before card 21 when page 1 was ranked', async () => {
+    const items = Array.from({ length: 22 }, (_, i) => makeListingPreview({ id: 'l' + i }));
+    const { el } = await navigateToListings('/listings?ai=1', {
+      items,
+      ai: { ...AI_RESULTS, rankedIds: items.slice(0, 20).map((i) => i.id) },
+    });
+
+    const children = Array.from(el.querySelector('.listings-page__grid')!.children);
+    const dividerIndex = children.findIndex((c) => c.classList.contains('lp-ai-divider'));
+    expect(dividerIndex).toBe(20);
+    expect(children[dividerIndex].getAttribute('role')).toBe('separator');
+  });
+
+  it('no divider when ranking failed', async () => {
+    const items = Array.from({ length: 22 }, (_, i) => makeListingPreview({ id: 'l' + i }));
+    const { el } = await navigateToListings('/listings?ai=1', {
+      items,
+      ai: { ...AI_RESULTS, ranked: false, rankedIds: [] },
+    });
+    expect(el.querySelector('.lp-ai-divider')).toBeNull();
+  });
+
+  it('a re-rank replaces the count line with "Updating the order" and dims + inerts the cards', async () => {
+    const { el } = await navigateToListings('/listings?ai=1', { ai: { ...AI_RESULTS, busy: 'reranking' } });
+
+    const status = el.querySelector('.lp-toolbar__updating')!;
+    expect(status.getAttribute('role')).toBe('status');
+    expect(status.textContent).toContain('listings.ai.updating');
+    expect(el.querySelector('.lp-toolbar__count')).toBeNull();
+
+    const grid = el.querySelector('.listings-page__grid')!;
+    expect(grid.classList.contains('listings-page__grid--busy')).toBe(true);
+    expect(grid.hasAttribute('inert')).toBe(true);
+  });
+
+  it('the desktop AI field sits above the results', async () => {
+    const { el } = await navigateToListings('/listings');
+    expect(el.querySelector('.lp-main .lp-ai-top app-ai-search-field')).not.toBeNull();
   });
 });
