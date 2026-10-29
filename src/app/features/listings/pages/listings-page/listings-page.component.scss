@@ -331,15 +331,6 @@
   }
 }
 
-.lp-ai-explain {
-  margin: 0;
-  padding-top: var(--ui-space-8);
-  font-size: 1rem;
-  line-height: 1.5;
-  font-weight: 500;
-  color: var(--ui-color-text-primary);
-}
-
 /* Re-rank status: replaces the count line; stays visible on phones (the count is hidden there). */
 .lp-toolbar__updating {
   display: inline-flex;
@@ -931,13 +922,8 @@
   }
 }
 
-.lp-ai-explain:focus {
+.lp-results:focus {
   outline: none;
-}
-
-.lp-ai-explain:focus-visible {
-  outline: 2px solid var(--ui-color-primary-strong);
-  outline-offset: 2px;
 }
 
 /* `ui-msg` info notice in the explanation-line slot. */

@@ -559,7 +559,9 @@
       },
       "chips": {
         "minPrice": "От {{amount}}",
-        "maxPrice": "До {{amount}}"
+        "maxPrice": "До {{amount}}",
+        "minPricePerDay": "От {{amount}} в день",
+        "maxPricePerDay": "До {{amount}} в день"
       },
       "sidebar": {
         "title": "Фильтры",

@@ -559,7 +559,9 @@
       },
       "chips": {
         "minPrice": "Սկսած {{amount}}-ից",
-        "maxPrice": "Մինչև {{amount}}"
+        "maxPrice": "Մինչև {{amount}}",
+        "minPricePerDay": "Օրական {{amount}}-ից",
+        "maxPricePerDay": "Օրական մինչև {{amount}}"
       },
       "sidebar": {
         "title": "Ֆիլտրներ",

@@ -559,7 +559,9 @@
       },
       "chips": {
         "minPrice": "From {{amount}}",
-        "maxPrice": "Up to {{amount}}"
+        "maxPrice": "Up to {{amount}}",
+        "minPricePerDay": "From {{amount}} per day",
+        "maxPricePerDay": "Up to {{amount}} per day"
       },
       "sidebar": {
         "title": "Filters",

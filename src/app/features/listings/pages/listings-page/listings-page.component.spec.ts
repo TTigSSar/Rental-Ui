@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { MockStore, provideMockStore } from '@ngrx/store/testing';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { makeListingPreview } from '../../../../../testing/fixtures';
@@ -156,6 +156,8 @@ interface ListingsPageSelectorOverrides {
   readonly categories?: { id: string; name: string }[];
   readonly ai?: Partial<ListingsAiState>;
   readonly items?: ListingPreview[];
+  /** English strings loaded before the first render (default: keys render raw). */
+  readonly translations?: Record<string, string>;
 }
 
 async function navigateToListings(url: string, overrides: ListingsPageSelectorOverrides = {}) {
@@ -199,6 +201,12 @@ async function navigateToListings(url: string, overrides: ListingsPageSelectorOv
   // navigation, so a spy set up afterward would miss it entirely.
   const store = TestBed.inject(MockStore);
   vi.spyOn(store, 'dispatch');
+
+  if (overrides.translations) {
+    const translate = TestBed.inject(TranslateService);
+    translate.setTranslation('en', overrides.translations);
+    translate.use('en');
+  }
 
   const harness = await RouterTestingHarness.create();
   const component = await harness.navigateByUrl(url, ListingsPageComponent);
@@ -510,9 +518,10 @@ describe('ListingsPageComponent — AI search', () => {
     expect(types).not.toContain(ListingsActions.loadListings.type);
   });
 
-  it('shows the explanation and no count line while the order is ranked', async () => {
+  it('shows no explanation line and no count line while the order is ranked', async () => {
     const { el } = await navigateToListings('/listings?ai=1', { ai: AI_RESULTS });
-    expect(el.querySelector('.lp-ai-explain')?.textContent).toContain('Picked for outdoor play');
+    expect(el.querySelector('.lp-ai-explain')).toBeNull();
+    expect(el.textContent).not.toContain('Picked for outdoor play');
     expect(el.querySelector('.lp-toolbar__count')).toBeNull();
     expect(el.querySelector('.lp-toolbar__sort')).not.toBeNull();
   });
@@ -680,7 +689,7 @@ describe('ListingsPageComponent — AI search states', () => {
       expect(el.querySelector('.lp-results')!.getAttribute('aria-busy')).toBe('false');
     });
 
-    it('moves focus to the explanation line when the results arrive', async () => {
+    it('moves focus to the results region when the results arrive', async () => {
       const { harness, store } = await navigateToListings('/listings?ai=1', {
         ai: { ...AI_RESULTS, busy: 'searching' },
       });
@@ -690,7 +699,7 @@ describe('ListingsPageComponent — AI search states', () => {
       await flush(harness);
       await flush(harness);
 
-      expect(document.activeElement?.classList.contains('lp-ai-explain')).toBe(true);
+      expect(document.activeElement?.classList.contains('lp-results')).toBe(true);
     });
   });
 
@@ -851,13 +860,11 @@ describe('ListingsPageComponent — AI search states', () => {
       expect(el.textContent).not.toContain('listings.ai.purposeNote');
     });
 
-    it('the purpose note shows on its own, under the explanation line', async () => {
+    it('the purpose note shows on its own', async () => {
       const { el } = await navigateToListings('/listings?ai=1', { ai: { ...AI_RESULTS, purposeWidened: true } });
 
-      const explain = el.querySelector('.lp-ai-explain')!;
       const note = el.querySelector('.lp-ai-note')!;
       expect(note.textContent).toContain('listings.ai.purposeNote');
-      expect(explain.compareDocumentPosition(note) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
 
     it('no notes without flags', async () => {
@@ -916,7 +923,7 @@ describe('ListingsPageComponent — AI search states', () => {
       expect(grid.classList.contains('listings-page__grid--busy')).toBe(false);
     });
 
-    it('does not move focus to the explanation line (nothing new arrived)', async () => {
+    it('does not move focus to the results region (nothing new arrived)', async () => {
       const { harness, store } = await navigateToListings('/listings?ai=1', {
         ai: { ...AI_RESULTS, busy: 'searching' },
       });
@@ -925,7 +932,7 @@ describe('ListingsPageComponent — AI search states', () => {
       await flush(harness);
       await flush(harness);
 
-      expect(document.activeElement?.classList.contains('lp-ai-explain')).toBe(false);
+      expect(document.activeElement?.classList.contains('lp-results')).toBe(false);
     });
 
     it('is cleared once the error is gone (next successful search)', async () => {
@@ -1053,5 +1060,61 @@ describe('ListingsPageComponent — AI search states', () => {
       expect(dispatchedTypes(store)).not.toContain(ListingsActions.submitAiSearch.type);
       store.overrideSelector(selectIsAuthenticated, false);
     });
+  });
+});
+
+describe('ListingsPageComponent — price chips (design-notes 12)', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  const translations = {
+    'listings.filters.chips.maxPricePerDay': 'Up to {{amount}} per day',
+    'listings.filters.chips.minPricePerDay': 'From {{amount}} per day',
+  };
+  const labels = (el: HTMLElement) =>
+    Array.from(el.querySelectorAll('.lp-active-chip')).map((c) => c.textContent!.trim());
+
+  it('renders max and min price chips in en, formatted like the listing cards, after category', async () => {
+    const { el } = await navigateToListings('/listings?categoryId=abc-123&minPrice=1000&maxPrice=3000', {
+      filters: { ...BASE_FILTERS, categoryId: 'abc-123', minPrice: 1000, maxPrice: 3000 },
+      categories: [{ id: 'abc-123', name: 'Construction' }],
+      translations,
+    });
+
+    expect(labels(el)).toEqual([
+      'Construction',
+      'Up to 3,000 ֏ per day',
+      'From 1,000 ֏ per day',
+    ]);
+  });
+
+  it('removing a price chip clears its query param and keeps the sibling filter', async () => {
+    const { el, router } = await navigateToListings('/listings?minPrice=1000&maxPrice=3000', {
+      filters: { ...BASE_FILTERS, minPrice: 1000, maxPrice: 3000 },
+      translations,
+    });
+
+    el.querySelectorAll<HTMLButtonElement>('.lp-active-chip')[0].click(); // max
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(router.url).not.toContain('maxPrice');
+    expect(router.url).toContain('minPrice=1000');
+  });
+
+  it('in AI mode, removing a price chip re-ranks instead of reloading the catalogue', async () => {
+    const { el, store, router } = await navigateToListings('/listings?ai=1&maxPrice=3000', {
+      ai: AI_RESULTS,
+      filters: { ...BASE_FILTERS, maxPrice: 3000 },
+      translations,
+    });
+
+    expect(labels(el)).toEqual(['Up to 3,000 ֏ per day']);
+    el.querySelector<HTMLButtonElement>('.lp-active-chip')!.click();
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(router.url).not.toContain('maxPrice');
+    const types = dispatchedTypes(store);
+    expect(types).toContain(ListingsActions.aiFiltersChanged.type);
+    expect(types).not.toContain(ListingsActions.loadListings.type);
   });
 });

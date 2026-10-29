@@ -264,7 +264,7 @@
         }
 
         <!-- Results region: busy while a search / re-rank is in flight. -->
-        <div class="lp-results" [attr.aria-busy]="aiBusy() !== 'idle'">
+        <div #resultsRegion class="lp-results" tabindex="-1" [attr.aria-busy]="aiBusy() !== 'idle'">
         <!-- AI search status: the previous cards stay (dimmed) under one status line + bar. -->
         @if (viewMode() === 'list' && aiStatusLine()) {
           <div class="lp-ai-status" role="status" aria-live="polite">
@@ -273,10 +273,7 @@
           </div>
         }
 
-        <!-- Explanation line (the intent, only while ranked) or, after a fallback, the info notice. -->
-        @if (aiExplanation(); as intent) {
-          <p #aiExplain class="lp-ai-explain" tabindex="-1">{{ intent }}</p>
-        }
+        <!-- After a fallback, the info notice (no explanation line - design-notes 4). -->
         @if (aiFallbackNotice()) {
           <div class="lp-ai-slot">
             <app-ai-notice kind="info">{{ 'listings.ai.unavailable' | translate }}</app-ai-notice>

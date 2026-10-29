@@ -36,7 +36,7 @@ import {
 import { LanguageService } from '../../../../shared/services/language.service';
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { LoadingSkeletonComponent } from '../../../../shared/ui/loading-skeleton/loading-skeleton.component';
-import { DRAM_SYMBOL } from '../../../../shared/utils/dram-currency.pipe';
+import { DRAM_SYMBOL, DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import { AuthDialogComponent } from '../../../auth/components/auth-dialog/auth-dialog.component';
 import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 import { MyListingsApiService } from '../../../my-listings/services/my-listings-api.service';
@@ -73,7 +73,6 @@ import {
   selectAiBudgetSpent,
   selectAiBusy,
   selectAiDescription,
-  selectAiExplanation,
   selectAiFallbackNotice,
   selectAiHasSearched,
   selectAiMode,
@@ -300,7 +299,6 @@ export class ListingsPageComponent {
   protected readonly aiHasSearched = this.store.selectSignal(selectAiHasSearched);
   /** The visible results are in AI order. */
   protected readonly aiResultsActive = this.store.selectSignal(selectAiResultsActive);
-  protected readonly aiExplanation = this.store.selectSignal(selectAiExplanation);
   protected readonly aiRanked = this.store.selectSignal(selectAiRanked);
   protected readonly aiRankedCount = this.store.selectSignal(selectAiRankedCount);
   protected readonly aiNotes = this.store.selectSignal(selectAiNotes);
@@ -316,7 +314,7 @@ export class ListingsPageComponent {
   private readonly sidebarRef = viewChild<ElementRef<HTMLElement>>('sidebar');
   private readonly maxPriceRef = viewChild<ElementRef<HTMLInputElement>>('maxPriceInput');
   private readonly districtSectionRef = viewChild<ElementRef<HTMLElement>>('districtSection');
-  private readonly aiExplainRef = viewChild<ElementRef<HTMLElement>>('aiExplain');
+  private readonly resultsRef = viewChild<ElementRef<HTMLElement>>('resultsRegion');
   private readonly desktopField = viewChild(AiSearchFieldComponent);
   private readonly filtersCmp = viewChild(ListingsFiltersComponent);
   /** A guest submitted a description: the search runs by itself once they have signed in. */
@@ -433,6 +431,26 @@ export class ListingsPageComponent {
         key: 'ageGroup',
         label: ag ? this.translate.instant(ag.labelKey) : f.ageGroup,
       });
+    }
+    if (f.minPrice != null || f.maxPrice != null) {
+      // Same format as the listing cards (`dram` pipe: "3,000 ֏").
+      const dram = new DramCurrencyPipe();
+      if (f.maxPrice != null) {
+        chips.push({
+          key: 'maxPrice',
+          label: this.translate.instant('listings.filters.chips.maxPricePerDay', {
+            amount: dram.transform(f.maxPrice),
+          }),
+        });
+      }
+      if (f.minPrice != null) {
+        chips.push({
+          key: 'minPrice',
+          label: this.translate.instant('listings.filters.chips.minPricePerDay', {
+            amount: dram.transform(f.minPrice),
+          }),
+        });
+      }
     }
     // Gated on `originCoordsSignal()`, not just `f.radiusKm` — see that
     // field's own doc comment. Showing this chip with no origin in memory
@@ -556,7 +574,7 @@ export class ListingsPageComponent {
         this.pendingAiSubmit = false;
       });
 
-    // On results, focus moves to the explanation line (the field keeps focus while loading).
+    // On results, focus moves to the results region (the field keeps focus while loading).
     effect(() => {
       const busy = this.aiBusy();
       const finishedSearch = this.prevAiBusy === 'searching' && busy === 'idle';
@@ -564,7 +582,7 @@ export class ListingsPageComponent {
       if (!finishedSearch) return;
       untracked(() => {
         if (this.aiRateLimited() || this.aiOtherError()) return;
-        afterNextRender(() => this.aiExplainRef()?.nativeElement.focus(), {
+        afterNextRender(() => this.resultsRef()?.nativeElement.focus({ preventScroll: true }), {
           injector: this.injector,
         });
       });
