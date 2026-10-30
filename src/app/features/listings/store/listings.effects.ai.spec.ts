@@ -13,11 +13,14 @@ import type { AiSearchFilters, AiSearchResponse } from '../models/ai-search.mode
 import type { ListingsFilter } from '../models/listings-filter.model';
 import { ListingsApiService } from '../services/listings-api.service';
 import * as ListingsActions from './listings.actions';
+import { initialListingsAiState } from './listings.state';
+import * as AuthActions from '../../auth/store/auth.actions';
 import { AI_RERANK_DEBOUNCE_MS, ListingsEffects } from './listings.effects';
 import {
   selectAiNextPageContext,
   selectAiRequestContext,
   selectAiResultsActive,
+  selectListingsAi,
   selectListingsFilters,
   selectListingsHasMore,
   selectListingsOriginCoords,
@@ -86,6 +89,7 @@ function setup(api: Partial<ListingsApiService> = {}) {
   });
   store.overrideSelector(selectAiNextPageContext, {
     active: true,
+    busy: 'idle',
     description: 'a balance bike',
     epoch: 7,
     appliedFilters: APPLIED,
@@ -94,6 +98,8 @@ function setup(api: Partial<ListingsApiService> = {}) {
     pageSize: 20,
     hasMore: true,
   });
+  store.overrideSelector(selectListingsAi, { ...initialListingsAiState, epoch: 7 });
+  vi.spyOn(TestBed.inject(Router), 'url', 'get').mockReturnValue('/listings?ai=1');
   store.overrideSelector(selectAiResultsActive, true);
   store.overrideSelector(selectListingsFilters, FILTERS);
   store.overrideSelector(selectListingsOriginSource, null);
@@ -250,6 +256,7 @@ describe('ListingsEffects — AI search (ADR-054)', () => {
 
       store.overrideSelector(selectAiNextPageContext, {
         active: false,
+        busy: 'idle',
         description: 'x',
         epoch: 1,
         appliedFilters: APPLIED,
@@ -262,6 +269,137 @@ describe('ListingsEffects — AI search (ADR-054)', () => {
       harness.send(ListingsActions.loadNextPage());
 
       expect(aiSearch).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('loadAiNextPage$ - busy and cancellation', () => {
+    it('blocks page 2+ while a search or re-rank is in flight', () => {
+      const aiSearch = vi.fn();
+      const { harness, store, effects } = setup({ aiSearch });
+      listen(effects.loadAiNextPage$);
+      store.overrideSelector(selectAiNextPageContext, {
+        active: true,
+        busy: 'reranking',
+        description: 'x',
+        epoch: 7,
+        appliedFilters: APPLIED,
+        excludeIds: [],
+        page: 1,
+        pageSize: 20,
+        hasMore: true,
+      });
+      store.refreshState();
+
+      harness.send(ListingsActions.loadNextPage());
+
+      expect(aiSearch).not.toHaveBeenCalled();
+    });
+
+    it('switching off cancels the in-flight page request', () => {
+      const pending = new Subject<AiSearchResponse>();
+      const { harness, effects } = setup({ aiSearch: vi.fn().mockReturnValue(pending) });
+      const out = listen(effects.loadAiNextPage$);
+
+      harness.send(ListingsActions.loadNextPage());
+      harness.send(ListingsActions.setAiMode({ on: false }));
+      pending.next(makeResponse({ page: 2 }));
+
+      expect(out).toEqual([]);
+    });
+  });
+
+  describe('aiFirstPage$ - cancellation', () => {
+    it.each([
+      ['switch-off', ListingsActions.setAiMode({ on: false })],
+      ['dropAiOrder', ListingsActions.dropAiOrder()],
+      ['logout', AuthActions.logout()],
+    ])('%s cancels the in-flight search; a late response produces nothing', (_name, action) => {
+      const pending = new Subject<AiSearchResponse>();
+      const { harness, effects } = setup({ aiSearch: vi.fn().mockReturnValue(pending) });
+      const out = listen(effects.aiFirstPage$);
+
+      harness.send(ListingsActions.submitAiSearch({ description: 'x' }));
+      harness.send(action);
+      pending.next(makeResponse());
+
+      expect(out).toEqual([]);
+    });
+
+    it('switch-on (re-dispatched on every URL emission) does not cancel a request in flight', () => {
+      const pending = new Subject<AiSearchResponse>();
+      const { harness, effects } = setup({ aiSearch: vi.fn().mockReturnValue(pending) });
+      const out = listen(effects.aiFirstPage$);
+
+      harness.send(ListingsActions.submitAiSearch({ description: 'x' }));
+      harness.send(ListingsActions.setAiMode({ on: true }));
+      pending.next(makeResponse());
+
+      expect(out).toHaveLength(1);
+    });
+
+    it('re-rank and search send the last SUBMITTED description (from the request context)', () => {
+      const aiSearch = vi.fn().mockReturnValue(of(makeResponse()));
+      const { harness, effects } = setup({ aiSearch });
+      listen(effects.aiFirstPage$);
+
+      harness.send(ListingsActions.aiRerank());
+
+      expect(aiSearch.mock.calls[0][0].description).toBe('a balance bike');
+    });
+  });
+
+  describe('stale AI responses', () => {
+    it('a stale-epoch success neither navigates nor moves the origin', () => {
+      const { harness, store, effects } = setup();
+      store.overrideSelector(selectHomePoint, makeHomePoint());
+      store.overrideSelector(selectListingsAi, { ...initialListingsAiState, epoch: 9 });
+      store.refreshState();
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      effects.syncAiFiltersToUrl$.subscribe();
+      const out = listen(effects.aiNearHomeOrigin$);
+
+      harness.send(
+        ListingsActions.aiSearchSuccess({
+          kind: 'search',
+          response: makeResponse({ appliedFilters: { ...APPLIED, nearHome: true, radiusKm: 1 } }),
+          epoch: 7,
+        }),
+      );
+
+      expect(navigate).not.toHaveBeenCalled();
+      expect(out).toEqual([]);
+    });
+
+    it('a stale aiUnavailable (switch-off happened) does not navigate', () => {
+      const { harness, store, effects } = setup();
+      // after switch-off the epoch moved on and no fallback notice was raised
+      store.overrideSelector(selectListingsAi, { ...initialListingsAiState, epoch: 8 });
+      store.refreshState();
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      effects.syncAiFiltersToUrl$.subscribe();
+
+      harness.send(
+        ListingsActions.aiSearchSuccess({
+          kind: 'search',
+          response: makeResponse({ aiUnavailable: true }),
+          epoch: 7,
+        }),
+      );
+
+      expect(navigate).not.toHaveBeenCalled();
+    });
+
+    it('does not touch the URL when the user already left /listings', () => {
+      const { harness, effects } = setup();
+      vi.spyOn(TestBed.inject(Router), 'url', 'get').mockReturnValue('/my-bookings');
+      const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+      effects.syncAiFiltersToUrl$.subscribe();
+
+      harness.send(
+        ListingsActions.aiSearchSuccess({ kind: 'search', response: makeResponse(), epoch: 7 }),
+      );
+
+      expect(navigate).not.toHaveBeenCalled();
     });
   });
 
@@ -315,7 +453,14 @@ describe('ListingsEffects — AI search (ADR-054)', () => {
     });
 
     it('aiUnavailable: ai leaves the URL; no q and no description are written', () => {
-      const { harness, effects } = setup();
+      const { harness, store, effects } = setup();
+      // the reducer bumps the epoch and raises the notice for an applied aiUnavailable response
+      store.overrideSelector(selectListingsAi, {
+        ...initialListingsAiState,
+        epoch: 8,
+        fallbackNotice: true,
+      });
+      store.refreshState();
       const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
       effects.syncAiFiltersToUrl$.subscribe();
 

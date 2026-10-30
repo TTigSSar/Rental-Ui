@@ -80,6 +80,10 @@ describe('AiSearchFieldComponent', () => {
     const { el, router, dispatched } = await setup({
       url: '/listings?q=lego&categoryId=abc&view=map',
     });
+    // The host binds the field to `q`; this harness cannot, so mirror it by typing the same text.
+    const simple = q(el, 'input[type="search"]') as HTMLInputElement;
+    simple.value = 'lego';
+    simple.dispatchEvent(new Event('input'));
 
     q(el, 'button[role="switch"]')!.click();
     await vi.advanceTimersByTimeAsync(50);
@@ -94,6 +98,170 @@ describe('AiSearchFieldComponent', () => {
     expect(router.url).not.toContain('q=');
     expect(router.url).toContain('categoryId=abc');
     expect(router.url).toContain('view=map');
+  });
+
+  it('turning the switch on carries the simple-search text into the description, never into q (design-notes 20)', async () => {
+    TestBed.configureTestingModule({
+      imports: [TranslateModule.forRoot()],
+      providers: [
+        provideRouter([]),
+        provideMockStore({
+          selectors: [
+            { selector: selectIsAuthenticated, value: true },
+            { selector: selectListingsAi, value: initialListingsAiState },
+          ],
+        }),
+      ],
+    });
+    const store = TestBed.inject(MockStore);
+    vi.spyOn(store, 'dispatch');
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/?q=lego');
+    const fixture = TestBed.createComponent(AiSearchFieldComponent);
+    fixture.componentRef.setInput('query', '  lego bike ');
+    fixture.detectChanges();
+
+    (fixture.nativeElement.querySelector('button[role="switch"]') as HTMLButtonElement).click();
+    await vi.advanceTimersByTimeAsync(50);
+
+    const types = (store.dispatch as ReturnType<typeof vi.fn>).mock.calls.map(
+      (c) => c[0] as { type: string },
+    );
+    expect(types).toContainEqual(ListingsActions.setAiDescription({ description: 'lego bike' }));
+    expect(types.some((a) => a.type === ListingsActions.submitAiSearch.type)).toBe(false);
+    expect(router.url).toContain('ai=1');
+    expect(router.url).not.toContain('q=');
+  });
+
+  it('carries the live typed text even when the host has not caught up yet (no debounce tick)', async () => {
+    const { el, dispatched } = await setup({ url: '/listings' });
+    const input = q(el, 'input[type="search"]') as HTMLInputElement;
+    input.value = 'wooden train set';
+    input.dispatchEvent(new Event('input'));
+
+    q(el, 'button[role="switch"]')!.click();
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(dispatched()).toContainEqual(
+      ListingsActions.setAiDescription({ description: 'wooden train set' }),
+    );
+  });
+
+  it('the restore snapshot holds the LIVE typed text as q, so switching off brings it back (design-notes 20)', async () => {
+    const { el, dispatched } = await setup({ url: '/listings' });
+    const input = q(el, 'input[type="search"]') as HTMLInputElement;
+    input.value = 'lego';
+    input.dispatchEvent(new Event('input'));
+
+    q(el, 'button[role="switch"]')!.click();
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(dispatched()).toContainEqual(
+      ListingsActions.setAiMode({ on: true, snapshot: { q: 'lego' } }),
+    );
+  });
+
+  it('a cleared simple field leaves no stale q in the snapshot', async () => {
+    const { el, dispatched } = await setup({ url: '/listings?q=old' });
+    const input = q(el, 'input[type="search"]') as HTMLInputElement;
+    input.value = '';
+    input.dispatchEvent(new Event('input'));
+
+    q(el, 'button[role="switch"]')!.click();
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(dispatched()).toContainEqual(ListingsActions.setAiMode({ on: true, snapshot: {} }));
+  });
+
+  it('wires the privacy note to the textarea with aria-describedby while it shows (design-notes 11)', async () => {
+    const { harness, el } = await setup({ ai: { mode: true } });
+    const textarea = q(el, 'textarea') as HTMLTextAreaElement;
+    expect(textarea.getAttribute('aria-describedby')).toBeNull();
+
+    textarea.dispatchEvent(new Event('focus'));
+    harness.detectChanges();
+
+    const note = q(el, '.aisf__note')!;
+    expect(note.id).toBeTruthy();
+    expect(textarea.getAttribute('aria-describedby')).toBe(note.id);
+  });
+
+  it('observes the host width for the placeholder fit and disconnects on destroy, without errors', async () => {
+    const disconnect = vi.fn();
+    const observe = vi.fn();
+    class FakeResizeObserver {
+      observe = observe;
+      disconnect = disconnect;
+      unobserve = vi.fn();
+    }
+    vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+    try {
+      const { harness } = await setup({ ai: { mode: true } });
+      await vi.advanceTimersByTimeAsync(10);
+      harness.detectChanges();
+      expect(observe).toHaveBeenCalledTimes(1);
+
+      TestBed.resetTestingModule();
+      expect(disconnect).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('the observer re-measures only on a real width change, and in the next frame (no ResizeObserver loop)', async () => {
+    let callback: () => void = () => undefined;
+    class FakeResizeObserver {
+      constructor(cb: () => void) {
+        callback = cb;
+      }
+      observe = vi.fn();
+      disconnect = vi.fn();
+    }
+    const frames: (() => void)[] = [];
+    vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+    vi.stubGlobal('requestAnimationFrame', (fn: () => void) => frames.push(fn));
+    vi.stubGlobal('cancelAnimationFrame', () => undefined);
+    try {
+      const { harness, el } = await setup({ ai: { mode: true } });
+      await vi.advanceTimersByTimeAsync(10);
+      harness.detectChanges();
+      const textarea = q(el, 'textarea') as HTMLTextAreaElement;
+      let width = 300;
+      let measures = 0;
+      Object.defineProperty(textarea, 'clientWidth', { get: () => width, configurable: true });
+      Object.defineProperty(textarea, 'scrollHeight', {
+        get: () => {
+          measures++;
+          return 24;
+        },
+        configurable: true,
+      });
+
+      callback(); // first sighting of width 300: measure is deferred, not done inside the callback
+      expect(measures).toBe(0);
+      frames.splice(0).forEach((f) => f());
+      expect(measures).toBe(1);
+
+      callback(); // same width: nothing scheduled
+      expect(frames).toHaveLength(0);
+
+      width = 200;
+      callback();
+      expect(measures).toBe(1);
+      frames.splice(0).forEach((f) => f());
+      expect(measures).toBe(2);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('turning the switch on with an empty simple field keeps the stored description', async () => {
+    const { el, dispatched } = await setup({ url: '/listings', ai: { description: 'stored' } });
+
+    q(el, 'button[role="switch"]')!.click();
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(dispatched().some((a) => a.type === ListingsActions.setAiDescription.type)).toBe(false);
   });
 
   it('turning it off restores q, filters and view exactly as they were, and drops ai', async () => {
@@ -312,19 +480,28 @@ describe('AiSearchFieldComponent', () => {
       const sw = q(el, 'button[role="switch"]')!;
       expect(sw.getAttribute('aria-disabled')).toBe('true');
       expect(q(el, '.aisf__note')).toBeNull();
+      // persistent live region: present while idle, empty
+      const live = q(el, '.aisf__live')!;
+      expect(live.getAttribute('role')).toBe('status');
+      expect(live.textContent!.trim()).toBe('');
 
       sw.click();
       harness.detectChanges();
 
       const note = q(el, '.aisf__note')!;
-      expect(note.getAttribute('role')).toBe('status');
+      expect(note.hasAttribute('role')).toBe(false);
       expect(note.textContent).toContain('listings.ai.budgetSpent');
+      expect(el.querySelectorAll('[role="status"]').length).toBe(1);
+      expect(q(el, '.aisf__live')).toBe(live); // same node, text only changed
+      expect(live.textContent!.trim()).toBe('listings.ai.budgetSpent');
       expect(dispatched().some((a) => a.type === ListingsActions.setAiMode.type)).toBe(false);
       expect(router.url).not.toContain('ai=1');
 
       await vi.advanceTimersByTimeAsync(AI_BUDGET_NOTE_MS + 10);
       harness.detectChanges();
       expect(q(el, '.aisf__note')).toBeNull();
+      expect(q(el, '.aisf__live')).toBe(live);
+      expect(live.textContent!.trim()).toBe('');
     });
 
     it('mobile: no tooltip is rendered (the Note replaces it)', async () => {

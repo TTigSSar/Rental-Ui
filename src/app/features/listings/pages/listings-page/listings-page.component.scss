@@ -331,6 +331,19 @@
   }
 }
 
+/* Persistent screen-reader-only live regions (visually hidden, zero layout impact). */
+.lp-sr-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Re-rank status: replaces the count line; stays visible on phones (the count is hidden there). */
 .lp-toolbar__updating {
   display: inline-flex;
@@ -411,8 +424,50 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 10px 8px;
-    flex: 1 1 300px;
+    width: 100%;
     min-width: 0;
+  }
+}
+
+/* Row 2 = sort (+ re-rank status) left, List/Map right (design-notes 16). On mobile the wrappers
+   are not rendered (the page renders each layout's controls in its own visual order, so Tab
+   order matches - design-notes 16, 19). */
+
+/* Mobile: List/Map and the sort control stay on ONE row; the sort label truncates (ellipsis). */
+@media (max-width: 960px) {
+  .lp-toolbar {
+    flex-wrap: nowrap;
+  }
+  .lp-sort-wrapper {
+    flex: 0 1 auto;
+  }
+  .lp-toolbar__updating {
+    flex-shrink: 0;
+  }
+}
+
+@media (min-width: 961px) {
+  .lp-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: var(--ui-space-12);
+  }
+
+  .lp-toolbar__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-10);
+    flex-wrap: wrap;
+  }
+
+  .lp-toolbar__lead {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-12);
+    min-width: 0;
+    flex: 1 1 auto;
   }
 }
 
@@ -587,6 +642,12 @@
   min-width: 200px;
   overflow: hidden;
   padding: 4px 0;
+
+  /* Desktop: the sort sits at the left edge of the toolbar, so the menu opens rightwards. */
+  @media (min-width: 961px) {
+    right: auto;
+    left: 0;
+  }
 }
 
 .lp-sort-menu__item {

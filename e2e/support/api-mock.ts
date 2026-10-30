@@ -190,8 +190,14 @@ export interface ApiSeed {
   };
   /** GET /api/listings/ai-search/status — defaults to `available: true` (the daily AI budget is not spent). */
   aiSearchStatus?: { available: boolean };
-  /** POST /api/listings/ai-search — defaults to an empty, unranked page-1 response. */
-  aiSearch?: { status?: number; body?: unknown };
+  /**
+   * POST /api/listings/ai-search — defaults to an empty, unranked page-1 response. `bodyByPage`
+   * answers by the request's `page` (page 2+ is the "rest of the catalogue" request); a page
+   * without an entry falls back to `body`.
+   */
+  aiSearch?: { status?: number; body?: unknown; bodyByPage?: Record<number, unknown> };
+  /** Collects the parsed JSON body of every POST /api/listings/ai-search (for request assertions). */
+  aiSearchLog?: unknown[];
   /** GET /api/listings/map-pins — items for the catalogue map view (Maps P2-2). */
   mapPins?: unknown[];
   /** GET /api/listings/map-pins — `isTruncated` flag on the same envelope. */
@@ -965,10 +971,13 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
       return json(route, 200, seed.aiSearchStatus ?? { available: true });
     }
     if (pathname.endsWith('/api/listings/ai-search') && method === 'POST') {
+      const sent = (request.postDataJSON() ?? {}) as { page?: number };
+      seed.aiSearchLog?.push(sent);
+      const pageBody = seed.aiSearch?.bodyByPage?.[sent.page ?? 1];
       return json(
         route,
         seed.aiSearch?.status ?? 200,
-        seed.aiSearch?.body ?? {
+        pageBody ?? seed.aiSearch?.body ?? {
           items: [],
           page: 1,
           pageSize: 20,

@@ -240,6 +240,32 @@ describe('ListingsPageComponent — Maps P2-2 view toggle', () => {
     expect(el.querySelector('.lp-view-toggle')).not.toBeNull();
   });
 
+  describe.each([
+    { name: 'desktop', desktop: true, sortFirst: true },
+    { name: 'mobile', desktop: false, sortFirst: false },
+  ])('toolbar DOM order ($name, design-notes 16, 19)', ({ desktop, sortFirst }) => {
+    // Not unstubAllGlobals(): other specs in this file stub IntersectionObserver globally.
+    const originalMatchMedia = globalThis.matchMedia;
+    afterEach(() => vi.stubGlobal('matchMedia', originalMatchMedia));
+
+    it('matches the visual order, with one instance of each control', async () => {
+      vi.stubGlobal('matchMedia', () => ({
+        matches: desktop,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+      }));
+      const { el } = await navigateToListings('/listings');
+
+      expect(el.querySelectorAll('.lp-view-toggle')).toHaveLength(1);
+      expect(el.querySelectorAll('.lp-toolbar__sort')).toHaveLength(1);
+      const toggle = el.querySelector('.lp-view-toggle')!;
+      const sort = el.querySelector('.lp-toolbar__sort')!;
+      const first = sortFirst ? sort : toggle;
+      const second = sortFirst ? toggle : sort;
+      expect(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+  });
+
   it('the Map/List toggle navigates with query params MERGED, not replaced', async () => {
     const { el, router } = await navigateToListings('/listings?categoryId=abc-123');
 
@@ -607,9 +633,12 @@ describe('ListingsPageComponent — AI search', () => {
   it('a re-rank shows "Updating the order" in the toolbar and dims + inerts the cards', async () => {
     const { el } = await navigateToListings('/listings?ai=1', { ai: { ...AI_RESULTS, busy: 'reranking' } });
 
-    const status = el.querySelector('.lp-toolbar__updating')!;
-    expect(status.getAttribute('role')).toBe('status');
-    expect(status.textContent).toContain('listings.ai.updating');
+    const visible = el.querySelector('.lp-toolbar__updating')!;
+    expect(visible.textContent).toContain('listings.ai.updating');
+    expect(visible.hasAttribute('role')).toBe(false);
+    const live = el.querySelector('.lp-sr-live:not(.lp-sr-live--search)')!;
+    expect(live.getAttribute('role')).toBe('status');
+    expect(live.textContent!.trim()).toBe('listings.ai.updating');
     expect(el.querySelector('.lp-toolbar__count')).toBeNull();
 
     const grid = el.querySelector('.listings-page__grid')!;
@@ -646,10 +675,15 @@ describe('ListingsPageComponent — AI search states', () => {
       const { el } = await navigateToListings('/listings?ai=1', { ai: { ...AI_RESULTS, busy: 'searching' } });
 
       const status = el.querySelector('.lp-ai-status')!;
-      expect(status.getAttribute('role')).toBe('status');
-      expect(status.getAttribute('aria-live')).toBe('polite');
+      expect(status.hasAttribute('role')).toBe(false);
       expect(status.textContent).toContain('listings.ai.status');
       expect(status.querySelector('.lp-ai-bar')).not.toBeNull();
+      const live = el.querySelector('.lp-sr-live--search')!;
+      expect(live.getAttribute('role')).toBe('status');
+      expect(live.getAttribute('aria-live')).toBe('polite');
+      expect(live.textContent!.trim()).toBe('listings.ai.status');
+      // exactly one live region per message
+      expect(Array.from(el.querySelectorAll('.lp-sr-live')).filter((n) => n.textContent!.trim() === 'listings.ai.status').length).toBe(1);
 
       const grid = el.querySelector('.listings-page__grid')!;
       expect(grid.classList.contains('listings-page__grid--busy')).toBe(true);
@@ -678,6 +712,18 @@ describe('ListingsPageComponent — AI search states', () => {
       expect(grid.classList.contains('listings-page__grid--busy')).toBe(true);
       expect(grid.classList.contains('listings-page__grid--searching')).toBe(false);
       expect(el.querySelector('.lp-ai-status')).toBeNull();
+      // the status live region is persistent and empty here; the re-rank one carries its text
+      expect(el.querySelector('.lp-sr-live--search')!.textContent!.trim()).toBe('');
+    });
+
+    it('idle: both live regions stay in the DOM with empty text', async () => {
+      const { el } = await navigateToListings('/listings?ai=1', { ai: AI_RESULTS });
+      const regions = Array.from(el.querySelectorAll('.lp-sr-live'));
+      expect(regions.length).toBe(2);
+      for (const r of regions) {
+        expect(r.getAttribute('role')).toBe('status');
+        expect(r.textContent!.trim()).toBe('');
+      }
     });
 
     it('idle: cards are live (not dimmed, no inert, no aria-hidden)', async () => {
@@ -1079,7 +1125,7 @@ describe('ListingsPageComponent — AI search states', () => {
   });
 });
 
-describe('ListingsPageComponent — price chips (design-notes 12)', () => {
+describe('ListingsPageComponent — price chips (design-notes 15)', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
@@ -1132,5 +1178,30 @@ describe('ListingsPageComponent — price chips (design-notes 12)', () => {
     const types = dispatchedTypes(store);
     expect(types).toContain(ListingsActions.aiFiltersChanged.type);
     expect(types).not.toContain(ListingsActions.loadListings.type);
+  });
+});
+
+describe('ListingsPageComponent — simple search debounce vs AI switch (design-notes 20)', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('desktop: a debounced q update that lands after AI was switched on never reaches the URL', async () => {
+    const { component, router } = await navigateToListings('/listings?ai=1', {
+      ai: { mode: true },
+    });
+
+    (component as unknown as { onDesktopQueryChange(q: string): void }).onDesktopQueryChange('lego');
+    await vi.advanceTimersByTimeAsync(400);
+
+    expect(router.url).not.toContain('q=');
+  });
+
+  it('desktop: with AI off the debounced q still navigates', async () => {
+    const { component, router } = await navigateToListings('/listings');
+
+    (component as unknown as { onDesktopQueryChange(q: string): void }).onDesktopQueryChange('lego');
+    await vi.advanceTimersByTimeAsync(400);
+
+    expect(router.url).toContain('q=lego');
   });
 });

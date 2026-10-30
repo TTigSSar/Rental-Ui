@@ -11,6 +11,7 @@
     <div class="aisf__body">
       @if (!aiMode()) {
         <input
+          #queryInput
           type="search"
           class="aisf__input"
           autocomplete="off"
@@ -35,6 +36,7 @@
               | translate
           "
           [attr.aria-label]="'listings.ai.fieldAria' | translate"
+          [attr.aria-describedby]="focused() ? noteId : null"
           (input)="onDescriptionInput($event)"
           (keydown)="onKeydown($event)"
           (focus)="onFocus()"
@@ -67,14 +69,17 @@
   </div>
 
   @if (aiMode() && focused()) {
-    <p class="aisf__note">
+    <p class="aisf__note" [id]="noteId">
       <i class="pi pi-info-circle" aria-hidden="true"></i>
       {{ 'listings.ai.privacy' | translate }}
     </p>
   }
 
+  <!-- Persistent live region: only its text changes, so screen readers announce it. -->
+  <span class="aisf__live" role="status" aria-live="polite">{{ budgetSpent() && budgetNote() ? ('listings.ai.budgetSpent' | translate) : '' }}</span>
+
   @if (budgetSpent() && budgetNote()) {
-    <p class="aisf__note" role="status" aria-live="polite">
+    <p class="aisf__note" aria-hidden="true">
       <i class="pi pi-info-circle" aria-hidden="true"></i>
       {{ 'listings.ai.budgetSpent' | translate }}
     </p>

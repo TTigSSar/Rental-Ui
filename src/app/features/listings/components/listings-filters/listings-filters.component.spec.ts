@@ -421,3 +421,70 @@ describe('ListingsFiltersComponent — openSheetAt (AI no-results / location not
     expect(document.activeElement?.id).toBe('lf-districts-input');
   });
 });
+
+describe('ListingsFiltersComponent — simple search debounce vs AI switch (design-notes 20)', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('mobile: a debounced q update that lands after AI was switched on never reaches the URL', async () => {
+    const { component, router, store } = await navigateToListings('/listings?ai=1');
+    store.overrideSelector(selectListingsAi, { ...initialListingsAiState, mode: true });
+    store.refreshState();
+
+    component.filterForm.controls.query.setValue('lego');
+    await vi.advanceTimersByTimeAsync(400);
+
+    expect(router.url).not.toContain('q=');
+  });
+
+  it('sheet Apply while AI is on still navigates and emits filtersChanged (feeds the re-rank)', async () => {
+    const { component, router, store } = await navigateToListings('/listings?ai=1');
+    store.overrideSelector(selectListingsAi, { ...initialListingsAiState, mode: true });
+    store.refreshState();
+    const emitted: { query: string | null; maxPrice: number | null }[] = [];
+    component.filtersChanged.subscribe((f) => emitted.push(f));
+
+    component.openSheet();
+    component.draftForm.patchValue({ maxPrice: 5000 });
+    component.applySheet();
+    await vi.advanceTimersByTimeAsync(350);
+
+    expect(router.url).toContain('maxPrice=5000');
+    expect(router.url).toContain('ai=1');
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0]).toMatchObject({ query: null, maxPrice: 5000 });
+  });
+
+  it('sheet Apply lands in the URL at once, so an AI switch-on right after keeps the filter', async () => {
+    const { component, router } = await navigateToListings('/listings');
+
+    component.openSheet();
+    component.draftForm.patchValue({ maxPrice: 5000 });
+    component.applySheet();
+    await vi.advanceTimersByTimeAsync(50); // well inside the 300 ms typing debounce
+
+    expect(router.url).toContain('maxPrice=5000');
+  });
+
+  it('a late text change after AI went on is ignored while other filters in the same flush still flow', async () => {
+    const { component, router, store } = await navigateToListings('/listings?ai=1');
+    store.overrideSelector(selectListingsAi, { ...initialListingsAiState, mode: true });
+    store.refreshState();
+
+    component.filterForm.controls.query.setValue('lego');
+    component.filterForm.controls.maxPrice.setValue(4000);
+    await vi.advanceTimersByTimeAsync(400);
+
+    expect(router.url).toContain('maxPrice=4000');
+    expect(router.url).not.toContain('q=');
+  });
+
+  it('removing a chip lands in the URL at once (flush), not after the typing debounce', async () => {
+    const { component, router } = await navigateToListings('/listings?maxPrice=5000');
+
+    (component as unknown as { removeChip(c: { key: string }): void }).removeChip({ key: 'maxPrice' });
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(router.url).not.toContain('maxPrice');
+  });
+});

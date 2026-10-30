@@ -1,4 +1,4 @@
-import { Location } from '@angular/common';
+import { Location, NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -225,6 +225,7 @@ function applySort(items: ListingPreview[], sortBy: string): ListingPreview[] {
     ListingsMapComponent,
     LoadingSkeletonComponent,
     MessageModule,
+    NgTemplateOutlet,
     RadiusOriginFilterComponent,
     TranslatePipe,
   ],
@@ -292,6 +293,10 @@ export class ListingsPageComponent {
   });
   protected readonly sortBy = signal<SortBy>('');
   protected readonly sortMenuOpen = signal(false);
+  /** >= 961px: the toolbar is rendered in the desktop order (sort, then List/Map). */
+  protected readonly isDesktop = signal(
+    typeof matchMedia === 'function' && matchMedia('(min-width: 961px)').matches,
+  );
 
   // ── AI search (ADR-054) ────────────────────────────────────────────────
   protected readonly aiMode = this.store.selectSignal(selectAiMode);
@@ -509,6 +514,12 @@ export class ListingsPageComponent {
   protected readonly vm = toSignal(this.viewModel$);
 
   constructor() {
+    if (typeof matchMedia === 'function') {
+      const mql = matchMedia('(min-width: 961px)');
+      const onChange = (e: MediaQueryListEvent) => this.isDesktop.set(e.matches);
+      mql.addEventListener('change', onChange);
+      inject(DestroyRef).onDestroy(() => mql.removeEventListener('change', onChange));
+    }
     this.route.queryParamMap
       .pipe(takeUntilDestroyed())
       .subscribe((params) => {
@@ -576,7 +587,13 @@ export class ListingsPageComponent {
 
     // Desktop plain-text search (the header search is hidden on this page).
     this.desktopQuery$
-      .pipe(debounceTime(300), takeUntilDestroyed())
+      // A debounced update that lands after AI was switched on is dropped: the text became the
+      // description (and the restore snapshot holds it as `q`), it must not reach the URL.
+      .pipe(
+        debounceTime(300),
+        filter(() => !this.aiMode()),
+        takeUntilDestroyed(),
+      )
       .subscribe((q) => {
         void this.router.navigate([], {
           relativeTo: this.route,

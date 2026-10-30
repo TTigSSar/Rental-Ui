@@ -23,7 +23,7 @@ import { Store } from '@ngrx/store';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { catchError, debounceTime, of, startWith } from 'rxjs';
+import { Subject, catchError, debounce, merge, of, startWith, timer } from 'rxjs';
 
 import { LanguageService } from '../../../../shared/services/language.service';
 import {
@@ -54,6 +54,7 @@ import { RadiusOriginFilterComponent } from '../radius-origin-filter/radius-orig
 import { ListingsApiService } from '../../services/listings-api.service';
 import * as ListingsActions from '../../store/listings.actions';
 import {
+  selectAiMode,
   selectListingCategories,
   selectListingsOriginCoords,
   selectListingsOriginSource,
@@ -105,6 +106,8 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
   private readonly store = inject(Store);
+  private readonly flush$ = new Subject<void>();
+  private readonly aiMode = this.store.selectSignal(selectAiMode);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly listingsApi = inject(ListingsApiService);
@@ -215,6 +218,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
   protected onDraftOriginCleared(): void {
     this.draftForm.controls.radiusKm.setValue(null);
     this.filterForm.patchValue({ radiusKm: null });
+    this.flush$.next();
   }
 
   /**
@@ -315,10 +319,18 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
 
   constructor() {
     this.filterForm.valueChanges
-      .pipe(debounceTime(300), takeUntilDestroyed(this.destroyRef))
+      // Typing is debounced; a sheet Apply / Clear / chip removal flushes at once (`flush$`), so
+      // a fast AI switch-on right after cannot lose the change.
+      .pipe(
+        debounce(() => merge(timer(300), this.flush$)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe(() => {
         this.formValues.set(this.filterForm.getRawValue());
         const filter = this.toListingsFilter();
+        // While AI is on the typed text is the AI description, never `q`: a late text change
+        // (switch-on within the debounce window) is ignored; every other filter flows as usual.
+        if (this.aiMode()) filter.query = null;
         void this.router.navigate([], {
           relativeTo: this.route,
           // 'merge' (not 'replace'): this form only ever knows about its own
@@ -439,6 +451,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
       // anything but an array) and `activeChips`'s iteration.
       districtIds: draft.districtIds ?? [],
     });
+    this.flush$.next();
     this.closeSheet();
   }
 
@@ -455,6 +468,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
       radiusKm: null,
       districtIds: [],
     });
+    this.flush$.next();
     this.closeSheet();
   }
 
@@ -489,6 +503,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
         break;
       }
     }
+    this.flush$.next();
   }
 
   private toListingsFilter(): ListingsFilter {

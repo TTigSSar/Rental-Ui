@@ -1,5 +1,6 @@
 import { createReducer, on } from '@ngrx/store';
 
+import * as AuthActions from '../../auth/store/auth.actions';
 import * as FavoritesActions from '../../favorites/store/favorites.actions';
 import type { ListingDetails } from '../models/listing-details.model';
 import type { ListingPreview } from '../models/listing.model';
@@ -353,12 +354,19 @@ export const listingsReducer = createReducer(
   on(ListingsActions.setAiDescription, (state, { description }): ListingsState =>
     withAi(state, { description }),
   ),
+  // A new user on the same tab must never see the previous user's description or results state.
+  // The epoch moves on (never back to 0), so a late response of the old session cannot match.
+  on(AuthActions.logout, (state): ListingsState => ({
+    ...state,
+    ai: { ...initialListingsAiState, epoch: state.ai.epoch + 1 },
+  })),
   on(ListingsActions.markAiExampleSeen, (state): ListingsState =>
     state.ai.exampleSeen ? state : withAi(state, { exampleSeen: true }),
   ),
   on(ListingsActions.submitAiSearch, (state, { description }): ListingsState =>
     withAi(state, {
       description,
+      submittedDescription: description,
       busy: 'searching',
       error: null,
       errorCode: null,

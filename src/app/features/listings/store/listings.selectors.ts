@@ -242,7 +242,7 @@ export const selectAiRequestContext = createSelector(
   selectListingsPageSize,
   selectListingsOriginSource,
   (ai, filters, pageSize, originSource) => ({
-    description: ai.description,
+    description: ai.submittedDescription,
     epoch: ai.epoch,
     filters,
     pageSize,
@@ -259,7 +259,8 @@ export const selectAiNextPageContext = createSelector(
   selectListingsHasMore,
   (ai, items, page, pageSize, hasMore) => ({
     active: ai.mode && ai.hasSearched && ai.orderActive,
-    description: ai.description,
+    busy: ai.busy,
+    description: ai.submittedDescription,
     epoch: ai.epoch,
     appliedFilters: ai.appliedFilters,
     excludeIds: items.map((i) => i.id),

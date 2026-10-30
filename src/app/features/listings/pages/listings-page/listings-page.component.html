@@ -12,7 +12,7 @@
   </div>
 
   <!-- ── AI search first-use hint + example, under the mobile bar (hidden on desktop) ── -->
-  <app-ai-example class="lp-ai-example-mobile" [withHint]="true" />
+  <app-ai-example class="lp-ai-example-mobile" [withHint]="true" (authRequired)="onAiAuthRequired()" />
 
   <!-- ── Page layout: sidebar (desktop) + main content ─────────── -->
   <div class="lp-layout">
@@ -141,6 +141,11 @@
         <app-ai-example />
       </div>
 
+      <!-- Persistent live regions (always in the DOM, text only changes) so screen readers announce
+           them; the visible status elements below are aria-hidden to avoid a double announcement. -->
+      <div class="lp-sr-live" role="status" aria-live="polite">{{ aiBusy() === 'reranking' ? ('listings.ai.updating' | translate) : '' }}</div>
+      <div class="lp-sr-live lp-sr-live--search" role="status" aria-live="polite">{{ viewMode() === 'list' && aiStatusLine() ? ('listings.ai.status' | translate) : '' }}</div>
+
       @if (vm(); as v) {
 
         @if (viewMode() === 'list' && v.hasError && v.error) {
@@ -163,15 +168,8 @@
         <!-- Results toolbar: count + active chips + sort dropdown -->
         @if (!v.showInitialSkeleton && !aiSkeleton() && (v.items.length > 0 || v.hasMore)) {
           <div class="lp-toolbar">
-            @if (aiBusy() === 'reranking') {
-              <!-- No count line anywhere (design-notes 11); during a re-rank "Updating the order" shows here (announced politely). -->
-              <span class="lp-toolbar__updating" role="status" aria-live="polite">
-                <i class="pi pi-spinner lp-toolbar__updating-icon" aria-hidden="true"></i>
-                <span>{{ 'listings.ai.updating' | translate }}</span>
-              </span>
-            }
-
             <!-- Active filter chips (desktop only) -->
+            @if (activeFilterChips().length > 0) {
             <div class="lp-toolbar__chips" role="list" aria-label="Active filters">
               @for (chip of activeFilterChips(); track chip.key + (chip.districtId ?? '')) {
                 <button
@@ -185,76 +183,106 @@
                 </button>
               }
             </div>
+            }
 
-            <!-- List/Map toggle (Maps P2-2) -->
-            <div class="lp-view-toggle" role="group" [attr.aria-label]="'listings.map.viewToggle.groupLabel' | translate">
-              <button
-                type="button"
-                class="lp-view-toggle__btn"
-                [class.lp-view-toggle__btn--active]="viewMode() === 'list'"
-                [attr.aria-pressed]="viewMode() === 'list'"
-                [attr.aria-label]="'listings.map.viewToggle.list' | translate"
-                (click)="setViewMode('list')"
-              >
-                <i class="pi pi-list" aria-hidden="true"></i>
-                <span class="lp-view-toggle__label">{{ 'listings.map.viewToggle.list' | translate }}</span>
-              </button>
-              <button
-                type="button"
-                class="lp-view-toggle__btn"
-                [class.lp-view-toggle__btn--active]="viewMode() === 'map'"
-                [attr.aria-pressed]="viewMode() === 'map'"
-                [attr.aria-label]="'listings.map.viewToggle.map' | translate"
-                (click)="setViewMode('map')"
-              >
-                <i class="pi pi-map" aria-hidden="true"></i>
-                <span class="lp-view-toggle__label">{{ 'listings.map.viewToggle.map' | translate }}</span>
-              </button>
-            </div>
+            <!-- Row 2: rendered in the visual order of each layout so Tab order matches it
+                 (design-notes 16, 19): desktop = sort, status, List/Map; mobile = status, List/Map, sort. -->
+            @if (isDesktop()) {
+              <div class="lp-toolbar__row">
+                <div class="lp-toolbar__lead">
+                  <ng-container *ngTemplateOutlet="sortTpl" />
+                  <ng-container *ngTemplateOutlet="updatingTpl" />
+                </div>
+                <ng-container *ngTemplateOutlet="toggleTpl" />
+              </div>
+            } @else {
+              <ng-container *ngTemplateOutlet="updatingTpl" />
+              <ng-container *ngTemplateOutlet="toggleTpl" />
+              <ng-container *ngTemplateOutlet="sortTpl" />
+            }
 
-            <div class="lp-sort-wrapper">
-              @if (sortMenuOpen()) {
-                <div class="lp-sort-backdrop" aria-hidden="true" (click)="sortMenuOpen.set(false)"></div>
-              }
-              <button
-                type="button"
-                class="lp-toolbar__sort"
-                [class.lp-toolbar__sort--active]="sortBy() !== '' && sortBy() !== 'relevance'"
-                [attr.aria-label]="'listings.page.sortLabel' | translate"
-                [attr.aria-expanded]="sortMenuOpen()"
-                (click)="toggleSortMenu()"
-              >
-                <span>
-                  @if (activeSortOption(); as opt) {
-                    {{ 'listings.page.sortBy' | translate }}&nbsp;{{ opt.labelKey | translate }}
-                  } @else {
-                    {{ 'listings.page.sortBy' | translate }}&nbsp;{{ 'listings.page.sortNearest' | translate }}
+            <ng-template #toggleTpl>
+              <!-- List/Map toggle (Maps P2-2) -->
+              <div class="lp-view-toggle" role="group" [attr.aria-label]="'listings.map.viewToggle.groupLabel' | translate">
+                <button
+                  type="button"
+                  class="lp-view-toggle__btn"
+                  [class.lp-view-toggle__btn--active]="viewMode() === 'list'"
+                  [attr.aria-pressed]="viewMode() === 'list'"
+                  [attr.aria-label]="'listings.map.viewToggle.list' | translate"
+                  (click)="setViewMode('list')"
+                >
+                  <i class="pi pi-list" aria-hidden="true"></i>
+                  <span class="lp-view-toggle__label">{{ 'listings.map.viewToggle.list' | translate }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="lp-view-toggle__btn"
+                  [class.lp-view-toggle__btn--active]="viewMode() === 'map'"
+                  [attr.aria-pressed]="viewMode() === 'map'"
+                  [attr.aria-label]="'listings.map.viewToggle.map' | translate"
+                  (click)="setViewMode('map')"
+                >
+                  <i class="pi pi-map" aria-hidden="true"></i>
+                  <span class="lp-view-toggle__label">{{ 'listings.map.viewToggle.map' | translate }}</span>
+                </button>
+              </div>
+            </ng-template>
+            <ng-template #sortTpl>
+                <div class="lp-sort-wrapper">
+                  @if (sortMenuOpen()) {
+                    <div class="lp-sort-backdrop" aria-hidden="true" (click)="sortMenuOpen.set(false)"></div>
                   }
-                </span>
-                <i class="pi pi-chevron-down lp-toolbar__sort-chevron" aria-hidden="true"></i>
-              </button>
-
-              @if (sortMenuOpen()) {
-                <div class="lp-sort-menu" role="listbox" [attr.aria-label]="'listings.page.sortLabel' | translate">
-                  @for (opt of sortOptions(); track opt.value) {
-                    <button
-                      type="button"
-                      class="lp-sort-menu__item"
-                      [class.lp-sort-menu__item--active]="sortBy() === opt.value"
-                      role="option"
-                      [attr.aria-selected]="sortBy() === opt.value"
-                      (click)="selectSort(opt.value)"
-                    >
-                      <i [class]="opt.icon" aria-hidden="true"></i>
-                      <span>{{ opt.labelKey | translate }}</span>
-                      @if (sortBy() === opt.value) {
-                        <i class="pi pi-check lp-sort-menu__check" aria-hidden="true"></i>
+                  <button
+                    type="button"
+                    class="lp-toolbar__sort"
+                    [class.lp-toolbar__sort--active]="sortBy() !== '' && sortBy() !== 'relevance'"
+                    [attr.aria-label]="'listings.page.sortLabel' | translate"
+                    [attr.aria-expanded]="sortMenuOpen()"
+                    (click)="toggleSortMenu()"
+                  >
+                    <span>
+                      @if (activeSortOption(); as opt) {
+                        {{ 'listings.page.sortBy' | translate }}&nbsp;{{ opt.labelKey | translate }}
+                      } @else {
+                        {{ 'listings.page.sortBy' | translate }}&nbsp;{{ 'listings.page.sortNearest' | translate }}
                       }
-                    </button>
+                    </span>
+                    <i class="pi pi-chevron-down lp-toolbar__sort-chevron" aria-hidden="true"></i>
+                  </button>
+
+                  @if (sortMenuOpen()) {
+                    <div class="lp-sort-menu" role="listbox" [attr.aria-label]="'listings.page.sortLabel' | translate">
+                      @for (opt of sortOptions(); track opt.value) {
+                        <button
+                          type="button"
+                          class="lp-sort-menu__item"
+                          [class.lp-sort-menu__item--active]="sortBy() === opt.value"
+                          role="option"
+                          [attr.aria-selected]="sortBy() === opt.value"
+                          (click)="selectSort(opt.value)"
+                        >
+                          <i [class]="opt.icon" aria-hidden="true"></i>
+                          <span>{{ opt.labelKey | translate }}</span>
+                          @if (sortBy() === opt.value) {
+                            <i class="pi pi-check lp-sort-menu__check" aria-hidden="true"></i>
+                          }
+                        </button>
+                      }
+                    </div>
                   }
                 </div>
-              }
-            </div>
+            </ng-template>
+            <ng-template #updatingTpl>
+                @if (aiBusy() === 'reranking') {
+                  <!-- No count line anywhere (design-notes 14); during a re-rank "Updating the order" shows here
+                       (announced by the persistent .lp-sr-live region). -->
+                  <span class="lp-toolbar__updating" aria-hidden="true">
+                    <i class="pi pi-spinner lp-toolbar__updating-icon" aria-hidden="true"></i>
+                    <span>{{ 'listings.ai.updating' | translate }}</span>
+                  </span>
+                }
+            </ng-template>
           </div>
         }
 
@@ -262,7 +290,7 @@
         <div #resultsRegion class="lp-results" tabindex="-1" [attr.aria-busy]="aiBusy() !== 'idle'">
         <!-- AI search status: the previous cards stay (dimmed) under one status line + bar. -->
         @if (viewMode() === 'list' && aiStatusLine()) {
-          <div class="lp-ai-status" role="status" aria-live="polite">
+          <div class="lp-ai-status" aria-hidden="true">
             <span class="lp-ai-status__text">{{ 'listings.ai.status' | translate }}</span>
             <span class="lp-ai-bar" aria-hidden="true"><span></span></span>
           </div>

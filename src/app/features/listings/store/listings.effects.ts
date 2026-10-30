@@ -27,6 +27,7 @@ import * as ListingsActions from './listings.actions';
 import {
   selectAiNextPageContext,
   selectAiRequestContext,
+  selectListingsAi,
   selectAiResultsActive,
   selectListingsFilters,
   selectListingsHasMore,
@@ -48,6 +49,18 @@ export class ListingsEffects {
   private readonly store = inject(Store);
   private readonly listingsApi = inject(ListingsApiService);
   private readonly router = inject(Router);
+
+  /**
+   * Did the reducer apply this (non-page) success? Effects run after reducers: a normal success
+   * leaves the epoch unchanged, an `aiUnavailable` one bumps it by one and raises the notice.
+   */
+  private wasApplied(aiUnavailable: boolean, epoch: number, ai: { epoch: number; fallbackNotice: boolean }): boolean {
+    return aiUnavailable ? ai.fallbackNotice && ai.epoch === epoch + 1 : ai.epoch === epoch;
+  }
+
+  private onListingsPage(): boolean {
+    return this.router.url.split(/[?#]/)[0] === '/listings';
+  }
 
   readonly loadListings$ = createEffect(() =>
     this.actions$.pipe(
@@ -127,8 +140,22 @@ export class ListingsEffects {
         ListingsActions.submitAiSearch,
         ListingsActions.aiFiltersChanged,
         ListingsActions.aiRerank,
+        ListingsActions.setAiMode,
+        ListingsActions.dropAiOrder,
+        AuthActions.logout,
       ),
+      // Switch-on is re-dispatched on every URL emission: it must not disturb a request in flight.
+      filter((action) => !(action.type === ListingsActions.setAiMode.type && action.on)),
       switchMap((action) => {
+        // Switch-off, drop-order and logout cancel the in-flight request (and a pending re-rank
+        // timer) instead of letting a late response act on a state it no longer belongs to.
+        if (
+          action.type === ListingsActions.setAiMode.type ||
+          action.type === ListingsActions.dropAiOrder.type ||
+          action.type === AuthActions.logout.type
+        ) {
+          return EMPTY;
+        }
         const isSearch = action.type === ListingsActions.submitAiSearch.type;
         const wait$ =
           action.type === ListingsActions.aiFiltersChanged.type
@@ -173,11 +200,24 @@ export class ListingsEffects {
    *  `appliedFilters` and every id shown so far. */
   readonly loadAiNextPage$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(ListingsActions.loadNextPage),
+      ofType(
+        ListingsActions.loadNextPage,
+        ListingsActions.setAiMode,
+        ListingsActions.dropAiOrder,
+        AuthActions.logout,
+      ),
+      filter((action) => !(action.type === ListingsActions.setAiMode.type && action.on)),
       withLatestFrom(this.store.select(selectAiNextPageContext)),
-      filter(([, ctx]) => ctx.active && ctx.hasMore && ctx.appliedFilters !== null),
-      switchMap(([, ctx]) =>
-        this.listingsApi
+      // No page 2+ while a search / re-rank is in flight (the ids shown are about to change).
+      filter(
+        ([action, ctx]) =>
+          action.type !== ListingsActions.loadNextPage.type ||
+          (ctx.active && ctx.hasMore && ctx.appliedFilters !== null && ctx.busy === 'idle'),
+      ),
+      switchMap(([action, ctx]) =>
+        action.type !== ListingsActions.loadNextPage.type
+          ? EMPTY
+          : this.listingsApi
           .aiSearch({
             description: ctx.description,
             filters: ctx.appliedFilters,
@@ -221,7 +261,11 @@ export class ListingsEffects {
       this.actions$.pipe(
         ofType(ListingsActions.aiSearchSuccess),
         filter(({ kind }) => kind !== 'page'),
-        withLatestFrom(this.store.select(selectListingsFilters)),
+        withLatestFrom(this.store.select(selectListingsFilters), this.store.select(selectListingsAi)),
+        // A stale response (switch-off / newer request meanwhile) is ignored by the reducer; it
+        // must not navigate either, and nothing is written to another page's URL.
+        filter(([{ response, epoch }, , ai]) => this.wasApplied(response.aiUnavailable, epoch, ai)),
+        filter(() => this.onListingsPage()),
         tap(([{ response }, filters]) => {
           // `aiUnavailable`: the switch has been turned off (reducer), so `ai` leaves the URL and
           // the page's URL subscription loads the ORDINARY catalogue with the applied filters.
@@ -243,7 +287,9 @@ export class ListingsEffects {
       withLatestFrom(
         this.store.select(selectHomePoint),
         this.store.select(selectListingsOriginSource),
+        this.store.select(selectListingsAi),
       ),
+      filter(([{ response, epoch }, , , ai]) => this.wasApplied(response.aiUnavailable, epoch, ai)),
       filter(([, homePoint, source]) => homePoint !== null && source !== 'home'),
       map(([, homePoint]) =>
         ListingsActions.setOriginCoords({
