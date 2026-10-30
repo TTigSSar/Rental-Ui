@@ -4,6 +4,7 @@ import {
   selectAiHasSearched,
   selectAiNextPageContext,
   selectAiRanked,
+  selectAiRequestContext,
   selectAiResultsActive,
 } from './listings.selectors';
 import { initialListingsAiState, initialListingsState, type ListingsState } from './listings.state';
@@ -54,7 +55,7 @@ describe('AI search selectors', () => {
     };
     const ctx = selectAiNextPageContext(
       root(
-        { ...searched, appliedFilters: applied, description: 'bike', epoch: 2 },
+        { ...searched, appliedFilters: applied, submittedDescription: 'bike', epoch: 2 },
         {
           items: [makeListingPreview({ id: 'a' }), makeListingPreview({ id: 'b' })],
           page: 1,
@@ -73,5 +74,11 @@ describe('AI search selectors', () => {
       hasMore: true,
       epoch: 2,
     });
+  });
+
+  it('re-rank and paging use the last SUBMITTED description, not the text being edited', () => {
+    const state = root({ ...searched, description: 'edited since', submittedDescription: 'submitted' });
+    expect(selectAiRequestContext(state).description).toBe('submitted');
+    expect(selectAiNextPageContext(state).description).toBe('submitted');
   });
 });

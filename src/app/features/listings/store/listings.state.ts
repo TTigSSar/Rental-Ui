@@ -23,6 +23,8 @@ export interface ListingsAiState {
   mode: boolean;
   /** Kept separately and NEVER written to `filters.query`; survives switching off. */
   description: string;
+  /** The description of the last SUBMITTED search: re-rank and paging use it, not the textarea text. */
+  submittedDescription: string;
   /** A search has produced the current results. */
   hasSearched: boolean;
   /** The results are in AI order ("Most relevant first"); false once another sort is chosen. */
@@ -59,6 +61,7 @@ export interface ListingsAiState {
 export const initialListingsAiState: ListingsAiState = {
   mode: false,
   description: '',
+  submittedDescription: '',
   hasSearched: false,
   orderActive: false,
   busy: 'idle',

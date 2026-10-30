@@ -1,5 +1,6 @@
 import { makeListingPreview } from '../../../../testing/fixtures';
 import type { AiSearchResponse } from '../models/ai-search.model';
+import * as AuthActions from '../../auth/store/auth.actions';
 import * as ListingsActions from './listings.actions';
 import { listingsReducer } from './listings.reducer';
 import { initialListingsAiState, initialListingsState, type ListingsState } from './listings.state';
@@ -280,5 +281,26 @@ describe('listingsReducer — AI search (ADR-054)', () => {
       ListingsActions.loadAiStatusSuccess({ status: { available: false } }),
     );
     expect(next.ai.aiStatus).toEqual({ available: false });
+  });
+
+  it('submitAiSearch records the submitted description; typing afterwards does not change it', () => {
+    let state = listingsReducer(aiOn(), ListingsActions.submitAiSearch({ description: 'bike' }));
+    state = listingsReducer(state, ListingsActions.setAiDescription({ description: 'bike, red' }));
+    expect(state.ai.submittedDescription).toBe('bike');
+    expect(state.ai.description).toBe('bike, red');
+  });
+
+  it('logout resets the whole AI slice (description, results flags, snapshot)', () => {
+    const state = listingsReducer(
+      aiOn({
+        description: 'secret',
+        submittedDescription: 'secret',
+        hasSearched: true,
+        orderActive: true,
+        snapshot: { q: 'lego' },
+      }),
+      AuthActions.logout(),
+    );
+    expect(state.ai).toEqual(initialListingsAiState);
   });
 });
