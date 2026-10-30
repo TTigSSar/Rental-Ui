@@ -411,8 +411,46 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 10px 8px;
-    flex: 1 1 300px;
+    width: 100%;
     min-width: 0;
+  }
+}
+
+/* Row 2 = sort (+ re-rank status) left, List/Map right (design-notes 16). On mobile the wrappers
+   vanish (display: contents) and `order` keeps today's order: status, List/Map, sort. */
+.lp-toolbar__row,
+.lp-toolbar__lead {
+  display: contents;
+}
+
+@media (max-width: 960px) {
+  .lp-toolbar__updating { order: 1; }
+  .lp-view-toggle { order: 2; }
+  .lp-sort-wrapper { order: 3; }
+}
+
+@media (min-width: 961px) {
+  .lp-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: var(--ui-space-12);
+  }
+
+  .lp-toolbar__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-10);
+    flex-wrap: wrap;
+  }
+
+  .lp-toolbar__lead {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-12);
+    min-width: 0;
+    flex: 1 1 auto;
   }
 }
 
@@ -587,6 +625,12 @@
   min-width: 200px;
   overflow: hidden;
   padding: 4px 0;
+
+  /* Desktop: the sort sits at the left edge of the toolbar, so the menu opens rightwards. */
+  @media (min-width: 961px) {
+    right: auto;
+    left: 0;
+  }
 }
 
 .lp-sort-menu__item {

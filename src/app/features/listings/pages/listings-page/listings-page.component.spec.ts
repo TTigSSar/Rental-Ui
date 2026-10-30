@@ -1079,7 +1079,7 @@ describe('ListingsPageComponent — AI search states', () => {
   });
 });
 
-describe('ListingsPageComponent — price chips (design-notes 12)', () => {
+describe('ListingsPageComponent — price chips (design-notes 15)', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
