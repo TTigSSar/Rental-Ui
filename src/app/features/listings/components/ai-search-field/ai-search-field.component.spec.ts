@@ -129,6 +129,20 @@ describe('AiSearchFieldComponent', () => {
     expect(router.url).not.toContain('q=');
   });
 
+  it('carries the live typed text even when the host has not caught up yet (no debounce tick)', async () => {
+    const { el, dispatched } = await setup({ url: '/listings' });
+    const input = q(el, 'input[type="search"]') as HTMLInputElement;
+    input.value = 'wooden train set';
+    input.dispatchEvent(new Event('input'));
+
+    q(el, 'button[role="switch"]')!.click();
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(dispatched()).toContainEqual(
+      ListingsActions.setAiDescription({ description: 'wooden train set' }),
+    );
+  });
+
   it('turning the switch on with an empty simple field keeps the stored description', async () => {
     const { el, dispatched } = await setup({ url: '/listings', ai: { description: 'stored' } });
 

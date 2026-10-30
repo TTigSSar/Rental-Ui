@@ -240,12 +240,30 @@ describe('ListingsPageComponent — Maps P2-2 view toggle', () => {
     expect(el.querySelector('.lp-view-toggle')).not.toBeNull();
   });
 
-  it('DOM order is List/Map then sort, so keyboard order matches mobile (design-notes 19)', async () => {
-    const { el } = await navigateToListings('/listings');
+  describe.each([
+    { name: 'desktop', desktop: true, sortFirst: true },
+    { name: 'mobile', desktop: false, sortFirst: false },
+  ])('toolbar DOM order ($name, design-notes 16, 19)', ({ desktop, sortFirst }) => {
+    // Not unstubAllGlobals(): other specs in this file stub IntersectionObserver globally.
+    const originalMatchMedia = globalThis.matchMedia;
+    afterEach(() => vi.stubGlobal('matchMedia', originalMatchMedia));
 
-    const toggle = el.querySelector('.lp-view-toggle')!;
-    const sort = el.querySelector('.lp-toolbar__sort')!;
-    expect(toggle.compareDocumentPosition(sort) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    it('matches the visual order, with one instance of each control', async () => {
+      vi.stubGlobal('matchMedia', () => ({
+        matches: desktop,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+      }));
+      const { el } = await navigateToListings('/listings');
+
+      expect(el.querySelectorAll('.lp-view-toggle')).toHaveLength(1);
+      expect(el.querySelectorAll('.lp-toolbar__sort')).toHaveLength(1);
+      const toggle = el.querySelector('.lp-view-toggle')!;
+      const sort = el.querySelector('.lp-toolbar__sort')!;
+      const first = sortFirst ? sort : toggle;
+      const second = sortFirst ? toggle : sort;
+      expect(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
   });
 
   it('the Map/List toggle navigates with query params MERGED, not replaced', async () => {

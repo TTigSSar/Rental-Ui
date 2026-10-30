@@ -180,8 +180,23 @@
             </div>
             }
 
-            <!-- Row 2: DOM = mobile order (List/Map, sort); desktop flips it visually - sort left, List/Map right (design-notes 16, 19). -->
-            <div class="lp-toolbar__row">
+            <!-- Row 2: rendered in the visual order of each layout so Tab order matches it
+                 (design-notes 16, 19): desktop = sort, status, List/Map; mobile = status, List/Map, sort. -->
+            @if (isDesktop()) {
+              <div class="lp-toolbar__row">
+                <div class="lp-toolbar__lead">
+                  <ng-container *ngTemplateOutlet="sortTpl" />
+                  <ng-container *ngTemplateOutlet="updatingTpl" />
+                </div>
+                <ng-container *ngTemplateOutlet="toggleTpl" />
+              </div>
+            } @else {
+              <ng-container *ngTemplateOutlet="updatingTpl" />
+              <ng-container *ngTemplateOutlet="toggleTpl" />
+              <ng-container *ngTemplateOutlet="sortTpl" />
+            }
+
+            <ng-template #toggleTpl>
               <!-- List/Map toggle (Maps P2-2) -->
               <div class="lp-view-toggle" role="group" [attr.aria-label]="'listings.map.viewToggle.groupLabel' | translate">
                 <button
@@ -207,8 +222,8 @@
                   <span class="lp-view-toggle__label">{{ 'listings.map.viewToggle.map' | translate }}</span>
                 </button>
               </div>
-
-              <div class="lp-toolbar__lead">
+            </ng-template>
+            <ng-template #sortTpl>
                 <div class="lp-sort-wrapper">
                   @if (sortMenuOpen()) {
                     <div class="lp-sort-backdrop" aria-hidden="true" (click)="sortMenuOpen.set(false)"></div>
@@ -252,7 +267,8 @@
                     </div>
                   }
                 </div>
-
+            </ng-template>
+            <ng-template #updatingTpl>
                 @if (aiBusy() === 'reranking') {
                   <!-- No count line anywhere (design-notes 14); during a re-rank "Updating the order" shows here (announced politely). -->
                   <span class="lp-toolbar__updating" role="status" aria-live="polite">
@@ -260,8 +276,7 @@
                     <span>{{ 'listings.ai.updating' | translate }}</span>
                   </span>
                 }
-              </div>
-            </div>
+            </ng-template>
           </div>
         }
 

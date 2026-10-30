@@ -73,6 +73,7 @@ export class AiSearchFieldComponent {
   /** A guest submitted: the host opens the existing sign-in dialog. */
   readonly authRequired = output<void>();
 
+  private readonly queryInput = viewChild<ElementRef<HTMLInputElement>>('queryInput');
   private readonly textarea = viewChild<ElementRef<HTMLTextAreaElement>>('descriptionInput');
 
   protected readonly maxLength = AI_DESCRIPTION_MAX_LENGTH;
@@ -168,7 +169,8 @@ export class AiSearchFieldComponent {
     if (on) {
       // Text typed in the simple search becomes the description (shown, not searched until
       // submit). Empty simple field: the stored description, if any, comes back. Never into `q`.
-      const carried = this.query().trim();
+      // Read the live input, not the `query` input (the host debounces it), so no keystroke is lost.
+      const carried = (this.queryInput()?.nativeElement.value ?? this.query()).trim();
       const snapshot: Record<string, string> = {};
       for (const [key, value] of Object.entries(params)) {
         if (typeof value === 'string') snapshot[key] = value;
