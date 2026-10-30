@@ -173,6 +173,41 @@ describe('AiSearchFieldComponent', () => {
     expect(dispatched()).toContainEqual(ListingsActions.setAiMode({ on: true, snapshot: {} }));
   });
 
+  it('wires the privacy note to the textarea with aria-describedby while it shows (design-notes 11)', async () => {
+    const { harness, el } = await setup({ ai: { mode: true } });
+    const textarea = q(el, 'textarea') as HTMLTextAreaElement;
+    expect(textarea.getAttribute('aria-describedby')).toBeNull();
+
+    textarea.dispatchEvent(new Event('focus'));
+    harness.detectChanges();
+
+    const note = q(el, '.aisf__note')!;
+    expect(note.id).toBeTruthy();
+    expect(textarea.getAttribute('aria-describedby')).toBe(note.id);
+  });
+
+  it('observes the host width for the placeholder fit and disconnects on destroy, without errors', async () => {
+    const disconnect = vi.fn();
+    const observe = vi.fn();
+    class FakeResizeObserver {
+      observe = observe;
+      disconnect = disconnect;
+      unobserve = vi.fn();
+    }
+    vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+    try {
+      const { harness } = await setup({ ai: { mode: true } });
+      await vi.advanceTimersByTimeAsync(10);
+      harness.detectChanges();
+      expect(observe).toHaveBeenCalledTimes(1);
+
+      TestBed.resetTestingModule();
+      expect(disconnect).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('turning the switch on with an empty simple field keeps the stored description', async () => {
     const { el, dispatched } = await setup({ url: '/listings', ai: { description: 'stored' } });
 

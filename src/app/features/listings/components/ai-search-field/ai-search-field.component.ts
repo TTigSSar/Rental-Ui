@@ -32,6 +32,8 @@ import {
 import { AiNoticeComponent } from '../ai-notice/ai-notice.component';
 import { AiSwitchComponent } from '../ai-switch/ai-switch.component';
 
+let nextNoteId = 0;
+
 export const AI_DESCRIPTION_MAX_LENGTH = 500;
 /** How long the mobile "AI search is unavailable today" Note stays after a tap. */
 export const AI_BUDGET_NOTE_MS = 5000;
@@ -65,6 +67,7 @@ export class AiSearchFieldComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly injector = inject(Injector);
   private readonly translate = inject(TranslateService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly layout = input<'bar' | 'block'>('bar');
   /** The ordinary text query (switch off). */
@@ -76,6 +79,8 @@ export class AiSearchFieldComponent {
   private readonly queryInput = viewChild<ElementRef<HTMLInputElement>>('queryInput');
   private readonly textarea = viewChild<ElementRef<HTMLTextAreaElement>>('descriptionInput');
 
+  /** Id of the privacy note, wired to the textarea through aria-describedby while it shows. */
+  protected readonly noteId = `aisf-privacy-${nextNoteId++}`;
   protected readonly maxLength = AI_DESCRIPTION_MAX_LENGTH;
   protected readonly aiMode = this.store.selectSignal(selectAiMode);
   protected readonly description = this.store.selectSignal(selectAiDescription);
@@ -132,7 +137,7 @@ export class AiSearchFieldComponent {
         queueMicrotask(() => el.focus());
       }
     });
-    inject(DestroyRef).onDestroy(() => {
+    this.destroyRef.onDestroy(() => {
       if (this.budgetNoteTimer !== null) clearTimeout(this.budgetNoteTimer);
     });
     afterNextRender(() => {
@@ -149,7 +154,7 @@ export class AiSearchFieldComponent {
           this.autosize(target);
         });
         observer.observe(this.host.nativeElement);
-        inject(DestroyRef).onDestroy(() => observer.disconnect());
+        this.destroyRef.onDestroy(() => observer.disconnect());
       }
     });
     const langSub = this.translate.onLangChange.subscribe(() => {
@@ -161,7 +166,7 @@ export class AiSearchFieldComponent {
         { injector: this.injector },
       );
     });
-    inject(DestroyRef).onDestroy(() => langSub.unsubscribe());
+    this.destroyRef.onDestroy(() => langSub.unsubscribe());
   }
 
   protected onToggle(on: boolean): void {

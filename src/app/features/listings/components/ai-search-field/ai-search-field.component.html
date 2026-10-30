@@ -36,6 +36,7 @@
               | translate
           "
           [attr.aria-label]="'listings.ai.fieldAria' | translate"
+          [attr.aria-describedby]="focused() ? noteId : null"
           (input)="onDescriptionInput($event)"
           (keydown)="onKeydown($event)"
           (focus)="onFocus()"
@@ -68,7 +69,7 @@
   </div>
 
   @if (aiMode() && focused()) {
-    <p class="aisf__note">
+    <p class="aisf__note" [id]="noteId">
       <i class="pi pi-info-circle" aria-hidden="true"></i>
       {{ 'listings.ai.privacy' | translate }}
     </p>
