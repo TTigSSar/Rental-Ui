@@ -180,8 +180,34 @@
             </div>
             }
 
-            <!-- Row 2 (desktop): sort left, List/Map right (design-notes 16). Mobile keeps its order via CSS. -->
+            <!-- Row 2: DOM = mobile order (List/Map, sort); desktop flips it visually - sort left, List/Map right (design-notes 16, 19). -->
             <div class="lp-toolbar__row">
+              <!-- List/Map toggle (Maps P2-2) -->
+              <div class="lp-view-toggle" role="group" [attr.aria-label]="'listings.map.viewToggle.groupLabel' | translate">
+                <button
+                  type="button"
+                  class="lp-view-toggle__btn"
+                  [class.lp-view-toggle__btn--active]="viewMode() === 'list'"
+                  [attr.aria-pressed]="viewMode() === 'list'"
+                  [attr.aria-label]="'listings.map.viewToggle.list' | translate"
+                  (click)="setViewMode('list')"
+                >
+                  <i class="pi pi-list" aria-hidden="true"></i>
+                  <span class="lp-view-toggle__label">{{ 'listings.map.viewToggle.list' | translate }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="lp-view-toggle__btn"
+                  [class.lp-view-toggle__btn--active]="viewMode() === 'map'"
+                  [attr.aria-pressed]="viewMode() === 'map'"
+                  [attr.aria-label]="'listings.map.viewToggle.map' | translate"
+                  (click)="setViewMode('map')"
+                >
+                  <i class="pi pi-map" aria-hidden="true"></i>
+                  <span class="lp-view-toggle__label">{{ 'listings.map.viewToggle.map' | translate }}</span>
+                </button>
+              </div>
+
               <div class="lp-toolbar__lead">
                 <div class="lp-sort-wrapper">
                   @if (sortMenuOpen()) {
@@ -234,32 +260,6 @@
                     <span>{{ 'listings.ai.updating' | translate }}</span>
                   </span>
                 }
-              </div>
-
-              <!-- List/Map toggle (Maps P2-2) -->
-              <div class="lp-view-toggle" role="group" [attr.aria-label]="'listings.map.viewToggle.groupLabel' | translate">
-                <button
-                  type="button"
-                  class="lp-view-toggle__btn"
-                  [class.lp-view-toggle__btn--active]="viewMode() === 'list'"
-                  [attr.aria-pressed]="viewMode() === 'list'"
-                  [attr.aria-label]="'listings.map.viewToggle.list' | translate"
-                  (click)="setViewMode('list')"
-                >
-                  <i class="pi pi-list" aria-hidden="true"></i>
-                  <span class="lp-view-toggle__label">{{ 'listings.map.viewToggle.list' | translate }}</span>
-                </button>
-                <button
-                  type="button"
-                  class="lp-view-toggle__btn"
-                  [class.lp-view-toggle__btn--active]="viewMode() === 'map'"
-                  [attr.aria-pressed]="viewMode() === 'map'"
-                  [attr.aria-label]="'listings.map.viewToggle.map' | translate"
-                  (click)="setViewMode('map')"
-                >
-                  <i class="pi pi-map" aria-hidden="true"></i>
-                  <span class="lp-view-toggle__label">{{ 'listings.map.viewToggle.map' | translate }}</span>
-                </button>
               </div>
             </div>
           </div>

@@ -240,6 +240,14 @@ describe('ListingsPageComponent — Maps P2-2 view toggle', () => {
     expect(el.querySelector('.lp-view-toggle')).not.toBeNull();
   });
 
+  it('DOM order is List/Map then sort, so keyboard order matches mobile (design-notes 19)', async () => {
+    const { el } = await navigateToListings('/listings');
+
+    const toggle = el.querySelector('.lp-view-toggle')!;
+    const sort = el.querySelector('.lp-toolbar__sort')!;
+    expect(toggle.compareDocumentPosition(sort) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('the Map/List toggle navigates with query params MERGED, not replaced', async () => {
     const { el, router } = await navigateToListings('/listings?categoryId=abc-123');
 

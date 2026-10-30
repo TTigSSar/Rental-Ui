@@ -15,7 +15,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 import * as ListingsActions from '../../store/listings.actions';
@@ -64,6 +64,7 @@ export class AiSearchFieldComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly injector = inject(Injector);
+  private readonly translate = inject(TranslateService);
 
   readonly layout = input<'bar' | 'block'>('bar');
   /** The ordinary text query (switch off). */
@@ -136,18 +137,51 @@ export class AiSearchFieldComponent {
     afterNextRender(() => {
       const el = this.textarea()?.nativeElement;
       if (el) this.autosize(el);
+      // The empty field must always show its whole placeholder: re-measure when the width
+      // (wrapping) or the language (placeholder text) changes.
+      if (typeof ResizeObserver !== 'undefined') {
+        let lastWidth = -1;
+        const observer = new ResizeObserver(() => {
+          const target = this.textarea()?.nativeElement;
+          if (!target || target.clientWidth === lastWidth) return;
+          lastWidth = target.clientWidth;
+          this.autosize(target);
+        });
+        observer.observe(this.host.nativeElement);
+        inject(DestroyRef).onDestroy(() => observer.disconnect());
+      }
     });
+    const langSub = this.translate.onLangChange.subscribe(() => {
+      afterNextRender(
+        () => {
+          const el = this.textarea()?.nativeElement;
+          if (el) this.autosize(el);
+        },
+        { injector: this.injector },
+      );
+    });
+    inject(DestroyRef).onDestroy(() => langSub.unsubscribe());
   }
 
   protected onToggle(on: boolean): void {
     const params = this.route.snapshot.queryParams;
     if (on) {
+      // Text typed in the simple search becomes the description (shown, not searched until
+      // submit). Empty simple field: the stored description, if any, comes back. Never into `q`.
+      const carried = this.query().trim();
       const snapshot: Record<string, string> = {};
       for (const [key, value] of Object.entries(params)) {
         if (typeof value === 'string') snapshot[key] = value;
       }
       this.focusAfterRender = true;
       this.store.dispatch(ListingsActions.setAiMode({ on: true, snapshot }));
+      if (carried) {
+        this.store.dispatch(
+          ListingsActions.setAiDescription({
+            description: carried.slice(0, AI_DESCRIPTION_MAX_LENGTH),
+          }),
+        );
+      }
       // The description is not a text query: the plain `q` search is parked (restored on switch-off).
       void this.router.navigate([], {
         relativeTo: this.route,
@@ -252,7 +286,13 @@ export class AiSearchFieldComponent {
   }
 
   private autosize(el: HTMLTextAreaElement): void {
+    // An empty textarea's scrollHeight ignores the placeholder: measure it by filling it briefly,
+    // so a placeholder that wraps (hy at 1280) is never clipped.
+    const measurePlaceholder = el.value === '' && el.placeholder !== '';
+    if (measurePlaceholder) el.value = el.placeholder;
     el.style.height = 'auto';
-    el.style.height = `${Math.min(el.scrollHeight, TEXTAREA_MAX_HEIGHT_PX)}px`;
+    const height = el.scrollHeight;
+    if (measurePlaceholder) el.value = '';
+    el.style.height = `${Math.min(height, TEXTAREA_MAX_HEIGHT_PX)}px`;
   }
 }

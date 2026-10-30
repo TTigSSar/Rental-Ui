@@ -417,16 +417,24 @@
 }
 
 /* Row 2 = sort (+ re-rank status) left, List/Map right (design-notes 16). On mobile the wrappers
-   vanish (display: contents) and `order` keeps today's order: status, List/Map, sort. */
+   vanish (display: contents); the DOM order IS the mobile order (List/Map, sort, status) so
+   keyboard order matches the visual order (design-notes 19). Desktop flips the row visually. */
 .lp-toolbar__row,
 .lp-toolbar__lead {
   display: contents;
 }
 
+/* Mobile: List/Map and the sort control stay on ONE row; the sort label truncates (ellipsis). */
 @media (max-width: 960px) {
-  .lp-toolbar__updating { order: 1; }
-  .lp-view-toggle { order: 2; }
-  .lp-sort-wrapper { order: 3; }
+  .lp-toolbar {
+    flex-wrap: nowrap;
+  }
+  .lp-sort-wrapper {
+    flex: 0 1 auto;
+  }
+  .lp-toolbar__updating {
+    flex-shrink: 0;
+  }
 }
 
 @media (min-width: 961px) {
@@ -443,6 +451,8 @@
     justify-content: space-between;
     gap: var(--ui-space-10);
     flex-wrap: wrap;
+    /* DOM is List/Map first (mobile order); desktop shows sort left, List/Map right. */
+    flex-direction: row-reverse;
   }
 
   .lp-toolbar__lead {

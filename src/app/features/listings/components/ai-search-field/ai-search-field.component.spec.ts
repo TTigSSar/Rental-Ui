@@ -96,6 +96,48 @@ describe('AiSearchFieldComponent', () => {
     expect(router.url).toContain('view=map');
   });
 
+  it('turning the switch on carries the simple-search text into the description, never into q (design-notes 20)', async () => {
+    TestBed.configureTestingModule({
+      imports: [TranslateModule.forRoot()],
+      providers: [
+        provideRouter([]),
+        provideMockStore({
+          selectors: [
+            { selector: selectIsAuthenticated, value: true },
+            { selector: selectListingsAi, value: initialListingsAiState },
+          ],
+        }),
+      ],
+    });
+    const store = TestBed.inject(MockStore);
+    vi.spyOn(store, 'dispatch');
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/?q=lego');
+    const fixture = TestBed.createComponent(AiSearchFieldComponent);
+    fixture.componentRef.setInput('query', '  lego bike ');
+    fixture.detectChanges();
+
+    (fixture.nativeElement.querySelector('button[role="switch"]') as HTMLButtonElement).click();
+    await vi.advanceTimersByTimeAsync(50);
+
+    const types = (store.dispatch as ReturnType<typeof vi.fn>).mock.calls.map(
+      (c) => c[0] as { type: string },
+    );
+    expect(types).toContainEqual(ListingsActions.setAiDescription({ description: 'lego bike' }));
+    expect(types.some((a) => a.type === ListingsActions.submitAiSearch.type)).toBe(false);
+    expect(router.url).toContain('ai=1');
+    expect(router.url).not.toContain('q=');
+  });
+
+  it('turning the switch on with an empty simple field keeps the stored description', async () => {
+    const { el, dispatched } = await setup({ url: '/listings', ai: { description: 'stored' } });
+
+    q(el, 'button[role="switch"]')!.click();
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(dispatched().some((a) => a.type === ListingsActions.setAiDescription.type)).toBe(false);
+  });
+
   it('turning it off restores q, filters and view exactly as they were, and drops ai', async () => {
     const { el, router } = await setup({
       url: '/listings?ai=1&categoryId=ai-cat&maxPrice=3000',
