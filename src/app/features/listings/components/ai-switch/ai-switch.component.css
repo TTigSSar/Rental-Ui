@@ -26,7 +26,7 @@
 .ai-switch::before {
   content: '';
   position: absolute;
-  inset: -6px -2px;
+  inset: -8px -2px;
 }
 
 .ai-switch:focus-visible {

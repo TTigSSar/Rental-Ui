@@ -16,6 +16,7 @@
 }
 
 .aiex__link {
+  position: relative;
   display: inline;
   padding: 0;
   border: 0;
@@ -25,6 +26,13 @@
   text-decoration: underline;
   text-align: left;
   cursor: pointer;
+}
+
+.aiex__link::before {
+  /* Invisible tap area, >=44px tall around the one-line text; no layout impact. */
+  content: '';
+  position: absolute;
+  inset: -13px 0;
 }
 
 .aiex__link:focus-visible {
