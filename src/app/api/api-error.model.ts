@@ -227,7 +227,8 @@ export type KnownApiErrorCode =
   // ai_search.* — AiSearchErrorCodes (ADR-045, ADR-054), POST /api/listings/ai-search.
   // 401 unauthenticated, 400 invalid_description (empty / over 500 chars), 429 rate_limited
   // (wait seconds only in the Retry-After header), 429 daily_limit (50/user/day, page 1 only,
-  // NO Retry-After). Model failure is NOT an error: it is a 200 with `aiUnavailable: true`.
+  // NO Retry-After). A blocked caller gets 403 with the shared `auth.user_blocked` code (above),
+  // not an ai_search.* one. Model failure is NOT an error: it is a 200 with `aiUnavailable: true`.
   | 'ai_search.unauthenticated'
   | 'ai_search.invalid_description'
   | 'ai_search.rate_limited'
