@@ -147,14 +147,26 @@ export class AiSearchFieldComponent {
       // (wrapping) or the language (placeholder text) changes.
       if (typeof ResizeObserver !== 'undefined') {
         let lastWidth = -1;
+        let frame: number | null = null;
+        // Only a real WIDTH change re-measures, and the measure runs in the next frame: changing
+        // the height inside the observer callback raises "ResizeObserver loop completed with
+        // undelivered notifications".
         const observer = new ResizeObserver(() => {
           const target = this.textarea()?.nativeElement;
           if (!target || target.clientWidth === lastWidth) return;
           lastWidth = target.clientWidth;
-          this.autosize(target);
+          if (frame !== null) cancelAnimationFrame(frame);
+          frame = requestAnimationFrame(() => {
+            frame = null;
+            const current = this.textarea()?.nativeElement;
+            if (current) this.autosize(current);
+          });
         });
         observer.observe(this.host.nativeElement);
-        this.destroyRef.onDestroy(() => observer.disconnect());
+        this.destroyRef.onDestroy(() => {
+          observer.disconnect();
+          if (frame !== null) cancelAnimationFrame(frame);
+        });
       }
     });
     const langSub = this.translate.onLangChange.subscribe(() => {

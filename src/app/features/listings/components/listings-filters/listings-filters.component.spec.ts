@@ -478,4 +478,13 @@ describe('ListingsFiltersComponent — simple search debounce vs AI switch (desi
     expect(router.url).toContain('maxPrice=4000');
     expect(router.url).not.toContain('q=');
   });
+
+  it('removing a chip lands in the URL at once (flush), not after the typing debounce', async () => {
+    const { component, router } = await navigateToListings('/listings?maxPrice=5000');
+
+    (component as unknown as { removeChip(c: { key: string }): void }).removeChip({ key: 'maxPrice' });
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(router.url).not.toContain('maxPrice');
+  });
 });

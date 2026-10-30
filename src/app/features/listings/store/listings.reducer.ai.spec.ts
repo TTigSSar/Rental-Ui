@@ -298,9 +298,11 @@ describe('listingsReducer — AI search (ADR-054)', () => {
         hasSearched: true,
         orderActive: true,
         snapshot: { q: 'lego' },
+        epoch: 4,
       }),
       AuthActions.logout(),
     );
-    expect(state.ai).toEqual(initialListingsAiState);
+    // epoch keeps moving forward so a late old-session response can never match
+    expect(state.ai).toEqual({ ...initialListingsAiState, epoch: 5 });
   });
 });

@@ -218,6 +218,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
   protected onDraftOriginCleared(): void {
     this.draftForm.controls.radiusKm.setValue(null);
     this.filterForm.patchValue({ radiusKm: null });
+    this.flush$.next();
   }
 
   /**
@@ -502,6 +503,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
         break;
       }
     }
+    this.flush$.next();
   }
 
   private toListingsFilter(): ListingsFilter {

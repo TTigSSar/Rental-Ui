@@ -208,6 +208,53 @@ describe('AiSearchFieldComponent', () => {
     }
   });
 
+  it('the observer re-measures only on a real width change, and in the next frame (no ResizeObserver loop)', async () => {
+    let callback: () => void = () => undefined;
+    class FakeResizeObserver {
+      constructor(cb: () => void) {
+        callback = cb;
+      }
+      observe = vi.fn();
+      disconnect = vi.fn();
+    }
+    const frames: (() => void)[] = [];
+    vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+    vi.stubGlobal('requestAnimationFrame', (fn: () => void) => frames.push(fn));
+    vi.stubGlobal('cancelAnimationFrame', () => undefined);
+    try {
+      const { harness, el } = await setup({ ai: { mode: true } });
+      await vi.advanceTimersByTimeAsync(10);
+      harness.detectChanges();
+      const textarea = q(el, 'textarea') as HTMLTextAreaElement;
+      let width = 300;
+      let measures = 0;
+      Object.defineProperty(textarea, 'clientWidth', { get: () => width, configurable: true });
+      Object.defineProperty(textarea, 'scrollHeight', {
+        get: () => {
+          measures++;
+          return 24;
+        },
+        configurable: true,
+      });
+
+      callback(); // first sighting of width 300: measure is deferred, not done inside the callback
+      expect(measures).toBe(0);
+      frames.splice(0).forEach((f) => f());
+      expect(measures).toBe(1);
+
+      callback(); // same width: nothing scheduled
+      expect(frames).toHaveLength(0);
+
+      width = 200;
+      callback();
+      expect(measures).toBe(1);
+      frames.splice(0).forEach((f) => f());
+      expect(measures).toBe(2);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('turning the switch on with an empty simple field keeps the stored description', async () => {
     const { el, dispatched } = await setup({ url: '/listings', ai: { description: 'stored' } });
 

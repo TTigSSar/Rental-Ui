@@ -355,7 +355,11 @@ export const listingsReducer = createReducer(
     withAi(state, { description }),
   ),
   // A new user on the same tab must never see the previous user's description or results state.
-  on(AuthActions.logout, (state): ListingsState => ({ ...state, ai: { ...initialListingsAiState } })),
+  // The epoch moves on (never back to 0), so a late response of the old session cannot match.
+  on(AuthActions.logout, (state): ListingsState => ({
+    ...state,
+    ai: { ...initialListingsAiState, epoch: state.ai.epoch + 1 },
+  })),
   on(ListingsActions.markAiExampleSeen, (state): ListingsState =>
     state.ai.exampleSeen ? state : withAi(state, { exampleSeen: true }),
   ),
