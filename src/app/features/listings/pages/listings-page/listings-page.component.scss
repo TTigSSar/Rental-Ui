@@ -331,6 +331,19 @@
   }
 }
 
+/* Persistent screen-reader-only live regions (visually hidden, zero layout impact). */
+.lp-sr-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Re-rank status: replaces the count line; stays visible on phones (the count is hidden there). */
 .lp-toolbar__updating {
   display: inline-flex;

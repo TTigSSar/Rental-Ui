@@ -480,19 +480,28 @@ describe('AiSearchFieldComponent', () => {
       const sw = q(el, 'button[role="switch"]')!;
       expect(sw.getAttribute('aria-disabled')).toBe('true');
       expect(q(el, '.aisf__note')).toBeNull();
+      // persistent live region: present while idle, empty
+      const live = q(el, '.aisf__live')!;
+      expect(live.getAttribute('role')).toBe('status');
+      expect(live.textContent!.trim()).toBe('');
 
       sw.click();
       harness.detectChanges();
 
       const note = q(el, '.aisf__note')!;
-      expect(note.getAttribute('role')).toBe('status');
+      expect(note.hasAttribute('role')).toBe(false);
       expect(note.textContent).toContain('listings.ai.budgetSpent');
+      expect(el.querySelectorAll('[role="status"]').length).toBe(1);
+      expect(q(el, '.aisf__live')).toBe(live); // same node, text only changed
+      expect(live.textContent!.trim()).toBe('listings.ai.budgetSpent');
       expect(dispatched().some((a) => a.type === ListingsActions.setAiMode.type)).toBe(false);
       expect(router.url).not.toContain('ai=1');
 
       await vi.advanceTimersByTimeAsync(AI_BUDGET_NOTE_MS + 10);
       harness.detectChanges();
       expect(q(el, '.aisf__note')).toBeNull();
+      expect(q(el, '.aisf__live')).toBe(live);
+      expect(live.textContent!.trim()).toBe('');
     });
 
     it('mobile: no tooltip is rendered (the Note replaces it)', async () => {

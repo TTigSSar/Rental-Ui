@@ -141,6 +141,11 @@
         <app-ai-example />
       </div>
 
+      <!-- Persistent live regions (always in the DOM, text only changes) so screen readers announce
+           them; the visible status elements below are aria-hidden to avoid a double announcement. -->
+      <div class="lp-sr-live" role="status" aria-live="polite">{{ aiBusy() === 'reranking' ? ('listings.ai.updating' | translate) : '' }}</div>
+      <div class="lp-sr-live lp-sr-live--search" role="status" aria-live="polite">{{ viewMode() === 'list' && aiStatusLine() ? ('listings.ai.status' | translate) : '' }}</div>
+
       @if (vm(); as v) {
 
         @if (viewMode() === 'list' && v.hasError && v.error) {
@@ -270,8 +275,9 @@
             </ng-template>
             <ng-template #updatingTpl>
                 @if (aiBusy() === 'reranking') {
-                  <!-- No count line anywhere (design-notes 14); during a re-rank "Updating the order" shows here (announced politely). -->
-                  <span class="lp-toolbar__updating" role="status" aria-live="polite">
+                  <!-- No count line anywhere (design-notes 14); during a re-rank "Updating the order" shows here
+                       (announced by the persistent .lp-sr-live region). -->
+                  <span class="lp-toolbar__updating" aria-hidden="true">
                     <i class="pi pi-spinner lp-toolbar__updating-icon" aria-hidden="true"></i>
                     <span>{{ 'listings.ai.updating' | translate }}</span>
                   </span>
@@ -284,7 +290,7 @@
         <div #resultsRegion class="lp-results" tabindex="-1" [attr.aria-busy]="aiBusy() !== 'idle'">
         <!-- AI search status: the previous cards stay (dimmed) under one status line + bar. -->
         @if (viewMode() === 'list' && aiStatusLine()) {
-          <div class="lp-ai-status" role="status" aria-live="polite">
+          <div class="lp-ai-status" aria-hidden="true">
             <span class="lp-ai-status__text">{{ 'listings.ai.status' | translate }}</span>
             <span class="lp-ai-bar" aria-hidden="true"><span></span></span>
           </div>

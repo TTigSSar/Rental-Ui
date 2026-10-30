@@ -75,8 +75,11 @@
     </p>
   }
 
+  <!-- Persistent live region: only its text changes, so screen readers announce it. -->
+  <span class="aisf__live" role="status" aria-live="polite">{{ budgetSpent() && budgetNote() ? ('listings.ai.budgetSpent' | translate) : '' }}</span>
+
   @if (budgetSpent() && budgetNote()) {
-    <p class="aisf__note" role="status" aria-live="polite">
+    <p class="aisf__note" aria-hidden="true">
       <i class="pi pi-info-circle" aria-hidden="true"></i>
       {{ 'listings.ai.budgetSpent' | translate }}
     </p>

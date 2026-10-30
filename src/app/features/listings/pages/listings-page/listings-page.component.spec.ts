@@ -633,9 +633,12 @@ describe('ListingsPageComponent — AI search', () => {
   it('a re-rank shows "Updating the order" in the toolbar and dims + inerts the cards', async () => {
     const { el } = await navigateToListings('/listings?ai=1', { ai: { ...AI_RESULTS, busy: 'reranking' } });
 
-    const status = el.querySelector('.lp-toolbar__updating')!;
-    expect(status.getAttribute('role')).toBe('status');
-    expect(status.textContent).toContain('listings.ai.updating');
+    const visible = el.querySelector('.lp-toolbar__updating')!;
+    expect(visible.textContent).toContain('listings.ai.updating');
+    expect(visible.hasAttribute('role')).toBe(false);
+    const live = el.querySelector('.lp-sr-live:not(.lp-sr-live--search)')!;
+    expect(live.getAttribute('role')).toBe('status');
+    expect(live.textContent!.trim()).toBe('listings.ai.updating');
     expect(el.querySelector('.lp-toolbar__count')).toBeNull();
 
     const grid = el.querySelector('.listings-page__grid')!;
@@ -672,10 +675,15 @@ describe('ListingsPageComponent — AI search states', () => {
       const { el } = await navigateToListings('/listings?ai=1', { ai: { ...AI_RESULTS, busy: 'searching' } });
 
       const status = el.querySelector('.lp-ai-status')!;
-      expect(status.getAttribute('role')).toBe('status');
-      expect(status.getAttribute('aria-live')).toBe('polite');
+      expect(status.hasAttribute('role')).toBe(false);
       expect(status.textContent).toContain('listings.ai.status');
       expect(status.querySelector('.lp-ai-bar')).not.toBeNull();
+      const live = el.querySelector('.lp-sr-live--search')!;
+      expect(live.getAttribute('role')).toBe('status');
+      expect(live.getAttribute('aria-live')).toBe('polite');
+      expect(live.textContent!.trim()).toBe('listings.ai.status');
+      // exactly one live region per message
+      expect(Array.from(el.querySelectorAll('.lp-sr-live')).filter((n) => n.textContent!.trim() === 'listings.ai.status').length).toBe(1);
 
       const grid = el.querySelector('.listings-page__grid')!;
       expect(grid.classList.contains('listings-page__grid--busy')).toBe(true);
@@ -704,6 +712,18 @@ describe('ListingsPageComponent — AI search states', () => {
       expect(grid.classList.contains('listings-page__grid--busy')).toBe(true);
       expect(grid.classList.contains('listings-page__grid--searching')).toBe(false);
       expect(el.querySelector('.lp-ai-status')).toBeNull();
+      // the status live region is persistent and empty here; the re-rank one carries its text
+      expect(el.querySelector('.lp-sr-live--search')!.textContent!.trim()).toBe('');
+    });
+
+    it('idle: both live regions stay in the DOM with empty text', async () => {
+      const { el } = await navigateToListings('/listings?ai=1', { ai: AI_RESULTS });
+      const regions = Array.from(el.querySelectorAll('.lp-sr-live'));
+      expect(regions.length).toBe(2);
+      for (const r of regions) {
+        expect(r.getAttribute('role')).toBe('status');
+        expect(r.textContent!.trim()).toBe('');
+      }
     });
 
     it('idle: cards are live (not dimmed, no inert, no aria-hidden)', async () => {
