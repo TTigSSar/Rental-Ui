@@ -421,3 +421,19 @@ describe('ListingsFiltersComponent — openSheetAt (AI no-results / location not
     expect(document.activeElement?.id).toBe('lf-districts-input');
   });
 });
+
+describe('ListingsFiltersComponent — simple search debounce vs AI switch (design-notes 20)', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('mobile: a debounced q update that lands after AI was switched on never reaches the URL', async () => {
+    const { component, router, store } = await navigateToListings('/listings?ai=1');
+    store.overrideSelector(selectListingsAi, { ...initialListingsAiState, mode: true });
+    store.refreshState();
+
+    component.filterForm.controls.query.setValue('lego');
+    await vi.advanceTimersByTimeAsync(400);
+
+    expect(router.url).not.toContain('q=');
+  });
+});

@@ -1160,3 +1160,28 @@ describe('ListingsPageComponent — price chips (design-notes 15)', () => {
     expect(types).not.toContain(ListingsActions.loadListings.type);
   });
 });
+
+describe('ListingsPageComponent — simple search debounce vs AI switch (design-notes 20)', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('desktop: a debounced q update that lands after AI was switched on never reaches the URL', async () => {
+    const { component, router } = await navigateToListings('/listings?ai=1', {
+      ai: { mode: true },
+    });
+
+    (component as unknown as { onDesktopQueryChange(q: string): void }).onDesktopQueryChange('lego');
+    await vi.advanceTimersByTimeAsync(400);
+
+    expect(router.url).not.toContain('q=');
+  });
+
+  it('desktop: with AI off the debounced q still navigates', async () => {
+    const { component, router } = await navigateToListings('/listings');
+
+    (component as unknown as { onDesktopQueryChange(q: string): void }).onDesktopQueryChange('lego');
+    await vi.advanceTimersByTimeAsync(400);
+
+    expect(router.url).toContain('q=lego');
+  });
+});

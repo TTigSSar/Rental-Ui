@@ -587,7 +587,13 @@ export class ListingsPageComponent {
 
     // Desktop plain-text search (the header search is hidden on this page).
     this.desktopQuery$
-      .pipe(debounceTime(300), takeUntilDestroyed())
+      // A debounced update that lands after AI was switched on is dropped: the text became the
+      // description (and the restore snapshot holds it as `q`), it must not reach the URL.
+      .pipe(
+        debounceTime(300),
+        filter(() => !this.aiMode()),
+        takeUntilDestroyed(),
+      )
       .subscribe((q) => {
         void this.router.navigate([], {
           relativeTo: this.route,

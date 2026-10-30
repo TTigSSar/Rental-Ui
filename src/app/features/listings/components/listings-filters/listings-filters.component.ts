@@ -23,7 +23,7 @@ import { Store } from '@ngrx/store';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { catchError, debounceTime, of, startWith } from 'rxjs';
+import { catchError, debounceTime, filter, of, startWith } from 'rxjs';
 
 import { LanguageService } from '../../../../shared/services/language.service';
 import {
@@ -54,6 +54,7 @@ import { RadiusOriginFilterComponent } from '../radius-origin-filter/radius-orig
 import { ListingsApiService } from '../../services/listings-api.service';
 import * as ListingsActions from '../../store/listings.actions';
 import {
+  selectAiMode,
   selectListingCategories,
   selectListingsOriginCoords,
   selectListingsOriginSource,
@@ -105,6 +106,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
   private readonly store = inject(Store);
+  private readonly aiMode = this.store.selectSignal(selectAiMode);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly listingsApi = inject(ListingsApiService);
@@ -315,7 +317,13 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
 
   constructor() {
     this.filterForm.valueChanges
-      .pipe(debounceTime(300), takeUntilDestroyed(this.destroyRef))
+      // Dropped when AI was switched on meanwhile: the typed text moved to the AI description
+      // and must not be written to `q` (design-notes 20).
+      .pipe(
+        debounceTime(300),
+        filter(() => !this.aiMode()),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe(() => {
         this.formValues.set(this.filterForm.getRawValue());
         const filter = this.toListingsFilter();

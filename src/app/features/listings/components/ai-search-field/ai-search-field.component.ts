@@ -175,6 +175,10 @@ export class AiSearchFieldComponent {
       for (const [key, value] of Object.entries(params)) {
         if (typeof value === 'string') snapshot[key] = value;
       }
+      // The restore snapshot carries the LIVE simple-search text as `q` (the URL may not have
+      // caught up with the debounce yet), so switching off brings it back.
+      if (carried) snapshot['q'] = carried;
+      else if (this.queryInput()) delete snapshot['q'];
       this.focusAfterRender = true;
       this.store.dispatch(ListingsActions.setAiMode({ on: true, snapshot }));
       if (carried) {

@@ -80,6 +80,10 @@ describe('AiSearchFieldComponent', () => {
     const { el, router, dispatched } = await setup({
       url: '/listings?q=lego&categoryId=abc&view=map',
     });
+    // The host binds the field to `q`; this harness cannot, so mirror it by typing the same text.
+    const simple = q(el, 'input[type="search"]') as HTMLInputElement;
+    simple.value = 'lego';
+    simple.dispatchEvent(new Event('input'));
 
     q(el, 'button[role="switch"]')!.click();
     await vi.advanceTimersByTimeAsync(50);
@@ -141,6 +145,32 @@ describe('AiSearchFieldComponent', () => {
     expect(dispatched()).toContainEqual(
       ListingsActions.setAiDescription({ description: 'wooden train set' }),
     );
+  });
+
+  it('the restore snapshot holds the LIVE typed text as q, so switching off brings it back (design-notes 20)', async () => {
+    const { el, dispatched } = await setup({ url: '/listings' });
+    const input = q(el, 'input[type="search"]') as HTMLInputElement;
+    input.value = 'lego';
+    input.dispatchEvent(new Event('input'));
+
+    q(el, 'button[role="switch"]')!.click();
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(dispatched()).toContainEqual(
+      ListingsActions.setAiMode({ on: true, snapshot: { q: 'lego' } }),
+    );
+  });
+
+  it('a cleared simple field leaves no stale q in the snapshot', async () => {
+    const { el, dispatched } = await setup({ url: '/listings?q=old' });
+    const input = q(el, 'input[type="search"]') as HTMLInputElement;
+    input.value = '';
+    input.dispatchEvent(new Event('input'));
+
+    q(el, 'button[role="switch"]')!.click();
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(dispatched()).toContainEqual(ListingsActions.setAiMode({ on: true, snapshot: {} }));
   });
 
   it('turning the switch on with an empty simple field keeps the stored description', async () => {
