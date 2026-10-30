@@ -23,7 +23,7 @@ import { Store } from '@ngrx/store';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { catchError, debounceTime, filter, of, startWith } from 'rxjs';
+import { Subject, catchError, debounce, merge, of, startWith, timer } from 'rxjs';
 
 import { LanguageService } from '../../../../shared/services/language.service';
 import {
@@ -106,6 +106,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
   private readonly store = inject(Store);
+  private readonly flush$ = new Subject<void>();
   private readonly aiMode = this.store.selectSignal(selectAiMode);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -317,16 +318,18 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
 
   constructor() {
     this.filterForm.valueChanges
-      // Dropped when AI was switched on meanwhile: the typed text moved to the AI description
-      // and must not be written to `q` (design-notes 20).
+      // Typing is debounced; a sheet Apply / Clear / chip removal flushes at once (`flush$`), so
+      // a fast AI switch-on right after cannot lose the change.
       .pipe(
-        debounceTime(300),
-        filter(() => !this.aiMode()),
+        debounce(() => merge(timer(300), this.flush$)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => {
         this.formValues.set(this.filterForm.getRawValue());
         const filter = this.toListingsFilter();
+        // While AI is on the typed text is the AI description, never `q`: a late text change
+        // (switch-on within the debounce window) is ignored; every other filter flows as usual.
+        if (this.aiMode()) filter.query = null;
         void this.router.navigate([], {
           relativeTo: this.route,
           // 'merge' (not 'replace'): this form only ever knows about its own
@@ -447,6 +450,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
       // anything but an array) and `activeChips`'s iteration.
       districtIds: draft.districtIds ?? [],
     });
+    this.flush$.next();
     this.closeSheet();
   }
 
@@ -463,6 +467,7 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
       radiusKm: null,
       districtIds: [],
     });
+    this.flush$.next();
     this.closeSheet();
   }
 
