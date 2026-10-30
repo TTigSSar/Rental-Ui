@@ -12,7 +12,7 @@
   </div>
 
   <!-- ── AI search first-use hint + example, under the mobile bar (hidden on desktop) ── -->
-  <app-ai-example class="lp-ai-example-mobile" [withHint]="true" />
+  <app-ai-example class="lp-ai-example-mobile" [withHint]="true" (authRequired)="onAiAuthRequired()" />
 
   <!-- ── Page layout: sidebar (desktop) + main content ─────────── -->
   <div class="lp-layout">
