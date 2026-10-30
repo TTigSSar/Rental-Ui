@@ -1,11 +1,15 @@
 @if (visible()) {
-  <div class="aiex">
-    @if (withHint()) {
-      <p class="aiex__hint">{{ 'listings.ai.hintRest' | translate }}</p>
-    }
-    <button type="button" class="aiex__btn" (click)="use()">
-      <span class="aiex__label">{{ 'listings.ai.exampleLabel' | translate }}</span>
-      <span class="aiex__text">“{{ 'listings.ai.exampleShort' | translate }}”</span>
-    </button>
-  </div>
+  @if (withHint()) {
+    <p class="aiex__line">
+      {{ 'listings.ai.hintPrefix' | translate }}
+      <button type="button" class="aiex__link" (click)="use()">{{ 'listings.ai.hintExample' | translate }}</button>
+    </p>
+  } @else {
+    <div class="aiex">
+      <button type="button" class="aiex__btn" (click)="use()">
+        <span class="aiex__label">{{ 'listings.ai.exampleLabel' | translate }}</span>
+        <span class="aiex__text">“{{ 'listings.ai.exampleShort' | translate }}”</span>
+      </button>
+    </div>
+  }
 }

@@ -12,8 +12,8 @@ import {
 /**
  * First-use example for the AI search field (design-notes 3, stage 1 v2): shown only the first
  * time the switch is turned on, while the field is empty. Tapping it fills the field with the full
- * example. `withHint` adds the longer "Describe what you're looking for…" line used under the
- * mobile bar. Session-only (the "seen" flag lives in the store, not in browser storage).
+ * example. `withHint` renders the mobile variant instead: one muted line whose example part is a
+ * link-styled button doing the same thing. Session-only (the "seen" flag lives in the store, not in browser storage).
  */
 @Component({
   selector: 'app-ai-example',
