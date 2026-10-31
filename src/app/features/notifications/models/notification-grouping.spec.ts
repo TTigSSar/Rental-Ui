@@ -20,13 +20,15 @@ function makeItem(id: string, createdAt: string): NotificationItem {
 }
 
 describe('groupNotifications', () => {
-  const now = new Date('2026-07-03T12:00:00Z');
+  // Built from local components: grouping is by the viewer's local calendar day,
+  // so UTC literals would flip day in zones far from UTC.
+  const now = new Date(2026, 6, 3, 12);
 
   it('splits items into Today and Earlier and drops empty groups', () => {
     const groups = groupNotifications(
       [
-        makeItem('today-1', '2026-07-03T08:00:00Z'),
-        makeItem('earlier-1', '2026-07-01T08:00:00Z'),
+        makeItem('today-1', new Date(2026, 6, 3, 9).toISOString()),
+        makeItem('earlier-1', new Date(2026, 6, 1, 9).toISOString()),
       ],
       now,
     );
@@ -36,7 +38,7 @@ describe('groupNotifications', () => {
   });
 
   it('returns only Today when nothing is older', () => {
-    const groups = groupNotifications([makeItem('t', '2026-07-03T01:00:00Z')], now);
+    const groups = groupNotifications([makeItem('t', new Date(2026, 6, 3, 0, 30).toISOString())], now);
     expect(groups).toHaveLength(1);
     expect(groups[0].id).toBe('today');
   });
