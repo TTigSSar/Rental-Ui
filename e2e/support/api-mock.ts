@@ -153,7 +153,7 @@ export interface ApiSeed {
    * has to seed it; the generic `[]` fallback silently means "no toys".
    */
   myListings?: unknown[];
-  /** PUT /api/auth/me/password outcome (ADR-021) — defaults to a successful 204 No Content.
+  /** PUT /api/auth/me/password outcome (ADR-021) — defaults to a successful 200 `AuthResponse` (ADR-055).
    *  Set `status`/`body` (e.g. 400 with `body.errorCode: 'auth.invalid_current_password'`, or
    *  429) to exercise `security-page.component.ts`'s field-level-vs-banner error mapping. Same
    *  precedent as `submitReport` above: a mutation whose failure statuses a journey needs to
@@ -566,11 +566,12 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
     // PUT /api/auth/me/password — change-password (ADR-021). Exact suffix + method match, same
     // as the /api/auth/me GET above (no id segment, so no ordering conflict with any regex).
     if (pathname.endsWith('/api/auth/me/password') && method === 'PUT') {
-      const status = seed.changePassword?.status ?? 204;
-      if (status === 204) {
-        return route.fulfill({ status: 204 });
+      // ADR-055: success is 200 `AuthResponse` (the new token), same shape as login.
+      const status = seed.changePassword?.status ?? 200;
+      if (status >= 400) {
+        return json(route, status, seed.changePassword?.body ?? {});
       }
-      return json(route, status, seed.changePassword?.body ?? {});
+      return json(route, status, seed.changePassword?.body ?? e2eAuthResponse());
     }
 
     if (pathname.endsWith('/api/admin/listings/pending')) {

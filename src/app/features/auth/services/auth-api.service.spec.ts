@@ -104,11 +104,11 @@ describe('AuthApiService.changePassword', () => {
     httpMock.verify();
   });
 
-  it('PUTs { currentPassword, newPassword } to the contract endpoint and flushes a 204', () => {
-    let completed = false;
+  it('PUTs { currentPassword, newPassword } and returns the normalised AuthResponse (ADR-055)', () => {
+    let result: unknown;
     service
       .changePassword({ currentPassword: 'OldPass123', newPassword: 'NewPass456' })
-      .subscribe({ complete: () => (completed = true) });
+      .subscribe((r) => (result = r));
 
     const req = httpMock.expectOne(toApiUrl(ApiContract.auth.changePassword));
     expect(req.request.method).toBe('PUT');
@@ -117,8 +117,11 @@ describe('AuthApiService.changePassword', () => {
       newPassword: 'NewPass456',
     });
 
-    req.flush(null, { status: 204, statusText: 'No Content' });
-    expect(completed).toBe(true);
+    req.flush({
+      accessToken: 'new-jwt',
+      user: { id: 'u1', email: 'a@b.c', firstName: 'A', lastName: 'B', roles: ['User'] },
+    });
+    expect(result).toMatchObject({ token: 'new-jwt' });
   });
 });
 

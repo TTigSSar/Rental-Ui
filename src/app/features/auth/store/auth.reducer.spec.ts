@@ -144,7 +144,7 @@ describe('authReducer', () => {
       );
       expect(next.token).toBe('jwt');
       expect(next.isAuthenticated).toBe(true);
-      expect(next.user).toBeNull(); // user is always cleared
+      expect(next.user).toEqual(authed.user); // a transient failure must not drop the user
       expect(next.error).toBe('Network');
     });
 

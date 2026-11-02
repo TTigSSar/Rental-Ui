@@ -69,7 +69,7 @@ export const API_ERROR_MESSAGE_KEYS: Readonly<Record<KnownApiErrorCode, string>>
   'auth.password_not_set': 'profile.security.errors.passwordNotSet',
   // ADR-055: 503, not a logout - generic "server problem, try again" text.
   'auth.session_check_unavailable': 'errors.server',
-  'auth.password_unchanged':'profile.security.errors.passwordUnchanged',
+  'auth.password_unchanged': 'profile.security.errors.passwordUnchanged',
   'auth.password_too_long': 'profile.security.errors.passwordTooLong',
   'auth.home_point_outside_yerevan': 'homePoint.status.outsideTitle',
   'auth.home_point_in_use': 'profile.homePoint.errorInUse',

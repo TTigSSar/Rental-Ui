@@ -108,13 +108,14 @@ export const authReducer = createReducer(
   ),
 
   // /auth/me failure.
-  // preserveSession: true  → keep token & isAuthenticated (non-401, transient error).
-  // preserveSession: false → clear token & isAuthenticated (401, token rejected).
+  // preserveSession: true  → keep token, isAuthenticated AND the loaded user (non-401, transient
+  //   error — incl. ADR-055's 503 `auth.session_check_unavailable`, which is not a logout).
+  // preserveSession: false → clear token, user & isAuthenticated (401, token rejected).
   on(
     AuthActions.loadCurrentUserFailure,
     (state, { error, preserveSession = false }): AuthState => ({
       ...state,
-      user: null,
+      user: preserveSession ? state.user : null,
       token: preserveSession ? state.token : null,
       isAuthenticated: preserveSession ? state.isAuthenticated : false,
       isInitializing: false,
