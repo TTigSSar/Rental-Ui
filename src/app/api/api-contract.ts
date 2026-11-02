@@ -17,6 +17,12 @@ export const ApiContract = {
     register: '/api/auth/register',
     currentUser: '/api/auth/me',
     updatePreferredLanguage: '/api/auth/me/preferred-language',
+    // changePassword: [Authorize] PUT, body { currentPassword, newPassword } -> 200 `AuthResponse`
+    // (ADR-055; was 204). The response carries a NEW token - the old one is revoked, so the
+    // caller must store it. Error codes unchanged (400 invalid_current_password |
+    // password_unchanged | password_not_set | password_too_long, 403 user_blocked, 429).
+    // Any authenticated route may answer 503 `auth.session_check_unavailable` (not a logout);
+    // pipeline 401s (stale/missing token version) have no errorCode.
     changePassword: '/api/auth/me/password',
     // Home-point model: PUT saves/moves the signed-in user's single home point
     // (and, server-side, relocates every listing they own); DELETE clears it.

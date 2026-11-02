@@ -121,6 +121,12 @@ export type KnownApiErrorCode =
   // (login's Password, change-password's CurrentPassword) — see ADR-021's 2026-09-27
   // amendment for why that asymmetry is intentional.
   | 'auth.password_too_long'
+  // ADR-055. 503 ProblemDetails on ANY authenticated route when the server could not read the
+  // database to verify the session (JWT TokenVersion check). NOT a logout: the token may still
+  // be valid, so keep the session and let the user retry. Bare 401s (token without `tv`, stale
+  // `tv`, missing user row) carry no errorCode; a blocked user keeps 403 `*.user_blocked`.
+  // — ServiceCollectionExtensions.SessionCheckUnavailableCode.
+  | 'auth.session_check_unavailable'
   // Home-point model — HomePointErrorCodes (shared by AuthService.RegisterAsync and
   // HomePointService), raised by POST /api/auth/register, PUT and DELETE
   // /api/auth/me/home-point.

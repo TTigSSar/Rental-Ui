@@ -67,7 +67,9 @@ export const API_ERROR_MESSAGE_KEYS: Readonly<Record<KnownApiErrorCode, string>>
   'auth.reset_token_invalid': 'errors.resetLinkInvalid',
   'auth.invalid_current_password': 'profile.security.errors.invalidCurrentPassword',
   'auth.password_not_set': 'profile.security.errors.passwordNotSet',
-  'auth.password_unchanged': 'profile.security.errors.passwordUnchanged',
+  // ADR-055: 503, not a logout - generic "server problem, try again" text.
+  'auth.session_check_unavailable': 'errors.server',
+  'auth.password_unchanged':'profile.security.errors.passwordUnchanged',
   'auth.password_too_long': 'profile.security.errors.passwordTooLong',
   'auth.home_point_outside_yerevan': 'homePoint.status.outsideTitle',
   'auth.home_point_in_use': 'profile.homePoint.errorInUse',
