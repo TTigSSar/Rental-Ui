@@ -15,6 +15,9 @@ import * as ChatActions from '../store/chat.actions';
 import { selectActiveConversation, selectChatState } from '../store/chat.selectors';
 import { ChatBadgeService } from './chat-badge.service';
 
+const MAX_RESTARTS = 3;
+const RESTART_DELAY_MS = 2000;
+
 /**
  * Realtime chat transport. Holds a single SignalR connection to the chat hub
  * and funnels hub events into the NgRx chat store. Root-provided (like
@@ -52,6 +55,8 @@ export class ChatRealtimeService {
    * switch) cannot let the superseded connect carry on and open a second hub as the old user.
    */
   private run = 0;
+  /** Consecutive close-driven restarts; reset by a deliberate {@link stop}. */
+  private restarts = 0;
 
   /**
    * Open the hub connection. Idempotent. Call once the user signs in. Lazily
@@ -70,6 +75,7 @@ export class ChatRealtimeService {
   stop(): void {
     this.active = false;
     this.run++;
+    this.restarts = 0;
     const connection = this.connection;
     this.connection = null;
     connection?.stop().catch(() => {
@@ -103,6 +109,9 @@ export class ChatRealtimeService {
         this.store.dispatch(ChatActions.realtimeConversationRead(event)),
       );
       connection.onreconnected(() => this.resync());
+      // A server-side Abort() (ADR-055 §6: after a password change) closes the hub WITHOUT an
+      // error, which `withAutomaticReconnect()` does not treat as reconnectable.
+      connection.onclose(() => this.onClosed(connection, run));
 
       this.connection = connection;
       await connection.start();
@@ -123,6 +132,35 @@ export class ChatRealtimeService {
         this.active = false;
       }
     }
+  }
+
+  /**
+   * The hub closed for good (server abort, or automatic reconnect gave up). If nobody called
+   * {@link stop} meanwhile, start again after a delay so the freshly stored token is used.
+   * Bounded: at most {@link MAX_RESTARTS} consecutive restarts with doubling delay, and a failed
+   * start (e.g. 401) never schedules another one — `openConnection`'s catch just goes inactive.
+   * Any start()/stop() bumps `run`, so deliberate stops and user switches cancel a pending restart.
+   */
+  private onClosed(connection: HubConnection, run: number): void {
+    if (run !== this.run || !this.active || this.connection !== connection) {
+      return;
+    }
+    if (this.restarts >= MAX_RESTARTS) {
+      this.connection = null;
+      this.active = false;
+      return;
+    }
+    const delay = RESTART_DELAY_MS * 2 ** this.restarts;
+    this.restarts++;
+    this.connection = null;
+    this.active = false;
+    setTimeout(() => {
+      if (this.run === run && !this.active) {
+        const restarts = this.restarts;
+        this.start();
+        this.restarts = restarts; // start() is not an external reset
+      }
+    }, delay);
   }
 
   private onMessageReceived(message: ChatRealtimeMessage): void {

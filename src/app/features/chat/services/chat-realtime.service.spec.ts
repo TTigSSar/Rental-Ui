@@ -84,6 +84,118 @@ describe('ChatRealtimeService hub token (ADR-055)', () => {
   });
 });
 
+describe('ChatRealtimeService restart after a server close (ADR-055 §6)', () => {
+  let builds: number;
+  let closeHandlers: (() => void)[];
+  let startImpl: () => Promise<void>;
+  let token: string | null;
+  let factories: (() => string | Promise<string>)[];
+
+  async function setup() {
+    builds = 0;
+    closeHandlers = [];
+    factories = [];
+    token = 'old-jwt';
+    startImpl = () => Promise.resolve();
+    const signalR = await import('@microsoft/signalr');
+    const proto = signalR.HubConnectionBuilder.prototype;
+    vi.spyOn(proto, 'withUrl').mockImplementation(function (this: unknown, _u: unknown, o: unknown) {
+      factories.push((o as { accessTokenFactory: () => string }).accessTokenFactory);
+      return this as never;
+    } as never);
+    for (const m of ['withAutomaticReconnect', 'configureLogging'] as const) {
+      vi.spyOn(proto, m).mockImplementation(function (this: unknown) {
+        return this as never;
+      } as never);
+    }
+    vi.spyOn(proto, 'build').mockImplementation((() => {
+      builds++;
+      return {
+        on: vi.fn(),
+        onreconnected: vi.fn(),
+        onclose: (cb: () => void) => closeHandlers.push(cb),
+        start: () => startImpl(),
+        stop: vi.fn().mockResolvedValue(undefined),
+      };
+    }) as never);
+    TestBed.configureTestingModule({
+      providers: [
+        provideMockStore(),
+        { provide: ChatBadgeService, useValue: {} },
+        { provide: AuthTokenService, useValue: { getToken: () => token } },
+      ],
+    });
+    const store = TestBed.inject(MockStore);
+    store.overrideSelector(selectAuthUser, { id: 'me' } as never);
+    store.overrideSelector(selectActiveConversation, null);
+    store.overrideSelector(selectChatState, undefined as never);
+    return TestBed.inject(ChatRealtimeService);
+  }
+
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it('a close without error while signed in starts a new connection that uses the current token', async () => {
+    const service = await setup();
+    service.start();
+    await vi.waitFor(() => expect(builds).toBe(1));
+    token = 'new-jwt';
+
+    closeHandlers[0]();
+    await vi.advanceTimersByTimeAsync(2100);
+    await vi.waitFor(() => expect(builds).toBe(2));
+    expect(factories[1]()).toBe('new-jwt');
+  });
+
+  it('a close after a deliberate stop() does not restart', async () => {
+    const service = await setup();
+    service.start();
+    await vi.waitFor(() => expect(builds).toBe(1));
+
+    service.stop();
+    closeHandlers[0](); // SignalR fires onclose for the stopped connection
+    await vi.advanceTimersByTimeAsync(20000);
+    expect(builds).toBe(1);
+  });
+
+  it('a stop() during the restart delay cancels the pending restart', async () => {
+    const service = await setup();
+    service.start();
+    await vi.waitFor(() => expect(builds).toBe(1));
+
+    closeHandlers[0]();
+    service.stop();
+    await vi.advanceTimersByTimeAsync(20000);
+    expect(builds).toBe(1);
+  });
+
+  it('a failing restart (e.g. 401) is not retried, and repeated closes are bounded', async () => {
+    const service = await setup();
+    service.start();
+    await vi.waitFor(() => expect(builds).toBe(1));
+
+    startImpl = () => Promise.reject(new Error('401'));
+    closeHandlers[0]();
+    await vi.advanceTimersByTimeAsync(60000);
+    await vi.waitFor(() => expect(builds).toBe(2));
+    expect(builds).toBe(2); // failed start: no further attempt
+
+    // Repeated close-after-successful-start stops after the cap.
+    TestBed.resetTestingModule();
+    const looping = await setup();
+    looping.start();
+    await vi.waitFor(() => expect(builds).toBe(1));
+    for (let i = 0; i < 10; i++) {
+      closeHandlers.at(-1)!();
+      await vi.advanceTimersByTimeAsync(60000);
+    }
+    expect(builds).toBe(4); // initial + MAX_RESTARTS (3)
+  });
+});
+
 describe('ChatRealtimeService (chat feature not loaded)', () => {
   function setup() {
     const badge = { increment: vi.fn(), requestRefresh: vi.fn(), refresh: vi.fn() };
