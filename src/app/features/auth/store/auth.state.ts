@@ -12,6 +12,11 @@ export interface ExternalAuthError {
 
 export interface AuthState {
   user: CurrentUser | null;
+  /** True once `user` was read with the CURRENT token (`loadCurrentUserSuccess`). The identity-bearing
+   *  success actions (login / verify-email / external) clear it, so a transient `/auth/me` failure
+   *  right after an A -> B token swap cannot leave user A displayed under B's token. Cleared state
+   *  is NOT achieved by nulling `user`, which would hide the A -> B change from `detectSessionReplaced$`. */
+  userMatchesToken: boolean;
   token: string | null;
   isAuthenticated: boolean;
   /** True only during the one-time startup hydration (ROOT_EFFECTS_INIT → /auth/me or no-token). Never goes back to true. */
@@ -51,6 +56,7 @@ export interface AuthState {
 
 export const initialAuthState: AuthState = {
   user: null,
+  userMatchesToken: false,
   token: null,
   isAuthenticated: false,
   isInitializing: true,

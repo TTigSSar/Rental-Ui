@@ -183,16 +183,38 @@ describe('ChatRealtimeService restart after a server close (ADR-055 §6)', () =>
     await vi.waitFor(() => expect(builds).toBe(2));
     expect(builds).toBe(2); // failed start: no further attempt
 
-    // Repeated close-after-successful-start stops after the cap.
-    TestBed.resetTestingModule();
-    const looping = await setup();
-    looping.start();
+  });
+
+  it('the restart budget is per outage: a 4th close after 3 successful restarts still restarts', async () => {
+    const service = await setup();
+    service.start();
     await vi.waitFor(() => expect(builds).toBe(1));
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 4; i++) {
       closeHandlers.at(-1)!();
-      await vi.advanceTimersByTimeAsync(60000);
+      await vi.advanceTimersByTimeAsync(2100);
+      await vi.waitFor(() => expect(builds).toBe(i + 2));
     }
-    expect(builds).toBe(4); // initial + MAX_RESTARTS (3)
+  });
+
+  it('a restart that 401s with a token that changed since is retried once, then not again', async () => {
+    const service = await setup();
+    service.start();
+    await vi.waitFor(() => expect(builds).toBe(1));
+
+    // The restart runs with the OLD token and is rejected; the new token lands meanwhile.
+    startImpl = () => {
+      const used = factories.at(-1)!();
+      token = 'new-jwt';
+      return Promise.reject(Object.assign(new Error('401'), { statusCode: 401, used }));
+    };
+    closeHandlers[0]();
+    await vi.advanceTimersByTimeAsync(2100);
+    await vi.waitFor(() => expect(builds).toBe(3)); // restart + one stale-token retry
+    expect(factories[2]()).toBe('new-jwt');
+
+    // Retry is rejected too (token unchanged this time): no third attempt.
+    await vi.advanceTimersByTimeAsync(60000);
+    expect(builds).toBe(3);
   });
 });
 

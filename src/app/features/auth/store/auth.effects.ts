@@ -155,6 +155,7 @@ export class AuthEffects {
           AuthActions.loginSuccess,
           AuthActions.verifyEmailSuccess,
           AuthActions.externalAuthSuccess,
+          AuthActions.sessionTokenRefreshed,
         ),
         tap(({ token }) => {
           this.tokenService.saveToken(token);
@@ -169,6 +170,7 @@ export class AuthEffects {
         AuthActions.loginSuccess,
         AuthActions.verifyEmailSuccess,
         AuthActions.externalAuthSuccess,
+        AuthActions.sessionTokenRefreshed,
       ),
       map(() => AuthActions.loadCurrentUser()),
     ),

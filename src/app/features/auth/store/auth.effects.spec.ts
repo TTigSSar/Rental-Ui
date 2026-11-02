@@ -247,6 +247,21 @@ describe('AuthEffects — email verification (ADR-028)', () => {
     expect(loads).toEqual([AuthActions.loadCurrentUser()]);
   });
 
+  it('sessionTokenRefreshed persists the token and reloads /auth/me, without navigation', () => {
+    const { harness, effects, tokenService, router } = setupWithTokens();
+    const loads: unknown[] = [];
+    effects.persistToken$.subscribe();
+    effects.loadCurrentUserAfterAuth$.subscribe((a) => loads.push(a));
+    effects.navigateAfterAuthenticated$.subscribe();
+
+    harness.send(AuthActions.sessionTokenRefreshed({ token: 'jwt-2' }));
+    harness.send(AuthActions.loadCurrentUserSuccess({ user: makeUser() }));
+
+    expect(tokenService.saveToken).toHaveBeenCalledWith('jwt-2');
+    expect(loads).toEqual([AuthActions.loadCurrentUser()]);
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
+  });
+
   it('verifyEmailSuccess never triggers returnUrl navigation (the page uses a fixed route)', () => {
     const { harness, effects, router } = setupWithTokens();
     effects.navigateAfterAuthenticated$.subscribe();

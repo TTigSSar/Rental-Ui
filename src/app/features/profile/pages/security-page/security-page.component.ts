@@ -44,8 +44,8 @@ type SecurityFormField = 'currentPassword' | 'newPassword' | 'confirmPassword';
  *  - `auth.password_not_set` / `auth.user_blocked` / 429 / anything else -> form-level banner
  *
  * ADR-055 (supersedes ADR-021 §5): a successful change revokes the old token server-side and
- * answers 200 `AuthResponse`. The new token goes through the existing `verifyEmailSuccess`
- * store path (persist + `/auth/me` reload, no navigation, same as reset-password). The user id
+ * answers 200 `AuthResponse`. The new token goes through `sessionTokenRefreshed`
+ * (persist + `/auth/me` reload that keeps the user, no navigation). The user id
  * is unchanged, so `sessionUserId$` does not re-emit and `sessionReplaced` is not dispatched.
  * The user is not signed out and the success copy is unchanged.
  */
@@ -161,7 +161,7 @@ export class SecurityPageComponent {
     this.authApi.changePassword({ currentPassword, newPassword }).subscribe({
       next: ({ token }) => {
         // The old token is already revoked: store the new one before anything else.
-        this.store.dispatch(AuthActions.verifyEmailSuccess({ token }));
+        this.store.dispatch(AuthActions.sessionTokenRefreshed({ token }));
         this.phase.set('success');
       },
       error: (error: unknown) => this.handleError(error),

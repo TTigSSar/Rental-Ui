@@ -96,7 +96,7 @@ describe('SecurityPageComponent', () => {
     fillValidForm(component);
     component['submit']();
 
-    expect(dispatch).toHaveBeenCalledWith(AuthActions.verifyEmailSuccess({ token: 'new-jwt' }));
+    expect(dispatch).toHaveBeenCalledWith(AuthActions.sessionTokenRefreshed({ token: 'new-jwt' }));
     // Same user id: a session replacement / logout must never be dispatched.
     expect(dispatch).not.toHaveBeenCalledWith(AuthActions.sessionReplaced());
     expect(dispatch).not.toHaveBeenCalledWith(AuthActions.logout());
