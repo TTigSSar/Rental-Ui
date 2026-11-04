@@ -247,6 +247,21 @@ describe('AuthEffects — email verification (ADR-028)', () => {
     expect(loads).toEqual([AuthActions.loadCurrentUser()]);
   });
 
+  it('sessionTokenRefreshed persists the token and reloads /auth/me, without navigation', () => {
+    const { harness, effects, tokenService, router } = setupWithTokens();
+    const loads: unknown[] = [];
+    effects.persistToken$.subscribe();
+    effects.loadCurrentUserAfterAuth$.subscribe((a) => loads.push(a));
+    effects.navigateAfterAuthenticated$.subscribe();
+
+    harness.send(AuthActions.sessionTokenRefreshed({ token: 'jwt-2' }));
+    harness.send(AuthActions.loadCurrentUserSuccess({ user: makeUser() }));
+
+    expect(tokenService.saveToken).toHaveBeenCalledWith('jwt-2');
+    expect(loads).toEqual([AuthActions.loadCurrentUser()]);
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
+  });
+
   it('verifyEmailSuccess never triggers returnUrl navigation (the page uses a fixed route)', () => {
     const { harness, effects, router } = setupWithTokens();
     effects.navigateAfterAuthenticated$.subscribe();
@@ -255,6 +270,36 @@ describe('AuthEffects — email verification (ADR-028)', () => {
     harness.send(AuthActions.loadCurrentUserSuccess({ user: makeUser() }));
 
     expect(router.navigateByUrl).not.toHaveBeenCalled();
+  });
+
+  it('loadCurrentUser$ keeps the session on 503 auth.session_check_unavailable, drops it on 401 (ADR-055)', () => {
+    const getCurrentUser = vi
+      .fn()
+      .mockReturnValueOnce(
+        throwError(
+          () =>
+            new HttpErrorResponse({
+              status: 503,
+              error: { errorCode: 'auth.session_check_unavailable' },
+            }),
+        ),
+      )
+      .mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 401 })));
+    const { harness, effects, tokenService } = setupWithTokens({ getCurrentUser });
+    tokenService.getToken.mockReturnValue('jwt-1');
+    const emitted: { preserveSession?: boolean }[] = [];
+    effects.loadCurrentUser$.subscribe((a) => emitted.push(a as { preserveSession?: boolean }));
+    effects.clearTokenOnCurrentUserFailure$.subscribe();
+
+    harness.send(AuthActions.loadCurrentUser());
+    expect(emitted[0].preserveSession).toBe(true);
+    harness.send(emitted[0] as never); // feed the failure back so the token-clearing effect sees it
+    expect(tokenService.removeToken).not.toHaveBeenCalled();
+
+    harness.send(AuthActions.loadCurrentUser());
+    expect(emitted[1].preserveSession).toBe(false);
+    harness.send(emitted[1] as never);
+    expect(tokenService.removeToken).toHaveBeenCalledTimes(1);
   });
 
   it('login$ carries the errorCode so 403 email_not_verified is told apart from user_blocked', () => {

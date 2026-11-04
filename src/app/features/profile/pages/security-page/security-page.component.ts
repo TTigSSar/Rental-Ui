@@ -10,6 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Store } from '@ngrx/store';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
@@ -21,6 +22,7 @@ import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component
 import { maxByteLengthValidator, MAX_PASSWORD_BYTES } from '../../../../shared/validators/max-byte-length.validator';
 import { passwordsMatchValidator } from '../../../../shared/validators/passwords-match.validator';
 import { AuthApiService } from '../../../auth/services/auth-api.service';
+import * as AuthActions from '../../../auth/store/auth.actions';
 
 type SecurityPhase = 'form' | 'submitting' | 'success';
 
@@ -41,8 +43,11 @@ type SecurityFormField = 'currentPassword' | 'newPassword' | 'confirmPassword';
  *    server, but the server is the authority and the code can still arrive)
  *  - `auth.password_not_set` / `auth.user_blocked` / 429 / anything else -> form-level banner
  *
- * Per ADR-021 §5, a successful change never signs the user out and the success copy never
- * implies other devices/sessions were affected — already-issued tokens cannot be revoked.
+ * ADR-055 (supersedes ADR-021 §5): a successful change revokes the old token server-side and
+ * answers 200 `AuthResponse`. The new token goes through `sessionTokenRefreshed`
+ * (persist + `/auth/me` reload that keeps the user, no navigation). The user id
+ * is unchanged, so `sessionUserId$` does not re-emit and `sessionReplaced` is not dispatched.
+ * The user is not signed out and the success copy is unchanged.
  */
 @Component({
   selector: 'app-security-page',
@@ -55,6 +60,7 @@ type SecurityFormField = 'currentPassword' | 'newPassword' | 'confirmPassword';
 export class SecurityPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authApi = inject(AuthApiService);
+  private readonly store = inject(Store);
   private readonly apiErrors = inject(ApiErrorMapper);
   private readonly translate = inject(TranslateService);
 
@@ -153,7 +159,11 @@ export class SecurityPageComponent {
 
     const { currentPassword, newPassword } = this.form.getRawValue();
     this.authApi.changePassword({ currentPassword, newPassword }).subscribe({
-      next: () => this.phase.set('success'),
+      next: ({ token }) => {
+        // The old token is already revoked: store the new one before anything else.
+        this.store.dispatch(AuthActions.sessionTokenRefreshed({ token }));
+        this.phase.set('success');
+      },
       error: (error: unknown) => this.handleError(error),
     });
   }

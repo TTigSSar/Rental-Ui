@@ -15,6 +15,9 @@ import * as ChatActions from '../store/chat.actions';
 import { selectActiveConversation, selectChatState } from '../store/chat.selectors';
 import { ChatBadgeService } from './chat-badge.service';
 
+const MAX_RESTARTS = 3;
+const RESTART_DELAY_MS = 2000;
+
 /**
  * Realtime chat transport. Holds a single SignalR connection to the chat hub
  * and funnels hub events into the NgRx chat store. Root-provided (like
@@ -52,6 +55,12 @@ export class ChatRealtimeService {
    * switch) cannot let the superseded connect carry on and open a second hub as the old user.
    */
   private run = 0;
+  /** Consecutive close-driven restarts; reset by a deliberate {@link stop} and whenever a start() resolves. */
+  private restarts = 0;
+  /** Token handed to SignalR by the latest attempt; null until the factory has run. */
+  private lastTokenUsed: string | null = null;
+  /** One extra attempt is allowed after a 401 with a since-changed token; reset on success/stop. */
+  private staleTokenRetried = false;
 
   /**
    * Open the hub connection. Idempotent. Call once the user signs in. Lazily
@@ -70,6 +79,8 @@ export class ChatRealtimeService {
   stop(): void {
     this.active = false;
     this.run++;
+    this.restarts = 0;
+    this.staleTokenRetried = false;
     const connection = this.connection;
     this.connection = null;
     connection?.stop().catch(() => {
@@ -80,6 +91,7 @@ export class ChatRealtimeService {
   private async openConnection(run: number): Promise<void> {
     try {
       const signalR = await import('@microsoft/signalr');
+      this.lastTokenUsed = null;
       // stop() may have raced in while the chunk was loading.
       if (run !== this.run) {
         return;
@@ -90,7 +102,11 @@ export class ChatRealtimeService {
           // SignalR appends `?access_token=<jwt>` on the WebSocket handshake and
           // uses the Authorization header on other transports. Reuse the same
           // token source as the HTTP interceptor.
-          accessTokenFactory: () => this.authToken.getToken() ?? '',
+          accessTokenFactory: () => {
+            const token = this.authToken.getToken() ?? '';
+            this.lastTokenUsed = token;
+            return token;
+          },
         })
         .withAutomaticReconnect()
         .configureLogging(signalR.LogLevel.Warning)
@@ -103,9 +119,18 @@ export class ChatRealtimeService {
         this.store.dispatch(ChatActions.realtimeConversationRead(event)),
       );
       connection.onreconnected(() => this.resync());
+      // A server-side Abort() (ADR-055 §6: after a password change) closes the hub WITHOUT an
+      // error, which `withAutomaticReconnect()` does not treat as reconnectable.
+      connection.onclose(() => this.onClosed(connection, run));
 
       this.connection = connection;
       await connection.start();
+
+      if (run === this.run) {
+        // Connected: the restart budget and the stale-token retry are per outage.
+        this.restarts = 0;
+        this.staleTokenRetried = false;
+      }
 
       // stop() may have raced in while the handshake was in flight.
       if (run !== this.run) {
@@ -114,15 +139,55 @@ export class ChatRealtimeService {
         }
         await connection.stop().catch(() => {});
       }
-    } catch {
+    } catch (error) {
       // A failed import or initial handshake must not break the shell. Reset so
       // the next sign-in (or app reload) can retry; the badge poll is the
       // backstop meanwhile.
       if (run === this.run) {
         this.connection = null;
         this.active = false;
+        // ADR-055 §6: the server aborts the hub before the new token reaches us, so an early
+        // restart can 401 with the OLD token. Try once more if the stored token has changed since.
+        const current = this.authToken.getToken() ?? '';
+        if (
+          (error as { statusCode?: number } | null)?.statusCode === 401 &&
+          !this.staleTokenRetried &&
+          this.lastTokenUsed !== null &&
+          current !== '' &&
+          current !== this.lastTokenUsed
+        ) {
+          this.staleTokenRetried = true;
+          this.start();
+        }
       }
     }
+  }
+
+  /**
+   * The hub closed for good (server abort, or automatic reconnect gave up). If nobody called
+   * {@link stop} meanwhile, start again after a delay so the freshly stored token is used.
+   * Bounded: at most {@link MAX_RESTARTS} consecutive restarts (the count resets once a start() resolves) with doubling delay, and a failed
+   * start (e.g. 401) never schedules another one — `openConnection`'s catch just goes inactive.
+   * Any start()/stop() bumps `run`, so deliberate stops and user switches cancel a pending restart.
+   */
+  private onClosed(connection: HubConnection, run: number): void {
+    if (run !== this.run || !this.active || this.connection !== connection) {
+      return;
+    }
+    if (this.restarts >= MAX_RESTARTS) {
+      this.connection = null;
+      this.active = false;
+      return;
+    }
+    const delay = RESTART_DELAY_MS * 2 ** this.restarts;
+    this.restarts++;
+    this.connection = null;
+    this.active = false;
+    setTimeout(() => {
+      if (this.run === run && !this.active) {
+        this.start();
+      }
+    }, delay);
   }
 
   private onMessageReceived(message: ChatRealtimeMessage): void {

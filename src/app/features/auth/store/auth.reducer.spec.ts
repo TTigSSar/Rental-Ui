@@ -122,6 +122,7 @@ describe('authReducer', () => {
     const authed = stateWith({
       token: 'jwt',
       isAuthenticated: true,
+      userMatchesToken: true,
       user: makeUser(),
       isInitializing: true,
     });
@@ -144,8 +145,33 @@ describe('authReducer', () => {
       );
       expect(next.token).toBe('jwt');
       expect(next.isAuthenticated).toBe(true);
-      expect(next.user).toBeNull(); // user is always cleared
+      expect(next.user).toEqual(authed.user); // a transient failure must not drop the user
       expect(next.error).toBe('Network');
+    });
+
+    it('drops a user that was read with a DIFFERENT token (A -> B swap, then a 503 on /auth/me)', () => {
+      const swapped = authReducer(authed, AuthActions.verifyEmailSuccess({ token: 'jwt-B' }));
+      expect(swapped.userMatchesToken).toBe(false);
+      const next = authReducer(
+        swapped,
+        AuthActions.loadCurrentUserFailure({ error: '503', preserveSession: true }),
+      );
+      expect(next.token).toBe('jwt-B');
+      expect(next.isAuthenticated).toBe(true);
+      expect(next.user).toBeNull();
+    });
+
+    it('sessionTokenRefreshed (same user, ADR-055) swaps the token and keeps the user through a 503', () => {
+      const refreshed = authReducer(authed, AuthActions.sessionTokenRefreshed({ token: 'jwt-2' }));
+      expect(refreshed.token).toBe('jwt-2');
+      expect(refreshed.user).toEqual(authed.user);
+      expect(refreshed.userMatchesToken).toBe(true);
+      const next = authReducer(
+        refreshed,
+        AuthActions.loadCurrentUserFailure({ error: '503', preserveSession: true }),
+      );
+      expect(next.token).toBe('jwt-2');
+      expect(next.user).toEqual(authed.user);
     });
 
     it('defaults to NOT preserving the session when the flag is omitted', () => {

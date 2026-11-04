@@ -2,8 +2,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
+import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { of, throwError } from 'rxjs';
 
+import * as AuthActions from '../../../auth/store/auth.actions';
 import { AuthApiService } from '../../../auth/services/auth-api.service';
 import { SecurityPageComponent } from './security-page.component';
 
@@ -12,13 +14,19 @@ function setup(changePassword: ReturnType<typeof vi.fn>) {
     imports: [SecurityPageComponent, TranslateModule.forRoot()],
     // `PageHeaderComponent`'s `backLink` renders a `routerLink`, which needs a router in the
     // injector even though this spec never navigates.
-    providers: [provideRouter([]), { provide: AuthApiService, useValue: { changePassword } }],
+    providers: [
+      provideRouter([]),
+      provideMockStore(),
+      { provide: AuthApiService, useValue: { changePassword } },
+    ],
   });
   const fixture: ComponentFixture<SecurityPageComponent> =
     TestBed.createComponent(SecurityPageComponent);
   fixture.detectChanges();
   return fixture;
 }
+
+const authResponse = { token: 'new-jwt', user: {} };
 
 function fillValidForm(component: SecurityPageComponent): void {
   component['form'].setValue({
@@ -79,13 +87,19 @@ describe('SecurityPageComponent', () => {
     );
   });
 
-  it('submits { currentPassword, newPassword } and shows the success phase on 204', () => {
-    const changePassword = vi.fn().mockReturnValue(of(undefined));
+  it('submits { currentPassword, newPassword }, stores the returned token (ADR-055) and shows success', () => {
+    const changePassword = vi.fn().mockReturnValue(of(authResponse));
     const fixture = setup(changePassword);
     const component = fixture.componentInstance;
+    const dispatch = vi.spyOn(TestBed.inject(MockStore), 'dispatch');
 
     fillValidForm(component);
     component['submit']();
+
+    expect(dispatch).toHaveBeenCalledWith(AuthActions.sessionTokenRefreshed({ token: 'new-jwt' }));
+    // Same user id: a session replacement / logout must never be dispatched.
+    expect(dispatch).not.toHaveBeenCalledWith(AuthActions.sessionReplaced());
+    expect(dispatch).not.toHaveBeenCalledWith(AuthActions.logout());
 
     expect(changePassword).toHaveBeenCalledWith({
       currentPassword: 'OldPass123',
@@ -265,7 +279,7 @@ describe('SecurityPageComponent', () => {
 
   describe('success state — focus and live-region announcement (a11y)', () => {
     it('moves focus to the success heading and announces success through a live region that was already mounted', async () => {
-      const changePassword = vi.fn().mockReturnValue(of(undefined));
+      const changePassword = vi.fn().mockReturnValue(of(authResponse));
       const fixture = setup(changePassword);
       const component = fixture.componentInstance;
 

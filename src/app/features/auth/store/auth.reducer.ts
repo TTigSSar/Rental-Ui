@@ -46,6 +46,7 @@ export const authReducer = createReducer(
       ...state,
       externalAuthPending: false,
       token,
+      userMatchesToken: false,
       isAuthenticated: true,
       isInitializing: false,
       isLoading: false,
@@ -55,6 +56,16 @@ export const authReducer = createReducer(
       pendingVerificationEmail: null,
     }),
   ),
+
+  // Same user, new token (ADR-055): keep the loaded user and its match flag.
+  on(AuthActions.sessionTokenRefreshed, (state, { token }): AuthState => ({
+    ...state,
+    token,
+    isAuthenticated: true,
+    isInitializing: false,
+    error: null,
+    errorCode: null,
+  })),
 
   // Register HTTP success (ADR-028) — NO token and NOT authenticated: the account
   // is unverified. Only remembers the address so the dialog can show the
@@ -74,6 +85,7 @@ export const authReducer = createReducer(
   on(AuthActions.loadCurrentUserSuccess, (state, { user }): AuthState => ({
     ...state,
     user,
+    userMatchesToken: true,
     isAuthenticated: true,
     isInitializing: false,
     isLoading: false,
@@ -108,13 +120,14 @@ export const authReducer = createReducer(
   ),
 
   // /auth/me failure.
-  // preserveSession: true  → keep token & isAuthenticated (non-401, transient error).
-  // preserveSession: false → clear token & isAuthenticated (401, token rejected).
+  // preserveSession: true  → keep token, isAuthenticated AND the loaded user, provided it was read with the current token (non-401, transient
+  //   error — incl. ADR-055's 503 `auth.session_check_unavailable`, which is not a logout).
+  // preserveSession: false → clear token, user & isAuthenticated (401, token rejected).
   on(
     AuthActions.loadCurrentUserFailure,
     (state, { error, preserveSession = false }): AuthState => ({
       ...state,
-      user: null,
+      user: preserveSession && state.userMatchesToken ? state.user : null,
       token: preserveSession ? state.token : null,
       isAuthenticated: preserveSession ? state.isAuthenticated : false,
       isInitializing: false,

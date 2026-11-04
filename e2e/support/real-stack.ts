@@ -331,6 +331,17 @@ const tokenCache = new Map<string, { token: string; loggedInAt: number }>();
 const TOKEN_TTL_MS = 55 * 60 * 1000;
 
 /**
+ * Replaces the cached JWT for an account. ADR-055: a password change/reset rotates the user's
+ * `TokenVersion`, so every token issued before it - including the one cached here - is a bare 401
+ * afterwards. A spec that rotates a SHARED seeded account's credential must call this with the
+ * fresh token the rotation returned, or later specs (`apiLogin`/`loginViaDialog` cache hits) fail
+ * with an unrelated-looking 401.
+ */
+export function rememberToken(email: string, token: string): void {
+  tokenCache.set(email, { token, loggedInAt: Date.now() });
+}
+
+/**
  * The real tier has TWO independent `auth` rate-limit buckets, not one.
  *
  * `AuthPolicy` is a fixed window of 5/minute partitioned by

@@ -99,6 +99,16 @@ export const loadCurrentUserFailure = createAction(
   props<{ error: string; preserveSession?: boolean }>(),
 );
 
+/**
+ * ADR-055: the SAME user got a fresh token (change-password answers 200 `AuthResponse`; the old
+ * token is revoked). Persists the token and re-reads `/auth/me` but, unlike `verifyEmailSuccess`,
+ * keeps the loaded user and is not an identity change: no `sessionReplaced`, no navigation.
+ */
+export const sessionTokenRefreshed = createAction(
+  '[Auth] Session Token Refreshed',
+  props<{ token: string }>(),
+);
+
 export const logout = createAction('[Auth] Logout');
 
 /**

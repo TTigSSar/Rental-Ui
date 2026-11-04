@@ -248,9 +248,14 @@ export class AuthApiService {
     return this.http.put<void>(toApiUrl(ApiContract.auth.mePhone), request);
   }
 
-  /** `PUT /api/auth/me/password` — 204 No Content on success, nothing to normalise. */
-  changePassword(request: ChangePasswordRequest): Observable<void> {
-    return this.http.put<void>(toApiUrl(ApiContract.auth.changePassword), request);
+  /**
+   * `PUT /api/auth/me/password` (ADR-055) — 200 `AuthResponse`. The server revokes the old
+   * token (TokenVersion bump), so the caller MUST store the returned token.
+   */
+  changePassword(request: ChangePasswordRequest): Observable<AuthResponse> {
+    return this.http
+      .put<BackendAuthResponse>(toApiUrl(ApiContract.auth.changePassword), request)
+      .pipe(map((response) => this.normalizeAuthResponse(response)));
   }
 
   private normalizeCurrentUser(raw: Record<string, unknown>): CurrentUser {
