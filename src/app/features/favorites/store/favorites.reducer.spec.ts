@@ -1,4 +1,5 @@
 import { makeListingPreview } from '../../../../testing/fixtures';
+import * as AuthActions from '../../auth/store/auth.actions';
 import { HomeSectionsActions } from '../../home/store/home.actions';
 import type { ListingDetails } from '../../listings/models/listing-details.model';
 import * as ListingsActions from '../../listings/store/listings.actions';
@@ -11,6 +12,21 @@ function stateWith(overrides: Partial<FavoritesState>): FavoritesState {
 }
 
 describe('favoritesReducer', () => {
+  describe('logout', () => {
+    it('returns the initial state from a fully populated one', () => {
+      const a = makeListingPreview({ id: 'a' });
+      const b = makeListingPreview({ id: 'b' });
+      const start = stateWith({
+        items: [a],
+        favoriteIds: ['a', 'b'],
+        pendingRemovals: { b: { listing: b, index: 1 } },
+        error: 'boom',
+        isLoading: true,
+      });
+      expect(favoritesReducer(start, AuthActions.logout())).toEqual(initialFavoritesState);
+    });
+  });
+
   describe('loadFavoritesSuccess', () => {
     it('seeds items and favoriteIds and drops any stale pending removals', () => {
       const items = [makeListingPreview({ id: 'a' }), makeListingPreview({ id: 'b' })];
