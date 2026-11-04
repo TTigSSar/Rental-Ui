@@ -8,6 +8,7 @@ import {
   assertPasswordChangeNotRateLimited,
   loginViaDialog,
   noteAuthSpend,
+  rememberToken,
 } from '../support/real-stack';
 
 /**
@@ -109,7 +110,11 @@ test.describe('Change password (real stack)', () => {
         changeRes.status(),
         `PUT /api/auth/me/password via the real UI should succeed: ${changeRes.status()} ` +
           `${await changeRes.text().catch(() => '<unreadable body>')}`,
-      ).toBe(204);
+      ).toBe(200);
+      // ADR-055: the change rotates TokenVersion, so the caller gets a FRESH session back.
+      const changeBody = (await changeRes.json()) as { accessToken?: string; user?: unknown };
+      expect(changeBody.accessToken, 'change-password must return a fresh accessToken').toBeTruthy();
+      expect(changeBody.user, 'change-password must return the user').toBeTruthy();
 
       // exact: true — the persistent live region (`role="status"`) now also contains "Password
       // updated" as a substring of its longer announcement text; a non-exact match resolves to
@@ -145,10 +150,11 @@ test.describe('Change password (real stack)', () => {
           `${newLoginRes.status()} ${await newLoginRes.text()}`,
       ).toBe(true);
 
-      // Still signed in immediately after the change (ADR-021 §5/6: tokens are not revoked on a
-      // password change — not on this device, not on any other). Re-navigate the SAME browser
-      // session (no re-login) to the parent /profile route and confirm authGuard still admits
-      // it; an invalidated/rejected session would redirect to '/' instead (see auth.guard.ts).
+      // Still signed in on THIS device (ADR-055: other sessions are revoked, the caller keeps the
+      // fresh token the change returned). Re-navigate the SAME browser session (no re-login) to
+      // the parent /profile route and confirm authGuard still admits it; a rejected session
+      // would redirect to '/' instead (see auth.guard.ts). The other-session half of ADR-055 is
+      // pinned by `password-change-revokes-sessions.spec.ts`.
       await page.goto('/profile');
       await expect(page).toHaveURL(/\/profile$/);
       await expect(page.locator('a[routerLink="/profile/security"]').first()).toBeVisible();
@@ -167,10 +173,9 @@ test.describe('Change password (real stack)', () => {
                 `other spec signs in as ${account.email}.`,
             );
           }
-          const authHeaders = { Authorization: `Bearer ${token}` };
 
           const restoreRes = await request.put(`${API_URL}/api/auth/me/password`, {
-            headers: authHeaders,
+            headers: { Authorization: `Bearer ${token}` },
             data: { currentPassword: NEW_PASSWORD, newPassword: account.password },
             failOnStatusCode: false,
           });
@@ -187,12 +192,20 @@ test.describe('Change password (real stack)', () => {
             `restoring ${account.email}'s seeded password failed: ${restoreRes.status()} ` +
               `${await restoreRes.text()}. The seeded account is now on "${NEW_PASSWORD}" and ` +
               `needs a manual fix before any other spec signs in as ${account.email}.`,
-          ).toBe(204);
+          ).toBe(200);
+          // ADR-055: the restore rotated TokenVersion again, so the token used above is dead —
+          // the verification probe must carry the fresh one the restore returned.
+          const restoredToken = ((await restoreRes.json()) as { accessToken?: string }).accessToken;
+          if (!restoredToken) throw new Error('restore response carried no fresh accessToken');
+
+          // Later specs (home-point-journey) reuse this account's cached JWT: refresh it, the
+          // pre-change one is revoked (ADR-055).
+          rememberToken(account.email, restoredToken);
 
           // Verify the restore actually took — without a 4th real login. See the file doc
           // comment for why `password_unchanged` (not `invalid_current_password`) proves it.
           const verifyRes = await request.put(`${API_URL}/api/auth/me/password`, {
-            headers: authHeaders,
+            headers: { Authorization: `Bearer ${restoredToken}` },
             data: { currentPassword: account.password, newPassword: account.password },
             failOnStatusCode: false,
           });
