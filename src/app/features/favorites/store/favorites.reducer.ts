@@ -1,5 +1,6 @@
 import { createReducer, on } from '@ngrx/store';
 
+import * as AuthActions from '../../auth/store/auth.actions';
 import { HomeSectionsActions } from '../../home/store/home.actions';
 import type { ListingPreview } from '../../listings/models/listing.model';
 import * as ListingsActions from '../../listings/store/listings.actions';
@@ -47,6 +48,8 @@ function seedIds(ids: readonly string[], items: ListingPreview[]): readonly stri
 
 export const favoritesReducer = createReducer(
   initialFavoritesState,
+  // Nobody's favourites may outlive their session (Trello Lu4YT3x1).
+  on(AuthActions.logout, (): FavoritesState => initialFavoritesState),
   on(
     FavoritesActions.loadFavorites,
     (state): FavoritesState => ({
