@@ -1251,12 +1251,10 @@
       "earningsPayouts": "Earnings & payouts",
       "viewProfile": "View profile",
       "accountSettings": "Account settings",
-      "verificationId": "Verification & ID",
-      "language": "Language",
-      "notifications": "Notifications",
       "helpCenter": "Help center",
-      "security": "Security",
-      "logout": "Sign out"
+      "logout": "Sign out",
+      "settings": "Settings",
+      "settingsSub": "Password, language, account"
     },
     "actions": {
       "heading": "Quick actions"
@@ -1301,6 +1299,14 @@
       "listings": "Listings",
       "rentals": "Rentals",
       "reviews": "Reviews"
+    },
+    "settings": {
+      "title": "Settings",
+      "password": "Password",
+      "passwordGoogle": "You sign in with Google",
+      "language": "Language",
+      "notifications": "Notifications",
+      "comingSoon": "Coming soon"
     },
     "security": {
       "page": {

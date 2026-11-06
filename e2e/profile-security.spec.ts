@@ -27,7 +27,7 @@ test.describe('Change password', () => {
     });
   });
 
-  test('reaches /profile/security from a profile settings row and submits successfully', async ({
+  test('reaches /profile/settings/password via Settings and submits successfully', async ({
     page,
   }) => {
     await mockApi(page, { me: e2eUser() });
@@ -38,8 +38,10 @@ test.describe('Change password', () => {
     // (non-bound) `routerLink` attribute, so this matches whichever is
     // rendered at the current viewport; `.first()` picks the desktop sidebar
     // item since it renders outside the `isChildRouteActive()` toggle.
-    await page.locator('a[routerLink="/profile/security"]').first().click();
-    await expect(page).toHaveURL(/\/profile\/security$/);
+    await page.locator('a[routerLink="/profile/settings"]').first().click();
+    await expect(page).toHaveURL(/\/profile\/settings$/);
+    await page.locator('a[routerLink="/profile/settings/password"]').click();
+    await expect(page).toHaveURL(/\/profile\/settings\/password$/);
 
     const form = page.locator('form.security-page__form');
     await form.locator('input.uii-native').nth(0).fill('OldPassword1');
@@ -62,7 +64,7 @@ test.describe('Change password', () => {
       changePassword: { status: 400, body: { errorCode: 'auth.invalid_current_password' } },
     });
 
-    await page.goto('/profile/security');
+    await page.goto('/profile/settings/password');
 
     const form = page.locator('form.security-page__form');
     await form.locator('input.uii-native').nth(0).fill('WrongPassword1');
@@ -81,7 +83,7 @@ test.describe('Change password', () => {
       changePassword: { status: 429, body: {} },
     });
 
-    await page.goto('/profile/security');
+    await page.goto('/profile/settings/password');
 
     const form = page.locator('form.security-page__form');
     await form.locator('input.uii-native').nth(0).fill('OldPassword1');

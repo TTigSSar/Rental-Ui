@@ -164,24 +164,11 @@
 
           <!-- Settings -->
           <div class="profile-page__sidebar-settings">
-            <button type="button" class="profile-page__sidebar-settings-item" disabled>
-              <app-icon name="dollar" [size]="15" />
-              <span class="profile-page__sidebar-settings-label">{{ 'profile.nav.earningsPayouts' | translate }}</span>
-              <app-icon name="chevron-right" [size]="14" />
-            </button>
-            <button type="button" class="profile-page__sidebar-settings-item" disabled>
-              <app-icon name="shield" [size]="15" />
-              <span class="profile-page__sidebar-settings-label">{{ 'profile.nav.verificationId' | translate }}</span>
-              <app-icon name="chevron-right" [size]="14" />
-            </button>
-            <button type="button" class="profile-page__sidebar-settings-item" disabled>
-              <app-icon name="bell" [size]="15" />
-              <span class="profile-page__sidebar-settings-label">{{ 'profile.nav.notifications' | translate }}</span>
-              <app-icon name="chevron-right" [size]="14" />
-            </button>
-            <a class="profile-page__sidebar-settings-item" routerLink="/profile/security">
-              <app-icon name="lock" [size]="15" />
-              <span class="profile-page__sidebar-settings-label">{{ 'profile.nav.security' | translate }}</span>
+            <a class="profile-page__sidebar-settings-item"
+               routerLink="/profile/settings"
+               routerLinkActive="profile-page__sidebar-settings-item--active">
+              <app-icon name="cog" [size]="15" />
+              <span class="profile-page__sidebar-settings-label">{{ 'profile.nav.settings' | translate }}</span>
               <app-icon name="chevron-right" [size]="14" />
             </a>
             <button type="button" class="profile-page__sidebar-signout" (click)="logout()">
@@ -319,72 +306,16 @@
                 </a>
               </div>
 
-              <!-- Settings section -->
+              <!-- Settings entry (password, language, account live on /profile/settings) -->
               <div class="profile-page__m-settings">
-                <p class="profile-page__m-section-hdr">SETTINGS</p>
-                <div class="profile-page__m-menu" data-lang-section>
-                  <button type="button" class="profile-page__m-item" disabled>
+                <div class="profile-page__m-menu">
+                  <a class="profile-page__m-item profile-page__m-item--last" routerLink="/profile/settings">
                     <span class="profile-page__m-icon profile-page__m-icon--gray">
-                      <app-icon name="dollar" [size]="17" />
+                      <app-icon name="cog" [size]="17" />
                     </span>
                     <div class="profile-page__m-item-body">
-                      <span class="profile-page__m-item-label">{{ 'profile.nav.earningsPayouts' | translate }}</span>
-                    </div>
-                    <app-icon name="chevron-right" [size]="16" class="profile-page__m-chevron" />
-                  </button>
-
-                  <button type="button" class="profile-page__m-item" (click)="toggleLanguageMenu()">
-                    <span class="profile-page__m-icon profile-page__m-icon--gray">
-                      <i class="pi pi-globe" style="font-size: 1rem;"></i>
-                    </span>
-                    <div class="profile-page__m-item-body">
-                      <span class="profile-page__m-item-label">{{ 'profile.nav.language' | translate }}</span>
-                    </div>
-                    <span class="profile-page__m-item-meta">{{ currentLang().native }}</span>
-                    <app-icon
-                      name="chevron-right"
-                      [size]="16"
-                      class="profile-page__m-chevron"
-                      [class.profile-page__m-chevron--open]="languageMenuOpen()"
-                    />
-                  </button>
-
-                  @if (languageMenuOpen()) {
-                    <div class="profile-page__lang-dropdown profile-page__lang-dropdown--inline" role="menu">
-                      @for (option of availableLanguages; track option.code) {
-                        <button
-                          type="button"
-                          class="profile-page__lang-option"
-                          [class.profile-page__lang-option--active]="option.code === currentLang().code"
-                          role="menuitemradio"
-                          [attr.aria-checked]="option.code === currentLang().code"
-                          (click)="selectLanguage(option)"
-                        >
-                          <span>{{ option.native }}</span>
-                          @if (option.code === currentLang().code) {
-                            <i class="pi pi-check" aria-hidden="true"></i>
-                          }
-                        </button>
-                      }
-                    </div>
-                  }
-
-                  <button type="button" class="profile-page__m-item" disabled>
-                    <span class="profile-page__m-icon profile-page__m-icon--gray">
-                      <app-icon name="bell" [size]="17" />
-                    </span>
-                    <div class="profile-page__m-item-body">
-                      <span class="profile-page__m-item-label">{{ 'profile.nav.notifications' | translate }}</span>
-                    </div>
-                    <app-icon name="chevron-right" [size]="16" class="profile-page__m-chevron" />
-                  </button>
-
-                  <a class="profile-page__m-item profile-page__m-item--last" routerLink="/profile/security">
-                    <span class="profile-page__m-icon profile-page__m-icon--gray">
-                      <app-icon name="lock" [size]="17" />
-                    </span>
-                    <div class="profile-page__m-item-body">
-                      <span class="profile-page__m-item-label">{{ 'profile.nav.security' | translate }}</span>
+                      <span class="profile-page__m-item-label">{{ 'profile.nav.settings' | translate }}</span>
+                      <span class="profile-page__m-item-sub">{{ 'profile.nav.settingsSub' | translate }}</span>
                     </div>
                     <app-icon name="chevron-right" [size]="16" class="profile-page__m-chevron" />
                   </a>
@@ -447,59 +378,17 @@
               </div>
             }
 
-            <!-- Settings (language, notifications, help) — desktop only -->
-            <div class="profile-page__menu-section profile-page__desktop-only" data-lang-section>
+            <!-- Help — desktop only (language, notifications and security moved to /profile/settings) -->
+            <div class="profile-page__menu-section profile-page__desktop-only">
               <div class="profile-page__menu-card profile-page__menu-card--overflow-hidden">
-                <button type="button" class="profile-page__menu-row" (click)="toggleLanguageMenu()">
-                  <span class="profile-page__menu-icon-wrap">
-                    <i class="pi pi-globe" aria-hidden="true"></i>
-                  </span>
-                  <span class="profile-page__menu-label">{{ 'profile.nav.language' | translate }}</span>
-                  <span class="profile-page__menu-meta">{{ currentLang().native }}</span>
-                  <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
-                </button>
-                <button type="button" class="profile-page__menu-row" disabled>
-                  <span class="profile-page__menu-icon-wrap">
-                    <i class="pi pi-bell" aria-hidden="true"></i>
-                  </span>
-                  <span class="profile-page__menu-label">{{ 'profile.nav.notifications' | translate }}</span>
-                  <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
-                </button>
-                <a class="profile-page__menu-row" routerLink="/faq">
+                <a class="profile-page__menu-row profile-page__menu-row--last" routerLink="/faq">
                   <span class="profile-page__menu-icon-wrap">
                     <i class="pi pi-question-circle" aria-hidden="true"></i>
                   </span>
                   <span class="profile-page__menu-label">{{ 'profile.nav.helpCenter' | translate }}</span>
                   <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
                 </a>
-                <a class="profile-page__menu-row profile-page__menu-row--last" routerLink="/profile/security">
-                  <span class="profile-page__menu-icon-wrap">
-                    <i class="pi pi-lock" aria-hidden="true"></i>
-                  </span>
-                  <span class="profile-page__menu-label">{{ 'profile.nav.security' | translate }}</span>
-                  <i class="pi pi-angle-right profile-page__menu-chevron" aria-hidden="true"></i>
-                </a>
               </div>
-
-              @if (languageMenuOpen()) {
-                <div class="profile-page__lang-dropdown" role="menu">
-                  @for (option of availableLanguages; track option.code) {
-                    <button
-                      type="button"
-                      class="profile-page__lang-option"
-                      [class.profile-page__lang-option--active]="option.code === currentLang().code"
-                      role="menuitemradio"
-                      [attr.aria-checked]="option.code === currentLang().code"
-                      (click)="selectLanguage(option)"
-                    >
-                      <span>{{ option.native }}</span>
-                      @if (option.code === currentLang().code) {
-                        <i class="pi pi-check" aria-hidden="true"></i>
-                      }
-                    </button>
-                  }
-                </div>
-              }
             </div>
 
             <!-- Logout — desktop only -->

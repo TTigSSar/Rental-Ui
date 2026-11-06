@@ -29,7 +29,7 @@ type SecurityPhase = 'form' | 'submitting' | 'success';
 type SecurityFormField = 'currentPassword' | 'newPassword' | 'confirmPassword';
 
 /**
- * `/profile/security` — the change-password form (ADR-021). Component-local state, following
+ * `/profile/settings/password` (was `/profile/security`) — the change-password form (ADR-021). Component-local state, following
  * `features/reports/.../report-dialog`: a one-shot request/response with nothing to keep in
  * sync, so an NgRx slice would be pure ceremony. Deliberately NOT the `updatePreferredLanguage`
  * pattern (`auth.actions.ts`), which dispatches one action and swallows failures silently —

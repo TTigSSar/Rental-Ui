@@ -83,7 +83,7 @@ test.describe('Password change revokes other sessions (real stack, ADR-055)', ()
       .toBeGreaterThanOrEqual(1);
     const socketsBefore = hubSockets.length;
 
-    await page.goto('/profile/security');
+    await page.goto('/profile/settings/password');
     const form = page.locator('form.security-page__form');
     await form.locator('input.uii-native').nth(0).fill(user.password);
     await form.locator('input.uii-native').nth(1).fill(NEW_PASSWORD);
