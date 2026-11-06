@@ -64,6 +64,9 @@ export type KnownApiErrorCode =
   // Listing/User/Message is invalid — AdminReportsController.
   | 'admin.report_target_filter_incomplete'
   | 'admin.report_invalid_target_filter'
+  // admin.demand_range_invalid — AdminDemandService (demand analytics, ADR-057): 400 via
+  // AdminDemandController.FromError when the requested date range is invalid.
+  | 'admin.demand_range_invalid'
   // admin.cannot_message_* — AdminMessagesService (admin Messages screen, open a thread for a user).
   // Both 400 via AdminMessagesController.FromError: opening a thread with your own account /
   // with another admin.
