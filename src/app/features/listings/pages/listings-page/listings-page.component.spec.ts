@@ -232,6 +232,32 @@ describe('ListingsPageComponent — Maps P2-2 view toggle', () => {
     expect(el.querySelector('.listings-page__grid')).toBeNull();
   });
 
+  it('projects the touch-gate hint into the gate card on the catalogue map (touch pointer)', async () => {
+    const mediaStub = (coarse: boolean) =>
+      vi.fn((query: string) => ({
+        matches: coarse && query === '(pointer: coarse)',
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(() => true),
+        onchange: null,
+      }));
+    vi.stubGlobal('matchMedia', mediaStub(true));
+    try {
+      const { el } = await navigateToListings('/listings?view=map', {
+        translations: { 'listings.details.location.touchGateHint': 'Tap to move the map' },
+      });
+
+      const card = el.querySelector('.app-map__gate-card');
+      expect(card).not.toBeNull();
+      expect(card!.textContent?.trim()).toBe('Tap to move the map');
+    } finally {
+      vi.stubGlobal('matchMedia', mediaStub(false));
+    }
+  });
+
   it('renders the grid (not the map) with no `view` param, even though the toggle is present', async () => {
     const { el } = await navigateToListings('/listings');
 

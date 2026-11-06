@@ -469,7 +469,9 @@
             }
           }
         } @else {
-          <app-listings-map class="listings-page__map" />
+          <app-listings-map class="listings-page__map">
+            <span app-map-gate-hint>{{ 'listings.details.location.touchGateHint' | translate }}</span>
+          </app-listings-map>
         }
         </div><!-- /lp-results -->
       }
