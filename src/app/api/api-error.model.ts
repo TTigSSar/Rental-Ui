@@ -284,6 +284,27 @@ export interface ApiProblemDetails {
   errorCode?: ApiErrorCode;
   /** ASP.NET validation ProblemDetails also carries this map, keyed by field name. */
   errors?: Record<string, string[]>;
+  /** Extension on 409 `account.has_open_rentals` only (ADR-056): the bookings blocking deletion. */
+  openRentals?: OpenRental[];
+}
+
+/**
+ * One Approved/Active booking blocking account deletion — backend `OpenRentalResponse`.
+ * `startDate`/`endDate` are `yyyy-MM-dd`; `role` is from the deleting user's point of view.
+ */
+export interface OpenRental {
+  bookingId: string;
+  listingTitle: string;
+  listingImageUrl: string | null;
+  startDate: string;
+  endDate: string;
+  role: 'renter' | 'owner';
+}
+
+/** Body of `DELETE /api/auth/me` (ADR-056). Password accounts send `password`; Google-only send `email`. */
+export interface DeleteAccountRequest {
+  password: string | null;
+  email: string | null;
 }
 
 /**

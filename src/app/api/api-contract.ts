@@ -17,6 +17,12 @@ export const ApiContract = {
     register: '/api/auth/register',
     currentUser: '/api/auth/me',
     updatePreferredLanguage: '/api/auth/me/preferred-language',
+    // deleteAccount (ADR-056): [Authorize] DELETE on the SAME path as `currentUser` (verb differs).
+    // Body `DeleteAccountRequest { password: string | null; email: string | null }` -> 204 no body.
+    // 400 `account.invalid_confirmation`, 403 `account.admin_cannot_delete`, 409
+    // `account.has_open_rentals` (ProblemDetails extension `openRentals: OpenRental[]`),
+    // 409 `account.state_changed`, 401, 429. Not refused for a blocked caller.
+    deleteAccount: '/api/auth/me',
     // changePassword: [Authorize] PUT, body { currentPassword, newPassword } -> 200 `AuthResponse`
     // (ADR-055; was 204). The response carries a NEW token - the old one is revoked, so the
     // caller must store it. Error codes unchanged (400 invalid_current_password |

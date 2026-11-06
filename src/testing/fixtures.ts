@@ -48,6 +48,7 @@ export function makeUser(overrides: Partial<CurrentUser> = {}): CurrentUser {
     lastName: 'Lovelace',
     phoneNumber: '+37400000000',
     roles: ['User'],
+    hasPassword: true,
     homePoint: null,
     ...overrides,
   };
