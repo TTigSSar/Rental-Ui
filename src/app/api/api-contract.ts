@@ -199,6 +199,9 @@ export const ApiContract = {
     root: '/api/admin/overview',
     activity: '/api/admin/overview/activity',
   },
+  // Admin-only aggregated booking-request demand (P3-3), see AdminDemandController. `from`/`to`
+  // (yyyy-MM-dd) are sent via HttpParams, not in the path.
+  adminDemand: { root: '/api/admin/demand' },
   home: {
     sections: '/api/home/sections',
   },
