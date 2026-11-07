@@ -5,8 +5,8 @@ const BODY_MAX_CHARS = 100;
 
 /**
  * Whether a realtime message should raise an OS notification: the tab is hidden, the
- * permission is granted and the message is a real one from someone else (not own, not a
- * system line or moderation note).
+ * permission is granted and the message is a real one or a moderator note from someone else
+ * (not own, not a system line). A note may carry no sender (system-authored); it still notifies.
  */
 export function shouldNotifyChatMessage(input: {
   message: ChatRealtimeMessage;
@@ -18,8 +18,11 @@ export function shouldNotifyChatMessage(input: {
   if (!pageHidden || permission !== 'granted' || currentUserId === null) {
     return false;
   }
-  if (message.type === 'system' || message.type === 'moderationNote') {
+  if (message.type === 'system') {
     return false;
+  }
+  if (message.type === 'moderationNote') {
+    return message.senderId !== currentUserId;
   }
   return message.senderId !== null && message.senderId !== currentUserId;
 }

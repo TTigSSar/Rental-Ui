@@ -2438,7 +2438,8 @@
     },
     "notify": {
       "photo": "Լուսանկար",
-      "location": "Հանդիպման վայր"
+      "location": "Հանդիպման վայր",
+      "moderation": "DoRent մոդերացիա"
     },
     "common": {
       "notAvailable": "Հասանելի չէ"

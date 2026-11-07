@@ -41,13 +41,25 @@ describe('shouldNotifyChatMessage', () => {
     },
   );
 
-  it('stays quiet for own messages, system lines and moderation notes', () => {
+  it('stays quiet for own messages and system lines', () => {
     expect(shouldNotifyChatMessage({ ...base, message: msg({ senderId: 'me' }) })).toBe(false);
     expect(shouldNotifyChatMessage({ ...base, message: msg({ senderId: null }) })).toBe(false);
     expect(shouldNotifyChatMessage({ ...base, message: msg({ type: 'system' }) })).toBe(false);
-    expect(shouldNotifyChatMessage({ ...base, message: msg({ type: 'moderationNote' }) })).toBe(
-      false,
-    );
+  });
+
+  it('notifies for a moderation note unless the current user wrote it', () => {
+    const note = (senderId: string | null) =>
+      shouldNotifyChatMessage({ ...base, message: msg({ type: 'moderationNote', senderId }) });
+    expect(note('admin')).toBe(true);
+    expect(note(null)).toBe(true);
+    expect(note('me')).toBe(false);
+    expect(
+      shouldNotifyChatMessage({
+        ...base,
+        pageHidden: false,
+        message: msg({ type: 'moderationNote', senderId: 'admin' }),
+      }),
+    ).toBe(false);
   });
 
   it('stays quiet when nobody is signed in (ADR-036)', () => {

@@ -38,7 +38,11 @@ export class ChatBrowserNotifier {
     }
 
     const close = this.browser.show({
-      title: message.senderName?.trim() || 'DoRent',
+      title:
+        message.senderName?.trim() ||
+        (message.type === 'moderationNote'
+          ? this.translate.instant('chat.notify.moderation')
+          : 'DoRent'),
       body: this.bodyFor(message),
       tag: message.conversationId,
       onClick: () => {

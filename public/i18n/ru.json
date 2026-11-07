@@ -2438,7 +2438,8 @@
     },
     "notify": {
       "photo": "Фото",
-      "location": "Место встречи"
+      "location": "Место встречи",
+      "moderation": "Модерация DoRent"
     },
     "common": {
       "notAvailable": "Недоступно"

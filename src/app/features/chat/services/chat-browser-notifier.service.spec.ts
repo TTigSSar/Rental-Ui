@@ -58,7 +58,9 @@ describe('ChatBrowserNotifier', () => {
     TestBed.inject(MockStore).overrideSelector(selectAuthUser, user as never);
     const translate = TestBed.inject(TranslateService);
     translate.setTranslation('en', {
-      chat: { notify: { photo: 'Photo', location: 'Meeting point' } },
+      chat: {
+        notify: { photo: 'Photo', location: 'Meeting point', moderation: 'DoRent Moderation' },
+      },
     });
     translate.use('en');
     return TestBed.inject(ChatBrowserNotifier);
@@ -83,6 +85,21 @@ describe('ChatBrowserNotifier', () => {
   it('uses a localized Photo body for an image-only message', () => {
     setup().notify(msg({ type: 'image', body: null }));
     expect(show.mock.calls[0][0].body).toBe('Photo');
+  });
+
+  it('shows a moderation note with the sender name, or the localized moderation title', () => {
+    const notifier = setup();
+    notifier.notify(msg({ type: 'moderationNote', senderName: 'Admin', body: 'Listing rejected' }));
+    notifier.notify(
+      msg({ type: 'moderationNote', senderId: null, senderName: null, body: 'Note' }),
+    );
+    expect(show.mock.calls[0][0]).toMatchObject({ title: 'Admin', body: 'Listing rejected' });
+    expect(show.mock.calls[1][0]).toMatchObject({ title: 'DoRent Moderation', body: 'Note' });
+  });
+
+  it('does not notify the admin about their own moderation note', () => {
+    setup().notify(msg({ type: 'moderationNote', senderId: 'me' }));
+    expect(show).not.toHaveBeenCalled();
   });
 
   it('click focuses the window and opens that chat', () => {

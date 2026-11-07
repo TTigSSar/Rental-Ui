@@ -2438,7 +2438,8 @@
     },
     "notify": {
       "photo": "Photo",
-      "location": "Meeting point"
+      "location": "Meeting point",
+      "moderation": "DoRent Moderation"
     },
     "common": {
       "notAvailable": "Not available"
