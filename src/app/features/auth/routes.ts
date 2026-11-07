@@ -25,6 +25,20 @@ export const authVerificationRoutes: Routes = [
   },
 ];
 
+/**
+ * `/unsubscribe/chat-emails?t=...` - landing page of the chat-email "Unsubscribe" link (ADR-059).
+ * Public on purpose (no guard): it is opened from a mailbox, often signed out.
+ */
+export const chatEmailUnsubscribeRoutes: Routes = [
+  {
+    path: 'chat-emails',
+    loadComponent: () =>
+      import('./pages/chat-email-unsubscribe-page/chat-email-unsubscribe-page.component').then(
+        (m) => m.ChatEmailUnsubscribePageComponent,
+      ),
+  },
+];
+
 export const authRoutes: Routes = [
   {
     path: 'login',

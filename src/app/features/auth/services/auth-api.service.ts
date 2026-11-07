@@ -7,6 +7,7 @@ import type {
   AuthResponse,
   BackendAuthResponse,
   ChangePasswordRequest,
+  ChatEmailUnsubscribeResponse,
   CurrentUser,
   ExternalAuthRequest,
   ExternalNonceResponse,
@@ -256,6 +257,24 @@ export class AuthApiService {
     return this.http
       .put<BackendAuthResponse>(toApiUrl(ApiContract.auth.changePassword), request)
       .pipe(map((response) => this.normalizeAuthResponse(response)));
+  }
+
+  /** `PUT /api/auth/me/chat-emails` (ADR-059) — 200 refreshed `CurrentUserResponse`. */
+  updateChatEmails(enabled: boolean): Observable<CurrentUser> {
+    return this.http
+      .put<Record<string, unknown>>(toApiUrl(ApiContract.auth.meChatEmails), { enabled })
+      .pipe(map((raw) => this.normalizeCurrentUser(raw)));
+  }
+
+  /**
+   * `POST /api/auth/chat-emails/unsubscribe` (ADR-059, anonymous) — 200 `{ result }`; 400
+   * `chat_email.unsubscribe_invalid`; 429 possible. The token is the emailed link's `t`.
+   */
+  unsubscribeChatEmails(token: string): Observable<ChatEmailUnsubscribeResponse> {
+    return this.http.post<ChatEmailUnsubscribeResponse>(
+      toApiUrl(ApiContract.auth.chatEmailsUnsubscribe),
+      { token },
+    );
   }
 
   private normalizeCurrentUser(raw: Record<string, unknown>): CurrentUser {

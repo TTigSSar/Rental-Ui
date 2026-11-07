@@ -3,7 +3,7 @@ import { createFeatureSelector, createSelector } from '@ngrx/store';
 import type { ApiErrorCode } from '../../../api/api-error.model';
 import type { CurrentUser, HomePoint } from '../models/auth.models';
 import { authFeatureKey } from './auth.reducer';
-import type { AuthState, ExternalAuthError } from './auth.state';
+import type { AuthState, ChatEmailsSaveState, ExternalAuthError } from './auth.state';
 
 export const selectAuthState = createFeatureSelector<AuthState>(authFeatureKey);
 
@@ -153,4 +153,14 @@ export const selectPhoneErrorCode = createSelector(
 export const selectPhoneMissing = createSelector(
   selectAuthUser,
   (user: CurrentUser | null): boolean => user !== null && (user.phoneNumber ?? '').trim() === '',
+);
+
+export const selectChatEmailsEnabled = createSelector(
+  selectAuthState,
+  (state: AuthState | undefined): boolean => state?.user?.chatEmailsEnabled ?? true,
+);
+
+export const selectChatEmailsSaveState = createSelector(
+  selectAuthState,
+  (state: AuthState | undefined): ChatEmailsSaveState => state?.chatEmailsSaveState ?? 'idle',
 );

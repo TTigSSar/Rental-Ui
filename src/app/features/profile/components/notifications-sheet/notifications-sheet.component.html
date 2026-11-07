@@ -1,0 +1,85 @@
+<div class="ns__backdrop" (click)="closed.emit()" aria-hidden="true"></div>
+<div class="ns" role="dialog" aria-modal="true" aria-labelledby="ns-title">
+  <div class="ns__handle" aria-hidden="true"></div>
+  <div class="ns__head">
+    <h2 id="ns-title" class="ns__title">{{ 'profile.settings.notifications' | translate }}</h2>
+    <button
+      type="button"
+      class="ns__close"
+      [attr.aria-label]="'common.close' | translate"
+      (click)="closed.emit()"
+    >
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <div class="ns__card" role="list" [attr.aria-label]="'profile.settings.notifications' | translate">
+    <!-- Row A: chat emails -->
+    <div class="ns__row" role="listitem">
+      <span class="ns__tile"><i class="pi pi-envelope" aria-hidden="true"></i></span>
+      <div class="ns__body">
+        <span id="ns-email-label" class="ns__label">{{ 'profile.settings.chatEmails.label' | translate }}</span>
+        <span id="ns-email-hint" class="ns__hint">{{ 'profile.settings.chatEmails.hint' | translate }}</span>
+        @if (saveState() === 'saved') {
+          <span class="ns__feedback ns__feedback--ok" role="status">
+            <i class="pi pi-check" aria-hidden="true"></i>{{ 'profile.settings.chatEmails.saved' | translate }}
+          </span>
+        } @else if (saveState() === 'failed') {
+          <span class="ns__feedback ns__feedback--error" role="alert">
+            <i class="pi pi-exclamation-circle" aria-hidden="true"></i>{{ 'profile.settings.chatEmails.failed' | translate }}
+          </span>
+        }
+      </div>
+      <button
+        type="button"
+        role="switch"
+        class="ns__switch"
+        [class.ns__switch--on]="emailsEnabled()"
+        [attr.aria-checked]="emailsEnabled()"
+        aria-labelledby="ns-email-label"
+        aria-describedby="ns-email-hint"
+        (click)="toggleEmails()"
+      >
+        <span class="ns__track"><span class="ns__knob"></span></span>
+      </button>
+    </div>
+
+    <!-- Row B: browser notifications -->
+    @if (permission() === 'unsupported') {
+      <div class="ns__row ns__row--muted" role="listitem" aria-disabled="true">
+        <span class="ns__tile"><i class="pi pi-desktop" aria-hidden="true"></i></span>
+        <div class="ns__body">
+          <span class="ns__label">{{ 'profile.settings.browser.label' | translate }}</span>
+          <span class="ns__hint">{{ 'profile.settings.browser.unsupported' | translate }}</span>
+        </div>
+      </div>
+    } @else {
+      <div class="ns__row" role="listitem">
+        <span class="ns__tile"><i class="pi pi-desktop" aria-hidden="true"></i></span>
+        <div class="ns__body">
+          <span class="ns__label">{{ 'profile.settings.browser.label' | translate }}</span>
+          <span class="ns__hint">{{ 'profile.settings.browser.hint' | translate }}</span>
+          @if (permission() === 'granted') {
+            <span class="ns__offhint">
+              <i class="pi pi-cog" aria-hidden="true"></i>{{ 'profile.settings.browser.offHint' | translate }}
+            </span>
+          } @else if (permission() === 'denied') {
+            <div class="ns__note" role="status">
+              <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+              <span>{{ 'profile.settings.browser.blocked' | translate }}</span>
+            </div>
+          }
+        </div>
+        @if (permission() === 'default') {
+          <button type="button" class="ns__btn" (click)="enableBrowser()">
+            {{ 'profile.settings.browser.enable' | translate }}
+          </button>
+        } @else if (permission() === 'granted') {
+          <span class="ns__pill">
+            <i class="pi pi-check" aria-hidden="true"></i>{{ 'profile.settings.browser.on' | translate }}
+          </span>
+        }
+      </div>
+    }
+  </div>
+</div>

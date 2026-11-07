@@ -10,18 +10,19 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { LanguageOption, LanguageService } from '../../../../shared/services/language.service';
+import { NotificationsSheetComponent } from '../../components/notifications-sheet/notifications-sheet.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 
 /**
  * `/profile/settings` — the account settings list (AD-1). Rows: Password (link), Language
- * (inline expand, reuses `LanguageService`), Notifications (inactive, "Coming soon").
+ * (inline expand, reuses `LanguageService`), Notifications (opens the notifications sheet/dialog).
  * The Delete-account card (AD-4) drops into the `settings-page__danger-slot` below the divider.
  */
 @Component({
   selector: 'app-settings-page',
   standalone: true,
-  imports: [IconComponent, PageHeaderComponent, RouterLink, TranslatePipe],
+  imports: [IconComponent, NotificationsSheetComponent, PageHeaderComponent, RouterLink, TranslatePipe],
   templateUrl: './settings-page.component.html',
   styleUrl: './settings-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -48,6 +49,16 @@ export class SettingsPageComponent {
   protected selectLanguage(option: LanguageOption): void {
     this.languageService.use(option.code);
     this.languageMenuOpen.set(false);
+  }
+
+  protected readonly notificationsOpen = signal(false);
+
+  protected openNotifications(): void {
+    this.notificationsOpen.set(true);
+  }
+
+  protected closeNotifications(): void {
+    this.notificationsOpen.set(false);
   }
 
   @HostListener('document:click', ['$event'])
