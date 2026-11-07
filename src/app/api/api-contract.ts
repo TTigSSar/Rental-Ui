@@ -59,6 +59,13 @@ export const ApiContract = {
     //   auth.reset_token_invalid). Read-only, never consumes the token.
     // resetPassword: body { token, newPassword } -> 200 AuthResponse (400
     //   auth.reset_token_expired | auth.reset_token_invalid | auth.password_too_long).
+    // Chat-unread emails (ADR-059).
+    // meChatEmails: [Authorize] PUT, body { enabled: boolean } (required) -> 200 `CurrentUserResponse`
+    //   (400 validation, 401 auth.unauthenticated, 403 auth.user_blocked).
+    // chatEmailsUnsubscribe: [AllowAnonymous] POST, body { token } -> 200 { result: 'unsubscribed' |
+    //   'alreadyOff' } (400 chat_email.unsubscribe_invalid; 429, per-IP `auth` rate limit, no body).
+    meChatEmails: '/api/auth/me/chat-emails',
+    chatEmailsUnsubscribe: '/api/auth/chat-emails/unsubscribe',
     forgotPassword: '/api/auth/forgot-password',
     resetPasswordCheck: '/api/auth/reset-password/check',
     resetPassword: '/api/auth/reset-password',

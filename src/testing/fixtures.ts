@@ -50,6 +50,7 @@ export function makeUser(overrides: Partial<CurrentUser> = {}): CurrentUser {
     roles: ['User'],
     hasPassword: true,
     homePoint: null,
+    chatEmailsEnabled: true,
     ...overrides,
   };
 }

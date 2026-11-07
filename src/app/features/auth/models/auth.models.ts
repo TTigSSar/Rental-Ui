@@ -174,6 +174,23 @@ export interface CurrentUser {
    * `listing.home_point_required`.
    */
   homePoint: HomePoint | null;
+  /** ADR-059: unread-chat-message emails on/off. Non-null; the backend default is true. */
+  chatEmailsEnabled: boolean;
+}
+
+/** Body of `PUT /api/auth/me/chat-emails` (ADR-059) — mirrors `UpdateChatEmailsRequest`; `enabled` is required (400 if missing). */
+export interface UpdateChatEmailsRequest {
+  enabled: boolean;
+}
+
+/** Body of `POST /api/auth/chat-emails/unsubscribe` (ADR-059) — mirrors `ChatEmailUnsubscribeRequest`. */
+export interface ChatEmailUnsubscribeRequest {
+  token: string;
+}
+
+/** `POST /api/auth/chat-emails/unsubscribe` 200 body — mirrors `ChatEmailUnsubscribeResponse`. */
+export interface ChatEmailUnsubscribeResponse {
+  result: 'unsubscribed' | 'alreadyOff';
 }
 
 export interface AuthResponse {

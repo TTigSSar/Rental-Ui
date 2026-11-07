@@ -72,6 +72,9 @@ export type KnownApiErrorCode =
   // with another admin.
   | 'admin.cannot_message_self'
   | 'admin.cannot_message_admin'
+  // chat_email.unsubscribe_invalid — ChatEmailUnsubscribeService (ADR-059): 400 on
+  // POST /api/auth/chat-emails/unsubscribe for an invalid/expired/altered token or unknown/deleted user.
+  | 'chat_email.unsubscribe_invalid'
   // auth.* — AuthService
   | 'auth.duplicate_email'
   | 'auth.invalid_credentials'

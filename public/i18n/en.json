@@ -61,7 +61,8 @@
     "aiSearchDailyLimit": "You've used today's AI searches. Regular search still works.",
     "invalidLanguage": "Choose a supported language: English, Russian or Armenian.",
     "cannotMessageSelf": "You can't open a conversation with your own account.",
-    "cannotMessageAdmin": "You can't open a conversation with another admin."
+    "cannotMessageAdmin": "You can't open a conversation with another admin.",
+    "chatEmailUnsubscribeInvalid": "This unsubscribe link is invalid or has expired. You can turn chat emails off in Settings."
   },
   "calendar": {
     "monthNames": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],

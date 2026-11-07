@@ -272,6 +272,7 @@ export class AuthApiService {
       roles: resolveRoles(raw),
       hasPassword: raw['hasPassword'] !== false,
       homePoint: normalizeHomePoint(raw['homePoint']),
+      chatEmailsEnabled: raw['chatEmailsEnabled'] !== false,
     };
   }
 

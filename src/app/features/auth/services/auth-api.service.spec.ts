@@ -71,6 +71,7 @@ describe('AuthApiService.updatePreferredLanguage', () => {
       // A payload with no `homePoint` member maps to null — the same state as a
       // user who has not set one (home-point model).
       homePoint: null,
+      chatEmailsEnabled: true,
     });
   });
 
@@ -240,6 +241,7 @@ describe('AuthApiService — homePoint normalisation (GET /api/auth/me)', () => 
         lastName: 'B',
         phoneNumber,
         homePoint: null,
+        chatEmailsEnabled: true,
       });
       expect(result!.phoneNumber).toBeNull();
     }
@@ -307,6 +309,7 @@ describe('AuthApiService — home-point write routes', () => {
       lastName: 'Lovelace',
       role: 'User',
       homePoint: null,
+      chatEmailsEnabled: true,
     });
 
     expect(result!.homePoint).toBeNull();

@@ -43,6 +43,7 @@ export const API_ERROR_MESSAGE_KEYS: Readonly<Record<KnownApiErrorCode, string>>
   'admin.demand_range_invalid': 'errors.validation',
   'admin.cannot_message_self': 'errors.cannotMessageSelf',
   'admin.cannot_message_admin': 'errors.cannotMessageAdmin',
+  'chat_email.unsubscribe_invalid': 'errors.chatEmailUnsubscribeInvalid',
   // auth.*
   'auth.duplicate_email': 'auth.validation.emailTaken',
   'auth.invalid_credentials': 'errors.invalidCredentials',
