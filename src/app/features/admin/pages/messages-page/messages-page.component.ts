@@ -352,6 +352,8 @@ export class MessagesPageComponent implements OnInit {
     const role = this.translate.instant(
       `admin.users.role.${row.memberMarketplaceRole.toLowerCase()}`,
     );
+    // ADR-056 §7: a deleted member shows no status — the role only.
+    if (row.memberIsDeleted) return role;
     const status = this.translate.instant(`admin.users.status.${row.memberStatus.toLowerCase()}`);
     return `${role} · ${status}`;
   }
