@@ -1248,15 +1248,12 @@
       "myRentals": "Мои бронирования",
       "incomingRequests": "Входящие запросы",
       "favorites": "Сохранённые игрушки",
-      "earningsPayouts": "Доходы и выплаты",
       "viewProfile": "Открыть профиль",
       "accountSettings": "Настройки аккаунта",
-      "verificationId": "Верификация и ID",
-      "language": "Язык",
-      "notifications": "Уведомления",
       "helpCenter": "Справка",
-      "security": "Безопасность",
-      "logout": "Выйти"
+      "logout": "Выйти",
+      "settings": "Настройки",
+      "settingsSub": "Пароль, язык, аккаунт"
     },
     "actions": {
       "heading": "Быстрые действия"
@@ -1301,6 +1298,14 @@
       "listings": "Объявления",
       "rentals": "Аренды",
       "reviews": "Отзывы"
+    },
+    "settings": {
+      "title": "Настройки",
+      "password": "Пароль",
+      "passwordGoogle": "Вы входите через Google",
+      "language": "Язык",
+      "notifications": "Уведомления",
+      "comingSoon": "Скоро"
     },
     "security": {
       "page": {

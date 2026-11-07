@@ -41,9 +41,9 @@
            `ngProjectAs` telling it to be treated as `[app-map-actions]` for
            that outer bucketing, the tag matches nothing and the projected
            button/hint silently vanishes (confirmed live — `.app-map__actions`
-           rendered, but empty). Only used by the listing-detail maps today
-           (the "expand"/"my location" buttons, scroll/touch gate hints); the
-           catalogue usage projects nothing here. -->
+           rendered, but empty). Used by the listing-detail maps (the
+           "expand"/"my location" buttons, scroll/touch gate hints); the
+           catalogue page projects only the touch-gate hint. -->
       <ng-content select="[app-map-actions]" ngProjectAs="[app-map-actions]" />
       <ng-content select="[app-map-scroll-hint]" ngProjectAs="[app-map-scroll-hint]" />
       <ng-content select="[app-map-gate-hint]" ngProjectAs="[app-map-gate-hint]" />

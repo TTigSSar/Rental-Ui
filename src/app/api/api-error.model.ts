@@ -64,6 +64,9 @@ export type KnownApiErrorCode =
   // Listing/User/Message is invalid — AdminReportsController.
   | 'admin.report_target_filter_incomplete'
   | 'admin.report_invalid_target_filter'
+  // admin.demand_range_invalid — AdminDemandService (demand analytics, ADR-057): 400 via
+  // AdminDemandController.FromError when the requested date range is invalid.
+  | 'admin.demand_range_invalid'
   // admin.cannot_message_* — AdminMessagesService (admin Messages screen, open a thread for a user).
   // Both 400 via AdminMessagesController.FromError: opening a thread with your own account /
   // with another admin.
@@ -284,6 +287,27 @@ export interface ApiProblemDetails {
   errorCode?: ApiErrorCode;
   /** ASP.NET validation ProblemDetails also carries this map, keyed by field name. */
   errors?: Record<string, string[]>;
+  /** Extension on 409 `account.has_open_rentals` only (ADR-056): the bookings blocking deletion. */
+  openRentals?: OpenRental[];
+}
+
+/**
+ * One Approved/Active booking blocking account deletion — backend `OpenRentalResponse`.
+ * `startDate`/`endDate` are `yyyy-MM-dd`; `role` is from the deleting user's point of view.
+ */
+export interface OpenRental {
+  bookingId: string;
+  listingTitle: string;
+  listingImageUrl: string | null;
+  startDate: string;
+  endDate: string;
+  role: 'renter' | 'owner';
+}
+
+/** Body of `DELETE /api/auth/me` (ADR-056). Password accounts send `password`; Google-only send `email`. */
+export interface DeleteAccountRequest {
+  password: string | null;
+  email: string | null;
 }
 
 /**

@@ -1,0 +1,81 @@
+<section class="settings-page page-container section-stack">
+  <app-ui-page-header
+    [title]="'profile.settings.title' | translate"
+    backLink="/profile"
+    mobileTitleAlign="start"
+    [hideOnDesktop]="true"
+  />
+  <h1 class="settings-page__title">{{ 'profile.settings.title' | translate }}</h1>
+
+  <div class="settings-page__card" role="list">
+    @if (passwordManagedByGoogle()) {
+      <div class="settings-page__row settings-page__row--inactive" role="listitem" aria-disabled="true">
+        <span class="settings-page__icon"><app-icon name="lock" [size]="16" /></span>
+        <span class="settings-page__body">
+          <span class="settings-page__label">{{ 'profile.settings.password' | translate }}</span>
+          <span class="settings-page__hint">{{ 'profile.settings.passwordGoogle' | translate }}</span>
+        </span>
+      </div>
+    } @else {
+      <a class="settings-page__row" role="listitem" routerLink="/profile/settings/password">
+        <span class="settings-page__icon"><app-icon name="lock" [size]="16" /></span>
+        <span class="settings-page__body">
+          <span class="settings-page__label">{{ 'profile.settings.password' | translate }}</span>
+        </span>
+        <app-icon name="chevron-right" [size]="13" class="settings-page__chevron" />
+      </a>
+    }
+
+    <div role="listitem" data-lang-section>
+      <button
+        type="button"
+        class="settings-page__row"
+        aria-haspopup="true"
+        [attr.aria-expanded]="languageMenuOpen()"
+        (click)="toggleLanguageMenu()"
+      >
+        <span class="settings-page__icon"><app-icon name="glob" [size]="16" /></span>
+        <span class="settings-page__body">
+          <span class="settings-page__label">{{ 'profile.settings.language' | translate }}</span>
+        </span>
+        <span class="settings-page__value">{{ currentLang().native }}</span>
+        <app-icon
+          name="chevron-right"
+          [size]="13"
+          class="settings-page__chevron"
+          [class.settings-page__chevron--open]="languageMenuOpen()"
+        />
+      </button>
+
+      @if (languageMenuOpen()) {
+        <div class="settings-page__lang-list" role="group" [attr.aria-label]="'profile.settings.language' | translate">
+          @for (option of availableLanguages; track option.code) {
+            <button
+              type="button"
+              class="settings-page__lang-option"
+              [class.settings-page__lang-option--active]="option.code === currentLang().code"
+              [attr.aria-pressed]="option.code === currentLang().code"
+              (click)="selectLanguage(option)"
+            >
+              <span>{{ option.native }}</span>
+              @if (option.code === currentLang().code) {
+                <i class="pi pi-check" aria-hidden="true"></i>
+              }
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="settings-page__row settings-page__row--inactive" role="listitem" aria-disabled="true">
+      <span class="settings-page__icon"><app-icon name="bell" [size]="16" /></span>
+      <span class="settings-page__body">
+        <span class="settings-page__label">{{ 'profile.settings.notifications' | translate }}</span>
+      </span>
+      <span class="settings-page__badge">{{ 'profile.settings.comingSoon' | translate }}</span>
+    </div>
+  </div>
+
+  <!-- AD-4: the Delete account card goes here, below the divider. -->
+  <div class="settings-page__danger-slot"></div>
+</section>

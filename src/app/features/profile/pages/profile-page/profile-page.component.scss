@@ -286,79 +286,6 @@
   flex-shrink: 0;
 }
 
-/* ── Language dropdown ── */
-.profile-page__lang-dropdown {
-  position: absolute;
-  top: 3.5rem;
-  left: 0;
-  right: 0;
-  background: var(--ui-color-surface);
-  border: 1px solid var(--ui-color-border);
-  border-top: none;
-  border-radius: 0 0 var(--ui-radius-md) var(--ui-radius-md);
-  box-shadow: 0 8px 20px rgba(16, 18, 30, 0.1);
-  z-index: 20;
-  overflow: hidden;
-}
-
-/* Mobile variant: rendered inline in normal flow, directly under the
-   Language row, inside the card that already clips/rounds via
-   `.profile-page__m-menu` — an absolutely positioned overlay here would
-   resolve against that ancestor instead of the row (the bug this fixes),
-   and would also overlay the Notifications row below. Given a subtle inset
-   background so it reads as a sub-list of the Language row. */
-.profile-page__lang-dropdown--inline {
-  position: static;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  background: var(--ui-color-surface-muted);
-  border-bottom: 1px solid var(--ui-color-border-subtle);
-
-  .profile-page__lang-option {
-    background: var(--ui-color-surface-muted);
-
-    &:first-child {
-      border-top: none;
-    }
-
-    &:hover {
-      background: var(--ui-color-border-subtle);
-    }
-  }
-}
-
-.profile-page__lang-option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: var(--ui-space-12) var(--ui-space-16);
-  border: none;
-  border-top: 1px solid var(--ui-color-border-subtle);
-  background: var(--ui-color-surface);
-  color: var(--ui-color-text-primary);
-  font: inherit;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 120ms ease;
-
-  &:hover {
-    background: var(--ui-color-surface-muted);
-  }
-
-  .pi-check {
-    font-size: 0.875rem;
-    color: var(--ui-color-primary);
-  }
-}
-
-.profile-page__lang-option--active {
-  color: var(--ui-color-primary-strong);
-  font-weight: 700;
-}
-
 /* ── Section cards (rating & reviews) ── */
 .profile-page__section-card {
   padding: var(--ui-space-16);
@@ -659,12 +586,6 @@
   font-weight: 400;
 }
 
-.profile-page__m-item-meta {
-  font-size: 0.8125rem;
-  color: var(--ui-color-text-secondary);
-  flex-shrink: 0;
-}
-
 .profile-page__m-badge {
   min-width: 1.5rem;
   height: 1.5rem;
@@ -686,24 +607,11 @@
   transition: transform 200ms ease;
 }
 
-.profile-page__m-chevron--open {
-  transform: rotate(90deg);
-}
-
-/* ── Mobile settings section header ── */
+/* ── Mobile settings entry ── */
 .profile-page__m-settings {
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-8);
-}
-
-.profile-page__m-section-hdr {
-  margin: 0;
-  padding: 0 var(--ui-space-4);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--ui-color-text-hint);
 }
 
 /* ── Sidebar child styles (only visible on desktop) ── */
@@ -978,9 +886,16 @@
     width: 100%;
     box-sizing: border-box;
 
-    &[disabled] {
-      opacity: 0.5;
-      cursor: default;
+    min-height: 44px;
+
+    &--active {
+      background: var(--ui-color-primary-soft);
+      color: var(--ui-color-primary-strong-hover);
+      font-weight: 600;
+    }
+
+    &:not(&--active):hover {
+      background: var(--ui-color-surface-muted);
     }
   }
 

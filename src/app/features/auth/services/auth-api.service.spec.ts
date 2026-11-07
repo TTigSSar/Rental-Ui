@@ -56,6 +56,7 @@ describe('AuthApiService.updatePreferredLanguage', () => {
       lastName: 'Renter',
       preferredLanguage: 'ru',
       roles: ['User'],
+      hasPassword: true,
     });
 
     expect(result).toEqual({
@@ -66,6 +67,7 @@ describe('AuthApiService.updatePreferredLanguage', () => {
       phoneNumber: null,
       preferredLanguage: 'ru',
       roles: ['User'],
+      hasPassword: true,
       // A payload with no `homePoint` member maps to null — the same state as a
       // user who has not set one (home-point model).
       homePoint: null,

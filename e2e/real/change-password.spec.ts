@@ -87,7 +87,7 @@ test.describe('Change password (real stack)', () => {
     try {
       await loginViaDialog(page, account);
 
-      await page.goto('/profile/security');
+      await page.goto('/profile/settings/password');
       const form = page.locator('form.security-page__form');
       await form.locator('input.uii-native').nth(0).fill(account.password);
       await form.locator('input.uii-native').nth(1).fill(NEW_PASSWORD);
@@ -157,7 +157,7 @@ test.describe('Change password (real stack)', () => {
       // pinned by `password-change-revokes-sessions.spec.ts`.
       await page.goto('/profile');
       await expect(page).toHaveURL(/\/profile$/);
-      await expect(page.locator('a[routerLink="/profile/security"]').first()).toBeVisible();
+      await expect(page.locator('a[routerLink="/profile/settings"]').first()).toBeVisible();
 
       // Last statement in the try block, deliberately — see the file doc comment.
       bodySucceeded = true;

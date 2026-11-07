@@ -40,6 +40,7 @@ export const API_ERROR_MESSAGE_KEYS: Readonly<Record<KnownApiErrorCode, string>>
   'admin.report_not_found': 'admin.reports.errors.reportNotFound',
   'admin.report_target_filter_incomplete': 'errors.validation',
   'admin.report_invalid_target_filter': 'errors.validation',
+  'admin.demand_range_invalid': 'errors.validation',
   'admin.cannot_message_self': 'errors.cannotMessageSelf',
   'admin.cannot_message_admin': 'errors.cannotMessageAdmin',
   // auth.*

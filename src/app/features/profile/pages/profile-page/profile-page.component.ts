@@ -3,7 +3,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
-  HostListener,
   OnInit,
   computed,
   effect,
@@ -18,7 +17,6 @@ import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, filter, map, of, startWith, switchMap } from 'rxjs';
 
-import { LanguageOption, LanguageService } from '../../../../shared/services/language.service';
 import { HomePointCardComponent } from '../../components/home-point-card/home-point-card.component';
 import { PersonalInfoCardComponent } from '../../components/personal-info-card/personal-info-card.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
@@ -76,7 +74,6 @@ const PROFILE_DESKTOP_QUERY = '(min-width: 961px)';
 })
 export class ProfilePageComponent implements OnInit {
   private readonly store = inject(Store);
-  private readonly languageService = inject(LanguageService);
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -106,11 +103,6 @@ export class ProfilePageComponent implements OnInit {
       ? window.matchMedia(PROFILE_DESKTOP_QUERY).matches
       : false,
   );
-
-  protected readonly availableLanguages: readonly LanguageOption[] = this.languageService.languages;
-
-  protected readonly languageMenuOpen = signal(false);
-  protected readonly currentLang = this.languageService.current;
 
   private readonly profileId$ = this.store.select(selectProfile).pipe(
     map((p) => p?.id ?? null),
@@ -253,25 +245,7 @@ export class ProfilePageComponent implements OnInit {
     this.store.dispatch(AuthActions.logout());
   }
 
-  protected toggleLanguageMenu(): void {
-    this.languageMenuOpen.update((v) => !v);
-  }
-
-  protected selectLanguage(option: LanguageOption): void {
-    this.languageService.use(option.code);
-    this.languageMenuOpen.set(false);
-  }
-
   protected initials(firstName: string, lastName: string): string {
     return ((firstName[0] ?? '') + (lastName[0] ?? '')).toUpperCase();
-  }
-
-  @HostListener('document:click', ['$event'])
-  protected onDocumentClick(event: MouseEvent): void {
-    const target = event.target as Element | null;
-    if (target === null) return;
-    if (!target.closest?.('[data-lang-section]')) {
-      this.languageMenuOpen.set(false);
-    }
   }
 }

@@ -166,6 +166,8 @@ export interface CurrentUser {
   phoneNumber: string | null;
   preferredLanguage?: string | null;
   roles: string[];
+  /** False for a Google-only account (ADR-056): the delete dialog then asks for the email. */
+  hasPassword: boolean;
   /**
    * Self-only (see `HomePoint`). Null when the user has not set a point yet —
    * which is also the state in which creating a listing fails with 409

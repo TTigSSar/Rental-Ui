@@ -270,6 +270,7 @@ export class AuthApiService {
           ? raw['preferredLanguage']
           : null,
       roles: resolveRoles(raw),
+      hasPassword: raw['hasPassword'] !== false,
       homePoint: normalizeHomePoint(raw['homePoint']),
     };
   }

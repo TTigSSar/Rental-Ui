@@ -64,12 +64,21 @@ export const profileRoutes: Routes = [
           ),
       },
       {
-        path: 'security',
+        path: 'settings',
+        loadComponent: () =>
+          import('./pages/settings-page/settings-page.component').then(
+            (m) => m.SettingsPageComponent,
+          ),
+      },
+      {
+        path: 'settings/password',
         loadComponent: () =>
           import('./pages/security-page/security-page.component').then(
             (m) => m.SecurityPageComponent,
           ),
       },
+      // Old location of the change-password form (moved under Settings, AD-1).
+      { path: 'security', redirectTo: 'settings/password', pathMatch: 'full' },
     ],
   },
 ];

@@ -1248,15 +1248,12 @@
       "myRentals": "Իմ ամրագրումները",
       "incomingRequests": "Մուտքային հայտեր",
       "favorites": "Պահված խաղալիքներ",
-      "earningsPayouts": "Եկամուտ և վճարումներ",
       "viewProfile": "Դիտել պրոֆիլը",
       "accountSettings": "Հաշվի կարգավորումներ",
-      "verificationId": "Հաստատում և ID",
-      "language": "Լեզու",
-      "notifications": "Ծանուցումներ",
       "helpCenter": "Օգնություն",
-      "security": "Անվտանգություն",
-      "logout": "Ելք"
+      "logout": "Ելք",
+      "settings": "Կարգավորումներ",
+      "settingsSub": "Գաղտնաբառ, լեզու, հաշիվ"
     },
     "actions": {
       "heading": "Արագ գործողություններ"
@@ -1301,6 +1298,14 @@
       "listings": "Ապրանքներ",
       "rentals": "Վարձույթներ",
       "reviews": "Կարծիքներ"
+    },
+    "settings": {
+      "title": "Կարգավորումներ",
+      "password": "Գաղտնաբառ",
+      "passwordGoogle": "Դուք մուտք եք գործում Google-ով",
+      "language": "Լեզու",
+      "notifications": "Ծանուցումներ",
+      "comingSoon": "Շուտով"
     },
     "security": {
       "page": {
