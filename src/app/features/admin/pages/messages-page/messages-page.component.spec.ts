@@ -238,6 +238,40 @@ describe('MessagesPageComponent', () => {
       expect(fixture.nativeElement.querySelectorAll('.messages-page__row').length).toBe(2);
     });
 
+    it('hides the member status pill for a deleted member and keeps it for a live one (desktop list)', async () => {
+      await setup({
+        items: [
+          makeAdminMessageThread({ conversationId: 'c1', memberIsDeleted: true }),
+          makeAdminMessageThread({ conversationId: 'c2', memberIsDeleted: false }),
+        ],
+      });
+      const rows: HTMLElement[] = Array.from(
+        fixture.nativeElement.querySelectorAll('.messages-page__row'),
+      );
+      expect(rows.length).toBe(2);
+      expect(rows[0].querySelector('app-admin-user-status-pill')).toBeNull();
+      expect(rows[1].querySelector('app-admin-user-status-pill')).not.toBeNull();
+    });
+
+    it('hides the member status pill for a deleted member and keeps it for a live one (mobile list)', async () => {
+      await setup(
+        {
+          items: [
+            makeAdminMessageThread({ conversationId: 'c1', memberIsDeleted: true }),
+            makeAdminMessageThread({ conversationId: 'c2', memberIsDeleted: false }),
+          ],
+        },
+        {},
+        false,
+      );
+      const rows: HTMLElement[] = Array.from(
+        fixture.nativeElement.querySelectorAll('.messages-page__row'),
+      );
+      expect(rows.length).toBe(2);
+      expect(rows[0].querySelector('app-admin-user-status-pill')).toBeNull();
+      expect(rows[1].querySelector('app-admin-user-status-pill')).not.toBeNull();
+    });
+
     it('previews a moderationNote row as "Note: {subject}", not the raw note body', async () => {
       await setup({
         items: [
