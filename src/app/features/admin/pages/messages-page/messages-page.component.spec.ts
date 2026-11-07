@@ -541,6 +541,44 @@ describe('MessagesPageComponent', () => {
       );
     });
 
+    it('header meta shows role only for a deleted member (ADR-056 §7)', async () => {
+      await setup({
+        selectedThreadId: 'conv-1',
+        selectedThreadDetail: makeDetails({ id: 'conv-1', counterpartIsDeleted: true }),
+        items: [
+          makeAdminMessageThread({
+            conversationId: 'conv-1',
+            memberIsDeleted: true,
+            memberStatus: 'Pending',
+          }),
+        ],
+      });
+      const metas = Array.from(
+        (fixture.nativeElement as HTMLElement).querySelectorAll('.messages-page__chat-header-meta'),
+      ).map((e) => e.textContent ?? '');
+      expect(metas.length).toBeGreaterThan(0);
+      for (const t of metas) {
+        expect(t).toContain('admin.users.role.owner');
+        expect(t).not.toContain('admin.users.status');
+        expect(t).not.toContain('·');
+      }
+    });
+
+    it('header meta shows role · status for a live member', async () => {
+      await setup({
+        selectedThreadId: 'conv-1',
+        selectedThreadDetail: makeDetails({ id: 'conv-1' }),
+        items: [makeAdminMessageThread({ conversationId: 'conv-1', memberStatus: 'Pending' })],
+      });
+      const metas = Array.from(
+        (fixture.nativeElement as HTMLElement).querySelectorAll('.messages-page__chat-header-meta'),
+      ).map((e) => e.textContent ?? '');
+      expect(metas.length).toBeGreaterThan(0);
+      for (const t of metas) {
+        expect(t).toContain('admin.users.role.owner · admin.users.status.pending');
+      }
+    });
+
     it('keeps the active composer for a live counterpart', async () => {
       await setup({
         selectedThreadId: 'conv-1',
