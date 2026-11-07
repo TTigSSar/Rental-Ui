@@ -376,6 +376,7 @@ export function makeAdminReportRow(overrides: Partial<AdminReportRow> = {}): Adm
     targetId: 'listing-1',
     targetLabel: 'Wooden balance bike',
     targetImageUrl: null,
+    targetIsDeleted: false,
     reasonCode: 'unsafeItem',
     detail: 'The wheel is loose.',
     severity: 'High',

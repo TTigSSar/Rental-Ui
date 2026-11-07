@@ -32,6 +32,7 @@ const FULL_ROW_EXPECTED: AdminReportRow = {
   targetId: 'listing-1',
   targetLabel: 'Balance bike',
   targetImageUrl: '/uploads/img-1.jpg',
+  targetIsDeleted: false,
   reasonCode: 'unsafeItem',
   detail: 'The wheel is loose.',
   severity: 'High',

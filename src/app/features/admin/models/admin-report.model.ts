@@ -29,6 +29,8 @@ export interface AdminReportRow {
   targetId: string;
   targetLabel: string;
   targetImageUrl: string | null;
+  /** True only for a User-target report whose user is deleted (then `targetImageUrl` is null). */
+  targetIsDeleted: boolean;
 
   reasonCode: string;
   detail: string | null;

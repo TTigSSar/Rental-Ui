@@ -621,6 +621,7 @@ export function e2eAdminReport(overrides: Record<string, unknown> = {}) {
     targetId: 'listing-e2e-1',
     targetLabel: 'E2E Wooden Train Set',
     targetImageUrl: null,
+    targetIsDeleted: false,
     reasonCode: 'misleadingPhotos',
     detail: 'Photos do not match the actual condition of the toy.',
     severity: 'Medium',
