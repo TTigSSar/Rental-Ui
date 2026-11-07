@@ -2,6 +2,8 @@
   "common": {
     "back": "Հետ",
     "clear": "Մաքրել",
+    "showPassword": "Ցուցադրել գաղտնաբառը",
+    "hidePassword": "Թաքցնել գաղտնաբառը",
     "clearCategory": "Մաքրել կատեգորիան",
     "close": "Փակել",
     "retry": "Կրկնել",

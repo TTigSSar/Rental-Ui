@@ -235,5 +235,5 @@
   flex-shrink: 0;
 }
 
-.uii-helper--error   { color: var(--ui-color-error); }
+.uii-helper--error   { color: var(--ui-color-danger); }
 .uii-helper--success { color: var(--ui-color-success); }

@@ -2,6 +2,8 @@
   "common": {
     "back": "Back",
     "clear": "Clear",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "clearCategory": "Clear category",
     "close": "Close",
     "retry": "Try again",

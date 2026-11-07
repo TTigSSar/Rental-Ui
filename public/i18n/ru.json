@@ -2,6 +2,8 @@
   "common": {
     "back": "Назад",
     "clear": "Очистить",
+    "showPassword": "Показать пароль",
+    "hidePassword": "Скрыть пароль",
     "clearCategory": "Очистить категорию",
     "close": "Закрыть",
     "retry": "Повторить",
