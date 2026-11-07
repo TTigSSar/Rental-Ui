@@ -133,7 +133,9 @@
                       }
                     </div>
                     <div class="messages-page__row-preview">{{ previewText(thread) }}</div>
-                    <app-admin-user-status-pill [status]="thread.memberStatus" size="sm" />
+                    @if (!thread.memberIsDeleted) {
+                      <app-admin-user-status-pill [status]="thread.memberStatus" size="sm" />
+                    }
                   </button>
                 </div>
               </li>
@@ -641,7 +643,9 @@
                     }
                   </div>
                   <div class="messages-page__row-preview">{{ previewText(thread) }}</div>
-                  <app-admin-user-status-pill [status]="thread.memberStatus" size="sm" />
+                  @if (!thread.memberIsDeleted) {
+                    <app-admin-user-status-pill [status]="thread.memberStatus" size="sm" />
+                  }
                 </button>
               </div>
             </li>
