@@ -18,6 +18,7 @@ import { distinctUntilChanged, map, of, switchMap } from 'rxjs';
 
 import { AuthDialogComponent } from '../../../auth/components/auth-dialog/auth-dialog.component';
 import { ReportDialogComponent } from '../../../reports/components/report-dialog/report-dialog.component';
+import { DeletedUserAvatarComponent, DeletedUserNameComponent } from '../../../../shared/ui/deleted-user';
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
@@ -202,6 +203,8 @@ function resolveDeliveryTypes(listing: ListingDetails): DeliveryType[] {
   imports: [
     AuthDialogComponent,
     AvatarComponent,
+    DeletedUserAvatarComponent,
+    DeletedUserNameComponent,
     ButtonModule,
     DecimalPipe,
     DramCurrencyPipe,
@@ -761,8 +764,10 @@ export class ListingDetailsPageComponent {
     });
 
     effect(() => {
-      const ownerId = this.rawListing()?.owner?.id;
-      if (ownerId) {
+      const owner = this.rawListing()?.owner;
+      const ownerId = owner?.id;
+      // ADR-056: a deleted owner's reviews / public profile answer 404 — don't ask.
+      if (ownerId && !owner.isDeleted) {
         this.store.dispatch(ReviewsActions.loadOwnerReviews({ userId: ownerId }));
         this.store.dispatch(PublicProfilesActions.loadPublicProfile({ userId: ownerId }));
       }

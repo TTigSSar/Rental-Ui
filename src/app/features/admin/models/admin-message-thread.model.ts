@@ -26,6 +26,8 @@ export interface AdminMessageThread {
   memberFirstName: string;
   memberLastName: string;
   memberAvatarUrl: string | null;
+  /** ADR-056: member deleted their account (names "", avatar null). */
+  memberIsDeleted: boolean;
 
   /** Derived: isBlocked => Suspended; else isIdConfirmed => Active; else Pending. */
   memberStatus: AdminUserStatus;

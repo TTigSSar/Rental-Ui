@@ -3,6 +3,7 @@ import { Observable, catchError, forkJoin, map, of, switchMap } from 'rxjs';
 
 import { BookingsApiService } from '../../bookings/services/bookings-api.service';
 import type { BookingRequest, BookingStatus } from '../../bookings/models/booking.model';
+import type { PublicUserProfile } from '../../public-profiles/models/public-profile.model';
 import { PublicProfileApiService } from '../../public-profiles/services/public-profile-api.service';
 import { MyListingsApiService } from './my-listings-api.service';
 import type {
@@ -70,7 +71,11 @@ export class OwnerListingService {
   }
 
   private enrichRequest(request: BookingRequest): Observable<OwnerBookingRequest> {
-    return this.publicProfileApi.getPublicProfile(request.renterId).pipe(
+    // ADR-056: a deleted renter's public profile is 404 — don't ask for it.
+    const profile$: Observable<PublicUserProfile | null> = request.renterIsDeleted
+      ? of(null)
+      : this.publicProfileApi.getPublicProfile(request.renterId);
+    return profile$.pipe(
       // A missing/failed profile must not drop the request — fall back to the
       // identity already present on the booking request.
       catchError(() => of(null)),
@@ -81,6 +86,7 @@ export class OwnerListingService {
             id: request.renterId,
             firstName: request.renterFirstName,
             lastName: request.renterLastName,
+            isDeleted: request.renterIsDeleted,
             avatarUrl: profile?.avatarUrl ?? null,
             rating: profile?.renterRating ?? null,
             rentalsCount: profile?.completedRentalsAsRenter ?? 0,

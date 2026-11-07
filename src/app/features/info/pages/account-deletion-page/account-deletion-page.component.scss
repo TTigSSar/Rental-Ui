@@ -1,0 +1,240 @@
+:host {
+  display: block;
+  background: var(--ui-color-background);
+}
+
+/* Mobile first: padding 20x16x40, gap 22. */
+.acc-del {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+  box-sizing: border-box;
+}
+
+.acc-del__title {
+  margin: 0;
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 800;
+  color: var(--ui-color-text-primary);
+}
+
+.acc-del__intro {
+  margin: 0;
+  max-width: 640px;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--ui-color-text-secondary);
+}
+
+.acc-del__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.acc-del__step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-card);
+}
+
+.acc-del__num {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ui-color-primary-wash);
+  color: var(--ui-color-primary-strong);
+  font-weight: 700;
+}
+
+.acc-del__step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--ui-color-text-secondary);
+
+  strong {
+    font-weight: 700;
+    color: var(--ui-color-text-primary);
+  }
+}
+
+.acc-del__card {
+  display: flex;
+  flex-direction: column;
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-card);
+  padding: 20px;
+}
+
+.acc-del__col--kept {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--ui-color-border);
+}
+
+.acc-del__col-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+  color: var(--ui-color-text-primary);
+}
+
+.acc-del__col-icon {
+  color: var(--ui-color-text-secondary);
+}
+
+.acc-del__col-icon--danger {
+  color: var(--ui-color-danger);
+}
+
+.acc-del__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    line-height: 22px;
+    color: var(--ui-color-text-primary);
+  }
+}
+
+.acc-del__tile {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-secondary);
+}
+
+.acc-del__notes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 15px;
+    line-height: 22px;
+    color: var(--ui-color-text-secondary);
+  }
+
+  .pi {
+    flex: none;
+    margin-top: 3px;
+  }
+}
+
+.acc-del__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  align-self: stretch;
+  min-height: 48px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-primary-strong);
+  color: var(--ui-color-on-primary);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--ui-color-primary-strong-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary-strong);
+    outline-offset: 2px;
+  }
+}
+
+@media (min-width: 768px) {
+  .acc-del {
+    gap: 28px;
+    padding: 48px 40px 64px;
+  }
+
+  .acc-del__title {
+    font-size: 36px;
+    line-height: 44px;
+  }
+
+  .acc-del__intro {
+    font-size: 18px;
+    line-height: 28px;
+  }
+
+  .acc-del__steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .acc-del__step {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .acc-del__card {
+    flex-direction: row;
+    padding: 28px;
+  }
+
+  .acc-del__col {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .acc-del__col--kept {
+    flex: 1.25 1 0;
+    margin: 0 0 0 28px;
+    padding: 0 0 0 28px;
+    border-top: 0;
+    border-left: 1px solid var(--ui-color-border);
+  }
+
+  .acc-del__cta {
+    align-self: flex-start;
+    min-width: 240px;
+  }
+}

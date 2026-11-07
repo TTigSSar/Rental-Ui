@@ -29,6 +29,10 @@ export class MeetingPointBubbleComponent {
   readonly mine = input<boolean>(false);
   readonly state = input<'sent' | 'sending' | 'failed'>('sent');
 
+  /** ADR-056: the sender deleted their account, coordinates erased, nothing to open. */
+  protected readonly removed = computed(
+    () => this.state() === 'sent' && (this.latitude() === null || this.longitude() === null),
+  );
   protected readonly idle = computed(() => this.state() !== 'sent');
   protected readonly subtitleKey = computed(() => meetingPointSubtitleKey(this.kind()));
   protected readonly mapsUrl = computed<string | null>(() => {

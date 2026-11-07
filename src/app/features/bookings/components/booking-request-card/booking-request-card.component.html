@@ -1,9 +1,13 @@
 <div class="brc" (click)="openDetails()">
-
   <!-- Renter avatar column -->
   <div class="brc__renter">
-    <div class="brc__avatar">{{ initials() }}</div>
-    <span class="brc__renter-name">{{ renterShortName() }}</span>
+    @if (request().renterIsDeleted) {
+      <app-deleted-user-avatar [size]="48" />
+      <app-deleted-user-name class="brc__renter-name brc__renter-name--deleted" />
+    } @else {
+      <div class="brc__avatar">{{ initials() }}</div>
+      <span class="brc__renter-name">{{ renterShortName() }}</span>
+    }
   </div>
 
   <!-- Main content -->
@@ -56,7 +60,6 @@
       <p class="brc__hint">{{ 'bookings.actions.viewDetails' | translate }}</p>
     }
   </div>
-
 </div>
 
 <!-- Reject dialog (shared across every owner surface — see M-042) -->

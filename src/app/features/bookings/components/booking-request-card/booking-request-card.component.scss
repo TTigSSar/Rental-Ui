@@ -30,7 +30,11 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--ui-color-primary-soft) 0%, var(--ui-color-primary) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--ui-color-primary-soft) 0%,
+    var(--ui-color-primary) 100%
+  );
   color: #fff;
   font-size: 15px;
   font-weight: 700;
@@ -50,6 +54,23 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 56px;
+}
+
+/* ADR-056 AD-7: the full "Deleted user" text must stay readable (en/ru/hy) — up to two lines. */
+.brc__renter-name--deleted {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  white-space: normal;
+  word-break: normal;
+  overflow-wrap: normal;
+  text-align: center;
+  /* Wider than the 56px avatar column (equal negative margins keep the column width and the
+     card layout unchanged): "пользователь" does not fit in 56px. */
+  width: 80px;
+  max-width: none;
+  margin: 0 -12px;
 }
 
 /* Main content */
@@ -148,7 +169,9 @@
   font-weight: 600;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: background 0.12s, opacity 0.12s;
+  transition:
+    background 0.12s,
+    opacity 0.12s;
 
   &[disabled] {
     opacity: 0.5;

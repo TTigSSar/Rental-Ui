@@ -53,7 +53,7 @@ export const sendMessageSuccess = createAction(
 
 export const sendMessageFailure = createAction(
   '[Chat] Send Message Failure',
-  props<{ error: string }>(),
+  props<{ error: string; errorCode?: string | null }>(),
 );
 
 /**
@@ -83,7 +83,7 @@ export const sendImageMessageSuccess = createAction(
  */
 export const sendImageMessageFailure = createAction(
   '[Chat] Send Image Message Failure',
-  props<{ error: string }>(),
+  props<{ error: string; errorCode?: string | null }>(),
 );
 
 /** Dismisses the failed optimistic image bubble + its error banner. */

@@ -33,6 +33,8 @@ const CHAT_TOAST_LIFE_MS = 7000;
 function toChatMessage(raw: ChatRealtimeMessage, currentUserId: string | null): ChatMessage {
   return {
     ...raw,
+    // The hub payload (ChatRealtimeMessage) carries no deleted flag; live participants only.
+    senderIsDeleted: false,
     isMine: raw.senderId !== null && raw.senderId === currentUserId,
     seen: false,
   };
@@ -99,6 +101,7 @@ export class ChatEffects {
             of(
               ChatActions.sendMessageFailure({
                 error: this.apiErrors.message(error),
+                errorCode: getApiErrorCode(error),
               }),
             ),
           ),
@@ -126,6 +129,7 @@ export class ChatEffects {
             of(
               ChatActions.sendImageMessageFailure({
                 error: this.apiErrors.message(error),
+                errorCode: getApiErrorCode(error),
               }),
             ),
           ),
@@ -163,6 +167,25 @@ export class ChatEffects {
     this.actions$.pipe(
       ofType(ChatActions.shareMeetingPointFailure),
       filter(({ errorCode }) => errorCode === 'chat.conversation_closed'),
+      withLatestFrom(this.store.select(selectActiveConversation)),
+      filter(([, active]) => active !== null),
+      map(([, active]) => ChatActions.loadConversationDetails({ conversationId: active!.id })),
+    ),
+  );
+
+  /**
+   * ADR-056: the counterpart deleted their account while this chat was open (the send answered
+   * 409 chat.participant_deleted): re-fetch so counterpartIsDeleted flips and the composer is
+   * replaced by the read-only note. The mapped error is shown as usual.
+   */
+  readonly reloadAfterParticipantDeleted$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(
+        ChatActions.sendMessageFailure,
+        ChatActions.sendImageMessageFailure,
+        ChatActions.shareMeetingPointFailure,
+      ),
+      filter(({ errorCode }) => errorCode === 'chat.participant_deleted'),
       withLatestFrom(this.store.select(selectActiveConversation)),
       filter(([, active]) => active !== null),
       map(([, active]) => ChatActions.loadConversationDetails({ conversationId: active!.id })),

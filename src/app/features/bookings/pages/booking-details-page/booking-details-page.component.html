@@ -82,12 +82,23 @@
             >{{ 'bookings.details.condition' | translate }}: {{ d.condition }}</span
           >
         }
-        <a class="booking-details__counterparty" [routerLink]="['/users', d.counterpartyId]">
-          <i class="pi pi-user"></i>
-          {{
-            (d.role === 'owner' ? 'bookings.details.renter' : 'bookings.details.owner') | translate
-          }}: {{ d.counterpartyFirstName }} {{ d.counterpartyLastName }}
-        </a>
+        @if (d.counterpartyIsDeleted) {
+          <span class="booking-details__counterparty booking-details__counterparty--deleted">
+            <app-deleted-user-avatar [size]="24" />
+            {{
+              (d.role === 'owner' ? 'bookings.details.renter' : 'bookings.details.owner')
+                | translate
+            }}: <app-deleted-user-name />
+          </span>
+        } @else {
+          <a class="booking-details__counterparty" [routerLink]="['/users', d.counterpartyId]">
+            <i class="pi pi-user"></i>
+            {{
+              (d.role === 'owner' ? 'bookings.details.renter' : 'bookings.details.owner')
+                | translate
+            }}: {{ d.counterpartyFirstName }} {{ d.counterpartyLastName }}
+          </a>
+        }
       </div>
     </div>
 
@@ -134,7 +145,11 @@
         [outlined]="true"
         size="small"
         icon="pi pi-comment"
-        [label]="'bookings.details.message' | translate: { name: d.counterpartyFirstName }"
+        [label]="
+          d.counterpartyIsDeleted
+            ? ('common.openChat' | translate)
+            : ('bookings.details.message' | translate: { name: d.counterpartyFirstName })
+        "
         [loading]="openingConversation()"
         (onClick)="messageCounterparty()"
       />

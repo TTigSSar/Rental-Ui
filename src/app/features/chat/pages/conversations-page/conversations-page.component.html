@@ -88,7 +88,9 @@
               routerLinkActive="chat-row--active"
             >
               <div class="chat-row__avatar">
-                @if (conversation.counterpartAvatarUrl) {
+                @if (conversation.counterpartIsDeleted) {
+                  <app-deleted-user-avatar [size]="50" />
+                } @else if (conversation.counterpartAvatarUrl) {
                   <img
                     class="chat-row__avatar-img"
                     [src]="conversation.counterpartAvatarUrl"
@@ -116,7 +118,13 @@
 
               <div class="chat-row__content">
                 <div class="chat-row__top">
-                  <span class="chat-row__name">{{ conversation.counterpartName }}</span>
+                  <span class="chat-row__name">
+                    @if (conversation.counterpartIsDeleted) {
+                      <app-deleted-user-name />
+                    } @else {
+                      {{ conversation.counterpartName }}
+                    }
+                  </span>
                   <span class="chat-row__time">
                     {{ conversation.lastMessageAt | chatTimeAgo }}
                   </span>

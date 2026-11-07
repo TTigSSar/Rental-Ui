@@ -377,65 +377,81 @@
                 </h2>
 
                 <div class="detail-page__owner-card">
-                  <div class="detail-page__owner-row">
-                    <a
-                      class="detail-page__owner-identity"
-                      [routerLink]="['/users', listing.owner.id]"
-                    >
-                      <span class="detail-page__owner-avatar-wrap" aria-hidden="true">
-                        @if (ownerPublicProfile()?.avatarUrl; as avatarUrl) {
-                          <img
-                            class="detail-page__owner-img"
-                            [src]="avatarUrl"
-                            [alt]="listing.owner.firstName"
-                            loading="lazy"
-                          />
-                        } @else {
-                          <app-ui-avatar
-                            [name]="listing.owner.firstName + ' ' + listing.owner.lastName"
-                            size="lg"
-                          />
-                        }
-                      </span>
-                      <span class="detail-page__owner-info">
-                        <span class="detail-page__owner-name">
-                          {{ listing.owner.firstName }} {{ listing.owner.lastName }}
-                          @if (ownerIsVerified()) {
-                            <span
-                              class="detail-page__owner-verified-badge"
-                              [attr.aria-label]="
-                                'listings.details.badges.verifiedOwner' | translate
-                              "
-                            >
-                              <i class="pi pi-check" aria-hidden="true"></i>
-                            </span>
-                          }
+                  @if (listing.owner.isDeleted) {
+                    <!-- ADR-056: deleted owner (admin-only view) — plain text, no profile link. -->
+                    <div class="detail-page__owner-row">
+                      <span class="detail-page__owner-identity">
+                        <span class="detail-page__owner-avatar-wrap" aria-hidden="true">
+                          <app-deleted-user-avatar [size]="44" />
                         </span>
-                        <span class="detail-page__owner-meta">
-                          @if (ownerPublicProfile()?.activeListingsCount; as count) {
-                            <span
-                              >{{ count }}&nbsp;{{
-                                'listings.details.ownerToySuffix' | translate
-                              }}</span
-                            >
-                          }
-                          @if (ownerMemberYear(); as year) {
-                            <span aria-hidden="true">&ensp;·&ensp;</span>
-                            <span>{{
-                              'listings.details.ownerMemberSince' | translate: { year }
-                            }}</span>
-                          }
+                        <span class="detail-page__owner-info">
+                          <span class="detail-page__owner-name">
+                            <app-deleted-user-name />
+                          </span>
                         </span>
                       </span>
-                    </a>
+                    </div>
+                  } @else {
+                    <div class="detail-page__owner-row">
+                      <a
+                        class="detail-page__owner-identity"
+                        [routerLink]="['/users', listing.owner.id]"
+                      >
+                        <span class="detail-page__owner-avatar-wrap" aria-hidden="true">
+                          @if (ownerPublicProfile()?.avatarUrl; as avatarUrl) {
+                            <img
+                              class="detail-page__owner-img"
+                              [src]="avatarUrl"
+                              [alt]="listing.owner.firstName"
+                              loading="lazy"
+                            />
+                          } @else {
+                            <app-ui-avatar
+                              [name]="listing.owner.firstName + ' ' + listing.owner.lastName"
+                              size="lg"
+                            />
+                          }
+                        </span>
+                        <span class="detail-page__owner-info">
+                          <span class="detail-page__owner-name">
+                            {{ listing.owner.firstName }} {{ listing.owner.lastName }}
+                            @if (ownerIsVerified()) {
+                              <span
+                                class="detail-page__owner-verified-badge"
+                                [attr.aria-label]="
+                                  'listings.details.badges.verifiedOwner' | translate
+                                "
+                              >
+                                <i class="pi pi-check" aria-hidden="true"></i>
+                              </span>
+                            }
+                          </span>
+                          <span class="detail-page__owner-meta">
+                            @if (ownerPublicProfile()?.activeListingsCount; as count) {
+                              <span
+                                >{{ count }}&nbsp;{{
+                                  'listings.details.ownerToySuffix' | translate
+                                }}</span
+                              >
+                            }
+                            @if (ownerMemberYear(); as year) {
+                              <span aria-hidden="true">&ensp;·&ensp;</span>
+                              <span>{{
+                                'listings.details.ownerMemberSince' | translate: { year }
+                              }}</span>
+                            }
+                          </span>
+                        </span>
+                      </a>
 
-                    <a
-                      class="detail-page__owner-message-btn"
-                      [routerLink]="['/users', listing.owner.id]"
-                    >
-                      {{ 'listings.details.viewOwnerProfile' | translate }}
-                    </a>
-                  </div>
+                      <a
+                        class="detail-page__owner-message-btn"
+                        [routerLink]="['/users', listing.owner.id]"
+                      >
+                        {{ 'listings.details.viewOwnerProfile' | translate }}
+                      </a>
+                    </div>
+                  }
 
                   @if (ownerStats().length > 0) {
                     <div class="detail-page__owner-stats">

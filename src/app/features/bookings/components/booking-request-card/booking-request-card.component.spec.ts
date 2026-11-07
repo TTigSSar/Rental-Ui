@@ -36,6 +36,31 @@ describe('BookingRequestCardComponent renter note (ADR-013)', () => {
   });
 });
 
+describe('BookingRequestCardComponent deleted renter caption (ADR-056 AD-7)', () => {
+  function renderDeleted(isDeleted: boolean) {
+    TestBed.configureTestingModule({
+      imports: [BookingRequestCardComponent, TranslateModule.forRoot()],
+      providers: [provideRouter([])],
+    });
+    const fixture = TestBed.createComponent(BookingRequestCardComponent);
+    fixture.componentRef.setInput('request', makeBookingRequest({ renterIsDeleted: isDeleted }));
+    fixture.detectChanges();
+    return fixture.nativeElement as HTMLElement;
+  }
+
+  it('marks the deleted caption for the multi-line (non-truncating) style', () => {
+    const name = renderDeleted(true).querySelector('app-deleted-user-name');
+    expect(name?.classList.contains('brc__renter-name--deleted')).toBe(true);
+  });
+
+  it('leaves the live-user caption on the single-line ellipsis style', () => {
+    const el = renderDeleted(false);
+    expect(el.querySelector('app-deleted-user-name')).toBeNull();
+    const name = el.querySelector('.brc__renter-name');
+    expect(name?.classList.contains('brc__renter-name--deleted')).toBe(false);
+  });
+});
+
 describe('BookingRequestCardComponent range and request age (ADR-052)', () => {
   function renderWith(lang: string, createdAt: string | null) {
     TestBed.configureTestingModule({

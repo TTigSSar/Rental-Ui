@@ -180,9 +180,26 @@
   font-weight: 700;
 }
 
-/* AD-4 fills this with the Delete account card; stays invisible while empty. */
+/* The Delete account card (AD-4); the divider only exists when the card does. */
 .settings-page__danger-slot:not(:empty) {
   margin-top: 8px;
   padding-top: 20px;
   border-top: 1px solid var(--ui-color-border);
+}
+
+/* Delete account row: danger label, red-tinted tile, red chevron. */
+.settings-page__row--danger {
+  .settings-page__label {
+    color: var(--ui-color-danger);
+    font-weight: 700;
+  }
+
+  .settings-page__chevron {
+    color: var(--ui-color-danger);
+  }
+}
+
+.settings-page__icon--danger {
+  background: var(--ui-color-danger-surface);
+  color: var(--ui-color-danger);
 }

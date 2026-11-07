@@ -22,6 +22,7 @@ function systemMessage(overrides: Partial<ChatMessage>): ChatMessage {
     conversationId: CONVERSATION_ID,
     senderId: null,
     senderName: null,
+    senderIsDeleted: false,
     type: 'system',
     systemKind: null,
     noteKind: null,
@@ -45,6 +46,7 @@ function imageMessage(overrides: Partial<ChatMessage> = {}): ChatMessage {
     conversationId: CONVERSATION_ID,
     senderId: 'renter-1',
     senderName: 'Ada',
+    senderIsDeleted: false,
     type: 'image',
     systemKind: null,
     noteKind: null,
@@ -69,6 +71,7 @@ function noteMessage(overrides: Partial<ChatMessage> = {}): ChatMessage {
     conversationId: CONVERSATION_ID,
     senderId: 'moderator-1',
     senderName: 'DoRent Team',
+    senderIsDeleted: false,
     type: 'moderationNote',
     systemKind: null,
     noteKind: 'reject',
@@ -97,6 +100,7 @@ function conversationWith(
     counterpartId: 'owner-1',
     counterpartName: 'Marina',
     counterpartAvatarUrl: null,
+    counterpartIsDeleted: false,
     counterpartVerified: false,
     toyTitle: 'Wooden train',
     toyImageUrl: null,
@@ -307,6 +311,36 @@ describe('ConversationDetailsPageComponent', () => {
       const text = renderRequest('renter', 'Olivia Owner');
       expect(text).toContain('You requested this toy');
       expect(text).not.toContain('Olivia Owner');
+    });
+
+    it('owner sees "Deleted user" (not an empty name) when the requester deleted their account', () => {
+      const { fixture, store } = createFixture();
+      const translate = TestBed.inject(TranslateService);
+      translate.setTranslation(
+        'en',
+        {
+          common: { deletedUser: 'Deleted user' },
+          chat: {
+            system: {
+              requestDetail: '{{name}} requested this toy · {{dates}} · {{price}}',
+            },
+          },
+        },
+        true,
+      );
+      store.setState({
+        [chatFeatureKey]: {
+          ...initialChatState,
+          activeConversation: conversationWith(
+            [systemMessage({ id: 'req', systemKind: 'request' })],
+            { viewerRole: 'owner', counterpartName: '', counterpartIsDeleted: true },
+          ),
+        },
+      });
+      fixture.detectChanges();
+      const text = (fixture.nativeElement as HTMLElement).querySelector('.chat-system')!
+        .textContent as string;
+      expect(text).toContain('Deleted user requested this toy');
     });
 
     it('falls back to the plain label when viewerRole is null', () => {
@@ -901,6 +935,66 @@ describe('ConversationDetailsPageComponent', () => {
       form.controls.content.setValue('a'.repeat(4000));
 
       expect(form.valid).toBe(true);
+    });
+  });
+
+  describe('a deleted counterpart (ADR-056)', () => {
+    function renderDeleted(messages: ChatMessage[] = []) {
+      const { fixture, store } = createFixture();
+      store.setState({
+        [chatFeatureKey]: {
+          ...initialChatState,
+          activeConversation: conversationWith(messages, {
+            counterpartName: '',
+            counterpartIsDeleted: true,
+            counterpartVerified: false,
+          }),
+        },
+      });
+      fixture.detectChanges();
+      return fixture.nativeElement as HTMLElement;
+    }
+
+    it('shows the shared avatar and plain-text name in the header, with no profile link', () => {
+      const host = renderDeleted();
+      expect(host.querySelector('.chat-thread__identity app-deleted-user-avatar')).not.toBeNull();
+      expect(host.querySelector('.chat-thread__identity app-deleted-user-name')).not.toBeNull();
+      expect(host.querySelector('.chat-thread__view-profile')).toBeNull();
+      expect(host.querySelector('a[href*="/users/"]')).toBeNull();
+    });
+
+    it('replaces the composer with a read-only note', () => {
+      const host = renderDeleted();
+      expect(host.querySelector('.chat-thread__composer')).toBeNull();
+      expect(host.querySelector('.chat-thread__closed')?.textContent).toContain(
+        'chat.details.counterpartDeleted',
+      );
+    });
+
+    it('keeps the composer for a live counterpart', () => {
+      const { fixture, store } = createFixture();
+      store.setState({
+        [chatFeatureKey]: { ...initialChatState, activeConversation: conversationWith([]) },
+      });
+      fixture.detectChanges();
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelector('.chat-thread__composer')).not.toBeNull();
+      expect(host.querySelector('app-deleted-user-avatar')).toBeNull();
+    });
+
+    it('renders a deleted sender above their messages as avatar + plain text', () => {
+      const host = renderDeleted([
+        imageMessage({
+          id: 'm9',
+          senderId: 'gone',
+          senderName: '',
+          senderIsDeleted: true,
+          isMine: false,
+        }),
+      ]);
+      const sender = host.querySelector('.chat-group__sender--deleted');
+      expect(sender?.querySelector('app-deleted-user-avatar')).not.toBeNull();
+      expect(sender?.querySelector('app-deleted-user-name')).not.toBeNull();
     });
   });
 });

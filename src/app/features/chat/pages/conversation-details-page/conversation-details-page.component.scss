@@ -1215,3 +1215,14 @@
   outline: 2px solid var(--ui-color-primary-strong);
   outline-offset: 2px;
 }
+
+app-deleted-user-name.chat-thread__identity-text {
+  display: block;
+}
+
+.chat-group__sender--deleted {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}

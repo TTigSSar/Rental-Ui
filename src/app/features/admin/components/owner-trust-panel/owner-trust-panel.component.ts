@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input } from '@an
 import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { DeletedUserAvatarComponent, DeletedUserNameComponent } from '../../../../shared/ui/deleted-user';
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import type { AdminListingDetail } from '../../models/admin-listing-queue.model';
@@ -20,7 +21,7 @@ import { UiDatePipe } from '../../../../shared/utils/ui-date.pipe';
 @Component({
   selector: 'app-owner-trust-panel',
   standalone: true,
-  imports: [AvatarComponent, UiDatePipe, IconComponent, RouterLink, TranslatePipe],
+  imports: [AvatarComponent, DeletedUserAvatarComponent, DeletedUserNameComponent, UiDatePipe, IconComponent, RouterLink, TranslatePipe],
   templateUrl: './owner-trust-panel.component.html',
   styleUrl: './owner-trust-panel.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

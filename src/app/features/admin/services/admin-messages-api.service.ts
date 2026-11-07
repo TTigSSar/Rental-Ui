@@ -81,6 +81,7 @@ function normalizeAdminMessageThread(raw: Record<string, unknown>): AdminMessage
     memberFirstName: typeof raw['memberFirstName'] === 'string' ? raw['memberFirstName'] : '',
     memberLastName: typeof raw['memberLastName'] === 'string' ? raw['memberLastName'] : '',
     memberAvatarUrl: toNullableString(raw['memberAvatarUrl']),
+    memberIsDeleted: raw['memberIsDeleted'] === true,
 
     memberStatus: coerceMemberStatus(raw['memberStatus']),
     memberIsIdConfirmed: raw['memberIsIdConfirmed'] === true,

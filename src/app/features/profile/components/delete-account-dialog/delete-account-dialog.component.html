@@ -1,0 +1,240 @@
+<!-- Closing is handled here (X, Cancel, Esc), never by p-dialog: PrimeNG would close itself
+     without asking, even while the delete request is in flight. -->
+<p-dialog
+  [visible]="visible()"
+  [modal]="true"
+  [closable]="false"
+  [closeOnEscape]="false"
+  [dismissableMask]="false"
+  [draggable]="false"
+  [resizable]="false"
+  styleClass="dad"
+  maskStyleClass="dad-mask"
+  appendTo="body"
+>
+  <ng-template pTemplate="header" let-labelledBy="ariaLabelledBy">
+    <div class="dad__head">
+      <span class="dad__grab" aria-hidden="true"></span>
+      <div class="dad__head-row">
+        <div class="dad__head-text">
+          @if (phase() === 'blocked') {
+            <span class="dad__tile" aria-hidden="true"><i class="pi pi-calendar"></i></span>
+          }
+          <h2 class="dad__title" [id]="labelledBy" #titleEl tabindex="-1">
+            {{
+              (phase() === 'blocked'
+                ? 'profile.deleteAccount.blocked.title'
+                : 'profile.deleteAccount.title'
+              ) | translate
+            }}
+          </h2>
+        </div>
+        <button
+          type="button"
+          class="dad__x"
+          data-testid="dad-close"
+          [disabled]="loading()"
+          [attr.aria-label]="'profile.deleteAccount.close' | translate"
+          (click)="close()"
+        >
+          <i class="pi pi-times" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+  </ng-template>
+
+  @if (phase() === 'confirm') {
+    <form class="dad__form" novalidate (submit)="$event.preventDefault(); submit()">
+      <div class="dad__body">
+        @if (state() === 'error') {
+          <p-message
+            severity="error"
+            icon="pi pi-exclamation-circle"
+            styleClass="ui-msg dad__banner"
+            data-testid="dad-error"
+          >
+            {{ 'profile.deleteAccount.errors.generic' | translate }}
+          </p-message>
+        }
+
+        <p class="dad__cons">{{ 'profile.deleteAccount.consequence' | translate }}</p>
+
+        <section class="dad__erased">
+          <h3 class="dad__erased-title">
+            <i class="pi pi-trash" aria-hidden="true"></i>
+            {{ 'profile.deleteAccount.erased.heading' | translate }}
+          </h3>
+          <ul class="dad__erased-list">
+            <li>
+              <i class="pi pi-user" aria-hidden="true"></i>
+              <span>
+                <strong>{{ 'profile.deleteAccount.erased.profileKey' | translate }}</strong>
+                · {{ 'profile.deleteAccount.erased.profileValues' | translate }}
+              </span>
+            </li>
+            <li>
+              <i class="pi pi-map-marker" aria-hidden="true"></i>
+              <span>
+                <strong>{{ 'profile.deleteAccount.erased.placesKey' | translate }}</strong>
+                · {{ 'profile.deleteAccount.erased.placesValues' | translate }}
+              </span>
+            </li>
+            <li>
+              <i class="pi pi-key" aria-hidden="true"></i>
+              <span>
+                <strong>{{ 'profile.deleteAccount.erased.accountKey' | translate }}</strong>
+                · {{ 'profile.deleteAccount.erased.accountValues' | translate }}
+              </span>
+            </li>
+          </ul>
+        </section>
+
+        <section class="dad__stays">
+          <button
+            type="button"
+            class="dad__stays-toggle"
+            data-testid="dad-stays-toggle"
+            aria-controls="dad-stays-list"
+            [attr.aria-expanded]="staysOpen()"
+            (click)="toggleStays()"
+          >
+            <i class="pi pi-users dad__stays-icon" aria-hidden="true"></i>
+            <span class="dad__stays-text">
+              <span class="dad__stays-label">{{ 'profile.deleteAccount.stays.toggle' | translate }}</span>
+              @if (!staysOpen()) {
+                <span class="dad__stays-summary">{{ 'profile.deleteAccount.stays.summary' | translate }}</span>
+              }
+            </span>
+            <i
+              class="pi dad__stays-chevron"
+              [class.pi-chevron-down]="!staysOpen()"
+              [class.pi-chevron-up]="staysOpen()"
+              aria-hidden="true"
+            ></i>
+          </button>
+          <ul id="dad-stays-list" class="dad__stays-list" [hidden]="!staysOpen()">
+            <li>
+              <i class="pi pi-comments" aria-hidden="true"></i>
+              <span>{{ 'profile.deleteAccount.stays.history' | translate }}</span>
+            </li>
+            <li>
+              <i class="pi pi-box" aria-hidden="true"></i>
+              <span>{{ 'profile.deleteAccount.stays.toys' | translate }}</span>
+            </li>
+            <li>
+              <i class="pi pi-times-circle" aria-hidden="true"></i>
+              <span>{{ 'profile.deleteAccount.stays.pending' | translate }}</span>
+            </li>
+          </ul>
+        </section>
+
+        <div class="dad__field" [class.dad__field--loading]="loading()">
+          <app-ui-input
+            [type]="hasPassword() ? 'password' : 'email'"
+            [autocomplete]="hasPassword() ? 'current-password' : 'off'"
+            [label]="
+              (hasPassword()
+                ? 'profile.deleteAccount.passwordLabel'
+                : 'profile.deleteAccount.emailLabel'
+              ) | translate
+            "
+            [value]="value()"
+            [readonly]="loading()"
+            [errorMessage]="fieldError() ? (fieldError()! | translate) : null"
+            (valueChange)="onType($event)"
+          />
+        </div>
+      </div>
+
+      <div class="dad__actions">
+        <button
+          type="button"
+          class="dad__btn dad__btn--cancel"
+          data-testid="dad-cancel"
+          [disabled]="loading()"
+          (click)="close()"
+        >
+          {{ 'profile.deleteAccount.cancel' | translate }}
+        </button>
+        <button
+          type="submit"
+          class="dad__btn dad__btn--danger"
+          data-testid="dad-confirm"
+          [attr.aria-disabled]="loading() ? 'true' : null"
+        >
+          @if (loading()) {
+            <i class="pi pi-spinner pi-spin" aria-hidden="true"></i>
+            {{ 'profile.deleteAccount.deleting' | translate }}
+          } @else {
+            {{ 'profile.deleteAccount.confirm' | translate }}
+          }
+        </button>
+      </div>
+    </form>
+  } @else {
+    <div class="dad__body">
+      <p class="dad__cons">{{ 'profile.deleteAccount.blocked.text' | translate }}</p>
+      <ul class="dad__rentals" [attr.aria-label]="'profile.deleteAccount.blocked.listLabel' | translate">
+        @for (rental of openRentals(); track rental.bookingId) {
+          <li>
+            <a
+              class="dad__rental"
+              data-testid="dad-rental"
+              [routerLink]="['/bookings', rental.bookingId]"
+              (click)="close()"
+            >
+              @if (rental.listingImageUrl && !failedImages().has(rental.bookingId)) {
+                <img
+                  class="dad__thumb"
+                  [src]="rental.listingImageUrl"
+                  alt=""
+                  (error)="markImageFailed(rental.bookingId)"
+                />
+              } @else {
+                <span class="dad__thumb dad__thumb--placeholder" aria-hidden="true">
+                  <i class="pi pi-image"></i>
+                </span>
+              }
+              <span class="dad__rental-body">
+                <span class="dad__rental-title">{{ rental.listingTitle }}</span>
+                <span class="dad__rental-meta">
+                  <span class="dad__meta-item">
+                    <i class="pi pi-calendar" aria-hidden="true"></i>
+                    {{ dateRange(rental) }}
+                  </span>
+                  <span class="dad__meta-item">
+                    <i
+                      class="pi"
+                      [class.pi-download]="rental.role === 'renter'"
+                      [class.pi-upload]="rental.role === 'owner'"
+                      aria-hidden="true"
+                    ></i>
+                    {{
+                      (rental.role === 'renter'
+                        ? 'profile.deleteAccount.blocked.roleRenter'
+                        : 'profile.deleteAccount.blocked.roleOwner'
+                      ) | translate
+                    }}
+                  </span>
+                </span>
+              </span>
+              <i class="pi pi-chevron-right dad__rental-chevron" aria-hidden="true"></i>
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <div class="dad__actions dad__actions--single">
+      <a
+        class="dad__btn dad__btn--primary"
+        data-testid="dad-cta"
+        [routerLink]="ctaLink()"
+        (click)="close()"
+      >
+        {{ ctaLabelKey() | translate }}
+        <i class="pi pi-arrow-right" aria-hidden="true"></i>
+      </a>
+    </div>
+  }
+</p-dialog>

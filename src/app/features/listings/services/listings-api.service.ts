@@ -578,6 +578,7 @@ export class ListingsApiService {
       id: typeof rawOwner?.id === 'string' ? rawOwner.id : '',
       firstName: typeof rawOwner?.firstName === 'string' ? rawOwner.firstName : '',
       lastName: typeof rawOwner?.lastName === 'string' ? rawOwner.lastName : '',
+      isDeleted: rawOwner?.isDeleted === true,
     };
 
     const images: ListingImage[] = Array.isArray(listing.images)

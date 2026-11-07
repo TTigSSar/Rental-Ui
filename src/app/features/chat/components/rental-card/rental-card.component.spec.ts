@@ -19,6 +19,7 @@ function conversation(overrides: Partial<ChatConversationDetails> = {}): ChatCon
     counterpartId: 'u2',
     counterpartName: 'Anna',
     counterpartAvatarUrl: null,
+    counterpartIsDeleted: false,
     counterpartVerified: false,
     toyTitle: 'Wooden train',
     toyImageUrl: null,
@@ -83,6 +84,17 @@ function setup(
 function buttons(host: HTMLElement): HTMLButtonElement[] {
   return Array.from(host.querySelectorAll<HTMLButtonElement>('.rental-btn'));
 }
+
+describe('RentalCardComponent — deleted counterpart (ADR-056)', () => {
+  it('interpolates the translated "Deleted user" into the card params instead of ""', () => {
+    const { fixture } = setup(conversation({ counterpartName: '', counterpartIsDeleted: true }));
+    const params = (
+      fixture.componentInstance as unknown as { view(): { params: { name: string } } | null }
+    ).view()?.params;
+    // TranslateModule.forRoot() without a bundle echoes the key.
+    expect(params?.name).toBe('common.deletedUser');
+  });
+});
 
 describe('RentalCardComponent', () => {
   it('renders nothing when the booking status is unknown', () => {

@@ -269,6 +269,7 @@ function preview(overrides: Partial<ChatConversationPreview>): ChatConversationP
     bookingId: 'bk',
     counterpartName: 'Name',
     counterpartAvatarUrl: null,
+    counterpartIsDeleted: false,
     toyTitle: 'Toy',
     toyImageUrl: null,
     status: 'active',

@@ -43,7 +43,7 @@ function makeRealtimeMessage(overrides: Partial<ChatRealtimeMessage> = {}): Chat
 }
 
 function makeResolvedMessage(): ChatMessage {
-  return { ...makeRealtimeMessage(), isMine: false, seen: false };
+  return { ...makeRealtimeMessage(), senderIsDeleted: false, isMine: false, seen: false };
 }
 
 function makeActiveConversation(
@@ -56,6 +56,7 @@ function makeActiveConversation(
     counterpartId: 'owner-1',
     counterpartName: 'Owner',
     counterpartAvatarUrl: null,
+    counterpartIsDeleted: false,
     counterpartVerified: false,
     toyTitle: 'Wooden Train',
     toyImageUrl: null,
@@ -366,6 +367,43 @@ describe('ChatEffects', () => {
     });
   });
 
+  describe('reloadAfterParticipantDeleted$ (ADR-056)', () => {
+    it('re-fetches the open conversation when a send failed with chat.participant_deleted', async () => {
+      const { harness, effects } = setup();
+
+      const result = collect(effects.reloadAfterParticipantDeleted$);
+      harness.send(
+        ChatActions.sendMessageFailure({
+          error: 'chat.details.counterpartDeleted',
+          errorCode: 'chat.participant_deleted',
+        }),
+      );
+      harness.send(ChatActions.sendMessageFailure({ error: 'x', errorCode: 'chat.message_too_long' }));
+      harness.complete();
+
+      expect(await result).toEqual([ChatActions.loadConversationDetails({ conversationId: 'c1' })]);
+    });
+
+    it('carries the API error code on a failed text send', async () => {
+      const { harness, effects } = setup({
+        sendMessage: vi.fn(() =>
+          throwError(() => problemDetails(409, 'chat.participant_deleted', 'gone')),
+        ),
+      } as unknown as Partial<ChatApiService>);
+
+      const result = collect(effects.sendMessage$);
+      harness.send(ChatActions.sendMessage({ conversationId: 'c1', content: 'hi' }));
+      harness.complete();
+
+      expect(await result).toEqual([
+        ChatActions.sendMessageFailure({
+          error: 'chat.details.counterpartDeleted',
+          errorCode: 'chat.participant_deleted',
+        }),
+      ]);
+    });
+  });
+
   describe('sendImageMessage$', () => {
     it('uploads the file and revokes the optimistic preview URL on success', async () => {
       const message: ChatMessage = {
@@ -373,6 +411,7 @@ describe('ChatEffects', () => {
         conversationId: 'c1',
         senderId: 'renter-1',
         senderName: 'Ada',
+        senderIsDeleted: false,
         type: 'image',
         systemKind: null,
         noteKind: null,
@@ -429,7 +468,7 @@ describe('ChatEffects', () => {
       harness.complete();
 
       const emitted = await result;
-      expect(emitted).toEqual([ChatActions.sendImageMessageFailure({ error: 'errors.generic' })]);
+      expect(emitted).toEqual([ChatActions.sendImageMessageFailure({ error: 'errors.generic', errorCode: null })]);
     });
 
     // A text file renamed to .jpg reports `File.type === "image/jpeg"`, so the
@@ -464,6 +503,7 @@ describe('ChatEffects', () => {
       expect(emitted).toEqual([
         ChatActions.sendImageMessageFailure({
           error: 'Unsupported file type. Use a JPEG, PNG, WebP or GIF image.',
+          errorCode: 'chat.attachment_invalid_type',
         }),
       ]);
       const [failure] = emitted as [ReturnType<typeof ChatActions.sendImageMessageFailure>];
@@ -494,6 +534,7 @@ describe('ChatEffects', () => {
       expect(emitted).toEqual([
         ChatActions.sendImageMessageFailure({
           error: 'This photo is too large. Maximum size is 5 MB.',
+          errorCode: 'chat.attachment_too_large',
         }),
       ]);
     });
@@ -531,6 +572,7 @@ describe('ChatEffects', () => {
       expect(emitted).toEqual([
         ChatActions.sendImageMessageFailure({
           error: 'Unsupported file type. Use a JPEG, PNG, WebP or GIF image.',
+          errorCode: 'chat.attachment_invalid_type',
         }),
       ]);
     });

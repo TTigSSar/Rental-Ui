@@ -1,10 +1,16 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { provideStore } from '@ngrx/store';
+import { provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule } from '@ngx-translate/core';
+import { MessageService } from 'primeng/api';
 
-import { authFeatureKey, authReducer } from '../../../auth/store/auth.reducer';
+import type { CurrentUser } from '../../../auth/models/auth.models';
+import { authFeatureKey } from '../../../auth/store/auth.reducer';
+import { initialAuthState } from '../../../auth/store/auth.state';
+
 import { LanguageService } from '../../../../shared/services/language.service';
 import { profileRoutes } from '../../routes';
 import { SettingsPageComponent } from './settings-page.component';
@@ -15,13 +21,33 @@ const LANGUAGES = [
   { code: 'hy', flag: '', native: 'Հայերեն', label: 'Armenian' },
 ];
 
-function setup() {
+function user(overrides: Partial<CurrentUser> = {}): CurrentUser {
+  return {
+    id: 'u1',
+    email: 'a@b.c',
+    firstName: 'A',
+    lastName: 'B',
+    phoneNumber: null,
+    roles: [],
+    hasPassword: true,
+    homePoint: null,
+    chatEmailsEnabled: true,
+    ...overrides,
+  };
+}
+
+function setup(current: CurrentUser | null = user()) {
   const use = vi.fn();
   TestBed.configureTestingModule({
     imports: [SettingsPageComponent, TranslateModule.forRoot()],
     providers: [
       provideRouter([]),
-      provideStore({ [authFeatureKey]: authReducer }),
+      provideHttpClient(),
+      provideHttpClientTesting(),
+      MessageService,
+      provideMockStore({
+        initialState: { [authFeatureKey]: { ...initialAuthState, user: current, isAuthenticated: current !== null } },
+      }),
       { provide: LanguageService, useValue: { languages: LANGUAGES, current: signal(LANGUAGES[0]), use } },
     ],
   });
@@ -35,7 +61,7 @@ describe('SettingsPageComponent', () => {
     const { el } = setup();
 
     expect(el.querySelector('[role="list"]')).not.toBeNull();
-    expect(el.querySelectorAll('[role="list"] > [role="listitem"]').length).toBe(3);
+    expect(el.querySelectorAll('[role="list"]')[0].querySelectorAll(':scope > [role="listitem"]').length).toBe(3);
   });
 
   it('links the Password row to /profile/settings/password', () => {
@@ -87,13 +113,38 @@ describe('SettingsPageComponent', () => {
   });
 
   it('renders the Password row inactive when the account is managed by Google', () => {
-    const { fixture, el } = setup();
-
-    fixture.componentInstance['passwordManagedByGoogle'].set(true);
-    fixture.detectChanges();
+    const { el } = setup(user({ hasPassword: false }));
 
     expect(el.querySelectorAll('[aria-disabled="true"]').length).toBe(1);
     expect(el.querySelector('a[role="listitem"]')).toBeNull();
+  });
+});
+
+describe('SettingsPageComponent — Delete account (AD-4)', () => {
+  it('renders the Delete account row in its own card, below the first card', () => {
+    const { el } = setup();
+
+    const lists = el.querySelectorAll('[role="list"]');
+    expect(lists.length).toBe(2);
+    const row = lists[1].querySelector<HTMLButtonElement>('[data-testid="delete-account-row"]');
+    expect(row?.getAttribute('aria-haspopup')).toBe('dialog');
+    expect(row?.textContent).toContain('profile.settings.deleteAccount');
+  });
+
+  it('hides the Delete account row for an admin', () => {
+    const { el } = setup(user({ roles: ['Admin'] }));
+
+    expect(el.querySelector('[data-testid="delete-account-row"]')).toBeNull();
+    expect(el.querySelectorAll('[role="list"]').length).toBe(1);
+  });
+
+  it('opens the delete dialog from the row', () => {
+    const { fixture, el } = setup();
+
+    el.querySelector<HTMLButtonElement>('[data-testid="delete-account-row"]')!.click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['deleteDialogOpen']()).toBe(true);
   });
 });
 

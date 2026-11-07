@@ -87,20 +87,24 @@
                   class="messages-page__row"
                   [class.messages-page__row--active]="selectedThreadId() === thread.conversationId"
                 >
-                  <button
-                    type="button"
-                    class="messages-page__avatar-btn"
-                    [attr.aria-label]="
-                      'admin.users.table.viewProfileAria' | translate: { name: displayName(thread) }
-                    "
-                    (click)="openProfile(thread.memberId)"
-                  >
-                    @if (thread.memberAvatarUrl; as avatarUrl) {
-                      <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
-                    } @else {
-                      <app-ui-avatar [name]="displayName(thread)" size="md" />
-                    }
-                  </button>
+                  @if (thread.memberIsDeleted) {
+                    <app-deleted-user-avatar [size]="36" />
+                  } @else {
+                    <button
+                      type="button"
+                      class="messages-page__avatar-btn"
+                      [attr.aria-label]="
+                        'admin.users.table.viewProfileAria' | translate: { name: displayName(thread) }
+                      "
+                      (click)="openProfile(thread.memberId)"
+                    >
+                      @if (thread.memberAvatarUrl; as avatarUrl) {
+                        <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
+                      } @else {
+                        <app-ui-avatar [name]="displayName(thread)" size="md" />
+                      }
+                    </button>
+                  }
                   <button
                     type="button"
                     class="messages-page__row-main"
@@ -180,25 +184,33 @@
       } @else {
         <div class="messages-page__chat-header">
           @if (selectedThreadDetail(); as detail) {
-            <button
-              type="button"
-              class="messages-page__avatar-btn"
-              [attr.aria-label]="
-                'admin.users.table.viewProfileAria' | translate: { name: detail.counterpartName }
-              "
-              [disabled]="!selectedThreadRow()"
-              (click)="selectedThreadRow() && openProfile(selectedThreadRow()!.memberId)"
-            >
-              @if (detail.counterpartAvatarUrl; as avatarUrl) {
-                <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
-              } @else {
-                <app-ui-avatar [name]="detail.counterpartName" size="md" />
-              }
-            </button>
+            @if (detail.counterpartIsDeleted) {
+              <app-deleted-user-avatar [size]="36" />
+            } @else {
+              <button
+                type="button"
+                class="messages-page__avatar-btn"
+                [attr.aria-label]="
+                  'admin.users.table.viewProfileAria' | translate: { name: detail.counterpartName }
+                "
+                [disabled]="!selectedThreadRow()"
+                (click)="selectedThreadRow() && openProfile(selectedThreadRow()!.memberId)"
+              >
+                @if (detail.counterpartAvatarUrl; as avatarUrl) {
+                  <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
+                } @else {
+                  <app-ui-avatar [name]="detail.counterpartName" size="md" />
+                }
+              </button>
+            }
             <div class="messages-page__chat-header-text">
               <div class="messages-page__chat-header-name">
-                {{ detail.counterpartName }}
-                @if (detail.counterpartVerified) {
+                @if (detail.counterpartIsDeleted) {
+                  <app-deleted-user-name />
+                } @else {
+                  {{ detail.counterpartName }}
+                }
+                @if (detail.counterpartVerified && !detail.counterpartIsDeleted) {
                   <app-icon
                     name="verified"
                     [size]="14"
@@ -253,7 +265,7 @@
               <div class="messages-page__thread-empty">
                 {{
                   'admin.messages.thread.emptyStart'
-                    | translate: { name: firstName(detail.counterpartName) }
+                    | translate: { name: nameParam(detail) }
                 }}
               </div>
             }
@@ -297,37 +309,44 @@
           }
         </div>
 
-        <div class="messages-page__composer">
-          <label class="messages-page__visually-hidden" for="admin-messages-composer">
-            {{ 'admin.messages.composer.label' | translate }}
-          </label>
-          <textarea
-            #composerInput
-            id="admin-messages-composer"
-            class="messages-page__composer-input"
-            rows="1"
-            [attr.maxlength]="maxMessageLength"
-            [value]="draft()"
-            [placeholder]="
-              selectedThreadDetail()
-                ? ('chat.details.messagePlaceholder'
-                  | translate: { name: firstName(selectedThreadDetail()!.counterpartName) })
-                : ''
-            "
-            [attr.aria-label]="'admin.messages.composer.label' | translate"
-            (input)="onComposerInput($event)"
-            (keydown)="onComposerKeydown($event)"
-          ></textarea>
-          <button
-            type="button"
-            class="messages-page__send-btn"
-            [disabled]="!canSend()"
-            [attr.aria-label]="'chat.details.send' | translate"
-            (click)="send()"
-          >
-            <app-icon name="arrow" [size]="17" />
-          </button>
-        </div>
+        @if (selectedThreadDetail()?.counterpartIsDeleted) {
+          <div class="messages-page__composer messages-page__composer--readonly" role="status">
+            <i class="pi pi-lock" aria-hidden="true"></i>
+            <span>{{ 'chat.details.counterpartDeleted' | translate }}</span>
+          </div>
+        } @else {
+          <div class="messages-page__composer">
+            <label class="messages-page__visually-hidden" for="admin-messages-composer">
+              {{ 'admin.messages.composer.label' | translate }}
+            </label>
+            <textarea
+              #composerInput
+              id="admin-messages-composer"
+              class="messages-page__composer-input"
+              rows="1"
+              [attr.maxlength]="maxMessageLength"
+              [value]="draft()"
+              [placeholder]="
+                selectedThreadDetail()
+                  ? ('chat.details.messagePlaceholder'
+                    | translate: { name: nameParam(selectedThreadDetail()!) })
+                  : ''
+              "
+              [attr.aria-label]="'admin.messages.composer.label' | translate"
+              (input)="onComposerInput($event)"
+              (keydown)="onComposerKeydown($event)"
+            ></textarea>
+            <button
+              type="button"
+              class="messages-page__send-btn"
+              [disabled]="!canSend()"
+              [attr.aria-label]="'chat.details.send' | translate"
+              (click)="send()"
+            >
+              <app-icon name="arrow" [size]="17" />
+            </button>
+          </div>
+        }
       }
     </section>
   </div>
@@ -346,25 +365,33 @@
         </button>
 
         @if (selectedThreadDetail(); as detail) {
-          <button
-            type="button"
-            class="messages-page__avatar-btn"
-            [attr.aria-label]="
-              'admin.users.table.viewProfileAria' | translate: { name: detail.counterpartName }
-            "
-            [disabled]="!selectedThreadRow()"
-            (click)="selectedThreadRow() && openProfile(selectedThreadRow()!.memberId)"
-          >
-            @if (detail.counterpartAvatarUrl; as avatarUrl) {
-              <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
-            } @else {
-              <app-ui-avatar [name]="detail.counterpartName" size="md" />
-            }
-          </button>
+          @if (detail.counterpartIsDeleted) {
+            <app-deleted-user-avatar [size]="36" />
+          } @else {
+            <button
+              type="button"
+              class="messages-page__avatar-btn"
+              [attr.aria-label]="
+                'admin.users.table.viewProfileAria' | translate: { name: detail.counterpartName }
+              "
+              [disabled]="!selectedThreadRow()"
+              (click)="selectedThreadRow() && openProfile(selectedThreadRow()!.memberId)"
+            >
+              @if (detail.counterpartAvatarUrl; as avatarUrl) {
+                <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
+              } @else {
+                <app-ui-avatar [name]="detail.counterpartName" size="md" />
+              }
+            </button>
+          }
           <div class="messages-page__chat-header-text">
             <div class="messages-page__chat-header-name">
-              {{ detail.counterpartName }}
-              @if (detail.counterpartVerified) {
+              @if (detail.counterpartIsDeleted) {
+                <app-deleted-user-name />
+              } @else {
+                {{ detail.counterpartName }}
+              }
+              @if (detail.counterpartVerified && !detail.counterpartIsDeleted) {
                 <app-icon
                   name="verified"
                   [size]="13"
@@ -419,7 +446,7 @@
             <div class="messages-page__thread-empty">
               {{
                 'admin.messages.thread.emptyStart'
-                  | translate: { name: firstName(mobileDetail.counterpartName) }
+                  | translate: { name: nameParam(mobileDetail) }
               }}
             </div>
           }
@@ -463,37 +490,44 @@
         }
       </div>
 
-      <div class="messages-page__composer">
-        <label class="messages-page__visually-hidden" for="admin-messages-composer-mobile">
-          {{ 'admin.messages.composer.label' | translate }}
-        </label>
-        <textarea
-          #composerInput
-          id="admin-messages-composer-mobile"
-          class="messages-page__composer-input"
-          rows="1"
-          [attr.maxlength]="maxMessageLength"
-          [value]="draft()"
-          [placeholder]="
-            selectedThreadDetail()
-              ? ('chat.details.messagePlaceholder'
-                | translate: { name: firstName(selectedThreadDetail()!.counterpartName) })
-              : ''
-          "
-          [attr.aria-label]="'admin.messages.composer.label' | translate"
-          (input)="onComposerInput($event)"
-          (keydown)="onComposerKeydown($event)"
-        ></textarea>
-        <button
-          type="button"
-          class="messages-page__send-btn"
-          [disabled]="!canSend()"
-          [attr.aria-label]="'chat.details.send' | translate"
-          (click)="send()"
-        >
-          <app-icon name="arrow" [size]="17" />
-        </button>
-      </div>
+      @if (selectedThreadDetail()?.counterpartIsDeleted) {
+        <div class="messages-page__composer messages-page__composer--readonly" role="status">
+          <i class="pi pi-lock" aria-hidden="true"></i>
+          <span>{{ 'chat.details.counterpartDeleted' | translate }}</span>
+        </div>
+      } @else {
+        <div class="messages-page__composer">
+          <label class="messages-page__visually-hidden" for="admin-messages-composer-mobile">
+            {{ 'admin.messages.composer.label' | translate }}
+          </label>
+          <textarea
+            #composerInput
+            id="admin-messages-composer-mobile"
+            class="messages-page__composer-input"
+            rows="1"
+            [attr.maxlength]="maxMessageLength"
+            [value]="draft()"
+            [placeholder]="
+              selectedThreadDetail()
+                ? ('chat.details.messagePlaceholder'
+                  | translate: { name: nameParam(selectedThreadDetail()!) })
+                : ''
+            "
+            [attr.aria-label]="'admin.messages.composer.label' | translate"
+            (input)="onComposerInput($event)"
+            (keydown)="onComposerKeydown($event)"
+          ></textarea>
+          <button
+            type="button"
+            class="messages-page__send-btn"
+            [disabled]="!canSend()"
+            [attr.aria-label]="'chat.details.send' | translate"
+            (click)="send()"
+          >
+            <app-icon name="arrow" [size]="17" />
+          </button>
+        </div>
+      }
     </div>
   } @else {
     <div class="messages-page__mobile-list">
@@ -566,20 +600,24 @@
           @for (thread of items(); track thread.conversationId) {
             <li>
               <div class="messages-page__row">
-                <button
-                  type="button"
-                  class="messages-page__avatar-btn"
-                  [attr.aria-label]="
-                    'admin.users.table.viewProfileAria' | translate: { name: displayName(thread) }
-                  "
-                  (click)="openProfile(thread.memberId)"
-                >
-                  @if (thread.memberAvatarUrl; as avatarUrl) {
-                    <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
-                  } @else {
-                    <app-ui-avatar [name]="displayName(thread)" size="md" />
-                  }
-                </button>
+                @if (thread.memberIsDeleted) {
+                  <app-deleted-user-avatar [size]="36" />
+                } @else {
+                  <button
+                    type="button"
+                    class="messages-page__avatar-btn"
+                    [attr.aria-label]="
+                      'admin.users.table.viewProfileAria' | translate: { name: displayName(thread) }
+                    "
+                    (click)="openProfile(thread.memberId)"
+                  >
+                    @if (thread.memberAvatarUrl; as avatarUrl) {
+                      <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
+                    } @else {
+                      <app-ui-avatar [name]="displayName(thread)" size="md" />
+                    }
+                  </button>
+                }
                 <button type="button" class="messages-page__row-main" (click)="openThread(thread)">
                   <div class="messages-page__row-top">
                     <span class="messages-page__row-name">{{ displayName(thread) }}</span>

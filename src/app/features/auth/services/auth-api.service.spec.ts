@@ -428,3 +428,32 @@ describe('AuthApiService — email verification (ADR-028)', () => {
     expect(result).toMatchObject({ token: 'jwt' });
   });
 });
+
+describe('AuthApiService.deleteAccount (ADR-056)', () => {
+  let service: AuthApiService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(AuthApiService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  it('sends DELETE /api/auth/me with the confirmation in the body', () => {
+    let done = false;
+    service.deleteAccount({ password: 'Secret123', email: null }).subscribe(() => (done = true));
+
+    const req = httpMock.expectOne(toApiUrl(ApiContract.auth.deleteAccount));
+    expect(req.request.method).toBe('DELETE');
+    expect(req.request.body).toEqual({ password: 'Secret123', email: null });
+    req.flush(null, { status: 204, statusText: 'No Content' });
+
+    expect(done).toBe(true);
+  });
+});

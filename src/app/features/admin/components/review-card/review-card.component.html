@@ -37,7 +37,9 @@
 
       <div class="review-card__owner">
         <span class="review-card__owner-identity">
-          @if (item().ownerAvatarUrl) {
+          @if (item().ownerIsDeleted) {
+            <app-deleted-user-avatar [size]="28" />
+          } @else if (item().ownerAvatarUrl) {
             <img
               class="review-card__owner-avatar"
               [src]="item().ownerAvatarUrl"
@@ -46,8 +48,12 @@
           } @else {
             <app-ui-avatar [name]="ownerName()" size="sm" />
           }
-          <strong>{{ ownerName() }}</strong>
-          @if (item().ownerIsIdConfirmed) {
+          @if (item().ownerIsDeleted) {
+            <strong><app-deleted-user-name /></strong>
+          } @else {
+            <strong>{{ ownerName() }}</strong>
+          }
+          @if (item().ownerIsIdConfirmed && !item().ownerIsDeleted) {
             <app-icon name="verified" [size]="13" class="review-card__verified-icon" />
           } @else {
             <span class="review-card__unverified">{{

@@ -8,6 +8,7 @@ import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { BehaviorSubject, combineLatest, map } from 'rxjs';
 
+import { DeletedUserAvatarComponent, DeletedUserNameComponent } from '../../../../shared/ui/deleted-user';
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
@@ -69,6 +70,8 @@ const selectConversationsBaseState = createSelector(
   imports: [
     AsyncPipe,
     AvatarComponent,
+    DeletedUserAvatarComponent,
+    DeletedUserNameComponent,
     ButtonModule,
     ChatTimeAgoPipe,
     IconComponent,

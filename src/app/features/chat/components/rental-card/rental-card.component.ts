@@ -146,9 +146,15 @@ export class RentalCardComponent {
     this.conversation().viewerRole === 'renter' ? 'chat.rental.noteYou' : 'chat.rental.noteBy',
   );
 
+  /** ADR-056: a deleted counterpart's name is "" — interpolate the translated "Deleted user". */
+  private counterpartLabel(): string {
+    const c = this.conversation();
+    return c.counterpartIsDeleted ? this.translate.instant('common.deletedUser') : c.counterpartName;
+  }
+
   /** Interpolation params for captions and dialog text rendered outside the main view. */
   protected readonly conversationParams = computed(() => ({
-    name: this.conversation().counterpartName,
+    name: this.counterpartLabel(),
   }));
 
   /** The viewer's turn: the only case the top bar shows (`turn === viewerRole`). */
@@ -167,7 +173,7 @@ export class RentalCardComponent {
       status: c.bookingStatus,
       role: c.viewerRole,
       turn: c.turn,
-      counterpartName: c.counterpartName,
+      counterpartName: this.counterpartLabel(),
       deadlineText: c.deadlineAt
         ? this.dates.format(c.deadlineAt, 'd MMM, H:mm')
         : '',

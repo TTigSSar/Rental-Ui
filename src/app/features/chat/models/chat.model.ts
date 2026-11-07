@@ -77,6 +77,8 @@ export interface ChatConversationPreview {
   bookingId: string | null;
   counterpartName: string;
   counterpartAvatarUrl: string | null;
+  /** ADR-056: counterpart deleted their account (name "", avatar null). */
+  counterpartIsDeleted: boolean;
   /** Null for a Moderation conversation — there is no toy strip. */
   toyTitle: string | null;
   toyImageUrl: string | null;
@@ -107,6 +109,8 @@ export interface ChatMessage {
   conversationId: string;
   senderId: string | null;
   senderName: string | null;
+  /** ADR-056: sender deleted their account (senderName is then ""). */
+  senderIsDeleted: boolean;
   type: ChatMessageType;
   systemKind: ChatSystemKind | null;
   /** Set only when `type === 'moderationNote'`; null otherwise. */
@@ -137,6 +141,8 @@ export interface ChatConversationDetails {
   counterpartName: string;
   counterpartAvatarUrl: string | null;
   counterpartVerified: boolean;
+  /** ADR-056: counterpart deleted their account (name "", avatar null, verified false). */
+  counterpartIsDeleted: boolean;
   /** Null for a Moderation conversation — there is no toy strip. */
   toyTitle: string | null;
   toyImageUrl: string | null;
