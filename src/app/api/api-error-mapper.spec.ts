@@ -121,6 +121,7 @@ describe('ApiErrorMapper', () => {
       ['chat.home_point_required', 'chat.meetingPoint.noHomePoint'],
       ['chat.meeting_point_invalid', 'errors.validation'],
       ['chat.meeting_point_outside_yerevan', 'chat.meetingPoint.picker.outside'],
+      ['chat.participant_deleted', 'chat.details.counterpartDeleted'],
     ])('maps %s to %s without leaking the server text', (code, key) => {
       const error = problem(400, { errorCode: code, title: 'English server text' });
       expect(resolveApiErrorKey(error)).toBe(key);

@@ -23,6 +23,21 @@ describe('AdminReportDetailDialogComponent', () => {
     );
   }
 
+  describe('a deleted reporter (ADR-056)', () => {
+    it('shows "Deleted user" and offers no reporter contact', async () => {
+      await setup({
+        reporterIsDeleted: true,
+        reporterFirstName: '',
+        reporterLastName: '',
+        reporterEmail: '',
+        targetType: 'Listing',
+      });
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelector('app-deleted-user-name')).not.toBeNull();
+      expect(contactButtons().length).toBe(0);
+    });
+  });
+
   // ── Contact buttons (`admin-desktop.jsx:1036`'s "Message {label}" affordance) ──
   describe('messageable contacts', () => {
     it('shows a reporter contact and a reported-member contact for a User-target report', async () => {

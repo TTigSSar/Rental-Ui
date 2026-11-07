@@ -87,20 +87,24 @@
                   class="messages-page__row"
                   [class.messages-page__row--active]="selectedThreadId() === thread.conversationId"
                 >
-                  <button
-                    type="button"
-                    class="messages-page__avatar-btn"
-                    [attr.aria-label]="
-                      'admin.users.table.viewProfileAria' | translate: { name: displayName(thread) }
-                    "
-                    (click)="openProfile(thread.memberId)"
-                  >
-                    @if (thread.memberAvatarUrl; as avatarUrl) {
-                      <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
-                    } @else {
-                      <app-ui-avatar [name]="displayName(thread)" size="md" />
-                    }
-                  </button>
+                  @if (thread.memberIsDeleted) {
+                    <app-deleted-user-avatar [size]="36" />
+                  } @else {
+                    <button
+                      type="button"
+                      class="messages-page__avatar-btn"
+                      [attr.aria-label]="
+                        'admin.users.table.viewProfileAria' | translate: { name: displayName(thread) }
+                      "
+                      (click)="openProfile(thread.memberId)"
+                    >
+                      @if (thread.memberAvatarUrl; as avatarUrl) {
+                        <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
+                      } @else {
+                        <app-ui-avatar [name]="displayName(thread)" size="md" />
+                      }
+                    </button>
+                  }
                   <button
                     type="button"
                     class="messages-page__row-main"
@@ -180,25 +184,33 @@
       } @else {
         <div class="messages-page__chat-header">
           @if (selectedThreadDetail(); as detail) {
-            <button
-              type="button"
-              class="messages-page__avatar-btn"
-              [attr.aria-label]="
-                'admin.users.table.viewProfileAria' | translate: { name: detail.counterpartName }
-              "
-              [disabled]="!selectedThreadRow()"
-              (click)="selectedThreadRow() && openProfile(selectedThreadRow()!.memberId)"
-            >
-              @if (detail.counterpartAvatarUrl; as avatarUrl) {
-                <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
-              } @else {
-                <app-ui-avatar [name]="detail.counterpartName" size="md" />
-              }
-            </button>
+            @if (detail.counterpartIsDeleted) {
+              <app-deleted-user-avatar [size]="36" />
+            } @else {
+              <button
+                type="button"
+                class="messages-page__avatar-btn"
+                [attr.aria-label]="
+                  'admin.users.table.viewProfileAria' | translate: { name: detail.counterpartName }
+                "
+                [disabled]="!selectedThreadRow()"
+                (click)="selectedThreadRow() && openProfile(selectedThreadRow()!.memberId)"
+              >
+                @if (detail.counterpartAvatarUrl; as avatarUrl) {
+                  <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
+                } @else {
+                  <app-ui-avatar [name]="detail.counterpartName" size="md" />
+                }
+              </button>
+            }
             <div class="messages-page__chat-header-text">
               <div class="messages-page__chat-header-name">
-                {{ detail.counterpartName }}
-                @if (detail.counterpartVerified) {
+                @if (detail.counterpartIsDeleted) {
+                  <app-deleted-user-name />
+                } @else {
+                  {{ detail.counterpartName }}
+                }
+                @if (detail.counterpartVerified && !detail.counterpartIsDeleted) {
                   <app-icon
                     name="verified"
                     [size]="14"
@@ -346,25 +358,33 @@
         </button>
 
         @if (selectedThreadDetail(); as detail) {
-          <button
-            type="button"
-            class="messages-page__avatar-btn"
-            [attr.aria-label]="
-              'admin.users.table.viewProfileAria' | translate: { name: detail.counterpartName }
-            "
-            [disabled]="!selectedThreadRow()"
-            (click)="selectedThreadRow() && openProfile(selectedThreadRow()!.memberId)"
-          >
-            @if (detail.counterpartAvatarUrl; as avatarUrl) {
-              <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
-            } @else {
-              <app-ui-avatar [name]="detail.counterpartName" size="md" />
-            }
-          </button>
+          @if (detail.counterpartIsDeleted) {
+            <app-deleted-user-avatar [size]="36" />
+          } @else {
+            <button
+              type="button"
+              class="messages-page__avatar-btn"
+              [attr.aria-label]="
+                'admin.users.table.viewProfileAria' | translate: { name: detail.counterpartName }
+              "
+              [disabled]="!selectedThreadRow()"
+              (click)="selectedThreadRow() && openProfile(selectedThreadRow()!.memberId)"
+            >
+              @if (detail.counterpartAvatarUrl; as avatarUrl) {
+                <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
+              } @else {
+                <app-ui-avatar [name]="detail.counterpartName" size="md" />
+              }
+            </button>
+          }
           <div class="messages-page__chat-header-text">
             <div class="messages-page__chat-header-name">
-              {{ detail.counterpartName }}
-              @if (detail.counterpartVerified) {
+              @if (detail.counterpartIsDeleted) {
+                <app-deleted-user-name />
+              } @else {
+                {{ detail.counterpartName }}
+              }
+              @if (detail.counterpartVerified && !detail.counterpartIsDeleted) {
                 <app-icon
                   name="verified"
                   [size]="13"
@@ -566,20 +586,24 @@
           @for (thread of items(); track thread.conversationId) {
             <li>
               <div class="messages-page__row">
-                <button
-                  type="button"
-                  class="messages-page__avatar-btn"
-                  [attr.aria-label]="
-                    'admin.users.table.viewProfileAria' | translate: { name: displayName(thread) }
-                  "
-                  (click)="openProfile(thread.memberId)"
-                >
-                  @if (thread.memberAvatarUrl; as avatarUrl) {
-                    <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
-                  } @else {
-                    <app-ui-avatar [name]="displayName(thread)" size="md" />
-                  }
-                </button>
+                @if (thread.memberIsDeleted) {
+                  <app-deleted-user-avatar [size]="36" />
+                } @else {
+                  <button
+                    type="button"
+                    class="messages-page__avatar-btn"
+                    [attr.aria-label]="
+                      'admin.users.table.viewProfileAria' | translate: { name: displayName(thread) }
+                    "
+                    (click)="openProfile(thread.memberId)"
+                  >
+                    @if (thread.memberAvatarUrl; as avatarUrl) {
+                      <img class="messages-page__avatar-img" [src]="avatarUrl" alt="" />
+                    } @else {
+                      <app-ui-avatar [name]="displayName(thread)" size="md" />
+                    }
+                  </button>
+                }
                 <button type="button" class="messages-page__row-main" (click)="openThread(thread)">
                   <div class="messages-page__row-top">
                     <span class="messages-page__row-name">{{ displayName(thread) }}</span>

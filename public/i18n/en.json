@@ -1,5 +1,7 @@
 {
   "common": {
+    "deletedUser": "Deleted user",
+    "openChat": "Open chat",
     "back": "Back",
     "clear": "Clear",
     "showPassword": "Show password",
@@ -2463,6 +2465,7 @@
       "title": "Meeting point",
       "ownerHome": "Owner’s home",
       "link": "Open in maps",
+      "removed": "Location removed",
       "sending": "Sending…",
       "failA": "Couldn’t send the meeting point.",
       "failB": "Try again.",
@@ -2539,6 +2542,7 @@
       "imageTooLarge": "This photo is too large. Maximum size is {{max}} MB.",
       "imageInvalidType": "Unsupported file type. Use a JPEG, PNG, WebP or GIF image.",
       "readOnly": "This rental is finished. The chat is read-only.",
+      "counterpartDeleted": "This user deleted their account. You can still read the conversation.",
       "charCounter": "{{count}} / {{max}}",
       "limitReached": "Message limit of {{max}} characters reached",
       "moderationTitle": "DoRent moderation",

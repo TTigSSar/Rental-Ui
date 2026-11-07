@@ -44,7 +44,12 @@
 
       <div class="mbc__info">
         <h3 class="mbc__title">{{ booking().listingTitle }}</h3>
-        @if (ownerShortName(); as name) {
+        @if (booking().ownerIsDeleted) {
+          <p class="mbc__owner">
+            <app-deleted-user-avatar [size]="22" />
+            <app-deleted-user-name />
+          </p>
+        } @else if (ownerShortName(); as name) {
           <p class="mbc__owner">
             <span class="mbc__owner-avatar" aria-hidden="true">
               {{ booking().ownerFirstName[0]?.toUpperCase() }}

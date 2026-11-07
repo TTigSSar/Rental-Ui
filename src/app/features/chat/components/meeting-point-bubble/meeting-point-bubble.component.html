@@ -16,6 +16,9 @@
       }
     </div>
   </div>
+  @if (removed()) {
+    <span class="mp-bubble__removed">{{ 'chat.meetingPoint.removed' | translate }}</span>
+  } @else {
   <a
     class="mp-bubble__link"
     [attr.href]="mapsUrl()"
@@ -27,4 +30,5 @@
     <span>{{ 'chat.meetingPoint.link' | translate }}</span>
     <i class="pi pi-external-link" aria-hidden="true"></i>
   </a>
+  }
 </div>

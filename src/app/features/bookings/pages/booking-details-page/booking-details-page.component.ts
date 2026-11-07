@@ -18,6 +18,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 
 import { BookingProgressComponent } from '../../../../shared/ui/booking-progress/booking-progress.component';
 import { BookingStatusBadgeComponent } from '../../../../shared/ui/booking-status-badge/booking-status-badge.component';
+import { DeletedUserAvatarComponent, DeletedUserNameComponent } from '../../../../shared/ui/deleted-user';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import type { ProgressStepState } from '../../../../shared/utils/booking-progress.utils';
 import { todayUtcDateString } from '../../../../shared/utils/date.utils';
@@ -73,6 +74,8 @@ function parseLocalIsoDate(value: string): Date | null {
   selector: 'app-booking-details-page',
   standalone: true,
   imports: [
+    DeletedUserAvatarComponent,
+    DeletedUserNameComponent,
     DramCurrencyPipe,
     UiDatePipe,
     RouterLink,

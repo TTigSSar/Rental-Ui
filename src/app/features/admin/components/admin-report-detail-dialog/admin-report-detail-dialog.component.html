@@ -56,15 +56,21 @@
         <span class="admin-report-detail-dialog__info-label">{{
           'admin.reports.detail.reportedBy' | translate
         }}</span>
-        <span class="admin-report-detail-dialog__info-value"
-          >{{ report().reporterFirstName }} {{ report().reporterLastName }}</span
-        >
+        <span class="admin-report-detail-dialog__info-value">
+          @if (report().reporterIsDeleted) {
+            <app-deleted-user-name />
+          } @else {
+            {{ report().reporterFirstName }} {{ report().reporterLastName }}
+          }
+        </span>
       </div>
       <div class="admin-report-detail-dialog__info-cell">
         <span class="admin-report-detail-dialog__info-label">{{
           'admin.reports.detail.reporterEmail' | translate
         }}</span>
-        <span class="admin-report-detail-dialog__info-value">{{ report().reporterEmail }}</span>
+        <span class="admin-report-detail-dialog__info-value">{{
+          report().reporterIsDeleted ? '—' : report().reporterEmail
+        }}</span>
       </div>
       <div class="admin-report-detail-dialog__info-cell">
         <span class="admin-report-detail-dialog__info-label">{{
@@ -103,29 +109,36 @@
           <div class="admin-report-detail-dialog__quote-body">
             <p class="admin-report-detail-dialog__quote-text">&ldquo;{{ detail }}&rdquo;</p>
             <div class="admin-report-detail-dialog__quote-attr">
-              &mdash; {{ report().reporterFirstName }} {{ report().reporterLastName }}
+              &mdash;
+              @if (report().reporterIsDeleted) {
+                <app-deleted-user-name />
+              } @else {
+                {{ report().reporterFirstName }} {{ report().reporterLastName }}
+              }
             </div>
           </div>
         </div>
       </div>
     }
 
-    <div class="admin-report-detail-dialog__section-label">
-      {{ 'admin.reports.detail.contacts' | translate }}
-    </div>
-    <div class="admin-report-detail-dialog__contacts">
-      @for (contact of messageableContacts(); track contact.userId) {
-        <button
-          type="button"
-          class="admin-report-detail-dialog__contact-btn"
-          [title]="'admin.reports.detail.messageContactAria' | translate: { name: contact.name }"
-          (click)="messageUser.emit(contact.userId)"
-        >
-          <app-icon name="message" [size]="13" />
-          {{ 'admin.reports.detail.messageContact' | translate: { name: contact.name } }}
-        </button>
-      }
-    </div>
+    @if (messageableContacts().length > 0) {
+      <div class="admin-report-detail-dialog__section-label">
+        {{ 'admin.reports.detail.contacts' | translate }}
+      </div>
+      <div class="admin-report-detail-dialog__contacts">
+        @for (contact of messageableContacts(); track contact.userId) {
+          <button
+            type="button"
+            class="admin-report-detail-dialog__contact-btn"
+            [title]="'admin.reports.detail.messageContactAria' | translate: { name: contact.name }"
+            (click)="messageUser.emit(contact.userId)"
+          >
+            <app-icon name="message" [size]="13" />
+            {{ 'admin.reports.detail.messageContact' | translate: { name: contact.name } }}
+          </button>
+        }
+      </div>
+    }
 
     @if (!isOpen() && report().resolutionNote) {
       <div class="admin-report-detail-dialog__note-block">

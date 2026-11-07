@@ -173,6 +173,8 @@ export type KnownApiErrorCode =
   | 'chat.conversation_not_found'
   | 'chat.booking_not_found'
   | 'chat.conversation_closed'
+  // 409 ADR-056: the other participant deleted their account (after not_participant, before closed)
+  | 'chat.participant_deleted'
   | 'chat.message_too_long'
   | 'chat.attachment_too_large'
   | 'chat.attachment_invalid_type'

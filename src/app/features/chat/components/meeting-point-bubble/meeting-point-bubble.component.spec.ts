@@ -42,6 +42,20 @@ describe('MeetingPointBubbleComponent', () => {
     expect(link?.querySelector('.pi-external-link')).not.toBeNull();
   });
 
+  it('reads "Location removed" with no maps link when the coordinates were erased (ADR-056)', () => {
+    const host = render({ latitude: null, longitude: null, kind: 'other' });
+    expect(host.querySelector('.mp-bubble__removed')?.textContent?.trim()).toBe(
+      'chat.meetingPoint.removed',
+    );
+    expect(host.querySelector('a.mp-bubble__link')).toBeNull();
+  });
+
+  it('does not treat an optimistic sending bubble as removed', () => {
+    const host = render({ latitude: null, longitude: null, kind: 'home', state: 'sending' });
+    expect(host.querySelector('.mp-bubble__removed')).toBeNull();
+    expect(host.querySelector('a.mp-bubble__link')).not.toBeNull();
+  });
+
   it('never renders the coordinates as text', () => {
     const host = render({ latitude: 40.1811, longitude: 44.5136, kind: 'home' });
     expect(host.textContent).not.toContain('40.18');

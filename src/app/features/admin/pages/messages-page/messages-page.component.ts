@@ -19,6 +19,7 @@ import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { debounceTime, distinctUntilChanged, filter as rxFilter, map, skip } from 'rxjs';
 
+import { DeletedUserAvatarComponent, DeletedUserNameComponent } from '../../../../shared/ui/deleted-user';
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import { selectAuthUser } from '../../../auth/store/auth.selectors';
@@ -107,6 +108,8 @@ const FILTERS: readonly { id: AdminMessageThreadFilter; labelKey: string }[] = [
     AdminUserProfileDialogComponent,
     AdminUserStatusPillComponent,
     AvatarComponent,
+    DeletedUserAvatarComponent,
+    DeletedUserNameComponent,
     UiDatePipe,
     IconComponent,
     MeetingPointBubbleComponent,
@@ -308,6 +311,7 @@ export class MessagesPageComponent implements OnInit {
 
   // ── List helpers ──
   protected displayName(thread: AdminMessageThread): string {
+    if (thread.memberIsDeleted) return this.translate.instant('common.deletedUser');
     return `${thread.memberFirstName} ${thread.memberLastName}`.trim() || thread.memberId;
   }
 

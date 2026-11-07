@@ -151,6 +151,7 @@ describe('ListingDetailsPageComponent — report affordance', () => {
     authenticated: boolean;
     userId?: string;
     ownerId?: string;
+    ownerIsDeleted?: boolean;
   }): ReturnType<typeof TestBed.createComponent<ListingDetailsPageComponent>> {
     const listing = makeListingDetails({
       id: 'listing-1',
@@ -158,7 +159,7 @@ describe('ListingDetailsPageComponent — report affordance', () => {
         id: options.ownerId ?? 'owner-1',
         firstName: 'Owen',
         lastName: 'Owner',
-        isDeleted: false,
+        isDeleted: options.ownerIsDeleted ?? false,
       },
     });
     TestBed.configureTestingModule({
@@ -195,6 +196,24 @@ describe('ListingDetailsPageComponent — report affordance', () => {
     });
     return TestBed.createComponent(ListingDetailsPageComponent);
   }
+
+  it('renders a deleted owner as the shared avatar + plain text, with no profile links (ADR-056)', () => {
+    const fixture = setup({ authenticated: false, ownerIsDeleted: true });
+    fixture.detectChanges();
+    const card = fixture.nativeElement.querySelector('.detail-page__owner-card') as HTMLElement;
+    expect(card.querySelector('app-deleted-user-avatar')).not.toBeNull();
+    expect(card.querySelector('app-deleted-user-name')).not.toBeNull();
+    expect(card.querySelector('a[href*="/users/"]')).toBeNull();
+    expect(card.textContent).not.toContain('Owen');
+  });
+
+  it('keeps the owner profile link for a live owner', () => {
+    const fixture = setup({ authenticated: false });
+    fixture.detectChanges();
+    const card = fixture.nativeElement.querySelector('.detail-page__owner-card') as HTMLElement;
+    expect(card.querySelector('a[href="/users/owner-1"]')).not.toBeNull();
+    expect(card.querySelector('app-deleted-user-avatar')).toBeNull();
+  });
 
   it('hides the report affordance for a guest', () => {
     const fixture = setup({ authenticated: false });

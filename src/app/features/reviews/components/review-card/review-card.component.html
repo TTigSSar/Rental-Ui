@@ -1,7 +1,9 @@
 <div class="review-card">
   <div class="review-card__header">
     <div class="review-card__author">
-      @if (review().reviewerAvatarUrl) {
+      @if (review().reviewerIsDeleted) {
+        <app-deleted-user-avatar [size]="40" />
+      } @else if (review().reviewerAvatarUrl) {
         <img
           class="review-card__avatar"
           [src]="review().reviewerAvatarUrl"
@@ -11,7 +13,11 @@
         <app-ui-avatar [name]="reviewerName()" />
       }
       <div class="review-card__meta">
-        <span class="review-card__name">{{ reviewerName() }}</span>
+        @if (review().reviewerIsDeleted) {
+          <app-deleted-user-name class="review-card__name" />
+        } @else {
+          <span class="review-card__name">{{ reviewerName() }}</span>
+        }
         @let relDate = relativeDateI18n();
         <span class="review-card__date" [title]="fullDate()">
           {{ relDate.key | translate: relDate.params }}

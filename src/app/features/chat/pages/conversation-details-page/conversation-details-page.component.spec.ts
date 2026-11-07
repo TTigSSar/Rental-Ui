@@ -907,4 +907,64 @@ describe('ConversationDetailsPageComponent', () => {
       expect(form.valid).toBe(true);
     });
   });
+
+  describe('a deleted counterpart (ADR-056)', () => {
+    function renderDeleted(messages: ChatMessage[] = []) {
+      const { fixture, store } = createFixture();
+      store.setState({
+        [chatFeatureKey]: {
+          ...initialChatState,
+          activeConversation: conversationWith(messages, {
+            counterpartName: '',
+            counterpartIsDeleted: true,
+            counterpartVerified: false,
+          }),
+        },
+      });
+      fixture.detectChanges();
+      return fixture.nativeElement as HTMLElement;
+    }
+
+    it('shows the shared avatar and plain-text name in the header, with no profile link', () => {
+      const host = renderDeleted();
+      expect(host.querySelector('.chat-thread__identity app-deleted-user-avatar')).not.toBeNull();
+      expect(host.querySelector('.chat-thread__identity app-deleted-user-name')).not.toBeNull();
+      expect(host.querySelector('.chat-thread__view-profile')).toBeNull();
+      expect(host.querySelector('a[href*="/users/"]')).toBeNull();
+    });
+
+    it('replaces the composer with a read-only note', () => {
+      const host = renderDeleted();
+      expect(host.querySelector('.chat-thread__composer')).toBeNull();
+      expect(host.querySelector('.chat-thread__closed')?.textContent).toContain(
+        'chat.details.counterpartDeleted',
+      );
+    });
+
+    it('keeps the composer for a live counterpart', () => {
+      const { fixture, store } = createFixture();
+      store.setState({
+        [chatFeatureKey]: { ...initialChatState, activeConversation: conversationWith([]) },
+      });
+      fixture.detectChanges();
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelector('.chat-thread__composer')).not.toBeNull();
+      expect(host.querySelector('app-deleted-user-avatar')).toBeNull();
+    });
+
+    it('renders a deleted sender above their messages as avatar + plain text', () => {
+      const host = renderDeleted([
+        imageMessage({
+          id: 'm9',
+          senderId: 'gone',
+          senderName: '',
+          senderIsDeleted: true,
+          isMine: false,
+        }),
+      ]);
+      const sender = host.querySelector('.chat-group__sender--deleted');
+      expect(sender?.querySelector('app-deleted-user-avatar')).not.toBeNull();
+      expect(sender?.querySelector('app-deleted-user-name')).not.toBeNull();
+    });
+  });
 });

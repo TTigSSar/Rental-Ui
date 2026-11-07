@@ -1,15 +1,25 @@
 <article class="orc" [class.orc--declined]="request().decision === 'declined'">
   <!-- Renter identity row -->
   <header class="orc__head">
-    <span class="orc__avatar" aria-hidden="true">
-      @if (request().renter.avatarUrl; as avatarUrl) {
-        <img class="orc__avatar-img" [src]="avatarUrl" [alt]="renterName()" loading="lazy" />
-      } @else {
-        {{ initials() }}
-      }
-    </span>
+    @if (request().renter.isDeleted) {
+      <app-deleted-user-avatar [size]="40" />
+    } @else {
+      <span class="orc__avatar" aria-hidden="true">
+        @if (request().renter.avatarUrl; as avatarUrl) {
+          <img class="orc__avatar-img" [src]="avatarUrl" [alt]="renterName()" loading="lazy" />
+        } @else {
+          {{ initials() }}
+        }
+      </span>
+    }
     <div class="orc__identity">
-      <p class="orc__name">{{ renterName() }}</p>
+      <p class="orc__name">
+        @if (request().renter.isDeleted) {
+          <app-deleted-user-name />
+        } @else {
+          {{ renterName() }}
+        }
+      </p>
       <p class="orc__renter-meta">
         @if (request().renter.rating !== null) {
           <span class="orc__rating">
@@ -100,8 +110,10 @@
               styleClass="orc__btn"
               icon="pi pi-comment"
               [label]="
-                'myListings.ownerView.requests.message'
-                  | translate: { name: request().renter.firstName }
+                request().renter.isDeleted
+                  ? ('common.openChat' | translate)
+                  : ('myListings.ownerView.requests.message'
+                    | translate: { name: request().renter.firstName })
               "
               (onClick)="message()"
             />

@@ -209,6 +209,7 @@ export class ReportsPageComponent implements OnInit {
   }
 
   protected reporterName(row: AdminReportRow): string {
+    if (row.reporterIsDeleted) return this.translate.instant('common.deletedUser');
     return `${row.reporterFirstName} ${row.reporterLastName}`.trim() || row.reporterEmail;
   }
 

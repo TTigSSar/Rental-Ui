@@ -14,6 +14,7 @@ import {
 } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { DeletedUserAvatarComponent, DeletedUserNameComponent } from '../../../../shared/ui/deleted-user';
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import { reportReasonLabelKey } from '../../../reports/models/report-reason.model';
@@ -69,6 +70,7 @@ export interface ReportMessageableContact {
     AdminReportSeverityPillComponent,
     AdminReportStatusPillComponent,
     AvatarComponent,
+    DeletedUserNameComponent,
     UiDatePipe,
     IconComponent,
     TranslatePipe,
@@ -105,12 +107,15 @@ export class AdminReportDetailDialogComponent implements OnInit, OnDestroy {
    *  actually targets a User (see this component's doc comment). */
   protected readonly messageableContacts = computed<ReportMessageableContact[]>(() => {
     const r = this.report();
-    const contacts: ReportMessageableContact[] = [
-      {
-        userId: r.reporterId,
-        name: `${r.reporterFirstName} ${r.reporterLastName}`.trim() || r.reporterEmail,
-      },
-    ];
+    // ADR-056: a deleted reporter can no longer be messaged.
+    const contacts: ReportMessageableContact[] = r.reporterIsDeleted
+      ? []
+      : [
+          {
+            userId: r.reporterId,
+            name: `${r.reporterFirstName} ${r.reporterLastName}`.trim() || r.reporterEmail,
+          },
+        ];
     if (r.targetType === 'User') {
       contacts.push({ userId: r.targetId, name: r.targetLabel });
     }

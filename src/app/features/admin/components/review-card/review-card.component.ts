@@ -4,6 +4,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 import type { ListingCategoryOption } from '../../../listings/models/create-listing.model';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
+import { DeletedUserAvatarComponent, DeletedUserNameComponent } from '../../../../shared/ui/deleted-user';
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import { AdminCatSelectComponent } from '../admin-cat-select/admin-cat-select.component';
@@ -32,6 +33,8 @@ import type {
     AdminCatSelectComponent,
     AdminStatusBadgeComponent,
     AvatarComponent,
+    DeletedUserAvatarComponent,
+    DeletedUserNameComponent,
     CheckPillComponent,
     DramCurrencyPipe,
     IconComponent,

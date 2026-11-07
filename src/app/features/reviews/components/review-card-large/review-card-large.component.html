@@ -3,7 +3,9 @@
   <!-- Header: avatar + name/date | stars -->
   <div class="rcl__header">
     <div class="rcl__author">
-      @if (review().reviewerAvatarUrl) {
+      @if (review().reviewerIsDeleted) {
+        <app-deleted-user-avatar [size]="40" />
+      } @else if (review().reviewerAvatarUrl) {
         <img
           class="rcl__avatar"
           [src]="review().reviewerAvatarUrl"
@@ -13,7 +15,11 @@
         <app-ui-avatar [name]="reviewerName()" size="lg" />
       }
       <div class="rcl__meta">
-        <span class="rcl__name">{{ reviewerName() }}</span>
+        @if (review().reviewerIsDeleted) {
+          <app-deleted-user-name class="rcl__name" />
+        } @else {
+          <span class="rcl__name">{{ reviewerName() }}</span>
+        }
         <span class="rcl__date" [title]="fullDate()">
           @let d = relativeDateI18n();
           {{ d.key | translate: d.params }}

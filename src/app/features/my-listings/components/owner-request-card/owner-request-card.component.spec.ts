@@ -12,6 +12,7 @@ function makeRequest(overrides: Partial<OwnerBookingRequest> = {}): OwnerBooking
       id: 'renter-1',
       firstName: 'Anahit',
       lastName: 'Hayrapetyan',
+      isDeleted: false,
       avatarUrl: null,
       rating: 4.8,
       rentalsCount: 3,

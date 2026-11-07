@@ -24,6 +24,8 @@ export interface OwnerRequestRenter {
   readonly id: string;
   readonly firstName: string;
   readonly lastName: string;
+  /** ADR-056: renter deleted their account — no name, no avatar, no public profile. */
+  readonly isDeleted: boolean;
   readonly avatarUrl: string | null;
   readonly rating: number | null;
   readonly rentalsCount: number;

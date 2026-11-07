@@ -2,15 +2,21 @@
   <div class="owner-trust-panel__label">{{ 'admin.inspect.owner.label' | translate }}</div>
 
   <div class="owner-trust-panel__identity">
-    @if (listing().ownerAvatarUrl) {
+    @if (listing().ownerIsDeleted) {
+      <app-deleted-user-avatar [size]="44" />
+    } @else if (listing().ownerAvatarUrl) {
       <img class="owner-trust-panel__avatar" [src]="listing().ownerAvatarUrl" [alt]="ownerName()" />
     } @else {
       <app-ui-avatar [name]="ownerName()" size="lg" />
     }
     <div class="owner-trust-panel__identity-text">
       <div class="owner-trust-panel__name">
-        {{ ownerName() }}
-        @if (listing().ownerIsIdConfirmed) {
+        @if (listing().ownerIsDeleted) {
+          <app-deleted-user-name />
+        } @else {
+          {{ ownerName() }}
+        }
+        @if (listing().ownerIsIdConfirmed && !listing().ownerIsDeleted) {
           <app-icon name="verified" [size]="14" class="owner-trust-panel__verified-icon" />
         }
       </div>
@@ -80,14 +86,16 @@
     </div>
   </div>
 
-  <div class="owner-trust-panel__actions">
-    <button type="button" class="owner-trust-panel__message-btn" (click)="messageOwner()">
-      <app-icon name="message" [size]="15" />
-      {{ 'admin.inspect.owner.messageOwner' | translate }}
-    </button>
-    <a class="owner-trust-panel__profile-link" [routerLink]="ownerProfilePath()">
-      <app-icon name="user" [size]="15" />
-      {{ 'admin.inspect.owner.viewProfile' | translate }}
-    </a>
-  </div>
+  @if (!listing().ownerIsDeleted) {
+    <div class="owner-trust-panel__actions">
+      <button type="button" class="owner-trust-panel__message-btn" (click)="messageOwner()">
+        <app-icon name="message" [size]="15" />
+        {{ 'admin.inspect.owner.messageOwner' | translate }}
+      </button>
+      <a class="owner-trust-panel__profile-link" [routerLink]="ownerProfilePath()">
+        <app-icon name="user" [size]="15" />
+        {{ 'admin.inspect.owner.viewProfile' | translate }}
+      </a>
+    </div>
+  }
 </div>
