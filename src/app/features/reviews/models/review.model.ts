@@ -6,6 +6,8 @@ export interface ReviewComment {
   readonly reviewerFirstName: string;
   readonly reviewerLastName: string;
   readonly reviewerAvatarUrl: string | null;
+  /** ADR-056: reviewer deleted their account (names "", avatar null). */
+  readonly reviewerIsDeleted: boolean;
   readonly comment: string;
   /** Rental days = booking endDate - startDate, minimum 1 (ADR-043). */
   readonly rentedDays: number;

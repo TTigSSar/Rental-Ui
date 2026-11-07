@@ -15,7 +15,9 @@
 
       @if (vm.conversation; as conversation) {
         <div class="chat-thread__identity">
-          @if (conversation.counterpartAvatarUrl) {
+          @if (conversation.counterpartIsDeleted) {
+            <app-deleted-user-avatar [size]="40" />
+          } @else if (conversation.counterpartAvatarUrl) {
             <img
               class="chat-thread__identity-avatar"
               [src]="conversation.counterpartAvatarUrl"
@@ -26,8 +28,12 @@
             <app-ui-avatar [name]="conversation.counterpartName" size="md" />
           }
           <h1 class="chat-thread__identity-name">
-            <span class="chat-thread__identity-text">{{ conversation.counterpartName }}</span>
-            @if (conversation.counterpartVerified) {
+            @if (conversation.counterpartIsDeleted) {
+              <app-deleted-user-name class="chat-thread__identity-text" />
+            } @else {
+              <span class="chat-thread__identity-text">{{ conversation.counterpartName }}</span>
+            }
+            @if (conversation.counterpartVerified && !conversation.counterpartIsDeleted) {
               <i
                 class="pi pi-verified chat-thread__verified"
                 [attr.aria-label]="'chat.details.verifiedAria' | translate"
@@ -36,16 +42,18 @@
           </h1>
         </div>
 
-        <a
-          class="chat-thread__view-profile"
-          [routerLink]="['/users', conversation.counterpartId]"
-          [attr.aria-label]="'chat.details.viewProfile' | translate"
-        >
-          <i class="pi pi-user" aria-hidden="true"></i>
-          <span class="chat-thread__view-profile-text">
-            {{ 'chat.details.viewProfile' | translate }}
-          </span>
-        </a>
+        @if (!conversation.counterpartIsDeleted) {
+          <a
+            class="chat-thread__view-profile"
+            [routerLink]="['/users', conversation.counterpartId]"
+            [attr.aria-label]="'chat.details.viewProfile' | translate"
+          >
+            <i class="pi pi-user" aria-hidden="true"></i>
+            <span class="chat-thread__view-profile-text">
+              {{ 'chat.details.viewProfile' | translate }}
+            </span>
+          </a>
+        }
       } @else {
         <span class="chat-thread__header-title">
           {{ 'chat.details.backToConversations' | translate }}
@@ -180,7 +188,12 @@
                 <app-moderation-note-card [message]="item.message" />
               } @else {
                 <div class="chat-group" [class.chat-group--mine]="item.isMine">
-                  @if (!item.isMine && item.senderName) {
+                  @if (!item.isMine && item.senderIsDeleted) {
+                    <span class="chat-group__sender chat-group__sender--deleted">
+                      <app-deleted-user-avatar [size]="28" />
+                      <app-deleted-user-name />
+                    </span>
+                  } @else if (!item.isMine && item.senderName) {
                     <span class="chat-group__sender">{{ item.senderName }}</span>
                   }
 
@@ -352,6 +365,14 @@
               <span>{{ 'chat.details.readOnly' | translate }}</span>
             </div>
           </div>
+        } @else if (conversation.counterpartIsDeleted) {
+          <!-- ADR-056: the counterpart deleted their account, history stays readable. -->
+          <div class="chat-thread__closed" role="status">
+            <div class="chat-thread__closed-card">
+              <i class="pi pi-lock chat-thread__closed-icon" aria-hidden="true"></i>
+              <span>{{ 'chat.details.counterpartDeleted' | translate }}</span>
+            </div>
+          </div>
         } @else {
           <form
             class="chat-thread__composer"
@@ -401,7 +422,7 @@
                 [maxLength]="maxMessageLength"
                 [placeholder]="
                   'chat.details.messagePlaceholder'
-                    | translate: { name: firstName(conversation.counterpartName) }
+                    | translate: { name: nameParam(conversation) }
                 "
               />
               <!-- Camera (right, inside the input): same upload path, but

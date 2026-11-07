@@ -15,6 +15,7 @@ function preview(overrides: Partial<ChatConversationPreview>): ChatConversationP
     bookingId: 'b1',
     counterpartName: 'Marina',
     counterpartAvatarUrl: null,
+    counterpartIsDeleted: false,
     toyTitle: 'Wooden train',
     toyImageUrl: null,
     status: 'active',
@@ -46,6 +47,24 @@ function createFixture(conversations: ChatConversationPreview[]) {
   fixture.detectChanges();
   return fixture;
 }
+
+describe('ConversationsPageComponent — deleted counterpart (ADR-056)', () => {
+  it('renders the shared avatar and plain "Deleted user" name on the row', () => {
+    const fixture = createFixture([
+      preview({ id: 'gone', counterpartName: '', counterpartIsDeleted: true }),
+    ]);
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.chat-row__avatar app-deleted-user-avatar')).not.toBeNull();
+    expect(host.querySelector('.chat-row__name app-deleted-user-name')).not.toBeNull();
+  });
+
+  it('renders the name for a live counterpart', () => {
+    const fixture = createFixture([preview({ id: 'live' })]);
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('app-deleted-user-avatar')).toBeNull();
+    expect(host.querySelector('.chat-row__name')?.textContent?.trim()).toBe('Marina');
+  });
+});
 
 describe('ConversationsPageComponent', () => {
   it('prefixes the snippet on rows where the last message is mine', () => {

@@ -1,7 +1,11 @@
 {
   "common": {
+    "deletedUser": "Deleted user",
+    "openChat": "Open chat",
     "back": "Back",
     "clear": "Clear",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "clearCategory": "Clear category",
     "close": "Close",
     "retry": "Try again",
@@ -287,6 +291,7 @@
       "terms": "Terms of Use",
       "privacy": "Privacy Policy",
       "partnership": "Partnership",
+      "deleteAccount": "Delete account",
       "allCategories": "All toy categories",
       "findUs": "You can find us in:",
       "instagram": "Instagram",
@@ -1305,7 +1310,52 @@
       "passwordGoogle": "You sign in with Google",
       "language": "Language",
       "notifications": "Notifications",
-      "comingSoon": "Coming soon"
+      "comingSoon": "Coming soon",
+      "deleteAccount": "Delete account"
+    },
+    "deleteAccount": {
+      "title": "Delete your account?",
+      "close": "Close",
+      "consequence": "This can’t be undone. You’ll be signed out on all devices.",
+      "erased": {
+        "heading": "Erased",
+        "profileKey": "Profile",
+        "profileValues": "name, phone, photo",
+        "placesKey": "Places",
+        "placesValues": "location, home point, toy addresses",
+        "accountKey": "Account",
+        "accountValues": "sign-in details, favorites, notifications"
+      },
+      "stays": {
+        "toggle": "What stays for other people",
+        "summary": "Bookings and messages stay for the people you dealt with, and reviews stay public, all shown as “Deleted user”. Your toys are archived and pending requests are closed.",
+        "history": "Your bookings and chat messages stay visible to the people you dealt with, and your reviews stay public, all shown as “Deleted user” instead of your name.",
+        "toys": "Your toys are archived and no longer shown.",
+        "pending": "Pending requests are closed: your outgoing ones are cancelled, incoming ones declined."
+      },
+      "passwordLabel": "Enter your password to confirm",
+      "emailLabel": "Type your email to confirm",
+      "cancel": "Cancel",
+      "confirm": "Delete account",
+      "deleting": "Deleting…",
+      "errors": {
+        "invalidPassword": "That password is incorrect.",
+        "invalidEmail": "That email doesn’t match this account.",
+        "generic": "Something went wrong. Please try again."
+      },
+      "blocked": {
+        "title": "You can’t delete your account yet",
+        "text": "Finish these rentals or cancel those not yet handed over.",
+        "listLabel": "Open rentals",
+        "roleRenter": "You’re renting",
+        "roleOwner": "You’re lending",
+        "ctaRentals": "Go to my rentals",
+        "ctaRequests": "Go to incoming requests"
+      },
+      "toast": {
+        "success": "Your account has been deleted",
+        "signedOut": "You’ve been signed out. If your account was deleted, we’ve sent you an email."
+      }
     },
     "security": {
       "page": {
@@ -2415,6 +2465,7 @@
       "title": "Meeting point",
       "ownerHome": "Owner’s home",
       "link": "Open in maps",
+      "removed": "Location removed",
       "sending": "Sending…",
       "failA": "Couldn’t send the meeting point.",
       "failB": "Try again.",
@@ -2491,6 +2542,7 @@
       "imageTooLarge": "This photo is too large. Maximum size is {{max}} MB.",
       "imageInvalidType": "Unsupported file type. Use a JPEG, PNG, WebP or GIF image.",
       "readOnly": "This rental is finished. The chat is read-only.",
+      "counterpartDeleted": "This user deleted their account. You can still read the conversation.",
       "charCounter": "{{count}} / {{max}}",
       "limitReached": "Message limit of {{max}} characters reached",
       "moderationTitle": "DoRent moderation",
@@ -2795,6 +2847,36 @@
     "retry": "Try again"
   },
   "info": {
+    "accountDeletion": {
+      "title": "Delete your DoRent account",
+      "intro": "You can delete your account yourself, from your profile. It can’t be undone.",
+      "stepsLabel": "How to delete your account",
+      "steps": {
+        "signIn": { "title": "Sign in", "text": "Use the same sign-in you use in the app." },
+        "settings": {
+          "title": "Open Profile → Settings",
+          "text": "Delete account is the last row, set apart at the bottom."
+        },
+        "delete": {
+          "title": "Tap “Delete account”",
+          "text": "Confirm with your password, or with your email if you sign in with Google."
+        }
+      },
+      "erasedHeading": "Erased",
+      "keptHeading": "Kept, anonymized",
+      "erased": {
+        "profile": "Your name, phone and photo",
+        "places": "Your location, home point and toy addresses",
+        "signIn": "Your sign-in details",
+        "favorites": "Your favorites and notifications"
+      },
+      "notes": {
+        "openRentals": "If you have open rentals, finish or cancel them first. The app lists them for you.",
+        "email": "After your account is deleted, we send a confirmation email."
+      },
+      "cta": "Sign in and delete",
+      "ctaAuthenticated": "Go to settings"
+    },
     "about": {
       "pageTitle": "About Us",
       "heroTitle": "About DoRent",

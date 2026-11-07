@@ -151,7 +151,8 @@ export const ApiContract = {
     reorder: '/api/admin/categories/reorder',
   },
   // Admin console Phase 3: the Users screen. All routes [Authorize(Roles = "Admin")] — see
-  // AdminUsersController. Query params (status/search/sort/page/pageSize) are appended via
+  // AdminUsersController. ADR-056: per-user routes answer 404 `admin.user_not_found` for a deleted
+  // user. Query params (status/search/sort/page/pageSize) are appended via
   // HttpParams by the caller, same convention as `adminListings.queue`, see
   // AdminUsersApiService.
   adminUsers: {
@@ -205,6 +206,8 @@ export const ApiContract = {
   home: {
     sections: '/api/home/sections',
   },
+  // ADR-056 (AD-3): a deleted user's public-profile, listings, and owner/renter review routes
+  // answer 404 (not found), same as an unknown id.
   users: {
     publicProfile: (userId: string): ApiPath =>
       `/api/users/${encodeURIComponent(userId)}/public-profile`,

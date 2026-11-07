@@ -118,7 +118,9 @@
     @for (row of items(); track row.id) {
       <div class="reports-page__card">
         <div class="reports-page__thumb-wrap">
-          @if (row.targetImageUrl; as imageUrl) {
+          @if (row.targetIsDeleted) {
+            <app-deleted-user-avatar [size]="36" />
+          } @else if (row.targetImageUrl; as imageUrl) {
             <img
               class="reports-page__thumb"
               [class.reports-page__thumb--round]="row.targetType === 'User'"
@@ -139,7 +141,13 @@
 
         <div class="reports-page__card-body">
           <div class="reports-page__card-head">
-            <span class="reports-page__target">{{ row.targetLabel }}</span>
+            <span class="reports-page__target">
+              @if (row.targetIsDeleted) {
+                <app-deleted-user-name />
+              } @else {
+                {{ row.targetLabel }}
+              }
+            </span>
             <app-admin-report-severity-pill [severity]="row.severity" size="sm" />
             <app-admin-report-status-pill [status]="row.status" size="sm" />
           </div>

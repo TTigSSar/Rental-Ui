@@ -81,6 +81,7 @@ function normalizeAdminReportRow(raw: Record<string, unknown> & { id: string }):
     // Null for a Message target, or when a listing/user's image/avatar isn't set — keep
     // distinct from an empty string so the UI can fall back to a placeholder cleanly.
     targetImageUrl: toNullableString(raw['targetImageUrl']),
+    targetIsDeleted: raw['targetIsDeleted'] === true,
 
     reasonCode: typeof raw['reasonCode'] === 'string' ? raw['reasonCode'] : '',
     detail: toNullableString(raw['detail']),
@@ -95,6 +96,7 @@ function normalizeAdminReportRow(raw: Record<string, unknown> & { id: string }):
     reporterLastName: typeof raw['reporterLastName'] === 'string' ? raw['reporterLastName'] : '',
     reporterEmail: typeof raw['reporterEmail'] === 'string' ? raw['reporterEmail'] : '',
     reporterAvatarUrl: toNullableString(raw['reporterAvatarUrl']),
+    reporterIsDeleted: raw['reporterIsDeleted'] === true,
 
     resolvedAt: toNullableString(raw['resolvedAt']),
     resolutionNote: toNullableString(raw['resolutionNote']),

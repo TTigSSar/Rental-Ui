@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { DeletedUserAvatarComponent, DeletedUserNameComponent } from '../../../../shared/ui/deleted-user';
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import type { ReviewComment } from '../../models/review.model';
 import { UiDateService } from '../../../../shared/utils/ui-date';
@@ -13,7 +14,7 @@ interface RelativeDateI18n {
 @Component({
   selector: 'app-review-card-large',
   standalone: true,
-  imports: [AvatarComponent, TranslatePipe],
+  imports: [AvatarComponent, DeletedUserAvatarComponent, DeletedUserNameComponent, TranslatePipe],
   templateUrl: './review-card-large.component.html',
   styleUrl: './review-card-large.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

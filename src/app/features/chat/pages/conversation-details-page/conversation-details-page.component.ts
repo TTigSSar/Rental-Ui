@@ -23,6 +23,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, filter, map } from 'rxjs';
 
 import { selectHomePoint } from '../../../auth/store/auth.selectors';
+import { DeletedUserAvatarComponent, DeletedUserNameComponent } from '../../../../shared/ui/deleted-user';
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
@@ -90,6 +91,7 @@ interface MessageGroup {
   readonly id: string;
   readonly isMine: boolean;
   readonly senderName: string | null;
+  readonly senderIsDeleted: boolean;
   readonly messages: ChatMessage[];
   readonly time: string;
   /** Last own message in the thread AND read by the counterpart → "✓ Seen". */
@@ -205,7 +207,11 @@ const selectConversationDetailsRouteState = createSelector(
   }),
 );
 
-function buildThreadItems(conversation: ChatConversationDetails, lang: string): ThreadItem[] {
+function buildThreadItems(
+  conversation: ChatConversationDetails,
+  lang: string,
+  deletedUserLabel: string,
+): ThreadItem[] {
   const messages = conversation.messages;
   const items: ThreadItem[] = [];
 
@@ -264,7 +270,11 @@ function buildThreadItems(conversation: ChatConversationDetails, lang: string): 
                     ? 'chat.system.requestDetail'
                     : 'chat.system.requestDetailYou',
                 requesterName:
-                  conversation.viewerRole === 'owner' ? conversation.counterpartName : null,
+                  conversation.viewerRole !== 'owner'
+                    ? null
+                    : conversation.counterpartIsDeleted
+                      ? deletedUserLabel
+                      : conversation.counterpartName,
                 bookingDates: conversation.bookingDates,
                 bookingPrice: conversation.bookingPrice,
               }
@@ -278,7 +288,8 @@ function buildThreadItems(conversation: ChatConversationDetails, lang: string): 
       previous &&
       previous.kind === 'group' &&
       previous.isMine === message.isMine &&
-      previous.senderName === message.senderName
+      previous.senderName === message.senderName &&
+      previous.senderIsDeleted === message.senderIsDeleted
     ) {
       previous.messages.push(message);
       continue;
@@ -289,6 +300,7 @@ function buildThreadItems(conversation: ChatConversationDetails, lang: string): 
       id: message.id,
       isMine: message.isMine,
       senderName: message.senderName,
+      senderIsDeleted: message.senderIsDeleted,
       messages: [message],
       time: '',
       showSeen: false,
@@ -318,6 +330,8 @@ function buildThreadItems(conversation: ChatConversationDetails, lang: string): 
   imports: [
     AsyncPipe,
     AvatarComponent,
+    DeletedUserAvatarComponent,
+    DeletedUserNameComponent,
     ButtonModule,
     DramCurrencyPipe,
     UiDatePipe,
@@ -355,6 +369,18 @@ export class ConversationDetailsPageComponent implements OnInit {
    * ("Message Anna…"). Falls back to the whole string when the name is a single
    * token — never empty, so the placeholder never reads "Message …".
    */
+  /** Full display name, or the translated "Deleted user" when the account is gone (ADR-056). */
+  private counterpartLabel(c: { counterpartName: string; counterpartIsDeleted: boolean }): string {
+    return c.counterpartIsDeleted
+      ? this.translate.instant('common.deletedUser')
+      : c.counterpartName;
+  }
+
+  /** Placeholder / caption param: first name, or the translated "Deleted user". */
+  protected nameParam(c: { counterpartName: string; counterpartIsDeleted: boolean }): string {
+    return c.counterpartIsDeleted ? this.counterpartLabel(c) : this.firstName(c.counterpartName);
+  }
+
   protected firstName(name: string): string {
     return name.trim().split(/\s+/)[0] || name;
   }
@@ -391,7 +417,7 @@ export class ConversationDetailsPageComponent implements OnInit {
         return {
           routeConversationId,
           conversation: activeConversation,
-          threadItems: activeConversation ? buildThreadItems(activeConversation, lang) : [],
+          threadItems: activeConversation ? buildThreadItems(activeConversation, lang, this.translate.instant('common.deletedUser')) : [],
           loading: routeState.loading,
           error: routeState.error,
           sendingMessage,
@@ -676,7 +702,8 @@ export class ConversationDetailsPageComponent implements OnInit {
   });
 
   protected readonly pickerMeetingPoint = computed<LocationPickerMeetingPoint>(() => {
-    const counterpartName = this.activeConversation()?.counterpartName ?? '';
+    const active = this.activeConversation();
+    const nameParam = active ? this.nameParam(active) : '';
     const pending = this.pendingMeetingPoint();
     const picking = pending !== null && pending.request.kind === 'other';
     return {
@@ -697,7 +724,7 @@ export class ConversationDetailsPageComponent implements OnInit {
         failedRetryKey: 'chat.meetingPoint.failB',
         noteKey: 'chat.meetingPoint.picker.note',
       },
-      params: { name: this.firstName(counterpartName) },
+      params: { name: nameParam },
       startedOnCityCentre: !this.hasHomePoint(),
       sendError: picking && pending.status === 'failed' ? pending.error : null,
     };

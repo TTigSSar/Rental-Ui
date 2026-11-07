@@ -173,6 +173,30 @@ describe('ReportsPageComponent', () => {
     expect(fixture.nativeElement.querySelectorAll('.reports-page__card').length).toBe(2);
   });
 
+  it('renders the deleted-user placeholder for a deleted User target, the label otherwise (ADR-056 AD-7)', async () => {
+    await setup({
+      isLoading: false,
+      items: [
+        makeAdminReportRow({
+          id: 'r1',
+          targetType: 'User',
+          targetLabel: 'Ghost',
+          targetImageUrl: null,
+          targetIsDeleted: true,
+        }),
+        makeAdminReportRow({ id: 'r2', targetType: 'User', targetLabel: 'Narek Sargsyan' }),
+      ],
+    });
+    const cards = fixture.nativeElement.querySelectorAll('.reports-page__card');
+    expect(cards[0].querySelector('app-deleted-user-avatar')).not.toBeNull();
+    expect(cards[0].querySelector('.reports-page__target app-deleted-user-name')).not.toBeNull();
+    expect(cards[0].querySelector('.reports-page__target')?.textContent).not.toContain('Ghost');
+    expect(cards[1].querySelector('app-deleted-user-avatar')).toBeNull();
+    expect(cards[1].querySelector('.reports-page__target')?.textContent).toContain(
+      'Narek Sargsyan',
+    );
+  });
+
   it('shows the filtered-to-user banner with a "Show all reports" control when a target filter is set', async () => {
     await setup({ targetFilter: { targetType: 'User', targetId: 'user-9' } });
     const banner = fixture.nativeElement.querySelector('.reports-page__filter-banner');

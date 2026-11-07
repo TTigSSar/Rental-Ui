@@ -1,0 +1,97 @@
+<div class="acc-del">
+  <h1 class="acc-del__title">{{ 'info.accountDeletion.title' | translate }}</h1>
+  <p class="acc-del__intro">{{ 'info.accountDeletion.intro' | translate }}</p>
+
+  <ol class="acc-del__steps" [attr.aria-label]="'info.accountDeletion.stepsLabel' | translate">
+    <li class="acc-del__step">
+      <span class="acc-del__num" aria-hidden="true">1</span>
+      <span class="acc-del__step-body">
+        <strong>{{ 'info.accountDeletion.steps.signIn.title' | translate }}</strong>
+        <span>{{ 'info.accountDeletion.steps.signIn.text' | translate }}</span>
+      </span>
+    </li>
+    <li class="acc-del__step">
+      <span class="acc-del__num" aria-hidden="true">2</span>
+      <span class="acc-del__step-body">
+        <strong>{{ 'info.accountDeletion.steps.settings.title' | translate }}</strong>
+        <span>{{ 'info.accountDeletion.steps.settings.text' | translate }}</span>
+      </span>
+    </li>
+    <li class="acc-del__step">
+      <span class="acc-del__num" aria-hidden="true">3</span>
+      <span class="acc-del__step-body">
+        <strong>{{ 'info.accountDeletion.steps.delete.title' | translate }}</strong>
+        <span>{{ 'info.accountDeletion.steps.delete.text' | translate }}</span>
+      </span>
+    </li>
+  </ol>
+
+  <section class="acc-del__card">
+    <div class="acc-del__col">
+      <h2 class="acc-del__col-title">
+        <i class="pi pi-trash acc-del__col-icon acc-del__col-icon--danger" aria-hidden="true"></i>
+        {{ 'info.accountDeletion.erasedHeading' | translate }}
+      </h2>
+      <ul class="acc-del__list">
+        <li>
+          <span class="acc-del__tile" aria-hidden="true"><i class="pi pi-user"></i></span>
+          <span>{{ 'info.accountDeletion.erased.profile' | translate }}</span>
+        </li>
+        <li>
+          <span class="acc-del__tile" aria-hidden="true"><i class="pi pi-map-marker"></i></span>
+          <span>{{ 'info.accountDeletion.erased.places' | translate }}</span>
+        </li>
+        <li>
+          <span class="acc-del__tile" aria-hidden="true"><i class="pi pi-key"></i></span>
+          <span>{{ 'info.accountDeletion.erased.signIn' | translate }}</span>
+        </li>
+        <li>
+          <span class="acc-del__tile" aria-hidden="true"><i class="pi pi-heart"></i></span>
+          <span>{{ 'info.accountDeletion.erased.favorites' | translate }}</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="acc-del__col acc-del__col--kept">
+      <h2 class="acc-del__col-title">
+        <i class="pi pi-users acc-del__col-icon" aria-hidden="true"></i>
+        {{ 'info.accountDeletion.keptHeading' | translate }}
+      </h2>
+      <ul class="acc-del__list">
+        <li>
+          <span class="acc-del__tile" aria-hidden="true"><i class="pi pi-comments"></i></span>
+          <span>{{ 'profile.deleteAccount.stays.history' | translate }}</span>
+        </li>
+        <li>
+          <span class="acc-del__tile" aria-hidden="true"><i class="pi pi-box"></i></span>
+          <span>{{ 'profile.deleteAccount.stays.toys' | translate }}</span>
+        </li>
+        <li>
+          <span class="acc-del__tile" aria-hidden="true"><i class="pi pi-times-circle"></i></span>
+          <span>{{ 'profile.deleteAccount.stays.pending' | translate }}</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <ul class="acc-del__notes">
+    <li>
+      <i class="pi pi-calendar" aria-hidden="true"></i>
+      <span>{{ 'info.accountDeletion.notes.openRentals' | translate }}</span>
+    </li>
+    <li>
+      <i class="pi pi-envelope" aria-hidden="true"></i>
+      <span>{{ 'info.accountDeletion.notes.email' | translate }}</span>
+    </li>
+  </ul>
+
+  <button type="button" class="acc-del__cta" data-testid="account-deletion-cta" (click)="signInAndDelete()">
+    <i class="pi pi-sign-in" aria-hidden="true"></i>
+    {{
+      (isAuthenticated() ? 'info.accountDeletion.ctaAuthenticated' : 'info.accountDeletion.cta')
+        | translate
+    }}
+  </button>
+
+  <app-auth-dialog [visible]="showAuthDialog()" (closed)="showAuthDialog.set(false)" />
+</div>

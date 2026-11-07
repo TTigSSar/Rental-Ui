@@ -119,3 +119,19 @@
     width: 264px;
   }
 }
+
+.mp-bubble__removed {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border-top: 1px solid var(--ui-color-border);
+  color: var(--ui-color-text-secondary);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.mp-bubble--mine .mp-bubble__removed {
+  border-top-color: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.72);
+}

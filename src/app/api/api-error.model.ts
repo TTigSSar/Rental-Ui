@@ -173,6 +173,8 @@ export type KnownApiErrorCode =
   | 'chat.conversation_not_found'
   | 'chat.booking_not_found'
   | 'chat.conversation_closed'
+  // 409 ADR-056: the other participant deleted their account (after not_participant, before closed)
+  | 'chat.participant_deleted'
   | 'chat.message_too_long'
   | 'chat.attachment_too_large'
   | 'chat.attachment_invalid_type'
@@ -241,7 +243,12 @@ export type KnownApiErrorCode =
   | 'ai_search.unauthenticated'
   | 'ai_search.invalid_description'
   | 'ai_search.rate_limited'
-  | 'ai_search.daily_limit';
+  | 'ai_search.daily_limit'
+  // account.* — account deletion (ADR-056): DELETE /api/auth/me
+  | 'account.invalid_confirmation'
+  | 'account.admin_cannot_delete'
+  | 'account.has_open_rentals'
+  | 'account.state_changed';
 
 /**
  * Any `errorCode` the API can send: the known codes above (for autocomplete), widened to

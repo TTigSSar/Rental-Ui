@@ -1122,3 +1122,14 @@
 .chat-thread__mp-note-dismiss {
   margin: 0;
 }
+
+app-deleted-user-name.chat-thread__identity-text {
+  display: block;
+}
+
+.chat-group__sender--deleted {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}

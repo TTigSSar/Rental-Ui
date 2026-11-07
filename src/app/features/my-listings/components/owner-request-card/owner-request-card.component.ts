@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
 
+import { DeletedUserAvatarComponent, DeletedUserNameComponent } from '../../../../shared/ui/deleted-user';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import type { OwnerBookingRequest } from '../../models/owner-listing.model';
 import { UiDateRangePipe } from '../../../../shared/utils/ui-date.pipe';
@@ -50,7 +51,7 @@ const DECIDED_STATUS_META: Readonly<
 @Component({
   selector: 'app-owner-request-card',
   standalone: true,
-  imports: [ButtonModule, DramCurrencyPipe, UiDateRangePipe, DecimalPipe, TranslatePipe],
+  imports: [DeletedUserAvatarComponent, DeletedUserNameComponent, ButtonModule, DramCurrencyPipe, UiDateRangePipe, DecimalPipe, TranslatePipe],
   templateUrl: './owner-request-card.component.html',
   styleUrl: './owner-request-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

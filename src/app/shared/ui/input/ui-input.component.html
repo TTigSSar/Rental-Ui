@@ -52,7 +52,7 @@
     <button
       type="button"
       class="uii-pwd-toggle"
-      [attr.aria-label]="passwordVisible() ? 'Hide password' : 'Show password'"
+      [attr.aria-label]="(passwordVisible() ? 'common.hidePassword' : 'common.showPassword') | translate"
       tabindex="-1"
       (mousedown)="$event.preventDefault()"
       (click)="handlePasswordToggle()"
@@ -95,7 +95,7 @@
 
 @if (hasError() && errorMessage()) {
   <p [id]="helperId" class="uii-helper uii-helper--error" role="alert">
-    <i class="pi pi-times-circle" aria-hidden="true"></i>
+    <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
     <span>{{ errorMessage() }}</span>
   </p>
 } @else if (hasSuccess() && successMessage()) {

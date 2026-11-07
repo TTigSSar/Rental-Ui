@@ -24,6 +24,15 @@ describe('OwnerTrustPanelComponent', () => {
     fixture.detectChanges();
   }
 
+  it('renders a deleted owner as the shared avatar + plain text with no profile or message action (ADR-056)', async () => {
+    await setup({ ownerIsDeleted: true, ownerFirstName: '', ownerLastName: '', ownerEmail: '' });
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('app-deleted-user-avatar')).not.toBeNull();
+    expect(host.querySelector('.owner-trust-panel__name app-deleted-user-name')).not.toBeNull();
+    expect(host.querySelector('.owner-trust-panel__profile-link')).toBeNull();
+    expect(host.querySelector('.owner-trust-panel__message-btn')).toBeNull();
+  });
+
   it('renders an em dash for a null owner rating instead of 0', async () => {
     await setup({ ownerRating: null });
     expect(

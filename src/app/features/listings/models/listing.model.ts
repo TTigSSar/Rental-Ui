@@ -39,6 +39,8 @@ export interface ListingOwner {
   id: string;
   firstName: string;
   lastName: string;
+  /** ADR-056: owner deleted their account (names ""); only reachable by an admin. */
+  isDeleted: boolean;
 }
 
 export interface BookedDateRange {
