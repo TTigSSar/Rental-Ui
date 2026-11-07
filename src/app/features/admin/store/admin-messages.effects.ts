@@ -24,6 +24,8 @@ import {
 function toChatMessage(raw: ChatRealtimeMessage, currentUserId: string | null): ChatMessage {
   return {
     ...raw,
+    // The hub payload (ChatRealtimeMessage) carries no deleted flag; live participants only.
+    senderIsDeleted: false,
     isMine: raw.senderId !== null && raw.senderId === currentUserId,
     seen: false,
   };

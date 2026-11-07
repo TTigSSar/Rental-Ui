@@ -76,6 +76,7 @@ function normalizeAdminListingSummary(
     ownerEmail: typeof raw['ownerEmail'] === 'string' ? raw['ownerEmail'] : '',
     ownerFirstName: typeof raw['ownerFirstName'] === 'string' ? raw['ownerFirstName'] : '',
     ownerLastName: typeof raw['ownerLastName'] === 'string' ? raw['ownerLastName'] : '',
+    ownerIsDeleted: raw['ownerIsDeleted'] === true,
 
     categoryId: typeof raw['categoryId'] === 'string' ? raw['categoryId'] : '',
     categoryName: typeof raw['categoryName'] === 'string' ? raw['categoryName'] : '',

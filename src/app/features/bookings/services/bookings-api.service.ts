@@ -66,6 +66,7 @@ function normalizeMyBooking(item: Partial<MyBooking> & { id: string }): MyBookin
     listingPrimaryImageUrl: toNullableStr(item.listingPrimaryImageUrl),
     ownerFirstName: toStr(item.ownerFirstName),
     ownerLastName: toStr(item.ownerLastName),
+    ownerIsDeleted: item.ownerIsDeleted === true,
     startDate: toStr(item.startDate),
     endDate: toStr(item.endDate),
     totalPrice: toFiniteNumber(item.totalPrice),
@@ -108,6 +109,7 @@ function normalizeBookingDetail(item: Partial<BookingDetail> & { id: string }): 
     counterpartyFirstName: toStr(item.counterpartyFirstName),
     counterpartyLastName: toStr(item.counterpartyLastName),
     counterpartyAvatarUrl: toNullableStr(item.counterpartyAvatarUrl),
+    counterpartyIsDeleted: item.counterpartyIsDeleted === true,
   };
 }
 
@@ -122,6 +124,7 @@ function normalizeBookingRequest(
     renterFirstName: toStr(item.renterFirstName),
     renterLastName: toStr(item.renterLastName),
     renterEmail: toStr(item.renterEmail),
+    renterIsDeleted: item.renterIsDeleted === true,
     startDate: toStr(item.startDate),
     endDate: toStr(item.endDate),
     totalPrice: toFiniteNumber(item.totalPrice),

@@ -41,6 +41,7 @@ const FULL_ROW_EXPECTED: AdminReportRow = {
   reporterFirstName: 'Anahit',
   reporterLastName: 'Grigoryan',
   reporterEmail: 'anahit@toyrent.am',
+  reporterIsDeleted: false,
   reporterAvatarUrl: '/uploads/avatar.jpg',
   resolvedAt: null,
   resolutionNote: null,

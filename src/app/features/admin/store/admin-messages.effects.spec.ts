@@ -43,6 +43,7 @@ function makeMessage(overrides: Partial<ChatMessage> = {}): ChatMessage {
     conversationId: 'c1',
     senderId: 'user-2',
     senderName: 'Anahit',
+    senderIsDeleted: false,
     type: 'text',
     systemKind: null,
     noteKind: null,
@@ -68,6 +69,7 @@ function makeDetails(overrides: Partial<ChatConversationDetails> = {}): ChatConv
     counterpartId: 'user-2',
     counterpartName: 'Anahit Grigoryan',
     counterpartAvatarUrl: null,
+    counterpartIsDeleted: false,
     counterpartVerified: true,
     toyTitle: null,
     toyImageUrl: null,
@@ -324,7 +326,7 @@ describe('AdminMessagesEffects', () => {
       harness.complete();
       expect(await result).toEqual([
         AdminMessagesActions.threadMessageReceived({
-          message: { ...raw, isMine: false, seen: false },
+          message: { ...raw, senderIsDeleted: false, isMine: false, seen: false },
         }),
       ]);
     });

@@ -47,6 +47,8 @@ export interface MyBooking {
   listingPrimaryImageUrl: string | null;
   ownerFirstName: string;
   ownerLastName: string;
+  /** ADR-056: account deleted — name fields are "" and avatar is null. */
+  ownerIsDeleted: boolean;
   startDate: string;
   endDate: string;
   totalPrice: number;
@@ -88,6 +90,8 @@ export interface BookingDetail {
   counterpartyFirstName: string;
   counterpartyLastName: string;
   counterpartyAvatarUrl: string | null;
+  /** ADR-056: account deleted — name fields are "" and avatar is null. */
+  counterpartyIsDeleted: boolean;
 }
 
 export interface BookingRequest {
@@ -98,6 +102,8 @@ export interface BookingRequest {
   renterFirstName: string;
   renterLastName: string;
   renterEmail: string;
+  /** ADR-056: renter deleted their account — names and renterEmail are "". */
+  renterIsDeleted: boolean;
   startDate: string;
   endDate: string;
   totalPrice: number;

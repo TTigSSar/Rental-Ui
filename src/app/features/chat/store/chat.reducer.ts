@@ -64,6 +64,7 @@ function toInboxPreview(details: ChatConversationDetails): ChatConversationPrevi
     bookingId: details.bookingId,
     counterpartName: details.counterpartName,
     counterpartAvatarUrl: details.counterpartAvatarUrl,
+    counterpartIsDeleted: details.counterpartIsDeleted,
     toyTitle: details.toyTitle,
     toyImageUrl: details.toyImageUrl,
     status: details.status,

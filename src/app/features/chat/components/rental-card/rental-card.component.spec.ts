@@ -19,6 +19,7 @@ function conversation(overrides: Partial<ChatConversationDetails> = {}): ChatCon
     counterpartId: 'u2',
     counterpartName: 'Anna',
     counterpartAvatarUrl: null,
+    counterpartIsDeleted: false,
     counterpartVerified: false,
     toyTitle: 'Wooden train',
     toyImageUrl: null,

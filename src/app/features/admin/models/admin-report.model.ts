@@ -41,6 +41,8 @@ export interface AdminReportRow {
   reporterFirstName: string;
   reporterLastName: string;
   reporterEmail: string;
+  /** ADR-056: reporter deleted their account — names and reporterEmail are "". */
+  reporterIsDeleted: boolean;
   reporterAvatarUrl: string | null;
 
   resolvedAt: string | null;

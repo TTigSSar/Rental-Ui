@@ -33,7 +33,7 @@ function baseListing(overrides: Partial<ListingDetails> = {}): ListingDetails {
     city: 'Yerevan',
     pricePerDay: 1500,
     images: [],
-    owner: { id: 'u1', firstName: 'Anna', lastName: 'K' },
+    owner: { id: 'u1', firstName: 'Anna', lastName: 'K', isDeleted: false },
     bookedDateRanges: [],
     isFavorite: false,
     ...overrides,
@@ -158,6 +158,7 @@ describe('ListingDetailsPageComponent — report affordance', () => {
         id: options.ownerId ?? 'owner-1',
         firstName: 'Owen',
         lastName: 'Owner',
+        isDeleted: false,
       },
     });
     TestBed.configureTestingModule({
@@ -236,7 +237,7 @@ describe('ListingDetailsPageComponent — delivery types & min-rental labels', (
   function setup(listingOverrides: Partial<ListingDetails>) {
     const listing = makeListingDetails({
       id: 'listing-1',
-      owner: { id: 'owner-1', firstName: 'Owen', lastName: 'Owner' },
+      owner: { id: 'owner-1', firstName: 'Owen', lastName: 'Owner', isDeleted: false },
       ageFromMonths: 24,
       ageToMonths: 60,
       condition: 'Good',
@@ -423,7 +424,7 @@ describe('ListingDetailsPageComponent — loss & damage compensation amount', ()
   function setup(compensationAmount: number | null) {
     const listing = makeListingDetails({
       id: 'listing-1',
-      owner: { id: 'owner-1', firstName: 'Owen', lastName: 'Owner' },
+      owner: { id: 'owner-1', firstName: 'Owen', lastName: 'Owner', isDeleted: false },
       compensationAmount,
     });
     TestBed.configureTestingModule({

@@ -15,6 +15,7 @@ function preview(overrides: Partial<ChatConversationPreview>): ChatConversationP
     bookingId: 'b1',
     counterpartName: 'Marina',
     counterpartAvatarUrl: null,
+    counterpartIsDeleted: false,
     toyTitle: 'Wooden train',
     toyImageUrl: null,
     status: 'active',

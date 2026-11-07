@@ -34,6 +34,8 @@ export interface AdminListingSummary {
 
   ownerId: string;
   ownerEmail: string;
+  /** ADR-056: owner deleted their account — names and ownerEmail are "". */
+  ownerIsDeleted: boolean;
   ownerFirstName: string;
   ownerLastName: string;
 

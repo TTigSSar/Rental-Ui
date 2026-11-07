@@ -95,6 +95,7 @@ function normalizeAdminReportRow(raw: Record<string, unknown> & { id: string }):
     reporterLastName: typeof raw['reporterLastName'] === 'string' ? raw['reporterLastName'] : '',
     reporterEmail: typeof raw['reporterEmail'] === 'string' ? raw['reporterEmail'] : '',
     reporterAvatarUrl: toNullableString(raw['reporterAvatarUrl']),
+    reporterIsDeleted: raw['reporterIsDeleted'] === true,
 
     resolvedAt: toNullableString(raw['resolvedAt']),
     resolutionNote: toNullableString(raw['resolutionNote']),

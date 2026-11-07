@@ -43,7 +43,7 @@ function makeRealtimeMessage(overrides: Partial<ChatRealtimeMessage> = {}): Chat
 }
 
 function makeResolvedMessage(): ChatMessage {
-  return { ...makeRealtimeMessage(), isMine: false, seen: false };
+  return { ...makeRealtimeMessage(), senderIsDeleted: false, isMine: false, seen: false };
 }
 
 function makeActiveConversation(
@@ -56,6 +56,7 @@ function makeActiveConversation(
     counterpartId: 'owner-1',
     counterpartName: 'Owner',
     counterpartAvatarUrl: null,
+    counterpartIsDeleted: false,
     counterpartVerified: false,
     toyTitle: 'Wooden Train',
     toyImageUrl: null,
@@ -373,6 +374,7 @@ describe('ChatEffects', () => {
         conversationId: 'c1',
         senderId: 'renter-1',
         senderName: 'Ada',
+        senderIsDeleted: false,
         type: 'image',
         systemKind: null,
         noteKind: null,

@@ -10,6 +10,7 @@ function message(overrides: Partial<ChatMessage> = {}): ChatMessage {
     conversationId: 'c1',
     senderId: 'moderator-1',
     senderName: 'DoRent Team',
+    senderIsDeleted: false,
     type: 'moderationNote',
     systemKind: null,
     noteKind: 'reject',

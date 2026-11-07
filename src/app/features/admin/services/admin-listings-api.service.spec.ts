@@ -110,6 +110,7 @@ describe('AdminListingsApiService', () => {
         id: 'listing-1',
         ownerId: 'owner-1',
         ownerEmail: 'owner@rental.local',
+        ownerIsDeleted: false,
         ownerFirstName: 'Anahit',
         ownerLastName: 'Grigoryan',
         categoryId: 'cat-1',
