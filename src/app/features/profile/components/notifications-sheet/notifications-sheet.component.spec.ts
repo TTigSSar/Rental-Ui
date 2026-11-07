@@ -116,6 +116,23 @@ describe('NotificationsSheetComponent', () => {
       expect(el.querySelector('.ns__pill')).toBeNull();
     });
 
+    it('keeps focus inside the dialog (close button) once Enable resolves', async () => {
+      const { fixture, el, permissionSignal, browser } = setup('default');
+      browser.requestPermission.mockImplementation(async () => {
+        permissionSignal.set('granted');
+        return 'granted';
+      });
+      const btn = el.querySelector<HTMLButtonElement>('.ns__btn')!;
+      btn.focus();
+
+      btn.click();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(el.querySelector('.ns__btn')).toBeNull();
+      expect(document.activeElement).toBe(el.querySelector('.ns__close'));
+    });
+
     it('granted: shows the green On pill and the browser-settings line, no button', () => {
       const { el } = setup('granted');
 
@@ -156,6 +173,14 @@ describe('NotificationsSheetComponent', () => {
   });
 
   describe('container', () => {
+    it('is portalled to document.body and removed on destroy', () => {
+      const { fixture, el } = setup();
+
+      expect(el.parentElement).toBe(document.body);
+      fixture.destroy();
+      expect(document.body.contains(el)).toBe(false);
+    });
+
     it('is a modal dialog labelled by its title and closes on Escape and backdrop click', () => {
       const { fixture, el } = setup();
       const closed = vi.fn();

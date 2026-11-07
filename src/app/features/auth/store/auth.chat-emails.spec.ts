@@ -15,7 +15,7 @@ import { AuthRedirectService } from '../services/auth-redirect.service';
 import * as AuthActions from './auth.actions';
 import { AuthEffects } from './auth.effects';
 import { authReducer } from './auth.reducer';
-import { initialAuthState } from './auth.state';
+import { initialAuthState, type AuthState } from './auth.state';
 
 describe('chat emails — reducer', () => {
   const withUser = (enabled: boolean) => ({
@@ -45,6 +45,17 @@ describe('chat emails — reducer', () => {
     );
     expect(next.user?.chatEmailsEnabled).toBe(true);
     expect(next.chatEmailsSaveState).toBe('failed');
+  });
+
+  it('toggle, toggle, fail reverts to the server truth, not to the last flip', () => {
+    let state: AuthState = withUser(true); // server says true
+    state = authReducer(state, AuthActions.updateChatEmails({ enabled: false }));
+    state = authReducer(state, AuthActions.updateChatEmails({ enabled: true }));
+    // switchMap cancelled the first request; the second (enabled: true) fails, effect says revert to false.
+    state = authReducer(state, AuthActions.updateChatEmailsFailure({ revertTo: false }));
+    expect(state.user?.chatEmailsEnabled).toBe(true);
+    expect(state.chatEmailsSaveState).toBe('failed');
+    expect(state.chatEmailsConfirmed).toBeNull();
   });
 
   it('clears the feedback on reset', () => {

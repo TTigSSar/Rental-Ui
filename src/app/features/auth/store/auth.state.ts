@@ -56,6 +56,8 @@ export interface AuthState {
   phoneError: string | null;
   phoneErrorCode: ApiErrorCode | null;
   chatEmailsSaveState: ChatEmailsSaveState;
+  /** Last server-confirmed value, captured before the first optimistic flip of a burst. */
+  chatEmailsConfirmed: boolean | null;
 }
 
 export const initialAuthState: AuthState = {
@@ -80,4 +82,5 @@ export const initialAuthState: AuthState = {
   phoneError: null,
   phoneErrorCode: null,
   chatEmailsSaveState: 'idle',
+  chatEmailsConfirmed: null,
 };

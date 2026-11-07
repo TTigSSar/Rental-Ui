@@ -14,7 +14,9 @@
   margin: 0 auto;
   /* Top gutter comes from `.page-container` (same element) — no local rule. */
   padding-bottom: var(--ui-space-32);
-  animation: profile-fade-in 200ms ease-out both;
+  /* `backwards`, not `both`: a forwards fill keeps a stacking context after the fade, which traps
+     the z-index of the fixed sheets (notifications, home-point) below the app bottom nav. */
+  animation: profile-fade-in 200ms ease-out backwards;
 }
 
 /* Visually hidden page title (the design has no visible one). */

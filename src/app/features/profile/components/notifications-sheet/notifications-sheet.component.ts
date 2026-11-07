@@ -57,12 +57,15 @@ export class NotificationsSheetComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.previouslyFocused = document.activeElement as HTMLElement | null;
+    // Portal: no ancestor stacking context / transform can trap the sheet below the bottom nav.
+    document.body.appendChild(this.host.nativeElement);
     this.store.dispatch(AuthActions.resetChatEmailsSaveState());
     // The user may have changed the permission in the browser settings since the last visit.
     this.browser.refresh();
   }
 
   ngOnDestroy(): void {
+    this.host.nativeElement.remove();
     this.previouslyFocused?.focus?.();
   }
 
@@ -70,8 +73,11 @@ export class NotificationsSheetComponent implements OnInit, OnDestroy {
     this.store.dispatch(AuthActions.updateChatEmails({ enabled: !this.emailsEnabled() }));
   }
 
-  protected enableBrowser(): void {
-    void this.browser.requestPermission();
+  protected async enableBrowser(): Promise<void> {
+    await this.browser.requestPermission();
+    // The "Enable" button is replaced by the status once the permission settles, which would
+    // drop focus to <body> inside the modal; park it on the stable close button instead.
+    this.host.nativeElement.querySelector<HTMLElement>('.ns__close')?.focus();
   }
 
   @HostListener('keydown', ['$event'])

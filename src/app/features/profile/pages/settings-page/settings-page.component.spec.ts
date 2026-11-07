@@ -80,9 +80,10 @@ describe('SettingsPageComponent', () => {
     fixture.detectChanges();
     expect(el.ownerDocument.querySelector('app-notifications-sheet [role="dialog"]')).not.toBeNull();
 
-    el.querySelector<HTMLElement>('.ns__close')!.click();
+    // The sheet is portalled to document.body, so query the document.
+    el.ownerDocument.querySelector<HTMLElement>('app-notifications-sheet .ns__close')!.click();
     fixture.detectChanges();
-    expect(el.querySelector('app-notifications-sheet')).toBeNull();
+    expect(el.ownerDocument.querySelector('app-notifications-sheet')).toBeNull();
   });
 
   it('renders the Password row inactive when the account is managed by Google', () => {
