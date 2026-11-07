@@ -313,6 +313,36 @@ describe('ConversationDetailsPageComponent', () => {
       expect(text).not.toContain('Olivia Owner');
     });
 
+    it('owner sees "Deleted user" (not an empty name) when the requester deleted their account', () => {
+      const { fixture, store } = createFixture();
+      const translate = TestBed.inject(TranslateService);
+      translate.setTranslation(
+        'en',
+        {
+          common: { deletedUser: 'Deleted user' },
+          chat: {
+            system: {
+              requestDetail: '{{name}} requested this toy · {{dates}} · {{price}}',
+            },
+          },
+        },
+        true,
+      );
+      store.setState({
+        [chatFeatureKey]: {
+          ...initialChatState,
+          activeConversation: conversationWith(
+            [systemMessage({ id: 'req', systemKind: 'request' })],
+            { viewerRole: 'owner', counterpartName: '', counterpartIsDeleted: true },
+          ),
+        },
+      });
+      fixture.detectChanges();
+      const text = (fixture.nativeElement as HTMLElement).querySelector('.chat-system')!
+        .textContent as string;
+      expect(text).toContain('Deleted user requested this toy');
+    });
+
     it('falls back to the plain label when viewerRole is null', () => {
       const text = renderRequest(null, 'Olivia Owner');
       expect(text).not.toContain('Olivia Owner');

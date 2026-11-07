@@ -422,7 +422,7 @@
                 [maxLength]="maxMessageLength"
                 [placeholder]="
                   'chat.details.messagePlaceholder'
-                    | translate: { name: firstName(conversation.counterpartName) }
+                    | translate: { name: nameParam(conversation) }
                 "
               />
               <!-- Camera (right, inside the input): same upload path, but

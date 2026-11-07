@@ -315,6 +315,13 @@ export class MessagesPageComponent implements OnInit {
     return `${thread.memberFirstName} ${thread.memberLastName}`.trim() || thread.memberId;
   }
 
+  /** "Message {name}" / "{name}" param: first name, or the translated "Deleted user" (ADR-056). */
+  protected nameParam(detail: { counterpartName: string; counterpartIsDeleted: boolean }): string {
+    return detail.counterpartIsDeleted
+      ? this.translate.instant('common.deletedUser')
+      : this.firstName(detail.counterpartName);
+  }
+
   protected firstName(name: string): string {
     return name.trim().split(/\s+/)[0] || name;
   }

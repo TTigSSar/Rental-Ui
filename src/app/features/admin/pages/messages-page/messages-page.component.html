@@ -265,7 +265,7 @@
               <div class="messages-page__thread-empty">
                 {{
                   'admin.messages.thread.emptyStart'
-                    | translate: { name: firstName(detail.counterpartName) }
+                    | translate: { name: nameParam(detail) }
                 }}
               </div>
             }
@@ -309,37 +309,44 @@
           }
         </div>
 
-        <div class="messages-page__composer">
-          <label class="messages-page__visually-hidden" for="admin-messages-composer">
-            {{ 'admin.messages.composer.label' | translate }}
-          </label>
-          <textarea
-            #composerInput
-            id="admin-messages-composer"
-            class="messages-page__composer-input"
-            rows="1"
-            [attr.maxlength]="maxMessageLength"
-            [value]="draft()"
-            [placeholder]="
-              selectedThreadDetail()
-                ? ('chat.details.messagePlaceholder'
-                  | translate: { name: firstName(selectedThreadDetail()!.counterpartName) })
-                : ''
-            "
-            [attr.aria-label]="'admin.messages.composer.label' | translate"
-            (input)="onComposerInput($event)"
-            (keydown)="onComposerKeydown($event)"
-          ></textarea>
-          <button
-            type="button"
-            class="messages-page__send-btn"
-            [disabled]="!canSend()"
-            [attr.aria-label]="'chat.details.send' | translate"
-            (click)="send()"
-          >
-            <app-icon name="arrow" [size]="17" />
-          </button>
-        </div>
+        @if (selectedThreadDetail()?.counterpartIsDeleted) {
+          <div class="messages-page__composer messages-page__composer--readonly" role="status">
+            <i class="pi pi-lock" aria-hidden="true"></i>
+            <span>{{ 'chat.details.counterpartDeleted' | translate }}</span>
+          </div>
+        } @else {
+          <div class="messages-page__composer">
+            <label class="messages-page__visually-hidden" for="admin-messages-composer">
+              {{ 'admin.messages.composer.label' | translate }}
+            </label>
+            <textarea
+              #composerInput
+              id="admin-messages-composer"
+              class="messages-page__composer-input"
+              rows="1"
+              [attr.maxlength]="maxMessageLength"
+              [value]="draft()"
+              [placeholder]="
+                selectedThreadDetail()
+                  ? ('chat.details.messagePlaceholder'
+                    | translate: { name: nameParam(selectedThreadDetail()!) })
+                  : ''
+              "
+              [attr.aria-label]="'admin.messages.composer.label' | translate"
+              (input)="onComposerInput($event)"
+              (keydown)="onComposerKeydown($event)"
+            ></textarea>
+            <button
+              type="button"
+              class="messages-page__send-btn"
+              [disabled]="!canSend()"
+              [attr.aria-label]="'chat.details.send' | translate"
+              (click)="send()"
+            >
+              <app-icon name="arrow" [size]="17" />
+            </button>
+          </div>
+        }
       }
     </section>
   </div>
@@ -439,7 +446,7 @@
             <div class="messages-page__thread-empty">
               {{
                 'admin.messages.thread.emptyStart'
-                  | translate: { name: firstName(mobileDetail.counterpartName) }
+                  | translate: { name: nameParam(mobileDetail) }
               }}
             </div>
           }
@@ -483,37 +490,44 @@
         }
       </div>
 
-      <div class="messages-page__composer">
-        <label class="messages-page__visually-hidden" for="admin-messages-composer-mobile">
-          {{ 'admin.messages.composer.label' | translate }}
-        </label>
-        <textarea
-          #composerInput
-          id="admin-messages-composer-mobile"
-          class="messages-page__composer-input"
-          rows="1"
-          [attr.maxlength]="maxMessageLength"
-          [value]="draft()"
-          [placeholder]="
-            selectedThreadDetail()
-              ? ('chat.details.messagePlaceholder'
-                | translate: { name: firstName(selectedThreadDetail()!.counterpartName) })
-              : ''
-          "
-          [attr.aria-label]="'admin.messages.composer.label' | translate"
-          (input)="onComposerInput($event)"
-          (keydown)="onComposerKeydown($event)"
-        ></textarea>
-        <button
-          type="button"
-          class="messages-page__send-btn"
-          [disabled]="!canSend()"
-          [attr.aria-label]="'chat.details.send' | translate"
-          (click)="send()"
-        >
-          <app-icon name="arrow" [size]="17" />
-        </button>
-      </div>
+      @if (selectedThreadDetail()?.counterpartIsDeleted) {
+        <div class="messages-page__composer messages-page__composer--readonly" role="status">
+          <i class="pi pi-lock" aria-hidden="true"></i>
+          <span>{{ 'chat.details.counterpartDeleted' | translate }}</span>
+        </div>
+      } @else {
+        <div class="messages-page__composer">
+          <label class="messages-page__visually-hidden" for="admin-messages-composer-mobile">
+            {{ 'admin.messages.composer.label' | translate }}
+          </label>
+          <textarea
+            #composerInput
+            id="admin-messages-composer-mobile"
+            class="messages-page__composer-input"
+            rows="1"
+            [attr.maxlength]="maxMessageLength"
+            [value]="draft()"
+            [placeholder]="
+              selectedThreadDetail()
+                ? ('chat.details.messagePlaceholder'
+                  | translate: { name: nameParam(selectedThreadDetail()!) })
+                : ''
+            "
+            [attr.aria-label]="'admin.messages.composer.label' | translate"
+            (input)="onComposerInput($event)"
+            (keydown)="onComposerKeydown($event)"
+          ></textarea>
+          <button
+            type="button"
+            class="messages-page__send-btn"
+            [disabled]="!canSend()"
+            [attr.aria-label]="'chat.details.send' | translate"
+            (click)="send()"
+          >
+            <app-icon name="arrow" [size]="17" />
+          </button>
+        </div>
+      }
     </div>
   } @else {
     <div class="messages-page__mobile-list">

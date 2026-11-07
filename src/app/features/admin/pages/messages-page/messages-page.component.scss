@@ -653,3 +653,11 @@
   outline: none;
   box-shadow: var(--ui-focus-ring);
 }
+
+.messages-page__composer--readonly {
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--ui-color-text-secondary);
+  font-size: 0.8125rem;
+}

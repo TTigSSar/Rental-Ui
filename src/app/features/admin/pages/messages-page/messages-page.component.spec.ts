@@ -490,6 +490,33 @@ describe('MessagesPageComponent', () => {
       expect(fixture.nativeElement.querySelector('.messages-page__thread-empty')).not.toBeNull();
     });
 
+    it('replaces the composer with the read-only note when the counterpart is deleted (ADR-056)', async () => {
+      await setup({
+        selectedThreadId: 'conv-1',
+        selectedThreadDetail: makeDetails({
+          id: 'conv-1',
+          counterpartName: '',
+          counterpartIsDeleted: true,
+        }),
+      });
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelector('textarea.messages-page__composer-input')).toBeNull();
+      expect(host.querySelector('.messages-page__send-btn')).toBeNull();
+      expect(host.querySelector('.messages-page__composer--readonly')?.textContent).toContain(
+        'chat.details.counterpartDeleted',
+      );
+    });
+
+    it('keeps the active composer for a live counterpart', async () => {
+      await setup({
+        selectedThreadId: 'conv-1',
+        selectedThreadDetail: makeDetails({ id: 'conv-1' }),
+      });
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelector('textarea.messages-page__composer-input')).not.toBeNull();
+      expect(host.querySelector('.messages-page__composer--readonly')).toBeNull();
+    });
+
     it('disables the send button while the draft is blank', async () => {
       await setup({
         selectedThreadId: 'conv-1',
