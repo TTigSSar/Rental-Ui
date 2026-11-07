@@ -116,6 +116,12 @@ export function isAdminConsoleUrl(url: string): boolean {
   return path === '/admin' || path.startsWith('/admin/');
 }
 
+/** Public pages opened from a mailbox render their own minimal header: the global header,
+ *  footer and bottom nav are all suppressed (chat-email unsubscribe, ADR-059). */
+export function isChromelessUrl(url: string): boolean {
+  return url.split('?')[0].startsWith('/unsubscribe/');
+}
+
 function isChatUrl(url: string): boolean {
   const path = url.split('?')[0];
   // The chat feature (/chat inbox and /chat/:id thread) is a full-height
@@ -184,11 +190,15 @@ export class App {
       !isListingWizardUrl(this.router.url) &&
       !isBookingFlowUrl(this.router.url) &&
       !isChatUrl(this.router.url) &&
-      !isAdminConsoleUrl(this.router.url),
+      !isAdminConsoleUrl(this.router.url) &&
+      !isChromelessUrl(this.router.url),
   );
   protected readonly showBottomNav = signal(
-    !isChatThreadUrl(this.router.url) && !isAdminConsoleUrl(this.router.url),
+    !isChatThreadUrl(this.router.url) &&
+      !isAdminConsoleUrl(this.router.url) &&
+      !isChromelessUrl(this.router.url),
   );
+  protected readonly isChromelessPage = signal(isChromelessUrl(this.router.url));
   protected readonly isBrowsePage = signal(isListingsBrowseUrl(this.router.url));
   protected readonly isDetailsPage = signal(isListingDetailsUrl(this.router.url));
   protected readonly isProfileChildPage = signal(isProfileChildUrl(this.router.url));
@@ -279,9 +289,13 @@ export class App {
             !isListingWizardUrl(url) &&
             !isBookingFlowUrl(url) &&
             !isChatUrl(url) &&
-            !isAdminConsoleUrl(url),
+            !isAdminConsoleUrl(url) &&
+            !isChromelessUrl(url),
         );
-        this.showBottomNav.set(!isChatThreadUrl(url) && !isAdminConsoleUrl(url));
+        this.showBottomNav.set(
+          !isChatThreadUrl(url) && !isAdminConsoleUrl(url) && !isChromelessUrl(url),
+        );
+        this.isChromelessPage.set(isChromelessUrl(url));
         this.isBrowsePage.set(isListingsBrowseUrl(url));
         this.isDetailsPage.set(isListingDetailsUrl(url));
         this.isProfileChildPage.set(isProfileChildUrl(url));

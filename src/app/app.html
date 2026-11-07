@@ -16,7 +16,7 @@
   @if (vm$ | async; as vm) {
     <!-- The admin console (AdminShellComponent) provides its own top bar /
          rail / mobile header — the global header is redundant chrome there. -->
-    @if (!isAdminConsolePage()) {
+    @if (!isAdminConsolePage() && !isChromelessPage()) {
       <app-header
         [scrolled]="scrolled()"
         [searchHidden]="headerSearchHidden()"

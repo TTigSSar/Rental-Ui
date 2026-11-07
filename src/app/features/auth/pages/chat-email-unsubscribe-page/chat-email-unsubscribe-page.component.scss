@@ -1,3 +1,29 @@
+// Design: nt-pages.jsx PubHead - chromeless public header (the app shell is suppressed, see app.ts).
+.unsub-head {
+  display: flex;
+  align-items: center;
+  height: 52px;
+  padding: 0 16px;
+  background: var(--ui-color-surface);
+  border-bottom: 1px solid var(--ui-color-border);
+}
+
+@media (min-width: 961px) {
+  .unsub-head {
+    height: 64px;
+    padding: 0 40px;
+  }
+}
+
+.unsub-head__brand {
+  font-family: 'Baloo 2', 'Segoe UI', Roboto, Arial, sans-serif;
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 30px;
+  color: #ff6008; // brand orange; no token matches
+  text-decoration: none;
+}
+
 // Design: nt-pages.jsx UnsubCard (card 480px max, 16px radius, 24px padding / 32px desktop).
 // All values map to existing --ui-* tokens.
 .unsub {
