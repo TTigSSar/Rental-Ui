@@ -312,6 +312,39 @@
               </div>
             }
           }
+
+          <!-- One-time soft prompt: last item in the thread, scrolls with the messages. -->
+          @if (showNotificationPrompt()) {
+            <section class="chat-notify-prompt" aria-labelledby="chat-notify-prompt-title">
+              <span class="chat-notify-prompt__icon" aria-hidden="true">
+                <i class="pi pi-bell"></i>
+              </span>
+              <div class="chat-notify-prompt__body">
+                <p id="chat-notify-prompt-title" class="chat-notify-prompt__text">
+                  <strong>{{ 'chat.notifyPrompt.title' | translate }}</strong>
+                  <span class="chat-notify-prompt__hint">
+                    {{ 'chat.notifyPrompt.text' | translate }}
+                  </span>
+                </p>
+                <div class="chat-notify-prompt__actions">
+                  <button
+                    type="button"
+                    class="chat-notify-prompt__primary"
+                    (click)="enableNotifications()"
+                  >
+                    {{ 'chat.notifyPrompt.turnOn' | translate }}
+                  </button>
+                  <button
+                    type="button"
+                    class="chat-notify-prompt__quiet"
+                    (click)="dismissNotificationPrompt()"
+                  >
+                    {{ 'chat.notifyPrompt.notNow' | translate }}
+                  </button>
+                </div>
+              </div>
+            </section>
+          }
         </div>
 
         @if (vm.sendingMessageError; as sendingError) {

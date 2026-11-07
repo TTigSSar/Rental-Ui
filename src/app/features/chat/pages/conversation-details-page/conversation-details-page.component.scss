@@ -1122,3 +1122,96 @@
 .chat-thread__mp-note-dismiss {
   margin: 0;
 }
+
+/* ── Soft notification prompt (ADR-059 §8): last item in the thread ───── */
+.chat-notify-prompt {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-card);
+}
+
+.chat-notify-prompt__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--ui-color-primary-wash);
+  color: var(--ui-color-primary-strong);
+  font-size: 16px;
+}
+
+.chat-notify-prompt__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-notify-prompt__text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 21px;
+  color: var(--ui-color-text-primary);
+  text-wrap: pretty;
+}
+
+.chat-notify-prompt__text strong {
+  font-weight: var(--ui-font-weight-semibold);
+}
+
+.chat-notify-prompt__hint {
+  color: var(--ui-color-text-secondary);
+}
+
+.chat-notify-prompt__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.chat-notify-prompt__primary,
+.chat-notify-prompt__quiet {
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--ui-radius-pill);
+  font: inherit;
+  font-size: 14px;
+  font-weight: var(--ui-font-weight-semibold);
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.chat-notify-prompt__primary {
+  padding: 8px 18px;
+  background: var(--ui-color-primary-strong);
+  color: #fff;
+}
+
+.chat-notify-prompt__primary:hover {
+  background: var(--ui-color-primary-strong-hover);
+}
+
+.chat-notify-prompt__quiet {
+  padding: 10px 14px;
+  background: transparent;
+  color: var(--ui-color-text-secondary);
+}
+
+.chat-notify-prompt__quiet:hover {
+  background: var(--ui-color-surface-muted);
+}
+
+.chat-notify-prompt__primary:focus-visible,
+.chat-notify-prompt__quiet:focus-visible {
+  outline: 2px solid var(--ui-color-primary-strong);
+  outline-offset: 2px;
+}

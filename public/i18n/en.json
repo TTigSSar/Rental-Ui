@@ -2403,6 +2403,16 @@
     }
   },
   "chat": {
+    "notifyPrompt": {
+      "title": "Want to know when they reply?",
+      "text": "Turn on notifications for this device.",
+      "turnOn": "Turn on",
+      "notNow": "Not now"
+    },
+    "notify": {
+      "photo": "Photo",
+      "location": "Meeting point"
+    },
     "common": {
       "notAvailable": "Not available"
     },
