@@ -157,6 +157,12 @@ export const API_ERROR_MESSAGE_KEYS: Readonly<Record<KnownApiErrorCode, string>>
   'ai_search.invalid_description': 'errors.aiSearchInvalidDescription',
   'ai_search.rate_limited': 'errors.aiSearchRateLimited',
   'ai_search.daily_limit': 'errors.aiSearchDailyLimit',
+  // account.* (ADR-056). The delete dialog picks the password-vs-email text for
+  // invalid_confirmation itself (it knows `hasPassword`); the key here is the password variant.
+  'account.invalid_confirmation': 'profile.deleteAccount.errors.invalidPassword',
+  'account.admin_cannot_delete': 'profile.deleteAccount.errors.generic',
+  'account.has_open_rentals': 'profile.deleteAccount.blocked.title',
+  'account.state_changed': 'profile.deleteAccount.errors.generic',
 };
 
 /**

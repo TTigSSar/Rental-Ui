@@ -100,6 +100,20 @@ describe('ApiErrorMapper', () => {
     });
   });
 
+  describe('account deletion codes (ADR-056)', () => {
+    it.each([
+      ['account.invalid_confirmation', 'profile.deleteAccount.errors.invalidPassword'],
+      ['account.admin_cannot_delete', 'profile.deleteAccount.errors.generic'],
+      ['account.has_open_rentals', 'profile.deleteAccount.blocked.title'],
+      ['account.state_changed', 'profile.deleteAccount.errors.generic'],
+    ])('maps %s to %s without leaking the server text', (code, key) => {
+      const error = problem(409, { errorCode: code, title: 'English server text' });
+      expect(resolveApiErrorKey(error)).toBe(key);
+      expect(mapper.message(error)).toBe(leaf(en, key));
+      expect(mapper.message(error)).not.toContain('English server text');
+    });
+  });
+
   describe('meeting point codes (ADR-053)', () => {
     it.each([
       ['chat.meeting_point_owner_only', 'errors.ownerOnly'],

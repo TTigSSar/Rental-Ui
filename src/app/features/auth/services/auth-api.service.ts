@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
 import { ApiContract, toApiUrl } from '../../../api/api-contract';
+import type { DeleteAccountRequest } from '../../../api/api-error.model';
 import type {
   AuthResponse,
   BackendAuthResponse,
@@ -256,6 +257,16 @@ export class AuthApiService {
     return this.http
       .put<BackendAuthResponse>(toApiUrl(ApiContract.auth.changePassword), request)
       .pipe(map((response) => this.normalizeAuthResponse(response)));
+  }
+
+  /**
+   * `DELETE /api/auth/me` (ADR-056) — 204, no body. The confirmation travels in the request body
+   * (password, or email for a Google-only account). 400 `account.invalid_confirmation`,
+   * 403 `account.admin_cannot_delete`, 409 `account.has_open_rentals` | `account.state_changed`,
+   * 401, 429.
+   */
+  deleteAccount(request: DeleteAccountRequest): Observable<void> {
+    return this.http.delete<void>(toApiUrl(ApiContract.auth.deleteAccount), { body: request });
   }
 
   private normalizeCurrentUser(raw: Record<string, unknown>): CurrentUser {

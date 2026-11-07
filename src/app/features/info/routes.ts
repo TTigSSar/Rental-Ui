@@ -23,6 +23,14 @@ export const infoRoutes: Routes = [
       ),
   },
   {
+    // Public, no guard: linked from the footer and from store-listing "delete account" URLs.
+    path: 'account-deletion',
+    loadComponent: () =>
+      import('./pages/account-deletion-page/account-deletion-page.component').then(
+        (m) => m.AccountDeletionPageComponent,
+      ),
+  },
+  {
     path: 'privacy',
     loadComponent: () =>
       import('./pages/privacy-page/privacy-page.component').then(

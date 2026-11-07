@@ -241,7 +241,12 @@ export type KnownApiErrorCode =
   | 'ai_search.unauthenticated'
   | 'ai_search.invalid_description'
   | 'ai_search.rate_limited'
-  | 'ai_search.daily_limit';
+  | 'ai_search.daily_limit'
+  // account.* — account deletion (ADR-056): DELETE /api/auth/me
+  | 'account.invalid_confirmation'
+  | 'account.admin_cannot_delete'
+  | 'account.has_open_rentals'
+  | 'account.state_changed';
 
 /**
  * Any `errorCode` the API can send: the known codes above (for autocomplete), widened to
