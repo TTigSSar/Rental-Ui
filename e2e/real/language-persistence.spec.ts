@@ -40,7 +40,7 @@ import {
 
 const LANGUAGE_STORAGE_KEY = 'stayfinder.lang';
 const HY_NATIVE = 'Հայերեն';
-const HY_LOGOUT_TEXT = 'Ելք'; // profile.nav.logout, hy — proves the DOM actually re-translated.
+const HY_SETTINGS_TITLE = 'Կարգավորումներ'; // profile.settings.title, hy — proves the DOM actually re-translated.
 
 test.describe('Per-user language persistence (real stack)', () => {
   test('signed-in switch persists to the backend and survives a reload with localStorage cleared', async ({
@@ -66,12 +66,13 @@ test.describe('Per-user language persistence (real stack)', () => {
     try {
       await test.step('log in and open the profile Settings language menu', async () => {
         await loginViaDialog(page, ACCOUNTS.renter);
-        await page.goto('/profile');
-        await expect(page.locator('.profile-page__desktop-only .profile-page__menu-meta')).toHaveText('English');
+        // The language row moved from the profile sidebar into Settings (AD-1, ADR-056 spec UI 0).
+        await page.goto('/profile/settings');
+        await expect(page.locator('[data-lang-section] .settings-page__value')).toHaveText('English');
       });
 
       await test.step('switch to Armenian: UI translates immediately and a real PUT persists it', async () => {
-        await page.locator('.profile-page__desktop-only .profile-page__menu-row').first().click();
+        await page.locator('[data-lang-section] button.settings-page__row').click();
 
         // The docker UI build is a same-origin bundle (environment.prod.ts apiBaseUrl: '')
         // routed through nginx's /api/ proxy_pass (nginx.conf) — browser-originated traffic
@@ -85,7 +86,7 @@ test.describe('Per-user language persistence (real stack)', () => {
               res.request().method() === 'PUT',
           ),
           page
-            .locator('.profile-page__desktop-only .profile-page__lang-option', { hasText: HY_NATIVE })
+            .locator('[data-lang-section] .settings-page__lang-option', { hasText: HY_NATIVE })
             .click(),
         ]);
 
@@ -94,7 +95,7 @@ test.describe('Per-user language persistence (real stack)', () => {
         expect(putBody.preferredLanguage).toBe('hy');
 
         // UI/localStorage apply immediately (LanguageService.use), independent of the PUT.
-        await expect(page.locator('.profile-page__menu-row--danger')).toHaveText(HY_LOGOUT_TEXT);
+        await expect(page.locator('.settings-page__title')).toHaveText(HY_SETTINGS_TITLE);
         await expect
           .poll(() => page.evaluate((key) => localStorage.getItem(key), LANGUAGE_STORAGE_KEY))
           .toBe('hy');
@@ -121,7 +122,7 @@ test.describe('Per-user language persistence (real stack)', () => {
 
         // If this came from localStorage it would be English (cache was wiped above) —
         // seeing hy here proves loadCurrentUserSuccess -> applyServerLanguage$ -> applyFromUser fired.
-        await expect(page.locator('.profile-page__menu-row--danger')).toHaveText(HY_LOGOUT_TEXT);
+        await expect(page.locator('.settings-page__title')).toHaveText(HY_SETTINGS_TITLE);
         await expect
           .poll(() => page.evaluate((key) => localStorage.getItem(key), LANGUAGE_STORAGE_KEY))
           .toBe('hy');
