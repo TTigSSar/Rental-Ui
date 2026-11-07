@@ -326,6 +326,19 @@ export class AuthEffects {
     ),
   );
 
+  /** `PUT /api/auth/me/chat-emails` (ADR-059). `switchMap`: only the latest toggle matters. */
+  readonly updateChatEmails$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.updateChatEmails),
+      switchMap(({ enabled }) =>
+        this.authApi.updateChatEmails(enabled).pipe(
+          map(() => AuthActions.updateChatEmailsSuccess({ enabled })),
+          catchError(() => of(AuthActions.updateChatEmailsFailure({ revertTo: !enabled }))),
+        ),
+      ),
+    ),
+  );
+
   /** Re-reads `/auth/me` after a name/phone write so every consumer of the user agrees
    *  with the server (the success reducers already patched the same values). */
   readonly reloadUserAfterProfileWrite$ = createEffect(() =>

@@ -15,6 +15,7 @@ import {
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Actions, ofType } from '@ngrx/effects';
 import { Store, createSelector } from '@ngrx/store';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonModule } from 'primeng/button';
@@ -23,6 +24,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, filter, map } from 'rxjs';
 
 import { selectHomePoint } from '../../../auth/store/auth.selectors';
+import { BrowserNotificationService } from '../../../notifications/services/browser-notification.service';
 import { DeletedUserAvatarComponent, DeletedUserNameComponent } from '../../../../shared/ui/deleted-user';
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
@@ -359,6 +361,8 @@ export class ConversationDetailsPageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
   private readonly dates = inject(UiDateService);
+  private readonly actions$ = inject(Actions);
+  private readonly browserNotifications = inject(BrowserNotificationService);
   private readonly routeConversationId$ = this.route.paramMap.pipe(
     map((params) => params.get('conversationId')),
     distinctUntilChanged(),
@@ -538,7 +542,32 @@ export class ConversationDetailsPageComponent implements OnInit {
     this.rentalFullHeight.set(height);
   }
 
+  /**
+   * Soft notification prompt (ADR-059 §8): offered after this device observed the user send a
+   * message, only while permission is undecided and it was never answered on this device.
+   */
+  private readonly sentOnThisDevice = signal(false);
+  protected readonly showNotificationPrompt = computed(
+    () => this.sentOnThisDevice() && this.browserNotifications.canPrompt(),
+  );
+
+  protected async enableNotifications(): Promise<void> {
+    this.browserNotifications.dismissPrompt();
+    await this.browserNotifications.requestPermission();
+  }
+
+  protected dismissNotificationPrompt(): void {
+    this.browserNotifications.dismissPrompt();
+  }
+
   constructor() {
+    this.actions$
+      .pipe(
+        ofType(ChatActions.sendMessageSuccess, ChatActions.sendImageMessageSuccess),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.sentOnThisDevice.set(true));
+
     const onResize = (): void =>
       this.viewport.set({ width: window.innerWidth, height: window.innerHeight });
     window.addEventListener('resize', onResize);

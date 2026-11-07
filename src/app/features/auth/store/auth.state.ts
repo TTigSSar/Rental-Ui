@@ -10,6 +10,9 @@ export interface ExternalAuthError {
   status: number | null;
 }
 
+/** Feedback line under the chat-emails switch (Settings > Notifications). */
+export type ChatEmailsSaveState = 'idle' | 'saving' | 'saved' | 'failed';
+
 export interface AuthState {
   user: CurrentUser | null;
   /** True once `user` was read with the CURRENT token (`loadCurrentUserSuccess`). The identity-bearing
@@ -52,6 +55,9 @@ export interface AuthState {
   phoneSaving: boolean;
   phoneError: string | null;
   phoneErrorCode: ApiErrorCode | null;
+  chatEmailsSaveState: ChatEmailsSaveState;
+  /** Last server-confirmed value, captured before the first optimistic flip of a burst. */
+  chatEmailsConfirmed: boolean | null;
 }
 
 export const initialAuthState: AuthState = {
@@ -75,4 +81,6 @@ export const initialAuthState: AuthState = {
   phoneSaving: false,
   phoneError: null,
   phoneErrorCode: null,
+  chatEmailsSaveState: 'idle',
+  chatEmailsConfirmed: null,
 };

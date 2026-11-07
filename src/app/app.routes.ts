@@ -13,6 +13,11 @@ export const routes: Routes = [
       import('./features/auth').then((m) => m.authVerificationRoutes),
   },
   {
+    path: 'unsubscribe',
+    loadChildren: () =>
+      import('./features/auth').then((m) => m.chatEmailUnsubscribeRoutes),
+  },
+  {
     path: 'listings',
     loadChildren: () =>
       import('./features/listings').then((m) => m.listingsRoutes),

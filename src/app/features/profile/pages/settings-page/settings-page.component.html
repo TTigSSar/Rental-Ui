@@ -67,12 +67,20 @@
       }
     </div>
 
-    <div class="settings-page__row settings-page__row--inactive" role="listitem" aria-disabled="true">
-      <span class="settings-page__icon"><app-icon name="bell" [size]="16" /></span>
-      <span class="settings-page__body">
-        <span class="settings-page__label">{{ 'profile.settings.notifications' | translate }}</span>
-      </span>
-      <span class="settings-page__badge">{{ 'profile.settings.comingSoon' | translate }}</span>
+    <div role="listitem">
+      <button
+        type="button"
+        class="settings-page__row"
+        aria-haspopup="dialog"
+        data-notifications-row
+        (click)="openNotifications()"
+      >
+        <span class="settings-page__icon"><app-icon name="bell" [size]="16" /></span>
+        <span class="settings-page__body">
+          <span class="settings-page__label">{{ 'profile.settings.notifications' | translate }}</span>
+        </span>
+        <app-icon name="chevron-right" [size]="13" class="settings-page__chevron" />
+      </button>
     </div>
   </div>
 
@@ -105,3 +113,7 @@
     />
   }
 </section>
+
+@if (notificationsOpen()) {
+  <app-notifications-sheet (closed)="closeNotifications()" />
+}

@@ -258,4 +258,35 @@ export const authReducer = createReducer(
     phoneError: null,
     phoneErrorCode: null,
   })),
+
+  // ── Chat emails (ADR-059): optimistic, reverted on failure ────
+  on(AuthActions.updateChatEmails, (state, { enabled }): AuthState => ({
+    ...state,
+    user: state.user === null ? null : { ...state.user, chatEmailsEnabled: enabled },
+    // Remember the server truth once, before the first flip of a burst of quick toggles.
+    chatEmailsConfirmed:
+      state.chatEmailsSaveState === 'saving' && state.chatEmailsConfirmed !== null
+        ? state.chatEmailsConfirmed
+        : (state.user?.chatEmailsEnabled ?? null),
+    chatEmailsSaveState: 'saving',
+  })),
+
+  on(AuthActions.updateChatEmailsSuccess, (state, { enabled }): AuthState => ({
+    ...state,
+    user: state.user === null ? null : { ...state.user, chatEmailsEnabled: enabled },
+    chatEmailsConfirmed: null,
+    chatEmailsSaveState: 'saved',
+  })),
+
+  on(AuthActions.updateChatEmailsFailure, (state, { revertTo }): AuthState => ({
+    ...state,
+    user: state.user === null ? null : { ...state.user, chatEmailsEnabled: state.chatEmailsConfirmed ?? revertTo },
+    chatEmailsConfirmed: null,
+    chatEmailsSaveState: 'failed',
+  })),
+
+  on(AuthActions.resetChatEmailsSaveState, (state): AuthState => ({
+    ...state,
+    chatEmailsSaveState: 'idle',
+  })),
 );

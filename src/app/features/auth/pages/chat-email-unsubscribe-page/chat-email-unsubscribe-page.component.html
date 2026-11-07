@@ -1,0 +1,53 @@
+<header class="unsub-head">
+  <a class="unsub-head__brand" routerLink="/" [attr.aria-label]="'app.shell.header.brandAria' | translate">DoRent</a>
+</header>
+<main class="unsub">
+  <section class="unsub__card">
+    @switch (state()) {
+      @case ('done') {
+        <span class="unsub__tile unsub__tile--ok"><i class="pi pi-check-circle" aria-hidden="true"></i></span>
+        <h1 class="unsub__title" role="status">{{ 'auth.chatEmailUnsubscribe.done' | translate }}</h1>
+        <a class="unsub__link" routerLink="/profile/settings">
+          {{ 'auth.chatEmailUnsubscribe.turnBackOn' | translate }}<i class="pi pi-arrow-right" aria-hidden="true"></i>
+        </a>
+      }
+      @case ('invalid') {
+        <span class="unsub__tile unsub__tile--muted"><i class="pi pi-link" aria-hidden="true"></i></span>
+        <h1 class="unsub__title" role="status">{{ 'auth.chatEmailUnsubscribe.invalid' | translate }}</h1>
+        <a class="unsub__link" routerLink="/profile/settings">
+          {{ 'auth.chatEmailUnsubscribe.goToSettings' | translate }}<i class="pi pi-arrow-right" aria-hidden="true"></i>
+        </a>
+      }
+      @case ('already') {
+        <span class="unsub__tile unsub__tile--info"><i class="pi pi-info-circle" aria-hidden="true"></i></span>
+        <h1 class="unsub__title" role="status">{{ 'auth.chatEmailUnsubscribe.already' | translate }}</h1>
+        <a class="unsub__link" routerLink="/profile/settings">
+          {{ 'auth.chatEmailUnsubscribe.goToSettings' | translate }}<i class="pi pi-arrow-right" aria-hidden="true"></i>
+        </a>
+      }
+      @default {
+        <span class="unsub__tile unsub__tile--brand"><i class="pi pi-envelope" aria-hidden="true"></i></span>
+        <h1 class="unsub__title">{{ 'auth.chatEmailUnsubscribe.title' | translate }}</h1>
+        <p class="unsub__text">{{ 'auth.chatEmailUnsubscribe.text' | translate }}</p>
+        @if (state() === 'failed') {
+          <div class="unsub__error" role="alert">
+            <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+            <span>{{ 'auth.chatEmailUnsubscribe.failed' | translate }}</span>
+          </div>
+        }
+        <button
+          type="button"
+          class="unsub__btn"
+          [attr.aria-disabled]="state() === 'loading' ? 'true' : null"
+          (click)="unsubscribe()"
+        >
+          @if (state() === 'loading') {
+            <i class="pi pi-spinner pi-spin" aria-hidden="true"></i>{{ 'auth.chatEmailUnsubscribe.loading' | translate }}
+          } @else {
+            {{ 'auth.chatEmailUnsubscribe.button' | translate }}
+          }
+        </button>
+      }
+    }
+  </section>
+</main>

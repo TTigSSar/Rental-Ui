@@ -1,1 +1,1 @@
-export { authVerificationRoutes } from './routes';
+export { authVerificationRoutes, chatEmailUnsubscribeRoutes } from './routes';

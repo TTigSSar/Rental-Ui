@@ -1,0 +1,205 @@
+// Design: nt-pages.jsx PubHead - chromeless public header (the app shell is suppressed, see app.ts).
+.unsub-head {
+  display: flex;
+  align-items: center;
+  height: 52px;
+  padding: 0 16px;
+  background: var(--ui-color-surface);
+  border-bottom: 1px solid var(--ui-color-border);
+}
+
+@media (min-width: 961px) {
+  .unsub-head {
+    height: 64px;
+    padding: 0 40px;
+  }
+}
+
+.unsub-head__brand {
+  font-family: 'Baloo 2', 'Segoe UI', Roboto, Arial, sans-serif;
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 30px;
+  color: #ff6008; // brand orange; no token matches
+  text-decoration: none;
+}
+
+// Design: nt-pages.jsx UnsubCard (card 480px max, 16px radius, 24px padding / 32px desktop).
+// All values map to existing --ui-* tokens.
+.unsub {
+  display: flex;
+  justify-content: center;
+  padding: 32px 16px 40px;
+}
+
+@media (min-width: 961px) {
+  .unsub {
+    padding: 80px 40px;
+  }
+}
+
+.unsub__card {
+  width: 100%;
+  max-width: 480px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-card);
+  box-shadow: var(--ui-shadow-card);
+}
+
+@media (min-width: 961px) {
+  .unsub__card {
+    padding: 32px;
+  }
+}
+
+.unsub__tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--ui-radius-md);
+  font-size: 20px;
+}
+
+.unsub__tile--brand {
+  color: var(--ui-color-primary-strong);
+  background: var(--ui-color-primary-wash);
+}
+
+.unsub__tile--ok {
+  color: var(--ui-color-success);
+  background: var(--ui-color-success-surface);
+}
+
+.unsub__tile--muted {
+  color: var(--ui-color-text-secondary);
+  background: var(--ui-color-surface-muted);
+}
+
+.unsub__tile--info {
+  color: var(--ui-color-info);
+  background: var(--ui-color-info-surface);
+}
+
+.unsub__title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: 700;
+  color: var(--ui-color-text-primary);
+  text-wrap: balance;
+}
+
+@media (min-width: 961px) {
+  .unsub__title {
+    font-size: 26px;
+    line-height: 34px;
+  }
+}
+
+.unsub__text {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--ui-color-text-secondary);
+  text-wrap: pretty;
+}
+
+.unsub__error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--ui-color-error-border);
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-error-surface);
+  color: var(--ui-color-text-primary);
+  font-size: 14px;
+  line-height: 20px;
+
+  .pi {
+    margin-top: 3px;
+    font-size: 14px;
+    color: var(--ui-color-error);
+  }
+}
+
+.unsub__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  min-width: 200px;
+  margin-top: 4px;
+  padding: 12px 24px;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-primary-strong);
+  color: var(--ui-color-on-primary);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  cursor: pointer;
+  width: 100%;
+
+  &:hover {
+    background: var(--ui-color-primary-strong-hover);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ui-focus-ring);
+  }
+
+  &[aria-disabled='true'] {
+    cursor: progress;
+  }
+
+  .pi {
+    font-size: 16px;
+  }
+}
+
+@media (min-width: 961px) {
+  .unsub__btn {
+    width: auto;
+    align-self: flex-start;
+  }
+}
+
+.unsub__link {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--ui-color-primary-strong);
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--ui-color-primary-strong-hover);
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--ui-focus-ring);
+    border-radius: var(--ui-radius-sm);
+  }
+
+  .pi {
+    font-size: 13px;
+  }
+}

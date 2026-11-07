@@ -14,6 +14,7 @@ import type {
 import * as ChatActions from '../store/chat.actions';
 import { selectActiveConversation, selectChatState } from '../store/chat.selectors';
 import { ChatBadgeService } from './chat-badge.service';
+import { ChatBrowserNotifier } from './chat-browser-notifier.service';
 
 const MAX_RESTARTS = 3;
 const RESTART_DELAY_MS = 2000;
@@ -33,6 +34,7 @@ export class ChatRealtimeService {
   private readonly store = inject(Store);
   private readonly authToken = inject(AuthTokenService);
   private readonly chatBadge = inject(ChatBadgeService);
+  private readonly browserNotifier = inject(ChatBrowserNotifier);
 
   private readonly currentUser = this.store.selectSignal(selectAuthUser);
   private readonly activeConversation = this.store.selectSignal(
@@ -81,6 +83,7 @@ export class ChatRealtimeService {
     this.run++;
     this.restarts = 0;
     this.staleTokenRetried = false;
+    this.browserNotifier.closeAll();
     const connection = this.connection;
     this.connection = null;
     connection?.stop().catch(() => {
@@ -192,6 +195,7 @@ export class ChatRealtimeService {
 
   private onMessageReceived(message: ChatRealtimeMessage): void {
     this.store.dispatch(ChatActions.realtimeMessageReceived({ message }));
+    this.browserNotifier.notify(message);
 
     // When the chat feature is loaded, `syncNavBadge$` keeps the badge exact.
     // Otherwise keep it live here: bump for an incoming (not-mine) message.

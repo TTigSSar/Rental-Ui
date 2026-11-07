@@ -31,6 +31,7 @@ function user(overrides: Partial<CurrentUser> = {}): CurrentUser {
     roles: [],
     hasPassword: true,
     homePoint: null,
+    chatEmailsEnabled: true,
     ...overrides,
   };
 }
@@ -91,21 +92,30 @@ describe('SettingsPageComponent', () => {
     expect(el.querySelector('.settings-page__lang-option')).toBeNull();
   });
 
-  it('renders Notifications as an inactive, non-interactive row with a Coming soon badge and no chevron', () => {
-    const { el } = setup();
+  it('renders Notifications as an active row with a chevron that opens the notifications sheet', () => {
+    const { fixture, el } = setup();
 
-    const inactive = el.querySelector<HTMLElement>('[aria-disabled="true"]')!;
-    expect(inactive.tagName).toBe('DIV');
-    expect(inactive.getAttribute('role')).toBe('listitem');
-    expect(inactive.querySelector('button, a')).toBeNull();
-    expect(inactive.querySelector('app-icon[name="chevron-right"]')).toBeNull();
-    expect(inactive.querySelector('.settings-page__badge')).not.toBeNull();
+    const row = el.querySelector<HTMLButtonElement>('[data-notifications-row]')!;
+    expect(row.tagName).toBe('BUTTON');
+    expect(row.getAttribute('aria-haspopup')).toBe('dialog');
+    expect(row.querySelector('app-icon[name="chevron-right"]')).not.toBeNull();
+    expect(row.querySelector('.settings-page__badge')).toBeNull();
+    expect(el.querySelector('app-notifications-sheet')).toBeNull();
+
+    row.click();
+    fixture.detectChanges();
+    expect(el.ownerDocument.querySelector('app-notifications-sheet [role="dialog"]')).not.toBeNull();
+
+    // The sheet is portalled to document.body, so query the document.
+    el.ownerDocument.querySelector<HTMLElement>('app-notifications-sheet .ns__close')!.click();
+    fixture.detectChanges();
+    expect(el.ownerDocument.querySelector('app-notifications-sheet')).toBeNull();
   });
 
   it('renders the Password row inactive when the account is managed by Google', () => {
     const { el } = setup(user({ hasPassword: false }));
 
-    expect(el.querySelectorAll('[aria-disabled="true"]').length).toBe(2);
+    expect(el.querySelectorAll('[aria-disabled="true"]').length).toBe(1);
     expect(el.querySelector('a[role="listitem"]')).toBeNull();
   });
 });

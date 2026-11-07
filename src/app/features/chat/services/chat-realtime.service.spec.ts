@@ -6,6 +6,7 @@ import { selectAuthUser } from '../../auth/store/auth.selectors';
 import type { ChatRealtimeMessage } from '../models/chat.model';
 import { selectActiveConversation, selectChatState } from '../store/chat.selectors';
 import { ChatBadgeService } from './chat-badge.service';
+import { ChatBrowserNotifier } from './chat-browser-notifier.service';
 import { ChatRealtimeService } from './chat-realtime.service';
 
 function message(overrides: Partial<ChatRealtimeMessage>): ChatRealtimeMessage {
@@ -63,6 +64,7 @@ describe('ChatRealtimeService hub token (ADR-055)', () => {
       providers: [
         provideMockStore(),
         { provide: ChatBadgeService, useValue: {} },
+        { provide: ChatBrowserNotifier, useValue: { notify: vi.fn(), closeAll: vi.fn() } },
         { provide: AuthTokenService, useValue: { getToken: () => token } },
       ],
     });
@@ -122,6 +124,7 @@ describe('ChatRealtimeService restart after a server close (ADR-055 §6)', () =>
       providers: [
         provideMockStore(),
         { provide: ChatBadgeService, useValue: {} },
+        { provide: ChatBrowserNotifier, useValue: { notify: vi.fn(), closeAll: vi.fn() } },
         { provide: AuthTokenService, useValue: { getToken: () => token } },
       ],
     });
@@ -221,10 +224,12 @@ describe('ChatRealtimeService restart after a server close (ADR-055 §6)', () =>
 describe('ChatRealtimeService (chat feature not loaded)', () => {
   function setup() {
     const badge = { increment: vi.fn(), requestRefresh: vi.fn(), refresh: vi.fn() };
+    const notifier = { notify: vi.fn(), closeAll: vi.fn() };
     TestBed.configureTestingModule({
       providers: [
         provideMockStore(),
         { provide: ChatBadgeService, useValue: badge },
+        { provide: ChatBrowserNotifier, useValue: notifier },
         { provide: AuthTokenService, useValue: { getToken: () => null } },
       ],
     });
@@ -235,7 +240,7 @@ describe('ChatRealtimeService (chat feature not loaded)', () => {
     const service = TestBed.inject(ChatRealtimeService) as unknown as {
       onMessageReceived(m: ChatRealtimeMessage): void;
     };
-    return { badge, service };
+    return { badge, notifier, service, realtime: service as unknown as ChatRealtimeService };
   }
 
   it('refreshes from the server for a system line instead of a local +1', () => {
@@ -250,5 +255,14 @@ describe('ChatRealtimeService (chat feature not loaded)', () => {
     service.onMessageReceived(message({}));
     expect(badge.increment).toHaveBeenCalledTimes(1);
     expect(badge.requestRefresh).not.toHaveBeenCalled();
+  });
+
+  it('hands every incoming message to the browser notifier and clears it on stop (ADR-036)', () => {
+    const { notifier, service, realtime } = setup();
+    const incoming = message({});
+    service.onMessageReceived(incoming);
+    expect(notifier.notify).toHaveBeenCalledWith(incoming);
+    realtime.stop();
+    expect(notifier.closeAll).toHaveBeenCalledTimes(1);
   });
 });

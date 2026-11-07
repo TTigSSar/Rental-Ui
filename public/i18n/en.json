@@ -65,7 +65,8 @@
     "aiSearchDailyLimit": "You've used today's AI searches. Regular search still works.",
     "invalidLanguage": "Choose a supported language: English, Russian or Armenian.",
     "cannotMessageSelf": "You can't open a conversation with your own account.",
-    "cannotMessageAdmin": "You can't open a conversation with another admin."
+    "cannotMessageAdmin": "You can't open a conversation with another admin.",
+    "chatEmailUnsubscribeInvalid": "This unsubscribe link is invalid or has expired. You can turn chat emails off in Settings."
   },
   "calendar": {
     "monthNames": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
@@ -300,6 +301,18 @@
     }
   },
   "auth": {
+    "chatEmailUnsubscribe": {
+      "title": "Stop emails about new messages?",
+      "text": "You will no longer get emails when someone writes to you in a chat. You can turn them back on any time in Settings.",
+      "button": "Unsubscribe",
+      "loading": "Unsubscribing…",
+      "failed": "Something went wrong. Please try again.",
+      "done": "You are unsubscribed from message emails.",
+      "turnBackOn": "Turn emails back on in Settings",
+      "invalid": "This link no longer works.",
+      "already": "Message emails are already off.",
+      "goToSettings": "Go to Settings"
+    },
     "form": {
       "email": "Email",
       "emailPlaceholder": "Enter your email",
@@ -1310,7 +1323,21 @@
       "passwordGoogle": "You sign in with Google",
       "language": "Language",
       "notifications": "Notifications",
-      "comingSoon": "Coming soon",
+      "chatEmails": {
+        "label": "Email about new messages",
+        "hint": "We email you when a message stays unread for 15 minutes. No emails between 22:00 and 09:00 (Yerevan time).",
+        "saved": "Saved",
+        "failed": "Couldn’t save. Please try again."
+      },
+      "browser": {
+        "label": "Browser notifications",
+        "hint": "Get a notification on this device while DoRent is open in another tab.",
+        "enable": "Enable",
+        "on": "On",
+        "offHint": "Turn off in browser settings",
+        "blocked": "Notifications are blocked in your browser. To turn them on, open the site settings (the lock icon next to the address) and allow notifications.",
+        "unsupported": "This browser does not support notifications."
+      },
       "deleteAccount": "Delete account"
     },
     "deleteAccount": {
@@ -2453,6 +2480,17 @@
     }
   },
   "chat": {
+    "notifyPrompt": {
+      "title": "Want to know when they reply?",
+      "text": "Turn on notifications for this device.",
+      "turnOn": "Turn on",
+      "notNow": "Not now"
+    },
+    "notify": {
+      "photo": "Photo",
+      "location": "Meeting point",
+      "moderation": "DoRent Moderation"
+    },
     "common": {
       "notAvailable": "Not available"
     },

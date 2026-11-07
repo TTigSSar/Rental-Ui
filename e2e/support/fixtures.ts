@@ -19,6 +19,8 @@ export function e2eUser(overrides: Record<string, unknown> = {}) {
     lastName: 'Lovelace',
     roles: ['User'],
     hasPassword: true,
+    // ADR-059: `CurrentUserResponse.chatEmailsEnabled` (non-null, default on).
+    chatEmailsEnabled: true,
     // ADR-030 section 8: a user with no phone is asked for one before a first listing or
     // booking. The default account is a normal, complete one; pass `{ phoneNumber: null }`
     // for the "never gave a phone" state.

@@ -241,3 +241,25 @@ export const updatePhoneFailure = createAction(
 /** Drops name/phone save errors without a request — dispatched when a step or the
  *  profile card is (re)opened, so a stale refusal never greets the user. */
 export const clearProfileWriteError = createAction('[Auth] Clear Profile Write Error');
+
+// ── Chat emails (ADR-059) ──────────────────────────────────────────
+
+/** `PUT /api/auth/me/chat-emails`. The reducer flips the switch optimistically. */
+export const updateChatEmails = createAction(
+  '[Auth] Update Chat Emails',
+  props<{ enabled: boolean }>(),
+);
+
+export const updateChatEmailsSuccess = createAction(
+  '[Auth] Update Chat Emails Success',
+  props<{ enabled: boolean }>(),
+);
+
+/** `revertTo` is the value the switch had before the failed request. */
+export const updateChatEmailsFailure = createAction(
+  '[Auth] Update Chat Emails Failure',
+  props<{ revertTo: boolean }>(),
+);
+
+/** Clears the "Saved" / failure line without a request (settings sheet opened). */
+export const resetChatEmailsSaveState = createAction('[Auth] Reset Chat Emails Save State');

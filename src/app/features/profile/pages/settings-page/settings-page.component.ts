@@ -12,6 +12,7 @@ import { Store } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { LanguageOption, LanguageService } from '../../../../shared/services/language.service';
+import { NotificationsSheetComponent } from '../../components/notifications-sheet/notifications-sheet.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import { selectAuthUser } from '../../../auth/store/auth.selectors';
@@ -19,7 +20,7 @@ import { DeleteAccountDialogComponent } from '../../components/delete-account-di
 
 /**
  * `/profile/settings` — the account settings list (AD-1). Rows: Password (link), Language
- * (inline expand, reuses `LanguageService`), Notifications (inactive, "Coming soon").
+ * (inline expand, reuses `LanguageService`), Notifications (opens the notifications sheet/dialog).
  * Below the divider sits the Delete-account card (AD-4, ADR-056): shown to every signed-in user
  * except admins, including accounts blocked by moderation; it opens `DeleteAccountDialogComponent`.
  */
@@ -29,6 +30,7 @@ import { DeleteAccountDialogComponent } from '../../components/delete-account-di
   imports: [
     DeleteAccountDialogComponent,
     IconComponent,
+    NotificationsSheetComponent,
     PageHeaderComponent,
     RouterLink,
     TranslatePipe,
@@ -80,6 +82,16 @@ export class SettingsPageComponent {
   protected selectLanguage(option: LanguageOption): void {
     this.languageService.use(option.code);
     this.languageMenuOpen.set(false);
+  }
+
+  protected readonly notificationsOpen = signal(false);
+
+  protected openNotifications(): void {
+    this.notificationsOpen.set(true);
+  }
+
+  protected closeNotifications(): void {
+    this.notificationsOpen.set(false);
   }
 
   @HostListener('document:click', ['$event'])
