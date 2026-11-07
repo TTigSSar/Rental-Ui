@@ -11,7 +11,10 @@ import {
 import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { DeletedUserAvatarComponent, DeletedUserNameComponent } from '../../../../shared/ui/deleted-user';
+import {
+  DeletedUserAvatarComponent,
+  DeletedUserNameComponent,
+} from '../../../../shared/ui/deleted-user';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import type { BookingRequest } from '../../models/booking.model';
 import {
@@ -24,7 +27,15 @@ import { TimeAgoPipe } from '../../../../shared/utils/time-ago.pipe';
 @Component({
   selector: 'app-booking-request-card',
   standalone: true,
-  imports: [DeletedUserAvatarComponent, DeletedUserNameComponent, BookingRejectDialogComponent, DramCurrencyPipe, UiDateRangePipe, TimeAgoPipe, TranslatePipe],
+  imports: [
+    DeletedUserAvatarComponent,
+    DeletedUserNameComponent,
+    BookingRejectDialogComponent,
+    DramCurrencyPipe,
+    UiDateRangePipe,
+    TimeAgoPipe,
+    TranslatePipe,
+  ],
   templateUrl: './booking-request-card.component.html',
   styleUrl: './booking-request-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

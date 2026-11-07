@@ -14,7 +14,9 @@
 >
   <div class="admin-report-detail-dialog__header">
     <div class="admin-report-detail-dialog__thumb-wrap">
-      @if (report().targetImageUrl; as imageUrl) {
+      @if (report().targetIsDeleted) {
+        <app-deleted-user-avatar [size]="44" />
+      } @else if (report().targetImageUrl; as imageUrl) {
         <img
           class="admin-report-detail-dialog__thumb"
           [class.admin-report-detail-dialog__thumb--round]="isTargetUser()"
@@ -34,7 +36,13 @@
     </div>
     <div class="admin-report-detail-dialog__header-text">
       <div class="admin-report-detail-dialog__eyebrow">{{ typeLabelKey() | translate }}</div>
-      <div class="admin-report-detail-dialog__target">{{ report().targetLabel }}</div>
+      <div class="admin-report-detail-dialog__target">
+        @if (report().targetIsDeleted) {
+          <app-deleted-user-name />
+        } @else {
+          {{ report().targetLabel }}
+        }
+      </div>
       <div class="admin-report-detail-dialog__pills">
         <app-admin-report-severity-pill [severity]="report().severity" />
         <app-admin-report-status-pill [status]="report().status" />

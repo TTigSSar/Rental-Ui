@@ -14,7 +14,10 @@ import {
 } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
-import { DeletedUserAvatarComponent, DeletedUserNameComponent } from '../../../../shared/ui/deleted-user';
+import {
+  DeletedUserAvatarComponent,
+  DeletedUserNameComponent,
+} from '../../../../shared/ui/deleted-user';
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import { reportReasonLabelKey } from '../../../reports/models/report-reason.model';
@@ -70,6 +73,7 @@ export interface ReportMessageableContact {
     AdminReportSeverityPillComponent,
     AdminReportStatusPillComponent,
     AvatarComponent,
+    DeletedUserAvatarComponent,
     DeletedUserNameComponent,
     UiDatePipe,
     IconComponent,
@@ -116,7 +120,8 @@ export class AdminReportDetailDialogComponent implements OnInit, OnDestroy {
             name: `${r.reporterFirstName} ${r.reporterLastName}`.trim() || r.reporterEmail,
           },
         ];
-    if (r.targetType === 'User') {
+    // ADR-056 AD-7: a deleted target user can no longer be messaged.
+    if (r.targetType === 'User' && !r.targetIsDeleted) {
       contacts.push({ userId: r.targetId, name: r.targetLabel });
     }
     return contacts;

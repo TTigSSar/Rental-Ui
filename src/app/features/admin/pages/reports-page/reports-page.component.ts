@@ -17,6 +17,10 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { debounceTime, distinctUntilChanged, filter, skip } from 'rxjs';
 
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
+import {
+  DeletedUserAvatarComponent,
+  DeletedUserNameComponent,
+} from '../../../../shared/ui/deleted-user';
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import { AdminPageHeaderComponent } from '../../components/admin-page-header/admin-page-header.component';
@@ -78,6 +82,8 @@ const TYPE_ICON: Record<AdminReportRow['targetType'], string> = {
     AdminStatCardComponent,
     AdminTabsComponent,
     AvatarComponent,
+    DeletedUserAvatarComponent,
+    DeletedUserNameComponent,
     EmptyStateComponent,
     IconComponent,
     MessageModule,

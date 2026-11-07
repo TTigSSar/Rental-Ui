@@ -38,6 +38,41 @@ describe('AdminReportDetailDialogComponent', () => {
     });
   });
 
+  describe('a deleted target user (ADR-056 AD-7)', () => {
+    it('shows the placeholder avatar + name and offers only the reporter contact', async () => {
+      await setup({
+        targetType: 'User',
+        targetId: 'user-9',
+        targetLabel: 'Ghost',
+        targetImageUrl: null,
+        targetIsDeleted: true,
+        reporterId: 'user-2',
+      });
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelector('app-deleted-user-avatar')).not.toBeNull();
+      expect(
+        host.querySelector('.admin-report-detail-dialog__target app-deleted-user-name'),
+      ).not.toBeNull();
+      expect(contactButtons().length).toBe(1);
+      expect(contactButtons()[0].textContent).not.toContain('Ghost');
+    });
+
+    it('keeps the live User target unchanged', async () => {
+      await setup({
+        targetType: 'User',
+        targetId: 'user-9',
+        targetLabel: 'Narek',
+        targetIsDeleted: false,
+      });
+      const host = fixture.nativeElement as HTMLElement;
+      expect(host.querySelector('app-deleted-user-avatar')).toBeNull();
+      expect(host.querySelector('.admin-report-detail-dialog__target')?.textContent).toContain(
+        'Narek',
+      );
+      expect(contactButtons().length).toBe(2);
+    });
+  });
+
   // ── Contact buttons (`admin-desktop.jsx:1036`'s "Message {label}" affordance) ──
   describe('messageable contacts', () => {
     it('shows a reporter contact and a reported-member contact for a User-target report', async () => {
