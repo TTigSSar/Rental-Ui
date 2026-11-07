@@ -105,10 +105,17 @@ describe('BrowserNotificationService', () => {
     const onClick = vi.fn();
     const close = service.show({ title: 'Anna', body: 'Hi', tag: 'c1', onClick });
     expect(close).not.toBeNull();
-    expect(ctor).toHaveBeenCalledWith('Anna', { body: 'Hi', tag: 'c1' });
+    expect(ctor).toHaveBeenCalledWith('Anna', { body: 'Hi', tag: 'c1', renotify: true });
     const instance = ctor.mock.instances[0] as { onclick: () => void; close: () => void };
     instance.onclick();
     expect(onClick).toHaveBeenCalledOnce();
     expect(instance.close).toHaveBeenCalledOnce();
+  });
+
+  it('show never passes renotify without a tag', () => {
+    const ctor = stubNotification('granted');
+    const service = TestBed.inject(BrowserNotificationService);
+    service.show({ title: 'A', body: 'B', tag: '', onClick: () => {} });
+    expect(ctor).toHaveBeenCalledWith('A', { body: 'B', tag: '' });
   });
 });

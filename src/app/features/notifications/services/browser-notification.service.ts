@@ -75,7 +75,16 @@ export class BrowserNotificationService {
       return null;
     }
     try {
-      const notification = new api(request.title, { body: request.body, tag: request.tag });
+      // `renotify` (re-alert when a same-tag notification replaces an earlier one) is not in
+      // the TS DOM lib; the constructor throws TypeError if it is set without a non-empty tag.
+      const options: NotificationOptions & { renotify?: boolean } = {
+        body: request.body,
+        tag: request.tag,
+      };
+      if (request.tag !== '') {
+        options.renotify = true;
+      }
+      const notification = new api(request.title, options);
       notification.onclick = () => {
         request.onClick();
         notification.close();
