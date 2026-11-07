@@ -239,10 +239,12 @@
   background: var(--ui-color-surface);
   border-radius: var(--ui-radius-card);
   border: 1px solid var(--ui-color-border);
-  overflow: hidden;
+  // No overflow clipping: the row actions panel is absolutely positioned and must
+  // be able to extend past the card edge. Corner rounding is applied to head/last row.
 }
 
 .users-page__table-head {
+  border-radius: var(--ui-radius-card) var(--ui-radius-card) 0 0;
   display: grid;
   grid-template-columns: 1fr 104px 56px 128px;
   padding: 11px 16px;
@@ -272,6 +274,7 @@
 
 .users-page__row--last {
   border-bottom: 0;
+  border-radius: 0 0 var(--ui-radius-card) var(--ui-radius-card);
 }
 
 .users-page__user-cell {
