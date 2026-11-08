@@ -525,57 +525,6 @@ app-ui-dorent-symbol {
 }
 
 /* ==============================
-   Trust strip
-   ============================== */
-.home__trust-strip {
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-16);
-  padding: var(--ui-space-20) var(--ui-space-24);
-  /* Design-specified tints with no matching token: --ui-color-primary-soft is
-     #ffeedc, the design calls for a deeper #fdebd9 / #fbd5b0 pair. */
-  background: #fdebd9;
-  border-radius: var(--ui-radius-card);
-  border: none;
-}
-
-.home__trust-icon-wrap {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--ui-radius-12);
-  background: #fbd5b0;
-  display: grid;
-  place-items: center;
-  color: var(--ui-color-primary);
-  font-size: 1.25rem;
-}
-
-.home__trust-content {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.home__trust-title {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--ui-color-text-primary);
-}
-
-.home__trust-text {
-  font-size: 0.875rem;
-  font-weight: 400;
-  color: var(--ui-color-text-secondary);
-}
-
-@media (max-width: 600px) {
-  .home__trust-strip {
-    padding: var(--ui-space-16) var(--ui-space-20);
-  }
-}
-
-/* ==============================
    Process section
    ============================== */
 .home__process {
@@ -1007,14 +956,6 @@ app-ui-dorent-symbol {
     width: 100%;
     min-width: 0;
     flex-shrink: unset;
-  }
-
-  /* Trust strip: white surface card on mobile (pre-existing mobile treatment;
-     the border is restated because the desktop rule now sets `border: none`). */
-  .home__trust-strip {
-    background: var(--ui-color-surface);
-    border: 1px solid var(--ui-color-border);
-    padding: var(--ui-space-16);
   }
 
   /* FAQ: tighter on small screens */

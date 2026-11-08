@@ -151,10 +151,6 @@
     "categoriesLabel": "Toy Categories",
     "topProductsLabel": "Popular Toys",
     "seeAll": "Browse all",
-    "trustStrip": {
-      "title": "Every toy is reviewed",
-      "text": "Hygiene, photos and condition checked before listings go live."
-    },
     "heroMap": {
       "nearbyCount": "{{count}} toys nearby",
       "cityCount": "{{count}} toys in Yerevan",
