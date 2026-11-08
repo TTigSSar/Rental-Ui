@@ -68,11 +68,13 @@ test.describe('Per-user language persistence (real stack)', () => {
         await loginViaDialog(page, ACCOUNTS.renter);
         // The language row moved from the profile sidebar into Settings (AD-1, ADR-056 spec UI 0).
         await page.goto('/profile/settings');
-        await expect(page.locator('[data-lang-section] .settings-page__value')).toHaveText('English');
+        await expect(page.locator('[data-language-row] .settings-page__value')).toHaveText('English');
       });
 
       await test.step('switch to Armenian: UI translates immediately and a real PUT persists it', async () => {
-        await page.locator('[data-lang-section] button.settings-page__row').click();
+        await page.locator('[data-language-row]').click();
+        const sheet = page.getByRole('dialog');
+        await expect(sheet).toBeVisible();
 
         // The docker UI build is a same-origin bundle (environment.prod.ts apiBaseUrl: '')
         // routed through nginx's /api/ proxy_pass (nginx.conf) — browser-originated traffic
@@ -85,9 +87,7 @@ test.describe('Per-user language persistence (real stack)', () => {
               res.url() === `${UI_URL}${ApiContract.auth.updatePreferredLanguage}` &&
               res.request().method() === 'PUT',
           ),
-          page
-            .locator('[data-lang-section] .settings-page__lang-option', { hasText: HY_NATIVE })
-            .click(),
+          sheet.getByRole('option', { name: HY_NATIVE }).click(),
         ]);
 
         expect(putResponse.ok(), 'PUT /api/auth/me/preferred-language must succeed').toBe(true);
@@ -95,7 +95,9 @@ test.describe('Per-user language persistence (real stack)', () => {
         expect(putBody.preferredLanguage).toBe('hy');
 
         // UI/localStorage apply immediately (LanguageService.use), independent of the PUT.
+        await expect(sheet).toBeHidden();
         await expect(page.locator('.settings-page__title')).toHaveText(HY_SETTINGS_TITLE);
+        await expect(page.locator('[data-language-row] .settings-page__value')).toHaveText(HY_NATIVE);
         await expect
           .poll(() => page.evaluate((key) => localStorage.getItem(key), LANGUAGE_STORAGE_KEY))
           .toBe('hy');
