@@ -85,6 +85,11 @@ export const selectListingCategoriesLoading = createSelector(
   (state: ListingsState): boolean => state.categoriesLoading,
 );
 
+export const selectListingCategoriesError = createSelector(
+  selectListingsState,
+  (state: ListingsState): string | null => state.categoriesError,
+);
+
 export const selectCreateListingLoading = createSelector(
   selectListingsState,
   (state: ListingsState): boolean => state.createListingLoading,

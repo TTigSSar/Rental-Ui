@@ -9,6 +9,7 @@ import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
 import { selectFavoriteIds } from '../../../favorites/store/favorites.selectors';
 import {
   selectListingCategories,
+  selectListingCategoriesError,
   selectListingCategoriesLoading,
 } from '../../../listings/store/listings.selectors';
 import { MyListingsApiService } from '../../../my-listings/services/my-listings-api.service';
@@ -61,6 +62,7 @@ function createFixture() {
         selectors: [
           { selector: selectListingCategories, value: [] },
           { selector: selectListingCategoriesLoading, value: false },
+          { selector: selectListingCategoriesError, value: null },
           { selector: selectIsAuthenticated, value: false },
           { selector: selectHomeSections, value: [] },
           { selector: selectHomeSectionsLoading, value: false },

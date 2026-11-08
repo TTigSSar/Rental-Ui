@@ -1,22 +1,15 @@
 @let data = category();
-<button type="button" class="category-tile" [attr.aria-label]="data.label" (click)="onClick()">
-  <div
-    class="category-tile__media"
-    [style.background]="backgroundColor()"
-    aria-hidden="true"
-  >
-    <span class="category-tile__icon-chip">
-      <app-icon class="category-tile__icon" [name]="data.iconName" [size]="26" />
-    </span>
-    <!-- Purely decorative: the button's own aria-label carries the category
-         name, so this overlay stays out of the a11y tree and screen readers
-         announce the name exactly once — on desktop, where this is the only
-         visible label, and on mobile, where the chip below takes over. -->
-    <span class="category-tile__overlay-label" aria-hidden="true">{{ data.label }}</span>
-  </div>
-  <!-- Mobile-only (≤560px). Hidden on desktop by CSS, where the in-card overlay
-       label is the single visible label. Kept in the DOM (not @if) so the media
-       query alone decides, and `display: none` keeps it out of the a11y tree so
-       it can never duplicate the button's accessible name. -->
-  <span class="category-tile__chip" aria-hidden="true">{{ data.label }}</span>
+<!-- One real button, one accessible name (the category name). The visible label
+     is the button's own text content; the icon is decorative (aria-hidden), so
+     the name is announced exactly once. -->
+<button
+  type="button"
+  class="category-tile"
+  [style.background]="backgroundColor()"
+  (click)="onClick()"
+>
+  <span class="category-tile__label">{{ data.label }}</span>
+  <span class="category-tile__icon-wrap" aria-hidden="true">
+    <app-icon class="category-tile__icon" [name]="data.iconName" [size]="20" />
+  </span>
 </button>

@@ -1,151 +1,123 @@
 :host {
   display: block;
+  min-width: 0;
 }
 
+/* COMPACT anatomy (default: scroller < 1024 and the 1024-1279 grid):
+   icon on top (no disc), label below. The DOM keeps the label first so the name
+   is read first; `order` moves the decorative icon above it visually. */
 .category-tile {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  align-items: stretch;
+  align-items: flex-start;
+  gap: var(--ui-space-8);
   width: 100%;
-  padding: 0;
+  height: 100%;
+  min-height: 84px;
+  padding: var(--ui-space-12);
   border: none;
-  background: transparent;
-  cursor: pointer;
+  border-radius: var(--ui-radius-card);
+  color: var(--ui-color-text-primary);
+  font-family: inherit;
   text-align: left;
-}
-
-.category-tile__media {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 268 / 190;
-  border-radius: var(--ui-radius-card); /* 16px */
-  overflow: hidden;
-  box-shadow: 0 10px 24px -12px rgba(20, 15, 5, 0.3);
-  display: grid;
-  place-items: center;
-  background: var(--ui-color-surface-muted);
+  cursor: pointer;
   transition:
-    transform 160ms ease,
-    box-shadow 160ms ease;
+    transform 150ms ease,
+    box-shadow 150ms ease;
 }
 
-.category-tile:hover .category-tile__media,
-.category-tile:focus-visible .category-tile__media {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.15);
-}
-
-.category-tile:focus-visible {
-  outline: none;
-}
-
-/* The chip is display:none on desktop, so the focus ring has to live on the
-   media tile — otherwise keyboard focus would be invisible above 560px. */
-.category-tile:focus-visible .category-tile__media {
-  outline: 2px solid var(--ui-color-primary-strong);
-  outline-offset: 2px;
-}
-
-/* Icon sizing box (desktop/tablet only — neutralized at ≤560px below, where
-   the tile itself shrinks to a 64px icon-only box and a nested 64px box
-   inside it would be redundant). No background of its own: the palette
-   colours are pastels, so the icon sits directly on the media tile — the
-   same flat treatment as the admin console's own colour+icon preview
-   (`category-form-panel.component.scss`'s `__tile`). */
-.category-tile__icon-chip {
-  width: 64px;
-  height: 64px;
-  display: grid;
-  place-items: center;
-}
-
-/* Dark glyph on the pastel media — the palette swatches (`#FFE6CC`,
-   `#D9E8FF`, …) are all light, so a dark foreground is what stays readable;
-   matches the admin preview tile's own `color: var(--ui-color-text-primary)`. */
-.category-tile__icon {
+.category-tile__label {
+  order: 2;
+  max-width: 100%;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
   color: var(--ui-color-text-primary);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  text-overflow: ellipsis;
 }
 
-/* Label burned into the pastel media (desktop/tablet only). Dark text, no
-   shadow — the white-on-gradient treatment this replaced doesn't carry over
-   to a light pastel background. */
-.category-tile__overlay-label {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 16px;
-  padding: 0 12px;
-  text-align: center;
-  color: var(--ui-color-text-primary);
-  font-size: 16px;
-  font-weight: 800;
-  line-height: 1.2;
-  pointer-events: none;
-}
-
-/* Mobile-only label. Above 560px the in-card overlay label is the single
-   visible name and this white pill is suppressed — rendering both was the
-   duplicate-label bug. The ≤560px block below restores it as a plain compact
-   caption under the 64px icon tile, where it is the ONLY label. */
-.category-tile__chip {
-  display: none;
+.category-tile__icon-wrap {
+  order: 1;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 16px;
-  border: 1px solid var(--ui-color-border);
-  background: var(--ui-color-surface);
+  flex-shrink: 0;
   color: var(--ui-color-text-primary);
-  border-radius: 2ch;
-  font-weight: 500;
-  font-size: 1rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  transition:
-    border-color 140ms ease,
-    background 140ms ease;
 }
 
-@media (max-width: 560px) {
+/* The design asks for stroke 1.8 on tile icons; the shared icon draws 2. */
+.category-tile__icon-wrap ::ng-deep svg {
+  stroke-width: 1.8;
+}
+
+/* 1024-1279 grid uses the compact tile with a 15px label. */
+@media (min-width: 1024px) {
+  .category-tile__label {
+    font-size: 15px;
+  }
+}
+
+/* STANDARD anatomy (>= 1280): label left, icon in a white 40x40 disc on the right. */
+@media (min-width: 1280px) {
   .category-tile {
-    gap: 8px;
+    flex-direction: row;
     align-items: center;
+    gap: var(--ui-space-12);
+    min-height: 72px;
+    padding: var(--ui-space-12) var(--ui-space-12) var(--ui-space-12) var(--ui-space-16);
   }
 
-  .category-tile__media {
-    aspect-ratio: 1 / 1;
-    width: 64px;
-    height: 64px;
-    border-radius: 18px;
+  .category-tile__label {
+    order: 0;
+    flex: 1;
+    min-width: 0;
   }
 
-  /* No sizing box needed at this size — the tile itself is already a 64px
-     icon box, so a nested 64px box would just duplicate it. */
-  .category-tile__icon-chip {
-    width: auto;
-    height: auto;
+  .category-tile__icon-wrap {
+    order: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--ui-radius-12);
+    background: #fff; /* design: pure white disc, no token for #fff on a tinted tile */
+  }
+}
+
+/* Hover lift only on devices that really hover. */
+@media (hover: hover) {
+  .category-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--ui-shadow-card);
+  }
+}
+
+/* Keyboard focus: ADR-031 ring (2px primary-strong, 2px gap); no lift/shadow. */
+.category-tile:focus-visible {
+  outline: 2px solid var(--ui-color-primary-strong);
+  outline-offset: 2px;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Pressed (touch and mouse). */
+.category-tile:active {
+  transform: scale(0.97);
+  box-shadow: inset 0 0 0 999px rgba(26, 27, 38, 0.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .category-tile {
+    transition: none;
   }
 
-  /* No room for the burned-in label on the 64px icon tile — the compact
-     label below carries the name instead. */
-  .category-tile__overlay-label {
-    display: none;
-  }
-
-  /* Chip becomes a plain compact label on mobile — and this is where it is
-     turned back on (the base rule hides it for desktop). */
-  .category-tile__chip {
-    display: flex;
-    background: transparent;
-    border: none;
-    padding: 0;
-    font-size: 0.75rem;
-    font-weight: 500;
-    max-width: 80px;
-    white-space: normal;
-    text-align: center;
-    line-height: 1.2;
+  .category-tile:hover,
+  .category-tile:active {
+    transform: none;
   }
 }
