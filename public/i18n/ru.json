@@ -151,10 +151,6 @@
     "categoriesLabel": "Категории игрушек",
     "topProductsLabel": "Популярные игрушки",
     "seeAll": "Смотреть всё",
-    "trustStrip": {
-      "title": "Каждая игрушка проверяется",
-      "text": "Гигиена, фотографии и состояние проверяются перед публикацией."
-    },
     "heroMap": {
       "nearbyCount": "{{count}} игрушки рядом",
       "cityCount": "{{count}} игрушки в Ереване",
@@ -1385,10 +1381,6 @@
       }
     },
     "security": {
-      "page": {
-        "title": "Безопасность",
-        "subtitle": "Измените пароль, чтобы обеспечить безопасность аккаунта."
-      },
       "form": {
         "currentPassword": "Текущий пароль",
         "currentPasswordPlaceholder": "Введите текущий пароль",
@@ -1396,7 +1388,9 @@
         "newPasswordPlaceholder": "Введите новый пароль",
         "confirmPassword": "Подтвердите новый пароль",
         "confirmPasswordPlaceholder": "Повторите новый пароль",
-        "submit": "Изменить пароль"
+        "cancel": "Отмена",
+        "save": "Сохранить",
+        "saving": "Сохранение"
       },
       "validation": {
         "currentPasswordRequired": "Текущий пароль обязателен.",
@@ -1416,10 +1410,8 @@
         "sessionExpired": "Сессия истекла. Пожалуйста, войдите снова.",
         "serverError": "Что-то пошло не так. Попробуйте ещё раз."
       },
-      "success": {
-        "title": "Пароль обновлён",
-        "text": "Ваш пароль успешно обновлён.",
-        "announcement": "Пароль обновлён. Ваш пароль успешно обновлён."
+      "toast": {
+        "success": "Пароль обновлён"
       }
     },
     "homePoint": {

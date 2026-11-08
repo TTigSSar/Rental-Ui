@@ -87,8 +87,9 @@ test.describe('Change password (real stack)', () => {
     try {
       await loginViaDialog(page, account);
 
-      await page.goto('/profile/settings/password');
-      const form = page.locator('form.security-page__form');
+      await page.goto('/profile/settings');
+      await page.locator('[data-password-row]').click();
+      const form = page.locator('form.ps__form');
       await form.locator('input.uii-native').nth(0).fill(account.password);
       await form.locator('input.uii-native').nth(1).fill(NEW_PASSWORD);
       await form.locator('input.uii-native').nth(2).fill(NEW_PASSWORD);
@@ -103,7 +104,7 @@ test.describe('Change password (real stack)', () => {
           (res) => res.url().endsWith('/api/auth/me/password') && res.request().method() === 'PUT',
           { timeout: 20_000 },
         ),
-        form.locator('button[type="submit"]').click(),
+        page.locator('.ps__btn--save').click(),
       ]);
       if (changeRes.ok()) changed = true;
       expect(
@@ -116,9 +117,7 @@ test.describe('Change password (real stack)', () => {
       expect(changeBody.accessToken, 'change-password must return a fresh accessToken').toBeTruthy();
       expect(changeBody.user, 'change-password must return the user').toBeTruthy();
 
-      // exact: true — the persistent live region (`role="status"`) now also contains "Password
-      // updated" as a substring of its longer announcement text; a non-exact match resolves to
-      // two elements (strict-mode violation). See the same fix in profile-security.spec.ts.
+      // The sheet closes and the global toast announces the change.
       await expect(page.getByText('Password updated', { exact: true })).toBeVisible();
 
       // Node-side, straight at :8080 — the `direct` auth bucket, deliberately NOT the `proxied`

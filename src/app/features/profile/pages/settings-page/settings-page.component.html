@@ -17,54 +17,38 @@
         </span>
       </div>
     } @else {
-      <a class="settings-page__row" role="listitem" routerLink="/profile/settings/password">
-        <span class="settings-page__icon"><app-icon name="lock" [size]="16" /></span>
-        <span class="settings-page__body">
-          <span class="settings-page__label">{{ 'profile.settings.password' | translate }}</span>
-        </span>
-        <app-icon name="chevron-right" [size]="13" class="settings-page__chevron" />
-      </a>
+      <div role="listitem">
+        <button
+          type="button"
+          class="settings-page__row"
+          aria-haspopup="dialog"
+          data-password-row
+          (click)="openPassword()"
+        >
+          <span class="settings-page__icon"><app-icon name="lock" [size]="16" /></span>
+          <span class="settings-page__body">
+            <span class="settings-page__label">{{ 'profile.settings.password' | translate }}</span>
+          </span>
+          <app-icon name="chevron-right" [size]="13" class="settings-page__chevron" />
+        </button>
+      </div>
     }
 
-    <div role="listitem" data-lang-section>
+    <div role="listitem">
       <button
         type="button"
         class="settings-page__row"
-        aria-haspopup="true"
-        [attr.aria-expanded]="languageMenuOpen()"
-        (click)="toggleLanguageMenu()"
+        aria-haspopup="dialog"
+        data-language-row
+        (click)="openLanguage()"
       >
         <span class="settings-page__icon"><app-icon name="glob" [size]="16" /></span>
         <span class="settings-page__body">
           <span class="settings-page__label">{{ 'profile.settings.language' | translate }}</span>
         </span>
         <span class="settings-page__value">{{ currentLang().native }}</span>
-        <app-icon
-          name="chevron-right"
-          [size]="13"
-          class="settings-page__chevron"
-          [class.settings-page__chevron--open]="languageMenuOpen()"
-        />
+        <app-icon name="chevron-right" [size]="13" class="settings-page__chevron" />
       </button>
-
-      @if (languageMenuOpen()) {
-        <div class="settings-page__lang-list" role="group" [attr.aria-label]="'profile.settings.language' | translate">
-          @for (option of availableLanguages; track option.code) {
-            <button
-              type="button"
-              class="settings-page__lang-option"
-              [class.settings-page__lang-option--active]="option.code === currentLang().code"
-              [attr.aria-pressed]="option.code === currentLang().code"
-              (click)="selectLanguage(option)"
-            >
-              <span>{{ option.native }}</span>
-              @if (option.code === currentLang().code) {
-                <i class="pi pi-check" aria-hidden="true"></i>
-              }
-            </button>
-          }
-        </div>
-      }
     </div>
 
     <div role="listitem">
@@ -116,4 +100,17 @@
 
 @if (notificationsOpen()) {
   <app-notifications-sheet (closed)="closeNotifications()" />
+}
+
+@if (passwordOpen()) {
+  <app-password-sheet (closed)="closePassword()" />
+}
+
+@if (languageOpen()) {
+  <app-language-sheet
+    [languages]="availableLanguages"
+    [currentCode]="currentLang().code"
+    (selected)="selectLanguage($event)"
+    (closed)="closeLanguage()"
+  />
 }

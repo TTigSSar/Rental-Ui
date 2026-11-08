@@ -70,15 +70,10 @@ export const profileRoutes: Routes = [
             (m) => m.SettingsPageComponent,
           ),
       },
-      {
-        path: 'settings/password',
-        loadComponent: () =>
-          import('./pages/security-page/security-page.component').then(
-            (m) => m.SecurityPageComponent,
-          ),
-      },
-      // Old location of the change-password form (moved under Settings, AD-1).
-      { path: 'security', redirectTo: 'settings/password', pathMatch: 'full' },
+      // The change-password form is now a sheet on the Settings page (ADR-021 amendment 2026-11-08).
+      { path: 'settings/password', redirectTo: 'settings', pathMatch: 'full' },
+      // Old location of the change-password form (a sheet on Settings now).
+      { path: 'security', redirectTo: 'settings', pathMatch: 'full' },
     ],
   },
 ];

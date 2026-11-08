@@ -4,15 +4,14 @@ import { mockApi } from './support/api-mock';
 import { e2eUser } from './support/fixtures';
 
 /**
- * Critical journey: change password (ADR-021), `/profile/security` — the first
- * child route owned by the `profile` feature itself. A separate file from
+ * Critical journey: change password (ADR-021), the Password sheet on `/profile/settings`. A separate file from
  * `auth.spec.ts` (which is scoped to the header login dialog only): this
  * journey needs an authenticated session and navigates from a profile
  * settings row, a different setup shape entirely.
  *
  * Mocked tier — the network-level stub (`support/api-mock.ts`) answers
- * `PUT /api/auth/me/password`. This pins the FRONTEND's wiring only: routing
- * to /profile/security and `security-page.component.ts`'s field-vs-banner
+ * `PUT /api/auth/me/password`. This pins the FRONTEND's wiring only: the Settings
+ * Password row -> sheet and `password-sheet.component.ts`'s field-vs-banner
  * error mapping (see its class doc comment). It cannot prove a password
  * actually changed on a real backend — that is `real/change-password.spec.ts`
  * (M-020: a mock that answers its own contract proves nothing about the real
@@ -27,7 +26,7 @@ test.describe('Change password', () => {
     });
   });
 
-  test('reaches /profile/settings/password via Settings and submits successfully', async ({
+  test('opens the Password sheet from Settings and submits successfully', async ({
     page,
   }) => {
     await mockApi(page, { me: e2eUser() });
@@ -40,19 +39,17 @@ test.describe('Change password', () => {
     // item since it renders outside the `isChildRouteActive()` toggle.
     await page.locator('a[routerLink="/profile/settings"]').first().click();
     await expect(page).toHaveURL(/\/profile\/settings$/);
-    await page.locator('a[routerLink="/profile/settings/password"]').click();
-    await expect(page).toHaveURL(/\/profile\/settings\/password$/);
+    await page.locator('[data-password-row]').click();
+    await expect(page.getByRole('dialog')).toBeVisible();
 
-    const form = page.locator('form.security-page__form');
+    const form = page.locator('form.ps__form');
     await form.locator('input.uii-native').nth(0).fill('OldPassword1');
     await form.locator('input.uii-native').nth(1).fill('NewPassword1');
     await form.locator('input.uii-native').nth(2).fill('NewPassword1');
-    await form.locator('button[type="submit"]').click();
+    await page.locator('.ps__btn--save').click();
 
-    // exact: true — the persistent live region (`role="status"`, mounted from first paint per
-    // the component's doc comment) now ALSO contains "Password updated" as a substring of its
-    // longer announcement text, so a non-exact match resolves to two elements (strict-mode
-    // violation). The exact match pins this assertion to the visible success title specifically.
+    // The sheet closes (no success screen) and the global toast announces the change.
+    await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByText('Password updated', { exact: true })).toBeVisible();
   });
 
@@ -64,17 +61,18 @@ test.describe('Change password', () => {
       changePassword: { status: 400, body: { errorCode: 'auth.invalid_current_password' } },
     });
 
-    await page.goto('/profile/settings/password');
+    await page.goto('/profile/settings');
+    await page.locator('[data-password-row]').click();
 
-    const form = page.locator('form.security-page__form');
+    const form = page.locator('form.ps__form');
     await form.locator('input.uii-native').nth(0).fill('WrongPassword1');
     await form.locator('input.uii-native').nth(1).fill('NewPassword1');
     await form.locator('input.uii-native').nth(2).fill('NewPassword1');
-    await form.locator('button[type="submit"]').click();
+    await page.locator('.ps__btn--save').click();
 
     await expect(page.getByText('Current password is incorrect.')).toBeVisible();
     // Must land under the current-password field, never as the form banner.
-    await expect(page.locator('.security-page__banner')).toHaveCount(0);
+    await expect(page.locator('.ps__banner')).toHaveCount(0);
   });
 
   test('a forced 429 lands as the form-level banner', async ({ page }) => {
@@ -83,15 +81,16 @@ test.describe('Change password', () => {
       changePassword: { status: 429, body: {} },
     });
 
-    await page.goto('/profile/settings/password');
+    await page.goto('/profile/settings');
+    await page.locator('[data-password-row]').click();
 
-    const form = page.locator('form.security-page__form');
+    const form = page.locator('form.ps__form');
     await form.locator('input.uii-native').nth(0).fill('OldPassword1');
     await form.locator('input.uii-native').nth(1).fill('NewPassword1');
     await form.locator('input.uii-native').nth(2).fill('NewPassword1');
-    await form.locator('button[type="submit"]').click();
+    await page.locator('.ps__btn--save').click();
 
-    await expect(page.locator('.security-page__banner')).toContainText(
+    await expect(page.locator('.ps__banner')).toContainText(
       'Too many attempts, try again in a minute.',
     );
   });

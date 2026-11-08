@@ -19,13 +19,8 @@
   [class.uii-field--success]="hasSuccess()"
   [class.uii-field--disabled]="isDisabledComp()"
 >
-
   @if (resolvedLeftIcon()) {
-    <i
-      [class]="resolvedLeftIcon()"
-      class="uii-icon uii-icon--left"
-      aria-hidden="true"
-    ></i>
+    <i [class]="resolvedLeftIcon()" class="uii-icon uii-icon--left" aria-hidden="true"></i>
   }
 
   <input
@@ -52,15 +47,14 @@
     <button
       type="button"
       class="uii-pwd-toggle"
-      [attr.aria-label]="(passwordVisible() ? 'common.hidePassword' : 'common.showPassword') | translate"
-      tabindex="-1"
+      [attr.aria-label]="
+        (passwordVisible() ? 'common.hidePassword' : 'common.showPassword') | translate
+      "
+      [attr.aria-pressed]="passwordVisible()"
       (mousedown)="$event.preventDefault()"
       (click)="handlePasswordToggle()"
     >
-      <i
-        [class]="passwordVisible() ? 'pi pi-eye-slash' : 'pi pi-eye'"
-        aria-hidden="true"
-      ></i>
+      <i [class]="passwordVisible() ? 'pi pi-eye-slash' : 'pi pi-eye'" aria-hidden="true"></i>
     </button>
   } @else if (showClear()) {
     <button
@@ -74,23 +68,14 @@
       <i class="pi pi-times" aria-hidden="true"></i>
     </button>
   } @else if (rightIcon()) {
-    <i
-      [class]="rightIcon()"
-      class="uii-icon uii-icon--right"
-      aria-hidden="true"
-    ></i>
+    <i [class]="rightIcon()" class="uii-icon uii-icon--right" aria-hidden="true"></i>
   }
 
   @if (variant() === 'pill' && ctaLabel()) {
-    <button
-      type="button"
-      class="uii-cta"
-      (click)="ctaClicked.emit()"
-    >
+    <button type="button" class="uii-cta" (click)="ctaClicked.emit()">
       {{ ctaLabel() }}
     </button>
   }
-
 </div>
 
 @if (hasError() && errorMessage()) {

@@ -34,7 +34,8 @@ function setup(permission: BrowserNotificationPermission = 'default', enabled = 
   const fixture: ComponentFixture<NotificationsSheetComponent> =
     TestBed.createComponent(NotificationsSheetComponent);
   fixture.detectChanges();
-  const el = fixture.nativeElement as HTMLElement;
+  // The shared shell portals itself (and the projected content) to document.body.
+  const el = document.body.querySelector<HTMLElement>('app-settings-sheet')!;
   return { fixture, el, store, dispatch, browser, permissionSignal };
 }
 

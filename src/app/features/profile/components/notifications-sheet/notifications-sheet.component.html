@@ -1,19 +1,5 @@
-<div class="ns__backdrop" (click)="closed.emit()" aria-hidden="true"></div>
-<div class="ns" role="dialog" aria-modal="true" aria-labelledby="ns-title">
-  <div class="ns__handle" aria-hidden="true"></div>
-  <div class="ns__head">
-    <h2 id="ns-title" class="ns__title">{{ 'profile.settings.notifications' | translate }}</h2>
-    <button
-      type="button"
-      class="ns__close"
-      [attr.aria-label]="'common.close' | translate"
-      (click)="closed.emit()"
-    >
-      <i class="pi pi-times" aria-hidden="true"></i>
-    </button>
-  </div>
-
-  <div class="ns__card" role="list" [attr.aria-label]="'profile.settings.notifications' | translate">
+<app-settings-sheet #sheet [title]="'profile.settings.notifications' | translate" (closed)="closed.emit()">
+<div class="ns__card" role="list" [attr.aria-label]="'profile.settings.notifications' | translate">
     <!-- Row A: chat emails -->
     <div class="ns__row" role="listitem">
       <span class="ns__tile"><i class="pi pi-envelope" aria-hidden="true"></i></span>
@@ -82,4 +68,4 @@
       </div>
     }
   </div>
-</div>
+</app-settings-sheet>
