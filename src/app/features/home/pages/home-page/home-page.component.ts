@@ -1,4 +1,4 @@
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -18,6 +18,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { Observable, combineLatest, map, of, switchMap } from 'rxjs';
 
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
+import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import { LoadingSkeletonComponent } from '../../../../shared/ui/loading-skeleton/loading-skeleton.component';
 import type { MapLatLng, MapMarkerGroup } from '../../../../shared/ui/map/map.component';
 import { AuthDialogComponent } from '../../../auth/components/auth-dialog/auth-dialog.component';
@@ -30,6 +31,7 @@ import { kmToMeters } from '../../../listings/models/radius-scale.util';
 import * as ListingsActions from '../../../listings/store/listings.actions';
 import {
   selectListingCategories,
+  selectListingCategoriesError,
   selectListingCategoriesLoading,
 } from '../../../listings/store/listings.selectors';
 import { ListingCardComponent } from '../../../listings/components/listing-card/listing-card.component';
@@ -79,6 +81,7 @@ interface HomePageViewModel {
   readonly categories: HomeCategoryTileVm[];
   readonly showCategoriesSkeleton: boolean;
   readonly showCategoriesEmpty: boolean;
+  readonly showCategoriesError: boolean;
   readonly isAuthenticated: boolean;
   readonly sections: HomeSectionResponse[];
   readonly sectionsLoading: boolean;
@@ -243,6 +246,9 @@ const PROCESS_STEPS: readonly HomeProcessStep[] = [
  */
 const HERO_SEARCH_ROOT_MARGIN = '-80px 0px 0px 0px';
 
+/** Matches the hero's own stack-to-row breakpoint (home-page.component.scss, 1024px). */
+const HERO_STACKED_QUERY = '(max-width: 1023.98px)';
+
 const FAQ_ENTRIES: readonly HomeFaqEntry[] = [
   {
     id: 'q1',
@@ -279,16 +285,19 @@ const FAQ_ENTRIES: readonly HomeFaqEntry[] = [
 interface HomeSource {
   readonly categories: ListingCategoryOption[];
   readonly categoriesLoading: boolean;
+  readonly categoriesError: string | null;
   readonly isAuthenticated: boolean;
 }
 
 const selectHomeSource = createSelector(
   selectListingCategories,
   selectListingCategoriesLoading,
+  selectListingCategoriesError,
   selectIsAuthenticated,
-  (categories, categoriesLoading, isAuthenticated): HomeSource => ({
+  (categories, categoriesLoading, categoriesError, isAuthenticated): HomeSource => ({
     categories,
     categoriesLoading,
+    categoriesError,
     isAuthenticated,
   }),
 );
@@ -298,11 +307,13 @@ const selectHomeSource = createSelector(
   standalone: true,
   imports: [
     AsyncPipe,
+    NgTemplateOutlet,
     ReactiveFormsModule,
     RouterLink,
     TranslatePipe,
     AuthDialogComponent,
     EmptyStateComponent,
+    IconComponent,
     ListingCardComponent,
     LoadingSkeletonComponent,
     CategoryTileComponent,
@@ -325,6 +336,9 @@ export class HomePageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   private readonly heroSearchRef = viewChild<ElementRef<HTMLElement>>('heroSearch');
+  private readonly categoryTrack = viewChild<ElementRef<HTMLElement>>('categoryTrack');
+  private readonly categoriesRetryBtn = viewChild<ElementRef<HTMLElement>>('categoriesRetry');
+  private categoriesRetryPending = false;
   private heroSearchObserver: IntersectionObserver | null = null;
 
   /**
@@ -340,6 +354,19 @@ export class HomePageComponent implements OnInit {
    * drifting apart (ADR-015's "one string, two meanings" corollary).
    */
   protected readonly heroRadiusKm = HOME_NEARBY_DEFAULT_RADIUS_KM;
+
+  /** Skeleton tiles shown while categories load — same grid/size as the loaded state. */
+  protected readonly categorySkeletonItems = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+  /** True while the hero is stacked (< 1024px): categories then render between
+   *  the search and the map; at >= 1024px they render below the hero. */
+  protected readonly stackedHero = signal(
+    typeof matchMedia === 'function' && matchMedia(HERO_STACKED_QUERY).matches,
+  );
+
+  /** Categories scroller arrows (pointer devices, < 1024px). Disabled at the track's ends. */
+  protected readonly canScrollPrev = signal(false);
+  protected readonly canScrollNext = signal(true);
 
   protected readonly processSteps = PROCESS_STEPS;
   protected readonly faqEntries = FAQ_ENTRIES;
@@ -405,7 +432,14 @@ export class HomePageComponent implements OnInit {
         return {
           categories: mappedCategories,
           showCategoriesSkeleton: source.categoriesLoading && mappedCategories.length === 0,
-          showCategoriesEmpty: !source.categoriesLoading && mappedCategories.length === 0,
+          showCategoriesError:
+            !source.categoriesLoading &&
+            mappedCategories.length === 0 &&
+            source.categoriesError !== null,
+          showCategoriesEmpty:
+            !source.categoriesLoading &&
+            mappedCategories.length === 0 &&
+            source.categoriesError === null,
           isAuthenticated: source.isAuthenticated,
           sections: sections.map((s) => ({
             ...s,
@@ -444,6 +478,39 @@ export class HomePageComponent implements OnInit {
       );
       observer.observe(element);
       this.heroSearchObserver = observer;
+    });
+
+    // Keep the categories placement in step with the hero's breakpoint.
+    if (typeof matchMedia === 'function') {
+      const stackedQuery = matchMedia(HERO_STACKED_QUERY);
+      const onChange = (event: MediaQueryListEvent): void => this.stackedHero.set(event.matches);
+      stackedQuery.addEventListener('change', onChange);
+      this.destroyRef.onDestroy(() => stackedQuery.removeEventListener('change', onChange));
+    }
+
+    // Arrow disabled-state follows the track's size as well as its scroll.
+    effect((onCleanup) => {
+      const track = this.categoryTrack()?.nativeElement ?? null;
+      if (track === null) {
+        return;
+      }
+      this.updateCategoryArrows();
+      if (typeof ResizeObserver === 'undefined') {
+        return;
+      }
+      const observer = new ResizeObserver(() => this.updateCategoryArrows());
+      observer.observe(track);
+      onCleanup(() => observer.disconnect());
+    });
+
+    // After a retry that fails again the error card is rebuilt; hand focus
+    // back to its "Try again" button.
+    effect(() => {
+      const retry = this.categoriesRetryBtn()?.nativeElement ?? null;
+      if (retry !== null && this.categoriesRetryPending) {
+        this.categoriesRetryPending = false;
+        retry.focus();
+      }
     });
 
     this.destroyRef.onDestroy(() => {
@@ -495,6 +562,11 @@ export class HomePageComponent implements OnInit {
     this.expandedFaq.update((current) => (current === id ? null : id));
   }
 
+  protected retryCategories(): void {
+    this.categoriesRetryPending = true;
+    this.store.dispatch(ListingsActions.loadListingCategories());
+  }
+
   protected retryHomeSections(): void {
     this.store.dispatch(HomeSectionsActions.load());
   }
@@ -504,6 +576,89 @@ export class HomePageComponent implements OnInit {
    *  requested any other way. */
   protected onRequestMyArea(): void {
     this.store.dispatch(HomeNearbyActions.requestMyArea());
+  }
+
+  /** Syncs the prev/next disabled state with the categories track. */
+  protected updateCategoryArrows(): void {
+    const track = this.categoryTrack()?.nativeElement;
+    if (!track) {
+      return;
+    }
+    this.canScrollPrev.set(track.scrollLeft > 1);
+    this.canScrollNext.set(track.scrollLeft + track.clientWidth < track.scrollWidth - 1);
+  }
+
+  /**
+   * Keyboard focus on a tile that is only partly visible: browsers do not
+   * scroll a partially visible element, so the peek column would stay clipped.
+   * Scrolls the track just enough to bring the tile fully inside the visible
+   * area, keeping the page gutter clear on both sides.
+   */
+  protected onCategoryFocus(event: FocusEvent): void {
+    const track = this.categoryTrack()?.nativeElement;
+    const target = event.target as HTMLElement | null;
+    const tile = target?.closest('app-home-category-tile') as HTMLElement | null;
+    if (!track || !tile || tile.parentElement !== track) {
+      return;
+    }
+    const gutter = parseFloat(getComputedStyle(track).paddingLeft) || 0;
+    const trackRect = track.getBoundingClientRect();
+    const tileRect = tile.getBoundingClientRect();
+    const minLeft = trackRect.left + gutter;
+    const maxRight = trackRect.right - gutter;
+    let delta = 0;
+    if (tileRect.left < minLeft) {
+      delta = tileRect.left - minLeft;
+    } else if (tileRect.right > maxRight) {
+      delta = tileRect.right - maxRight;
+    }
+    if (Math.abs(delta) < 1 || track.scrollWidth <= track.clientWidth) {
+      return;
+    }
+    const reduced =
+      typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    track.scrollBy({ left: delta, behavior: reduced ? 'auto' : 'smooth' });
+  }
+
+  /**
+   * Scrolls the categories track by the number of fully visible columns,
+   * landing on a column start. Does nothing while the arrow is disabled.
+   * Smooth only when the user has not asked for reduced motion.
+   */
+  protected scrollCategories(direction: -1 | 1): void {
+    const track = this.categoryTrack()?.nativeElement;
+    if (!track || (direction === -1 ? !this.canScrollPrev() : !this.canScrollNext())) {
+      return;
+    }
+    const tiles = Array.from(track.children) as HTMLElement[];
+    const trackLeft = track.getBoundingClientRect().left - track.scrollLeft;
+    const columns: { left: number; right: number }[] = [];
+    for (const tile of tiles) {
+      const rect = tile.getBoundingClientRect();
+      const left = Math.round(rect.left - trackLeft);
+      if (columns.length === 0 || columns[columns.length - 1].left !== left) {
+        columns.push({ left, right: Math.round(rect.right - trackLeft) });
+      }
+    }
+    if (columns.length === 0) {
+      return;
+    }
+    const gutter = parseFloat(getComputedStyle(track).paddingLeft) || 0;
+    const viewStart = track.scrollLeft + gutter;
+    const viewEnd = track.scrollLeft + track.clientWidth;
+    let first = columns.findIndex((c) => c.left >= viewStart - 1);
+    if (first < 0) {
+      first = columns.length - 1;
+    }
+    const visible = columns.filter((c) => c.left >= viewStart - 1 && c.right <= viewEnd + 1).length;
+    const step = Math.max(1, visible);
+    const target = Math.min(columns.length - 1, Math.max(0, first + direction * step));
+    const reduced =
+      typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    track.scrollTo({
+      left: Math.max(0, columns[target].left - gutter),
+      behavior: reduced ? 'auto' : 'smooth',
+    });
   }
 
   protected scrollCarousel(carousel: HTMLElement, direction: -1 | 1): void {

@@ -190,7 +190,7 @@ export const listingsReducer = createReducer(
     (state): ListingsState => ({
       ...state,
       categoriesLoading: true,
-      error: null,
+      categoriesError: null,
     }),
   ),
   on(
@@ -199,7 +199,7 @@ export const listingsReducer = createReducer(
       ...state,
       categories: [...categories],
       categoriesLoading: false,
-      error: null,
+      categoriesError: null,
     }),
   ),
   on(
@@ -207,7 +207,7 @@ export const listingsReducer = createReducer(
     (state, { error }): ListingsState => ({
       ...state,
       categoriesLoading: false,
-      error,
+      categoriesError: error,
     }),
   ),
   on(

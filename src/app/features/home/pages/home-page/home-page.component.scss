@@ -426,13 +426,6 @@ app-ui-dorent-symbol {
   scroll-snap-align: start;
 }
 
-/* 268px matches the design's tile box, which the 268:190 media aspect ratio
-   is derived from. */
-.home__carousel--categories .home__carousel-item {
-  width: 268px;
-  max-width: 100%;
-}
-
 .home__carousel--products .home__carousel-item--product {
   width: 325px;
   max-width: 100%;
@@ -446,7 +439,6 @@ app-ui-dorent-symbol {
 }
 
 @media (max-width: 600px) {
-  .home__carousel--categories .home__carousel-item,
   .home__carousel--products .home__carousel-item--product {
     width: min(280px, 80vw);
   }
@@ -522,6 +514,331 @@ app-ui-dorent-symbol {
   background: var(--ui-color-primary-strong-hover);
   border-color: var(--ui-color-primary-strong-hover);
   outline: none;
+}
+
+/* ==============================
+   Categories (Option A: 2-row scroller < 1024, grid >= 1024)
+   ==============================
+   --cats-gutter is the page gutter the section sits in (hero padding below
+   1024, container padding from 1024), so the tiles line up with the heading's
+   left edge and the scroller can bleed to the viewport edge. */
+.home {
+  --cats-gutter: var(--ui-space-20);
+}
+
+@media (max-width: 560px) {
+  .home {
+    --cats-gutter: var(--ui-space-16);
+  }
+}
+
+@media (min-width: 640px) {
+  .home {
+    --cats-gutter: 40px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .home {
+    --cats-gutter: 70px;
+  }
+}
+
+/* Inside the stacked hero the section needs breathing room around it. */
+.home__hero-row > .home__categories {
+  margin-block: var(--ui-space-8);
+}
+
+.cats__track {
+  --cats-cols: 2;
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(2, auto);
+  /* (viewport - gutter - n gaps - 44px peek) / n; the track is as wide as the
+     viewport and its content box is viewport - 2 gutters, hence "+ gutter". */
+  grid-auto-columns: calc(
+    (100% + var(--cats-gutter) - var(--cats-cols) * 8px - 44px) / var(--cats-cols)
+  );
+  gap: 8px;
+  margin-inline: calc(-1 * var(--cats-gutter));
+  padding: 4px var(--cats-gutter);
+  scroll-padding-inline: var(--cats-gutter);
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.cats__track::-webkit-scrollbar {
+  display: none;
+}
+
+.cats__track > * {
+  scroll-snap-align: start;
+}
+
+@media (min-width: 640px) {
+  .cats__track {
+    --cats-cols: 3;
+  }
+}
+
+@media (min-width: 768px) {
+  .cats__track {
+    --cats-cols: 4;
+  }
+}
+
+/* >= 1024: plain grid, no scrolling, rows wrap with no cap. */
+@media (min-width: 1024px) {
+  .cats__track {
+    grid-auto-flow: row;
+    grid-template-rows: none;
+    grid-auto-columns: auto;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--ui-space-12);
+    margin-inline: 0;
+    padding: 4px 0;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+}
+
+@media (min-width: 1508px) {
+  .cats__track--many {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+/* Arrows: only where a pointer can hover AND the section is a scroller. */
+.cats__arrows {
+  display: none;
+  gap: var(--ui-space-8);
+}
+
+@media (max-width: 1023.98px) and (hover: hover) and (pointer: fine) {
+  .cats__arrows {
+    display: flex;
+  }
+}
+
+.cats__arrow {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--ui-color-border-input);
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-primary);
+  box-shadow: var(--ui-shadow-card);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+@media (hover: hover) {
+  .cats__arrow:hover:not([aria-disabled='true']) {
+    background: var(--ui-color-surface-muted);
+  }
+}
+
+.cats__arrow:focus-visible {
+  outline: 2px solid var(--ui-color-primary-strong);
+  outline-offset: 2px;
+}
+
+.cats__arrow[aria-disabled='true'] {
+  background: var(--ui-color-surface-muted);
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--ui-color-text-secondary);
+  cursor: default;
+}
+
+/* Skeleton tiles: same size/layout as the compact (default) and standard (>= 1280) tile. */
+.cats__skel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--ui-space-8);
+  min-height: 84px;
+  padding: var(--ui-space-12);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-color-surface);
+}
+
+.cats__skel-bar,
+.cats__skel-block {
+  display: block;
+  background: linear-gradient(90deg, #edeae3 25%, #f6f4ef 50%, #edeae3 75%);
+  background-size: 200% 100%;
+  animation: cats-shimmer 1.4s ease-in-out infinite;
+}
+
+.cats__skel-bar {
+  order: 2;
+  height: 12px;
+  width: 104px;
+  max-width: 100%;
+  border-radius: 6px;
+}
+
+.cats__skel:nth-child(3n + 1) .cats__skel-bar {
+  width: 96px;
+}
+
+.cats__skel:nth-child(3n) .cats__skel-bar {
+  width: 116px;
+}
+
+.cats__skel-block {
+  order: 1;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+}
+
+@media (min-width: 1280px) {
+  .cats__skel {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-12);
+    min-height: 72px;
+    padding: var(--ui-space-12) var(--ui-space-12) var(--ui-space-12) var(--ui-space-16);
+  }
+
+  .cats__skel-bar {
+    order: 0;
+    height: 14px;
+    width: 58%;
+    border-radius: 7px;
+  }
+
+  .cats__skel:nth-child(3n + 1) .cats__skel-bar {
+    width: 44%;
+  }
+
+  .cats__skel:nth-child(3n) .cats__skel-bar {
+    width: 72%;
+  }
+
+  .cats__skel-block {
+    order: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--ui-radius-12);
+  }
+}
+
+@keyframes cats-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cats__skel-bar,
+  .cats__skel-block {
+    animation: none;
+  }
+
+  .cats__arrow {
+    transition: none;
+  }
+}
+
+/* Error / empty cards */
+.cats__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-12);
+  padding: 20px;
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-card);
+  background: var(--ui-color-surface);
+}
+
+.cats__card--empty {
+  align-items: center;
+  text-align: center;
+  padding: 28px 20px;
+  gap: var(--ui-space-8);
+}
+
+.cats__card-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.cats__card-icon--warn {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--ui-radius-12);
+  background: #ffeedc; /* design: warm warning tint; no token */
+  color: var(--ui-color-primary-strong);
+  font-size: 1.25rem;
+}
+
+.cats__card-icon--neutral {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-secondary);
+}
+
+.cats__card-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ui-color-text-primary);
+}
+
+.cats__card-desc {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ui-color-text-secondary);
+}
+
+.cats__card-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-4);
+  flex: 1;
+  min-width: 0;
+}
+
+.cats__retry {
+  width: 100%;
+  min-height: 44px;
+}
+
+.cats__retry:focus-visible {
+  outline: 2px solid var(--ui-color-primary-strong);
+  outline-offset: 2px;
+}
+
+@media (min-width: 640px) {
+  .cats__card--error {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--ui-space-16);
+    padding: 24px 28px;
+  }
+
+  .cats__retry {
+    width: auto;
+    flex-shrink: 0;
+  }
 }
 
 /* ==============================
@@ -924,15 +1241,6 @@ app-ui-dorent-symbol {
   }
 
   /* "See all" must always be fully visible — already flex-shrink: 0 */
-
-  /* Categories: keep horizontal scroll with compact 68px icon tiles */
-  .home__carousel--categories {
-    /* Keep overflow-x: auto from base — do not override */
-  }
-
-  .home__carousel--categories .home__carousel-item {
-    width: 68px;
-  }
 
   /* Products / sections: 2-col grid.
      KEY: overflow must be hidden (not visible) so grid content that exceeds

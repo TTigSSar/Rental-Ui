@@ -52,6 +52,91 @@
       </form>
     </div>
 
+    <ng-template #categoriesTpl>
+      <section
+        class="home__section home__categories"
+        aria-labelledby="home-categories-heading"
+        [attr.aria-busy]="vm.showCategoriesSkeleton ? 'true' : null"
+      >
+        <app-ui-section-header
+          [title]="'home.categoriesLabel' | translate"
+          headingId="home-categories-heading"
+        >
+          @if (vm.categories.length > 0) {
+            <div actions class="cats__arrows">
+              <button
+                type="button"
+                class="cats__arrow"
+                [attr.aria-label]="'home.categories.prevLabel' | translate"
+                [attr.aria-disabled]="canScrollPrev() ? null : 'true'"
+                (click)="scrollCategories(-1)"
+              >
+                <i class="pi pi-chevron-left" aria-hidden="true"></i>
+              </button>
+              <button
+                type="button"
+                class="cats__arrow"
+                [attr.aria-label]="'home.categories.nextLabel' | translate"
+                [attr.aria-disabled]="canScrollNext() ? null : 'true'"
+                (click)="scrollCategories(1)"
+              >
+                <i class="pi pi-chevron-right" aria-hidden="true"></i>
+              </button>
+            </div>
+          }
+        </app-ui-section-header>
+
+        @if (vm.showCategoriesSkeleton) {
+          <div class="cats__track" aria-hidden="true">
+            @for (i of categorySkeletonItems; track i) {
+              <div class="cats__skel">
+                <span class="cats__skel-bar"></span>
+                <span class="cats__skel-block"></span>
+              </div>
+            }
+          </div>
+        } @else if (vm.showCategoriesError) {
+          <div class="cats__card cats__card--error" role="alert">
+            <span class="cats__card-icon cats__card-icon--warn" aria-hidden="true">
+              <i class="pi pi-exclamation-triangle"></i>
+            </span>
+            <div class="cats__card-text">
+              <p class="cats__card-title">{{ 'home.categories.errorTitle' | translate }}</p>
+              <p class="cats__card-desc">{{ 'home.categories.errorText' | translate }}</p>
+            </div>
+            <button
+              #categoriesRetry
+              type="button"
+              class="home__error-retry cats__retry"
+              (click)="retryCategories()"
+            >
+              {{ 'listings.common.retry' | translate }}
+            </button>
+          </div>
+        } @else if (vm.showCategoriesEmpty) {
+          <div class="cats__card cats__card--empty">
+            <span class="cats__card-icon cats__card-icon--neutral" aria-hidden="true">
+              <app-icon name="grid" [size]="22" />
+            </span>
+            <p class="cats__card-title">{{ 'home.categories.emptyTitle' | translate }}</p>
+            <p class="cats__card-desc">{{ 'home.categories.empty' | translate }}</p>
+          </div>
+        } @else {
+          <div
+            #categoryTrack
+            class="cats__track"
+            [class.cats__track--many]="vm.categories.length > 10"
+            (scroll)="updateCategoryArrows()"
+            (focusin)="onCategoryFocus($event)"
+          >
+            @for (category of vm.categories; track category.slug) {
+              <app-home-category-tile [category]="category" (select)="onCategorySelect($event)" />
+            }
+          </div>
+        }
+      </section>
+    </ng-template>
+
     <!-- Hero -->
     <section class="home__hero">
       <!-- Desktop: two columns, `.home__hero-content` (title/subtitle/search,
@@ -91,6 +176,15 @@
           </form>
         </div>
 
+        <!-- Below 1024px the hero stacks (search, then map). Categories sit
+             between the two there (approved mobile order: hero search ->
+             categories -> map); at >=1024 they render below the hero instead
+             (see `stackedHero`). Same template, one placement at a time, so
+             DOM order always equals visual order. -->
+        @if (stackedHero()) {
+          <ng-container [ngTemplateOutlet]="categoriesTpl" />
+        }
+
         <div class="home__hero-map">
           <app-home-hero-map
             [center]="vm.heroMap.center"
@@ -110,51 +204,9 @@
     </section>
 
     <div class="home__container">
-      <!-- Categories section -->
-      <section class="home__section" aria-labelledby="home-categories-heading">
-        <app-ui-section-header
-          [title]="'home.categoriesLabel' | translate"
-          headingId="home-categories-heading"
-        >
-        </app-ui-section-header>
-
-        @if (vm.showCategoriesSkeleton) {
-          <app-ui-loading-skeleton class="home__skeleton" [items]="4" />
-        } @else if (vm.showCategoriesEmpty) {
-          <app-ui-empty-state
-            [title]="'home.categories.emptyTitle' | translate"
-            [description]="'home.categories.empty' | translate"
-          />
-        } @else {
-          <div class="home__carousel-wrapper">
-            <button
-              type="button"
-              class="home__carousel-nav home__carousel-nav--prev"
-              [attr.aria-label]="'home.categories.prevLabel' | translate"
-              (click)="scrollCarousel(categoryCarousel, -1)"
-            >
-              <i class="pi pi-chevron-left" aria-hidden="true"></i>
-            </button>
-            <div #categoryCarousel class="home__carousel home__carousel--categories">
-              @for (category of vm.categories; track category.slug) {
-                <app-home-category-tile
-                  class="home__carousel-item"
-                  [category]="category"
-                  (select)="onCategorySelect($event)"
-                />
-              }
-            </div>
-            <button
-              type="button"
-              class="home__carousel-nav home__carousel-nav--next"
-              [attr.aria-label]="'home.categories.nextLabel' | translate"
-              (click)="scrollCarousel(categoryCarousel, 1)"
-            >
-              <i class="pi pi-chevron-right" aria-hidden="true"></i>
-            </button>
-          </div>
-        }
-      </section>
+      @if (!stackedHero()) {
+        <ng-container [ngTemplateOutlet]="categoriesTpl" />
+      }
 
       <!-- Toy sections from backend (Most Recent, Popular, etc.) -->
       @if (vm.sectionsLoading) {

@@ -148,6 +148,8 @@ export class PasswordSheetComponent {
 
   /** Enter moves to the next field and submits from Confirm. */
   protected onEnter(event: Event, index: number): void {
+    // Only the native input drives field navigation; Enter on the eye button must keep its click activation.
+    if (!(event.target instanceof HTMLInputElement)) return;
     event.preventDefault();
     if (index < FIELD_ORDER.length - 1) {
       this.inputs()[index + 1]?.focusInput();

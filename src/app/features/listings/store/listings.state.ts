@@ -111,6 +111,9 @@ export interface ListingsState {
   isDetailsLoading: boolean;
   categories: ListingCategoryOption[];
   categoriesLoading: boolean;
+  /** Own error slot for the categories request — kept apart from the shared
+   *  `error` so Home can show a categories error card with retry. */
+  categoriesError: string | null;
   createListingLoading: boolean;
   createListingError: string | null;
   /** The `ServiceError` code behind `createListingError`, when there was
@@ -155,6 +158,7 @@ export const initialListingsState: ListingsState = {
   isDetailsLoading: false,
   categories: [],
   categoriesLoading: false,
+  categoriesError: null,
   createListingLoading: false,
   createListingError: null,
   createListingErrorCode: null,

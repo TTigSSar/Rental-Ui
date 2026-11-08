@@ -28,43 +28,45 @@ function createFixture(category: HomeCategoryTileVm = CATEGORY) {
   return fixture;
 }
 
-describe('CategoryTileComponent overlay label', () => {
-  it('renders the category name over the media', () => {
+describe('CategoryTileComponent accessible name', () => {
+  it('is a single real button named by the category label', () => {
     const host: HTMLElement = createFixture().nativeElement;
-    const overlay = host.querySelector('.category-tile__overlay-label');
+    const buttons = host.querySelectorAll('button');
 
-    expect(overlay).not.toBeNull();
-    expect(overlay!.textContent?.trim()).toBe('Outdoor Toys');
-  });
-
-  it('exposes exactly one accessible name — the button aria-label', () => {
-    const host: HTMLElement = createFixture().nativeElement;
-
-    expect(host.querySelector('.category-tile')!.getAttribute('aria-label')).toBe(
+    expect(buttons.length).toBe(1);
+    expect(buttons[0].type).toBe('button');
+    // The name comes from the visible text, not a duplicated aria-label.
+    expect(buttons[0].hasAttribute('aria-label')).toBe(false);
+    expect(host.querySelector('.category-tile__label')!.textContent?.trim()).toBe(
       'Outdoor Toys',
     );
+  });
 
-    // Both visible labels are decorative: the overlay (desktop) and the chip
-    // (mobile). Without this, a screen reader would announce the name twice.
-    expect(
-      host.querySelector('.category-tile__overlay-label')!.getAttribute('aria-hidden'),
-    ).toBe('true');
-    expect(host.querySelector('.category-tile__chip')!.getAttribute('aria-hidden')).toBe(
+  it('hides the icon from assistive tech so the name is read once', () => {
+    const host: HTMLElement = createFixture().nativeElement;
+
+    expect(host.querySelector('.category-tile__icon-wrap')!.getAttribute('aria-hidden')).toBe(
       'true',
     );
-    // The icon itself must not add a second accessible name either — the
-    // shared icon component always renders its svg aria-hidden.
     expect(host.querySelector('app-icon svg')!.getAttribute('aria-hidden')).toBe('true');
   });
 
-  it('keeps the chip in the DOM so the mobile (≤560px) label survives', () => {
-    // Desktop hides the chip with `display: none` in CSS, not with @if — the
-    // media query alone decides which of the two labels is visible.
+  it('sets neither a title tooltip nor a per-label lang', () => {
     const host: HTMLElement = createFixture().nativeElement;
-    const chip = host.querySelector('.category-tile__chip');
+    const button = host.querySelector('button')!;
 
-    expect(chip).not.toBeNull();
-    expect(chip!.textContent?.trim()).toBe('Outdoor Toys');
+    expect(button.hasAttribute('title')).toBe(false);
+    expect(button.hasAttribute('lang')).toBe(false);
+  });
+
+  it('emits the category on click', () => {
+    const fixture = createFixture();
+    const selected: HomeCategoryTileVm[] = [];
+    fixture.componentInstance.select.subscribe((c) => selected.push(c));
+
+    fixture.nativeElement.querySelector('button').click();
+
+    expect(selected).toEqual([CATEGORY]);
   });
 });
 
@@ -80,39 +82,36 @@ describe('CategoryTileComponent icon + colour', () => {
     expect(host.querySelector('.category-tile__icon i')).toBeNull();
   });
 
-  function mediaBackground(category: HomeCategoryTileVm): string {
+  function tileBackground(category: HomeCategoryTileVm): string {
     const host: HTMLElement = createFixture(category).nativeElement;
-    return host.querySelector<HTMLElement>('.category-tile__media')!.style.background;
+    return host.querySelector<HTMLElement>('.category-tile')!.style.background;
   }
 
-  it('honours the admin-picked colour as the media background', () => {
-    // Two distinct valid colours must render two distinct backgrounds — the
-    // exact browser-normalized form of `style.background` isn't asserted,
-    // just that the bound colour drives it.
-    const blue = mediaBackground({ ...CATEGORY, colorHex: '#D9E8FF' });
-    const peach = mediaBackground({ ...CATEGORY, colorHex: '#FFE6CC' });
+  it('honours the admin-picked colour as the tile background', () => {
+    const blue = tileBackground({ ...CATEGORY, colorHex: '#D9E8FF' });
+    const peach = tileBackground({ ...CATEGORY, colorHex: '#FFE6CC' });
 
     expect(blue.length).toBeGreaterThan(0);
     expect(blue).not.toBe(peach);
   });
 
   it('falls back to the default palette colour for a malformed colorHex', () => {
-    const malformed = mediaBackground({ ...CATEGORY, colorHex: 'not-a-color' });
-    const fallback = mediaBackground({ ...CATEGORY, colorHex: DEFAULT_CATEGORY_COLOR });
+    const malformed = tileBackground({ ...CATEGORY, colorHex: 'not-a-color' });
+    const fallback = tileBackground({ ...CATEGORY, colorHex: DEFAULT_CATEGORY_COLOR });
 
     expect(malformed).toBe(fallback);
   });
 
   it('falls back to the default palette colour for an empty colorHex', () => {
-    const empty = mediaBackground({ ...CATEGORY, colorHex: '' });
-    const fallback = mediaBackground({ ...CATEGORY, colorHex: DEFAULT_CATEGORY_COLOR });
+    const empty = tileBackground({ ...CATEGORY, colorHex: '' });
+    const fallback = tileBackground({ ...CATEGORY, colorHex: DEFAULT_CATEGORY_COLOR });
 
     expect(empty).toBe(fallback);
   });
 
   it('accepts an 8-digit hex colour', () => {
-    const eightDigit = mediaBackground({ ...CATEGORY, colorHex: '#D9E8FFCC' });
-    const fallback = mediaBackground({ ...CATEGORY, colorHex: DEFAULT_CATEGORY_COLOR });
+    const eightDigit = tileBackground({ ...CATEGORY, colorHex: '#D9E8FFCC' });
+    const fallback = tileBackground({ ...CATEGORY, colorHex: DEFAULT_CATEGORY_COLOR });
 
     expect(eightDigit).not.toBe(fallback);
   });

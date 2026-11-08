@@ -175,9 +175,10 @@
       "placeholderCategory": "Toy"
     },
     "categories": {
-      "emptyTitle": "Toy categories coming soon",
-      "empty": "Toy categories will appear here.",
-      "errorTitle": "We couldn’t load categories",
+      "emptyTitle": "No categories yet",
+      "empty": "Categories will appear here once they are added.",
+      "errorTitle": "Couldn’t load categories",
+      "errorText": "Check your connection and try again.",
       "prevLabel": "Previous categories",
       "nextLabel": "Next categories"
     },

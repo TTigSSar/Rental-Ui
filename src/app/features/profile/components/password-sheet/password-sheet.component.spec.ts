@@ -280,6 +280,45 @@ describe('PasswordSheetComponent', () => {
       expect(fixture.componentInstance['form'].getRawValue().currentPassword).toBe('OldPass123');
     });
 
+    const enter = () => new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true });
+
+    it('Enter on a show/hide eye button is not hijacked: not cancelled, no focus move, no submit', () => {
+      const changePassword = vi.fn().mockReturnValue(of(authResponse));
+      const fixture = setup(changePassword);
+      fillValidForm(fixture.componentInstance);
+      const input = sheetEl().querySelector<HTMLInputElement>('.ps__current input')!;
+      const eye = sheetEl().querySelector<HTMLButtonElement>('.ps__current button[aria-pressed]')!;
+      eye.focus();
+
+      const event = enter();
+      eye.dispatchEvent(event);
+
+      expect(event.defaultPrevented).toBe(false);
+      expect(document.activeElement).toBe(eye);
+      expect(changePassword).not.toHaveBeenCalled();
+      // Native activation (Enter on a focused button) is a click, which toggles visibility.
+      eye.click();
+      fixture.detectChanges();
+      expect(input.type).toBe('text');
+      expect(eye.getAttribute('aria-pressed')).toBe('true');
+    });
+
+    it('Enter in a field still moves to the next field, and from Confirm submits', () => {
+      const changePassword = vi.fn().mockReturnValue(of(authResponse));
+      const fixture = setup(changePassword);
+      fillValidForm(fixture.componentInstance);
+      const inputs = sheetEl().querySelectorAll<HTMLInputElement>('.ps__form input');
+
+      const first = enter();
+      inputs[0].dispatchEvent(first);
+      expect(first.defaultPrevented).toBe(true);
+      expect(document.activeElement).toBe(inputs[1]);
+      expect(changePassword).not.toHaveBeenCalled();
+
+      inputs[2].dispatchEvent(enter());
+      expect(changePassword).toHaveBeenCalledTimes(1);
+    });
+
     it('shows every client error at once and focuses the first invalid field on Save', () => {
       const fixture = setup(vi.fn());
 
