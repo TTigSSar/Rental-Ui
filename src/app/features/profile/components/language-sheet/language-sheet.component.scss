@@ -1,0 +1,58 @@
+// Design: knowledge/specs/settings-sheets/design (pl-parts.jsx LangList, `.lopt`).
+:host {
+  display: contents;
+}
+
+.ls__card {
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-card);
+  overflow: hidden;
+}
+
+.ls__opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  box-sizing: border-box;
+  border: 0;
+  background: transparent;
+  color: var(--ui-color-text-primary);
+  font: inherit;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+
+  & + & {
+    border-top: 1px solid var(--ui-color-border);
+  }
+
+  &:hover {
+    background: var(--ui-color-background);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary-strong);
+    outline-offset: -4px;
+    border-radius: var(--ui-radius-md);
+  }
+
+  .pi-check {
+    font-size: 15px;
+    color: var(--ui-color-primary-strong);
+  }
+}
+
+.ls__name {
+  flex: 1;
+  min-width: 0;
+}
+
+.ls__opt--on .ls__name {
+  font-weight: 600;
+}

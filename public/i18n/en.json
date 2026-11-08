@@ -1385,10 +1385,6 @@
       }
     },
     "security": {
-      "page": {
-        "title": "Security",
-        "subtitle": "Change your password to keep your account secure."
-      },
       "form": {
         "currentPassword": "Current password",
         "currentPasswordPlaceholder": "Enter your current password",
@@ -1396,7 +1392,9 @@
         "newPasswordPlaceholder": "Enter your new password",
         "confirmPassword": "Confirm new password",
         "confirmPasswordPlaceholder": "Re-enter your new password",
-        "submit": "Change password"
+        "cancel": "Cancel",
+        "save": "Save",
+        "saving": "Saving"
       },
       "validation": {
         "currentPasswordRequired": "Current password is required.",
@@ -1416,10 +1414,8 @@
         "sessionExpired": "Your session has expired. Please log in again.",
         "serverError": "Something went wrong. Please try again."
       },
-      "success": {
-        "title": "Password updated",
-        "text": "Your password has been updated.",
-        "announcement": "Password updated. Your password has been updated."
+      "toast": {
+        "success": "Password updated"
       }
     },
     "homePoint": {

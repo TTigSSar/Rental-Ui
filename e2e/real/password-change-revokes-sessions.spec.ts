@@ -83,8 +83,9 @@ test.describe('Password change revokes other sessions (real stack, ADR-055)', ()
       .toBeGreaterThanOrEqual(1);
     const socketsBefore = hubSockets.length;
 
-    await page.goto('/profile/settings/password');
-    const form = page.locator('form.security-page__form');
+    await page.goto('/profile/settings');
+    await page.locator('[data-password-row]').click();
+    const form = page.locator('form.ps__form');
     await form.locator('input.uii-native').nth(0).fill(user.password);
     await form.locator('input.uii-native').nth(1).fill(NEW_PASSWORD);
     await form.locator('input.uii-native').nth(2).fill(NEW_PASSWORD);
@@ -93,7 +94,7 @@ test.describe('Password change revokes other sessions (real stack, ADR-055)', ()
         (res) => res.url().endsWith('/api/auth/me/password') && res.request().method() === 'PUT',
         { timeout: 20_000 },
       ),
-      form.locator('button[type="submit"]').click(),
+      page.locator('.ps__btn--save').click(),
     ]);
     expect(changeRes.status(), await changeRes.text().catch(() => '')).toBe(200);
 

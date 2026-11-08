@@ -64,11 +64,23 @@ describe('SettingsPageComponent', () => {
     expect(el.querySelectorAll('[role="list"]')[0].querySelectorAll(':scope > [role="listitem"]').length).toBe(3);
   });
 
-  it('links the Password row to /profile/settings/password', () => {
-    const { el } = setup();
+  it('renders the Password row as a button that opens the password sheet', () => {
+    const { fixture, el } = setup();
 
-    const link = el.querySelector<HTMLAnchorElement>('a[role="listitem"]');
-    expect(link?.getAttribute('href')).toBe('/profile/settings/password');
+    const row = el.querySelector<HTMLButtonElement>('[data-password-row]')!;
+    expect(row.tagName).toBe('BUTTON');
+    expect(row.getAttribute('aria-haspopup')).toBe('dialog');
+    expect(row.querySelector('app-icon[name="chevron-right"]')).not.toBeNull();
+    expect(el.ownerDocument.querySelector('app-settings-sheet')).toBeNull();
+
+    row.click();
+    fixture.detectChanges();
+    expect(el.ownerDocument.querySelector('app-settings-sheet [role="dialog"]')).not.toBeNull();
+
+    // The sheet is portalled to document.body, so query the document.
+    el.ownerDocument.querySelector<HTMLElement>('app-settings-sheet .ns__close')!.click();
+    fixture.detectChanges();
+    expect(el.ownerDocument.querySelector('app-settings-sheet')).toBeNull();
   });
 
   it('shows the current language name on the Language row', () => {
@@ -77,19 +89,22 @@ describe('SettingsPageComponent', () => {
     expect(el.querySelector('.settings-page__value')?.textContent?.trim()).toBe('English');
   });
 
-  it('expands the language list and switches language through LanguageService', () => {
+  it('opens the language sheet, applies the tapped language through LanguageService and closes', () => {
     const { fixture, el, use } = setup();
+    const doc = el.ownerDocument;
 
-    el.querySelector<HTMLButtonElement>('[data-lang-section] button')!.click();
+    const row = el.querySelector<HTMLButtonElement>('[data-language-row]')!;
+    expect(row.getAttribute('aria-haspopup')).toBe('dialog');
+    row.click();
     fixture.detectChanges();
-    const options = el.querySelectorAll<HTMLButtonElement>('.settings-page__lang-option');
+    const options = doc.querySelectorAll<HTMLButtonElement>('app-settings-sheet [role="option"]');
     expect(options.length).toBe(3);
 
     options[1].click();
     fixture.detectChanges();
 
     expect(use).toHaveBeenCalledWith('ru');
-    expect(el.querySelector('.settings-page__lang-option')).toBeNull();
+    expect(doc.querySelector('app-settings-sheet')).toBeNull();
   });
 
   it('renders Notifications as an active row with a chevron that opens the notifications sheet', () => {
@@ -100,23 +115,22 @@ describe('SettingsPageComponent', () => {
     expect(row.getAttribute('aria-haspopup')).toBe('dialog');
     expect(row.querySelector('app-icon[name="chevron-right"]')).not.toBeNull();
     expect(row.querySelector('.settings-page__badge')).toBeNull();
-    expect(el.querySelector('app-notifications-sheet')).toBeNull();
+    expect(el.ownerDocument.querySelector('app-settings-sheet')).toBeNull();
 
     row.click();
     fixture.detectChanges();
-    expect(el.ownerDocument.querySelector('app-notifications-sheet [role="dialog"]')).not.toBeNull();
+    expect(el.ownerDocument.querySelector('app-settings-sheet [role="dialog"]')).not.toBeNull();
 
-    // The sheet is portalled to document.body, so query the document.
-    el.ownerDocument.querySelector<HTMLElement>('app-notifications-sheet .ns__close')!.click();
+    el.ownerDocument.querySelector<HTMLElement>('app-settings-sheet .ns__close')!.click();
     fixture.detectChanges();
-    expect(el.ownerDocument.querySelector('app-notifications-sheet')).toBeNull();
+    expect(el.ownerDocument.querySelector('app-settings-sheet')).toBeNull();
   });
 
   it('renders the Password row inactive when the account is managed by Google', () => {
     const { el } = setup(user({ hasPassword: false }));
 
     expect(el.querySelectorAll('[aria-disabled="true"]').length).toBe(1);
-    expect(el.querySelector('a[role="listitem"]')).toBeNull();
+    expect(el.querySelector('[data-password-row]')).toBeNull();
   });
 });
 
@@ -151,14 +165,19 @@ describe('SettingsPageComponent — Delete account (AD-4)', () => {
 describe('profileRoutes', () => {
   const children = profileRoutes[0].children ?? [];
 
-  it('redirects /profile/security to /profile/settings/password', () => {
+  it('redirects /profile/security to /profile/settings', () => {
     const route = children.find((r) => r.path === 'security');
-    expect(route?.redirectTo).toBe('settings/password');
+    expect(route?.redirectTo).toBe('settings');
     expect(route?.pathMatch).toBe('full');
   });
 
-  it('registers settings and settings/password as children of the profile shell', () => {
-    expect(children.some((r) => r.path === 'settings')).toBe(true);
-    expect(children.some((r) => r.path === 'settings/password')).toBe(true);
+  it('redirects /profile/settings/password to /profile/settings (the form is a sheet now)', () => {
+    const route = children.find((r) => r.path === 'settings/password');
+    expect(route?.redirectTo).toBe('settings');
+    expect(route?.pathMatch).toBe('full');
+  });
+
+  it('registers settings as a child of the profile shell', () => {
+    expect(children.some((r) => r.path === 'settings' && r.loadComponent !== undefined)).toBe(true);
   });
 });

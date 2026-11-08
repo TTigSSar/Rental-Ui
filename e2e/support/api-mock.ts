@@ -155,7 +155,7 @@ export interface ApiSeed {
   myListings?: unknown[];
   /** PUT /api/auth/me/password outcome (ADR-021) — defaults to a successful 200 `AuthResponse` (ADR-055).
    *  Set `status`/`body` (e.g. 400 with `body.errorCode: 'auth.invalid_current_password'`, or
-   *  429) to exercise `security-page.component.ts`'s field-level-vs-banner error mapping. Same
+   *  429) to exercise `password-sheet.component.ts`'s field-level-vs-banner error mapping. Same
    *  precedent as `submitReport` above: a mutation whose failure statuses a journey needs to
    *  force. */
   changePassword?: { status?: number; body?: unknown };
@@ -230,7 +230,7 @@ export interface ApiSeed {
    * would treat it as a loaded, non-null summary and crash rendering `summary.average.toFixed(1)`
    * against `undefined` — the profile sidebar renders unconditionally (not gated behind
    * `isChildRouteActive()`), so this broke the very first journey to visit /profile at all
-   * (`profile-security.spec.ts`, reached via the profile settings row).
+   * (`profile-security.spec.ts`, reached via the Settings Password row).
    */
   ownerReviewSummary?: unknown;
   /** POST /api/chat/conversations/from-booking/:bookingId outcome — "Message {owner}" CTA. */

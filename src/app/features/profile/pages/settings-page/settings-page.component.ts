@@ -1,18 +1,11 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  HostListener,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { LanguageOption, LanguageService } from '../../../../shared/services/language.service';
+import { LanguageSheetComponent } from '../../components/language-sheet/language-sheet.component';
 import { NotificationsSheetComponent } from '../../components/notifications-sheet/notifications-sheet.component';
+import { PasswordSheetComponent } from '../../components/password-sheet/password-sheet.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import { selectAuthUser } from '../../../auth/store/auth.selectors';
@@ -30,9 +23,10 @@ import { DeleteAccountDialogComponent } from '../../components/delete-account-di
   imports: [
     DeleteAccountDialogComponent,
     IconComponent,
+    LanguageSheetComponent,
     NotificationsSheetComponent,
     PageHeaderComponent,
-    RouterLink,
+    PasswordSheetComponent,
     TranslatePipe,
   ],
   templateUrl: './settings-page.component.html',
@@ -41,7 +35,6 @@ import { DeleteAccountDialogComponent } from '../../components/delete-account-di
 })
 export class SettingsPageComponent {
   private readonly languageService = inject(LanguageService);
-  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly store = inject(Store);
 
   /** `hasPassword` lives on the auth store's `CurrentUser`, not on the profile slice. */
@@ -73,15 +66,29 @@ export class SettingsPageComponent {
 
   protected readonly availableLanguages: readonly LanguageOption[] = this.languageService.languages;
   protected readonly currentLang = this.languageService.current;
-  protected readonly languageMenuOpen = signal(false);
+  protected readonly languageOpen = signal(false);
 
-  protected toggleLanguageMenu(): void {
-    this.languageMenuOpen.update((v) => !v);
+  protected openLanguage(): void {
+    this.languageOpen.set(true);
+  }
+
+  protected closeLanguage(): void {
+    this.languageOpen.set(false);
   }
 
   protected selectLanguage(option: LanguageOption): void {
     this.languageService.use(option.code);
-    this.languageMenuOpen.set(false);
+    this.languageOpen.set(false);
+  }
+
+  protected readonly passwordOpen = signal(false);
+
+  protected openPassword(): void {
+    this.passwordOpen.set(true);
+  }
+
+  protected closePassword(): void {
+    this.passwordOpen.set(false);
   }
 
   protected readonly notificationsOpen = signal(false);
@@ -92,14 +99,5 @@ export class SettingsPageComponent {
 
   protected closeNotifications(): void {
     this.notificationsOpen.set(false);
-  }
-
-  @HostListener('document:click', ['$event'])
-  protected onDocumentClick(event: MouseEvent): void {
-    const target = event.target as Node | null;
-    const section = this.host.nativeElement.querySelector('[data-lang-section]');
-    if (target !== null && !section?.contains(target)) {
-      this.languageMenuOpen.set(false);
-    }
   }
 }

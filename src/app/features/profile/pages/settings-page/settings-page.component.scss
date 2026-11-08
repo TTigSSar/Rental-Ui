@@ -119,10 +119,6 @@
   transition: transform 120ms ease;
 }
 
-.settings-page__chevron--open {
-  transform: rotate(90deg);
-}
-
 .settings-page__badge {
   display: inline-flex;
   align-items: center;
@@ -138,46 +134,6 @@
   line-height: 18px;
   font-weight: 600;
   white-space: nowrap;
-}
-
-.settings-page__lang-list {
-  background: var(--ui-color-surface-muted);
-  border-top: 1px solid var(--ui-color-border);
-}
-
-.settings-page__lang-option {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  min-height: 44px;
-  padding: 10px 16px 10px 62px;
-  box-sizing: border-box;
-  border: none;
-  background: transparent;
-  color: var(--ui-color-text-primary);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-
-  &:hover {
-    background: var(--ui-color-border-subtle);
-  }
-
-  &:focus-visible {
-    outline: none;
-    box-shadow: inset var(--ui-focus-ring);
-  }
-
-  .pi-check {
-    color: var(--ui-color-primary-strong);
-  }
-}
-
-.settings-page__lang-option--active {
-  color: var(--ui-color-primary-strong);
-  font-weight: 700;
 }
 
 /* The Delete account card (AD-4); the divider only exists when the card does. */

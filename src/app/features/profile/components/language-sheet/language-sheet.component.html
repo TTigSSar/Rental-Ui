@@ -1,0 +1,28 @@
+<app-settings-sheet
+  [title]="'profile.settings.language' | translate"
+  initialFocus="[role='option'][aria-selected='true']"
+  (closed)="closed.emit()"
+>
+  <div class="ls__card">
+    <div role="listbox" [attr.aria-label]="'profile.settings.language' | translate">
+      @for (option of languages(); track option.code) {
+        <button
+          type="button"
+          role="option"
+          class="ls__opt"
+          [class.ls__opt--on]="option.code === currentCode()"
+          [attr.lang]="option.code"
+          [attr.aria-selected]="option.code === currentCode()"
+          [attr.tabindex]="option.code === currentCode() ? 0 : -1"
+          (click)="selected.emit(option)"
+          (keydown)="onOptionKeydown($event)"
+        >
+          <span class="ls__name">{{ option.native }}</span>
+          @if (option.code === currentCode()) {
+            <i class="pi pi-check" aria-hidden="true"></i>
+          }
+        </button>
+      }
+    </div>
+  </div>
+</app-settings-sheet>
