@@ -597,6 +597,7 @@ app-ui-dorent-symbol {
     grid-template-rows: none;
     grid-auto-columns: auto;
     grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: var(--ui-space-12);
     margin-inline: 0;
     padding: 4px 0;
     overflow: visible;
