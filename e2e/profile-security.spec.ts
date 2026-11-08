@@ -94,4 +94,45 @@ test.describe('Change password', () => {
       'Too many attempts, try again in a minute.',
     );
   });
+
+  test('Enter on the show/hide eye toggles visibility without submitting or moving focus', async ({
+    page,
+  }) => {
+    await mockApi(page, { me: e2eUser() });
+    const putRequests: string[] = [];
+    page.on('request', (req) => {
+      if (req.method() === 'PUT' && req.url().includes('/api/auth/me/password')) {
+        putRequests.push(req.url());
+      }
+    });
+
+    await page.goto('/profile/settings');
+    await page.locator('[data-password-row]').click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+
+    const form = page.locator('form.ps__form');
+    const inputs = form.locator('input.uii-native');
+    await inputs.nth(0).fill('OldPassword1');
+    await inputs.nth(1).fill('NewPassword1');
+    await inputs.nth(2).fill('NewPassword1');
+
+    // Toggle order matches input order: nth(2) is the eye of the Confirm field.
+    const confirmEye = form.locator('.uii-pwd-toggle').nth(2);
+    await confirmEye.focus();
+    await expect(confirmEye).toBeFocused();
+
+    await page.keyboard.press('Enter');
+    await expect(inputs.nth(2)).toHaveAttribute('type', 'text');
+    await expect(confirmEye).toHaveAttribute('aria-pressed', 'true');
+    await expect(confirmEye).toBeFocused();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    expect(putRequests).toHaveLength(0);
+
+    await page.keyboard.press('Enter');
+    await expect(inputs.nth(2)).toHaveAttribute('type', 'password');
+    await expect(confirmEye).toHaveAttribute('aria-pressed', 'false');
+    await expect(confirmEye).toBeFocused();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    expect(putRequests).toHaveLength(0);
+  });
 });
