@@ -230,6 +230,29 @@ describe('HomePageComponent categories states', () => {
       expect(arrows(fixture).next.getAttribute('aria-disabled')).toBe('true');
     });
 
+    it('scrolls a partly visible tile fully into view on keyboard focus', () => {
+      const fixture = createFixture([CATEGORY, { ...CATEGORY, id: 'cat-2', slug: 'b' }]);
+      const track = host(fixture).querySelector<HTMLElement>('.cats__track')!;
+      const tile = track.children[1] as HTMLElement;
+      const scrollBy = vi.fn();
+      track.scrollBy = scrollBy as unknown as HTMLElement['scrollBy'];
+      track.style.paddingLeft = '16px';
+      Object.defineProperty(track, 'scrollWidth', { configurable: true, value: 900 });
+      Object.defineProperty(track, 'clientWidth', { configurable: true, value: 390 });
+      track.getBoundingClientRect = () => ({ left: 0, right: 390 }) as DOMRect;
+
+      // Peek tile clipped at the right edge: 346..503 -> needs 503 - (390 - 16) = 129.
+      tile.getBoundingClientRect = () => ({ left: 346, right: 503 }) as DOMRect;
+      tile.querySelector('button')!.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+      expect(scrollBy).toHaveBeenCalledWith(expect.objectContaining({ left: 129 }));
+
+      // Fully visible tile: no scroll.
+      scrollBy.mockClear();
+      tile.getBoundingClientRect = () => ({ left: 100, right: 250 }) as DOMRect;
+      tile.querySelector('button')!.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+      expect(scrollBy).not.toHaveBeenCalled();
+    });
+
     it('does not scroll when the pressed arrow is disabled', () => {
       const fixture = createFixture([CATEGORY]);
       const track = host(fixture).querySelector<HTMLElement>('.cats__track')!;

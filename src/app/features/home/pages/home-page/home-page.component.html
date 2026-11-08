@@ -127,6 +127,7 @@
             class="cats__track"
             [class.cats__track--many]="vm.categories.length > 10"
             (scroll)="updateCategoryArrows()"
+            (focusin)="onCategoryFocus($event)"
           >
             @for (category of vm.categories; track category.slug) {
               <app-home-category-tile [category]="category" (select)="onCategorySelect($event)" />

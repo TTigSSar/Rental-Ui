@@ -589,6 +589,38 @@ export class HomePageComponent implements OnInit {
   }
 
   /**
+   * Keyboard focus on a tile that is only partly visible: browsers do not
+   * scroll a partially visible element, so the peek column would stay clipped.
+   * Scrolls the track just enough to bring the tile fully inside the visible
+   * area, keeping the page gutter clear on both sides.
+   */
+  protected onCategoryFocus(event: FocusEvent): void {
+    const track = this.categoryTrack()?.nativeElement;
+    const target = event.target as HTMLElement | null;
+    const tile = target?.closest('app-home-category-tile') as HTMLElement | null;
+    if (!track || !tile || tile.parentElement !== track) {
+      return;
+    }
+    const gutter = parseFloat(getComputedStyle(track).paddingLeft) || 0;
+    const trackRect = track.getBoundingClientRect();
+    const tileRect = tile.getBoundingClientRect();
+    const minLeft = trackRect.left + gutter;
+    const maxRight = trackRect.right - gutter;
+    let delta = 0;
+    if (tileRect.left < minLeft) {
+      delta = tileRect.left - minLeft;
+    } else if (tileRect.right > maxRight) {
+      delta = tileRect.right - maxRight;
+    }
+    if (Math.abs(delta) < 1 || track.scrollWidth <= track.clientWidth) {
+      return;
+    }
+    const reduced =
+      typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    track.scrollBy({ left: delta, behavior: reduced ? 'auto' : 'smooth' });
+  }
+
+  /**
    * Scrolls the categories track by the number of fully visible columns,
    * landing on a column start. Does nothing while the arrow is disabled.
    * Smooth only when the user has not asked for reduced motion.
