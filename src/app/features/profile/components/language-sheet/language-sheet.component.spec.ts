@@ -29,15 +29,15 @@ describe('LanguageSheetComponent', () => {
     const { el, options } = setup('hy');
 
     expect(el.querySelector('[role="listbox"]')).not.toBeNull();
-    expect(options().map((o) => o.textContent?.trim())).toEqual(['English', 'Հայերեն', 'Русский']);
-    expect(options().map((o) => o.getAttribute('lang'))).toEqual(['en', 'hy', 'ru']);
+    expect(options().map((o) => o.textContent?.trim())).toEqual(['Հայերեն', 'Русский', 'English']);
+    expect(options().map((o) => o.getAttribute('lang'))).toEqual(['hy', 'ru', 'en']);
     expect(options().map((o) => o.getAttribute('aria-selected'))).toEqual([
-      'false',
       'true',
       'false',
+      'false',
     ]);
-    expect(options()[1].querySelector('.pi-check')).not.toBeNull();
-    expect(options()[0].querySelector('.pi-check')).toBeNull();
+    expect(options()[0].querySelector('.pi-check')).not.toBeNull();
+    expect(options()[1].querySelector('.pi-check')).toBeNull();
     expect(el.querySelector('.ns__foot')).toBeNull();
   });
 
@@ -45,7 +45,7 @@ describe('LanguageSheetComponent', () => {
     const { fixture, options } = setup('ru');
     await fixture.whenStable();
 
-    expect(document.activeElement).toBe(options()[2]);
+    expect(document.activeElement).toBe(options()[1]);
   });
 
   it('emits the tapped option', () => {
@@ -55,7 +55,7 @@ describe('LanguageSheetComponent', () => {
 
     options()[2].click();
 
-    expect(selected).toHaveBeenCalledWith(LANGUAGES[2]);
+    expect(selected).toHaveBeenCalledWith(LANGUAGES[0]);
   });
 
   it('moves focus with the arrow keys', () => {

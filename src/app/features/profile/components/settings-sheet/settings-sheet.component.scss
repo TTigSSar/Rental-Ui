@@ -59,6 +59,31 @@
   background: var(--ui-color-surface);
 }
 
+// Drag zone: handle + header start the swipe-down gesture (ADR-061); the body keeps native scroll.
+.ns__handle-zone {
+  padding: 6px 0;
+  margin: -6px 0;
+  touch-action: none;
+  cursor: grab;
+}
+
+.ns__head {
+  touch-action: none;
+}
+
+.ns--dragging {
+  transition: none;
+  user-select: none;
+}
+
+.ns--snapping {
+  transition: transform 200ms ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
 .ns__handle {
   width: 36px;
   height: 4px;
@@ -129,7 +154,7 @@
     padding: 12px 24px 24px;
   }
 
-  .ns__handle {
+  .ns__handle-zone {
     display: none;
   }
 

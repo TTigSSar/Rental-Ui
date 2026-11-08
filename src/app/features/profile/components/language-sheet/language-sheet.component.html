@@ -5,7 +5,7 @@
 >
   <div class="ls__card">
     <div role="listbox" [attr.aria-label]="'profile.settings.language' | translate">
-      @for (option of languages(); track option.code) {
+      @for (option of ordered(); track option.code) {
         <button
           type="button"
           role="option"

@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import type { LanguageOption } from '../../../../shared/services/language.service';
 import { SettingsSheetComponent } from '../settings-sheet/settings-sheet.component';
+
+const SHEET_ORDER = ['hy', 'ru', 'en'];
 
 /**
  * Settings > Language sheet (ADR-021 amendment 2026-11-08): a listbox of the available languages
@@ -21,6 +23,15 @@ import { SettingsSheetComponent } from '../settings-sheet/settings-sheet.compone
 export class LanguageSheetComponent {
   readonly languages = input.required<readonly LanguageOption[]>();
   readonly currentCode = input.required<string>();
+
+  /** Design order (Հայերեն, Русский, English); unknown codes follow in their given order. */
+  protected readonly ordered = computed(() => {
+    const rank = (code: string) => {
+      const i = SHEET_ORDER.indexOf(code);
+      return i === -1 ? SHEET_ORDER.length : i;
+    };
+    return [...this.languages()].sort((a, b) => rank(a.code) - rank(b.code));
+  });
 
   readonly selected = output<LanguageOption>();
   readonly closed = output<void>();

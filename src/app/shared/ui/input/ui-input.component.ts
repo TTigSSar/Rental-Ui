@@ -34,58 +34,58 @@ export class UiInputComponent implements ControlValueAccessor {
   @ViewChild('inputRef') readonly inputRef!: ElementRef<HTMLInputElement>;
 
   // ── Inputs ──────────────────────────────────────────────────────────
-  readonly value          = input<string>('');
-  readonly placeholder    = input<string>('');
-  readonly label          = input<string>('');
-  readonly ariaLabel      = input<string>('');
-  readonly disabled       = input<boolean>(false);
-  readonly readonly       = input<boolean>(false);
-  readonly required       = input<boolean>(false);
-  readonly errorMessage   = input<string | null>(null);
+  readonly value = input<string>('');
+  readonly placeholder = input<string>('');
+  readonly label = input<string>('');
+  readonly ariaLabel = input<string>('');
+  readonly disabled = input<boolean>(false);
+  readonly readonly = input<boolean>(false);
+  readonly required = input<boolean>(false);
+  readonly errorMessage = input<string | null>(null);
   readonly successMessage = input<string | null>(null);
-  readonly leftIcon       = input<string>('');
-  readonly rightIcon      = input<string>('');
-  readonly type           = input<'text' | 'email' | 'password' | 'number' | 'search' | 'tel'>('text');
-  readonly hint           = input<string>('');
-  readonly maxLength      = input<number | null>(null);
-  readonly autocomplete   = input<string>('off');
-  readonly size           = input<'sm' | 'md' | 'lg'>('md');
+  readonly leftIcon = input<string>('');
+  readonly rightIcon = input<string>('');
+  readonly type = input<'text' | 'email' | 'password' | 'number' | 'search' | 'tel'>('text');
+  readonly hint = input<string>('');
+  readonly maxLength = input<number | null>(null);
+  readonly autocomplete = input<string>('off');
+  readonly size = input<'sm' | 'md' | 'lg'>('md');
   /**
    * outlined  — default: white bg, visible border (forms, settings)
    * filled    — muted fill, no border (toolbars, dense lists)
    * ghost     — alias for filled (backward compat)
    * pill      — fully rounded, brand hero search
    */
-  readonly variant        = input<'outlined' | 'filled' | 'ghost' | 'pill'>('outlined');
+  readonly variant = input<'outlined' | 'filled' | 'ghost' | 'pill'>('outlined');
   /** Orange CTA button rendered inside pill variant */
-  readonly ctaLabel       = input<string>('');
+  readonly ctaLabel = input<string>('');
 
   // ── Outputs ─────────────────────────────────────────────────────────
   readonly valueChange = output<string>();
-  readonly focus       = output<FocusEvent>();
-  readonly blur        = output<FocusEvent>();
-  readonly clear       = output<void>();
-  readonly ctaClicked  = output<void>();
+  readonly focus = output<FocusEvent>();
+  readonly blur = output<FocusEvent>();
+  readonly clear = output<void>();
+  readonly ctaClicked = output<void>();
 
   // ── A11y IDs ────────────────────────────────────────────────────────
-  protected readonly inputId  = `uii-${++_idSeed}`;
+  protected readonly inputId = `uii-${++_idSeed}`;
   protected readonly helperId = `uii-help-${_idSeed}`;
 
   // ── Internal state ───────────────────────────────────────────────────
-  protected readonly internalValue   = signal('');
-  protected readonly isFocused       = signal(false);
+  protected readonly internalValue = signal('');
+  protected readonly isFocused = signal(false);
   protected readonly passwordVisible = signal(false);
-  private   readonly cvaDisabled     = signal(false);
+  private readonly cvaDisabled = signal(false);
 
   // True once the form infrastructure calls writeValue — means CVA owns the value
   private cvaActive = false;
 
   // ── Computed ─────────────────────────────────────────────────────────
   protected readonly isDisabledComp = computed(() => this.disabled() || this.cvaDisabled());
-  protected readonly hasError        = computed(() => !!this.errorMessage());
-  protected readonly hasSuccess      = computed(() => !!this.successMessage());
-  protected readonly isFilled        = computed(() => this.internalValue().length > 0);
-  protected readonly hasHelper       = computed(
+  protected readonly hasError = computed(() => !!this.errorMessage());
+  protected readonly hasSuccess = computed(() => !!this.successMessage());
+  protected readonly isFilled = computed(() => this.internalValue().length > 0);
+  protected readonly hasHelper = computed(
     () => this.hasError() || this.hasSuccess() || !!this.hint(),
   );
 
@@ -93,10 +93,7 @@ export class UiInputComponent implements ControlValueAccessor {
 
   protected readonly showClear = computed(
     () =>
-      this.isFilled() &&
-      !this.isDisabledComp() &&
-      !this.readonly() &&
-      !this.showPasswordToggle(),
+      this.isFilled() && !this.isDisabledComp() && !this.readonly() && !this.showPasswordToggle(),
   );
 
   /** True for filled/ghost variants — muted background, no border */
@@ -109,11 +106,16 @@ export class UiInputComponent implements ControlValueAccessor {
     const li = this.leftIcon();
     if (li) return li;
     switch (this.type()) {
-      case 'search':   return 'pi pi-search';
-      case 'password': return 'pi pi-lock';
-      case 'email':    return 'pi pi-envelope';
-      case 'tel':      return 'pi pi-phone';
-      default:         return '';
+      case 'search':
+        return 'pi pi-search';
+      case 'password':
+        return 'pi pi-lock';
+      case 'email':
+        return 'pi pi-envelope';
+      case 'tel':
+        return 'pi pi-phone';
+      default:
+        return '';
     }
   });
 

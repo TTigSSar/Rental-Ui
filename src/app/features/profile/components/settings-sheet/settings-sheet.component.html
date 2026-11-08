@@ -1,7 +1,31 @@
 <div class="ns__backdrop" (click)="closed.emit()" aria-hidden="true"></div>
-<div class="ns" [class.ns--pinned]="pinnedFooter()" role="dialog" aria-modal="true" aria-labelledby="ns-title">
-  <div class="ns__handle" aria-hidden="true"></div>
-  <div class="ns__head">
+<div
+  class="ns"
+  [class.ns--pinned]="pinnedFooter()"
+  [class.ns--dragging]="dragging()"
+  [class.ns--snapping]="snapping()"
+  [style.transform]="dragOffset() > 0 ? 'translateY(' + dragOffset() + 'px)' : null"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="ns-title"
+>
+  <div
+    class="ns__handle-zone"
+    aria-hidden="true"
+    (pointerdown)="onDragStart($event)"
+    (pointermove)="onDragMove($event)"
+    (pointerup)="onDragEnd($event)"
+    (pointercancel)="onDragCancel($event)"
+  >
+    <div class="ns__handle"></div>
+  </div>
+  <div
+    class="ns__head"
+    (pointerdown)="onDragStart($event)"
+    (pointermove)="onDragMove($event)"
+    (pointerup)="onDragEnd($event)"
+    (pointercancel)="onDragCancel($event)"
+  >
     <h2 id="ns-title" class="ns__title">{{ title() }}</h2>
     <button
       type="button"

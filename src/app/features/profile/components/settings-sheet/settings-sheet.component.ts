@@ -5,12 +5,21 @@ import {
   HostListener,
   OnDestroy,
   OnInit,
+  signal,
   afterNextRender,
   inject,
   input,
   output,
 } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
+
+/** Bottom-sheet breakpoint (matches the SCSS `min-width: 961px` dialog switch). */
+const DIALOG_MIN_WIDTH = 961;
+const CLOSE_DISTANCE_PX = 100;
+const CLOSE_FRACTION = 0.25;
+const FLICK_VELOCITY_PX_MS = 0.6;
+const FLICK_MIN_DISTANCE_PX = 30;
+const CLOSE_BUTTON_SELECTOR = '.ns__close';
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -44,6 +53,14 @@ export class SettingsSheetComponent implements OnInit, OnDestroy {
 
   readonly closed = output<void>();
 
+  protected readonly dragOffset = signal(0);
+  protected readonly dragging = signal(false);
+  protected readonly snapping = signal(false);
+
+  private dragPointerId: number | null = null;
+  private dragStartY = 0;
+  private dragStartTime = 0;
+
   constructor() {
     afterNextRender(() => {
       const root = this.host.nativeElement;
@@ -69,6 +86,55 @@ export class SettingsSheetComponent implements OnInit, OnDestroy {
   /** Parks focus on the stable close button (e.g. when the focused control disappears). */
   focusClose(): void {
     this.host.nativeElement.querySelector<HTMLElement>('.ns__close')?.focus();
+  }
+
+  /**
+   * Swipe-down-to-close (ADR-061), bottom-sheet layout only. Starts from the handle/header; the
+   * release goes through the same `closed` output as X/Esc/backdrop, so a parent that blocks
+   * closing (e.g. password save in flight) keeps the sheet — which then snaps back.
+   */
+  protected onDragStart(event: PointerEvent): void {
+    if (window.innerWidth >= DIALOG_MIN_WIDTH || this.dragPointerId !== null) return;
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    if ((event.target as HTMLElement).closest(CLOSE_BUTTON_SELECTOR)) return;
+    this.dragPointerId = event.pointerId;
+    this.dragStartY = event.clientY;
+    this.dragStartTime = event.timeStamp;
+    this.snapping.set(false);
+    this.dragging.set(true);
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+  }
+
+  protected onDragMove(event: PointerEvent): void {
+    if (event.pointerId !== this.dragPointerId) return;
+    this.dragOffset.set(Math.max(0, event.clientY - this.dragStartY));
+  }
+
+  protected onDragEnd(event: PointerEvent): void {
+    if (event.pointerId !== this.dragPointerId) return;
+    const offset = Math.max(0, event.clientY - this.dragStartY);
+    const elapsed = Math.max(1, event.timeStamp - this.dragStartTime);
+    const height = this.host.nativeElement.querySelector<HTMLElement>('.ns')?.offsetHeight ?? 0;
+    const pastThreshold =
+      offset > Math.min(CLOSE_DISTANCE_PX, height * CLOSE_FRACTION || CLOSE_DISTANCE_PX);
+    const flick = offset > FLICK_MIN_DISTANCE_PX && offset / elapsed > FLICK_VELOCITY_PX_MS;
+    this.finishDrag();
+    if (pastThreshold || flick) this.closed.emit();
+  }
+
+  protected onDragCancel(event: PointerEvent): void {
+    if (event.pointerId !== this.dragPointerId) return;
+    this.finishDrag();
+  }
+
+  /** Ends the gesture; if the sheet stays open (below threshold or close blocked) it snaps back. */
+  private finishDrag(): void {
+    this.dragPointerId = null;
+    this.dragging.set(false);
+    if (this.dragOffset() > 0) {
+      this.snapping.set(true);
+      this.dragOffset.set(0);
+    }
   }
 
   @HostListener('keydown', ['$event'])

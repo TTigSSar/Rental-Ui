@@ -77,7 +77,9 @@ describe('PasswordSheetComponent', () => {
     component['submit']();
 
     expect(changePassword).not.toHaveBeenCalled();
-    expect(component['newPasswordErrorKey']()).toBe('profile.security.validation.newPasswordTooLong');
+    expect(component['newPasswordErrorKey']()).toBe(
+      'profile.security.validation.newPasswordTooLong',
+    );
   });
 
   it('does not call the service when the two new-password fields do not match', () => {
@@ -232,6 +234,37 @@ describe('PasswordSheetComponent', () => {
       // A second submit while in flight is ignored.
       fixture.componentInstance['submit']();
       expect(pending).toHaveBeenCalledTimes(1);
+    });
+
+    it('while submitting: a swipe-down past the threshold does not close the sheet', () => {
+      const pending = vi.fn().mockReturnValue(new Observable(() => undefined));
+      const fixture = setup(pending);
+      const closed = vi.fn();
+      fixture.componentInstance.closed.subscribe(closed);
+      Object.defineProperty(window, 'innerWidth', { value: 390, configurable: true });
+      fillValidForm(fixture.componentInstance);
+      fixture.componentInstance['submit']();
+      fixture.detectChanges();
+
+      const zone = sheetEl().querySelector<HTMLElement>('.ns__handle-zone')!;
+      const ptr = (type: string, y: number, t: number) => {
+        const e = new Event(type, { bubbles: true });
+        Object.defineProperties(e, {
+          pointerId: { value: 1 },
+          pointerType: { value: 'touch' },
+          button: { value: 0 },
+          clientY: { value: y },
+          timeStamp: { value: t },
+        });
+        return e;
+      };
+      zone.dispatchEvent(ptr('pointerdown', 0, 0));
+      zone.dispatchEvent(ptr('pointermove', 300, 200));
+      zone.dispatchEvent(ptr('pointerup', 300, 400));
+      fixture.detectChanges();
+
+      expect(closed).not.toHaveBeenCalled();
+      expect(sheetEl().querySelector<HTMLElement>('.ns')!.style.transform).toBe('');
     });
 
     it('keeps typed values and shows the banner (role=alert) above the fields on a server error', () => {
