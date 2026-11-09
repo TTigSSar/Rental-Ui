@@ -43,6 +43,9 @@ function createCard(inputs: {
         },
         filters: { distance: { unitMeters: 'm', unitKilometers: 'km' } },
       },
+      reviews: {
+        summary: { noReviews: 'No reviews yet', ariaRating: 'Rated {{rating}}' },
+      },
     },
     true,
   );
@@ -134,5 +137,27 @@ describe('ListingCardComponent — distance badge', () => {
     const pill = badge(el);
     expect(pill!.classList.contains('listing-card__distance-badge--live')).toBe(true);
     expect(pill!.textContent).toContain('from you');
+  });
+});
+
+describe('ListingCardComponent — rating slot', () => {
+  it('shows the rating value and review count when a rating exists', () => {
+    const { el } = createCard({ listing: { rating: 4.5, reviewCount: 7 } });
+
+    const slot = el.querySelector('.listing-card__rating')!;
+    expect(slot.querySelector('.listing-card__rating-value')!.textContent).toContain('4.5');
+    expect(slot.querySelector('.listing-card__rating-count')!.textContent).toContain('(7)');
+    expect(slot.classList.contains('listing-card__rating--empty')).toBe(false);
+  });
+
+  it('shows the no-reviews text and no fabricated 5.0 when rating is null', () => {
+    const { el } = createCard({ listing: { rating: null, reviewCount: 0 } });
+
+    const slot = el.querySelector('.listing-card__rating')!;
+    expect(slot.classList.contains('listing-card__rating--empty')).toBe(true);
+    expect(slot.textContent!.trim()).toBe('No reviews yet');
+    expect(slot.textContent).not.toContain('5.0');
+    expect(slot.querySelector('.pi-star-fill')).toBeNull();
+    expect(slot.querySelector('.listing-card__rating-count')).toBeNull();
   });
 });

@@ -101,11 +101,7 @@
           <span class="listing-card__rating-count">({{ listing().reviewCount }})</span>
         </p>
       } @else {
-        <p class="listing-card__rating listing-card__rating--empty" [attr.aria-label]="'reviews.summary.noReviews' | translate">
-          <span class="pi pi-star-fill listing-card__rating-star" aria-hidden="true"></span>
-          <span class="listing-card__rating-value">{{ 5 | number: '1.1-1' }}</span>
-          <span class="listing-card__rating-count">(0)</span>
-        </p>
+        <p class="listing-card__rating listing-card__rating--empty">{{ 'reviews.summary.noReviews' | translate }}</p>
       }
 
       @if (bookingBadge(); as badge) {
