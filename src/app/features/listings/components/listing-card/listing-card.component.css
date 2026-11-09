@@ -381,6 +381,16 @@
   color: var(--ui-color-text-secondary);
 }
 
+/* No reviews yet: quiet single-line hint in the rating slot (ADR-014) */
+.listing-card__rating--empty {
+  display: block;
+  min-height: 1.25rem;
+  color: var(--ui-color-text-hint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Star color mirrors the price accent */
 .listing-card__rating-star {
   color: var(--ui-color-primary-strong);
