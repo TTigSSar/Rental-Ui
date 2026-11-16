@@ -18,6 +18,8 @@ import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { distinctUntilChanged, filter, map } from 'rxjs';
 
+import { LanguageService } from '../../../../shared/services/language.service';
+import { flatCategoryDisplayName } from '../../../../shared/utils/category-name.utils';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import { isCompensationAmountSet } from '../../../../shared/utils/compensation-amount.utils';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
@@ -28,6 +30,7 @@ import { AdminStatusBadgeComponent } from '../../components/admin-status-badge/a
 import { OwnerTrustPanelComponent } from '../../components/owner-trust-panel/owner-trust-panel.component';
 import { RejectPanelComponent } from '../../components/reject-panel/reject-panel.component';
 import { RejectSheetComponent } from '../../components/reject-sheet/reject-sheet.component';
+import type { AdminCategoryChange } from '../../models/admin-listing-queue.model';
 import { computeListingCompliance } from '../../models/listing-compliance.model';
 import * as AdminModerationActions from '../../store/admin-moderation.actions';
 import {
@@ -80,6 +83,7 @@ import { UiDatePipe } from '../../../../shared/utils/ui-date.pipe';
 })
 export class InspectPageComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store);
+  private readonly language = inject(LanguageService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly actions$ = inject(Actions);
@@ -110,6 +114,25 @@ export class InspectPageComponent implements OnInit, OnDestroy {
   protected readonly listing = computed(() => {
     const id = this.routeListingId();
     return id !== null && this.detailListingId() === id ? this.detail() : null;
+  });
+
+  /** Owner-picked / suggested category names in the current UI language (ADR-062). */
+  protected readonly ownerCategoryLabel = computed(() => {
+    const l = this.listing();
+    return l
+      ? flatCategoryDisplayName(l.categoryName, l.categoryNameHy, l.categoryNameRu, this.language.current().code)
+      : '';
+  });
+  protected readonly suggestedCategoryLabel = computed(() => {
+    const l = this.listing();
+    return l
+      ? flatCategoryDisplayName(
+          l.suggestedCategoryName,
+          l.suggestedCategoryNameHy,
+          l.suggestedCategoryNameRu,
+          this.language.current().code,
+        )
+      : '';
   });
 
   protected readonly isBusy = computed(() => {
@@ -229,7 +252,7 @@ export class InspectPageComponent implements OnInit, OnDestroy {
     this.isRejecting.set(false);
   }
 
-  protected changeCategory(change: { categoryId: string; categoryName: string }): void {
+  protected changeCategory(change: AdminCategoryChange): void {
     const listing = this.listing();
     if (!listing) return;
     this.store.dispatch(
@@ -251,6 +274,8 @@ export class InspectPageComponent implements OnInit, OnDestroy {
     this.changeCategory({
       categoryId: listing.suggestedCategoryId,
       categoryName: listing.suggestedCategoryName,
+      categoryNameHy: listing.suggestedCategoryNameHy ?? '',
+      categoryNameRu: listing.suggestedCategoryNameRu ?? '',
     });
   }
 }

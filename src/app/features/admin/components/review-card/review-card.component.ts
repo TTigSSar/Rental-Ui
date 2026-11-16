@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import type { ListingCategoryOption } from '../../../listings/models/create-listing.model';
+import { LanguageService } from '../../../../shared/services/language.service';
+import { flatCategoryDisplayName } from '../../../../shared/utils/category-name.utils';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import { DeletedUserAvatarComponent, DeletedUserNameComponent } from '../../../../shared/ui/deleted-user';
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
@@ -11,6 +13,7 @@ import { AdminCatSelectComponent } from '../admin-cat-select/admin-cat-select.co
 import { AdminStatusBadgeComponent } from '../admin-status-badge/admin-status-badge.component';
 import { CheckPillComponent } from '../check-pill/check-pill.component';
 import { RejectPanelComponent } from '../reject-panel/reject-panel.component';
+import type { AdminCategoryChange } from '../../models/admin-listing-queue.model';
 import { computeListingCompliance } from '../../models/listing-compliance.model';
 import type {
   AdminListingQueueStatusFilter,
@@ -62,7 +65,24 @@ export class ReviewCardComponent {
   readonly reasonSelect = output<string>();
   readonly noteChange = output<string>();
   readonly confirmReject = output<void>();
-  readonly categoryChange = output<{ categoryId: string; categoryName: string }>();
+  readonly categoryChange = output<AdminCategoryChange>();
+
+  private readonly language = inject(LanguageService);
+
+  /** Owner-picked / suggested category names in the current UI language (ADR-062). */
+  protected readonly ownerCategoryLabel = computed(() => {
+    const i = this.item();
+    return flatCategoryDisplayName(i.categoryName, i.categoryNameHy, i.categoryNameRu, this.language.current().code);
+  });
+  protected readonly suggestedCategoryLabel = computed(() => {
+    const i = this.item();
+    return flatCategoryDisplayName(
+      i.suggestedCategoryName,
+      i.suggestedCategoryNameHy,
+      i.suggestedCategoryNameRu,
+      this.language.current().code,
+    );
+  });
 
   protected readonly isDecided = computed(() => this.tab() !== 'Pending');
 
@@ -99,7 +119,7 @@ export class ReviewCardComponent {
     this.item().id,
   ]);
 
-  protected onCategoryChange(change: { categoryId: string; categoryName: string }): void {
+  protected onCategoryChange(change: AdminCategoryChange): void {
     this.categoryChange.emit(change);
   }
 }

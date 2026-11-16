@@ -41,12 +41,17 @@
   <div class="categories-page__create-panel">
     <app-category-form-panel
       [name]="newName()"
+      [nameHy]="newNameHy()"
+      [nameRu]="newNameRu()"
+      [submitAttempted]="createAttempted()"
       [iconName]="newIcon()"
       [colorHex]="newColor()"
       [busy]="isCreating()"
       [nameErrorMessage]="createNameErrorMessage()"
       [namePlaceholder]="'admin.categories.form.namePlaceholder' | translate"
       (nameChange)="newName.set($event)"
+      (nameHyChange)="newNameHy.set($event)"
+      (nameRuChange)="newNameRu.set($event)"
       (iconChange)="newIcon.set($event)"
       (colorChange)="newColor.set($event)"
       (submitName)="submitCreate()"
@@ -63,7 +68,7 @@
       <button
         type="button"
         class="categories-page__btn categories-page__btn--confirm"
-        [disabled]="isCreating() || newName().trim().length === 0"
+        [disabled]="isCreating()"
         (click)="submitCreate()"
       >
         @if (isCreating()) {
@@ -140,12 +145,17 @@
           <div class="categories-page__edit-row" [class.categories-page__edit-row--last]="last">
             <app-category-form-panel
               [name]="editName()"
+              [nameHy]="editNameHy()"
+              [nameRu]="editNameRu()"
+              [submitAttempted]="editAttempted()"
               [iconName]="editIcon()"
               [colorHex]="editColor()"
               [busy]="isEditBusy(category.id)"
               [nameErrorMessage]="editNameErrorMessage()"
               [namePlaceholder]="'admin.categories.form.namePlaceholder' | translate"
               (nameChange)="editName.set($event)"
+              (nameHyChange)="editNameHy.set($event)"
+              (nameRuChange)="editNameRu.set($event)"
               (iconChange)="editIcon.set($event)"
               (colorChange)="editColor.set($event)"
               (submitName)="confirmEdit()"
@@ -162,7 +172,7 @@
               <button
                 type="button"
                 class="categories-page__btn categories-page__btn--confirm"
-                [disabled]="isEditBusy(category.id) || editName().trim().length === 0"
+                [disabled]="isEditBusy(category.id)"
                 (click)="confirmEdit()"
               >
                 @if (isEditBusy(category.id)) {
@@ -184,7 +194,7 @@
                 class="categories-page__reorder-btn categories-page__reorder-btn--up"
                 [disabled]="i === 0 || isReordering()"
                 [attr.aria-label]="
-                  'admin.categories.table.moveUp' | translate: { name: category.name }
+                  'admin.categories.table.moveUp' | translate: { name: categoryLabel(category) }
                 "
                 (click)="moveUp(i)"
               >
@@ -195,7 +205,7 @@
                 class="categories-page__reorder-btn"
                 [disabled]="last || isReordering()"
                 [attr.aria-label]="
-                  'admin.categories.table.moveDown' | translate: { name: category.name }
+                  'admin.categories.table.moveDown' | translate: { name: categoryLabel(category) }
                 "
                 (click)="moveDown(i)"
               >
@@ -210,7 +220,7 @@
               >
                 <app-icon [name]="category.iconName || defaultIcon" [size]="17" />
               </span>
-              <span class="categories-page__name">{{ category.name }}</span>
+              <span class="categories-page__name">{{ categoryLabel(category) }}</span>
             </div>
             <div class="categories-page__count">{{ category.listingCount }}</div>
             <div>
@@ -232,7 +242,7 @@
                 type="button"
                 class="categories-page__delete-btn"
                 [attr.aria-label]="
-                  'admin.categories.table.deleteAria' | translate: { name: category.name }
+                  'admin.categories.table.deleteAria' | translate: { name: categoryLabel(category) }
                 "
                 (click)="startDelete(category)"
               >
@@ -258,7 +268,7 @@
             <app-icon [name]="category.iconName || defaultIcon" [size]="19" />
           </span>
           <div class="categories-page__card-body">
-            <div class="categories-page__card-name">{{ category.name }}</div>
+            <div class="categories-page__card-name">{{ categoryLabel(category) }}</div>
             <div class="categories-page__card-count">
               {{
                 listingCountKey(category.listingCount) | translate: { count: category.listingCount }
@@ -282,7 +292,7 @@
             type="button"
             class="categories-page__icon-btn categories-page__icon-btn--danger"
             [attr.aria-label]="
-              'admin.categories.table.deleteAria' | translate: { name: category.name }
+              'admin.categories.table.deleteAria' | translate: { name: categoryLabel(category) }
             "
             (click)="startDelete(category)"
           >
@@ -297,11 +307,16 @@
 @if (!isDesktop() && editingId() !== null) {
   <app-category-edit-sheet
     [name]="editName()"
+    [nameHy]="editNameHy()"
+    [nameRu]="editNameRu()"
+    [submitAttempted]="editAttempted()"
     [iconName]="editIcon()"
     [colorHex]="editColor()"
     [busy]="isEditBusy(editingId()!)"
     [nameErrorMessage]="editNameErrorMessage()"
     (nameChange)="editName.set($event)"
+    (nameHyChange)="editNameHy.set($event)"
+    (nameRuChange)="editNameRu.set($event)"
     (iconChange)="editIcon.set($event)"
     (colorChange)="editColor.set($event)"
     (cancel)="cancelEdit()"
@@ -311,7 +326,7 @@
 
 @if (deletingCategory(); as category) {
   <app-category-delete-dialog
-    [categoryName]="category.name"
+    [categoryName]="categoryLabel(category)"
     [listingCount]="category.listingCount"
     [otherCategories]="deleteOtherCategories()"
     [isDesktop]="isDesktop()"

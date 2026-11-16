@@ -756,6 +756,7 @@
       "reportLabel": "Пожаловаться",
       "linkCopied": "Ссылка скопирована",
       "handoverLabel": "Передача",
+      "showLocationOnMap": "Показать расположение на карте",
       "bookingHeading": "Проверьте доступность",
       "bookingSubtitle": "Выберите даты аренды и посмотрите итоговую стоимость до отправки запроса.",
       "bookingSubmitting": "Отправка запроса на аренду...",
@@ -773,18 +774,6 @@
       "eyebrow": {
         "overview": "Обзор",
         "reviews": "Отзывы"
-      },
-      "highlights": {
-        "hygieneSub": "Детали чистки от владельца",
-        "verifiedTitle": "Проверенный владелец",
-        "verifiedSub": "Надёжный участник DoRent",
-        "deliveryAvailableTitle": "Доступна доставка",
-        "deliveryAvailableSub": "Владелец может привезти",
-        "pickupOnlyTitle": "Только самовывоз",
-        "pickupOnlySub": "Встретьтесь с владельцем, чтобы забрать",
-        "minStayTitle": "Минимум {{count}} дн.",
-        "minStayPeriodTitle": "Мин. {{period}}",
-        "minStaySub": "Более короткие запросы не принимаются"
       },
       "badges": {
         "verifiedOwner": "Проверенный владелец",
@@ -810,6 +799,7 @@
         "condition": "Состояние",
         "hygieneNotes": "Уход и гигиена",
         "safetyNotes": "Безопасность",
+        "hygieneValue": "Детали чистки от владельца",
         "compensation": "Компенсация за утрату и порчу",
         "compensationValue": "До {{amount}}",
         "compensationNotSpecified": "Не указано"
@@ -838,8 +828,7 @@
         "seeAll": "Смотреть все {{count}} отзывов"
       },
       "pickupDelivery": {
-        "heading": "Получение и доставка",
-        "hygieneValue": "Указано владельцем"
+        "heading": "Получение и доставка"
       },
       "ownerStats": {
         "rating": "Рейтинг",
@@ -2064,6 +2053,10 @@
         "iconLabel": "Иконка",
         "colorLabel": "Цвет",
         "namePlaceholder": "Название категории, например «Музыкальные инструменты»",
+        "nameEn": "English",
+        "nameHy": "Հայերեն",
+        "nameRu": "Русский",
+        "nameRequired": "Обязательное поле.",
         "cancel": "Отмена",
         "addCategory": "Добавить категорию",
         "saveChanges": "Сохранить изменения"

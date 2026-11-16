@@ -184,19 +184,32 @@ export const adminModerationReducer = createReducer(
   // ── Recategorise (optimistic; doesn't move rows between tabs) ──
   on(
     AdminModerationActions.updateListingCategory,
-    (state, { listingId, categoryId, categoryName }): AdminModerationState => {
+    (
+      state,
+      { listingId, categoryId, categoryName, categoryNameHy = '', categoryNameRu = '' },
+    ): AdminModerationState => {
       const index = state.items.findIndex((item) => item.id === listingId);
       const previous = index >= 0 ? state.items[index] : null;
       const previousDetailCategory =
         state.detail && state.detail.id === listingId
-          ? { categoryId: state.detail.categoryId, categoryName: state.detail.categoryName }
+          ? {
+              categoryId: state.detail.categoryId,
+              categoryName: state.detail.categoryName,
+              categoryNameHy: state.detail.categoryNameHy,
+              categoryNameRu: state.detail.categoryNameRu,
+            }
           : null;
       return {
         ...state,
-        items: patchItem(state.items, listingId, { categoryId, categoryName }),
+        items: patchItem(state.items, listingId, {
+          categoryId,
+          categoryName,
+          categoryNameHy,
+          categoryNameRu,
+        }),
         detail:
           state.detail && state.detail.id === listingId
-            ? { ...state.detail, categoryId, categoryName }
+            ? { ...state.detail, categoryId, categoryName, categoryNameHy, categoryNameRu }
             : state.detail,
         actionIds: addActionId(state.actionIds, listingId),
         rollbacks: {
@@ -219,8 +232,12 @@ export const adminModerationReducer = createReducer(
       items: patchItem(state.items, listingId, {
         categoryId: detail.categoryId,
         categoryName: detail.categoryName,
+        categoryNameHy: detail.categoryNameHy,
+        categoryNameRu: detail.categoryNameRu,
         suggestedCategoryId: detail.suggestedCategoryId,
         suggestedCategoryName: detail.suggestedCategoryName,
+        suggestedCategoryNameHy: detail.suggestedCategoryNameHy,
+        suggestedCategoryNameRu: detail.suggestedCategoryNameRu,
       }),
       detail: state.detail && state.detail.id === listingId ? detail : state.detail,
       actionIds: removeActionId(state.actionIds, listingId),
@@ -252,6 +269,8 @@ export const adminModerationReducer = createReducer(
       const restore = {
         categoryId: rollback.item.categoryId,
         categoryName: rollback.item.categoryName,
+        categoryNameHy: rollback.item.categoryNameHy,
+        categoryNameRu: rollback.item.categoryNameRu,
       };
       return {
         ...state,

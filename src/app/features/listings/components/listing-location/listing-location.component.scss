@@ -93,6 +93,21 @@
   }
 }
 
+/* No projected content: one full-width column, map spans the whole row. */
+.listing-location--full {
+  @media (min-width: 1100px) {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'place'
+      'map'
+      'below';
+  }
+}
+
+.listing-location__side-panel[hidden] {
+  display: none;
+}
+
 /* ── Projected pickup & delivery rows (details page's `[sidePanel]`) ───── */
 .listing-location__side-panel {
   min-width: 0;

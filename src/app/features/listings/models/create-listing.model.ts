@@ -96,6 +96,9 @@ export type ListingImageUploadEvent =
 export interface ListingCategoryOption {
   id: string;
   name: string;
+  /** ADR-062: Armenian / Russian names (`name` is English). Normalizer defaults to ''. */
+  nameHy: string;
+  nameRu: string;
   slug: string;
   imageUrl?: string | null;
   iconName?: string | null;

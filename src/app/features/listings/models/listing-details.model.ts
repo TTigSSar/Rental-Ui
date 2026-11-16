@@ -13,6 +13,9 @@ export type ToyCondition = 'New' | 'LikeNew' | 'Good' | 'Fair' | 'Poor';
 export interface ListingDetailsCategory {
   id: string;
   name: string;
+  /** ADR-062 localized names; '' when absent. */
+  nameHy: string;
+  nameRu: string;
   slug: string;
 }
 

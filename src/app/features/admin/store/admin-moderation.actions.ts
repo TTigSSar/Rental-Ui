@@ -64,7 +64,13 @@ export const rejectListingFailure = createAction(
 // ── Recategorise (optimistic; doesn't move rows between tabs) ─────────────
 export const updateListingCategory = createAction(
   '[Admin Moderation] Update Listing Category',
-  props<{ listingId: string; categoryId: string; categoryName: string }>(),
+  props<{
+    listingId: string;
+    categoryId: string;
+    categoryName: string;
+    categoryNameHy?: string;
+    categoryNameRu?: string;
+  }>(),
 );
 
 export const updateListingCategorySuccess = createAction(

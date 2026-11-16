@@ -11,8 +11,7 @@ import { mockTiles } from './support/tile-mock';
  * Red on the parent (4d7559f): identity squeezed to ~30px beside a narrow button, button not full width,
  * third stat tile exceeds the stats padding box (360px). Overlap/within-card checks stay as guards.
  *
- * Deliberately NOT asserted: documentElement.scrollWidth <= innerWidth - a pre-existing, unrelated
- * 2px page-level overflow exists at these widths (before and after the fix).
+ * The page-level scrollWidth <= innerWidth guard lives in listing-details-no-hscroll.spec.ts (ADR-063).
  */
 test.use({ locale: 'hy-AM' });
 

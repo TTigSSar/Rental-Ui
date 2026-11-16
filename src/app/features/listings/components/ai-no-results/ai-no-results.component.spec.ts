@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule } from '@ngx-translate/core';
 
 import type { ListingCategoryOption } from '../../models/create-listing.model';
@@ -10,7 +11,10 @@ const CATEGORIES = [
 ] as ListingCategoryOption[];
 
 function setup(hasDistrictFilter: boolean, categories: readonly ListingCategoryOption[] = CATEGORIES) {
-  TestBed.configureTestingModule({ imports: [TranslateModule.forRoot()] });
+  TestBed.configureTestingModule({
+    imports: [TranslateModule.forRoot()],
+    providers: [provideMockStore()],
+  });
   const fixture = TestBed.createComponent(AiNoResultsComponent);
   fixture.componentRef.setInput('hasDistrictFilter', hasDistrictFilter);
   fixture.componentRef.setInput('categories', categories);

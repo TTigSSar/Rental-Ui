@@ -41,7 +41,7 @@
     >
       <option value="">{{ 'admin.categories.deleteDialog.selectPlaceholder' | translate }}</option>
       @for (category of otherCategories(); track category.id) {
-        <option [value]="category.id">{{ category.name }}</option>
+        <option [value]="category.id">{{ label(category) }}</option>
       }
       <option [value]="newCategoryOption">
         {{ 'admin.categories.deleteDialog.newCategoryOption' | translate }}
@@ -55,8 +55,34 @@
         [class.category-delete-dialog__input--error]="newCategoryName().trim().length === 0"
         [value]="newCategoryName()"
         [disabled]="busy()"
+        required
+        [attr.aria-label]="'admin.categories.form.nameEn' | translate"
         [placeholder]="'admin.categories.deleteDialog.newCategoryPlaceholder' | translate"
         (input)="onNewCategoryNameInput($event)"
+      />
+      <input
+        type="text"
+        lang="hy"
+        class="category-delete-dialog__input category-delete-dialog__input--hy"
+        [class.category-delete-dialog__input--error]="newCategoryNameHy().trim().length === 0"
+        [value]="newCategoryNameHy()"
+        [disabled]="busy()"
+        required
+        [attr.aria-label]="'admin.categories.form.nameHy' | translate"
+        [placeholder]="'admin.categories.form.nameHy' | translate"
+        (input)="onNewCategoryNameHyInput($event)"
+      />
+      <input
+        type="text"
+        lang="ru"
+        class="category-delete-dialog__input category-delete-dialog__input--ru"
+        [class.category-delete-dialog__input--error]="newCategoryNameRu().trim().length === 0"
+        [value]="newCategoryNameRu()"
+        [disabled]="busy()"
+        required
+        [attr.aria-label]="'admin.categories.form.nameRu' | translate"
+        [placeholder]="'admin.categories.form.nameRu' | translate"
+        (input)="onNewCategoryNameRuInput($event)"
       />
     }
   } @else {

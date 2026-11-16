@@ -22,6 +22,8 @@ import { DeletedUserAvatarComponent, DeletedUserNameComponent } from '../../../.
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import type { ProgressStepState } from '../../../../shared/utils/booking-progress.utils';
 import { todayUtcDateString } from '../../../../shared/utils/date.utils';
+import { LanguageService } from '../../../../shared/services/language.service';
+import { flatCategoryDisplayName } from '../../../../shared/utils/category-name.utils';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import * as ChatActions from '../../../chat/store/chat.actions';
 import { selectOpeningConversationFromBooking } from '../../../chat/store/chat.selectors';
@@ -94,6 +96,7 @@ function parseLocalIsoDate(value: string): Date | null {
 })
 export class BookingDetailsPageComponent implements OnInit, OnDestroy {
   private readonly store = inject(Store);
+  private readonly languageService = inject(LanguageService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly reviewsApi = inject(ReviewsApiService);
@@ -101,6 +104,17 @@ export class BookingDetailsPageComponent implements OnInit, OnDestroy {
   protected readonly bookingId = this.route.snapshot.paramMap.get('bookingId') ?? '';
 
   protected readonly detail = this.store.selectSignal(selectBookingDetail);
+  /** Category name in the current UI language (ADR-062); '' when the booking has none. */
+  protected readonly categoryLabel = computed(() => {
+    const d = this.detail();
+    if (!d) return '';
+    return flatCategoryDisplayName(
+      d.categoryName,
+      d.categoryNameHy,
+      d.categoryNameRu,
+      this.languageService.current().code,
+    );
+  });
   protected readonly loading = this.store.selectSignal(selectBookingDetailLoading);
   protected readonly loadError = this.store.selectSignal(selectBookingDetailError);
   protected readonly actionPending = this.store.selectSignal(selectBookingActionPending);

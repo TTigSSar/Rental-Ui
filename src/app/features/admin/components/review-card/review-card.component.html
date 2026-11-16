@@ -105,7 +105,7 @@
               <span class="review-card__category-tile" aria-hidden="true">
                 <app-icon name="tag" [size]="12" />
               </span>
-              {{ item().categoryName }}
+              {{ ownerCategoryLabel() }}
             </span>
           } @else {
             <app-admin-cat-select
@@ -126,8 +126,8 @@
             'admin.review.category.suggestion'
               | translate
                 : {
-                    owner: item().categoryName,
-                    suggested: item().suggestedCategoryName,
+                    owner: ownerCategoryLabel(),
+                    suggested: suggestedCategoryLabel(),
                   }
           }}
         </p>

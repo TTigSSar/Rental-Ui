@@ -131,6 +131,7 @@ async function createComponent(inputs: {
   homePoint?: HomePoint | null;
   /** `true` when the viewer owns this listing — suppresses the home row. */
   isOwnListing?: boolean;
+  hasSidePanel?: boolean;
 }) {
   const fakeGeo = new FakeGeolocationService();
   const providers = [
@@ -205,6 +206,9 @@ async function createComponent(inputs: {
   fixture.componentRef.setInput('title', inputs.title ?? 'LEGO Duplo Town');
   fixture.componentRef.setInput('imageUrl', inputs.imageUrl ?? null);
   fixture.componentRef.setInput('isOwnListing', inputs.isOwnListing ?? false);
+  if (inputs.hasSidePanel !== undefined) {
+    fixture.componentRef.setInput('hasSidePanel', inputs.hasSidePanel);
+  }
   fixture.detectChanges();
   await vi.runAllTimersAsync();
   fixture.detectChanges();
@@ -229,6 +233,27 @@ describe('ListingLocationComponent', () => {
     expect(el.querySelector('.listing-location__privacy-note')).toBeNull();
     expect(el.querySelector('.listing-location__fallback')).toBeNull();
     expect(el.querySelector('app-map')).toBeNull();
+  });
+
+  it('uses the two-column layout by default (side panel present)', async () => {
+    const { el } = await createComponent({ latitude: 40.18, longitude: 44.51 });
+    expect(el.querySelector('.listing-location--full')).toBeNull();
+    expect(el.querySelector<HTMLElement>('.listing-location__side-panel')?.hidden).toBe(false);
+  });
+
+  it('drops to a single full-width layout, with the side panel hidden, when hasSidePanel is false', async () => {
+    const { fixture, el } = await createComponent({
+      latitude: 40.18,
+      longitude: 44.51,
+      hasSidePanel: false,
+    });
+    expect(el.querySelector('.listing-location--full')).not.toBeNull();
+    expect(el.querySelector<HTMLElement>('.listing-location__side-panel')?.hidden).toBe(true);
+
+    fixture.componentRef.setInput('hasSidePanel', true);
+    fixture.detectChanges();
+    expect(el.querySelector('.listing-location--full')).toBeNull();
+    expect(el.querySelector<HTMLElement>('.listing-location__side-panel')?.hidden).toBe(false);
   });
 
   it('falls back to the city alone when no district resolved for the point', async () => {

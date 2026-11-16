@@ -27,6 +27,7 @@ import {
   DEFAULT_CATEGORY_COLOR,
   DEFAULT_CATEGORY_ICON,
 } from '../../../../shared/utils/category-palette.model';
+import { LanguageService } from '../../../../shared/services/language.service';
 import { HomePageComponent } from './home-page.component';
 
 /**
@@ -97,7 +98,7 @@ function tileVm(fixture: ReturnType<typeof createFixture>, index = 0) {
 describe('HomePageComponent category tile mapping', () => {
   it('carries the admin-picked icon and colour through to the tile', () => {
     const fixture = createFixture([
-      { id: 'cat-1', name: 'Ride-ons', slug: 'ride-ons', iconName: 'truck', colorHex: '#D9E8FF' },
+      { id: 'cat-1', name: 'Ride-ons', nameHy: 'Ride-ons', nameRu: 'Ride-ons', slug: 'ride-ons', iconName: 'truck', colorHex: '#D9E8FF' },
     ]);
 
     const vm = tileVm(fixture);
@@ -107,7 +108,7 @@ describe('HomePageComponent category tile mapping', () => {
 
   it('falls back to the default icon when iconName is null', () => {
     const fixture = createFixture([
-      { id: 'cat-1', name: 'Ride-ons', slug: 'ride-ons', iconName: null, colorHex: '#D9E8FF' },
+      { id: 'cat-1', name: 'Ride-ons', nameHy: 'Ride-ons', nameRu: 'Ride-ons', slug: 'ride-ons', iconName: null, colorHex: '#D9E8FF' },
     ]);
 
     expect(tileVm(fixture).iconName).toBe(DEFAULT_CATEGORY_ICON);
@@ -115,7 +116,7 @@ describe('HomePageComponent category tile mapping', () => {
 
   it('falls back to the default colour when colorHex is null', () => {
     const fixture = createFixture([
-      { id: 'cat-1', name: 'Ride-ons', slug: 'ride-ons', iconName: 'truck', colorHex: null },
+      { id: 'cat-1', name: 'Ride-ons', nameHy: 'Ride-ons', nameRu: 'Ride-ons', slug: 'ride-ons', iconName: 'truck', colorHex: null },
     ]);
 
     expect(tileVm(fixture).colorHex).toBe(DEFAULT_CATEGORY_COLOR);
@@ -126,6 +127,8 @@ describe('HomePageComponent category tile mapping', () => {
       {
         id: 'cat-1',
         name: 'Ride-ons',
+        nameHy: 'Ride-ons',
+        nameRu: 'Ride-ons',
         slug: 'ride-ons',
         iconName: 'truck',
         colorHex: '#D9E8FF',
@@ -141,6 +144,8 @@ describe('HomePageComponent categories states', () => {
   const CATEGORY: ListingCategoryOption = {
     id: 'cat-1',
     name: 'Ride-ons',
+    nameHy: 'Ride-ons',
+    nameRu: 'Ride-ons',
     slug: 'ride-ons',
     iconName: 'truck',
     colorHex: '#D9E8FF',
@@ -264,5 +269,42 @@ describe('HomePageComponent categories states', () => {
 
       expect(scrollTo).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('HomePageComponent category tile language (ADR-062)', () => {
+  const LOCALIZED: ListingCategoryOption = {
+    id: 'cat-1',
+    name: 'Role play',
+    nameHy: 'Խաղալիքներ փոքրիկների համար',
+    nameRu: 'Сюжетно-ролевые игры',
+    slug: 'role-play',
+    iconName: 'truck',
+    colorHex: '#D9E8FF',
+  };
+
+  function label(fixture: ReturnType<typeof createFixture>): string {
+    return (fixture.nativeElement as HTMLElement)
+      .querySelector('.category-tile__label')!
+      .textContent!.trim();
+  }
+
+  it('renders the hy/ru name and switches live with the language, without refetching', () => {
+    const fixture = createFixture([LOCALIZED]);
+    const language = TestBed.inject(LanguageService);
+    const dispatch = vi.spyOn(TestBed.inject(MockStore), 'dispatch');
+
+    language.current.set(language.languages.find((l) => l.code === 'hy')!);
+    fixture.detectChanges();
+    expect(label(fixture)).toBe('Խաղալիքներ փոքրիկների համար');
+
+    language.current.set(language.languages.find((l) => l.code === 'ru')!);
+    fixture.detectChanges();
+    expect(label(fixture)).toBe('Сюжетно-ролевые игры');
+
+    language.current.set(language.languages.find((l) => l.code === 'en')!);
+    fixture.detectChanges();
+    expect(label(fixture)).toBe('Role play');
+    expect(dispatch).not.toHaveBeenCalledWith(ListingsActions.loadListingCategories());
   });
 });

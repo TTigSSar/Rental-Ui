@@ -80,6 +80,8 @@ function normalizeAdminListingSummary(
 
     categoryId: typeof raw['categoryId'] === 'string' ? raw['categoryId'] : '',
     categoryName: typeof raw['categoryName'] === 'string' ? raw['categoryName'] : '',
+    categoryNameHy: typeof raw['categoryNameHy'] === 'string' ? raw['categoryNameHy'] : '',
+    categoryNameRu: typeof raw['categoryNameRu'] === 'string' ? raw['categoryNameRu'] : '',
 
     title: typeof raw['title'] === 'string' ? raw['title'] : '',
     description: typeof raw['description'] === 'string' ? raw['description'] : '',
@@ -130,6 +132,8 @@ function normalizeAdminListingSummary(
     // fallback string, so the UI can tell "no suggestion" apart from "suggested category '' ".
     suggestedCategoryId: toNullableString(raw['suggestedCategoryId']),
     suggestedCategoryName: toNullableString(raw['suggestedCategoryName']),
+    suggestedCategoryNameHy: toNullableString(raw['suggestedCategoryNameHy']),
+    suggestedCategoryNameRu: toNullableString(raw['suggestedCategoryNameRu']),
   };
 }
 

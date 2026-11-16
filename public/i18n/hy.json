@@ -756,6 +756,7 @@
       "reportLabel": "Բողոքել",
       "linkCopied": "Հղումը պատճենվեց",
       "handoverLabel": "Հանձնում",
+      "showLocationOnMap": "Ցույց տալ դիրքը քարտեզի վրա",
       "bookingHeading": "Ստուգեք հասանելիությունը",
       "bookingSubtitle": "Ընտրեք վարձակալման ամսաթվերը և տեսեք ընդհանուր գումարը՝ նախքան հարցումը։",
       "bookingSubmitting": "Վարձակալման հարցումը ուղարկվում է...",
@@ -773,18 +774,6 @@
       "eyebrow": {
         "overview": "Ընդհանուր",
         "reviews": "Կարծիքներ"
-      },
-      "highlights": {
-        "hygieneSub": "Մաքրման մանրամասներ տիրոջից",
-        "verifiedTitle": "Հաստատված տեր",
-        "verifiedSub": "DoRent-ի վստահելի անդամ",
-        "deliveryAvailableTitle": "Հասանելի է առաքում",
-        "deliveryAvailableSub": "Տերը կարող է բերել",
-        "pickupOnlyTitle": "Միայն ինքնաստացում",
-        "pickupOnlySub": "Հանդիպեք տիրոջը՝ վերցնելու համար",
-        "minStayTitle": "Նվազագույնը {{count}} օր",
-        "minStayPeriodTitle": "Նվազ. {{period}}",
-        "minStaySub": "Ավելի կարճ հարցումներ չեն ընդունվում"
       },
       "badges": {
         "verifiedOwner": "Հաստատված տեր",
@@ -810,6 +799,7 @@
         "condition": "Վիճակ",
         "hygieneNotes": "Մաքրում և հիգիենա",
         "safetyNotes": "Անվտանգություն",
+        "hygieneValue": "Մաքրման մանրամասներ տիրոջից",
         "compensation": "Կորստի և վնասի փոխհատուցում",
         "compensationValue": "Մինչև {{amount}}",
         "compensationNotSpecified": "Նշված չէ"
@@ -838,8 +828,7 @@
         "seeAll": "Տեսնել բոլոր {{count}} կարծիքները"
       },
       "pickupDelivery": {
-        "heading": "Ստացում և առաքում",
-        "hygieneValue": "Տրամադրված է տիրոջ կողմից"
+        "heading": "Ստացում և առաքում"
       },
       "ownerStats": {
         "rating": "Վարկանիշ",
@@ -2064,6 +2053,10 @@
         "iconLabel": "Պատկերակ",
         "colorLabel": "Գույն",
         "namePlaceholder": "Կատեգորիայի անվանում, օր.՝ Երաժշտական գործիքներ",
+        "nameEn": "English",
+        "nameHy": "Հայերեն",
+        "nameRu": "Русский",
+        "nameRequired": "Այս դաշտը պարտադիր է։",
         "cancel": "Չեղարկել",
         "addCategory": "Ավելացնել կատեգորիա",
         "saveChanges": "Պահպանել փոփոխությունները"

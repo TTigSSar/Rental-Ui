@@ -23,8 +23,9 @@
   border-bottom: 1px solid var(--ui-color-border);
   padding-top: var(--ui-space-12);
   padding-bottom: var(--ui-space-8);
-  margin-inline: calc(-1 * var(--ui-space-24));
-  padding-inline: var(--ui-space-24);
+  /* ADR-063: bleed to the viewport edges by exactly the page gutter. */
+  margin-inline: calc(-1 * var(--page-gutter));
+  padding-inline: var(--page-gutter);
 }
 
 /* The sticky header creates its own stacking context (position: sticky +
@@ -40,21 +41,6 @@
     top: -1px;
     border-bottom: none;
     box-shadow: 0 2px 10px rgba(16, 18, 30, 0.07);
-  }
-}
-
-@media (max-width: 900px) {
-  .lp-sticky-header {
-    margin-inline: calc(-1 * var(--ui-space-10));
-    padding-inline: var(--ui-space-10);
-  }
-}
-
-@media (max-width: 560px) {
-  /* Keep the bleed equal to `.page-container` padding-inline at this width (styles.css). */
-  .lp-sticky-header {
-    margin-inline: calc(-1 * var(--ui-space-8));
-    padding-inline: var(--ui-space-8);
   }
 }
 
@@ -468,6 +454,8 @@
     gap: var(--ui-space-12);
     min-width: 0;
     flex: 1 1 auto;
+    /* List/Map toggle sits left; the status + sort cluster hugs the right edge. */
+    justify-content: flex-end;
   }
 }
 
@@ -642,12 +630,6 @@
   min-width: 200px;
   overflow: hidden;
   padding: 4px 0;
-
-  /* Desktop: the sort sits at the left edge of the toolbar, so the menu opens rightwards. */
-  @media (min-width: 961px) {
-    right: auto;
-    left: 0;
-  }
 }
 
 .lp-sort-menu__item {

@@ -67,6 +67,9 @@ export interface BookingDetail {
   listingTitle: string;
   listingPrimaryImageUrl: string | null;
   categoryName: string | null;
+  /** ADR-062 localized category names. */
+  categoryNameHy: string | null;
+  categoryNameRu: string | null;
   condition: string | null;
   city: string;
   country: string;

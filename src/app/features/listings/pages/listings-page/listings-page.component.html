@@ -40,7 +40,7 @@
               [checked]="activeCategoryId() === cat.id"
               (change)="selectCategoryFromSidebar(cat.id)"
             />
-            <span class="lp-sidebar__checkbox-name">{{ cat.name }}</span>
+            <span class="lp-sidebar__checkbox-name" [attr.title]="categoryLabel(cat)">{{ categoryLabel(cat) }}</span>
           </label>
         }
       </div>
@@ -58,7 +58,7 @@
               [checked]="activeDistrictIds().includes(d.id)"
               (change)="selectDistrictFromSidebar(d.id)"
             />
-            <span class="lp-sidebar__checkbox-name">{{ d.label }}</span>
+            <span class="lp-sidebar__checkbox-name" [attr.title]="d.label">{{ d.label }}</span>
           </label>
         }
       </div>
@@ -186,14 +186,14 @@
             }
 
             <!-- Row 2: rendered in the visual order of each layout so Tab order matches it
-                 (design-notes 16, 19): desktop = sort, status, List/Map; mobile = status, List/Map, sort. -->
+                 (design-notes 16, 19): desktop = List/Map, status, sort; mobile = status, List/Map, sort. -->
             @if (isDesktop()) {
               <div class="lp-toolbar__row">
-                <div class="lp-toolbar__lead">
-                  <ng-container *ngTemplateOutlet="sortTpl" />
-                  <ng-container *ngTemplateOutlet="updatingTpl" />
-                </div>
                 <ng-container *ngTemplateOutlet="toggleTpl" />
+                <div class="lp-toolbar__lead">
+                  <ng-container *ngTemplateOutlet="updatingTpl" />
+                  <ng-container *ngTemplateOutlet="sortTpl" />
+                </div>
               </div>
             } @else {
               <ng-container *ngTemplateOutlet="updatingTpl" />
@@ -392,7 +392,7 @@
                         class="lp-empty-search__cat-chip"
                         (click)="selectCategory(cat.id)"
                       >
-                        {{ cat.name }}
+                        {{ categoryLabel(cat) }}
                       </button>
                     }
                   </div>

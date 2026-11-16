@@ -49,6 +49,8 @@ describe('AdminCategoriesApiService', () => {
         {
           id: 'cat-1',
           name: 'Ride-ons',
+          nameHy: '',
+          nameRu: '',
           slug: 'ride-ons',
           iconName: 'car',
           colorHex: '#FFAA00',
@@ -88,6 +90,8 @@ describe('AdminCategoriesApiService', () => {
       expect(result?.items[0]).toEqual({
         id: 'cat-2',
         name: 'Board Games',
+        nameHy: '',
+        nameRu: '',
         slug: 'board-games',
         iconName: null,
         colorHex: null,
@@ -111,6 +115,8 @@ describe('AdminCategoriesApiService', () => {
         {
           id: 'cat-3',
           name: '',
+          nameHy: '',
+          nameRu: '',
           slug: '',
           iconName: null,
           colorHex: null,
@@ -139,13 +145,15 @@ describe('AdminCategoriesApiService', () => {
     it('POSTs the request as-is and normalizes the created category', () => {
       let result: AdminCategory | undefined;
       service
-        .createCategory({ name: 'Outdoor', iconName: 'tree', colorHex: '#00AA00' })
+        .createCategory({ name: 'Outdoor', nameHy: 'Outdoor', nameRu: 'Outdoor', iconName: 'tree', colorHex: '#00AA00' })
         .subscribe((category) => (result = category));
 
       const req = httpMock.expectOne(toApiUrl(ApiContract.adminCategories.root));
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual({
         name: 'Outdoor',
+        nameHy: 'Outdoor',
+        nameRu: 'Outdoor',
         iconName: 'tree',
         colorHex: '#00AA00',
       });
@@ -156,10 +164,10 @@ describe('AdminCategoriesApiService', () => {
     });
 
     it('omits iconName/colorHex from the body when not supplied', () => {
-      service.createCategory({ name: 'Books' }).subscribe();
+      service.createCategory({ name: 'Books', nameHy: 'Books', nameRu: 'Books' }).subscribe();
 
       const req = httpMock.expectOne(toApiUrl(ApiContract.adminCategories.root));
-      expect(req.request.body).toEqual({ name: 'Books' });
+      expect(req.request.body).toEqual({ name: 'Books', nameHy: 'Books', nameRu: 'Books' });
       req.flush({ ...FULL_CATEGORY_RAW, id: 'cat-5', name: 'Books' });
     });
   });

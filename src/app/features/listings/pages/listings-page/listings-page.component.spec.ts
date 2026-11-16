@@ -267,7 +267,7 @@ describe('ListingsPageComponent — Maps P2-2 view toggle', () => {
   });
 
   describe.each([
-    { name: 'desktop', desktop: true, sortFirst: true },
+    { name: 'desktop', desktop: true, sortFirst: false },
     { name: 'mobile', desktop: false, sortFirst: false },
   ])('toolbar DOM order ($name, design-notes 16, 19)', ({ desktop, sortFirst }) => {
     // Not unstubAllGlobals(): other specs in this file stub IntersectionObserver globally.
@@ -839,6 +839,20 @@ describe('ListingsPageComponent — AI search states', () => {
 
       expect(router.url).toContain('categoryId=c2');
       expect(router.url).toContain('maxPrice=2000');
+    });
+
+    it('sidebar category labels carry the full localized name as a native title', async () => {
+      const { el } = await navigateToListings('/listings', {
+        categories: [
+          { id: 'c1', name: 'Bikes' },
+          { id: 'c2', name: 'Puzzles' },
+        ],
+      });
+
+      const names = Array.from(el.querySelectorAll<HTMLElement>('.lp-sidebar__checkbox-name'));
+      const titled = names.filter((n) => n.getAttribute('title') === n.textContent!.trim());
+      expect(titled.length).toBe(names.length);
+      expect(names.map((n) => n.getAttribute('title'))).toEqual(expect.arrayContaining(['Bikes', 'Puzzles']));
     });
 
     it('"Increase the budget" opens the filter sheet at the price on mobile (sidebar hidden)', async () => {

@@ -65,6 +65,25 @@ export function normalizeListingPreview(
         : 0,
     ownerId: normalizeNonEmptyString(item.ownerId),
     distanceKm: normalizeFiniteNumber(item.distanceKm),
+    priceUnit: PRICE_UNITS.has(item.priceUnit as PriceUnit) ? item.priceUnit : undefined,
+    district: normalizeListingDistrict(item.district),
+  };
+}
+
+function normalizeListingDistrict(value: unknown): ListingDistrict | null {
+  if (value === null || typeof value !== 'object') {
+    return null;
+  }
+  const d = value as Record<string, unknown>;
+  if (typeof d['id'] !== 'string' || typeof d['code'] !== 'string') {
+    return null;
+  }
+  return {
+    id: d['id'],
+    code: d['code'],
+    nameEn: typeof d['nameEn'] === 'string' ? d['nameEn'] : '',
+    nameHy: typeof d['nameHy'] === 'string' ? d['nameHy'] : '',
+    nameRu: typeof d['nameRu'] === 'string' ? d['nameRu'] : '',
   };
 }
 
@@ -296,6 +315,8 @@ export class ListingsApiService {
                 .map((category) => ({
                   id: category.id,
                   name: typeof category.name === 'string' ? category.name : '',
+                  nameHy: typeof category.nameHy === 'string' ? category.nameHy : '',
+                  nameRu: typeof category.nameRu === 'string' ? category.nameRu : '',
                   slug: typeof category.slug === 'string' ? category.slug : '',
                   imageUrl: normalizeNonEmptyString(category.imageUrl),
                   iconName: normalizeNonEmptyString(category.iconName),
@@ -569,6 +590,8 @@ export class ListingsApiService {
         ? {
             id: rawCategory.id,
             name: rawCategory.name,
+            nameHy: typeof rawCategory.nameHy === 'string' ? rawCategory.nameHy : '',
+            nameRu: typeof rawCategory.nameRu === 'string' ? rawCategory.nameRu : '',
             slug: typeof rawCategory.slug === 'string' ? rawCategory.slug : '',
           }
         : null;

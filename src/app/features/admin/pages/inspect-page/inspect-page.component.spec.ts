@@ -189,6 +189,8 @@ describe('InspectPageComponent', () => {
         categoryName: 'Wooden Toys',
         suggestedCategoryId: 'cat-2',
         suggestedCategoryName: 'Pretend Play',
+        suggestedCategoryNameHy: 'Դերախաղ',
+        suggestedCategoryNameRu: 'Ролевые игры',
       });
       await setup({ detail, detailListingId: 'p1' });
       const host: HTMLElement = fixture.nativeElement;
@@ -216,6 +218,8 @@ describe('InspectPageComponent', () => {
         status: 'Approved',
         suggestedCategoryId: 'cat-2',
         suggestedCategoryName: 'Pretend Play',
+        suggestedCategoryNameHy: 'Դերախաղ',
+        suggestedCategoryNameRu: 'Ролевые игры',
       });
       await setup({ detail, detailListingId: 'p1' });
       const host: HTMLElement = fixture.nativeElement;
@@ -229,6 +233,8 @@ describe('InspectPageComponent', () => {
         status: 'PendingApproval',
         suggestedCategoryId: 'cat-2',
         suggestedCategoryName: 'Pretend Play',
+        suggestedCategoryNameHy: 'Դերախաղ',
+        suggestedCategoryNameRu: 'Ролевые игры',
       });
       await setup({ detail, detailListingId: 'p1' });
       const dispatchSpy = vi.spyOn(store, 'dispatch');
@@ -240,6 +246,8 @@ describe('InspectPageComponent', () => {
           listingId: 'p1',
           categoryId: 'cat-2',
           categoryName: 'Pretend Play',
+          categoryNameHy: 'Դերախաղ',
+          categoryNameRu: 'Ролевые игры',
         }),
       );
     });
@@ -250,6 +258,8 @@ describe('InspectPageComponent', () => {
         status: 'PendingApproval',
         suggestedCategoryId: 'cat-2',
         suggestedCategoryName: 'Pretend Play',
+        suggestedCategoryNameHy: 'Դերախաղ',
+        suggestedCategoryNameRu: 'Ролевые игры',
       });
       await setup({ detail, detailListingId: 'p1' });
       const dispatchSpy = vi.spyOn(store, 'dispatch');
@@ -262,6 +272,8 @@ describe('InspectPageComponent', () => {
           listingId: 'p1',
           categoryId: 'cat-2',
           categoryName: 'Pretend Play',
+          categoryNameHy: 'Դերախաղ',
+          categoryNameRu: 'Ролевые игры',
         }),
       );
     });

@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { LanguageService } from '../../../../shared/services/language.service';
+import { categoryDisplayName } from '../../../../shared/utils/category-name.utils';
 import type { ListingCategoryOption } from '../../models/create-listing.model';
 
 /**
@@ -19,6 +21,8 @@ import type { ListingCategoryOption } from '../../models/create-listing.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AiNoResultsComponent {
+  private readonly language = inject(LanguageService);
+
   readonly hasDistrictFilter = input(false);
   /** The categories offered as pills (the host leaves out the one already applied). */
   readonly categories = input<readonly ListingCategoryOption[]>([]);
@@ -26,4 +30,9 @@ export class AiNoResultsComponent {
   readonly increaseBudget = output<void>();
   readonly editDescription = output<void>();
   readonly categorySelected = output<string>();
+
+  /** Display name in the current UI language (reactive: reads the language signal). */
+  protected categoryLabel(category: ListingCategoryOption): string {
+    return categoryDisplayName(category, this.language.current().code);
+  }
 }

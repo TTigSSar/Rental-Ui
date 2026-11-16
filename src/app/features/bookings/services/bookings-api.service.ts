@@ -88,6 +88,8 @@ function normalizeBookingDetail(item: Partial<BookingDetail> & { id: string }): 
     listingTitle: toStr(item.listingTitle),
     listingPrimaryImageUrl: toNullableStr(item.listingPrimaryImageUrl),
     categoryName: toNullableStr(item.categoryName),
+    categoryNameHy: toNullableStr(item.categoryNameHy),
+    categoryNameRu: toNullableStr(item.categoryNameRu),
     condition: toNullableStr(item.condition),
     city: toStr(item.city),
     country: toStr(item.country),

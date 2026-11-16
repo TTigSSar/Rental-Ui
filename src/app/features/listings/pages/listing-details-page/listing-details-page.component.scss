@@ -184,9 +184,9 @@
 
 /* ── Hero: full-bleed below 1100px, contained mosaic at/above it ───────── */
 .detail-page__hero {
-  width: 100%;
-  margin-inline: calc(-1 * var(--ui-space-10));
-  width: calc(100% + var(--ui-space-10) * 2);
+  /* ADR-063: bleed to the viewport edges by exactly the page gutter. */
+  margin-inline: calc(-1 * var(--page-gutter));
+  width: calc(100% + 2 * var(--page-gutter));
 
   @media (min-width: 1100px) {
     margin-inline: 0;
@@ -431,6 +431,42 @@
   }
 }
 
+/* Clickable variant (button reset + hover/focus affordance). */
+.detail-page__city--link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  /* Reads as a link at rest: brand text (primary-strong is AA-safe, ADR-034)
+     + persistent soft underline, stronger on hover. */
+  color: var(--ui-color-primary-strong);
+
+  span {
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+    text-underline-offset: 3px;
+  }
+
+  &:hover span {
+    text-decoration-color: currentColor;
+    text-decoration-thickness: 2px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary-strong);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* Section headings are programmatic focus targets (tabindex="-1") — no ring on mouse/scroll. */
+#detail-pickup-heading:focus {
+  outline: none;
+}
+
 .detail-page__meta-sep {
   color: var(--ui-color-border-strong);
   font-size: 10px;
@@ -482,96 +518,6 @@
   color: var(--ui-color-text-secondary);
 }
 
-/* ── Highlights band — 2–4 real-data tiles, one row, no gap between cells;
-   dividers come from `border-left` on every cell after the first ───────── */
-.detail-page__highlights {
-  display: grid;
-  margin-top: var(--ui-space-16);
-  background: var(--ui-color-surface);
-  border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-card);
-  overflow: hidden;
-
-  @media (max-width: 1099px) {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-}
-
-.detail-page__highlight-cell {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 18px 20px;
-  border-left: 1px solid var(--ui-color-border);
-  min-width: 0;
-
-  &:first-child {
-    border-left: none;
-  }
-
-  @media (max-width: 1099px) {
-    padding: 12px;
-
-    &:nth-child(2n + 1) {
-      border-left: none;
-    }
-
-    &:nth-child(n + 3) {
-      border-top: 1px solid var(--ui-color-border);
-    }
-  }
-}
-
-.detail-page__highlight-icon {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: var(--ui-radius-12);
-  background: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary-strong);
-
-  @media (max-width: 1099px) {
-    width: 36px;
-    height: 36px;
-  }
-
-  i {
-    font-size: 1.05rem;
-  }
-}
-
-.detail-page__highlight-text {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-
-  strong {
-    font-size: 13.5px;
-    font-weight: 700;
-    color: var(--ui-color-text-primary);
-    line-height: 1.3;
-  }
-
-  small {
-    font-size: 12px;
-    color: var(--ui-color-text-secondary);
-    line-height: 1.35;
-    /* Was `white-space: nowrap` + ellipsis — the design's subs are short
-       English ("DoRent verified member"); hy/ru run longer ("Հանդիպեք
-       տիրոջը՝ վերցնելու համար", "Более короткие запросы не принимаются")
-       and were being clipped mid-word. All cells in this single-row grid
-       already share one row height (grid default `align-items: stretch`),
-       so letting one cell's sub wrap just grows the row for all of them —
-       no jagged heights. */
-    overflow-wrap: break-word;
-    word-break: break-word;
-  }
-}
-
 /* ── Divider — desktop only between major sections (mobile relies on
    `.detail-page__sections` gap alone) ───────────────────────────────── */
 .detail-page__divider {
@@ -585,41 +531,34 @@
   }
 }
 
-/* ── Specs quad: best age / condition / handover / minimum rental ─────── */
+/* ── Details tiles: age / condition / hygiene — 1–3 cards in one row ───── */
 .detail-page__specquad {
-  display: grid;
-  /* 2-up by default (also covers ≤1099px, unchanged/verified clean). 4-up
-     (the design's intended look) only kicks in at ≥1300px: a strict
-     `repeat(4, 1fr)` starting at 1100px squeezed the cells too narrow for
-     the longer hy/ru labels — measured overflow at 1100-1280px in hy/ru/en.
-     The ru label overflowed even at 1920px in a 4-up grid ("Рекомендуемый
-     возраст", scrollWidth 104 vs clientWidth 98), which the breakpoint
-     alone can't fix — see `.detail-page__specquad-label`'s `overflow-wrap`
-     below for that half of the fix. */
-  grid-template-columns: repeat(2, 1fr);
+  /* Compact content-width tiles in a wrapping row: short values don't float in
+     empty cards and one long value doesn't inflate its siblings. */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
   gap: var(--ui-space-12);
-
-  @media (min-width: 1300px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  @media (max-width: 1099px) {
-    gap: var(--ui-space-8);
-  }
 }
 
 .detail-page__specquad-cell {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: var(--ui-space-16);
+  padding: 12px 14px;
   background: var(--ui-color-surface);
   border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-md);
-  min-width: 0;
+  border-radius: var(--ui-radius-card);
+  /* Content-width, capped so a long hy/ru value wraps instead of stretching. */
+  flex: 0 1 auto;
+  min-width: 150px;
+  max-width: 300px;
 
-  @media (max-width: 1099px) {
-    padding: 10px 12px;
+  @media (max-width: 639px) {
+    /* Two per row on mobile; a lone/odd tile stays content-width. */
+    flex: 1 1 calc(50% - var(--ui-space-12) / 2);
+    min-width: 0;
+    max-width: none;
   }
 }
 
@@ -628,16 +567,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--ui-radius-12);
-  background: var(--ui-color-surface-muted);
-  color: var(--ui-color-text-secondary);
-
-  @media (max-width: 1099px) {
-    width: 32px;
-    height: 32px;
-  }
+  background: var(--ui-color-primary-soft);
+  color: var(--ui-color-primary-strong);
 
   i {
     font-size: 1.05rem;
@@ -647,7 +581,7 @@
 .detail-page__specquad-body {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 1px;
   min-width: 0;
 }
 
@@ -669,10 +603,10 @@
 }
 
 .detail-page__specquad-value {
-  font-size: 14.5px;
-  font-weight: 800;
+  font-size: 13.5px;
+  font-weight: 700;
   color: var(--ui-color-text-primary);
-  line-height: 1.25;
+  line-height: 1.3;
   /* Wraps like the label above so no tile value (handover "Самовывоз или
      курьер", minimum rental, ...) can exceed its cell at any width or
      language. */

@@ -26,6 +26,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { Subject, catchError, debounce, merge, of, startWith, timer } from 'rxjs';
 
 import { LanguageService } from '../../../../shared/services/language.service';
+import { categoryDisplayName } from '../../../../shared/utils/category-name.utils';
 import {
   CategorySelectorComponent,
   type CategoryOption,
@@ -130,7 +131,12 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
   );
 
   protected readonly categoryOptions = computed((): CategoryOption[] =>
-    this.categories().map((c) => ({ id: c.id, name: c.name })),
+    this.categories().map((c) => ({
+      id: c.id,
+      name: c.name,
+      nameHy: c.nameHy,
+      nameRu: c.nameRu,
+    })),
   );
 
   // Anonymous, unchanging reference data — same treatment as
@@ -258,7 +264,10 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     const chips: ActiveChip[] = [];
     if (v.categoryId) {
       const cat = this.categories().find((c) => c.id === v.categoryId);
-      chips.push({ key: 'categoryId', label: cat?.name ?? v.categoryId });
+      chips.push({
+        key: 'categoryId',
+        label: cat ? categoryDisplayName(cat, this.languageService.current().code) : v.categoryId,
+      });
     }
     if (v.ageGroup) {
       const ag = AGE_GROUPS.find((a) => a.value === v.ageGroup);

@@ -46,7 +46,7 @@ describe('adminCategoriesReducer', () => {
         start,
         AdminCategoriesActions.createCategory({
           tempId: 'temp-1',
-          request: { name: 'Outdoor', iconName: 'glob', colorHex: '#D9F0EC' },
+          request: { name: 'Outdoor', nameHy: 'Outdoor', nameRu: 'Outdoor', iconName: 'glob', colorHex: '#D9F0EC' },
         }),
       );
       expect(next.items.map((i) => i.id)).toEqual(['c1', 'temp-1']);
@@ -65,7 +65,7 @@ describe('adminCategoriesReducer', () => {
         stateWith({ items: [] }),
         AdminCategoriesActions.createCategory({
           tempId: 'temp-1',
-          request: { name: 'Outdoor' },
+          request: { name: 'Outdoor', nameHy: 'Outdoor', nameRu: 'Outdoor' },
         }),
       );
       const confirmed = makeAdminCategory({ id: 'c-real', name: 'Outdoor' });
@@ -84,7 +84,7 @@ describe('adminCategoriesReducer', () => {
           items: [makeAdminCategory({ id: 'c1' })],
           summary: { totalCategories: 1, visibleCount: 1, totalListedToys: 0 },
         }),
-        AdminCategoriesActions.createCategory({ tempId: 'temp-1', request: { name: 'Outdoor' } }),
+        AdminCategoriesActions.createCategory({ tempId: 'temp-1', request: { name: 'Outdoor', nameHy: 'Outdoor', nameRu: 'Outdoor' } }),
       );
       const next = adminCategoriesReducer(
         start,
@@ -119,6 +119,28 @@ describe('adminCategoriesReducer', () => {
       expect(next.items[0].colorHex).toBe('#FFE6CC');
       expect(next.actionIds).toEqual(['c1']);
       expect(next.rollbacks['c1']).toBeDefined();
+    });
+
+    it('patches nameHy/nameRu when present and leaves them unchanged when omitted', () => {
+      const start = stateWith({
+        items: [makeAdminCategory({ id: 'c1', nameHy: 'OldHy', nameRu: 'OldRu' })],
+      });
+      const both = adminCategoriesReducer(
+        start,
+        AdminCategoriesActions.updateCategory({
+          id: 'c1',
+          request: { nameHy: 'NewHy', nameRu: 'NewRu' },
+        }),
+      );
+      expect(both.items[0].nameHy).toBe('NewHy');
+      expect(both.items[0].nameRu).toBe('NewRu');
+
+      const none = adminCategoriesReducer(
+        start,
+        AdminCategoriesActions.updateCategory({ id: 'c1', request: { name: 'X' } }),
+      );
+      expect(none.items[0].nameHy).toBe('OldHy');
+      expect(none.items[0].nameRu).toBe('OldRu');
     });
 
     it('restores the row and records the error code on failure', () => {

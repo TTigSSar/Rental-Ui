@@ -650,6 +650,8 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
       const newCategory: Record<string, unknown> = {
         id: `admin-category-e2e-${adminCategoriesState.length + 1}`,
         name,
+        nameHy: typeof body['nameHy'] === 'string' ? body['nameHy'] : name,
+        nameRu: typeof body['nameRu'] === 'string' ? body['nameRu'] : name,
         slug: name.toLowerCase().trim().replace(/\s+/g, '-'),
         iconName: typeof body['iconName'] === 'string' && body['iconName'] ? body['iconName'] : null,
         colorHex: typeof body['colorHex'] === 'string' && body['colorHex'] ? body['colorHex'] : null,
@@ -708,6 +710,8 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
       const item = adminCategoriesState.find((c) => c['id'] === categoryDetailId);
       if (item) {
         if (typeof body['name'] === 'string' && body['name']) item['name'] = body['name'];
+        if (typeof body['nameHy'] === 'string' && body['nameHy']) item['nameHy'] = body['nameHy'];
+        if (typeof body['nameRu'] === 'string' && body['nameRu']) item['nameRu'] = body['nameRu'];
         if ('iconName' in body) item['iconName'] = body['iconName'] || null;
         if ('colorHex' in body) item['colorHex'] = body['colorHex'] || null;
       }
@@ -1298,7 +1302,7 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
         route,
         200,
         seed.categories ?? [
-          { id: 'cat-e2e-1', name: 'Toys', slug: 'toys', iconName: 'tag', colorHex: '#FFE6CC' },
+          { id: 'cat-e2e-1', name: 'Toys', nameHy: 'Toys', nameRu: 'Toys', slug: 'toys', iconName: 'tag', colorHex: '#FFE6CC' },
         ],
       );
     }

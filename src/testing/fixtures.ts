@@ -195,6 +195,8 @@ export function makeBookingDetail(overrides: Partial<BookingDetail> = {}): Booki
     listingTitle: 'Wooden Train Set',
     listingPrimaryImageUrl: null,
     categoryName: 'Toys',
+    categoryNameHy: 'Խաղալիքներ',
+    categoryNameRu: 'Игрушки',
     condition: 'Good',
     city: 'Yerevan',
     country: 'Armenia',
@@ -233,6 +235,8 @@ export function makeAdminListingSummary(
     ownerLastName: 'Owner',
     categoryId: 'cat-1',
     categoryName: 'Wooden Toys',
+    categoryNameHy: 'Փայտե խաղալիքներ',
+    categoryNameRu: 'Деревянные игрушки',
     title: 'Toy Kitchen',
     description: 'A play kitchen',
     pricePerDay: 4,
@@ -262,6 +266,8 @@ export function makeAdminListingSummary(
     ownerJoinedAt: '2025-01-10T00:00:00.000Z',
     suggestedCategoryId: null,
     suggestedCategoryName: null,
+    suggestedCategoryNameHy: null,
+    suggestedCategoryNameRu: null,
     ...overrides,
   };
 }
@@ -316,6 +322,8 @@ export function makeAdminCategory(overrides: Partial<AdminCategory> = {}): Admin
   return {
     id: 'cat-1',
     name: 'Ride-ons',
+    nameHy: 'Ձիավարական',
+    nameRu: 'Каталки',
     slug: 'ride-ons',
     iconName: 'truck',
     colorHex: '#D9E8FF',

@@ -34,6 +34,7 @@ import {
 } from 'rxjs';
 
 import { LanguageService } from '../../../../shared/services/language.service';
+import { categoryDisplayName } from '../../../../shared/utils/category-name.utils';
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { LoadingSkeletonComponent } from '../../../../shared/ui/loading-skeleton/loading-skeleton.component';
 import { DRAM_SYMBOL, DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
@@ -63,6 +64,7 @@ import {
   serializeRadiusKmParam,
 } from '../../models/listings-filter.model';
 import type { ListingsFilter } from '../../models/listings-filter.model';
+import type { ListingCategoryOption } from '../../models/create-listing.model';
 import { formatDistanceMeters, kmToMeters, localeTagForLanguage, metersToKm } from '../../models/radius-scale.util';
 import { radiusChipLabel } from '../../models/radius-chip.util';
 import type { ListingPreview } from '../../models/listing.model';
@@ -406,8 +408,14 @@ export class ListingsPageComponent {
   protected readonly activeCategoryName = computed(() => {
     const id = this.filtersSignal().categoryId;
     if (!id) return null;
-    return this.categoriesSignal().find((c) => c.id === id)?.name ?? null;
+    const cat = this.categoriesSignal().find((c) => c.id === id);
+    return cat ? categoryDisplayName(cat, this.languageService.current().code) : null;
   });
+
+  /** Display name in the current UI language (reactive: reads the language signal). */
+  protected categoryLabel(category: ListingCategoryOption): string {
+    return categoryDisplayName(category, this.languageService.current().code);
+  }
 
   protected readonly activeQuery = computed(() => this.filtersSignal().query ?? '');
 
@@ -430,7 +438,10 @@ export class ListingsPageComponent {
     const chips: ActiveFilterChip[] = [];
     if (f.categoryId) {
       const cat = this.categoriesSignal().find((c) => c.id === f.categoryId);
-      chips.push({ key: 'categoryId', label: cat?.name ?? f.categoryId });
+      chips.push({
+        key: 'categoryId',
+        label: cat ? categoryDisplayName(cat, this.languageService.current().code) : f.categoryId,
+      });
     }
     if (f.ageGroup) {
       const ag = AGE_GROUPS.find((a) => a.value === f.ageGroup);
