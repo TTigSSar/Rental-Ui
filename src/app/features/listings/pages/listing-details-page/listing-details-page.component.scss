@@ -144,6 +144,18 @@
     gap: 32px;
     margin-top: 6px;
   }
+
+  /* The page header used to be an always-rendered (display:none inside, but
+     still a flex item) first child here, contributing one container `gap`
+     (13px) above the article/skeleton. It now only renders in the error state,
+     so restore that 13px to keep desktop positions identical. */
+  .detail-page__article,
+  .detail-page__skeleton {
+    margin-top: 19px;
+  }
+  .detail-page__skeleton {
+    margin-top: 13px;
+  }
 }
 
 /* ── Breadcrumb (desktop only) ───────────────────────────
