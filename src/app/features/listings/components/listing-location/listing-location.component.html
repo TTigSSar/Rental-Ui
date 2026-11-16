@@ -1,4 +1,4 @@
-<div class="listing-location">
+<div class="listing-location" [class.listing-location--full]="!hasSidePanel()">
   <p class="listing-location__place">
     <i class="pi pi-map-marker" aria-hidden="true"></i>
     <span>
@@ -230,7 +230,8 @@
     }
   }
 
-  <div class="listing-location__side-panel">
+  <!-- ng-content cannot sit in an @if, so the wrapper is hidden instead. -->
+  <div class="listing-location__side-panel" [hidden]="!hasSidePanel()">
     <ng-content select="[sidePanel]" />
   </div>
 </div>

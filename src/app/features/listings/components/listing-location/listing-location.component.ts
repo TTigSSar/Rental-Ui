@@ -197,6 +197,13 @@ export class ListingLocationComponent {
    * from my toys" is a real question with a real answer.
    */
   readonly isOwnListing = input<boolean>(false);
+  /**
+   * `true` (default) when the caller projects content into `[sidePanel]`, which
+   * sits beside the map at wide widths. `false` collapses to a single
+   * full-width map — otherwise the empty right column leaves the map at ~57%
+   * width with a void beside it.
+   */
+  readonly hasSidePanel = input<boolean>(true);
 
   protected readonly circleRadiusMeters = APPROXIMATE_AREA_RADIUS_METERS;
   protected readonly mapZoom = DETAIL_MAP_ZOOM;

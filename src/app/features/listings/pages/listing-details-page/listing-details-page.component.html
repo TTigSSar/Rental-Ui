@@ -330,6 +330,7 @@
                   [title]="listing.title"
                   [imageUrl]="listingHeroImageUrl()"
                   [isOwnListing]="isOwnListing()"
+                  [hasSidePanel]="pickupDeliveryRows().length > 0"
                 >
                   @if (pickupDeliveryRows().length > 0) {
                     <div sidePanel class="detail-page__pickup-rows">
