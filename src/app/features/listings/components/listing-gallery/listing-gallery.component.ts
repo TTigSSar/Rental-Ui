@@ -37,6 +37,9 @@ export class ListingGalleryComponent {
   readonly images = input.required<ListingImage[]>();
   /** Desktop-only overlay badges on the mosaic's first tile (real signals only). */
   readonly badges = input<readonly GalleryBadge[]>([]);
+  /** Below 1100px render the hero as a tall full-bleed photo (listing details
+   *  page); off keeps the framed hero used by other consumers. */
+  readonly immersive = input(false);
 
   protected readonly activeIndex = signal(0);
   protected readonly lightboxOpen = signal(false);

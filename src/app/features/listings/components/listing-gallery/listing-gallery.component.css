@@ -447,6 +447,73 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════
+   Immersive hero (`[immersive]="true"`, listing details page, <1100px):
+   tall full-bleed photo from the top edge, no frame, top scrim for the
+   page's floating back button. The page bleeds the wrapper to the viewport
+   edges (ADR-063), so the hero only needs width: 100% here. Landscape photos
+   keep `object-fit: contain` over the blurred backdrop.
+   ══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 1099px) {
+  .listing-gallery--immersive .listing-gallery__hero {
+    max-width: none;
+    aspect-ratio: 4 / 5;
+    max-height: 70svh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* Replaces the whole-photo darkening with a top-only scrim. */
+  .listing-gallery--immersive .listing-gallery__hero:not(.listing-gallery__hero--empty)::after {
+    inset: 0 0 auto 0;
+    height: calc(env(safe-area-inset-top) + 72px);
+    background: linear-gradient(
+      rgba(16, 18, 30, 0.38),
+      rgba(16, 18, 30, 0.12) 55%,
+      rgba(16, 18, 30, 0)
+    );
+  }
+
+  /* The details page's content sheet overlaps the hero's bottom 20px, so the
+     bottom overlays sit 32px up. Thumbnails would sit under that sheet — the
+     dots, arrows and lightbox filmstrip already cover navigation. */
+  .listing-gallery--immersive .listing-gallery__mobile {
+    gap: 0;
+  }
+
+  .listing-gallery--immersive .listing-gallery__thumbs {
+    display: none;
+  }
+
+  .listing-gallery--immersive .listing-gallery__counter {
+    bottom: 32px;
+    right: 12px;
+    min-height: 28px;
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    background: rgba(26, 27, 38, 0.78);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0;
+    /* Purely informational: let taps fall through to the open-lightbox hero. */
+    pointer-events: none;
+  }
+
+  .listing-gallery--immersive .listing-gallery__dots {
+    bottom: 32px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1099px) {
+  .listing-gallery--immersive .listing-gallery__counter {
+    right: 24px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
    Lightbox — fullscreen viewer, not a floating dialog. The `.p-dialog` root
    is pinned to the viewport with `position: fixed; inset: 0` rather than
    sized with `vw`/`vh` units. That's the fix for the horizontal scrollbar

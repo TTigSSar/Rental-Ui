@@ -1,5 +1,6 @@
+import { Location } from '@angular/common';
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter, Router } from '@angular/router';
 import { provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
@@ -137,6 +138,62 @@ describe('ListingDetailsPageComponent (DI construction)', () => {
       const fixture = createFixture();
       fixture.detectChanges();
     }).not.toThrow();
+  });
+});
+
+/** Trello #270: floating back button on the mobile hero. */
+describe('ListingDetailsPageComponent — floating back button', () => {
+  function setup(navigationId: number | null) {
+    TestBed.configureTestingModule({
+      imports: [ListingDetailsPageComponent, TranslateModule.forRoot()],
+      providers: [
+        provideRouter([]),
+        MessageService,
+        provideMockStore({
+          initialState: {
+            [listingsFeatureKey]: initialListingsState,
+            [bookingsFeatureKey]: initialBookingsState,
+            [reviewsFeatureKey]: initialReviewsState,
+            [publicProfilesFeatureKey]: initialPublicProfilesState,
+            [favoritesFeatureKey]: initialFavoritesState,
+            [authFeatureKey]: initialAuthState,
+          },
+        }),
+        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ id: 'l-1' })) } },
+      ],
+    });
+    const location = TestBed.inject(Location);
+    vi.spyOn(location, 'getState').mockReturnValue(
+      navigationId === null ? null : { navigationId },
+    );
+    const back = vi.spyOn(location, 'back').mockImplementation(() => undefined);
+    const navigate = vi
+      .spyOn(TestBed.inject(Router), 'navigateByUrl')
+      .mockResolvedValue(true);
+    const component = TestBed.createComponent(ListingDetailsPageComponent)
+      .componentInstance as unknown as { goBack(): void };
+    return { component, back, navigate };
+  }
+
+  it('goes back in history when the visitor navigated inside the app', () => {
+    const { component, back, navigate } = setup(3);
+    component.goBack();
+    expect(back).toHaveBeenCalledTimes(1);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('falls back to /listings on a deep link (first navigation of the session)', () => {
+    const { component, back, navigate } = setup(1);
+    component.goBack();
+    expect(back).not.toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith('/listings');
+  });
+
+  it('falls back to /listings when history carries no router state', () => {
+    const { component, back, navigate } = setup(null);
+    component.goBack();
+    expect(back).not.toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith('/listings');
   });
 });
 

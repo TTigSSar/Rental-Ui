@@ -18,6 +18,14 @@
   gap: 13px;
 }
 
+/* <1100px: the photo hero starts at the very top edge, so the container's own
+   top gutter goes (the error/skeleton states re-add what they need). */
+@media (max-width: 1099px) {
+  .detail-page .detail-page__container {
+    padding-top: 0;
+  }
+}
+
 /* ── Error states ─────────────────────────────────────── */
 .detail-page__error {
   display: flex;
@@ -73,6 +81,10 @@
   flex-direction: column;
   gap: 42px;
   padding-top: 6px;
+
+  @media (max-width: 1099px) {
+    padding-top: var(--ui-space-16);
+  }
 }
 
 .detail-page__skeleton-hero {
@@ -132,6 +144,18 @@
     gap: 32px;
     margin-top: 6px;
   }
+
+  /* The page header used to be an always-rendered (display:none inside, but
+     still a flex item) first child here, contributing one container `gap`
+     (13px) above the article/skeleton. It now only renders in the error state,
+     so restore that 13px to keep desktop positions identical. */
+  .detail-page__article,
+  .detail-page__skeleton {
+    margin-top: 19px;
+  }
+  .detail-page__skeleton {
+    margin-top: 13px;
+  }
 }
 
 /* ── Breadcrumb (desktop only) ───────────────────────────
@@ -184,6 +208,12 @@
 
 /* ── Hero: full-bleed below 1100px, contained mosaic at/above it ───────── */
 .detail-page__hero {
+  position: relative;
+  /* Own stacking context: the gallery's z-indexed overlays stay inside it, so
+     the (later, positioned) content sheet paints above the hero without needing
+     a z-index of its own — which would also have capped the fixed mobile CTA
+     bar's z-index inside the sheet. */
+  z-index: 0;
   /* ADR-063: bleed to the viewport edges by exactly the page gutter. */
   margin-inline: calc(-1 * var(--page-gutter));
   width: calc(100% + 2 * var(--page-gutter));
@@ -191,6 +221,67 @@
   @media (min-width: 1100px) {
     margin-inline: 0;
     width: 100%;
+  }
+}
+
+/* Floating round back button over the hero's top-left (<1100px only). */
+.detail-page__hero-back {
+  position: absolute;
+  z-index: 5;
+  top: calc(env(safe-area-inset-top) + 8px);
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(26, 27, 38, 0.1);
+  border-radius: var(--ui-radius-pill);
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow: 0 2px 8px rgba(16, 18, 30, 0.18);
+  color: var(--ui-color-text-primary);
+  cursor: pointer;
+
+  .pi {
+    font-size: 22px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary-strong);
+    outline-offset: 2px;
+    box-shadow:
+      0 0 0 4px #fff,
+      0 2px 8px rgba(16, 18, 30, 0.18);
+  }
+
+  @media (min-width: 768px) {
+    left: 16px;
+  }
+
+  @media (min-width: 1100px) {
+    display: none;
+  }
+}
+
+/* Content sheet: page-background surface with rounded top corners that
+   overlaps the hero's bottom 20px (<1100px). Bleeds to the viewport edges like
+   the hero and re-applies the gutter as padding. At ≥1100px it is a no-op
+   wrapper so the article's own flex gap/layout is untouched. */
+.detail-page__sheet {
+  position: relative;
+  margin-inline: calc(-1 * var(--page-gutter));
+  width: calc(100% + 2 * var(--page-gutter));
+  padding-inline: var(--page-gutter);
+  margin-top: -20px;
+  border-radius: var(--ui-radius-lg) var(--ui-radius-lg) 0 0;
+  background: var(--ui-color-surface-muted);
+  box-shadow: 0 -6px 20px rgba(16, 18, 30, 0.08);
+
+  @media (min-width: 1100px) {
+    display: contents;
   }
 }
 
