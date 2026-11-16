@@ -1,45 +1,181 @@
-@use '../info-page' as *;
+:host {
+  display: block;
+  min-height: 100%;
+  background: var(--ui-color-background);
+}
 
-/* ============================================================
-   Accordion
-   ============================================================ */
+/* ---- Hero (dark band, same gradient as the legacy info-page hero) ---- */
+.faq-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 72px 0 64px;
+  background: linear-gradient(135deg, var(--ui-color-secondary) 0%, #3d3f5a 100%);
+  color: var(--ui-color-on-primary);
+  /* translucent white on the dark gradient: no token exists for these alphas */
+  --faq-hero-link: rgba(255, 255, 255, 0.72);
+}
+
+/* Reuses `.page-container` so the crumb shares the content's left edge. */
+.faq-hero__crumb-row {
+  padding-top: 0;
+}
+
+.faq-hero__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding-inline: 40px;
+  text-align: center;
+}
+
+.faq-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--ui-color-primary);
+  color: var(--ui-color-on-primary);
+  /* soft primary glow + 4px translucent white ring (design value) */
+  box-shadow:
+    0 8px 24px rgba(255, 96, 8, 0.35),
+    0 0 0 4px rgba(255, 255, 255, 0.08);
+
+  .pi {
+    font-size: 28px;
+    line-height: 1;
+  }
+}
+
+.faq-hero__title {
+  margin: 0;
+  max-width: 100%;
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--ui-color-on-primary);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+:host-context([lang='hy']) .faq-hero__title {
+  letter-spacing: -0.01em;
+}
+
+.faq-hero__lead {
+  margin: 0;
+  max-width: 560px;
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.78); /* translucent white, no token */
+}
+
+/* Mobile / tablet: single column, help card after the groups (DOM order). */
+.faq {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  padding-top: 32px;
+  padding-bottom: 48px;
+}
+
+/* ---- Breadcrumb (on the dark hero) ---- */
+.faq__crumbs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 44px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--faq-hero-link);
+}
+
+.faq__crumb-link {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--ui-color-on-primary);
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-on-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}
+
+.faq__crumb-sep {
+  font-size: 14px;
+  color: var(--faq-hero-link);
+}
+
+.faq__crumb-current {
+  color: var(--ui-color-on-primary);
+}
+
+/* ---- Groups ---- */
+.faq__groups {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  min-width: 0;
+}
+
+.faq__group-heading {
+  margin: 0 0 12px;
+  padding-bottom: 10px;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--ui-color-text-primary);
+  border-bottom: 1px solid var(--ui-color-primary);
+  overflow-wrap: anywhere;
+}
+
+/* ---- Accordion ---- */
 .faq-accordion {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .faq-accordion__item {
   background: var(--ui-color-surface);
   border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-lg);
+  border-radius: 14px;
   overflow: hidden;
-  transition:
-    border-color 160ms ease,
-    box-shadow 160ms ease;
 }
 
 .faq-accordion__item--open {
-  border-color: var(--ui-color-primary);
-  box-shadow: 0 4px 16px rgba(255, 96, 8, 0.08);
+  border-color: var(--ui-color-border-input);
 }
 
 .faq-accordion__trigger {
   width: 100%;
+  min-height: 56px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 20px 22px;
+  gap: 12px;
+  padding: 14px 14px 14px 20px;
   background: transparent;
   border: none;
   cursor: pointer;
   font-family: inherit;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
   text-align: left;
-  transition: background 120ms ease;
+  color: var(--ui-color-text-primary);
 
   &:hover {
-    background: rgba(255, 96, 8, 0.03);
+    background: var(--ui-color-background);
   }
 
   &:focus-visible {
@@ -49,79 +185,176 @@
 }
 
 .faq-accordion__question {
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--ui-color-text-primary);
-  line-height: 1.4;
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .faq-accordion__chevron {
   flex-shrink: 0;
-  font-size: 1rem;
-  color: var(--ui-color-primary);
+  font-size: 20px;
+  color: var(--ui-color-text-secondary);
   transition: transform 160ms ease;
+}
+
+.faq-accordion__item--open .faq-accordion__chevron {
+  transform: rotate(180deg);
 }
 
 .faq-accordion__answer {
   margin: 0;
-  padding: 0 22px 20px;
-  font-size: 0.95rem;
+  padding: 0 20px 18px;
+  font-size: 15px;
+  line-height: 22px;
   color: var(--ui-color-text-secondary);
-  line-height: 1.65;
-  animation: faq-expand 150ms ease;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
 }
 
-@keyframes faq-expand {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+@media (prefers-reduced-motion: reduce) {
+  .faq-accordion__chevron {
+    transition: none;
   }
 }
 
-/* ============================================================
-   Contact nudge
-   ============================================================ */
-.faq-contact {
+/* ---- Help card ---- */
+.faq__help {
+  margin-top: 32px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 44px 24px;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 20px;
   background: var(--ui-color-surface);
-  border-radius: var(--ui-radius-lg);
   border: 1px solid var(--ui-color-border);
-  text-align: center;
+  border-radius: 16px;
 }
 
-.faq-contact__icon {
-  font-size: 2rem;
-  color: var(--ui-color-primary);
-}
-
-.faq-contact__text {
+.faq__help-title {
   margin: 0;
-  font-size: 1rem;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 700;
+  color: var(--ui-color-text-primary);
+}
+
+.faq__help-text {
+  margin: 0 0 8px;
+  font-size: 15px;
+  line-height: 22px;
   color: var(--ui-color-text-secondary);
 }
 
-.faq-contact__link {
-  font-size: 1rem;
+.faq__help-cta {
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: var(--ui-color-primary-strong);
+  color: var(--ui-color-on-primary);
+  font-size: 15px;
+  line-height: 22px;
   font-weight: 600;
-  color: var(--ui-color-primary-strong);
   text-decoration: none;
 
-  &:hover {
-    text-decoration: underline;
+  .pi {
+    font-size: 18px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: var(--ui-color-primary-strong-hover);
   }
 
   &:focus-visible {
     outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
-    border-radius: 2px;
+  }
+}
+
+/* ---- Desktop ---- */
+@media (min-width: 1100px) {
+  .faq {
+    grid-template-columns: 360px minmax(0, 1fr);
+    column-gap: 64px;
+    align-items: start;
+    padding-top: 40px;
+    padding-bottom: 80px;
+  }
+
+  .faq__side {
+    position: sticky;
+    /* Desktop `app-header` is `position: sticky` and measures 61px at 1440 wide
+       (--ui-header-height is 3.5rem = 56px, which does not match), so the
+       measured value is used. */
+    top: calc(61px + 24px);
+  }
+
+  .faq__groups {
+    gap: 40px;
+    max-width: 820px;
+  }
+
+  .faq__group-heading {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: -0.02em;
+  }
+
+  .faq-accordion {
+    gap: 12px;
+  }
+
+  .faq__help {
+    margin-top: 0;
+    padding: 24px;
+  }
+
+  .faq__help-cta {
+    align-self: flex-start;
+  }
+}
+
+/* Desktop columns: groups come first in the DOM; the grid puts the card left. */
+@media (min-width: 1100px) {
+  .faq__groups {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .faq__side {
+    grid-column: 1;
+    grid-row: 1;
+  }
+}
+
+@media (min-width: 901px) {
+  .faq-hero__title {
+    font-size: 44px;
+    line-height: 52px;
+    letter-spacing: -0.03em;
+  }
+}
+
+@media (max-width: 900px) {
+  .faq-hero {
+    padding: 56px 0 48px;
+  }
+
+  .faq-hero__body {
+    padding-inline: 24px;
+  }
+}
+
+@media (max-width: 560px) {
+  .faq-hero__badge {
+    width: 56px;
+    height: 56px;
   }
 }

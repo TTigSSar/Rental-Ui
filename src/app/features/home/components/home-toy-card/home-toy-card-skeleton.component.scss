@@ -1,0 +1,118 @@
+/* Mirrors `.tcard` in home-toy-card.component.scss (same box, ratio, slots). */
+:host {
+  display: block;
+}
+
+.sk {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-card);
+  overflow: hidden;
+}
+
+.bar {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  background: #edeae3; /* design skeleton fill; no token */
+  border-radius: 8px;
+}
+
+.bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.6),
+    rgba(255, 255, 255, 0)
+  );
+  animation: sk-shimmer 1.4s infinite;
+}
+
+@keyframes sk-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar::after {
+    animation: none;
+  }
+}
+
+.sk__media {
+  flex: none;
+  aspect-ratio: 1 / 0.86;
+  border-radius: 0;
+}
+
+.sk__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 10px;
+}
+
+.sk__title {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  height: 36px;
+}
+
+.sk__line {
+  height: 18px;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.sk__line + .sk__line {
+  margin-top: 2px;
+}
+
+.sk__price {
+  display: flex;
+  align-items: center;
+  min-height: 22px;
+  margin-top: 6px;
+}
+
+.sk__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 24px;
+  margin-top: 6px;
+}
+
+.sk__chip {
+  width: 84px;
+  height: 24px;
+  border-radius: var(--ui-radius-pill);
+}
+
+.sk__view {
+  display: none;
+  width: 84px;
+  height: 32px;
+  border-radius: var(--ui-radius-pill);
+}
+
+@media (min-width: 1024px) {
+  .sk__media {
+    aspect-ratio: 1 / 0.83;
+  }
+
+  .sk__view {
+    display: block;
+  }
+}

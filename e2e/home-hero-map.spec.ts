@@ -395,9 +395,9 @@ test.describe('Home hero map — licence chrome stays visible', () => {
     await assertNoOverlap();
 
     // Mobile (390x844, <1024px — the same width frontend-dev measured; the
-    // full-width, 196px-tall panel).
+    // full-width, 220px-tall panel).
     await page.setViewportSize({ width: 390, height: 844 });
-    await expect(page.locator('.hero-map')).toHaveCSS('height', '196px');
+    await expect(page.locator('.hero-map')).toHaveCSS('height', '220px');
     await assertNoOverlap();
   });
 });

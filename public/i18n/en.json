@@ -145,8 +145,7 @@
     "search": {
       "placeholder": "Search toys, brands…",
       "ariaLabel": "Search toys",
-      "submit": "Search",
-      "filterAria": "Filter toys"
+      "submit": "Search"
     },
     "categoriesLabel": "Toy Categories",
     "topProductsLabel": "Popular Toys",
@@ -193,6 +192,7 @@
       }
     },
     "process": {
+      "title": "How it works",
       "modes": {
         "renting": "Renting a toy",
         "lending": "Listing a toy"
@@ -247,39 +247,6 @@
         "step6": {
           "title": "Repeat",
           "text": "List more toys your child has outgrown and keep them in use."
-        }
-      }
-    },
-    "faq": {
-      "title": "FAQ's",
-      "helpTitle": "Still have questions?",
-      "helpText": "Send us an email and we’ll get back to you as soon as possible.",
-      "helpCta": "Send us an email",
-      "helpEmail": "support@dorent.am",
-      "items": {
-        "q1": {
-          "question": "How does renting a toy work?",
-          "answer": "Find a toy your child will love, pick rental dates, send a request, and meet the owner to pick it up. Return it clean and on time."
-        },
-        "q2": {
-          "question": "Is it safe to rent toys from other families?",
-          "answer": "Owners share photos, condition, and hygiene notes. Every booking goes through the owner so you always know who you are renting from."
-        },
-        "q3": {
-          "question": "How are toys cleaned between rentals?",
-          "answer": "Owners describe how each toy is cleaned in the listing. Every listing also sets a loss & damage compensation amount — what the renter would owe the owner for damage or excessive wear."
-        },
-        "q4": {
-          "question": "What if my child loses a part of the toy?",
-          "answer": "Report it to the owner as soon as possible. The listing's loss & damage compensation amount is the most the owner can ask you for — agree the details directly with them."
-        },
-        "q5": {
-          "question": "Can I cancel a rental?",
-          "answer": "You can cancel a pending rental request at any time. Once approved, cancellation depends on the owner’s policy."
-        },
-        "q6": {
-          "question": "What do I need to list a toy?",
-          "answer": "Create an account, add at least one clear photo, choose a toy category, add a description and a daily price. You'll also add an optional age range and set a loss & damage compensation amount — what the renter would owe you if the toy is lost, seriously damaged or not returned."
         }
       }
     },
@@ -2934,9 +2901,13 @@
     },
     "faq": {
       "pageTitle": "FAQ",
-      "heroTitle": "Frequently Asked Questions",
+      "title": "Frequently asked questions",
       "heroLead": "Find answers to the most common questions about renting and listing toys.",
-      "contactText": "Still have a question? We're happy to help.",
+      "breadcrumbHome": "Home",
+      "breadcrumbLabel": "Breadcrumb",
+      "helpTitle": "Still have questions?",
+      "helpText": "Write to us and we'll reply as soon as we can.",
+      "helpCta": "Write to us",
       "groups": {
         "renting": {
           "heading": "Renting a Toy"

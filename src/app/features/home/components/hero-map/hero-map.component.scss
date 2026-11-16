@@ -1,29 +1,99 @@
-// Panel chrome (Home hero design): 20px desktop / 16px mobile radius,
+// Panel chrome (Home Redesign Stage 1 `.mapp`): 20px radius at every width,
 // overflow:hidden so app-map's own (differently-radiused) inner surface
-// never peeks past this frame's corners, a hairline border, and a soft
-// downward shadow that separates the panel from the hero's own background.
+// never peeks past this frame's corners, a hairline border, and the shared
+// card shadow that separates the panel from the hero's own background.
 .hero-map {
   position: relative;
   width: 100%;
   border-radius: var(--ui-radius-lg);
   overflow: hidden;
   border: 1px solid var(--ui-color-border);
-  box-shadow: 0 14px 34px -16px rgba(20, 15, 5, 0.32);
+  box-shadow: var(--ui-shadow-card);
 }
 
 // Overrides the JS-bound desktop height (`[style.height]`, `height` input,
-// default 330px) at the same breakpoint `home-page.component.scss` switches
+// default 360px) at the same breakpoint `home-page.component.scss` switches
 // the hero row from a row back to a stacked column — see that file's
 // `.home__hero-row`. A plain class-level `height` rule here would lose to
 // the inline style regardless of media-query source order, so this is the
 // one deliberate, contained override point for the mobile figure the design
-// specifies (196px) instead of threading a second breakpoint-aware input
+// specifies (354 × 220) instead of threading a second breakpoint-aware input
 // through the caller.
 @media (max-width: 1023px) {
   .hero-map {
-    height: 196px !important;
-    border-radius: var(--ui-radius-card);
+    height: 220px !important;
   }
+}
+
+// ── Stage 1 chrome for the shared map's own controls, scoped to this panel ──
+// `app-map` is `ViewEncapsulation.None` and shared with other screens, so the
+// Stage 1 look is applied here through `::ng-deep` and never in
+// `map.component.scss`.
+//
+// Zoom stack (`.mzoom`): white, 14px radius, the design's 2/8 shadow.
+.hero-map ::ng-deep .app-map__zoom-stack {
+  border-radius: var(--ui-radius-md);
+  box-shadow: 0 2px 8px rgba(20, 15, 5, 0.16);
+}
+
+.hero-map ::ng-deep .app-map__zoom-stack .app-map__zoom-btn {
+  background: var(--ui-color-surface);
+  backdrop-filter: none;
+}
+
+// ── Touch-locked state (`.app-map__gate` exists only while locked) ──
+// Same overlay and activation mechanism as ever (ADR-015 / `scrollGate`):
+// the gate is still the whole-panel tap target that blocks the controls
+// beneath it; only its look changes, to the design's `MapPanel locked`:
+//  * a LIGHT scrim, rgba(250,248,244,.42) (page background tint);
+//  * a dark hint pill, bottom-centre, instead of the centred white card;
+//  * the zoom stack visibly inactive (translucent, grey glyphs);
+//  * the count pill/chip lifted above the scrim, as the design draws it
+//    (pins stay under it — Leaflet's pane stacking can't be split).
+.hero-map ::ng-deep .app-map__gate {
+  background: rgba(250, 248, 244, 0.42);
+  backdrop-filter: none;
+  place-items: end center;
+}
+
+.hero-map ::ng-deep .app-map__gate-card {
+  margin-bottom: 32px;
+  max-width: calc(100% - 32px);
+  min-height: 44px;
+  padding: 10px 18px;
+  background: rgba(26, 27, 38, 0.88);
+  color: #fff;
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.hero-map__hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  .pi {
+    font-size: 18px;
+  }
+}
+
+.hero-map ::ng-deep .app-map:has(.app-map__gate) .app-map__zoom-stack {
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: none;
+  border: 1px solid var(--ui-color-border);
+}
+
+.hero-map ::ng-deep .app-map:has(.app-map__gate) .app-map__zoom-btn {
+  background: transparent;
+  color: #9a99a4; // design's inactive glyph colour; no token matches
+  cursor: default;
+}
+
+.hero-map ::ng-deep .app-map:has(.app-map__gate) .app-map__overlay {
+  z-index: 1006;
 }
 
 // Top-left, NOT bottom-left: `app-map` reserves the bottom-left corner for
@@ -36,20 +106,24 @@
 // Top-left is genuinely free instead: the zoom stack only renders top-RIGHT,
 // and only when `interactive` — this map is always frozen, so it never
 // renders at all.
+// Stage 1 `.mpill`: 36px min height, 13/18 w700, white, 2/8 shadow, 8px
+// orange dot; `max-width` keeps clear of the 44px zoom stack + its 12px inset.
 .hero-map__pill {
   position: absolute;
   left: var(--ui-space-12);
   top: var(--ui-space-12);
   display: inline-flex;
   align-items: center;
-  gap: var(--ui-space-6);
-  padding: 8px 13px;
+  gap: var(--ui-space-8);
+  min-height: 36px;
+  max-width: calc(100% - 84px);
+  padding: 6px 14px;
   border-radius: var(--ui-radius-pill);
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 3px 10px -3px rgba(20, 15, 5, 0.28);
-  backdrop-filter: blur(4px);
-  font-size: 12.5px;
-  font-weight: 800;
+  background: var(--ui-color-surface);
+  box-shadow: 0 2px 8px rgba(20, 15, 5, 0.16);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 18px;
   white-space: nowrap;
   color: var(--ui-color-text-primary);
 }
@@ -141,6 +215,5 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--ui-color-success);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ui-color-success) 20%, transparent);
+  background: var(--ui-color-primary);
 }

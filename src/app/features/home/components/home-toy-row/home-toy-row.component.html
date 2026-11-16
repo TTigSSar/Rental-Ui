@@ -1,0 +1,40 @@
+<div class="row">
+  <div #track class="row__track" role="list" (scroll)="updateArrows()">
+    @if (loading()) {
+      @for (i of skeletonItems; track i) {
+        <app-home-toy-card-skeleton class="row__item" role="listitem" [class.row__item--extra]="i >= 3" />
+      }
+    } @else {
+      @for (item of items(); track item.id) {
+        <app-home-toy-card
+          class="row__item"
+          role="listitem"
+          [listing]="item"
+          [isOwner]="ownIds().has(item.id)"
+          (favoriteToggled)="favoriteToggled.emit($event)"
+        />
+      }
+    }
+  </div>
+
+  @if (!loading()) {
+    <button
+      type="button"
+      class="row__arrow row__arrow--prev"
+      [attr.aria-label]="'home.featured.prevLabel' | translate"
+      [attr.aria-disabled]="canScrollPrev() ? null : 'true'"
+      (click)="scrollPage(-1)"
+    >
+      <app-icon name="chevronL" [size]="20" />
+    </button>
+    <button
+      type="button"
+      class="row__arrow row__arrow--next"
+      [attr.aria-label]="'home.featured.nextLabel' | translate"
+      [attr.aria-disabled]="canScrollNext() ? null : 'true'"
+      (click)="scrollPage(1)"
+    >
+      <app-icon name="chevron" [size]="20" />
+    </button>
+  }
+</div>

@@ -1,18 +1,24 @@
-<div class="info-page">
+<header class="faq-hero">
+  <div class="page-container faq-hero__crumb-row">
+    <nav class="faq__crumbs" [attr.aria-label]="'info.faq.breadcrumbLabel' | translate">
+      <a class="faq__crumb-link" routerLink="/">{{ 'info.faq.breadcrumbHome' | translate }}</a>
+      <i class="pi pi-chevron-right faq__crumb-sep" aria-hidden="true"></i>
+      <span class="faq__crumb-current" aria-current="page">{{ 'info.faq.title' | translate }}</span>
+    </nav>
+  </div>
 
-  <!-- Hero -->
-  <header class="info-page__hero">
-    <span class="info-page__hero-icon" aria-hidden="true">
-      <i class="pi pi-question-circle"></i>
-    </span>
-    <h1 class="info-page__hero-title">{{ 'info.faq.heroTitle' | translate }}</h1>
-    <p class="info-page__hero-lead">{{ 'info.faq.heroLead' | translate }}</p>
-  </header>
+  <div class="faq-hero__body">
+    <span class="faq-hero__badge" aria-hidden="true"><i class="pi pi-comments"></i></span>
+    <h1 class="faq-hero__title">{{ 'info.faq.title' | translate }}</h1>
+    <p class="faq-hero__lead">{{ 'info.faq.heroLead' | translate }}</p>
+  </div>
+</header>
 
-  <div class="info-page__container">
+<div class="page-container faq">
+  <div class="faq__groups">
     @for (group of faqGroups; track group.id) {
-      <section class="info-page__section" [attr.aria-labelledby]="'faq-group-' + group.id">
-        <h2 [id]="'faq-group-' + group.id" class="info-page__section-heading">
+      <section class="faq__group" [attr.aria-labelledby]="'faq-group-' + group.id">
+        <h2 [id]="'faq-group-' + group.id" class="faq__group-heading">
           {{ group.headingKey | translate }}
         </h2>
 
@@ -31,18 +37,10 @@
                 (click)="toggle(item.id)"
               >
                 <span class="faq-accordion__question">{{ item.questionKey | translate }}</span>
-                <i
-                  class="faq-accordion__chevron pi"
-                  [class.pi-chevron-down]="expandedId() !== item.id"
-                  [class.pi-chevron-up]="expandedId() === item.id"
-                  aria-hidden="true"
-                ></i>
+                <i class="faq-accordion__chevron pi pi-chevron-down" aria-hidden="true"></i>
               </button>
               @if (expandedId() === item.id) {
-                <p
-                  class="faq-accordion__answer"
-                  [id]="'faq-panel-' + item.id"
-                >
+                <p class="faq-accordion__answer" [id]="'faq-panel-' + item.id">
                   {{ item.answerKey | translate }}
                 </p>
               }
@@ -51,14 +49,16 @@
         </div>
       </section>
     }
+  </div>
 
-    <!-- Contact nudge -->
-    <div class="faq-contact">
-      <i class="pi pi-envelope faq-contact__icon" aria-hidden="true"></i>
-      <p class="faq-contact__text">{{ 'info.faq.contactText' | translate }}</p>
-      <a class="faq-contact__link" href="mailto:support@dorent.am">
-        support@dorent.am
+  <aside class="faq__side">
+    <div class="faq__help">
+      <h2 class="faq__help-title">{{ 'info.faq.helpTitle' | translate }}</h2>
+      <p class="faq__help-text">{{ 'info.faq.helpText' | translate }}</p>
+      <a class="faq__help-cta" href="mailto:support@dorent.am">
+        <i class="pi pi-envelope" aria-hidden="true"></i>
+        {{ 'info.faq.helpCta' | translate }}
       </a>
     </div>
-  </div>
+  </aside>
 </div>

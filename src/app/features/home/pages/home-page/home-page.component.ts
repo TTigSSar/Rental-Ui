@@ -19,7 +19,6 @@ import { Observable, combineLatest, map, of, switchMap } from 'rxjs';
 
 import { EmptyStateComponent } from '../../../../shared/ui/empty-state/empty-state.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
-import { LoadingSkeletonComponent } from '../../../../shared/ui/loading-skeleton/loading-skeleton.component';
 import type { MapLatLng, MapMarkerGroup } from '../../../../shared/ui/map/map.component';
 import { AuthDialogComponent } from '../../../auth/components/auth-dialog/auth-dialog.component';
 import { selectIsAuthenticated } from '../../../auth/store/auth.selectors';
@@ -34,7 +33,6 @@ import {
   selectListingCategoriesError,
   selectListingCategoriesLoading,
 } from '../../../listings/store/listings.selectors';
-import { ListingCardComponent } from '../../../listings/components/listing-card/listing-card.component';
 import { MyListingsApiService } from '../../../my-listings/services/my-listings-api.service';
 import type { HomeSectionResponse } from '../../models/home-section.model';
 import { HomeNearbyActions, HomeSectionsActions } from '../../store/home.actions';
@@ -50,6 +48,7 @@ import {
   type HomeCategoryTileVm,
 } from '../../components/category-tile/category-tile.component';
 import { HomeHeroMapComponent } from '../../components/hero-map/hero-map.component';
+import { HomeToyRowComponent } from '../../components/home-toy-row/home-toy-row.component';
 import { SectionHeaderComponent } from '../../../../shared/ui/section-header/section-header.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import { HeaderSearchVisibilityService } from '../../../../shared/ui/app-header/header-search-visibility.service';
@@ -63,12 +62,6 @@ import {
 } from '../../../../shared/utils/category-palette.model';
 
 type ProcessMode = 'renting' | 'lending';
-
-interface HomeFaqEntry {
-  readonly id: string;
-  readonly questionKey: string;
-  readonly answerKey: string;
-}
 
 interface HomeProcessStep {
   readonly id: string;
@@ -225,7 +218,7 @@ const PROCESS_STEPS: readonly HomeProcessStep[] = [
   },
   {
     id: 'step5',
-    icon: 'pi pi-check-circle',
+    icon: 'pi pi-check',
     titleKeyRenting: 'home.process.renting.step5.title',
     descKeyRenting: 'home.process.renting.step5.text',
     titleKeyLending: 'home.process.lending.step5.title',
@@ -233,12 +226,21 @@ const PROCESS_STEPS: readonly HomeProcessStep[] = [
   },
   {
     id: 'step6',
-    icon: 'pi pi-star',
+    icon: 'pi pi-clock',
     titleKeyRenting: 'home.process.renting.step6.title',
     descKeyRenting: 'home.process.renting.step6.text',
     titleKeyLending: 'home.process.lending.step6.title',
     descKeyLending: 'home.process.lending.step6.text',
   },
+];
+
+/** Section keys the home API returns, in display order (ADR-041; titles via `home.sections.titles.<key>`). */
+const HOME_SECTION_KEYS: readonly string[] = [
+  'recent',
+  'popular',
+  'liked',
+  'baby-toys',
+  'outdoor-toys',
 ];
 
 /**
@@ -250,39 +252,6 @@ const HERO_SEARCH_ROOT_MARGIN = '-80px 0px 0px 0px';
 
 /** Matches the hero's own stack-to-row breakpoint (home-page.component.scss, 1024px). */
 const HERO_STACKED_QUERY = '(max-width: 1023.98px)';
-
-const FAQ_ENTRIES: readonly HomeFaqEntry[] = [
-  {
-    id: 'q1',
-    questionKey: 'home.faq.items.q1.question',
-    answerKey: 'home.faq.items.q1.answer',
-  },
-  {
-    id: 'q2',
-    questionKey: 'home.faq.items.q2.question',
-    answerKey: 'home.faq.items.q2.answer',
-  },
-  {
-    id: 'q3',
-    questionKey: 'home.faq.items.q3.question',
-    answerKey: 'home.faq.items.q3.answer',
-  },
-  {
-    id: 'q4',
-    questionKey: 'home.faq.items.q4.question',
-    answerKey: 'home.faq.items.q4.answer',
-  },
-  {
-    id: 'q5',
-    questionKey: 'home.faq.items.q5.question',
-    answerKey: 'home.faq.items.q5.answer',
-  },
-  {
-    id: 'q6',
-    questionKey: 'home.faq.items.q6.question',
-    answerKey: 'home.faq.items.q6.answer',
-  },
-];
 
 interface HomeSource {
   readonly categories: ListingCategoryOption[];
@@ -316,10 +285,9 @@ const selectHomeSource = createSelector(
     AuthDialogComponent,
     EmptyStateComponent,
     IconComponent,
-    ListingCardComponent,
-    LoadingSkeletonComponent,
     CategoryTileComponent,
     HomeHeroMapComponent,
+    HomeToyRowComponent,
     SectionHeaderComponent,
     UiInputComponent,
     LanguageSelectorComponent,
@@ -372,7 +340,9 @@ export class HomePageComponent implements OnInit {
   protected readonly canScrollNext = signal(true);
 
   protected readonly processSteps = PROCESS_STEPS;
-  protected readonly faqEntries = FAQ_ENTRIES;
+
+  /** The API's section keys (ADR-041), known up front so loading can show the real titles. */
+  protected readonly sectionKeys = HOME_SECTION_KEYS;
 
   protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
   protected readonly showAuthDialog = signal(false);
@@ -399,7 +369,6 @@ export class HomePageComponent implements OnInit {
   protected readonly headerSearchHidden = this.headerSearchVisibility.hidden;
 
   protected readonly processMode = signal<ProcessMode>('renting');
-  protected readonly expandedFaq = signal<string | null>('q1');
 
   protected readonly searchForm = this.fb.nonNullable.group({
     query: this.fb.nonNullable.control(''),
@@ -563,10 +532,6 @@ export class HomePageComponent implements OnInit {
     this.processMode.set(mode);
   }
 
-  protected toggleFaq(id: string): void {
-    this.expandedFaq.update((current) => (current === id ? null : id));
-  }
-
   protected retryCategories(): void {
     this.categoriesRetryPending = true;
     this.store.dispatch(ListingsActions.loadListingCategories());
@@ -664,10 +629,5 @@ export class HomePageComponent implements OnInit {
       left: Math.max(0, columns[target].left - gutter),
       behavior: reduced ? 'auto' : 'smooth',
     });
-  }
-
-  protected scrollCarousel(carousel: HTMLElement, direction: -1 | 1): void {
-    const amount = carousel.clientWidth * 0.8;
-    carousel.scrollBy({ left: direction * amount, behavior: 'smooth' });
   }
 }

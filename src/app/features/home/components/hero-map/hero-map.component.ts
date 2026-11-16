@@ -113,7 +113,7 @@ export class HomeHeroMapComponent {
    *  component's own button, below) is in flight — disables the button so a
    *  visitor can't double-dispatch the browser permission prompt. */
   readonly locating = input<boolean>(false);
-  readonly height = input<string>('330px');
+  readonly height = input<string>('360px');
   /**
    * The signed-in user's OWN home point (home-point model) — rendered as the
    * orange house marker and the switch into the two-line "Toys near your
