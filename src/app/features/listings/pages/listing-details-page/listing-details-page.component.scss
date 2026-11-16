@@ -184,9 +184,9 @@
 
 /* ── Hero: full-bleed below 1100px, contained mosaic at/above it ───────── */
 .detail-page__hero {
-  width: 100%;
-  margin-inline: calc(-1 * var(--ui-space-10));
-  width: calc(100% + var(--ui-space-10) * 2);
+  /* ADR-063: bleed to the viewport edges by exactly the page gutter. */
+  margin-inline: calc(-1 * var(--page-gutter));
+  width: calc(100% + 2 * var(--page-gutter));
 
   @media (min-width: 1100px) {
     margin-inline: 0;

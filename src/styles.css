@@ -263,30 +263,35 @@ p {
    vertical beat as the landing page instead of a fourth arbitrary one.
    `/notifications` opts out of the horizontal grid but tracks THIS gutter —
    keep the two in lockstep (see notifications-page.component.scss). */
+/* ADR-063: the horizontal gutter is defined once, as --page-gutter. Anything
+   that bleeds out of `.page-container` to the viewport edges must use
+   `margin-inline: calc(-1 * var(--page-gutter))` and
+   `width: calc(100% + 2 * var(--page-gutter))` — never a hard-coded token/px. */
 .page-container {
+  --page-gutter: 1rem;
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
-  padding-inline: 1rem;
+  padding-inline: var(--page-gutter);
   padding-top: var(--ui-space-32);
 }
 
 @media (max-width: 900px) {
   .page-container {
-    padding-inline: var(--ui-space-20);
+    --page-gutter: var(--ui-space-20);
   }
 }
 
 @media (max-width: 560px) {
   .page-container {
-    padding-inline: var(--ui-space-8);
+    --page-gutter: var(--ui-space-8);
     padding-top: var(--ui-space-16);
   }
 }
 
 @media (min-width: 1024px) {
   .page-container {
-    padding-inline: 70px;
+    --page-gutter: 70px;
   }
 }
 
