@@ -39,6 +39,7 @@ import { selectPhoneMissing } from '../../../auth/store/auth.selectors';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import type { MapLatLng } from '../../../../shared/ui/map/map.component';
 import { LanguageService } from '../../../../shared/services/language.service';
+import { categoryDisplayName } from '../../../../shared/utils/category-name.utils';
 import { DRAM_SYMBOL, DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import { isCompensationAmountSet } from '../../../../shared/utils/compensation-amount.utils';
 import type {
@@ -1090,7 +1091,8 @@ export class CreateListingFormComponent implements OnInit {
   // ── Helpers ───────────────────────────────────────────────────
   protected getCategoryName(): string {
     const id = this.createListingForm.controls.categoryId.value;
-    return this.categories.find((c) => c.id === id)?.name ?? id;
+    const category = this.categories.find((c) => c.id === id);
+    return category ? categoryDisplayName(category, this.languageService.current().code) : id;
   }
 
   /**

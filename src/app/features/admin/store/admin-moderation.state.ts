@@ -24,7 +24,12 @@ export interface AdminModerationRollbackEntry {
   readonly item: AdminListingSummary | null;
   readonly index: number;
   readonly counts: AdminListingQueueCounts;
-  readonly detailCategory: { categoryId: string; categoryName: string } | null;
+  readonly detailCategory: {
+    categoryId: string;
+    categoryName: string;
+    categoryNameHy: string;
+    categoryNameRu: string;
+  } | null;
 }
 
 export interface AdminModerationState {

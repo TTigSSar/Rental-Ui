@@ -39,7 +39,7 @@
       <span class="ai-empty__browse-label" id="ai-empty-browse-label">{{ 'listings.ai.browse' | translate }}</span>
       <div class="ai-empty__pills" role="group" aria-labelledby="ai-empty-browse-label">
         @for (cat of categories(); track cat.id) {
-          <button type="button" class="ai-empty__pill" (click)="categorySelected.emit(cat.id)">{{ cat.name }}</button>
+          <button type="button" class="ai-empty__pill" (click)="categorySelected.emit(cat.id)">{{ categoryLabel(cat) }}</button>
         }
       </div>
     </div>

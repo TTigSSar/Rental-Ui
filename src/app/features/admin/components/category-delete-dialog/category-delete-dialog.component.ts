@@ -14,8 +14,10 @@ import {
 } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { LanguageService } from '../../../../shared/services/language.service';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
-import type { AdminCategory } from '../../models/admin-category.model';
+import { categoryDisplayName } from '../../../../shared/utils/category-name.utils';
+import type { AdminCategory, AdminCategoryNames } from '../../models/admin-category.model';
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -46,6 +48,7 @@ const NEW_CATEGORY_OPTION = '__new__';
 export class CategoryDeleteDialogComponent implements OnInit, OnDestroy {
   private readonly host: ElementRef<HTMLElement> = inject(ElementRef);
   private previouslyFocused: HTMLElement | null = null;
+  private readonly language = inject(LanguageService);
 
   readonly categoryName = input.required<string>();
   readonly listingCount = input.required<number>();
@@ -57,10 +60,13 @@ export class CategoryDeleteDialogComponent implements OnInit, OnDestroy {
   readonly cancel = output<void>();
   readonly confirmSimple = output<void>();
   readonly confirmExisting = output<string>();
-  readonly confirmNew = output<string>();
+  /** Emits the three required names (English / Armenian / Russian) of the category to create. */
+  readonly confirmNew = output<AdminCategoryNames>();
 
   protected readonly reassignTarget = signal<string>('');
   protected readonly newCategoryName = signal<string>('');
+  protected readonly newCategoryNameHy = signal<string>('');
+  protected readonly newCategoryNameRu = signal<string>('');
   protected readonly newCategoryOption = NEW_CATEGORY_OPTION;
 
   protected readonly hasListings = computed(() => this.listingCount() > 0);
@@ -83,9 +89,16 @@ export class CategoryDeleteDialogComponent implements OnInit, OnDestroy {
     () => this.reassignTarget() === NEW_CATEGORY_OPTION,
   );
 
+  private readonly newNamesValid = computed(
+    () =>
+      this.newCategoryName().trim().length > 0 &&
+      this.newCategoryNameHy().trim().length > 0 &&
+      this.newCategoryNameRu().trim().length > 0,
+  );
+
   protected readonly deleteValid = computed(() => {
     if (!this.hasListings()) return true;
-    if (this.isNewCategorySelected()) return this.newCategoryName().trim().length > 0;
+    if (this.isNewCategorySelected()) return this.newNamesValid();
     return this.reassignTarget() !== '';
   });
 
@@ -111,6 +124,19 @@ export class CategoryDeleteDialogComponent implements OnInit, OnDestroy {
     this.newCategoryName.set((event.target as HTMLInputElement).value);
   }
 
+  protected onNewCategoryNameHyInput(event: Event): void {
+    this.newCategoryNameHy.set((event.target as HTMLInputElement).value);
+  }
+
+  protected onNewCategoryNameRuInput(event: Event): void {
+    this.newCategoryNameRu.set((event.target as HTMLInputElement).value);
+  }
+
+  /** Reassign-target option label in the current UI language (ADR-062). */
+  protected label(category: AdminCategory): string {
+    return categoryDisplayName(category, this.language.current().code);
+  }
+
   protected onBackdropClick(): void {
     if (!this.busy()) this.cancel.emit();
   }
@@ -122,7 +148,11 @@ export class CategoryDeleteDialogComponent implements OnInit, OnDestroy {
       return;
     }
     if (this.isNewCategorySelected()) {
-      this.confirmNew.emit(this.newCategoryName().trim());
+      this.confirmNew.emit({
+        name: this.newCategoryName().trim(),
+        nameHy: this.newCategoryNameHy().trim(),
+        nameRu: this.newCategoryNameRu().trim(),
+      });
       return;
     }
     this.confirmExisting.emit(this.reassignTarget());

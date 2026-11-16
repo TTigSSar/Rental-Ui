@@ -2064,6 +2064,10 @@
         "iconLabel": "Պատկերակ",
         "colorLabel": "Գույն",
         "namePlaceholder": "Կատեգորիայի անվանում, օր.՝ Երաժշտական գործիքներ",
+        "nameEn": "English",
+        "nameHy": "Հայերեն",
+        "nameRu": "Русский",
+        "nameRequired": "Այս դաշտը պարտադիր է։",
         "cancel": "Չեղարկել",
         "addCategory": "Ավելացնել կատեգորիա",
         "saveChanges": "Պահպանել փոփոխությունները"

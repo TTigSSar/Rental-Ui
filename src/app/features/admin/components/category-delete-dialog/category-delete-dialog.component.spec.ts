@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideMockStore } from '@ngrx/store/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 
 import { makeAdminCategory } from '../../../../../testing/fixtures';
@@ -12,6 +13,12 @@ describe('CategoryDeleteDialogComponent', () => {
     return fixture.nativeElement as HTMLElement;
   }
 
+  function type(input: HTMLInputElement, value: string): void {
+    input.value = value;
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+  }
+
   function confirmBtn(): HTMLButtonElement {
     return host().querySelector<HTMLButtonElement>('.category-delete-dialog__btn--confirm')!;
   }
@@ -19,7 +26,7 @@ describe('CategoryDeleteDialogComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CategoryDeleteDialogComponent],
-      providers: [provideTranslateService({ lang: 'en', fallbackLang: 'en' })],
+      providers: [provideTranslateService({ lang: 'en', fallbackLang: 'en' }), provideMockStore()],
     }).compileComponents();
 
     trigger = document.createElement('button');
@@ -99,17 +106,18 @@ describe('CategoryDeleteDialogComponent', () => {
 
       expect(confirmBtn().disabled).toBe(true);
 
-      const input = host().querySelector<HTMLInputElement>('.category-delete-dialog__input')!;
-      input.value = 'Brand New';
-      input.dispatchEvent(new Event('input'));
-      fixture.detectChanges();
-
+      type(host().querySelector<HTMLInputElement>('.category-delete-dialog__input:not(.category-delete-dialog__input--hy):not(.category-delete-dialog__input--ru)')!, 'Brand New');
+      // English alone is not enough: hy and ru are required too (ADR-062).
+      expect(confirmBtn().disabled).toBe(true);
+      type(host().querySelector<HTMLInputElement>('.category-delete-dialog__input--hy')!, 'Նոր');
+      expect(confirmBtn().disabled).toBe(true);
+      type(host().querySelector<HTMLInputElement>('.category-delete-dialog__input--ru')!, 'Новая');
       expect(confirmBtn().disabled).toBe(false);
 
-      const emitted: string[] = [];
-      fixture.componentInstance.confirmNew.subscribe((name) => emitted.push(name));
+      const emitted: unknown[] = [];
+      fixture.componentInstance.confirmNew.subscribe((names) => emitted.push(names));
       confirmBtn().click();
-      expect(emitted).toEqual(['Brand New']);
+      expect(emitted).toEqual([{ name: 'Brand New', nameHy: 'Նոր', nameRu: 'Новая' }]);
     });
 
     it('re-disables confirm if the new-category name is only whitespace', () => {

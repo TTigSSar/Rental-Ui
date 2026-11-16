@@ -40,7 +40,7 @@
               [checked]="activeCategoryId() === cat.id"
               (change)="selectCategoryFromSidebar(cat.id)"
             />
-            <span class="lp-sidebar__checkbox-name">{{ cat.name }}</span>
+            <span class="lp-sidebar__checkbox-name">{{ categoryLabel(cat) }}</span>
           </label>
         }
       </div>
@@ -392,7 +392,7 @@
                         class="lp-empty-search__cat-chip"
                         (click)="selectCategory(cat.id)"
                       >
-                        {{ cat.name }}
+                        {{ categoryLabel(cat) }}
                       </button>
                     }
                   </div>

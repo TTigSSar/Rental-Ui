@@ -16,7 +16,7 @@
     class="cs-trigger__text"
     [class.cs-trigger__text--placeholder]="!selectedCategory()"
   >
-    {{ selectedCategory()?.name ?? placeholder() }}
+    {{ selectedCategory() ? label(selectedCategory()!) : placeholder() }}
   </span>
   @if (selectedCategoryId()) {
     <span
@@ -63,7 +63,7 @@
         } @else {
           <span class="cs-option__spacer" aria-hidden="true"></span>
         }
-        <span class="cs-option__name">{{ cat.name }}</span>
+        <span class="cs-option__name">{{ label(cat) }}</span>
         @if (cat.listingCount != null) {
           <span class="cs-option__count">{{ cat.listingCount }}</span>
         }

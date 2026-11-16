@@ -49,6 +49,8 @@ describe('AdminCategoriesApiService', () => {
         {
           id: 'cat-1',
           name: 'Ride-ons',
+          nameHy: '',
+          nameRu: '',
           slug: 'ride-ons',
           iconName: 'car',
           colorHex: '#FFAA00',
@@ -88,6 +90,8 @@ describe('AdminCategoriesApiService', () => {
       expect(result?.items[0]).toEqual({
         id: 'cat-2',
         name: 'Board Games',
+        nameHy: '',
+        nameRu: '',
         slug: 'board-games',
         iconName: null,
         colorHex: null,
@@ -111,6 +115,8 @@ describe('AdminCategoriesApiService', () => {
         {
           id: 'cat-3',
           name: '',
+          nameHy: '',
+          nameRu: '',
           slug: '',
           iconName: null,
           colorHex: null,
@@ -146,6 +152,8 @@ describe('AdminCategoriesApiService', () => {
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual({
         name: 'Outdoor',
+        nameHy: 'Outdoor',
+        nameRu: 'Outdoor',
         iconName: 'tree',
         colorHex: '#00AA00',
       });

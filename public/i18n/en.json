@@ -2064,6 +2064,10 @@
         "iconLabel": "Icon",
         "colorLabel": "Color",
         "namePlaceholder": "Category name, e.g. Musical Instruments",
+        "nameEn": "English",
+        "nameHy": "Հայերեն",
+        "nameRu": "Русский",
+        "nameRequired": "This field is required.",
         "cancel": "Cancel",
         "addCategory": "Add category",
         "saveChanges": "Save changes"

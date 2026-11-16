@@ -115,6 +115,8 @@ describe('AdminListingsApiService', () => {
         ownerLastName: 'Grigoryan',
         categoryId: 'cat-1',
         categoryName: 'Ride-ons',
+        categoryNameHy: '',
+        categoryNameRu: '',
         title: 'Balance bike',
         description: 'A sturdy balance bike.',
         pricePerDay: 1500,
@@ -147,6 +149,8 @@ describe('AdminListingsApiService', () => {
         ownerJoinedAt: '2025-01-01T00:00:00Z',
         suggestedCategoryId: 'cat-2',
         suggestedCategoryName: 'Outdoor',
+        suggestedCategoryNameHy: null,
+        suggestedCategoryNameRu: null,
       });
     });
 

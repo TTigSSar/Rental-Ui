@@ -20,7 +20,10 @@ import { CategoryDeleteDialogComponent } from '../../components/category-delete-
 import { CategoryEditSheetComponent } from '../../components/category-edit-sheet/category-edit-sheet.component';
 import { CategoryFormPanelComponent } from '../../components/category-form-panel/category-form-panel.component';
 import { CategoryVisibilityToggleComponent } from '../../components/category-visibility-toggle/category-visibility-toggle.component';
-import type { AdminCategory } from '../../models/admin-category.model';
+import { LanguageService } from '../../../../shared/services/language.service';
+import { categoryDisplayName } from '../../../../shared/utils/category-name.utils';
+import type { AdminCategory, AdminCategoryNames } from '../../models/admin-category.model';
+import type { UpdateAdminCategoryRequest } from '../../models/admin-category.model';
 import {
   DEFAULT_CATEGORY_COLOR,
   DEFAULT_CATEGORY_ICON,
@@ -75,6 +78,7 @@ import { AdminBreakpointService } from '../../utils/admin-breakpoint.service';
 export class CategoriesPageComponent implements OnInit {
   private readonly store = inject(Store);
   private readonly translate = inject(TranslateService);
+  private readonly language = inject(LanguageService);
 
   private readonly breakpoint = inject(AdminBreakpointService);
   protected readonly isDesktop = this.breakpoint.isDesktop;
@@ -91,6 +95,11 @@ export class CategoriesPageComponent implements OnInit {
   protected readonly storeDeletingId = this.store.selectSignal(selectDeletingId);
   protected readonly deleteError = this.store.selectSignal(selectDeleteError);
   protected readonly isReordering = this.store.selectSignal(selectIsReordering);
+
+  /** Category name in the current UI language (ADR-062); reactive via the language signal. */
+  protected categoryLabel(category: AdminCategory): string {
+    return categoryDisplayName(category, this.language.current().code);
+  }
 
   protected readonly defaultIcon = DEFAULT_CATEGORY_ICON;
   protected readonly defaultColor = DEFAULT_CATEGORY_COLOR;
@@ -122,6 +131,9 @@ export class CategoriesPageComponent implements OnInit {
   // ── Create panel ──
   protected readonly adding = signal(false);
   protected readonly newName = signal('');
+  protected readonly newNameHy = signal('');
+  protected readonly newNameRu = signal('');
+  protected readonly createAttempted = signal(false);
   protected readonly newIcon = signal(DEFAULT_CATEGORY_ICON);
   protected readonly newColor = signal(DEFAULT_CATEGORY_COLOR);
   private readonly createSubmitted = signal(false);
@@ -135,6 +147,9 @@ export class CategoriesPageComponent implements OnInit {
   // ── Rename / restyle ──
   protected readonly editingId = signal<string | null>(null);
   protected readonly editName = signal('');
+  protected readonly editNameHy = signal('');
+  protected readonly editNameRu = signal('');
+  protected readonly editAttempted = signal(false);
   protected readonly editIcon = signal(DEFAULT_CATEGORY_ICON);
   protected readonly editColor = signal(DEFAULT_CATEGORY_COLOR);
   private readonly editSubmitted = signal(false);
@@ -225,6 +240,9 @@ export class CategoriesPageComponent implements OnInit {
     this.editingId.set(null);
     this.adding.set(true);
     this.newName.set('');
+    this.newNameHy.set('');
+    this.newNameRu.set('');
+    this.createAttempted.set(false);
     this.newIcon.set(DEFAULT_CATEGORY_ICON);
     this.newColor.set(DEFAULT_CATEGORY_COLOR);
     this.createSubmitted.set(false);
@@ -238,8 +256,13 @@ export class CategoriesPageComponent implements OnInit {
   }
 
   protected submitCreate(): void {
+    if (this.isCreating()) return;
     const name = this.newName().trim();
-    if (name.length === 0 || this.isCreating()) return;
+    const nameHy = this.newNameHy().trim();
+    const nameRu = this.newNameRu().trim();
+    // All three names are required (ADR-062): surface the per-field errors, do not dispatch.
+    this.createAttempted.set(true);
+    if (name.length === 0 || nameHy.length === 0 || nameRu.length === 0) return;
     this.createSubmitted.set(true);
     this.store.dispatch(
       AdminCategoriesActions.createCategory({
@@ -247,8 +270,7 @@ export class CategoriesPageComponent implements OnInit {
           typeof crypto !== 'undefined' && 'randomUUID' in crypto
             ? crypto.randomUUID()
             : `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        // TEMP shim (ADR-062): reuse the English name until frontend-dev adds hy/ru inputs.
-        request: { name, nameHy: name, nameRu: name, iconName: this.newIcon(), colorHex: this.newColor() },
+        request: { name, nameHy, nameRu, iconName: this.newIcon(), colorHex: this.newColor() },
       }),
     );
   }
@@ -258,6 +280,9 @@ export class CategoriesPageComponent implements OnInit {
     this.adding.set(false);
     this.editingId.set(category.id);
     this.editName.set(category.name);
+    this.editNameHy.set(category.nameHy);
+    this.editNameRu.set(category.nameRu);
+    this.editAttempted.set(false);
     this.editIcon.set(category.iconName ?? DEFAULT_CATEGORY_ICON);
     this.editColor.set(category.colorHex ?? DEFAULT_CATEGORY_COLOR);
     this.editSubmitted.set(false);
@@ -273,15 +298,21 @@ export class CategoriesPageComponent implements OnInit {
 
   protected confirmEdit(): void {
     const id = this.editingId();
+    if (id === null || this.categoryActionIds().includes(id)) return;
     const name = this.editName().trim();
-    if (id === null || name.length === 0 || this.categoryActionIds().includes(id)) return;
+    const nameHy = this.editNameHy().trim();
+    const nameRu = this.editNameRu().trim();
+    // All three names are required (ADR-062): surface the per-field errors, do not dispatch.
+    this.editAttempted.set(true);
+    if (name.length === 0 || nameHy.length === 0 || nameRu.length === 0) return;
+    const original = this.categories().find((c) => c.id === id);
+    // PATCH semantics: only the names that actually changed are sent.
+    const request: UpdateAdminCategoryRequest = { iconName: this.editIcon(), colorHex: this.editColor() };
+    if (name !== original?.name) request.name = name;
+    if (nameHy !== original?.nameHy) request.nameHy = nameHy;
+    if (nameRu !== original?.nameRu) request.nameRu = nameRu;
     this.editSubmitted.set(true);
-    this.store.dispatch(
-      AdminCategoriesActions.updateCategory({
-        id,
-        request: { name, iconName: this.editIcon(), colorHex: this.editColor() },
-      }),
-    );
+    this.store.dispatch(AdminCategoriesActions.updateCategory({ id, request }));
   }
 
   protected isEditBusy(id: string): boolean {
@@ -347,18 +378,24 @@ export class CategoriesPageComponent implements OnInit {
     );
   }
 
-  protected confirmDeleteNew(newName: string): void {
+  protected confirmDeleteNew(names: AdminCategoryNames): void {
     const category = this.deletingCategory();
-    if (category === null || newName.trim().length === 0) return;
+    if (
+      category === null ||
+      names.name.trim().length === 0 ||
+      names.nameHy.trim().length === 0 ||
+      names.nameRu.trim().length === 0
+    ) {
+      return;
+    }
     this.deleteSubmitted.set(true);
     this.store.dispatch(
       AdminCategoriesActions.deleteCategoryToNewCategory({
         id: category.id,
         newCategory: {
-          name: newName.trim(),
-          // TEMP shim (ADR-062): reuse the English name until frontend-dev adds hy/ru inputs.
-          nameHy: newName.trim(),
-          nameRu: newName.trim(),
+          name: names.name.trim(),
+          nameHy: names.nameHy.trim(),
+          nameRu: names.nameRu.trim(),
           iconName: DEFAULT_CATEGORY_ICON,
           colorHex: DEFAULT_CATEGORY_COLOR,
         },

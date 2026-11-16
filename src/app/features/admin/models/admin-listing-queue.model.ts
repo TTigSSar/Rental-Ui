@@ -143,3 +143,15 @@ export interface AdminListingQueueParams {
   page?: number;
   pageSize?: number;
 }
+
+/**
+ * A recategorisation picked in the admin UI. Carries all three localized names (ADR-062) so the
+ * optimistic patch keeps the label correct in every UI language; hy/ru default to '' (the
+ * display util then falls back to English).
+ */
+export interface AdminCategoryChange {
+  categoryId: string;
+  categoryName: string;
+  categoryNameHy?: string;
+  categoryNameRu?: string;
+}

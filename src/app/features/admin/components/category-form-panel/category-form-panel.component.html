@@ -3,21 +3,102 @@
     <span class="category-form-panel__tile" [style.background]="colorHex()" aria-hidden="true">
       <app-icon [name]="iconName()" [size]="20" />
     </span>
-    <input
-      type="text"
-      class="category-form-panel__name-input"
-      [class.category-form-panel__name-input--error]="nameErrorMessage() !== null"
-      [value]="name()"
-      [placeholder]="namePlaceholder()"
-      [disabled]="busy()"
-      [attr.autofocus]="autoFocusName() ? true : null"
-      (input)="onNameInput($event)"
-      (keydown)="onNameKeydown($event)"
-      [attr.aria-invalid]="nameErrorMessage() !== null"
-      [attr.aria-describedby]="
-        nameErrorMessage() !== null ? 'category-form-panel-name-error' : null
-      "
-    />
+    <div class="category-form-panel__names">
+      <div class="category-form-panel__name-field">
+        <label class="category-form-panel__field-label" for="category-form-panel-name-en">
+          {{ 'admin.categories.form.nameEn' | translate }}
+        </label>
+        <input
+          id="category-form-panel-name-en"
+          type="text"
+          class="category-form-panel__name-input"
+          [class.category-form-panel__name-input--error]="nameErrorMessage() !== null || enRequired()"
+          [value]="name()"
+          [placeholder]="namePlaceholder()"
+          [disabled]="busy()"
+          [attr.autofocus]="autoFocusName() ? true : null"
+          required
+          (input)="onNameInput($event)"
+          (blur)="markTouched('en')"
+          (keydown)="onNameKeydown($event)"
+          [attr.aria-invalid]="nameErrorMessage() !== null || enRequired()"
+          [attr.aria-describedby]="nameErrorMessage() !== null
+              ? 'category-form-panel-name-error'
+              : enRequired()
+                ? 'category-form-panel-name-en-required'
+                : null"
+        />
+        @if (enRequired()) {
+          <p
+            class="category-form-panel__name-error"
+            id="category-form-panel-name-en-required"
+            role="alert"
+          >
+            {{ 'admin.categories.form.nameRequired' | translate }}
+          </p>
+        }
+      </div>
+
+      <div class="category-form-panel__name-field">
+        <label class="category-form-panel__field-label" for="category-form-panel-name-hy">
+          {{ 'admin.categories.form.nameHy' | translate }}
+        </label>
+        <input
+          id="category-form-panel-name-hy"
+          type="text"
+          lang="hy"
+          class="category-form-panel__name-input"
+          [class.category-form-panel__name-input--error]="hyRequired()"
+          [value]="nameHy()"
+          [disabled]="busy()"
+          required
+          (input)="onNameHyInput($event)"
+          (blur)="markTouched('hy')"
+          (keydown)="onNameKeydown($event)"
+          [attr.aria-invalid]="hyRequired()"
+          [attr.aria-describedby]="hyRequired() ? 'category-form-panel-name-hy-required' : null"
+        />
+        @if (hyRequired()) {
+          <p
+            class="category-form-panel__name-error"
+            id="category-form-panel-name-hy-required"
+            role="alert"
+          >
+            {{ 'admin.categories.form.nameRequired' | translate }}
+          </p>
+        }
+      </div>
+
+      <div class="category-form-panel__name-field">
+        <label class="category-form-panel__field-label" for="category-form-panel-name-ru">
+          {{ 'admin.categories.form.nameRu' | translate }}
+        </label>
+        <input
+          id="category-form-panel-name-ru"
+          type="text"
+          lang="ru"
+          class="category-form-panel__name-input"
+          [class.category-form-panel__name-input--error]="ruRequired()"
+          [value]="nameRu()"
+          [disabled]="busy()"
+          required
+          (input)="onNameRuInput($event)"
+          (blur)="markTouched('ru')"
+          (keydown)="onNameKeydown($event)"
+          [attr.aria-invalid]="ruRequired()"
+          [attr.aria-describedby]="ruRequired() ? 'category-form-panel-name-ru-required' : null"
+        />
+        @if (ruRequired()) {
+          <p
+            class="category-form-panel__name-error"
+            id="category-form-panel-name-ru-required"
+            role="alert"
+          >
+            {{ 'admin.categories.form.nameRequired' | translate }}
+          </p>
+        }
+      </div>
+    </div>
   </div>
 
   @if (nameErrorMessage(); as message) {

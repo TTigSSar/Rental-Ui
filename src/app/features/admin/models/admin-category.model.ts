@@ -95,3 +95,10 @@ export interface UpdateAdminCategoryVisibilityRequest {
 export interface ReorderAdminCategoriesRequest {
   orderedIds: string[];
 }
+
+/** The three required category names (ADR-062): English (`name`), Armenian, Russian. */
+export interface AdminCategoryNames {
+  name: string;
+  nameHy: string;
+  nameRu: string;
+}

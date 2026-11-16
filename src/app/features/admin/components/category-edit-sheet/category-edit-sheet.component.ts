@@ -36,12 +36,17 @@ export class CategoryEditSheetComponent implements OnInit, OnDestroy {
   private previouslyFocused: HTMLElement | null = null;
 
   readonly name = input<string>('');
+  readonly nameHy = input<string>('');
+  readonly nameRu = input<string>('');
   readonly iconName = input<string>('');
   readonly colorHex = input<string>('');
   readonly busy = input<boolean>(false);
   readonly nameErrorMessage = input<string | null>(null);
+  readonly submitAttempted = input<boolean>(false);
 
   readonly nameChange = output<string>();
+  readonly nameHyChange = output<string>();
+  readonly nameRuChange = output<string>();
   readonly iconChange = output<string>();
   readonly colorChange = output<string>();
   readonly cancel = output<void>();

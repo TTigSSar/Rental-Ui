@@ -74,8 +74,8 @@
         <a class="booking-details__toy-title" [routerLink]="['/listings', d.listingId]">{{
           d.listingTitle
         }}</a>
-        @if (d.categoryName) {
-          <span class="booking-details__muted">{{ d.categoryName }}</span>
+        @if (categoryLabel()) {
+          <span class="booking-details__muted">{{ categoryLabel() }}</span>
         }
         @if (d.condition) {
           <span class="booking-details__muted"

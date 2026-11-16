@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { makeAdminListingSummary } from '../../../../../testing/fixtures';
@@ -15,7 +16,7 @@ describe('ReviewCardComponent', () => {
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [ReviewCardComponent, TranslateModule.forRoot()],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideMockStore()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ReviewCardComponent);

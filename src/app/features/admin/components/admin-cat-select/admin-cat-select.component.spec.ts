@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideMockStore } from '@ngrx/store/testing';
 import { provideTranslateService } from '@ngx-translate/core';
 
 import type { ListingCategoryOption } from '../../../listings/models/create-listing.model';
@@ -23,7 +24,7 @@ describe('AdminCatSelectComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AdminCatSelectComponent],
-      providers: [provideTranslateService({ lang: 'en', fallbackLang: 'en' })],
+      providers: [provideTranslateService({ lang: 'en', fallbackLang: 'en' }), provideMockStore()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AdminCatSelectComponent);
@@ -65,11 +66,11 @@ describe('AdminCatSelectComponent', () => {
     setInputs({
       categories: [
         makeCategory({ id: 'c1', name: 'Ride-ons' }),
-        makeCategory({ id: 'c2', name: 'Plush' }),
+        makeCategory({ id: 'c2', name: 'Plush', nameHy: 'Փափուկ', nameRu: 'Мягкие' }),
       ],
       value: 'c1',
     });
-    const emitted: { categoryId: string; categoryName: string }[] = [];
+    const emitted: unknown[] = [];
     fixture.componentInstance.valueChange.subscribe((v) => emitted.push(v));
 
     host().querySelector<HTMLButtonElement>('.admin-cat-select__trigger')?.click();
@@ -78,7 +79,9 @@ describe('AdminCatSelectComponent', () => {
     options[1].click();
     fixture.detectChanges();
 
-    expect(emitted).toEqual([{ categoryId: 'c2', categoryName: 'Plush' }]);
+    expect(emitted).toEqual([
+      { categoryId: 'c2', categoryName: 'Plush', categoryNameHy: 'Փափուկ', categoryNameRu: 'Мягкие' },
+    ]);
     expect(host().querySelector('.admin-cat-select__panel')).toBeNull();
   });
 

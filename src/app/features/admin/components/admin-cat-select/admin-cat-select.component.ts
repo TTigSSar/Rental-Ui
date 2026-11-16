@@ -13,6 +13,9 @@ import {
 import { TranslatePipe } from '@ngx-translate/core';
 
 import type { ListingCategoryOption } from '../../../listings/models/create-listing.model';
+import { LanguageService } from '../../../../shared/services/language.service';
+import { categoryDisplayName } from '../../../../shared/utils/category-name.utils';
+import type { AdminCategoryChange } from '../../models/admin-listing-queue.model';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 
 /**
@@ -32,6 +35,7 @@ import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 })
 export class AdminCatSelectComponent {
   private readonly host: ElementRef<HTMLElement> = inject(ElementRef);
+  private readonly language = inject(LanguageService);
 
   @ViewChild('trigger') private readonly triggerRef?: ElementRef<HTMLButtonElement>;
 
@@ -43,7 +47,7 @@ export class AdminCatSelectComponent {
    *  trigger to match the design's flagged `AdminCatSelect` state. */
   readonly flagged = input<boolean>(false);
 
-  readonly valueChange = output<{ categoryId: string; categoryName: string }>();
+  readonly valueChange = output<AdminCategoryChange>();
 
   protected readonly isOpen = signal(false);
 
@@ -53,6 +57,11 @@ export class AdminCatSelectComponent {
     return this.categories().find((c) => c.id === id) ?? null;
   });
 
+  /** Category name in the current UI language (ADR-062). */
+  protected label(category: ListingCategoryOption): string {
+    return categoryDisplayName(category, this.language.current().code);
+  }
+
   protected toggle(): void {
     if (this.disabled()) return;
     this.isOpen.update((open) => !open);
@@ -61,7 +70,12 @@ export class AdminCatSelectComponent {
   protected select(category: ListingCategoryOption): void {
     this.closePanel();
     if (category.id === this.value()) return;
-    this.valueChange.emit({ categoryId: category.id, categoryName: category.name });
+    this.valueChange.emit({
+      categoryId: category.id,
+      categoryName: category.name,
+      categoryNameHy: category.nameHy,
+      categoryNameRu: category.nameRu,
+    });
   }
 
   protected close(): void {

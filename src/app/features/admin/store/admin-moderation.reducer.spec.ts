@@ -162,6 +162,25 @@ describe('adminModerationReducer', () => {
   });
 
   describe('recategorise (optimistic)', () => {
+    it('stores all three localized names so the label stays correct in every language', () => {
+      const start = stateWith({
+        items: [makeAdminListingSummary({ id: 'p1', categoryId: 'old', categoryName: 'Old' })],
+      });
+      const next = adminModerationReducer(
+        start,
+        AdminModerationActions.updateListingCategory({
+          listingId: 'p1',
+          categoryId: 'new',
+          categoryName: 'New',
+          categoryNameHy: 'Նոր',
+          categoryNameRu: 'Новая',
+        }),
+      );
+      expect(next.items[0]).toEqual(
+        expect.objectContaining({ categoryName: 'New', categoryNameHy: 'Նոր', categoryNameRu: 'Новая' }),
+      );
+    });
+
     it('patches the item and the loaded detail, without touching counts', () => {
       const start = stateWith({
         items: [makeAdminListingSummary({ id: 'p1', categoryId: 'old', categoryName: 'Old' })],

@@ -5,6 +5,8 @@ import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule, TranslateService, type TranslationObject } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
+import { LanguageService } from '../../../../shared/services/language.service';
+import type { ListingCategoryOption } from '../../models/create-listing.model';
 import { ListingsApiService } from '../../services/listings-api.service';
 import * as ListingsActions from '../../store/listings.actions';
 import {
@@ -76,7 +78,7 @@ async function navigateToListings(
   // ignored, since `computed()` only re-runs when one of ITS OWN tracked
   // signals changes, and `translate.instant()` isn't one (same idiom as
   // `listing-details-page.component.spec.ts`'s `setTranslation` calls).
-  options?: { translations?: TranslationObject },
+  options?: { translations?: TranslationObject; categories?: ListingCategoryOption[] },
 ): Promise<{
   component: ListingsFiltersComponent & SheetAccess;
   router: Router;
@@ -88,7 +90,7 @@ async function navigateToListings(
       provideRouter([{ path: 'listings', component: ListingsFiltersComponent }]),
       provideMockStore({
         selectors: [
-          { selector: selectListingCategories, value: [] },
+          { selector: selectListingCategories, value: options?.categories ?? [] },
           { selector: selectListingsAi, value: initialListingsAiState },
           { selector: selectListingsOriginCoords, value: null },
           { selector: selectListingsOriginSource, value: null },
@@ -486,5 +488,45 @@ describe('ListingsFiltersComponent — simple search debounce vs AI switch (desi
     await vi.advanceTimersByTimeAsync(50);
 
     expect(router.url).not.toContain('maxPrice');
+  });
+});
+
+describe('ListingsFiltersComponent — category labels follow the UI language (ADR-062)', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  const CATEGORIES: ListingCategoryOption[] = [
+    {
+      id: 'c1',
+      name: 'Role play',
+      nameHy: 'Դերախաղեր',
+      nameRu: 'Сюжетно-ролевые игры',
+      slug: 'role-play',
+    },
+  ];
+
+  it('switches the category chip label and selector options live, without refetching', async () => {
+    const { component, store } = await navigateToListings('/listings?categoryId=c1', {
+      categories: CATEGORIES,
+    });
+    const language = TestBed.inject(LanguageService);
+    const chipLabel = () => component.activeChips().find((c) => c.key === 'categoryId')?.label;
+    const optionNames = () =>
+      (component as unknown as { categoryOptions(): { name: string }[] }).categoryOptions();
+
+    expect(chipLabel()).toBe('Role play');
+    vi.mocked(store.dispatch).mockClear();
+
+    language.current.set(language.languages.find((l) => l.code === 'hy')!);
+    expect(chipLabel()).toBe('Դերախաղեր');
+
+    language.current.set(language.languages.find((l) => l.code === 'ru')!);
+    expect(chipLabel()).toBe('Сюжетно-ролевые игры');
+
+    // The selector receives all three names and localizes itself.
+    expect(optionNames()[0]).toEqual(
+      expect.objectContaining({ nameHy: 'Դերախաղեր', nameRu: 'Сюжетно-ролевые игры' }),
+    );
+    expect(store.dispatch).not.toHaveBeenCalled();
   });
 });

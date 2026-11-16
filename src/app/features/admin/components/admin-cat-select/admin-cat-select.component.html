@@ -13,7 +13,7 @@
       <app-icon name="tag" [size]="12" />
     </span>
     <span class="admin-cat-select__name">{{
-      selectedCategory()?.name ?? ('admin.review.category.none' | translate)
+      selectedCategory() ? label(selectedCategory()!) : ('admin.review.category.none' | translate)
     }}</span>
     <app-icon name="chevronD" [size]="13" />
   </button>
@@ -36,7 +36,7 @@
           <span class="admin-cat-select__option-tile" aria-hidden="true">
             <app-icon name="tag" [size]="12" />
           </span>
-          <span class="admin-cat-select__option-name">{{ category.name }}</span>
+          <span class="admin-cat-select__option-name">{{ label(category) }}</span>
           @if (isSelected(category)) {
             <app-icon name="check" [size]="14" />
           }

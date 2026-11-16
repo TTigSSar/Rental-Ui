@@ -11,12 +11,17 @@
   <div class="category-edit-sheet__body">
     <app-category-form-panel
       [name]="name()"
+      [nameHy]="nameHy()"
+      [nameRu]="nameRu()"
+      [submitAttempted]="submitAttempted()"
       [iconName]="iconName()"
       [colorHex]="colorHex()"
       [busy]="busy()"
       [nameErrorMessage]="nameErrorMessage()"
       [namePlaceholder]="'admin.categories.form.namePlaceholder' | translate"
       (nameChange)="nameChange.emit($event)"
+      (nameHyChange)="nameHyChange.emit($event)"
+      (nameRuChange)="nameRuChange.emit($event)"
       (iconChange)="iconChange.emit($event)"
       (colorChange)="colorChange.emit($event)"
       (submitName)="confirm.emit()"
@@ -35,7 +40,7 @@
     <button
       type="button"
       class="category-edit-sheet__btn category-edit-sheet__btn--confirm"
-      [disabled]="busy() || name().trim().length === 0"
+      [disabled]="busy()"
       (click)="confirm.emit()"
     >
       @if (busy()) {

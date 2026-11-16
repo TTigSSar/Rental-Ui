@@ -21,6 +21,8 @@ import { ReportDialogComponent } from '../../../reports/components/report-dialog
 import { DeletedUserAvatarComponent, DeletedUserNameComponent } from '../../../../shared/ui/deleted-user';
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
+import { LanguageService } from '../../../../shared/services/language.service';
+import { categoryDisplayName } from '../../../../shared/utils/category-name.utils';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import { isCompensationAmountSet } from '../../../../shared/utils/compensation-amount.utils';
 import { selectAuthUser, selectIsAuthenticated } from '../../../auth/store/auth.selectors';
@@ -235,6 +237,7 @@ function resolveDeliveryTypes(listing: ListingDetails): DeliveryType[] {
 })
 export class ListingDetailsPageComponent {
   private readonly store = inject(Store);
+  private readonly languageService = inject(LanguageService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
@@ -407,7 +410,10 @@ export class ListingDetailsPageComponent {
   });
 
   // ── Breadcrumb ──────────────────────────────────────────────────────────
-  protected readonly categoryName = computed(() => this.displayListing()?.category?.name ?? null);
+  protected readonly categoryName = computed(() => {
+    const category = this.displayListing()?.category;
+    return category ? categoryDisplayName(category, this.languageService.current().code) || null : null;
+  });
 
   // ── Toy reviews (per-route) ─────────────────────────────────────────────
   private readonly toySummary = toSignal(

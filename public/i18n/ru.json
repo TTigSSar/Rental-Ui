@@ -2064,6 +2064,10 @@
         "iconLabel": "Иконка",
         "colorLabel": "Цвет",
         "namePlaceholder": "Название категории, например «Музыкальные инструменты»",
+        "nameEn": "English",
+        "nameHy": "Հայերեն",
+        "nameRu": "Русский",
+        "nameRequired": "Обязательное поле.",
         "cancel": "Отмена",
         "addCategory": "Добавить категорию",
         "saveChanges": "Сохранить изменения"

@@ -21,7 +21,10 @@ import {
 } from '../../components/admin-tabs/admin-tabs.component';
 import { RejectSheetComponent } from '../../components/reject-sheet/reject-sheet.component';
 import { ReviewCardComponent } from '../../components/review-card/review-card.component';
-import type { AdminListingQueueStatusFilter } from '../../models/admin-listing-queue.model';
+import type {
+  AdminCategoryChange,
+  AdminListingQueueStatusFilter,
+} from '../../models/admin-listing-queue.model';
 import * as AdminModerationActions from '../../store/admin-moderation.actions';
 import {
   selectQueueActionIds,
@@ -158,7 +161,7 @@ export class ReviewPageComponent implements OnInit {
 
   protected changeCategory(
     listingId: string,
-    change: { categoryId: string; categoryName: string },
+    change: AdminCategoryChange,
   ): void {
     this.store.dispatch(AdminModerationActions.updateListingCategory({ listingId, ...change }));
   }

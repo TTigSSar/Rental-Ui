@@ -5,11 +5,15 @@ import {
   HostListener,
   ViewChild,
   computed,
+  inject,
   input,
   output,
   signal,
 } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
+
+import { LanguageService } from '../../services/language.service';
+import { categoryDisplayName } from '../../utils/category-name.utils';
 
 export interface CategoryOption {
   id: string;
@@ -31,6 +35,8 @@ export interface CategoryOption {
 export class CategorySelectorComponent {
   @ViewChild('triggerRef') private readonly triggerRef!: ElementRef<HTMLButtonElement>;
 
+  private readonly language = inject(LanguageService);
+
   readonly categories = input.required<CategoryOption[]>();
   readonly selectedCategoryId = input<string | null>(null);
   readonly placeholder = input<string>('');
@@ -47,6 +53,11 @@ export class CategorySelectorComponent {
     if (!id) return null;
     return this.categories().find((c) => c.id === id) ?? null;
   });
+
+  /** Option label in the current UI language (ADR-062); reactive via the language signal. */
+  protected label(category: CategoryOption): string {
+    return categoryDisplayName(category, this.language.current().code);
+  }
 
   protected toggle(): void {
     this.isOpen() ? this.close() : this.open();

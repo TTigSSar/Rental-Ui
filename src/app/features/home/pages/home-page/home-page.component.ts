@@ -53,6 +53,8 @@ import { HomeHeroMapComponent } from '../../components/hero-map/hero-map.compone
 import { SectionHeaderComponent } from '../../../../shared/ui/section-header/section-header.component';
 import { UiInputComponent } from '../../../../shared/ui/input/ui-input.component';
 import { HeaderSearchVisibilityService } from '../../../../shared/ui/app-header/header-search-visibility.service';
+import { LanguageService } from '../../../../shared/services/language.service';
+import { categoryDisplayName } from '../../../../shared/utils/category-name.utils';
 import { LanguageSelectorComponent } from '../../../../shared/ui/language-selector/language-selector.component';
 import { DorentSymbolComponent } from '../../../../shared/ui/dorent-symbol/dorent-symbol.component';
 import {
@@ -334,6 +336,7 @@ export class HomePageComponent implements OnInit {
   private readonly myListingsApi = inject(MyListingsApiService);
   private readonly headerSearchVisibility = inject(HeaderSearchVisibilityService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly language = inject(LanguageService);
 
   private readonly heroSearchRef = viewChild<ElementRef<HTMLElement>>('heroSearch');
   private readonly categoryTrack = viewChild<ElementRef<HTMLElement>>('categoryTrack');
@@ -409,6 +412,7 @@ export class HomePageComponent implements OnInit {
     this.store.select(selectHomeSectionsError),
     this.store.select(selectFavoriteIds),
     this.store.select(selectHomeNearby),
+    toObservable(this.language.current),
   ]).pipe(
     map(
       ([
@@ -418,12 +422,13 @@ export class HomePageComponent implements OnInit {
         sectionsError,
         favoriteIds,
         nearby,
+        language,
       ]): HomePageViewModel => {
         const mappedCategories: HomeCategoryTileVm[] = source.categories.map(
           (category): HomeCategoryTileVm => ({
             id: category.id,
             slug: category.slug,
-            label: category.name,
+            label: categoryDisplayName(category, language.code),
             iconName: category.iconName || DEFAULT_CATEGORY_ICON,
             colorHex: category.colorHex || DEFAULT_CATEGORY_COLOR,
           }),

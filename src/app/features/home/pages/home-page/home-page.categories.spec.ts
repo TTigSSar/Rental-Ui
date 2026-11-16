@@ -27,6 +27,7 @@ import {
   DEFAULT_CATEGORY_COLOR,
   DEFAULT_CATEGORY_ICON,
 } from '../../../../shared/utils/category-palette.model';
+import { LanguageService } from '../../../../shared/services/language.service';
 import { HomePageComponent } from './home-page.component';
 
 /**
@@ -268,5 +269,42 @@ describe('HomePageComponent categories states', () => {
 
       expect(scrollTo).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('HomePageComponent category tile language (ADR-062)', () => {
+  const LOCALIZED: ListingCategoryOption = {
+    id: 'cat-1',
+    name: 'Role play',
+    nameHy: 'Խաղալիքներ փոքրիկների համար',
+    nameRu: 'Сюжетно-ролевые игры',
+    slug: 'role-play',
+    iconName: 'truck',
+    colorHex: '#D9E8FF',
+  };
+
+  function label(fixture: ReturnType<typeof createFixture>): string {
+    return (fixture.nativeElement as HTMLElement)
+      .querySelector('.category-tile__label')!
+      .textContent!.trim();
+  }
+
+  it('renders the hy/ru name and switches live with the language, without refetching', () => {
+    const fixture = createFixture([LOCALIZED]);
+    const language = TestBed.inject(LanguageService);
+    const dispatch = vi.spyOn(TestBed.inject(MockStore), 'dispatch');
+
+    language.current.set(language.languages.find((l) => l.code === 'hy')!);
+    fixture.detectChanges();
+    expect(label(fixture)).toBe('Խաղալիքներ փոքրիկների համար');
+
+    language.current.set(language.languages.find((l) => l.code === 'ru')!);
+    fixture.detectChanges();
+    expect(label(fixture)).toBe('Сюжетно-ролевые игры');
+
+    language.current.set(language.languages.find((l) => l.code === 'en')!);
+    fixture.detectChanges();
+    expect(label(fixture)).toBe('Role play');
+    expect(dispatch).not.toHaveBeenCalledWith(ListingsActions.loadListingCategories());
   });
 });
