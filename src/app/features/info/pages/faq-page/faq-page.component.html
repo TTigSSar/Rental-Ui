@@ -1,23 +1,20 @@
-<div class="page-container faq">
-  <aside class="faq__side">
+<header class="faq-hero">
+  <div class="page-container faq-hero__crumb-row">
     <nav class="faq__crumbs" [attr.aria-label]="'info.faq.breadcrumbLabel' | translate">
       <a class="faq__crumb-link" routerLink="/">{{ 'info.faq.breadcrumbHome' | translate }}</a>
       <i class="pi pi-chevron-right faq__crumb-sep" aria-hidden="true"></i>
       <span class="faq__crumb-current" aria-current="page">{{ 'info.faq.title' | translate }}</span>
     </nav>
+  </div>
 
-    <h1 class="faq__title">{{ 'info.faq.title' | translate }}</h1>
+  <div class="faq-hero__body">
+    <span class="faq-hero__badge" aria-hidden="true"><i class="pi pi-comments"></i></span>
+    <h1 class="faq-hero__title">{{ 'info.faq.title' | translate }}</h1>
+    <p class="faq-hero__lead">{{ 'info.faq.heroLead' | translate }}</p>
+  </div>
+</header>
 
-    <div class="faq__help">
-      <h2 class="faq__help-title">{{ 'info.faq.helpTitle' | translate }}</h2>
-      <p class="faq__help-text">{{ 'info.faq.helpText' | translate }}</p>
-      <a class="faq__help-cta" href="mailto:support@dorent.am">
-        <i class="pi pi-envelope" aria-hidden="true"></i>
-        {{ 'info.faq.helpCta' | translate }}
-      </a>
-    </div>
-  </aside>
-
+<div class="page-container faq">
   <div class="faq__groups">
     @for (group of faqGroups; track group.id) {
       <section class="faq__group" [attr.aria-labelledby]="'faq-group-' + group.id">
@@ -53,4 +50,15 @@
       </section>
     }
   </div>
+
+  <aside class="faq__side">
+    <div class="faq__help">
+      <h2 class="faq__help-title">{{ 'info.faq.helpTitle' | translate }}</h2>
+      <p class="faq__help-text">{{ 'info.faq.helpText' | translate }}</p>
+      <a class="faq__help-cta" href="mailto:support@dorent.am">
+        <i class="pi pi-envelope" aria-hidden="true"></i>
+        {{ 'info.faq.helpCta' | translate }}
+      </a>
+    </div>
+  </aside>
 </div>

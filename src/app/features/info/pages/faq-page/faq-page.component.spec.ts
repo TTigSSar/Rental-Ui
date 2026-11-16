@@ -32,6 +32,7 @@ function setup(): HTMLElement {
     info: {
       faq: {
         title: 'FAQ_TITLE',
+        heroLead: 'HERO_LEAD',
         breadcrumbHome: 'HOME',
         breadcrumbLabel: 'CRUMBS',
         helpTitle: 'HELP_TITLE',
@@ -55,6 +56,7 @@ describe('FaqPageComponent', () => {
     const el = setup();
 
     expect(el.querySelector('h1')?.textContent).toContain('FAQ_TITLE');
+    expect(el.querySelector('.faq-hero__lead')?.textContent).toContain('HERO_LEAD');
     const crumb = el.querySelector('nav a') as HTMLAnchorElement;
     expect(crumb.getAttribute('href')).toBe('/');
     expect(el.querySelector('nav')?.getAttribute('aria-label')).toBe('CRUMBS');
