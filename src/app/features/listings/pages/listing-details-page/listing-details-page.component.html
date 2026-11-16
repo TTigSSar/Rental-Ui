@@ -270,7 +270,7 @@
                   <h2 id="detail-specs-heading" class="detail-page__section-title">
                     {{ 'listings.details.toyDetails.heading' | translate }}
                   </h2>
-                  <div class="detail-page__specquad" [style.--specquad-cols]="specTiles().length">
+                  <div class="detail-page__specquad">
                     @for (tile of specTiles(); track tile.id) {
                       <div class="detail-page__specquad-cell">
                         <span class="detail-page__specquad-icon">

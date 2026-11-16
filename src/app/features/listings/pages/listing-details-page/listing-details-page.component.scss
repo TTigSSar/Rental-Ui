@@ -537,7 +537,7 @@
      empty cards and one long value doesn't inflate its siblings. */
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: stretch;
   gap: var(--ui-space-12);
 }
 
