@@ -145,8 +145,7 @@
     "search": {
       "placeholder": "Search toys, brands…",
       "ariaLabel": "Search toys",
-      "submit": "Search",
-      "filterAria": "Filter toys"
+      "submit": "Search"
     },
     "categoriesLabel": "Toy Categories",
     "topProductsLabel": "Popular Toys",

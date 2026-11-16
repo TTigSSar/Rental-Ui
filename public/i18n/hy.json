@@ -145,8 +145,7 @@
     "search": {
       "placeholder": "Փնտրել խաղալիքներ, ապրանքանիշեր…",
       "ariaLabel": "Փնտրել խաղալիքներ",
-      "submit": "Փնտրել",
-      "filterAria": "Ֆիլտրել"
+      "submit": "Փնտրել"
     },
     "categoriesLabel": "Խաղալիքների կատեգորիաներ",
     "topProductsLabel": "Հանրաճանաչ խաղալիքներ",

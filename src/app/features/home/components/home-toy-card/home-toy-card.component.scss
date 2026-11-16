@@ -263,7 +263,7 @@
   padding: 0 12px;
   border-radius: var(--ui-radius-pill);
   background: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary-strong); /* ADR-031: dark brand shade, 5.0:1 on #ffeedc */
+  color: var(--ui-color-primary-strong-hover); /* ADR-034 AA: #a83c00 is 5.59:1 on #ffeedc (rest), 5.08:1 on #ffe1c4 (hover) */
   font-size: 14px;
   font-weight: 600;
   line-height: 20px;

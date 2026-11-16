@@ -50,6 +50,14 @@ describe('HomeToyRowComponent', () => {
     expect(el.querySelector('app-home-toy-card-skeleton')).toBeNull();
   });
 
+  it('exposes the scroller as a list of listitems', () => {
+    const { el } = createRow({ items: ITEMS });
+
+    expect(el.querySelector('.row__track')!.getAttribute('role')).toBe('list');
+    const cards = Array.from(el.querySelectorAll('app-home-toy-card'));
+    expect(cards.every((c) => c.getAttribute('role') === 'listitem')).toBe(true);
+  });
+
   it('renders card-shaped skeletons, and no arrows, while loading', () => {
     const { el } = createRow({ loading: true });
 

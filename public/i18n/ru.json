@@ -145,8 +145,7 @@
     "search": {
       "placeholder": "Поиск игрушек, брендов…",
       "ariaLabel": "Поиск игрушек",
-      "submit": "Найти",
-      "filterAria": "Фильтры"
+      "submit": "Найти"
     },
     "categoriesLabel": "Категории игрушек",
     "topProductsLabel": "Популярные игрушки",

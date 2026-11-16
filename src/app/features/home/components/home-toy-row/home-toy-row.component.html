@@ -1,13 +1,14 @@
 <div class="row">
-  <div #track class="row__track" (scroll)="updateArrows()">
+  <div #track class="row__track" role="list" (scroll)="updateArrows()">
     @if (loading()) {
       @for (i of skeletonItems; track i) {
-        <app-home-toy-card-skeleton class="row__item" [class.row__item--extra]="i >= 3" />
+        <app-home-toy-card-skeleton class="row__item" role="listitem" [class.row__item--extra]="i >= 3" />
       }
     } @else {
       @for (item of items(); track item.id) {
         <app-home-toy-card
           class="row__item"
+          role="listitem"
           [listing]="item"
           [isOwner]="ownIds().has(item.id)"
           (favoriteToggled)="favoriteToggled.emit($event)"
