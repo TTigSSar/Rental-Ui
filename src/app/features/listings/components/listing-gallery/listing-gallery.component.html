@@ -1,4 +1,4 @@
-<div class="listing-gallery">
+<div class="listing-gallery" [class.listing-gallery--immersive]="immersive()">
   @if (totalCount() === 0) {
     <div class="listing-gallery__hero listing-gallery__hero--empty">
       <span class="pi pi-image listing-gallery__empty-icon" aria-hidden="true"></span>

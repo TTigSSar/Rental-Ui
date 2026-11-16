@@ -1,4 +1,4 @@
-import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
+import { DecimalPipe, Location, NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -235,9 +235,25 @@ export class ListingDetailsPageComponent {
   private readonly languageService = inject(LanguageService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly messageService = inject(MessageService);
   private readonly translate = inject(TranslateService);
   private readonly dramPipe = inject(DramCurrencyPipe);
+
+  /**
+   * Floating back button on the mobile hero. Angular stamps `navigationId` into
+   * `history.state`; it is 1 for the first navigation of the session, so > 1
+   * means the visitor arrived from inside the app and history-back is safe.
+   * A deep link / fresh tab has nothing to go back to — land on the browse page.
+   */
+  protected goBack(): void {
+    const state = this.location.getState() as { navigationId?: number } | null;
+    if ((state?.navigationId ?? 0) > 1) {
+      this.location.back();
+    } else {
+      void this.router.navigateByUrl('/listings');
+    }
+  }
 
   protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
   private readonly currentUser = this.store.selectSignal(selectAuthUser);
