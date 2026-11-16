@@ -403,7 +403,7 @@ describe('ListingDetailsPageComponent — details tiles, map rows & location lin
     const fixture = setup({ deliveryTypes: null, deliveryType: 'Pickup' });
     fixture.detectChanges();
 
-    expect(pickupRowValues(fixture)).toEqual(['Free · Meet at agreed spot']);
+    expect(pickupRowValues(fixture)[0]).toBe('Free · Meet at agreed spot');
   });
 
   it('shows a 1-day minimum rental row using the chip label', () => {
@@ -421,11 +421,20 @@ describe('ListingDetailsPageComponent — details tiles, map rows & location lin
     expect(pickupRowValues(fixture)).toContain('5 nights');
   });
 
-  it('has no minimum-rental row when minRentalDays is not set', () => {
+  it('defaults a missing minRentalDays to the 1-day row (wizard default)', () => {
     const fixture = setup({ minRentalDays: null, deliveryType: 'Pickup' });
     fixture.detectChanges();
 
-    expect(pickupRowLabels(fixture)).not.toContain('Minimum rental');
+    expect(pickupRowLabels(fixture)).toContain('Minimum rental');
+    expect(pickupRowValues(fixture)).toContain('1 day');
+  });
+
+  it('defaults missing delivery types to the Pickup row and always renders both rows', () => {
+    const fixture = setup({ deliveryTypes: null, deliveryType: null, minRentalDays: null });
+    fixture.detectChanges();
+
+    expect(pickupRowLabels(fixture)).toEqual(['Handover', 'Minimum rental']);
+    expect(pickupRowValues(fixture)).toEqual(['Free · Meet at agreed spot', '1 day']);
   });
 
   describe('location line', () => {
@@ -604,7 +613,6 @@ describe('ListingDetailsPageComponent — loss & damage compensation amount', ()
     ).toBe('Up to 45,000 ֏');
     expect(hasCompensationOutsideProtectionCard(fixture)).toBe(false);
     expect(text(fixture, '.detail-page__specquad-value')).toBeUndefined();
-    expect(text(fixture, '.detail-page__pickup-row-value')).toBeUndefined();
   });
 
   it.each([
@@ -623,7 +631,6 @@ describe('ListingDetailsPageComponent — loss & damage compensation amount', ()
       ).toBe('The owner has not set an amount for this toy.');
       expect(hasCompensationOutsideProtectionCard(fixture)).toBe(false);
       expect(text(fixture, '.detail-page__specquad-value')).toBeUndefined();
-      expect(text(fixture, '.detail-page__pickup-row-value')).toBeUndefined();
     },
   );
 });

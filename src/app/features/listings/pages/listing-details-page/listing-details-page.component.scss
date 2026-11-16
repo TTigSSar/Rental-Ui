@@ -440,10 +440,19 @@
   font-size: 14px;
   text-align: left;
   cursor: pointer;
+  /* Reads as a link at rest: brand text (primary-strong is AA-safe, ADR-034)
+     + persistent soft underline, stronger on hover. */
+  color: var(--ui-color-primary-strong);
+
+  span {
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+    text-underline-offset: 3px;
+  }
 
   &:hover span {
-    text-decoration: underline;
-    text-underline-offset: 3px;
+    text-decoration-color: currentColor;
+    text-decoration-thickness: 2px;
   }
 
   &:focus-visible {
@@ -524,29 +533,32 @@
 
 /* ── Details tiles: age / condition / hygiene — 1–3 cards in one row ───── */
 .detail-page__specquad {
-  display: grid;
-  /* Mobile: one card per row. From 640px the row is exactly as wide as the
-     tile count (1–3), so there are never empty columns. */
-  grid-template-columns: 1fr;
+  /* Compact content-width tiles in a wrapping row: short values don't float in
+     empty cards and one long value doesn't inflate its siblings. */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
   gap: var(--ui-space-12);
-
-  @media (min-width: 640px) {
-    grid-template-columns: repeat(var(--specquad-cols, 3), minmax(0, 1fr));
-  }
 }
 
 .detail-page__specquad-cell {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 18px 20px;
+  padding: 12px 14px;
   background: var(--ui-color-surface);
   border: 1px solid var(--ui-color-border);
   border-radius: var(--ui-radius-card);
-  min-width: 0;
+  /* Content-width, capped so a long hy/ru value wraps instead of stretching. */
+  flex: 0 1 auto;
+  min-width: 150px;
+  max-width: 300px;
 
-  @media (max-width: 1099px) {
-    padding: 12px;
+  @media (max-width: 639px) {
+    /* Two per row on mobile; a lone/odd tile stays content-width. */
+    flex: 1 1 calc(50% - var(--ui-space-12) / 2);
+    min-width: 0;
+    max-width: none;
   }
 }
 
@@ -555,16 +567,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--ui-radius-12);
   background: var(--ui-color-primary-soft);
   color: var(--ui-color-primary-strong);
-
-  @media (max-width: 1099px) {
-    width: 36px;
-    height: 36px;
-  }
 
   i {
     font-size: 1.05rem;

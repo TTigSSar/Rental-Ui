@@ -626,28 +626,31 @@ export class ListingDetailsPageComponent {
     if (!listing) return [];
     const rows: DetailRow[] = [];
 
-    const deliveryTypes = resolveDeliveryTypes(listing);
-    if (deliveryTypes.length > 0) {
-      const both = deliveryTypes.length >= 2;
-      rows.push({
-        id: 'handover',
-        icon: deliveryTypes.includes('Courier') ? 'pi pi-truck' : 'pi pi-map-marker',
-        labelKey: 'listings.details.handoverLabel',
-        valueKey: both ? 'listings.createForm.delivery.bothHint' : deliveryHintKey(deliveryTypes[0]),
-      });
-    }
-    if (typeof listing.minRentalDays === 'number' && listing.minRentalDays > 0) {
-      const chipKey = minRentalChipLabelKey(listing.minRentalDays);
-      rows.push({
-        id: 'minRental',
-        icon: 'pi pi-calendar',
-        labelKey: 'listings.createForm.minRental.label',
-        valueKey:
-          chipKey ??
-          (listing.minRentalDays === 1 ? 'listings.booking.night' : 'listings.booking.nights'),
-        valueParams: chipKey ? undefined : { count: listing.minRentalDays },
-      });
-    }
+    // Both rows always render (so the side panel beside the map is always
+    // present). A missing value shows the create-wizard default — delivery
+    // → Pickup, minimum rental → 1 day (wizard defaults, Tigran 2026-11-16).
+    const resolvedTypes = resolveDeliveryTypes(listing);
+    const deliveryTypes: DeliveryType[] = resolvedTypes.length > 0 ? resolvedTypes : ['Pickup'];
+    const both = deliveryTypes.length >= 2;
+    rows.push({
+      id: 'handover',
+      icon: deliveryTypes.includes('Courier') ? 'pi pi-truck' : 'pi pi-map-marker',
+      labelKey: 'listings.details.handoverLabel',
+      valueKey: both ? 'listings.createForm.delivery.bothHint' : deliveryHintKey(deliveryTypes[0]),
+    });
+
+    const minDays =
+      typeof listing.minRentalDays === 'number' && listing.minRentalDays > 0
+        ? listing.minRentalDays
+        : 1;
+    const chipKey = minRentalChipLabelKey(minDays);
+    rows.push({
+      id: 'minRental',
+      icon: 'pi pi-calendar',
+      labelKey: 'listings.createForm.minRental.label',
+      valueKey: chipKey ?? (minDays === 1 ? 'listings.booking.night' : 'listings.booking.nights'),
+      valueParams: chipKey ? undefined : { count: minDays },
+    });
     return rows;
   });
 
