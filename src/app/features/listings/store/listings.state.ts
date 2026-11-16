@@ -1,6 +1,7 @@
 import type { ApiErrorCode } from '../../../api/api-error.model';
 import type { AiSearchFilters, AiSearchStatusResponse } from '../models/ai-search.model';
 import type { ListingDetails } from '../models/listing-details.model';
+import type { ListingFacets } from '../models/listing-facets.model';
 import type { ListingCategoryOption } from '../models/create-listing.model';
 import type { ListingMapPin } from '../models/listing-map-pin.model';
 import type { ListingPreview } from '../models/listing.model';
@@ -132,6 +133,12 @@ export interface ListingsState {
    *  "zoom in to see all pins" prompt rather than silently under-representing
    *  the viewport's listings. */
   mapPinsTruncated: boolean;
+  /**
+   * ADR-066 sidebar facets for the current filters (`GET /api/listings/facets`).
+   * `null` until the first response; kept (not cleared) while the next one loads so the
+   * panel does not flash empty.
+   */
+  facets: ListingFacets | null;
   ai: ListingsAiState;
 }
 
@@ -141,10 +148,12 @@ export const initialListingsState: ListingsState = {
   filters: {
     query: null,
     city: null,
-    categoryId: null,
+    categoryIds: [],
     minPrice: null,
     maxPrice: null,
-    ageGroup: null,
+    ageGroups: [],
+    conditions: [],
+    sort: 'newest',
     radiusKm: null,
     districtIds: [],
   },
@@ -170,5 +179,6 @@ export const initialListingsState: ListingsState = {
   mapPinsLoading: false,
   mapPinsError: null,
   mapPinsTruncated: false,
+  facets: null,
   ai: initialListingsAiState,
 };

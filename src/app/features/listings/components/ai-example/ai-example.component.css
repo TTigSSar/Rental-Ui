@@ -74,3 +74,109 @@
   font-weight: 600;
   color: var(--ui-color-text-secondary);
 }
+
+/* ── Browse Redesign Stage 1 example panel (`.aiex*`; hex mapped to tokens, gaps noted) ── */
+.aiexp {
+  margin-top: 10px;
+  padding: 14px;
+  background: var(--ui-color-surface);
+  /* design #FFD3AE; --ui-color-primary-wash-border (#ffd9bd) is the nearest token */
+  border: 1px solid var(--ui-color-primary-wash-border);
+  border-radius: var(--ui-radius-lg);
+  box-shadow: 0 8px 24px rgba(20, 15, 5, 0.06);
+}
+
+.aiexp__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px 10px;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+  /* design #4A4A55: no token */
+  color: #4a4a55;
+}
+
+.aiexp__head app-icon {
+  color: var(--ui-color-primary-strong);
+}
+
+.aiexp__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.aiexp__card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--ui-radius-12);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.aiexp__card:hover {
+  background: var(--ui-color-primary-wash);
+}
+
+.aiexp__card:focus-visible {
+  outline: 2px solid var(--ui-color-primary-strong);
+  outline-offset: 2px;
+}
+
+.aiexp__text {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--ui-color-text-primary);
+}
+
+.aiexp__tags {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+
+.aiexp__tags span {
+  min-height: 24px;
+  padding: 2px 8px;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface-muted);
+  border: 1px solid var(--ui-color-border);
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+  color: #4a4a55;
+  white-space: nowrap;
+}
+
+.aiexp__arrow {
+  flex: none;
+  color: var(--ui-color-primary-strong);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.aiexp__card:hover .aiexp__arrow,
+.aiexp__card:focus-visible .aiexp__arrow {
+  opacity: 1;
+}
+
+@media (max-width: 1200px) {
+  .aiexp__card {
+    flex-wrap: wrap;
+  }
+  .aiexp__tags {
+    flex-wrap: wrap;
+  }
+}

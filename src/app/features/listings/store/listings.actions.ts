@@ -7,6 +7,7 @@ import type {
   ListingCategoryOption,
 } from '../models/create-listing.model';
 import type { ListingDetails } from '../models/listing-details.model';
+import type { ListingFacets } from '../models/listing-facets.model';
 import type { ListingMapPinsResult } from '../models/listing-map-pin.model';
 import type { ListingPreview } from '../models/listing.model';
 import type {
@@ -40,6 +41,17 @@ export const updateFilters = createAction(
   '[Listings] Update Filters',
   props<{ filters: ListingsFilter }>(),
 );
+
+/**
+ * ADR-066 facets for the current filters. Not dispatched by components: `ListingsEffects.loadFacets$`
+ * derives the request from the actions that change what the catalogue shows, debounced.
+ */
+export const loadFacetsSuccess = createAction(
+  '[Listings] Load Facets Success',
+  props<{ facets: ListingFacets }>(),
+);
+
+export const loadFacetsFailure = createAction('[Listings] Load Facets Failure');
 
 export const resetListings = createAction('[Listings] Reset Listings');
 

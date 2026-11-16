@@ -14,6 +14,7 @@ import { selectFavoriteIds } from '../../../favorites/store/favorites.selectors'
 import * as ListingsActions from '../../store/listings.actions';
 import {
   selectListingCategories,
+  selectListingFacets,
   selectListingsAi,
   selectListingItems,
   selectListingsError,
@@ -29,6 +30,7 @@ import {
   selectMapPinsLoading,
   selectMapPinsTruncated,
 } from '../../store/listings.selectors';
+import type { ListingFacets } from '../../models/listing-facets.model';
 import type { ListingPreview } from '../../models/listing.model';
 import type { ListingsFilter } from '../../models/listings-filter.model';
 import { ListingsApiService } from '../../services/listings-api.service';
@@ -138,10 +140,12 @@ vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver);
 const BASE_FILTERS: ListingsFilter = {
   query: null,
   city: null,
-  categoryId: null,
+  categoryIds: [],
   minPrice: null,
   maxPrice: null,
-  ageGroup: null,
+  ageGroups: [],
+  conditions: [],
+  sort: 'newest',
   radiusKm: null,
   districtIds: [],
 };
@@ -156,6 +160,7 @@ interface ListingsPageSelectorOverrides {
   readonly categories?: { id: string; name: string }[];
   readonly ai?: Partial<ListingsAiState>;
   readonly items?: ListingPreview[];
+  readonly facets?: ListingFacets | null;
   /** English strings loaded before the first render (default: keys render raw). */
   readonly translations?: Record<string, string>;
 }
@@ -174,6 +179,7 @@ async function navigateToListings(url: string, overrides: ListingsPageSelectorOv
           { selector: selectListingCategories, value: overrides.categories ?? [] },
           { selector: selectListingsAi, value: { ...initialListingsAiState, ...overrides.ai } },
           { selector: selectListingItems, value: overrides.items ?? [makeListingPreview()] },
+          { selector: selectListingFacets, value: overrides.facets ?? null },
           { selector: selectListingsError, value: overrides.error ?? null },
           { selector: selectListingsFilters, value: overrides.filters ?? BASE_FILTERS },
           { selector: selectListingsHasMore, value: overrides.hasMore ?? false },
@@ -323,7 +329,7 @@ describe('ListingsPageComponent — Maps P2-2 view toggle', () => {
 
     expect(updateFiltersCalls.length).toBeGreaterThan(0);
     const lastCall = updateFiltersCalls.at(-1);
-    expect(lastCall.filters).toEqual({ ...BASE_FILTERS, categoryId: 'abc-123' });
+    expect(lastCall.filters).toEqual({ ...BASE_FILTERS, categoryIds: ['abc-123'] });
     expect(Object.prototype.hasOwnProperty.call(lastCall.filters, 'view')).toBe(false);
   });
 });
@@ -450,10 +456,10 @@ describe('ListingsPageComponent — clearing the origin (Trello #80)', () => {
 
   it('clearFilters() dispatches clearOrigin and preserves `view=map` while dropping other filters', async () => {
     const { el, router, store } = await navigateToListings('/listings?view=map&categoryId=abc-123', {
-      filters: { ...BASE_FILTERS, categoryId: 'abc-123' },
+      filters: { ...BASE_FILTERS, categoryIds: ['abc-123'] },
     });
 
-    const clearBtn = el.querySelector<HTMLButtonElement>('.lp-sidebar__clear');
+    const clearBtn = el.querySelector<HTMLButtonElement>('.lp-sidebar [data-testid="clear-all"]');
     expect(clearBtn).not.toBeNull();
     clearBtn!.click();
     await vi.advanceTimersByTimeAsync(50);
@@ -461,20 +467,21 @@ describe('ListingsPageComponent — clearing the origin (Trello #80)', () => {
     expect(clearOriginDispatches(store)).toHaveLength(1);
     expect(router.url).toContain('view=map');
     expect(router.url).not.toContain('categoryId');
+    expect(router.url).not.toContain('categoryIds');
   });
 
   it('removing the radius chip dispatches clearOrigin and navigates radiusKm: null with merge', async () => {
     const { el, router, store } = await navigateToListings('/listings?radiusKm=1&categoryId=abc-123', {
-      filters: { ...BASE_FILTERS, radiusKm: 1, categoryId: 'abc-123' },
+      filters: { ...BASE_FILTERS, radiusKm: 1, categoryIds: ['abc-123'] },
       originCoords: { lat: 40.18, lng: 44.51 },
       originSource: 'manual',
     });
 
     // Two chips render here (categoryId, radiusKm — in that order, per
     // `activeFilterChips()`); the radius chip is the second one.
-    const chips = el.querySelectorAll<HTMLButtonElement>('.lp-active-chip');
+    const chips = el.querySelectorAll<HTMLElement>('.achip');
     expect(chips).toHaveLength(2);
-    const radiusChip = chips[1];
+    const radiusChip = chips[1].querySelector('button')!;
     radiusChip.click();
     await vi.advanceTimersByTimeAsync(50);
 
@@ -486,7 +493,7 @@ describe('ListingsPageComponent — clearing the origin (Trello #80)', () => {
 
   it('onOriginCleared() (via the widget\'s own Remove button) navigates radiusKm: null with merge', async () => {
     const { el, router } = await navigateToListings('/listings?radiusKm=1&categoryId=abc-123', {
-      filters: { ...BASE_FILTERS, radiusKm: 1, categoryId: 'abc-123' },
+      filters: { ...BASE_FILTERS, radiusKm: 1, categoryIds: ['abc-123'] },
       originCoords: { lat: 40.18, lng: 44.51 },
       originSource: 'manual',
     });
@@ -562,7 +569,7 @@ describe('ListingsPageComponent — AI search', () => {
   it('the echo of the filters the AI itself applied (URL equals the store filters) does nothing', async () => {
     const { store } = await navigateToListings('/listings?ai=1&categoryId=abc-123', {
       ai: AI_RESULTS,
-      filters: { ...BASE_FILTERS, categoryId: 'abc-123' },
+      filters: { ...BASE_FILTERS, categoryIds: ['abc-123'] },
     });
 
     const types = dispatchedTypes(store);
@@ -621,10 +628,13 @@ describe('ListingsPageComponent — AI search', () => {
     el.querySelector<HTMLButtonElement>('.lp-toolbar__sort')!.click();
     harness.detectChanges();
     Array.from(el.querySelectorAll<HTMLButtonElement>('.lp-sort-menu__item'))
-      .find((b) => b.textContent?.includes('listings.page.sortLowestPrice'))!
+      .find((b) => b.textContent?.includes('listings.page.sortPriceAsc'))!
       .click();
     expect(dispatchedTypes(store)).toContain(ListingsActions.dropAiOrder.type);
 
+    // The real store clears `orderActive` on dropAiOrder; the mocked selectors do not follow.
+    store.overrideSelector(selectListingsAi, { ...initialListingsAiState, ...AI_RESULTS, orderActive: false });
+    store.refreshState();
     harness.detectChanges();
     el.querySelector<HTMLButtonElement>('.lp-toolbar__sort')!.click();
     harness.detectChanges();
@@ -810,7 +820,7 @@ describe('ListingsPageComponent — AI search states', () => {
     it('"Widen the area" drops only the districts (the URL change re-ranks without them)', async () => {
       const { el, router } = await navigateToListings('/listings?ai=1&districtIds=d-1&categoryId=c1', {
         ...NO_RESULTS_OPTS,
-        filters: { ...BASE_FILTERS, districtIds: ['d-1'], categoryId: 'c1' },
+        filters: { ...BASE_FILTERS, districtIds: ['d-1'], categoryIds: ['c1'] },
       });
 
       el.querySelector<HTMLButtonElement>('.ai-empty__primary')!.click();
@@ -828,7 +838,7 @@ describe('ListingsPageComponent — AI search states', () => {
           { id: 'c1', name: 'Bikes' },
           { id: 'c2', name: 'Puzzles' },
         ],
-        filters: { ...BASE_FILTERS, categoryId: 'c1', maxPrice: 2000 },
+        filters: { ...BASE_FILTERS, categoryIds: ['c1'], maxPrice: 2000 },
       });
 
       const pills = Array.from(el.querySelectorAll<HTMLButtonElement>('.ai-empty__pill'));
@@ -837,11 +847,12 @@ describe('ListingsPageComponent — AI search states', () => {
       pills[0].click();
       await vi.advanceTimersByTimeAsync(50);
 
-      expect(router.url).toContain('categoryId=c2');
+      expect(router.url).toContain('categoryIds=c2');
+      expect(router.url).not.toContain('categoryId=c1');
       expect(router.url).toContain('maxPrice=2000');
     });
 
-    it('sidebar category labels carry the full localized name as a native title', async () => {
+    it('sidebar category rows carry the full localized name as a native title', async () => {
       const { el } = await navigateToListings('/listings', {
         categories: [
           { id: 'c1', name: 'Bikes' },
@@ -849,7 +860,9 @@ describe('ListingsPageComponent — AI search states', () => {
         ],
       });
 
-      const names = Array.from(el.querySelectorAll<HTMLElement>('.lp-sidebar__checkbox-name'));
+      const names = Array.from(
+        el.querySelectorAll<HTMLElement>('.lp-sidebar [data-section="cat"] .fname'),
+      );
       const titled = names.filter((n) => n.getAttribute('title') === n.textContent!.trim());
       expect(titled.length).toBe(names.length);
       expect(names.map((n) => n.getAttribute('title'))).toEqual(expect.arrayContaining(['Bikes', 'Puzzles']));
@@ -872,8 +885,9 @@ describe('ListingsPageComponent — AI search states', () => {
 
         el.querySelector<HTMLButtonElement>('.ai-empty__outline')!.click();
 
-        const input = el.querySelectorAll<HTMLInputElement>('.lp-sidebar__price-input')[1];
-        expect(document.activeElement).toBe(input);
+        await vi.advanceTimersByTimeAsync(0);
+        const maxBox = el.querySelectorAll<HTMLInputElement>('.lp-sidebar .pbox__input')[1];
+        expect(document.activeElement).toBe(maxBox);
         expect(el.querySelector('.lf-sheet')).toBeNull();
       } finally {
         spy.mockRestore();
@@ -883,7 +897,7 @@ describe('ListingsPageComponent — AI search states', () => {
     it('no results in ordinary mode keep the generic empty state', async () => {
       const { el } = await navigateToListings('/listings', {
         items: [],
-        filters: { ...BASE_FILTERS, categoryId: 'c1' },
+        filters: { ...BASE_FILTERS, categoryIds: ['c1'] },
       });
 
       expect(el.querySelector('app-ai-no-results')).toBeNull();
@@ -936,7 +950,7 @@ describe('ListingsPageComponent — AI search states', () => {
     it('the switch is OFF but still enabled (focusable, not aria-disabled)', async () => {
       const { el } = await navigateToListings('/listings', { ai: FALLBACK });
 
-      const sw = el.querySelector<HTMLButtonElement>('.lp-ai-top .ai-switch')!;
+      const sw = el.querySelector<HTMLButtonElement>('.lp-ai-top .aitg')!;
       expect(sw.getAttribute('aria-checked')).toBe('false');
       expect(sw.hasAttribute('aria-disabled')).toBe(false);
       expect(sw.disabled).toBe(false);
@@ -984,19 +998,17 @@ describe('ListingsPageComponent — AI search states', () => {
       expect(el.querySelector('#lf-field-districts')).not.toBeNull();
     });
 
-    it('"Choose a district" focuses the sidebar District section on desktop', async () => {
+    it('"Choose a district" focuses the sidebar District search on desktop', async () => {
       const spy = vi.spyOn(HTMLElement.prototype, 'offsetParent', 'get').mockReturnValue(document.body);
       try {
         const { el } = await navigateToListings('/listings?ai=1', { ai: NOTES_AI });
-        // Districts load from the API; give the section a checkbox to receive focus.
-        const section = el.querySelectorAll<HTMLElement>('.lp-sidebar__section')[1];
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        section.appendChild(checkbox);
 
         el.querySelector<HTMLButtonElement>('.lp-ai-note__link')!.click();
+        await vi.advanceTimersByTimeAsync(0);
 
-        expect(document.activeElement).toBe(checkbox);
+        expect(document.activeElement).toBe(
+          el.querySelector('.lp-sidebar [data-section="dist"] .dsearch input'),
+        );
         expect(el.querySelector('.lf-sheet')).toBeNull();
       } finally {
         spy.mockRestore();
@@ -1018,7 +1030,7 @@ describe('ListingsPageComponent — AI search states', () => {
       expect(notice.classList.contains('msg--warn')).toBe(true);
       expect(notice.textContent).toContain('listings.ai.rateLimited');
       expect(el.textContent).not.toContain('Raw server prose');
-      expect((el.querySelector('.lp-ai-top textarea') as HTMLTextAreaElement).value).toBe('a balance bike');
+      expect((el.querySelector('.lp-ai-top .bsearch__input') as HTMLInputElement).value).toBe('a balance bike');
 
       const grid = el.querySelector('.listings-page__grid')!;
       expect(grid.hasAttribute('inert')).toBe(false);
@@ -1050,31 +1062,22 @@ describe('ListingsPageComponent — AI search states', () => {
   describe('daily budget used up', () => {
     const SPENT = { ...initialListingsAiState, aiStatus: { available: false } };
 
-    it('the switch is aria-disabled (still focusable) with a described-by tooltip on desktop', async () => {
+    it('the switch is aria-disabled (still focusable) and explains why through its title on desktop', async () => {
       const { harness, el } = await navigateToListings('/listings', { ai: SPENT });
 
-      const sw = el.querySelector<HTMLButtonElement>('.lp-ai-top .ai-switch')!;
+      const sw = el.querySelector<HTMLButtonElement>('.lp-ai-top .aitg')!;
       expect(sw.getAttribute('aria-checked')).toBe('false');
       expect(sw.getAttribute('aria-disabled')).toBe('true');
       expect(sw.disabled).toBe(false);
-      const tip = el.querySelector<HTMLElement>('.lp-ai-top [role="tooltip"]')!;
-      expect(sw.getAttribute('aria-describedby')).toBe(tip.id);
-      expect(tip.hidden).toBe(true);
-
-      sw.dispatchEvent(new Event('focus'));
+      // The reason is the native title (design: the "Smart search" switch has no tooltip popover).
+      expect(sw.getAttribute('title')).toBe('listings.ai.budgetSpent');
       await flush(harness);
-      expect(tip.hidden).toBe(false);
-      expect(tip.textContent).toContain('listings.ai.budgetSpent');
-
-      sw.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-      await flush(harness);
-      expect(tip.hidden).toBe(true);
     });
 
     it('clicking it does not turn AI on', async () => {
       const { harness, el, router } = await navigateToListings('/listings', { ai: SPENT });
 
-      el.querySelector<HTMLButtonElement>('.lp-ai-top .ai-switch')!.click();
+      el.querySelector<HTMLButtonElement>('.lp-ai-top .aitg')!.click();
       await flush(harness);
 
       expect(router.url).not.toContain('ai=1');
@@ -1095,10 +1098,10 @@ describe('ListingsPageComponent — AI search states', () => {
       expect(router.url).not.toContain('ai=1');
     });
 
-    it('the field is a plain text search (no description textarea)', async () => {
+    it('the field is a plain text search (no AI ring, no description field)', async () => {
       const { el } = await navigateToListings('/listings', { ai: SPENT });
-      expect(el.querySelector('.lp-ai-top input[type="search"]')).not.toBeNull();
-      expect(el.querySelector('.lp-ai-top textarea')).toBeNull();
+      expect(el.querySelector('.lp-ai-top input.bsearch__input')).not.toBeNull();
+      expect(el.querySelector('.lp-ai-top .bsearch--ai')).toBeNull();
     });
   });
 
@@ -1111,14 +1114,14 @@ describe('ListingsPageComponent — AI search states', () => {
         originSource: 'home',
       });
 
-      const chips = Array.from(el.querySelectorAll('.lp-active-chip')).map((c) => c.textContent!.trim());
+      const chips = Array.from(el.querySelectorAll('.achip')).map((c) => c.textContent!.trim());
       expect(chips).toEqual(['listings.filters.distance.withinHome']);
     });
   });
 
   describe('guest', () => {
     function submitButton(el: HTMLElement): HTMLButtonElement {
-      return el.querySelector<HTMLButtonElement>('.lp-ai-top .aisf__submit')!;
+      return el.querySelector<HTMLButtonElement>('.lp-ai-top .bsearch__submit')!;
     }
 
     const GUEST_AI = { ...initialListingsAiState, mode: true, description: 'a balance bike' };
@@ -1131,7 +1134,7 @@ describe('ListingsPageComponent — AI search states', () => {
 
       expect(dispatchedTypes(store)).not.toContain(ListingsActions.submitAiSearch.type);
       expect(el.querySelector('app-auth-dialog')).not.toBeNull();
-      expect((el.querySelector('.lp-ai-top textarea') as HTMLTextAreaElement).value).toBe('a balance bike');
+      expect((el.querySelector('.lp-ai-top .bsearch__input') as HTMLInputElement).value).toBe('a balance bike');
     });
 
     it('after sign-in the search runs automatically with the kept description', async () => {
@@ -1174,33 +1177,39 @@ describe('ListingsPageComponent — price chips (design-notes 15)', () => {
     'listings.filters.chips.minPricePerDay': 'From {{amount}} per day',
   };
   const labels = (el: HTMLElement) =>
-    Array.from(el.querySelectorAll('.lp-active-chip')).map((c) => c.textContent!.trim());
+    Array.from(el.querySelectorAll('.achip')).map((c) => c.textContent!.trim());
 
-  it('renders max and min price chips in en, formatted like the listing cards, after category', async () => {
+  it('renders one combined range chip (design: "1,000–3,000 ֏") when both bounds are set, after category', async () => {
     const { el } = await navigateToListings('/listings?categoryId=abc-123&minPrice=1000&maxPrice=3000', {
-      filters: { ...BASE_FILTERS, categoryId: 'abc-123', minPrice: 1000, maxPrice: 3000 },
+      filters: { ...BASE_FILTERS, categoryIds: ['abc-123'], minPrice: 1000, maxPrice: 3000 },
       categories: [{ id: 'abc-123', name: 'Construction' }],
       translations,
     });
 
-    expect(labels(el)).toEqual([
-      'Construction',
-      'Up to 3,000 ֏ per day',
-      'From 1,000 ֏ per day',
-    ]);
+    expect(labels(el)).toEqual(['Construction', '1,000–3,000\u00A0֏']);
   });
 
-  it('removing a price chip clears its query param and keeps the sibling filter', async () => {
-    const { el, router } = await navigateToListings('/listings?minPrice=1000&maxPrice=3000', {
-      filters: { ...BASE_FILTERS, minPrice: 1000, maxPrice: 3000 },
+  it('renders the "Up to" / "From" wording when only one bound is set (note 15)', async () => {
+    const max = await navigateToListings('/listings?maxPrice=3000', {
+      filters: { ...BASE_FILTERS, maxPrice: 3000 },
+      translations,
+    });
+    expect(labels(max.el)).toEqual(['Up to 3,000 ֏ per day']);
+  });
+
+  it('removing the range chip clears both bounds and keeps the sibling filter', async () => {
+    const { el, router } = await navigateToListings('/listings?minPrice=1000&maxPrice=3000&categoryIds=c1', {
+      filters: { ...BASE_FILTERS, categoryIds: ['c1'], minPrice: 1000, maxPrice: 3000 },
+      categories: [{ id: 'c1', name: 'Bikes' }],
       translations,
     });
 
-    el.querySelectorAll<HTMLButtonElement>('.lp-active-chip')[0].click(); // max
+    el.querySelectorAll<HTMLButtonElement>('.achip button')[1].click(); // the range chip
     await vi.advanceTimersByTimeAsync(50);
 
     expect(router.url).not.toContain('maxPrice');
-    expect(router.url).toContain('minPrice=1000');
+    expect(router.url).not.toContain('minPrice');
+    expect(router.url).toContain('categoryIds=c1');
   });
 
   it('in AI mode, removing a price chip re-ranks instead of reloading the catalogue', async () => {
@@ -1211,7 +1220,7 @@ describe('ListingsPageComponent — price chips (design-notes 15)', () => {
     });
 
     expect(labels(el)).toEqual(['Up to 3,000 ֏ per day']);
-    el.querySelector<HTMLButtonElement>('.lp-active-chip')!.click();
+    el.querySelector<HTMLButtonElement>('.achip button')!.click();
     await vi.advanceTimersByTimeAsync(50);
 
     expect(router.url).not.toContain('maxPrice');
@@ -1243,5 +1252,360 @@ describe('ListingsPageComponent — simple search debounce vs AI switch (design-
     await vi.advanceTimersByTimeAsync(400);
 
     expect(router.url).toContain('q=lego');
+  });
+});
+
+// ── Browse Redesign Stage 1 (ADR-066): URL -> store -> panel / toolbar ───────────────────
+
+describe('ListingsPageComponent — Browse redesign toolbar and sort (ADR-066)', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  const openSort = async (harness: RouterTestingHarness, el: HTMLElement) => {
+    el.querySelector<HTMLButtonElement>('.lp-toolbar__sort')!.click();
+    harness.detectChanges();
+  };
+  const sortItems = (el: HTMLElement) =>
+    Array.from(el.querySelectorAll<HTMLButtonElement>('.lp-sort-menu__item'));
+  const itemFor = (el: HTMLElement, key: string) =>
+    sortItems(el).find((b) => b.textContent?.includes(key))!;
+  const chipLabels = (el: HTMLElement) =>
+    Array.from(el.querySelectorAll('.achip')).map((c) => c.textContent!.trim());
+
+  it('offers Newest, Price up, Price down, Top rated and Nearest, in that order', async () => {
+    const { harness, el } = await navigateToListings('/listings');
+    await openSort(harness, el);
+
+    const labels = sortItems(el).map((b) => b.querySelector('.lp-sort-menu__label')!.firstChild!.textContent!.trim());
+    expect(labels).toEqual([
+      'listings.page.sortNewest',
+      'listings.page.sortPriceAsc',
+      'listings.page.sortPriceDesc',
+      'listings.page.sortHighestRated',
+      'listings.page.sortNearest',
+    ]);
+    expect(itemFor(el, 'sortNewest').getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('choosing a sort writes it to the URL with merge (default newest is never written)', async () => {
+    const { harness, el, router, store } = await navigateToListings('/listings?categoryIds=c1&view=map');
+    await openSort(harness, el);
+
+    itemFor(el, 'sortPriceDesc').click();
+    await vi.advanceTimersByTimeAsync(50);
+    expect(router.url).toContain('sort=price_desc');
+    expect(router.url).toContain('categoryIds=c1');
+    expect(router.url).toContain('view=map');
+
+    // The real store follows the URL; the mocked selector has to be told.
+    store.overrideSelector(selectListingsFilters, { ...BASE_FILTERS, sort: 'price_desc' });
+    store.refreshState();
+    harness.detectChanges();
+    await openSort(harness, el);
+    itemFor(el, 'sortNewest').click();
+    await vi.advanceTimersByTimeAsync(50);
+    expect(router.url).not.toContain('sort=');
+  });
+
+  it('shows the active sort from the store filters in the trigger', async () => {
+    const { el } = await navigateToListings('/listings?sort=rating_desc', {
+      filters: { ...BASE_FILTERS, sort: 'rating_desc' },
+    });
+    expect(el.querySelector('.lp-toolbar__sort-value')!.textContent).toContain('listings.page.sortHighestRated');
+  });
+
+  it('keeps the order the server returned (no client-side re-sort of the loaded page)', async () => {
+    const items = [
+      makeListingPreview({ id: 'a', title: 'First', pricePerDay: 3000 }),
+      makeListingPreview({ id: 'b', title: 'Second', pricePerDay: 1000 }),
+    ];
+    const { el } = await navigateToListings('/listings?sort=price_asc', {
+      items,
+      filters: { ...BASE_FILTERS, sort: 'price_asc' },
+    });
+    const text = el.querySelector('.listings-page__grid')!.textContent!;
+    expect(text.indexOf('First')).toBeLessThan(text.indexOf('Second'));
+  });
+
+  it('Nearest is listed but disabled with a reason until a radius origin exists, and cannot be chosen', async () => {
+    const { harness, el, router } = await navigateToListings('/listings');
+    await openSort(harness, el);
+
+    const nearest = itemFor(el, 'sortNearest');
+    expect(nearest.getAttribute('aria-disabled')).toBe('true');
+    expect(nearest.textContent).toContain('listings.browse.sortNearestHint');
+    expect(nearest.getAttribute('title')).toBe('listings.browse.sortNearestHint');
+
+    nearest.click();
+    await vi.advanceTimersByTimeAsync(50);
+    expect(router.url).not.toContain('sort=');
+  });
+
+  it('Nearest can be chosen once an origin exists', async () => {
+    const { harness, el, router } = await navigateToListings('/listings', {
+      originCoords: { lat: 40.18, lng: 44.51 },
+      originSource: 'home',
+    });
+    await openSort(harness, el);
+
+    const nearest = itemFor(el, 'sortNearest');
+    expect(nearest.hasAttribute('aria-disabled')).toBe(false);
+    nearest.click();
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(router.url).toContain('sort=nearest');
+  });
+
+  it('falls back to Newest when the origin disappears while Nearest is selected', async () => {
+    const { harness, store, router } = await navigateToListings('/listings?sort=nearest', {
+      filters: { ...BASE_FILTERS, sort: 'nearest' },
+      originCoords: { lat: 40.18, lng: 44.51 },
+      originSource: 'manual',
+    });
+    expect(router.url).toContain('sort=nearest');
+
+    store.overrideSelector(selectListingsOriginCoords, null);
+    store.refreshState();
+    harness.detectChanges();
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(router.url).not.toContain('sort=');
+  });
+
+  it('shows Newest (not Nearest) for a sort=nearest link while no origin is known yet', async () => {
+    const { el } = await navigateToListings('/listings?sort=nearest', {
+      filters: { ...BASE_FILTERS, sort: 'nearest' },
+    });
+    expect(el.querySelector('.lp-toolbar__sort-value')!.textContent).toContain('listings.page.sortNewest');
+  });
+
+  it('in AI mode the sort shows Relevance, which is never written to the URL', async () => {
+    const { harness, el, router } = await navigateToListings('/listings?ai=1', {
+      ai: AI_RESULTS,
+      filters: { ...BASE_FILTERS, sort: 'price_asc' },
+    });
+    expect(el.querySelector('.lp-toolbar__sort-value')!.textContent).toContain('listings.ai.sortRelevant');
+
+    await openSort(harness, el);
+    itemFor(el, 'sortRelevant').click();
+    await vi.advanceTimersByTimeAsync(50);
+    expect(router.url).not.toContain('sort=relevance');
+  });
+
+  it('has no result-count line (ai-search note 14)', async () => {
+    const { el } = await navigateToListings('/listings');
+    expect(el.querySelector('.lp-toolbar__count')).toBeNull();
+    expect(el.textContent).not.toMatch(/toys in Yerevan/);
+  });
+
+  it('the toolbar stays when the filters leave no results (chips remain removable)', async () => {
+    const { el } = await navigateToListings('/listings?categoryIds=c1', {
+      items: [],
+      filters: { ...BASE_FILTERS, categoryIds: ['c1'] },
+      categories: [{ id: 'c1', name: 'Bikes' }],
+    });
+    expect(el.querySelector('.lp-toolbar__sort')).not.toBeNull();
+    expect(chipLabels(el)[0]).toContain('Bikes');
+  });
+
+  it('the List/Map switch is a tablist with the selected tab marked', async () => {
+    const { el } = await navigateToListings('/listings?view=map');
+    expect(el.querySelector('.lp-view-toggle')!.getAttribute('role')).toBe('tablist');
+    const tabs = Array.from(el.querySelectorAll('.lp-view-toggle__btn'));
+    expect(tabs.map((t) => t.getAttribute('aria-selected'))).toEqual(['false', 'true']);
+  });
+});
+
+describe('ListingsPageComponent — Browse redesign active chips and clear all', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  const FILTERS: ListingsFilter = {
+    ...BASE_FILTERS,
+    categoryIds: ['c1', 'c2'],
+    ageGroups: ['0-12'],
+    districtIds: ['d1'],
+    conditions: ['LikeNew', 'Fair'],
+    minPrice: 1500,
+    maxPrice: 5000,
+  };
+  const URL =
+    '/listings?categoryIds=c1,c2&ageGroups=0-12&districtIds=d1&conditions=LikeNew,Fair&minPrice=1500&maxPrice=5000&sort=price_asc&view=map';
+  const OPTS = {
+    filters: FILTERS,
+    categories: [
+      { id: 'c1', name: 'Bikes' },
+      { id: 'c2', name: 'Puzzles' },
+    ],
+  };
+  const chips = (el: HTMLElement) => Array.from(el.querySelectorAll<HTMLElement>('.achip'));
+
+  it('renders one chip per selected value in design order: categories, ages, price, districts, conditions', async () => {
+    const { el } = await navigateToListings(URL, OPTS);
+
+    expect(chips(el).map((c) => c.textContent!.trim())).toEqual([
+      'Bikes',
+      'Puzzles',
+      'listings.filters.ageGroups.g0_12',
+      '1,500–5,000 ֏',
+      'd1',
+      'listings.details.conditionValues.likeNew',
+      'listings.details.conditionValues.fair',
+    ]);
+  });
+
+  it('x on a chip removes just that value and keeps everything else (merge)', async () => {
+    const { el, router } = await navigateToListings(URL, OPTS);
+
+    chips(el)[0].querySelector('button')!.click(); // Bikes
+    await vi.advanceTimersByTimeAsync(50);
+    expect(router.url).toContain('categoryIds=c2');
+    expect(router.url).not.toContain('categoryIds=c1');
+    expect(router.url).toContain('conditions=LikeNew,Fair');
+    expect(router.url).toContain('sort=price_asc');
+    expect(router.url).toContain('view=map');
+  });
+
+  it('x on a condition chip removes only that condition', async () => {
+    const { el, router } = await navigateToListings(URL, OPTS);
+
+    chips(el).at(-1)!.querySelector('button')!.click(); // Fair
+    await vi.advanceTimersByTimeAsync(50);
+    expect(router.url).toContain('conditions=LikeNew');
+    expect(router.url).not.toContain('Fair');
+  });
+
+  it('gives every chip x an accessible name', async () => {
+    const { el } = await navigateToListings(URL, OPTS);
+    expect(chips(el)[0].querySelector('button')!.getAttribute('aria-label')).toBe('listings.browse.removeChip');
+  });
+
+  it('the chip row "Clear all" clears every filter but keeps sort, view and the search text', async () => {
+    const { el, router, store } = await navigateToListings(`${URL}&q=lego`, OPTS);
+
+    el.querySelector<HTMLButtonElement>('[data-testid="chips-clear-all"]')!.click();
+    await vi.advanceTimersByTimeAsync(50);
+
+    const url = router.url;
+    for (const gone of ['categoryIds', 'ageGroups', 'districtIds', 'conditions', 'minPrice', 'maxPrice']) {
+      expect(url).not.toContain(gone);
+    }
+    expect(url).toContain('sort=price_asc');
+    expect(url).toContain('view=map');
+    expect(url).toContain('q=lego');
+    // M-039: the radius origin goes too.
+    expect(dispatchedTypes(store)).toContain(ListingsActions.clearOrigin.type);
+  });
+
+  it('the panel header "Clear all" does the same and carries a total badge', async () => {
+    const { el, router, store } = await navigateToListings(URL, OPTS);
+
+    expect(el.querySelector('.lp-sidebar [data-testid="total-badge"]')!.textContent!.trim()).toBe('7');
+    el.querySelector<HTMLButtonElement>('.lp-sidebar [data-testid="clear-all"]')!.click();
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(router.url).not.toContain('categoryIds');
+    expect(router.url).toContain('sort=price_asc');
+    expect(dispatchedTypes(store)).toContain(ListingsActions.clearOrigin.type);
+  });
+
+  it('the empty-state "Clear filters" also drops the search text', async () => {
+    const { el, router } = await navigateToListings('/listings?categoryIds=c1&q=lego&sort=price_asc', {
+      items: [],
+      filters: { ...BASE_FILTERS, categoryIds: ['c1'], query: 'lego' },
+    });
+
+    el.querySelector<HTMLButtonElement>('.lp-empty-search__btn--outline')!.click();
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(router.url).not.toContain('q=');
+    expect(router.url).not.toContain('categoryIds');
+    expect(router.url).toContain('sort=price_asc');
+  });
+});
+
+describe('ListingsPageComponent — Browse redesign URL wiring (ADR-066)', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  const lastFilters = (store: MockStore) =>
+    (store.dispatch as ReturnType<typeof vi.fn>).mock.calls
+      .map((c) => c[0])
+      .filter((a) => a.type === ListingsActions.updateFilters.type)
+      .at(-1).filters;
+
+  it('parses the new keys into the filters it hands to the store', async () => {
+    const { store } = await navigateToListings(
+      '/listings?categoryIds=c1,c2&ageGroups=0-12,120%2B&conditions=New&sort=rating_desc',
+    );
+
+    expect(lastFilters(store)).toMatchObject({
+      categoryIds: ['c1', 'c2'],
+      ageGroups: ['0-12', '120+'],
+      conditions: ['New'],
+      sort: 'rating_desc',
+    });
+  });
+
+  it('keeps a legacy ?categoryId=&ageGroup= link working', async () => {
+    const { store } = await navigateToListings('/listings?categoryId=abc-123&ageGroup=36-72');
+
+    expect(lastFilters(store)).toMatchObject({ categoryIds: ['abc-123'], ageGroups: ['36-72'] });
+  });
+
+  it('a panel category toggle writes categoryIds, clears the legacy key, and keeps sibling params', async () => {
+    const { el, router } = await navigateToListings('/listings?categoryId=c1&sort=price_asc', {
+      filters: { ...BASE_FILTERS, categoryIds: ['c1'] },
+      categories: [
+        { id: 'c1', name: 'Bikes' },
+        { id: 'c2', name: 'Puzzles' },
+      ],
+    });
+
+    const rows = el.querySelectorAll<HTMLButtonElement>('.lp-sidebar [data-section="cat"] .frow');
+    rows[1].click(); // Puzzles
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(router.url).toContain('categoryIds=c1,c2');
+    expect(router.url).not.toContain('categoryId=c1');
+    expect(router.url).toContain('sort=price_asc');
+  });
+
+  it('a panel price edit writes only the price keys', async () => {
+    const { el, router } = await navigateToListings('/listings?categoryIds=c1', {
+      filters: { ...BASE_FILTERS, categoryIds: ['c1'] },
+    });
+
+    const max = el.querySelectorAll<HTMLInputElement>('.lp-sidebar .pbox__input')[1];
+    max.value = '4000';
+    max.dispatchEvent(new Event('change'));
+    await vi.advanceTimersByTimeAsync(50);
+
+    expect(router.url).toContain('maxPrice=4000');
+    expect(router.url).toContain('categoryIds=c1');
+    expect(router.url).not.toContain('minPrice');
+  });
+
+  it('does not treat the default sort as an active filter for the empty state', async () => {
+    const { el } = await navigateToListings('/listings', { items: [] });
+
+    // No filter -> the generic "nothing listed yet" state, not "no toys match your filters".
+    expect(el.querySelector('.lp-empty-search')).toBeNull();
+    expect(el.querySelector('app-ui-empty-state')).not.toBeNull();
+  });
+
+  it('hands the facets to the panel (counts render next to each row, price bounds follow)', async () => {
+    const { el } = await navigateToListings('/listings', {
+      categories: [{ id: 'c1', name: 'Bikes' }],
+      facets: {
+        categories: [{ categoryId: 'c1', count: 9 }],
+        districts: [],
+        minPricePerDay: 600,
+        maxPricePerDay: 4000,
+      },
+    });
+
+    expect(el.querySelector('.lp-sidebar [data-section="cat"] .fcount')!.textContent!.trim()).toBe('9');
+    expect(el.querySelector<HTMLInputElement>('.lp-sidebar .prange-i')!.max).toBe('4000');
   });
 });

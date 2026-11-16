@@ -517,6 +517,43 @@
       "distanceFromHome": "{{distance}} from your home",
       "distanceFromYou": "{{distance}} from you"
     },
+    "browse": {
+      "sections": {
+        "category": "Category",
+        "price": "Price per day",
+        "district": "District",
+        "condition": "Condition",
+        "distance": "Distance"
+      },
+      "showAll": "Show all {{count}}",
+      "showLess": "Show less",
+      "priceMin": "Min",
+      "priceMax": "Max",
+      "priceMinAria": "Minimum price per day",
+      "priceMaxAria": "Maximum price per day",
+      "districtSearch": "Find a district",
+      "districtNone": "No district matches “{{query}}”",
+      "clearSearch": "Clear search",
+      "smartSearch": "Smart search",
+      "search": "Search",
+      "aiHint": "Press Search and we’ll set the filters from your sentence.",
+      "removeChip": "Remove {{label}}",
+      "sortNearestHint": "Set a reference point first",
+      "examples": {
+        "title": "Try an example. Click one to fill it in.",
+        "e1": {
+          "text": "Balance bike for a 3-year-old, under 3,000 ֏ a day, Kentron",
+          "tag1": "3 yrs",
+          "tag2": "≤ 3,000 ֏",
+          "tag3": "Kentron"
+        },
+        "e2": {
+          "text": "Quiet toys for a long flight with a 2-year-old",
+          "tag1": "2 yrs",
+          "tag2": "Travel"
+        }
+      }
+    },
     "filters": {
       "intro": "Filter to find the right toy quickly.",
       "clear": "Clear filters",

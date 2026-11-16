@@ -32,10 +32,12 @@ import {
 const FILTERS: ListingsFilter = {
   query: null,
   city: null,
-  categoryId: 'cat-1',
+  categoryIds: ['cat-1'],
   minPrice: null,
   maxPrice: 3000,
-  ageGroup: '36-72',
+  ageGroups: ['36-72'],
+  conditions: [],
+  sort: 'newest',
   radiusKm: null,
   districtIds: ['d-1'],
 };
@@ -443,8 +445,8 @@ describe('ListingsEffects — AI search (ADR-054)', () => {
         queryParams: {
           ai: '1',
           q: null,
-          categoryId: 'cat-1',
-          ageGroup: '36-72',
+          categoryIds: 'cat-1',
+          ageGroups: '36-72',
           maxPrice: '3000',
           districtIds: 'd-1',
         },

@@ -20,10 +20,12 @@ import { expandBookedDateRangesToDisabledDates } from '../components/booking-cal
 const BASE_FILTER: ListingsFilter = {
   query: null,
   city: null,
-  categoryId: null,
+  categoryIds: [],
   minPrice: null,
   maxPrice: null,
-  ageGroup: null,
+  ageGroups: [],
+  conditions: [],
+  sort: 'newest',
   radiusKm: null,
   districtIds: [],
 };
@@ -66,29 +68,111 @@ describe('ListingsApiService — buildListingsQueryParams', () => {
   });
 
   it.each([
-    ['0-12', '0', '12'],
-    ['12-36', '12', '36'],
-    ['36-72', '36', '72'],
-    ['72-120', '72', '120'],
-  ])('maps ageGroup %s to ageFromMonths=%s, ageToMonths=%s', (ageGroup, from, to) => {
-    service.getListings({ ...BASE_FILTER, ageGroup }, 1, 20).subscribe();
+    ['0-12', '0-12'],
+    ['12-36', '12-36'],
+    ['36-72', '36-72'],
+    ['72-120', '72-120'],
+    // The open-ended UI token "120+" goes out as the API's open-ended range "120-".
+    ['120+', '120-'],
+  ])('sends ageGroup %s as the repeated key ageRanges=%s', (ageGroup, wire) => {
+    service.getListings({ ...BASE_FILTER, ageGroups: [ageGroup] }, 1, 20).subscribe();
 
     const req = httpMock.expectOne(
       (r) => r.url === toApiUrl(ApiContract.listings.root),
     );
-    expect(req.request.params.get('ageFromMonths')).toBe(from);
-    expect(req.request.params.get('ageToMonths')).toBe(to);
+    expect(req.request.params.getAll('ageRanges')).toEqual([wire]);
+    expect(req.request.params.has('ageFromMonths')).toBe(false);
+    expect(req.request.params.has('ageToMonths')).toBe(false);
     req.flush({ items: [], totalCount: 0, page: 1, pageSize: 20, hasMore: false });
   });
 
-  it('maps the open-ended "120+" ageGroup to ageFromMonths=120 with no ageToMonths', () => {
-    service.getListings({ ...BASE_FILTER, ageGroup: '120+' }, 1, 20).subscribe();
+  it('repeats categoryIds, ageRanges and conditions once per selected value (ADR-066)', () => {
+    service
+      .getListings(
+        {
+          ...BASE_FILTER,
+          categoryIds: ['c1', 'c2'],
+          ageGroups: ['0-12', '120+'],
+          conditions: ['New', 'LikeNew'],
+        },
+        1,
+        20,
+      )
+      .subscribe();
 
     const req = httpMock.expectOne(
       (r) => r.url === toApiUrl(ApiContract.listings.root),
     );
-    expect(req.request.params.get('ageFromMonths')).toBe('120');
-    expect(req.request.params.has('ageToMonths')).toBe(false);
+    expect(req.request.params.getAll('categoryIds')).toEqual(['c1', 'c2']);
+    expect(req.request.params.has('categoryId')).toBe(false);
+    expect(req.request.params.getAll('ageRanges')).toEqual(['0-12', '120-']);
+    expect(req.request.params.getAll('conditions')).toEqual(['New', 'LikeNew']);
+    req.flush({ items: [], totalCount: 0, page: 1, pageSize: 20, hasMore: false });
+  });
+
+  it('caps the repeated keys at the server limits so a hand-edited URL cannot cause a 400', () => {
+    service
+      .getListings(
+        {
+          ...BASE_FILTER,
+          categoryIds: Array.from({ length: 60 }, (_, i) => `c${i}`),
+          ageGroups: ['0-12', '12-36', '36-72', '72-120', '120+', '0-12'],
+        },
+        1,
+        20,
+      )
+      .subscribe();
+
+    const req = httpMock.expectOne(
+      (r) => r.url === toApiUrl(ApiContract.listings.root),
+    );
+    expect(req.request.params.getAll('categoryIds')?.length).toBe(50);
+    expect(req.request.params.getAll('ageRanges')?.length).toBe(5);
+    req.flush({ items: [], totalCount: 0, page: 1, pageSize: 20, hasMore: false });
+  });
+
+  it.each(['price_asc', 'price_desc', 'rating_desc'] as const)('sends sort=%s', (sort) => {
+    service.getListings({ ...BASE_FILTER, sort }, 1, 20).subscribe();
+
+    const req = httpMock.expectOne(
+      (r) => r.url === toApiUrl(ApiContract.listings.root),
+    );
+    expect(req.request.params.get('sort')).toBe(sort);
+    req.flush({ items: [], totalCount: 0, page: 1, pageSize: 20, hasMore: false });
+  });
+
+  it('omits sort for the default `newest`', () => {
+    service.getListings(BASE_FILTER, 1, 20).subscribe();
+
+    const req = httpMock.expectOne(
+      (r) => r.url === toApiUrl(ApiContract.listings.root),
+    );
+    expect(req.request.params.has('sort')).toBe(false);
+    req.flush({ items: [], totalCount: 0, page: 1, pageSize: 20, hasMore: false });
+  });
+
+  it('sort=nearest carries the (rounded) origin even without a radius', () => {
+    service
+      .getListings({ ...BASE_FILTER, sort: 'nearest' }, 1, 20, { lat: 40.17771, lng: 44.51264 })
+      .subscribe();
+
+    const req = httpMock.expectOne(
+      (r) => r.url === toApiUrl(ApiContract.listings.root),
+    );
+    expect(req.request.params.get('sort')).toBe('nearest');
+    expect(req.request.params.get('originLat')).toBe('40.178');
+    expect(req.request.params.get('originLng')).toBe('44.513');
+    expect(req.request.params.has('radiusKm')).toBe(false);
+    req.flush({ items: [], totalCount: 0, page: 1, pageSize: 20, hasMore: false });
+  });
+
+  it('never sends sort=nearest without an origin (the API would answer 400)', () => {
+    service.getListings({ ...BASE_FILTER, sort: 'nearest' }, 1, 20, null).subscribe();
+
+    const req = httpMock.expectOne(
+      (r) => r.url === toApiUrl(ApiContract.listings.root),
+    );
+    expect(req.request.params.has('sort')).toBe(false);
     req.flush({ items: [], totalCount: 0, page: 1, pageSize: 20, hasMore: false });
   });
 
@@ -202,13 +286,13 @@ describe('ListingsApiService — buildListingsQueryParams', () => {
     req.flush({ items: [], totalCount: 0, page: 1, pageSize: 20, hasMore: false });
   });
 
-  it('still sends the unrelated city/categoryId/minPrice/maxPrice/page/pageSize params', () => {
+  it('still sends the unrelated city/categoryIds/minPrice/maxPrice/page/pageSize params', () => {
     service
       .getListings(
         {
           ...BASE_FILTER,
           city: 'Yerevan',
-          categoryId: 'cat-1',
+          categoryIds: ['cat-1'],
           minPrice: 10,
           maxPrice: 100,
         },
@@ -221,12 +305,77 @@ describe('ListingsApiService — buildListingsQueryParams', () => {
       (r) => r.url === toApiUrl(ApiContract.listings.root),
     );
     expect(req.request.params.get('city')).toBe('Yerevan');
-    expect(req.request.params.get('categoryId')).toBe('cat-1');
+    expect(req.request.params.getAll('categoryIds')).toEqual(['cat-1']);
     expect(req.request.params.get('minPrice')).toBe('10');
     expect(req.request.params.get('maxPrice')).toBe('100');
     expect(req.request.params.get('page')).toBe('2');
     expect(req.request.params.get('pageSize')).toBe('20');
     req.flush({ items: [], totalCount: 0, page: 2, pageSize: 20, hasMore: false });
+  });
+});
+
+describe('ListingsApiService — getFacets (ADR-066)', () => {
+  let service: ListingsApiService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(ListingsApiService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  it('GETs /facets with the shared filters but never sort, paging or a bbox', () => {
+    service
+      .getFacets(
+        {
+          ...BASE_FILTER,
+          categoryIds: ['c1'],
+          ageGroups: ['120+'],
+          conditions: ['Good'],
+          districtIds: ['d1'],
+          sort: 'price_asc',
+          radiusKm: 2,
+        },
+        { lat: 40.1, lng: 44.5 },
+      )
+      .subscribe();
+
+    const req = httpMock.expectOne((r) => r.url === toApiUrl(ApiContract.listings.facets));
+    const params = req.request.params;
+    expect(params.getAll('categoryIds')).toEqual(['c1']);
+    expect(params.getAll('ageRanges')).toEqual(['120-']);
+    expect(params.getAll('conditions')).toEqual(['Good']);
+    expect(params.getAll('districtIds')).toEqual(['d1']);
+    expect(params.get('radiusKm')).toBe('2');
+    for (const forbidden of ['sort', 'page', 'pageSize', 'minLat', 'maxLat', 'minLng', 'maxLng']) {
+      expect(params.has(forbidden)).toBe(false);
+    }
+    req.flush({ categories: [], districts: [], minPricePerDay: null, maxPricePerDay: null });
+  });
+
+  it('keeps the facet counts and the price bounds, tolerating null arrays', () => {
+    let result: unknown;
+    service.getFacets(BASE_FILTER, null).subscribe((r) => (result = r));
+
+    httpMock.expectOne((r) => r.url === toApiUrl(ApiContract.listings.facets)).flush({
+      categories: [{ categoryId: 'c1', count: 4 }],
+      districts: null,
+      minPricePerDay: 500,
+      maxPricePerDay: 9000,
+    });
+
+    expect(result).toEqual({
+      categories: [{ categoryId: 'c1', count: 4 }],
+      districts: [],
+      minPricePerDay: 500,
+      maxPricePerDay: 9000,
+    });
   });
 });
 
@@ -285,6 +434,31 @@ describe('ListingsApiService — getMapPins', () => {
     expect(req.request.params.has('maxLat')).toBe(false);
     expect(req.request.params.has('minLng')).toBe(false);
     expect(req.request.params.has('maxLng')).toBe(false);
+    req.flush({ items: [], isTruncated: false });
+  });
+
+  it('carries the new filters but never sort, even when the page sort is not the default', () => {
+    service
+      .getMapPins(
+        {
+          ...BASE_FILTER,
+          categoryIds: ['c1', 'c2'],
+          ageGroups: ['120+'],
+          conditions: ['Fair'],
+          sort: 'price_desc',
+        },
+        BOUNDS,
+        null,
+      )
+      .subscribe();
+
+    const req = httpMock.expectOne(
+      (r) => r.url === toApiUrl(ApiContract.listings.mapPins),
+    );
+    expect(req.request.params.getAll('categoryIds')).toEqual(['c1', 'c2']);
+    expect(req.request.params.getAll('ageRanges')).toEqual(['120-']);
+    expect(req.request.params.getAll('conditions')).toEqual(['Fair']);
+    expect(req.request.params.has('sort')).toBe(false);
     req.flush({ items: [], isTruncated: false });
   });
 

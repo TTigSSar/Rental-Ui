@@ -1,4 +1,65 @@
-<div class="aisf" [class.aisf--block]="layout() === 'block'">
+<div class="aisf" [class.aisf--block]="layout() === 'block'" [class.aisf--browse]="layout() === 'browse'">
+  @if (layout() === 'browse') {
+    <!-- Browse Redesign Stage 1 `.bsearch`: icon, input, clear, Smart search switch, Search button. -->
+    <form class="bsearch" [class.bsearch--ai]="aiMode()" role="search" (submit)="onBrowseSubmit($event)">
+      @if (aiMode()) {
+        <app-icon class="bsearch__icon bsearch__icon--ai" name="sparkle" [size]="22" />
+      } @else {
+        <app-icon class="bsearch__icon" name="search" [size]="22" />
+      }
+      @if (aiMode()) {
+        <input
+          #browseInput
+          type="text"
+          class="bsearch__input"
+          autocomplete="off"
+          [attr.maxlength]="maxLength"
+          [value]="description()"
+          [placeholder]="'listings.ai.placeholder' | translate"
+          [attr.aria-label]="'listings.ai.fieldAria' | translate"
+          [attr.aria-describedby]="focused() ? noteId : null"
+          (input)="onBrowseDescriptionInput($event)"
+          (focus)="onFocus()"
+          (blur)="onBlur()"
+        />
+      } @else {
+        <input
+          #queryInput
+          type="text"
+          class="bsearch__input"
+          autocomplete="off"
+          [value]="query()"
+          [placeholder]="'listings.filters.queryPlaceholder' | translate"
+          [attr.aria-label]="'listings.filters.queryPlaceholder' | translate"
+          (input)="onBrowseQueryInput($event)"
+        />
+      }
+      @if (browseText().length > 0) {
+        <button type="button" class="bsearch__clear" [attr.aria-label]="'listings.browse.clearSearch' | translate" (click)="onBrowseClear()">
+          <i class="pi pi-times" aria-hidden="true"></i>
+        </button>
+      }
+      <button
+        type="button"
+        class="aitg"
+        [class.on]="aiMode() && !budgetSpent()"
+        [class.aitg--dis]="budgetSpent()"
+        role="switch"
+        [attr.aria-checked]="aiMode() && !budgetSpent()"
+        [attr.aria-disabled]="budgetSpent() ? 'true' : null"
+        [attr.title]="budgetSpent() ? ('listings.ai.budgetSpent' | translate) : null"
+        (click)="onBrowseSwitch()"
+      >
+        <span class="aitg__sw" aria-hidden="true"></span>{{ 'listings.browse.smartSearch' | translate }}
+      </button>
+      <button type="submit" class="bsearch__submit">{{ 'listings.browse.search' | translate }}</button>
+    </form>
+    @if (aiMode() && browseText().trim().length > 0) {
+      <p class="aihint" data-testid="ai-hint">
+        <app-icon name="sparkle" [size]="14" />{{ 'listings.browse.aiHint' | translate }}
+      </p>
+    }
+  } @else {
   <div
     class="aisf__field"
     [class.aisf__field--on]="aiMode()"
@@ -67,6 +128,7 @@
       />
     </div>
   </div>
+  }
 
   @if (aiMode() && focused()) {
     <p class="aisf__note" [id]="noteId">

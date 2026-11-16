@@ -109,6 +109,14 @@ export const listingsReducer = createReducer(
     }),
   ),
   on(
+    ListingsActions.loadFacetsSuccess,
+    (state, { facets }): ListingsState => ({ ...state, facets }),
+  ),
+  on(
+    ListingsActions.loadFacetsFailure,
+    (state): ListingsState => ({ ...state, facets: null }),
+  ),
+  on(
     ListingsActions.resetListings,
     (): ListingsState => ({
       ...initialListingsState,

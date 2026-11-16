@@ -112,8 +112,8 @@ describe('listingsReducer — AI search (ADR-054)', () => {
       expect(next.items.map((i) => i.id)).toEqual(['a', 'b']);
       expect(next.hasMore).toBe(true);
       expect(next.filters).toMatchObject({
-        categoryId: 'cat-1',
-        ageGroup: '36-72',
+        categoryIds: ['cat-1'],
+        ageGroups: ['36-72'],
         maxPrice: 3000,
         districtIds: ['d-1', 'd-2'],
         query: null,

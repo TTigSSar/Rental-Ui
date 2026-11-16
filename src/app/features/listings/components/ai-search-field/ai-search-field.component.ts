@@ -29,6 +29,7 @@ import {
   selectAiRateLimited,
   selectAiSnapshot,
 } from '../../store/listings.selectors';
+import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import { AiNoticeComponent } from '../ai-notice/ai-notice.component';
 import { AiSwitchComponent } from '../ai-switch/ai-switch.component';
 
@@ -56,7 +57,7 @@ const TEXTAREA_MAX_HEIGHT_PX = 120;
 @Component({
   selector: 'app-ai-search-field',
   standalone: true,
-  imports: [AiNoticeComponent, AiSwitchComponent, TranslatePipe],
+  imports: [AiNoticeComponent, AiSwitchComponent, IconComponent, TranslatePipe],
   templateUrl: './ai-search-field.component.html',
   styleUrl: './ai-search-field.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -69,7 +70,11 @@ export class AiSearchFieldComponent {
   private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly layout = input<'bar' | 'block'>('bar');
+  /**
+   * `bar` mobile sticky bar; `block` the old desktop block; `browse` the Browse Redesign Stage 1
+   * `.bsearch` pill (switch labelled "Smart search", clear, Search button).
+   */
+  readonly layout = input<'bar' | 'block' | 'browse'>('bar');
   /** The ordinary text query (switch off). */
   readonly query = input('');
   readonly queryChange = output<string>();
@@ -78,6 +83,7 @@ export class AiSearchFieldComponent {
 
   private readonly queryInput = viewChild<ElementRef<HTMLInputElement>>('queryInput');
   private readonly textarea = viewChild<ElementRef<HTMLTextAreaElement>>('descriptionInput');
+  private readonly browseInput = viewChild<ElementRef<HTMLInputElement>>('browseInput');
 
   /** Id of the privacy note, wired to the textarea through aria-describedby while it shows. */
   protected readonly noteId = `aisf-privacy-${nextNoteId++}`;
@@ -100,6 +106,9 @@ export class AiSearchFieldComponent {
   private readonly snapshot = this.store.selectSignal(selectAiSnapshot);
 
   protected readonly focused = signal(false);
+  /** `browse` layout: the live plain-search text (the `query` input only follows after the URL debounce). */
+  private readonly plainDraft = signal('');
+  protected readonly browseText = computed(() => (this.aiMode() ? this.description() : this.plainDraft()));
   /** The user tapped the collapsed line to edit it. */
   private readonly editing = signal(false);
   private focusAfterRender = false;
@@ -121,6 +130,7 @@ export class AiSearchFieldComponent {
   );
 
   constructor() {
+    effect(() => this.plainDraft.set(this.query()));
     // Keep the textarea height in step with its content (typing, example fill, switch-on restore).
     effect(() => {
       const el = this.textarea()?.nativeElement;
@@ -131,7 +141,7 @@ export class AiSearchFieldComponent {
     });
     // After the user turns the switch on (or taps the collapsed line), put the caret in the field.
     effect(() => {
-      const el = this.textarea()?.nativeElement;
+      const el = this.textarea()?.nativeElement ?? this.browseInput()?.nativeElement;
       if (el && this.focusAfterRender) {
         this.focusAfterRender = false;
         queueMicrotask(() => el.focus());
@@ -222,6 +232,50 @@ export class AiSearchFieldComponent {
     });
   }
 
+  protected onBrowseQueryInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.plainDraft.set(value);
+    this.queryChange.emit(value);
+  }
+
+  protected onBrowseDescriptionInput(event: Event): void {
+    this.store.dispatch(
+      ListingsActions.setAiDescription({ description: (event.target as HTMLInputElement).value }),
+    );
+  }
+
+  /** The clear x: empties whichever text the bar is showing and keeps the caret in the field. */
+  protected onBrowseClear(): void {
+    if (this.aiMode()) {
+      this.store.dispatch(ListingsActions.setAiDescription({ description: '' }));
+    } else {
+      this.plainDraft.set('');
+      this.queryChange.emit('');
+    }
+    this.browseInput()?.nativeElement.focus();
+    const plain = this.queryInput()?.nativeElement;
+    if (plain) {
+      plain.value = '';
+      plain.focus();
+    }
+  }
+
+  /** Smart search switch; with the daily AI budget spent it stays aria-disabled (title explains). */
+  protected onBrowseSwitch(): void {
+    if (this.budgetSpent()) return;
+    this.onToggle(!this.aiMode());
+  }
+
+  /** Enter / Search button: AI mode runs the search, plain mode applies the text immediately. */
+  protected onBrowseSubmit(event: Event): void {
+    event.preventDefault();
+    if (this.aiMode()) {
+      this.submit();
+    } else {
+      this.queryChange.emit(this.plainDraft());
+    }
+  }
+
   protected onQueryInput(event: Event): void {
     this.queryChange.emit((event.target as HTMLInputElement).value);
   }
@@ -273,7 +327,7 @@ export class AiSearchFieldComponent {
 
   /** "Edit description": expand the field, focus it and put the caret at the end. */
   focusEnd(): void {
-    const el = this.textarea()?.nativeElement;
+    const el = this.textarea()?.nativeElement ?? this.browseInput()?.nativeElement;
     if (el) {
       el.focus();
       const end = el.value.length;

@@ -3,7 +3,9 @@ import { AGE_GROUPS } from './age-groups.const';
 import {
   clampRadiusKm,
   serializeDistrictIdsParam,
+  serializeListParam,
   serializeRadiusKmParam,
+  serializeSortParam,
   type ListingsFilter,
   type ListingsOriginSource,
 } from './listings-filter.model';
@@ -11,14 +13,18 @@ import {
 /** "From your home" default radius when the AI says "near me" without a number. */
 export const AI_DEFAULT_NEAR_HOME_RADIUS_KM = 1;
 
-function toAiAgeGroup(value: string | null): AiSearchAgeGroup | null {
-  return AGE_GROUPS.some((g) => g.value === value) ? (value as AiSearchAgeGroup) : null;
+/** The AI endpoint takes ONE age group: the first selected token it knows. */
+function toAiAgeGroup(values: readonly string[]): AiSearchAgeGroup | null {
+  const match = values.find((v) => AGE_GROUPS.some((g) => g.value === v));
+  return match ? (match as AiSearchAgeGroup) : null;
 }
 
 /**
  * The catalogue filters as the AI endpoint takes them (re-rank / page 2+).
  * `AiSearchFilters` has no `minPrice` and no arbitrary origin, so only a radius
- * measured from the user's HOME is expressible (`nearHome`) — see ADR-054.
+ * measured from the user's HOME is expressible (`nearHome`) — see ADR-054. The endpoint also
+ * takes a single category and age group, and has no conditions: with several selected only the
+ * first category / first known age group goes out, and conditions are not sent.
  */
 export function toAiSearchFilters(
   filters: ListingsFilter,
@@ -26,8 +32,8 @@ export function toAiSearchFilters(
 ): AiSearchFilters {
   const nearHome = filters.radiusKm != null && originSource === 'home';
   return {
-    categoryId: filters.categoryId,
-    ageGroup: toAiAgeGroup(filters.ageGroup),
+    categoryId: filters.categoryIds[0] ?? null,
+    ageGroup: toAiAgeGroup(filters.ageGroups),
     maxPrice: filters.maxPrice,
     districtIds: filters.districtIds.length > 0 ? [...filters.districtIds] : null,
     nearHome,
@@ -44,10 +50,12 @@ export function fromAiSearchFilters(applied: AiSearchFilters): ListingsFilter {
   return {
     query: null,
     city: null,
-    categoryId: applied.categoryId,
+    categoryIds: applied.categoryId ? [applied.categoryId] : [],
     minPrice: null,
     maxPrice: applied.maxPrice,
-    ageGroup: applied.ageGroup,
+    ageGroups: applied.ageGroup ? [applied.ageGroup] : [],
+    conditions: [],
+    sort: 'newest',
     radiusKm: applied.nearHome
       ? clampRadiusKm(applied.radiusKm ?? AI_DEFAULT_NEAR_HOME_RADIUS_KM)
       : null,
@@ -60,8 +68,14 @@ export function filtersToQueryParams(filters: ListingsFilter): Record<string, st
   return {
     q: filters.query,
     city: filters.city,
-    categoryId: filters.categoryId,
-    ageGroup: filters.ageGroup,
+    // The legacy single-value keys are always cleared so an old link's `categoryId`/`ageGroup`
+    // cannot linger next to (and contradict) the new lists.
+    categoryId: null,
+    categoryIds: serializeListParam(filters.categoryIds),
+    ageGroup: null,
+    ageGroups: serializeListParam(filters.ageGroups),
+    conditions: serializeListParam(filters.conditions),
+    sort: serializeSortParam(filters.sort),
     minPrice: filters.minPrice != null ? String(filters.minPrice) : null,
     maxPrice: filters.maxPrice != null ? String(filters.maxPrice) : null,
     radiusKm: serializeRadiusKmParam(filters.radiusKm),

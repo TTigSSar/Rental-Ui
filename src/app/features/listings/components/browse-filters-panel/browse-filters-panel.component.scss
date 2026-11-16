@@ -1,0 +1,461 @@
+/* Browse Redesign Stage 1 filter panel (Claude Design `.fpanel` family, M-032).
+   Hex values from the design are mapped to the design-system tokens where one exists; the few
+   that have no token (checkbox border, thumb shadow) are hardcoded and noted inline. */
+:host {
+  display: block;
+}
+
+.fpanel {
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  box-shadow: var(--ui-shadow-card);
+  overflow: hidden;
+  color: var(--ui-color-text-primary);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--ui-color-primary-strong);
+  outline-offset: 2px;
+}
+
+/* ── Header ── */
+.fhead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 68px;
+  padding: 12px 16px 12px 20px;
+  border-bottom: 1px solid var(--ui-color-border);
+}
+
+.fhead__icon {
+  font-size: 20px;
+  color: var(--ui-color-text-primary);
+}
+
+.fhead__title {
+  margin: 0;
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 800;
+}
+
+.fhead__spacer,
+.fsec-h__spacer {
+  flex: 1;
+}
+
+.fbadge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-primary-strong);
+  color: var(--ui-color-on-primary);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.tlink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--ui-color-primary-strong);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tlink:hover {
+  background: var(--ui-color-primary-wash);
+}
+
+.tlink.more {
+  margin: 2px 12px 12px;
+}
+
+.tlink__chev {
+  display: inline-grid;
+  transition: transform 0.15s;
+}
+
+.tlink__chev--open {
+  transform: rotate(180deg);
+}
+
+/* ── Sections ── */
+.fsec {
+  border-bottom: 1px solid var(--ui-color-border);
+}
+
+.fsec:last-child {
+  border-bottom: 0;
+}
+
+.fsec-h {
+  width: 100%;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 18px 0 20px;
+  border: 0;
+  background: none;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.fsec-h:hover {
+  background: var(--ui-color-background);
+}
+
+.fsec-h__chev {
+  display: grid;
+  color: var(--ui-color-text-secondary);
+  transition: transform 0.15s;
+}
+
+.fsec-h__chev--open {
+  transform: rotate(180deg);
+}
+
+.fsec-b {
+  padding-bottom: 4px;
+}
+
+/* The shared radius control keeps its own look; the wrapper only gives it the panel's gutter. */
+.fsec-b--distance {
+  padding: 0 20px 18px;
+}
+
+/* ── Rows (category / district) ── */
+.flist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 8px;
+}
+
+.frow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--ui-radius-12);
+  background: transparent;
+  text-align: left;
+  width: 100%;
+}
+
+.frow:hover {
+  background: var(--ui-color-background);
+}
+
+.frow.on {
+  background: var(--ui-color-primary-wash);
+}
+
+.fname {
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.frow.on .fname {
+  font-weight: 700;
+}
+
+.cbx {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--ui-radius-sm);
+  /* design #B9B5AC: no token (border-strong #b5b2a9 is the nearest, 4 off) */
+  border: 1.5px solid var(--ui-color-border-strong);
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: var(--ui-color-surface);
+  color: var(--ui-color-on-primary);
+}
+
+.frow.on .cbx {
+  background: var(--ui-color-primary-strong);
+  border-color: var(--ui-color-primary-strong);
+}
+
+.cico {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  color: var(--ui-color-text-primary);
+}
+
+.fcount {
+  margin-left: auto;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ui-color-text-hint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A zero-count facet stays visible but muted (and is never hidden once selected). */
+.frow--empty .fname,
+.frow--empty .cico {
+  opacity: 0.55;
+}
+
+.fempty {
+  padding: 8px 20px 4px;
+  font-size: 14px;
+  color: var(--ui-color-text-secondary);
+}
+
+.fspacer {
+  height: 12px;
+}
+
+/* ── Chips (age, condition) ── */
+.chipwrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 20px 18px;
+}
+
+.fchip {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: var(--ui-radius-pill);
+  border: 1px solid var(--ui-color-border-input);
+  background: var(--ui-color-surface);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.fchip:hover {
+  border-color: var(--ui-color-text-primary);
+}
+
+.fchip.on {
+  background: var(--ui-color-text-primary);
+  border-color: var(--ui-color-text-primary);
+  color: var(--ui-color-on-primary);
+}
+
+/* ── Price ── */
+.pblock {
+  padding: 4px 20px 20px;
+}
+
+.prange {
+  position: relative;
+  height: 24px;
+  margin: 0 10px;
+}
+
+.prange::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 10px;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--ui-color-border);
+}
+
+.prange-f {
+  position: absolute;
+  top: 10px;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--ui-color-primary-strong);
+}
+
+/* Two stacked native ranges, 10px wider on each side so a thumb centre travels exactly the
+   design's 0..100% of `.prange`; track and thumbs are the design's `.prange::before` / `.prange-t`. */
+.prange-i {
+  position: absolute;
+  left: -10px;
+  right: -10px;
+  width: calc(100% + 20px);
+  top: 0;
+  height: 24px;
+  margin: 0;
+  background: transparent;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.prange-i::-webkit-slider-runnable-track {
+  height: 4px;
+  background: transparent;
+}
+
+.prange-i::-moz-range-track {
+  height: 4px;
+  background: transparent;
+}
+
+.prange-i::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  width: 20px;
+  height: 20px;
+  margin-top: -8px;
+  border-radius: 999px;
+  background: var(--ui-color-surface);
+  border: 2px solid var(--ui-color-primary-strong);
+  /* design thumb shadow: no token */
+  box-shadow: 0 1px 4px rgba(20, 15, 5, 0.2);
+  cursor: grab;
+}
+
+.prange-i::-moz-range-thumb {
+  pointer-events: auto;
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--ui-color-surface);
+  border: 2px solid var(--ui-color-primary-strong);
+  box-shadow: 0 1px 4px rgba(20, 15, 5, 0.2);
+  cursor: grab;
+}
+
+.prange-i:focus-visible {
+  outline: none;
+}
+
+.prange-i:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--ui-color-primary-strong);
+  outline-offset: 2px;
+}
+
+.prange-i:focus-visible::-moz-range-thumb {
+  outline: 2px solid var(--ui-color-primary-strong);
+  outline-offset: 2px;
+}
+
+.pboxes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.pbox {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 1px solid var(--ui-color-border-input);
+  border-radius: var(--ui-radius-12);
+  min-width: 0;
+}
+
+.pbox:focus-within,
+.pbox--set {
+  border-color: var(--ui-color-primary-strong);
+}
+
+.pbox span {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ui-color-text-secondary);
+}
+
+.pbox b {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 700;
+}
+
+.pbox b i {
+  font-style: normal;
+}
+
+.pbox__input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.pbox__input::-webkit-outer-spin-button,
+.pbox__input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ── District search ── */
+.dsearch-wrap {
+  padding: 0 20px 8px;
+}
+
+.dsearch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--ui-color-border-input);
+  border-radius: var(--ui-radius-12);
+  background: var(--ui-color-background);
+  color: var(--ui-color-text-secondary);
+}
+
+.dsearch:focus-within {
+  border-color: var(--ui-color-primary-strong);
+  background: var(--ui-color-surface);
+}
+
+.dsearch input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+  color: var(--ui-color-text-primary);
+}

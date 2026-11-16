@@ -1,4 +1,25 @@
-@if (visible()) {
+@if (panel()) {
+  @if (panelVisible()) {
+    <div class="aiexp" data-testid="ai-example-panel">
+      <div class="aiexp__head">
+        <app-icon name="sparkle" [size]="14" />{{ 'listings.browse.examples.title' | translate }}
+      </div>
+      <div class="aiexp__list">
+        @for (p of prompts; track p.textKey) {
+          <button type="button" class="aiexp__card" (click)="fill(p.textKey)">
+            <span class="aiexp__text">“{{ p.textKey | translate }}”</span>
+            <span class="aiexp__tags">
+              @for (t of p.tagKeys; track t) {
+                <span>{{ t | translate }}</span>
+              }
+            </span>
+            <app-icon class="aiexp__arrow" name="arrow" [size]="16" />
+          </button>
+        }
+      </div>
+    </div>
+  }
+} @else if (visible()) {
   @if (withHint()) {
     <p class="aiex__line">
       {{ 'listings.ai.hintPrefix' | translate }}

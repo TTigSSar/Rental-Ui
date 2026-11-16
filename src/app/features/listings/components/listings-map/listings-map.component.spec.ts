@@ -134,10 +134,12 @@ vi.stubGlobal('ResizeObserver', FakeResizeObserver);
 const BASE_FILTERS: ListingsFilter = {
   query: null,
   city: null,
-  categoryId: null,
+  categoryIds: [],
   minPrice: null,
   maxPrice: null,
-  ageGroup: null,
+  ageGroups: [],
+  conditions: [],
+  sort: 'newest',
   radiusKm: null,
   districtIds: [],
 };

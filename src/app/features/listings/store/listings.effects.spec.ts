@@ -89,6 +89,83 @@ describe('ListingsEffects', () => {
     });
   });
 
+  describe('loadFacets$ (ADR-066)', () => {
+    const FILTERS = { ...initialListingsState.filters, categoryIds: ['c1'], sort: 'price_asc' } as ListingsFilter;
+    const FACETS = {
+      categories: [{ categoryId: 'c1', count: 3 }],
+      districts: [{ districtId: 'd1', count: 2 }],
+      minPricePerDay: 500,
+      maxPricePerDay: 4000,
+    };
+
+    it('fetches facets for the current filters and origin after a catalogue load', async () => {
+      const getFacets = vi.fn().mockReturnValue(of(FACETS));
+      const { harness, store, effects } = setup({ getFacets });
+      store.overrideSelector(selectListingsFilters, FILTERS);
+      store.overrideSelector(selectListingsOriginCoords, { lat: 40.1, lng: 44.5 });
+      store.refreshState();
+
+      const result = collect(effects.loadFacets$);
+      harness.send(ListingsActions.loadListings());
+      harness.complete();
+
+      expect(await result).toEqual([ListingsActions.loadFacetsSuccess({ facets: FACETS })]);
+      expect(getFacets).toHaveBeenCalledWith(FILTERS, { lat: 40.1, lng: 44.5 });
+    });
+
+    it('debounces a burst of changes into one request', async () => {
+      const getFacets = vi.fn().mockReturnValue(of(FACETS));
+      const { harness, effects } = setup({ getFacets });
+
+      const result = collect(effects.loadFacets$);
+      harness.send(ListingsActions.loadListings());
+      harness.send(ListingsActions.clearOrigin());
+      harness.send(ListingsActions.loadListings());
+      harness.complete();
+
+      expect(await result).toHaveLength(1);
+      expect(getFacets).toHaveBeenCalledTimes(1);
+    });
+
+    it('follows an AI result applying its filters', async () => {
+      const getFacets = vi.fn().mockReturnValue(of(FACETS));
+      const { harness, effects } = setup({ getFacets });
+
+      const result = collect(effects.loadFacets$);
+      harness.send(
+        ListingsActions.aiSearchSuccess({ kind: 'search', response: {} as never, epoch: 0 }),
+      );
+      harness.complete();
+
+      expect(await result).toHaveLength(1);
+    });
+
+    it('ignores AI page 2+ (the filters did not change)', async () => {
+      const getFacets = vi.fn().mockReturnValue(of(FACETS));
+      const { harness, effects } = setup({ getFacets });
+
+      const result = collect(effects.loadFacets$);
+      harness.send(
+        ListingsActions.aiSearchSuccess({ kind: 'page', response: {} as never, epoch: 0 }),
+      );
+      harness.complete();
+
+      expect(await result).toEqual([]);
+      expect(getFacets).not.toHaveBeenCalled();
+    });
+
+    it('drops the counts (failure action) instead of surfacing an error', async () => {
+      const getFacets = vi.fn().mockReturnValue(throwError(() => new Error('boom')));
+      const { harness, effects } = setup({ getFacets });
+
+      const result = collect(effects.loadFacets$);
+      harness.send(ListingsActions.loadListings());
+      harness.complete();
+
+      expect(await result).toEqual([ListingsActions.loadFacetsFailure()]);
+    });
+  });
+
   describe('createListing$ image-upload resilience', () => {
     const payload = { title: 'Toy' } as never;
     const response = { id: 'L1' } as never;

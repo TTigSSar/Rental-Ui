@@ -10,10 +10,12 @@ import type { ListingsFilter } from './listings-filter.model';
 const EMPTY: ListingsFilter = {
   query: null,
   city: null,
-  categoryId: null,
+  categoryIds: [],
   minPrice: null,
   maxPrice: null,
-  ageGroup: null,
+  ageGroups: [],
+  conditions: [],
+  sort: 'newest',
   radiusKm: null,
   districtIds: [],
 };
@@ -31,8 +33,8 @@ describe('fromAiSearchFilters', () => {
   it('turns what the server applied into the page filters', () => {
     expect(fromAiSearchFilters(APPLIED)).toEqual({
       ...EMPTY,
-      categoryId: 'cat-1',
-      ageGroup: '36-72',
+      categoryIds: ['cat-1'],
+      ageGroups: ['36-72'],
       maxPrice: 3000,
       districtIds: ['d-1', 'd-2'],
     });
@@ -72,9 +74,14 @@ describe('toAiSearchFilters', () => {
     expect(toAiSearchFilters(f, null)).toMatchObject({ nearHome: false, radiusKm: null });
   });
 
+  it('sends only the first category and the first known age group (the AI endpoint takes one of each)', () => {
+    const f = { ...EMPTY, categoryIds: ['c1', 'c2'], ageGroups: ['teen', '12-36', '36-72'] };
+    expect(toAiSearchFilters(f, null)).toMatchObject({ categoryId: 'c1', ageGroup: '12-36' });
+  });
+
   it('drops an age group the AI endpoint does not know', () => {
-    expect(toAiSearchFilters({ ...EMPTY, ageGroup: 'teen' }, null).ageGroup).toBeNull();
-    expect(toAiSearchFilters({ ...EMPTY, ageGroup: '120+' }, null).ageGroup).toBe('120+');
+    expect(toAiSearchFilters({ ...EMPTY, ageGroups: ['teen'] }, null).ageGroup).toBeNull();
+    expect(toAiSearchFilters({ ...EMPTY, ageGroups: ['120+'] }, null).ageGroup).toBe('120+');
   });
 
   it('round-trips with fromAiSearchFilters', () => {
@@ -89,7 +96,11 @@ describe('filtersToQueryParams / sameFilters', () => {
       q: null,
       city: null,
       categoryId: null,
+      categoryIds: null,
       ageGroup: null,
+      ageGroups: null,
+      conditions: null,
+      sort: null,
       minPrice: null,
       maxPrice: '3000',
       radiusKm: null,
@@ -97,8 +108,33 @@ describe('filtersToQueryParams / sameFilters', () => {
     });
   });
 
+  it('writes the ADR-066 lists comma-joined, never the default sort, and always clears the legacy keys', () => {
+    const params = filtersToQueryParams({
+      ...EMPTY,
+      categoryIds: ['c1', 'c2'],
+      ageGroups: ['0-12', '120+'],
+      conditions: ['New', 'Fair'],
+      sort: 'price_asc',
+    });
+    expect(params).toMatchObject({
+      categoryIds: 'c1,c2',
+      ageGroups: '0-12,120+',
+      conditions: 'New,Fair',
+      sort: 'price_asc',
+      // null = removed under `queryParamsHandling: 'merge'`, so an old ?categoryId= link cannot linger.
+      categoryId: null,
+      ageGroup: null,
+    });
+    expect(filtersToQueryParams({ ...EMPTY, sort: 'newest' })['sort']).toBeNull();
+  });
+
+  it('sameFilters notices a changed condition or sort', () => {
+    expect(sameFilters(EMPTY, { ...EMPTY, conditions: ['Good'] })).toBe(false);
+    expect(sameFilters(EMPTY, { ...EMPTY, sort: 'rating_desc' })).toBe(false);
+  });
+
   it('treats null and empty string as the same value', () => {
-    expect(sameFilters(EMPTY, { ...EMPTY, ageGroup: '' })).toBe(true);
+    expect(sameFilters(EMPTY, { ...EMPTY, ageGroups: [] })).toBe(true);
   });
 
   it('detects a real difference', () => {

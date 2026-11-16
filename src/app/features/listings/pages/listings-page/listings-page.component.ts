@@ -1,4 +1,4 @@
-import { Location, NgTemplateOutlet } from '@angular/common';
+import { Location, NgTemplateOutlet, formatNumber } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -23,7 +23,6 @@ import { MessageModule } from 'primeng/message';
 import {
   Subject,
   catchError,
-  combineLatest,
   debounceTime,
   filter,
   map,
@@ -49,6 +48,10 @@ import { AiExampleComponent } from '../../components/ai-example/ai-example.compo
 import { AiNoResultsComponent } from '../../components/ai-no-results/ai-no-results.component';
 import { AiNoticeComponent } from '../../components/ai-notice/ai-notice.component';
 import { AiSearchFieldComponent } from '../../components/ai-search-field/ai-search-field.component';
+import {
+  BrowseFiltersPanelComponent,
+  type BrowseFilterPatch,
+} from '../../components/browse-filters-panel/browse-filters-panel.component';
 import { ListingCardComponent } from '../../components/listing-card/listing-card.component';
 import { ListingsFiltersComponent } from '../../components/listings-filters/listings-filters.component';
 import { ListingsMapComponent } from '../../components/listings-map/listings-map.component';
@@ -58,12 +61,13 @@ import { sameFilters } from '../../models/ai-search.util';
 import { districtDisplayName } from '../../models/district-ui.util';
 import type { ListingDistrict } from '../../models/district.model';
 import {
-  parseDistrictIdsParam,
-  parseRadiusKmParam,
+  parseListingsFilterFromParams,
   serializeDistrictIdsParam,
+  serializeListParam,
   serializeRadiusKmParam,
+  serializeSortParam,
 } from '../../models/listings-filter.model';
-import type { ListingsFilter } from '../../models/listings-filter.model';
+import type { ListingConditionFilter, ListingsFilter, ListingsSort } from '../../models/listings-filter.model';
 import type { ListingCategoryOption } from '../../models/create-listing.model';
 import { formatDistanceMeters, kmToMeters, localeTagForLanguage, metersToKm } from '../../models/radius-scale.util';
 import { radiusChipLabel } from '../../models/radius-chip.util';
@@ -86,6 +90,7 @@ import {
   selectAiRateLimited,
   selectAiResultsActive,
   selectListingCategories,
+  selectListingFacets,
   selectListingItems,
   selectListingsError,
   selectListingsFilters,
@@ -95,7 +100,6 @@ import {
   selectListingsOriginSource,
   selectListingsPageSize,
 } from '../../store/listings.selectors';
-import type { ParamMap } from '@angular/router';
 
 /**
  * Starts the next-page fetch before the sentinel actually reaches the
@@ -103,6 +107,13 @@ import type { ParamMap } from '@angular/router';
  * that far — same idea as `HERO_SEARCH_ROOT_MARGIN` in the home page.
  */
 const SCROLL_SENTINEL_ROOT_MARGIN = '400px 0px';
+
+const CONDITION_CHIP_LABEL_KEYS: Record<ListingConditionFilter, string> = {
+  New: 'listings.details.conditionValues.new',
+  LikeNew: 'listings.details.conditionValues.likeNew',
+  Good: 'listings.details.conditionValues.good',
+  Fair: 'listings.details.conditionValues.fair',
+};
 
 const BOOKING_STATUS_PRIORITY: Partial<Record<BookingStatus, number>> = {
   Active: 6,
@@ -130,6 +141,21 @@ export interface ListingsPageViewModel {
   readonly isAuthenticated: boolean;
 }
 
+/** Any narrowing filter set. `sort` is an ordering, not a filter: the default `newest` must not count. */
+export function hasActiveListingFilters(f: ListingsFilter): boolean {
+  return !!(
+    f.query ||
+    f.city ||
+    f.categoryIds.length > 0 ||
+    f.ageGroups.length > 0 ||
+    f.conditions.length > 0 ||
+    f.districtIds.length > 0 ||
+    f.minPrice != null ||
+    f.maxPrice != null ||
+    f.radiusKm != null
+  );
+}
+
 const selectListingsPageViewModel = createSelector(
   selectListingItems,
   selectListingsLoading,
@@ -141,11 +167,7 @@ const selectListingsPageViewModel = createSelector(
   selectFavoriteIds,
   (items, loading, error, hasMore, pageSize, filters, isAuthenticated, favoriteIds): ListingsPageViewModel => {
     const hasError = error !== null;
-    const hasActiveFilters =
-      filters !== null &&
-      Object.values(filters).some((v) =>
-        Array.isArray(v) ? v.length > 0 : v !== null && v !== '',
-      );
+    const hasActiveFilters = filters !== null && hasActiveListingFilters(filters);
     return {
       items: items.map((i) => ({ ...i, isFavorite: favoriteIds.has(i.id) })),
       loading,
@@ -163,17 +185,14 @@ const selectListingsPageViewModel = createSelector(
   },
 );
 
-/** Desktop toolbar's removable-filter-chip row. `districtId` is only set for
- *  `key: 'districtId'` — several district chips share that key, so removal
- *  needs to know which one to drop (same reasoning as the mobile sheet's
- *  own `ActiveChip` in `listings-filters.component.ts`). */
+/** Desktop toolbar's removable-filter-chip row (`.achip`, one per selected VALUE). `value` is the
+ *  id/token of the value a multi-value chip removes; the combined price chip and the radius chip
+ *  carry none. */
 interface ActiveFilterChip {
-  readonly key: string;
+  readonly key: 'categoryId' | 'ageGroup' | 'condition' | 'districtId' | 'price' | 'minPrice' | 'maxPrice' | 'radiusKm';
   readonly label: string;
-  readonly districtId?: string;
+  readonly value?: string;
 }
-
-type SortBy = '' | 'relevance' | 'price_asc' | 'price_desc' | 'rating_desc' | 'newest';
 
 /**
  * Maps P2-2: which surface the results area shows — `?view=map` in the URL,
@@ -185,31 +204,30 @@ type SortBy = '' | 'relevance' | 'price_asc' | 'price_desc' | 'rating_desc' | 'n
  */
 type ListingsViewMode = 'list' | 'map';
 
+/** `relevance` exists only while AI results are showing (ADR-054); it is never sent to the API. */
+type SortValue = ListingsSort | 'relevance';
+
 interface SortOption {
-  readonly value: SortBy;
+  readonly value: SortValue;
   readonly labelKey: string;
-  readonly icon: string;
+  /** `nearest` needs a radius origin; until one exists the option is disabled with a hint. */
+  readonly disabled: boolean;
 }
 
-const SORT_OPTIONS: readonly SortOption[] = [
-  { value: 'price_asc',   labelKey: 'listings.page.sortLowestPrice',   icon: 'pi pi-tag' },
-  { value: 'price_desc',  labelKey: 'listings.page.sortHighestPrice',  icon: 'pi pi-tag' },
-  { value: 'rating_desc', labelKey: 'listings.page.sortHighestRated',  icon: 'pi pi-star' },
-  { value: 'newest',      labelKey: 'listings.page.sortNewest',        icon: 'pi pi-clock' },
+/** ADR-066 sort set, in menu order. */
+const SORT_OPTION_DEFS: readonly { value: ListingsSort; labelKey: string }[] = [
+  { value: 'newest', labelKey: 'listings.page.sortNewest' },
+  { value: 'price_asc', labelKey: 'listings.page.sortPriceAsc' },
+  { value: 'price_desc', labelKey: 'listings.page.sortPriceDesc' },
+  { value: 'rating_desc', labelKey: 'listings.page.sortHighestRated' },
+  { value: 'nearest', labelKey: 'listings.page.sortNearest' },
 ];
 
 /** Offered only while AI results are showing; the default sort in AI mode (ADR-054). */
-const AI_SORT_OPTION: SortOption = {
-  value: 'relevance',
-  labelKey: 'listings.ai.sortRelevant',
-  icon: 'pi pi-sort-amount-down',
-};
+const AI_SORT_LABEL_KEY = 'listings.ai.sortRelevant';
 
-function applySort(items: ListingPreview[], sortBy: string): ListingPreview[] {
-  if (sortBy === 'price_asc')  return [...items].sort((a, b) => a.pricePerDay - b.pricePerDay);
-  if (sortBy === 'price_desc') return [...items].sort((a, b) => b.pricePerDay - a.pricePerDay);
-  return items;
-}
+/** No-break space before the dram symbol in the combined price chip ("1,500–5,000 ֏"). */
+const NBSP = '\u00A0';
 
 @Component({
   selector: 'app-listings-page',
@@ -220,6 +238,7 @@ function applySort(items: ListingPreview[], sortBy: string): ListingPreview[] {
     AiNoticeComponent,
     AiSearchFieldComponent,
     AuthDialogComponent,
+    BrowseFiltersPanelComponent,
     ButtonModule,
     EmptyStateComponent,
     ListingCardComponent,
@@ -236,9 +255,6 @@ function applySort(items: ListingPreview[], sortBy: string): ListingPreview[] {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListingsPageComponent {
-  /** Price-input prefix in the sidebar — same source `DramCurrencyPipe` formats with. */
-  protected readonly dramSymbol = DRAM_SYMBOL;
-
   private readonly store = inject(Store);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -293,7 +309,6 @@ export class ListingsPageComponent {
     }
     return map;
   });
-  protected readonly sortBy = signal<SortBy>('');
   protected readonly sortMenuOpen = signal(false);
   /** >= 961px: the toolbar is rendered in the desktop order (sort, then List/Map). */
   protected readonly isDesktop = signal(
@@ -317,12 +332,9 @@ export class ListingsPageComponent {
   private readonly aiDailyLimited = this.store.selectSignal(selectAiDailyLimited);
   private readonly aiOtherError = this.store.selectSignal(selectAiOtherError);
   private readonly aiDescription = this.store.selectSignal(selectAiDescription);
-  private sortBeforeAi: SortBy | null = null;
 
   private readonly injector = inject(Injector);
-  private readonly sidebarRef = viewChild<ElementRef<HTMLElement>>('sidebar');
-  private readonly maxPriceRef = viewChild<ElementRef<HTMLInputElement>>('maxPriceInput');
-  private readonly districtSectionRef = viewChild<ElementRef<HTMLElement>>('districtSection');
+  private readonly panelRef = viewChild(BrowseFiltersPanelComponent);
   private readonly resultsRef = viewChild<ElementRef<HTMLElement>>('resultsRegion');
   private readonly desktopField = viewChild(AiSearchFieldComponent);
   private readonly filtersCmp = viewChild(ListingsFiltersComponent);
@@ -330,10 +342,6 @@ export class ListingsPageComponent {
   private pendingAiSubmit = false;
   private prevAiBusy = this.aiBusy();
   private readonly desktopQuery$ = new Subject<string>();
-
-  protected readonly sortOptions = computed<readonly SortOption[]>(() =>
-    this.aiHasSearched() ? [AI_SORT_OPTION, ...SORT_OPTIONS] : SORT_OPTIONS,
-  );
 
   /** `?view=map` — see `ListingsViewMode`'s own doc comment for why this is
    *  parsed independently of `ListingsFilter`/`parseFiltersFromParams()`.
@@ -343,10 +351,6 @@ export class ListingsPageComponent {
       map((params): ListingsViewMode => (params.get('view') === 'map' ? 'map' : 'list')),
     ),
     { initialValue: 'list' as ListingsViewMode },
-  );
-
-  protected readonly activeSortOption = computed(() =>
-    this.sortOptions().find(o => o.value === this.sortBy()) ?? null
   );
 
   private readonly itemsSignal = this.store.selectSignal(selectListingItems);
@@ -389,8 +393,9 @@ export class ListingsPageComponent {
     return this.districtsSignal().map((d) => ({ id: d.id, label: districtDisplayName(d, lang) }));
   });
 
-  protected readonly activeCategoryId = computed(() => this.filtersSignal().categoryId);
-  protected readonly activeAgeGroup   = computed(() => this.filtersSignal().ageGroup);
+  protected readonly filters = this.filtersSignal;
+  protected readonly facets = this.store.selectSignal(selectListingFacets);
+  protected readonly districts = this.districtsSignal;
   protected readonly activeRadiusKm = computed(() => this.filtersSignal().radiusKm);
   /** `RadiusOriginFilterComponent` works in METRES (its slider math is
    *  metre-based) — converts at this component's own boundary since
@@ -399,18 +404,12 @@ export class ListingsPageComponent {
     const km = this.activeRadiusKm();
     return km != null ? kmToMeters(km) : null;
   });
-  protected readonly activeMinPrice   = computed(() => this.filtersSignal().minPrice);
-  protected readonly activeMaxPrice   = computed(() => this.filtersSignal().maxPrice);
   protected readonly activeDistrictIds = computed(() => this.filtersSignal().districtIds);
 
-  protected readonly ageGroups  = AGE_GROUPS;
-
-  protected readonly activeCategoryName = computed(() => {
-    const id = this.filtersSignal().categoryId;
-    if (!id) return null;
-    const cat = this.categoriesSignal().find((c) => c.id === id);
-    return cat ? categoryDisplayName(cat, this.languageService.current().code) : null;
-  });
+  /** A radius origin exists (home point, device location or a picked point): `nearest` can be used. */
+  protected readonly hasOrigin = computed(() => this.originCoordsSignal() !== null);
+  /** Counts as a selection in the panel header only while it really narrows results (origin set). */
+  protected readonly distanceActive = computed(() => this.activeRadiusKm() != null && this.hasOrigin());
 
   /** Display name in the current UI language (reactive: reads the language signal). */
   protected categoryLabel(category: ListingCategoryOption): string {
@@ -419,62 +418,82 @@ export class ListingsPageComponent {
 
   protected readonly activeQuery = computed(() => this.filtersSignal().query ?? '');
 
-  protected readonly hasSidebarFilters = computed(() => {
-    const f = this.filtersSignal();
-    return !!(
-      f.categoryId ||
-      f.ageGroup ||
-      f.minPrice != null ||
-      f.maxPrice != null ||
-      f.radiusKm != null ||
-      f.districtIds.length > 0
-    );
+  /**
+   * What the sort control shows. AI results in AI order are "Relevance" (never sent, ADR-054). A
+   * `sort=nearest` URL with no origin yet (cold load before the home point arrives) shows and
+   * requests Newest until an origin exists.
+   */
+  protected readonly sortBy = computed<SortValue>(() => {
+    if (this.aiResultsActive()) return 'relevance';
+    const sort = this.filtersSignal().sort;
+    return sort === 'nearest' && !this.hasOrigin() ? 'newest' : sort;
   });
+
+  protected readonly sortOptions = computed<readonly SortOption[]>(() => {
+    const options: SortOption[] = SORT_OPTION_DEFS.map((o) => ({
+      ...o,
+      disabled: o.value === 'nearest' && !this.hasOrigin(),
+    }));
+    return this.aiHasSearched()
+      ? [{ value: 'relevance', labelKey: AI_SORT_LABEL_KEY, disabled: false }, ...options]
+      : options;
+  });
+
+  protected readonly activeSortOption = computed(
+    () => this.sortOptions().find((o) => o.value === this.sortBy()) ?? this.sortOptions()[0],
+  );
 
   private readonly localeTag = computed(() => localeTagForLanguage(this.languageService.current().code));
 
   protected readonly activeFilterChips = computed(() => {
     const f = this.filtersSignal();
+    const lang = this.languageService.current().code;
     const chips: ActiveFilterChip[] = [];
-    if (f.categoryId) {
-      const cat = this.categoriesSignal().find((c) => c.id === f.categoryId);
+    // Design order: categories, ages, price, districts, conditions (then the Distance extra).
+    for (const id of f.categoryIds) {
+      const cat = this.categoriesSignal().find((c) => c.id === id);
+      chips.push({ key: 'categoryId', value: id, label: cat ? categoryDisplayName(cat, lang) : id });
+    }
+    for (const token of f.ageGroups) {
+      const ag = AGE_GROUPS.find((a) => a.value === token);
+      chips.push({ key: 'ageGroup', value: token, label: ag ? this.translate.instant(ag.labelKey) : token });
+    }
+    if (f.minPrice != null && f.maxPrice != null) {
       chips.push({
-        key: 'categoryId',
-        label: cat ? categoryDisplayName(cat, this.languageService.current().code) : f.categoryId,
+        key: 'price',
+        label: `${formatNumber(f.minPrice, 'en-US', '1.0-0')}–${formatNumber(f.maxPrice, 'en-US', '1.0-0')}${NBSP}${DRAM_SYMBOL}`,
+      });
+    } else if (f.maxPrice != null) {
+      chips.push({
+        key: 'maxPrice',
+        label: this.translate.instant('listings.filters.chips.maxPricePerDay', {
+          amount: new DramCurrencyPipe().transform(f.maxPrice),
+        }),
+      });
+    } else if (f.minPrice != null) {
+      chips.push({
+        key: 'minPrice',
+        label: this.translate.instant('listings.filters.chips.minPricePerDay', {
+          amount: new DramCurrencyPipe().transform(f.minPrice),
+        }),
       });
     }
-    if (f.ageGroup) {
-      const ag = AGE_GROUPS.find((a) => a.value === f.ageGroup);
-      chips.push({
-        key: 'ageGroup',
-        label: ag ? this.translate.instant(ag.labelKey) : f.ageGroup,
-      });
+    for (const districtId of f.districtIds) {
+      const district = this.districtOptions().find((d) => d.id === districtId);
+      chips.push({ key: 'districtId', value: districtId, label: district?.label ?? districtId });
     }
-    if (f.minPrice != null || f.maxPrice != null) {
-      // Same format as the listing cards (`dram` pipe: "3,000 ֏").
-      const dram = new DramCurrencyPipe();
-      if (f.maxPrice != null) {
-        chips.push({
-          key: 'maxPrice',
-          label: this.translate.instant('listings.filters.chips.maxPricePerDay', {
-            amount: dram.transform(f.maxPrice),
-          }),
-        });
-      }
-      if (f.minPrice != null) {
-        chips.push({
-          key: 'minPrice',
-          label: this.translate.instant('listings.filters.chips.minPricePerDay', {
-            amount: dram.transform(f.minPrice),
-          }),
-        });
-      }
+    for (const condition of f.conditions) {
+      chips.push({
+        key: 'condition',
+        value: condition,
+        label: this.translate.instant(CONDITION_CHIP_LABEL_KEYS[condition]),
+      });
     }
     // Gated on `originCoordsSignal()`, not just `f.radiusKm` — see that
     // field's own doc comment. Showing this chip with no origin in memory
     // (e.g. right after a page reload) would claim a filter is narrowing
     // results when the API request actually omitted it entirely
-    // (`ListingsApiService.buildListingsQueryParams` only sends `radiusKm`/
+    // (`ListingsApiService.buildSharedFilterParams` only sends `radiusKm`/
     // `originLat`/`originLng` together). The radius VALUE itself is not
     // lost — `RadiusOriginFilterComponent`'s slider still shows it, greyed
     // out with "set a point first" — it just isn't presented as active
@@ -488,10 +507,6 @@ export class ListingsPageComponent {
         key: 'radiusKm',
         label: radiusChipLabel(distanceLabel, this.originSourceSignal(), this.translate),
       });
-    }
-    for (const districtId of f.districtIds) {
-      const district = this.districtOptions().find((d) => d.id === districtId);
-      chips.push({ key: 'districtId', label: district?.label ?? districtId, districtId });
     }
     return chips;
   });
@@ -510,19 +525,13 @@ export class ListingsPageComponent {
     () => this.aiHasSearched() && this.aiBusy() === 'idle' && this.itemsSignal().length === 0,
   );
   protected readonly hasDistrictFilter = computed(() => this.activeDistrictIds().length > 0);
-  /** "Or browse other categories": every category except the one already applied. */
-  protected readonly otherCategories = computed(() =>
-    this.categoriesSignal().filter((c) => c.id !== this.activeCategoryId()),
-  );
+  /** "Or browse other categories": every category except the ones already applied. */
+  protected readonly otherCategories = computed(() => {
+    const applied = this.filtersSignal().categoryIds;
+    return this.categoriesSignal().filter((c) => !applied.includes(c.id));
+  });
 
-  protected readonly viewModel$ = combineLatest([
-    this.store.select(selectListingsPageViewModel),
-    toObservable(this.sortBy),
-  ]).pipe(
-    map(([vm, sort]) => ({ ...vm, items: applySort(vm.items, sort) })),
-  );
-
-  protected readonly vm = toSignal(this.viewModel$);
+  protected readonly vm = this.store.selectSignal(selectListingsPageViewModel);
 
   constructor() {
     if (typeof matchMedia === 'function') {
@@ -534,7 +543,7 @@ export class ListingsPageComponent {
     this.route.queryParamMap
       .pipe(takeUntilDestroyed())
       .subscribe((params) => {
-        const filters = this.parseFiltersFromParams(params);
+        const filters = parseListingsFilterFromParams(params);
         // Read BEFORE mirroring `?ai` into the store: true only if the URL still says AI AND AI
         // results are showing. In that case the URL change is a user filter/chip edit (or the echo
         // of the filters the AI itself just applied): re-rank, don't reload the catalogue.
@@ -613,21 +622,22 @@ export class ListingsPageComponent {
         });
       });
 
-    // "Most relevant first" is the default sort while AI results show; switching the AI switch
-    // off puts back the sort that was active before.
+    // `sort=nearest` needs a radius origin. If the origin disappears while it is selected, fall back
+    // to Newest (ADR-066); if it arrives later (cold load: the home point lands after the list
+    // did) the list is re-fetched so the Nearest order applies.
+    let hadOrigin = this.hasOrigin();
     effect(() => {
-      const active = this.aiResultsActive();
-      const mode = this.aiMode();
+      const hasOrigin = this.hasOrigin();
+      const sort = this.filtersSignal().sort;
       untracked(() => {
-        if (active) {
-          if (this.sortBy() !== 'relevance') {
-            if (this.sortBeforeAi === null) this.sortBeforeAi = this.sortBy();
-            this.sortBy.set('relevance');
+        if (sort === 'nearest') {
+          if (hadOrigin && !hasOrigin) {
+            this.setSort('newest');
+          } else if (!hadOrigin && hasOrigin && !this.aiResultsActive()) {
+            this.store.dispatch(ListingsActions.loadListings());
           }
-        } else if (!mode && this.sortBeforeAi !== null) {
-          this.sortBy.set(this.sortBeforeAi);
-          this.sortBeforeAi = null;
         }
+        hadOrigin = hasOrigin;
       });
     });
 
@@ -707,27 +717,44 @@ export class ListingsPageComponent {
     this.store.dispatch(ListingsActions.loadListings());
   }
 
-  /**
-   * Also clears the session-only origin point (Trello #80 — previously
-   * nothing ever unset it, so the radius widget kept looking "active" after
-   * every other filter was gone). Navigates WITHOUT `queryParamsHandling:
-   * 'merge'` on purpose — "Clear all" must drop every filter param this page
-   * doesn't explicitly keep, unlike the merge-navigate pattern the rest of
-   * this component uses for single-field edits — but still preserves `view`
-   * so "Clear all" in map view doesn't silently bounce back to list view. A
-   * `null` `view` (not in the URL) is simply dropped, same as any other
-   * explicit-null param.
-   */
-  protected clearFilters(): void {
+  /** The URL keys of every narrowing filter (not `q`, `sort`, `view`, `ai`), cleared with `null` under `merge` (M-021). */
+  private static readonly FILTER_PARAM_KEYS = [
+    'categoryIds',
+    'categoryId',
+    'ageGroups',
+    'ageGroup',
+    'conditions',
+    'minPrice',
+    'maxPrice',
+    'districtIds',
+    'radiusKm',
+    'city',
+  ] as const;
+
+  private clearFilterParams(includeQuery: boolean): void {
+    // Also clears the session-only origin point (Trello #80, M-039): previously nothing ever unset
+    // it, so the radius widget kept looking "active" after every other filter was gone.
     this.store.dispatch(ListingsActions.clearOrigin());
+    const queryParams: Record<string, null> = {};
+    for (const key of ListingsPageComponent.FILTER_PARAM_KEYS) queryParams[key] = null;
+    if (includeQuery) queryParams['q'] = null;
     void this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: {
-        view: this.route.snapshot.queryParamMap.get('view'),
-        // Clearing filters is not leaving AI mode.
-        ai: this.route.snapshot.queryParamMap.get('ai'),
-      },
+      queryParams,
+      // `merge` + explicit nulls: `view`, `ai` and `sort` survive ("Clear all" in map view must not
+      // bounce back to list view; clearing filters is not leaving AI mode or changing the order).
+      queryParamsHandling: 'merge',
     });
+  }
+
+  /** The panel's / chip row's "Clear all": every filter, but the text in the search bar stays. */
+  protected clearAllFilters(): void {
+    this.clearFilterParams(false);
+  }
+
+  /** The empty state's "Clear filters": everything that narrowed the list, search text included. */
+  protected clearFilters(): void {
+    this.clearFilterParams(true);
   }
 
   /** `RadiusOriginFilterComponent`'s `(originCleared)` — the widget already
@@ -758,7 +785,7 @@ export class ListingsPageComponent {
 
   /** The desktop sidebar is `display: none` below the breakpoint - then the sheet is the way in. */
   private isSidebarVisible(): boolean {
-    return this.sidebarRef()?.nativeElement.offsetParent != null;
+    return this.panelRef()?.isVisible() ?? false;
   }
 
   /** No results, primary: drop the districts (whole Yerevan); the URL change re-runs the search. */
@@ -783,9 +810,7 @@ export class ListingsPageComponent {
   /** No results: desktop focuses the sidebar price "To"; mobile opens the sheet scrolled to price. */
   protected increaseBudget(): void {
     if (this.isSidebarVisible()) {
-      const input = this.maxPriceRef()?.nativeElement;
-      input?.scrollIntoView({ block: 'center' });
-      input?.focus({ preventScroll: true });
+      this.panelRef()?.focusMaxPrice();
     } else {
       this.filtersCmp()?.openSheetAt('price');
     }
@@ -794,9 +819,7 @@ export class ListingsPageComponent {
   /** The location Note's "Choose a district" link. */
   protected chooseDistrict(): void {
     if (this.isSidebarVisible()) {
-      const section = this.districtSectionRef()?.nativeElement;
-      section?.scrollIntoView({ block: 'center' });
-      section?.querySelector<HTMLInputElement>('input')?.focus({ preventScroll: true });
+      this.panelRef()?.focusDistrictSearch();
     } else {
       this.filtersCmp()?.openSheetAt('districts');
     }
@@ -821,21 +844,31 @@ export class ListingsPageComponent {
     }
   }
 
-  protected selectSort(value: SortBy): void {
+  /** Writes `sort` to the URL (merge): `newest` is the default and is never written. */
+  private setSort(sort: ListingsSort): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { sort: serializeSortParam(sort) },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  protected selectSort(value: SortValue): void {
+    const option = this.sortOptions().find((o) => o.value === value);
+    if (!option || option.disabled) return;
     this.sortMenuOpen.set(false);
-    if (this.aiHasSearched()) {
-      // With AI results showing, "Most relevant first" is a real option: choosing it re-ranks;
-      // choosing anything else drops the AI order (ordinary catalogue). No "deselect" here.
-      if (value === this.sortBy()) return;
-      this.sortBy.set(value);
-      if (value === 'relevance') {
-        this.store.dispatch(ListingsActions.aiRerank());
-      } else if (this.aiResultsActive()) {
-        this.store.dispatch(ListingsActions.dropAiOrder());
-      }
+    if (value === this.sortBy()) return;
+    if (value === 'relevance') {
+      // Back to the AI order: re-rank with the current filters (the URL sort stays inert).
+      this.store.dispatch(ListingsActions.aiRerank());
       return;
     }
-    this.sortBy.set(this.sortBy() === value ? '' : value);
+    // Choosing any other sort drops the AI order (ordinary catalogue, ADR-054) before the URL
+    // change, so the URL handler sees AI results as no longer active and reloads the catalogue.
+    if (this.aiResultsActive()) {
+      this.store.dispatch(ListingsActions.dropAiOrder());
+    }
+    this.setSort(value);
   }
 
   /** Plain-text search from the desktop field above the results (switch off). */
@@ -868,19 +901,32 @@ export class ListingsPageComponent {
     }
   }
 
+  /** Replaces the category selection with one category (empty-state / no-results shortcuts). */
   protected selectCategory(id: string | null): void {
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { categoryId: id },
-      queryParamsHandling: 'merge',
-    });
+    this.patchFilters({ categoryIds: id ? [id] : [] });
   }
 
-  protected selectAgeGroup(value: string): void {
-    const current = this.filtersSignal().ageGroup;
+  /**
+   * One merge-navigation for a panel edit (M-021). The legacy single-value keys are always cleared
+   * next to the list that replaces them, so an old `?categoryId=` link cannot contradict it.
+   */
+  protected patchFilters(patch: BrowseFilterPatch): void {
+    const queryParams: Record<string, string | null> = {};
+    if (patch.categoryIds) {
+      queryParams['categoryIds'] = serializeListParam(patch.categoryIds);
+      queryParams['categoryId'] = null;
+    }
+    if (patch.ageGroups) {
+      queryParams['ageGroups'] = serializeListParam(patch.ageGroups);
+      queryParams['ageGroup'] = null;
+    }
+    if (patch.conditions) queryParams['conditions'] = serializeListParam(patch.conditions);
+    if (patch.districtIds) queryParams['districtIds'] = serializeDistrictIdsParam(patch.districtIds);
+    if ('minPrice' in patch) queryParams['minPrice'] = patch.minPrice != null ? String(patch.minPrice) : null;
+    if ('maxPrice' in patch) queryParams['maxPrice'] = patch.maxPrice != null ? String(patch.maxPrice) : null;
     void this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { ageGroup: current === value ? null : value },
+      queryParams,
       queryParamsHandling: 'merge',
     });
   }
@@ -902,107 +948,40 @@ export class ListingsPageComponent {
     });
   }
 
-  protected setMinPrice(event: Event): void {
-    const val = (event.target as HTMLInputElement).value;
-    const num = val.trim() ? Number(val) : null;
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { minPrice: num ?? null },
-      queryParamsHandling: 'merge',
-    });
-  }
-
-  protected setMaxPrice(event: Event): void {
-    const val = (event.target as HTMLInputElement).value;
-    const num = val.trim() ? Number(val) : null;
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { maxPrice: num ?? null },
-      queryParamsHandling: 'merge',
-    });
-  }
-
   protected removeFilterChip(chip: ActiveFilterChip): void {
-    if (chip.key === 'districtId') {
-      const current = this.filtersSignal().districtIds;
-      void this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: {
-          districtIds: serializeDistrictIdsParam(current.filter((id) => id !== chip.districtId)),
-        },
-        queryParamsHandling: 'merge',
-      });
-      return;
+    const f = this.filtersSignal();
+    switch (chip.key) {
+      case 'categoryId':
+        this.patchFilters({ categoryIds: f.categoryIds.filter((id) => id !== chip.value) });
+        return;
+      case 'ageGroup':
+        this.patchFilters({ ageGroups: f.ageGroups.filter((t) => t !== chip.value) });
+        return;
+      case 'condition':
+        this.patchFilters({ conditions: f.conditions.filter((c) => c !== chip.value) });
+        return;
+      case 'districtId':
+        this.patchFilters({ districtIds: f.districtIds.filter((id) => id !== chip.value) });
+        return;
+      case 'price':
+        this.patchFilters({ minPrice: null, maxPrice: null });
+        return;
+      case 'minPrice':
+        this.patchFilters({ minPrice: null });
+        return;
+      case 'maxPrice':
+        this.patchFilters({ maxPrice: null });
+        return;
+      case 'radiusKm':
+        // The chip reads "1 km · from you" — its × removes the whole location
+        // filter, not just the radius number (Trello #80).
+        this.store.dispatch(ListingsActions.clearOrigin());
+        void this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { radiusKm: null },
+          queryParamsHandling: 'merge',
+        });
+        return;
     }
-
-    // The chip reads "1 km · from you" — its × removes the whole location
-    // filter, not just the radius number (Trello #80).
-    if (chip.key === 'radiusKm') {
-      this.store.dispatch(ListingsActions.clearOrigin());
-    }
-
-    const paramKey =
-      chip.key === 'categoryId' ? 'categoryId' :
-      chip.key === 'city'       ? 'city'       :
-      chip.key === 'minPrice'   ? 'minPrice'   :
-      chip.key === 'maxPrice'   ? 'maxPrice'   :
-      chip.key === 'ageGroup'   ? 'ageGroup'   :
-      chip.key === 'radiusKm'   ? 'radiusKm'   :
-      null;
-    if (!paramKey) return;
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { [paramKey]: null },
-      queryParamsHandling: 'merge',
-    });
-  }
-
-  protected selectCategoryFromSidebar(id: string): void {
-    const current = this.filtersSignal().categoryId;
-    this.selectCategory(current === id ? null : id);
-  }
-
-  /**
-   * Toggles one district checkbox in the desktop sidebar. Shares the exact
-   * same `districtIds: string[]` filter field, `districtIds` URL param, and
-   * store slice as the mobile filter sheet's multiselect
-   * (`ListingsFiltersComponent`) — there is no second copy of this state, so
-   * a selection made here survives a resize down to mobile and back.
-   */
-  protected selectDistrictFromSidebar(id: string): void {
-    const current = this.filtersSignal().districtIds;
-    const next = current.includes(id)
-      ? current.filter((existing) => existing !== id)
-      : [...current, id];
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { districtIds: serializeDistrictIdsParam(next) },
-      queryParamsHandling: 'merge',
-    });
-  }
-
-  private parseFiltersFromParams(params: ParamMap): ListingsFilter {
-    const q = params.get('q');
-    const city = params.get('city');
-    const categoryId = params.get('categoryId');
-    const minPriceStr = params.get('minPrice');
-    const maxPriceStr = params.get('maxPrice');
-    const ageGroup = params.get('ageGroup');
-    return {
-      query: q?.trim() || null,
-      city: city?.trim() || null,
-      categoryId: categoryId?.trim() || null,
-      minPrice:
-        minPriceStr != null && !Number.isNaN(Number(minPriceStr))
-          ? Number(minPriceStr)
-          : null,
-      maxPrice:
-        maxPriceStr != null && !Number.isNaN(Number(maxPriceStr))
-          ? Number(maxPriceStr)
-          : null,
-      ageGroup: ageGroup?.trim() || null,
-      radiusKm: parseRadiusKmParam(params.get('radiusKm')),
-      districtIds: parseDistrictIdsParam(params.get('districtIds')),
-    };
   }
 }

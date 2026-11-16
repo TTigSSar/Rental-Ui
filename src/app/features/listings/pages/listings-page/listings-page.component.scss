@@ -93,16 +93,19 @@
   gap: var(--ui-space-16);
 }
 
+/* Browse Redesign Stage 1: 300px sidebar, 32px gap, main column takes the rest
+   (1440 - 2*70 gutter - 300 - 32 = 968 at the design width). */
 @media (min-width: 961px) {
   .lp-layout {
     display: grid;
-    grid-template-columns: 220px 1fr;
+    grid-template-columns: 300px minmax(0, 1fr);
     gap: 32px;
     align-items: start;
   }
 }
 
-/* ── Desktop filter sidebar ─────────────────────────────────── */
+/* Desktop filter sidebar = `app-browse-filters-panel`; below the breakpoint the mobile sheet is
+   the way in, so the panel is not rendered at all. */
 .lp-sidebar {
   display: none;
 }
@@ -116,197 +119,28 @@
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--ui-color-border) transparent;
-  }
-}
-
-.lp-sidebar__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: var(--ui-space-16);
-}
-
-.lp-sidebar__title {
-  margin: 0;
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--ui-color-text-primary);
-  letter-spacing: -0.01em;
-}
-
-.lp-sidebar__clear {
-  border: none;
-  background: none;
-  color: var(--ui-color-primary-strong);
-  font: inherit;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0;
-  text-decoration: none;
-  transition: color 120ms ease;
-
-  &:hover {
-    color: var(--ui-color-primary-strong-hover);
-    text-decoration: underline;
-  }
-}
-
-.lp-sidebar__divider {
-  height: 1px;
-  background: var(--ui-color-border);
-}
-
-.lp-sidebar__section {
-  padding-block: var(--ui-space-16);
-}
-
-.lp-sidebar__section-label {
-  margin: 0 0 var(--ui-space-12);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--ui-color-text-secondary);
-}
-
-/* Category checkboxes */
-.lp-sidebar__checkbox-row {
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-10);
-  padding: var(--ui-space-6) 0;
-  cursor: pointer;
-  user-select: none;
-}
-
-.lp-sidebar__checkbox {
-  flex-shrink: 0;
-  width: 16px;
-  height: 16px;
-  accent-color: var(--ui-color-primary);
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-.lp-sidebar__checkbox-name {
-  font-size: 0.9375rem;
-  color: var(--ui-color-text-primary);
-  font-weight: 500;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Age / Distance pills */
-.lp-sidebar__pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--ui-space-6);
-}
-
-.lp-sidebar__pill {
-  height: 2rem;
-  padding: 0 var(--ui-space-12);
-  border: 1.5px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-surface);
-  color: var(--ui-color-text-secondary);
-  font: inherit;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  transition:
-    border-color 120ms ease,
-    background-color 120ms ease,
-    color 120ms ease;
-
-  &:hover:not(.lp-sidebar__pill--active) {
-    border-color: var(--ui-color-border-strong);
-    color: var(--ui-color-text-primary);
+    /* Room for the panel's bottom shadow, which the scroll container would otherwise clip. */
+    padding-bottom: 32px;
+    margin-bottom: -32px;
   }
 
-  &--active {
-    background: var(--ui-color-primary-strong);
-    border-color: var(--ui-color-primary-strong);
-    color: #fff;
-    font-weight: 600;
+  /* Design: main column is a vertical stack with a 24px gap. */
+  .lp-main {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
   }
-}
-
-/* Price per day inputs */
-.lp-sidebar__price-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--ui-space-8);
-}
-
-.lp-sidebar__price-wrap {
-  display: flex;
-  align-items: center;
-  border: 1.5px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-input, 10px);
-  background: var(--ui-color-surface);
-  padding: 0 var(--ui-space-10);
-  height: 2.5rem;
-  transition: border-color 120ms ease, box-shadow 120ms ease;
-
-  &:focus-within {
-    border-color: var(--ui-color-primary-strong);
-    box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.12);
-  }
-}
-
-.lp-sidebar__price-prefix {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--ui-color-text-secondary);
-  flex-shrink: 0;
-  user-select: none;
-  padding-right: 2px;
-}
-
-.lp-sidebar__price-input {
-  width: 100%;
-  border: none;
-  background: transparent;
-  color: var(--ui-color-text-primary);
-  font: inherit;
-  font-size: 0.875rem;
-  outline: none;
-  min-width: 0;
-
-  &::-webkit-outer-spin-button,
-  &::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  &[type='number'] {
-    appearance: textfield;
-    -moz-appearance: textfield;
-  }
-}
-
-/* Price input with a value (set by the user or by the AI search): strong-orange border. */
-.lp-sidebar__price-wrap--set {
-  border-color: var(--ui-color-primary-strong);
 }
 
 /* ── AI search (ADR-054) ────────────────────────────────────── */
-/* Desktop: the field block above the results (design: max-width 680, gap 10). */
+/* Desktop: the search bar + example panel above the results (full main-column width). */
 .lp-ai-top {
   display: none;
 
   @media (min-width: 961px) {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-width: 680px;
-    margin-bottom: var(--ui-space-16);
+    display: block;
+    min-width: 0;
   }
 }
 
@@ -397,11 +231,11 @@
   justify-content: space-between;
   gap: var(--ui-space-10);
   padding-top: var(--ui-space-4);
-  /* Wraps instead of overflowing: long ru/hy count + relevance-sort labels (AI search). */
+  /* Wraps instead of overflowing: long ru/hy relevance-sort labels (AI search). */
   flex-wrap: wrap;
 }
 
-/* Active filter chips — desktop sidebar chips in toolbar */
+/* Active filter chips — desktop only. Chips take their own full-width row on top (note 16). */
 .lp-toolbar__chips {
   display: none;
 
@@ -409,15 +243,13 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 10px 8px;
+    gap: 8px;
     width: 100%;
     min-width: 0;
+    /* search -> chips is 20px in the design, every other main-column gap is 24px. */
+    margin-top: -4px;
   }
 }
-
-/* Row 2 = sort (+ re-rank status) left, List/Map right (design-notes 16). On mobile the wrappers
-   are not rendered (the page renders each layout's controls in its own visual order, so Tab
-   order matches - design-notes 16, 19). */
 
 /* Mobile: List/Map and the sort control stay on ONE row; the sort label truncates (ellipsis). */
 @media (max-width: 960px) {
@@ -437,14 +269,16 @@
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
-    gap: var(--ui-space-12);
+    gap: 24px;
+    padding-top: 0;
   }
 
+  /* Row 2 = List/Map left, (re-rank status +) sort right (design-notes 16). */
   .lp-toolbar__row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--ui-space-10);
+    gap: 16px;
     flex-wrap: wrap;
   }
 
@@ -454,89 +288,122 @@
     gap: var(--ui-space-12);
     min-width: 0;
     flex: 1 1 auto;
-    /* List/Map toggle sits left; the status + sort cluster hugs the right edge. */
     justify-content: flex-end;
   }
 }
 
-.lp-active-chip {
-  flex-shrink: 0;
+/* Design `.tlink` (the chip row's "Clear all"). */
+.lp-toolbar__chips .tlink {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  height: 1.75rem;
-  padding: 0 var(--ui-space-10);
-  border: 1.5px solid var(--ui-color-primary);
-  border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary-strong-hover);
+  min-height: 36px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--ui-color-primary-strong);
   font: inherit;
-  font-size: 0.8125rem;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  white-space: nowrap;
-  transition: background-color 120ms ease, border-color 120ms ease;
 
   &:hover {
-    background: color-mix(in srgb, var(--ui-color-primary) 20%, transparent);
-    border-color: var(--ui-color-primary-strong);
+    background: var(--ui-color-primary-wash);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary-strong);
+    outline-offset: 2px;
   }
 }
 
-.lp-active-chip__icon {
-  font-size: 0.5rem !important;
+/* Design `.achip`: soft-orange pill, one per selected value, own x. */
+.achip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 5px 0 14px;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-primary-soft);
+  /* design #FFD3AE; --ui-color-primary-wash-border (#ffd9bd) is the nearest token */
+  border: 1px solid var(--ui-color-primary-wash-border);
+  /* design #8A3200: no token (primary-strong-hover #a83c00 is lighter) */
+  color: #8a3200;
+  font-size: 14px;
+  font-weight: 600;
+
+  button {
+    width: 26px;
+    height: 26px;
+    border: 0;
+    border-radius: var(--ui-radius-pill);
+    background: transparent;
+    display: grid;
+    place-items: center;
+    color: #8a3200;
+    padding: 0;
+    cursor: pointer;
+    font-size: 0.75rem;
+
+    &:hover {
+      background: var(--ui-color-primary-wash-border);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--ui-color-primary-strong);
+      outline-offset: 2px;
+    }
+  }
 }
 
-/* ── List/Map toggle (Maps P2-2) ────────────────────────────── */
+/* ── List/Map toggle (design `.vswitch`) ────────────────────── */
 .lp-view-toggle {
   flex-shrink: 0;
   display: inline-flex;
-  align-items: center;
-  padding: 2px;
+  padding: 4px;
+  gap: 4px;
   border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-surface-muted);
+  /* design #F0EDE6: no token */
+  background: #f0ede6;
+  border: 1px solid var(--ui-color-border);
 }
 
 .lp-view-toggle__btn {
   display: inline-flex;
   align-items: center;
-  gap: var(--ui-space-6);
-  height: 1.75rem;
-  padding: 0 var(--ui-space-12);
-  border: none;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 16px;
+  border: 0;
   border-radius: var(--ui-radius-pill);
   background: transparent;
   color: var(--ui-color-text-secondary);
   font: inherit;
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition:
-    background-color 120ms ease,
-    color 120ms ease;
 
   .pi {
-    font-size: 0.75rem;
-  }
-
-  &:hover:not(&--active) {
-    color: var(--ui-color-text-primary);
+    font-size: 16px;
   }
 
   &--active {
     background: var(--ui-color-surface);
     color: var(--ui-color-text-primary);
-    font-weight: 600;
-    box-shadow: 0 1px 3px rgba(16, 18, 30, 0.12);
+    box-shadow: 0 1px 2px rgba(20, 15, 5, 0.08), 0 2px 8px rgba(20, 15, 5, 0.08);
   }
 
-  /* Icon-only below the small-mobile breakpoint: the toolbar can't fit
-     count text + toggle labels + the sort control in one row at 375px.
-     The label is dropped visually; `aria-label` on the button (see .html)
-     keeps the accessible name. */
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary-strong);
+    outline-offset: 2px;
+  }
+
+  /* Icon-only below the small-mobile breakpoint (M-026: the row must not overflow at 375px);
+     the button's `aria-label` keeps the accessible name. */
   @media (max-width: 560px) {
-    padding: 0 var(--ui-space-10);
+    padding: 0 var(--ui-space-12);
   }
 }
 
@@ -546,7 +413,7 @@
   }
 }
 
-/* ── Sort dropdown ──────────────────────────────────────────── */
+/* ── Sort (design `.btn-o` trigger + `.smenu`) ──────────────── */
 .lp-sort-wrapper {
   position: relative;
   flex-shrink: 1;
@@ -561,118 +428,118 @@
 }
 
 .lp-toolbar__sort {
-  flex-shrink: 1;
   max-width: 100%;
   min-width: 0;
   display: inline-flex;
   align-items: center;
-  gap: var(--ui-space-6);
-  height: 2rem;
-  padding: 0 var(--ui-space-12);
-  border: 1.5px solid var(--ui-color-border);
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px 0 20px;
+  border: 1px solid var(--ui-color-border-input);
   border-radius: var(--ui-radius-pill);
   background: var(--ui-color-surface);
   color: var(--ui-color-text-primary);
   font: inherit;
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
   cursor: pointer;
   white-space: nowrap;
-  transition:
-    border-color 120ms ease,
-    background-color 120ms ease,
-    color 120ms ease;
+
+  &:hover {
+    background: var(--ui-color-surface-muted);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary-strong);
+    outline-offset: 2px;
+  }
 }
 
-.lp-toolbar__sort > span {
+.lp-toolbar__sort-prefix {
+  color: var(--ui-color-text-secondary);
+  font-weight: 500;
+}
+
+.lp-toolbar__sort-value {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.lp-toolbar__sort .pi {
-  font-size: 0.75rem;
-  color: var(--ui-color-text-secondary);
-  transition: color 120ms ease;
-}
-
 .lp-toolbar__sort-chevron {
-  font-size: 0.6875rem !important;
-  color: var(--ui-color-text-secondary) !important;
-}
-
-.lp-toolbar__sort:hover {
-  border-color: var(--ui-color-border-strong);
-}
-
-.lp-toolbar__sort:focus-visible {
-  outline: none;
-  border-color: var(--ui-color-primary-strong);
-  box-shadow: 0 0 0 3px rgba(255, 96, 8, 0.14);
-}
-
-.lp-toolbar__sort--active {
-  background: var(--ui-color-primary-strong);
-  border-color: var(--ui-color-primary-strong);
-  color: var(--ui-color-surface);
-
-  .pi { color: var(--ui-color-surface); }
+  font-size: 0.75rem !important;
+  color: var(--ui-color-text-secondary);
 }
 
 .lp-sort-menu {
   position: absolute;
-  top: calc(100% + 6px);
   right: 0;
+  top: calc(100% + 6px);
   z-index: 50;
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  min-width: 220px;
   background: var(--ui-color-surface);
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.13);
-  min-width: 200px;
-  overflow: hidden;
-  padding: 4px 0;
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  box-shadow: 0 12px 32px rgba(20, 15, 5, 0.14);
 }
 
 .lp-sort-menu__item {
+  width: 100%;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  width: 100%;
-  padding: 12px 16px;
-  border: none;
-  background: transparent;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
   color: var(--ui-color-text-primary);
   font: inherit;
-  font-size: 0.9375rem;
+  font-size: 14px;
   font-weight: 500;
-  cursor: pointer;
-  transition: background 120ms ease;
   text-align: left;
+  cursor: pointer;
 
-  .pi {
-    font-size: 1rem;
-    color: var(--ui-color-text-secondary);
-    flex-shrink: 0;
-    transition: color 120ms ease;
+  &:hover:not(.lp-sort-menu__item--disabled) {
+    background: var(--ui-color-background);
   }
 
-  span { flex: 1; }
-
-  &--active {
-    background: rgba(255, 96, 8, 0.08);
-    color: var(--ui-color-primary-strong-hover);
-
-    .pi { color: var(--ui-color-primary); }
+  &[aria-selected='true'] {
+    font-weight: 700;
   }
 
-  &:hover:not(.lp-sort-menu__item--active) {
-    background: var(--ui-color-surface-muted);
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary-strong);
+    outline-offset: -2px;
   }
 }
 
+/* Nearest without a radius origin: stays listed, muted, with the reason under it. */
+.lp-sort-menu__item--disabled {
+  color: var(--ui-color-text-secondary);
+  cursor: not-allowed;
+}
+
+.lp-sort-menu__label {
+  display: flex;
+  flex-direction: column;
+}
+
+.lp-sort-menu__hint {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  color: var(--ui-color-text-hint);
+}
+
 .lp-sort-menu__check {
-  margin-left: auto;
   font-size: 0.875rem !important;
-  color: var(--ui-color-primary) !important;
+  color: var(--ui-color-primary-strong);
 }
 
 /* ── Error state ────────────────────────────────────────────── */
@@ -692,18 +559,18 @@
 }
 
 /* ── Card grid ──────────────────────────────────────────────── */
+/* Design: 3 columns at desktop with a 20px gap (968px main column -> three 309px cards);
+   2 columns on tablet and phones, so there is never horizontal overflow (M-026). */
 .listings-page__grid {
-  gap: var(--ui-space-12);
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: stretch;
+  /* Below the desktop breakpoint the toolbar sits directly above; on desktop `.lp-main`'s 24px gap does it. */
   padding-top: var(--ui-space-12);
 
   @media (min-width: 961px) {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  @media (max-width: 900px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding-top: 0;
   }
 
   @media (max-width: 560px) {
@@ -711,10 +578,27 @@
   }
 }
 
-/* ── Map view (Maps P2-2) ───────────────────────────────────── */
+/* ── Map view (design `.mapp`: full main-column width, height 720, radius 20) ── */
 .listings-page__map {
   display: block;
-  padding-top: var(--ui-space-12);
+  position: relative;
+  overflow: hidden;
+  height: 520px;
+  margin-top: var(--ui-space-12);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-lg);
+  /* design #EEF0EC placeholder behind the tiles: no token */
+  background: #eef0ec;
+  box-shadow: var(--ui-shadow-card);
+
+  @media (min-width: 961px) {
+    height: 720px;
+    margin-top: 0;
+  }
+
+  @media (max-width: 560px) {
+    height: 420px;
+  }
 }
 
 /* ── Load more ──────────────────────────────────────────────── */

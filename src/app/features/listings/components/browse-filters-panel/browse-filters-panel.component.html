@@ -1,0 +1,262 @@
+<aside class="fpanel" [attr.aria-label]="'listings.filters.sidebar.title' | translate">
+  <div class="fhead">
+    <i class="pi pi-sliders-h fhead__icon" aria-hidden="true"></i>
+    <h2 class="fhead__title">{{ 'listings.filters.sidebar.title' | translate }}</h2>
+    @if (totalSelected() > 0) {
+      <span class="fbadge" data-testid="total-badge">{{ totalSelected() }}</span>
+    }
+    <span class="fhead__spacer"></span>
+    @if (totalSelected() > 0) {
+      <button type="button" class="tlink" data-testid="clear-all" (click)="clearAll.emit()">
+        {{ 'listings.filters.sidebar.clearAll' | translate }}
+      </button>
+    }
+  </div>
+
+  <!-- Category -->
+  <section class="fsec" data-section="cat">
+    <button type="button" class="fsec-h" [attr.aria-expanded]="open().cat" (click)="toggleSection('cat')">
+      <span>{{ 'listings.browse.sections.category' | translate }}</span>
+      @if (filters().categoryIds.length > 0) {
+        <span class="fbadge" data-testid="badge-cat">{{ filters().categoryIds.length }}</span>
+      }
+      <span class="fsec-h__spacer"></span>
+      <span class="fsec-h__chev" [class.fsec-h__chev--open]="open().cat"><app-icon name="chevronD" [size]="18" /></span>
+    </button>
+    @if (open().cat) {
+      <div class="fsec-b">
+        <div class="flist">
+          @for (row of visibleCategories(); track row.id) {
+            <button
+              type="button"
+              class="frow"
+              [class.on]="row.selected"
+              [class.frow--empty]="facets() !== null && row.count === 0 && !row.selected"
+              role="checkbox"
+              [attr.aria-checked]="row.selected"
+              (click)="toggleCategory(row.id)"
+            >
+              <span class="cbx" aria-hidden="true">
+                @if (row.selected) {
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                }
+              </span>
+              <span class="cico" [style.background]="row.color" aria-hidden="true"><app-icon [name]="row.icon" [size]="16" /></span>
+              <span class="fname" [attr.title]="row.label">{{ row.label }}</span>
+              @if (facets() !== null) {
+                <span class="fcount">{{ row.count }}</span>
+              }
+            </button>
+          }
+        </div>
+        @if (categoriesCollapsible()) {
+          <button type="button" class="tlink more" [attr.aria-expanded]="showAllCategories()" (click)="showAllCategories.set(!showAllCategories())">
+            {{ (showAllCategories() ? 'listings.browse.showLess' : 'listings.browse.showAll') | translate: { count: categoryTotal() } }}
+            <span class="tlink__chev" [class.tlink__chev--open]="showAllCategories()"><app-icon name="chevronD" [size]="16" /></span>
+          </button>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Child's age -->
+  <section class="fsec" data-section="age">
+    <button type="button" class="fsec-h" [attr.aria-expanded]="open().age" (click)="toggleSection('age')">
+      <span>{{ 'listings.filters.ageGroup' | translate }}</span>
+      @if (filters().ageGroups.length > 0) {
+        <span class="fbadge" data-testid="badge-age">{{ filters().ageGroups.length }}</span>
+      }
+      <span class="fsec-h__spacer"></span>
+      <span class="fsec-h__chev" [class.fsec-h__chev--open]="open().age"><app-icon name="chevronD" [size]="18" /></span>
+    </button>
+    @if (open().age) {
+      <div class="fsec-b">
+        <div class="chipwrap">
+          @for (ag of ageGroups; track ag.value) {
+            <button
+              type="button"
+              class="fchip"
+              [class.on]="filters().ageGroups.includes(ag.value)"
+              [attr.aria-pressed]="filters().ageGroups.includes(ag.value)"
+              (click)="toggleAge(ag.value)"
+            >{{ ag.labelKey | translate }}</button>
+          }
+        </div>
+      </div>
+    }
+  </section>
+
+  <!-- Price per day -->
+  <section class="fsec" data-section="price">
+    <button type="button" class="fsec-h" [attr.aria-expanded]="open().price" (click)="toggleSection('price')">
+      <span>{{ 'listings.browse.sections.price' | translate }}</span>
+      @if (priceSelected()) {
+        <span class="fbadge" data-testid="badge-price">1</span>
+      }
+      <span class="fsec-h__spacer"></span>
+      <span class="fsec-h__chev" [class.fsec-h__chev--open]="open().price"><app-icon name="chevronD" [size]="18" /></span>
+    </button>
+    @if (open().price) {
+      <div class="fsec-b">
+        <div class="pblock">
+          <div class="prange">
+            <span
+              class="prange-f"
+              [style.left.%]="fillStart() * 100"
+              [style.right.%]="fillEnd() * 100"
+            ></span>
+            <input
+              type="range"
+              class="prange-i"
+              [style.z-index]="loOnTop() ? 3 : 1"
+              [min]="priceBounds().lo"
+              [max]="priceBounds().hi"
+              [step]="priceStep"
+              [value]="priceLo()"
+              [attr.aria-label]="'listings.browse.priceMinAria' | translate"
+              (input)="onSliderInput('lo', $event)"
+              (change)="commitPrice('lo', $event)"
+            />
+            <input
+              type="range"
+              class="prange-i"
+              [style.z-index]="2"
+              [min]="priceBounds().lo"
+              [max]="priceBounds().hi"
+              [step]="priceStep"
+              [value]="priceHi()"
+              [attr.aria-label]="'listings.browse.priceMaxAria' | translate"
+              (input)="onSliderInput('hi', $event)"
+              (change)="commitPrice('hi', $event)"
+            />
+          </div>
+          <div class="pboxes">
+            <label class="pbox" [class.pbox--set]="filters().minPrice != null">
+              <span>{{ 'listings.browse.priceMin' | translate }}</span>
+              <b><input type="number" class="pbox__input" min="0" [value]="priceLo()" (change)="commitPrice('lo', $event)" /><i>{{ dramSymbol }}</i></b>
+            </label>
+            <label class="pbox" [class.pbox--set]="filters().maxPrice != null">
+              <span>{{ 'listings.browse.priceMax' | translate }}</span>
+              <b><input #maxPriceInput type="number" class="pbox__input" min="0" [value]="priceHi()" (change)="commitPrice('hi', $event)" /><i>{{ dramSymbol }}</i></b>
+            </label>
+          </div>
+        </div>
+      </div>
+    }
+  </section>
+
+  <!-- District -->
+  <section class="fsec" data-section="dist">
+    <button type="button" class="fsec-h" [attr.aria-expanded]="open().dist" (click)="toggleSection('dist')">
+      <span>{{ 'listings.browse.sections.district' | translate }}</span>
+      @if (filters().districtIds.length > 0) {
+        <span class="fbadge" data-testid="badge-dist">{{ filters().districtIds.length }}</span>
+      }
+      <span class="fsec-h__spacer"></span>
+      <span class="fsec-h__chev" [class.fsec-h__chev--open]="open().dist"><app-icon name="chevronD" [size]="18" /></span>
+    </button>
+    @if (open().dist) {
+      <div class="fsec-b">
+        <div class="dsearch-wrap">
+          <label class="dsearch">
+            <app-icon name="search" [size]="16" />
+            <input
+              #districtSearchInput
+              type="text"
+              autocomplete="off"
+              [value]="districtQuery()"
+              [placeholder]="'listings.browse.districtSearch' | translate"
+              [attr.aria-label]="'listings.browse.districtSearch' | translate"
+              (input)="onDistrictQuery($event)"
+            />
+          </label>
+        </div>
+        <div class="flist">
+          @for (row of visibleDistricts(); track row.id) {
+            <button
+              type="button"
+              class="frow"
+              [class.on]="row.selected"
+              [class.frow--empty]="facets() !== null && row.count === 0 && !row.selected"
+              role="checkbox"
+              [attr.aria-checked]="row.selected"
+              (click)="toggleDistrict(row.id)"
+            >
+              <span class="cbx" aria-hidden="true">
+                @if (row.selected) {
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                }
+              </span>
+              <span class="fname" [attr.title]="row.label">{{ row.label }}</span>
+              @if (facets() !== null) {
+                <span class="fcount">{{ row.count }}</span>
+              }
+            </button>
+          }
+          @if (visibleDistricts().length === 0) {
+            <div class="fempty" data-testid="district-empty">
+              {{ 'listings.browse.districtNone' | translate: { query: districtQuery().trim() } }}
+            </div>
+          }
+        </div>
+        @if (!searching() && districtsCollapsible()) {
+          <button type="button" class="tlink more" [attr.aria-expanded]="showAllDistricts()" (click)="showAllDistricts.set(!showAllDistricts())">
+            {{ (showAllDistricts() ? 'listings.browse.showLess' : 'listings.browse.showAll') | translate: { count: districtTotal() } }}
+            <span class="tlink__chev" [class.tlink__chev--open]="showAllDistricts()"><app-icon name="chevronD" [size]="16" /></span>
+          </button>
+        }
+        @if (searching()) {
+          <div class="fspacer"></div>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Condition (collapsed by default) -->
+  <section class="fsec" data-section="cond">
+    <button type="button" class="fsec-h" [attr.aria-expanded]="open().cond" (click)="toggleSection('cond')">
+      <span>{{ 'listings.browse.sections.condition' | translate }}</span>
+      @if (filters().conditions.length > 0) {
+        <span class="fbadge" data-testid="badge-cond">{{ filters().conditions.length }}</span>
+      }
+      <span class="fsec-h__spacer"></span>
+      <span class="fsec-h__chev" [class.fsec-h__chev--open]="open().cond"><app-icon name="chevronD" [size]="18" /></span>
+    </button>
+    @if (open().cond) {
+      <div class="fsec-b">
+        <div class="chipwrap">
+          @for (c of conditionOptions; track c.value) {
+            <button
+              type="button"
+              class="fchip"
+              [class.on]="filters().conditions.includes(c.value)"
+              [attr.aria-pressed]="filters().conditions.includes(c.value)"
+              (click)="toggleCondition(c.value)"
+            >{{ c.labelKey | translate }}</button>
+          }
+        </div>
+      </div>
+    }
+  </section>
+
+  <!-- Distance (DoRent addition, design note 4): behaviour unchanged -->
+  <section class="fsec" data-section="distance">
+    <button type="button" class="fsec-h" [attr.aria-expanded]="open().distance" (click)="toggleSection('distance')">
+      <span>{{ 'listings.browse.sections.distance' | translate }}</span>
+      @if (distanceActive()) {
+        <span class="fbadge" data-testid="badge-distance">1</span>
+      }
+      <span class="fsec-h__spacer"></span>
+      <span class="fsec-h__chev" [class.fsec-h__chev--open]="open().distance"><app-icon name="chevronD" [size]="18" /></span>
+    </button>
+    @if (open().distance) {
+      <div class="fsec-b fsec-b--distance">
+        <app-radius-origin-filter
+          [radiusMeters]="radiusMeters()"
+          (radiusMetersChange)="radiusMetersChange.emit($event)"
+          (originCleared)="originCleared.emit()"
+        />
+      </div>
+    }
+  </section>
+</aside>
