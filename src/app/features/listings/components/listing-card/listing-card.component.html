@@ -1,179 +1,94 @@
-<article class="listing-card" [class.listing-card--owner]="isOwner()">
-  <a
-    class="listing-card__link"
-    [routerLink]="cardLink()"
-    [attr.aria-label]="listing().title"
-  >
-    <!-- Image + overlays wrapper -->
-    <div class="listing-card__media-wrap">
-      <app-ui-image-container class="listing-card__media" aspectRatio="16 / 10">
-        @if (listing().mainImageUrl) {
-          <img
-            class="listing-card__img"
-            [src]="listing().mainImageUrl"
-            [alt]="listing().title"
-            loading="lazy"
-            decoding="async"
-          />
-        } @else {
-          <div
-            class="listing-card__no-image"
-            role="img"
-            [attr.aria-label]="listing().title"
-          >
-            <span class="pi pi-gift listing-card__no-image-icon" aria-hidden="true"></span>
-            <span>{{ 'listings.card.noImage' | translate }}</span>
-          </div>
-        }
-      </app-ui-image-container>
-
-      @if (isOwner()) {
-        <span class="listing-card__owner-badge">
-          <span class="pi pi-pencil" aria-hidden="true"></span>
-          {{ 'listings.card.yourListing' | translate }}
+<article class="listing-card">
+  <div class="listing-card__media">
+    @if (listing().mainImageUrl; as src) {
+      <img class="listing-card__img" [src]="src" alt="" loading="lazy" decoding="async" />
+    } @else {
+      <div class="listing-card__nophoto">
+        <span class="listing-card__nophoto-disc" aria-hidden="true">
+          <i class="pi pi-gift"></i>
         </span>
-      } @else if (distanceLabel(); as label) {
-        <!-- Two visually distinct variants (approved design section (b)):
-             orange home icon for "from your home", blue location arrow for
-             "from you". Same pill geometry so they occupy the same slot. -->
-        <span
-          class="listing-card__distance-badge"
-          [class.listing-card__distance-badge--home]="distanceFromHome()"
-          [class.listing-card__distance-badge--live]="!distanceFromHome()"
-        >
-          <span
-            class="pi"
-            [class.pi-home]="distanceFromHome()"
-            [class.pi-compass]="!distanceFromHome()"
-            aria-hidden="true"
-          ></span>
-          {{ distanceLabelKey() | translate: { distance: label } }}
-        </span>
-      }
-
-      @if (listing().listingStatus) {
-        <span
-          class="listing-card__status-badge"
-          [class.listing-card__status-badge--available]="listing().listingStatus === 'available'"
-          [class.listing-card__status-badge--rented]="listing().listingStatus === 'rented'"
-        >
-          @if (listing().listingStatus === 'available') {
-            <span class="listing-card__status-dot" aria-hidden="true"></span>
-          }
-          {{ listing().listingStatus === 'available' ? ('listings.card.statusAvailable' | translate) : ('listings.card.statusRented' | translate) }}
-        </span>
-      }
-
-      @if (!isOwner()) {
-        @if (hasHygieneNotes()) {
-          <span class="listing-card__verified-badge">
-            <i class="pi pi-check" aria-hidden="true"></i>
-            {{ 'listings.card.verified' | translate }}
-          </span>
-        } @else if (ageRange(); as age) {
-          <span class="listing-card__age-badge">
-            {{ age.key | translate: age.params }}
-          </span>
-        }
-      } @else {
-        @if (ageRange(); as age) {
-          <span class="listing-card__age-badge">
-            {{ age.key | translate: age.params }}
-          </span>
-        }
-      }
-    </div>
-
-    <div class="listing-card__body">
-      <h3 class="listing-card__title">{{ listing().title }}</h3>
-
-      @if (listing().city) {
-        <p class="listing-card__city">
-          <span class="pi pi-map-marker" aria-hidden="true"></span>
-          {{ listing().city }}
-        </p>
-      }
-
-      @if (listing().rating != null) {
-        <p class="listing-card__rating" [attr.aria-label]="'reviews.summary.ariaRating' | translate: { rating: listing().rating }">
-          <span class="pi pi-star-fill listing-card__rating-star" aria-hidden="true"></span>
-          <span class="listing-card__rating-value">{{ listing().rating | number: '1.1-1' }}</span>
-          <span class="listing-card__rating-count">({{ listing().reviewCount }})</span>
-        </p>
-      } @else {
-        <p class="listing-card__rating listing-card__rating--empty">{{ 'reviews.summary.noReviews' | translate }}</p>
-      }
-
-      @if (bookingBadge(); as badge) {
-        <span
-          class="listing-card__booking-badge"
-          [class]="'listing-card__booking-badge--' + badge.modifier"
-          aria-live="polite"
-        >{{ badge.labelKey | translate }}</span>
-      }
-
-      <div class="listing-card__price-row">
-        <p class="listing-card__price">
-          <span class="listing-card__price-amount">{{
-            listing().pricePerDay | dram
-          }}</span>
-          <span class="listing-card__price-suffix">{{
-            'listings.booking.priceSuffix' | translate
-          }}</span>
-        </p>
-        @if (isOwner()) {
-          <span class="listing-card__manage-btn" aria-hidden="true">
-            <span class="pi pi-pencil" aria-hidden="true"></span>
-            {{ 'listings.card.manageBtn' | translate }}
-          </span>
-        } @else {
-          <span class="listing-card__view-btn" aria-hidden="true">
-            {{ 'listings.card.viewBtn' | translate }}
-          </span>
-        }
-      </div>
-    </div>
-
-    <!-- Trust footer: hygiene + condition (only when data exists) -->
-    @if (showTrustFooter()) {
-      <div
-        class="listing-card__trust-footer"
-        [attr.aria-label]="'listings.card.trustAria' | translate"
-      >
-        @if (hasHygieneNotes()) {
-          <span class="listing-card__trust-hygiene">
-            <span class="pi pi-shield" aria-hidden="true"></span>
-            {{ 'listings.card.hygieneProvided' | translate }}
-          </span>
-        }
-        @if (hasCondition()) {
-          <span class="listing-card__trust-condition">
-            @if (conditionLabelKey(); as condKey) {
-              {{ condKey | translate }}
-            } @else {
-              {{ listing().condition }}
-            }
-          </span>
-        }
+        <span class="listing-card__nophoto-label">{{ 'listings.card.noImage' | translate }}</span>
       </div>
     }
-  </a>
 
-  <!-- Favorite button: overlaid on image (outside <a> for semantic clarity) — hidden for owner -->
-  @if (!isOwner()) {
-    <button
-      type="button"
-      class="listing-card__fav-btn"
-      [attr.aria-label]="'listings.card.toggleFavorite' | translate"
-      [attr.aria-pressed]="listing().isFavorite"
-      (click)="onFavoriteClick($event)"
-    >
+    @if (badge(); as b) {
       <span
-        class="pi listing-card__fav-icon"
-        [class.pi-heart-fill]="listing().isFavorite"
-        [class.pi-heart]="!listing().isFavorite"
-        aria-hidden="true"
-      ></span>
-    </button>
-  }
+        class="listing-card__pill listing-card__badge"
+        [class.listing-card__badge--owner]="b.kind === 'owner'"
+        [class.listing-card__badge--booking]="b.kind === 'booking'"
+        [attr.aria-live]="b.kind === 'booking' ? 'polite' : null"
+        >{{ b.labelKey | translate }}</span
+      >
+    }
+
+    @if (ageRange(); as age) {
+      <span class="listing-card__pill listing-card__age">{{ age.key | translate: age.params }}</span>
+    }
+
+    @if (!isOwner()) {
+      <button
+        type="button"
+        class="listing-card__fav-btn"
+        [attr.aria-label]="'listings.card.toggleFavorite' | translate"
+        [attr.aria-pressed]="listing().isFavorite"
+        (click)="onFavoriteClick()"
+      >
+        <i
+          class="pi"
+          [class.pi-heart-fill]="listing().isFavorite"
+          [class.pi-heart]="!listing().isFavorite"
+          [class.listing-card__fav-icon--on]="listing().isFavorite"
+          aria-hidden="true"
+        ></i>
+      </button>
+    }
+  </div>
+
+  <div class="listing-card__body">
+    <h3 class="listing-card__title">
+      <a class="listing-card__link" [routerLink]="cardLink()">{{ listing().title }}</a>
+    </h3>
+
+    <div class="listing-card__line">
+      @if (locationLabel(); as location) {
+        <i class="pi pi-map-marker listing-card__line-icon" aria-hidden="true"></i>
+        <span class="listing-card__ell">{{ location }}</span>
+      }
+      @if (distanceLabel(); as distance) {
+        <span class="listing-card__distance" [attr.title]="distanceTitleKey() | translate: { distance }"
+          >· {{ distance }}</span
+        >
+      }
+    </div>
+
+    @if (hasRating()) {
+      <div class="listing-card__line listing-card__rating">
+        <i class="pi pi-star-fill listing-card__star" aria-hidden="true"></i>
+        <b class="listing-card__rating-value">{{ listing().rating | number: '1.1-1' }}</b>
+        <span>({{ listing().reviewCount ?? 0 }})</span>
+      </div>
+    } @else {
+      <div class="listing-card__line listing-card__line--hint">
+        {{ 'reviews.summary.noReviews' | translate }}
+      </div>
+    }
+
+    <div class="listing-card__price">
+      <b class="listing-card__price-amount">{{ listing().pricePerDay | dram }}</b>
+      <span class="listing-card__price-suffix">{{ priceSuffixKey() | translate }}</span>
+    </div>
+
+    <div class="listing-card__foot">
+      @if (conditionRaw(); as raw) {
+        <span class="listing-card__chip">
+          @if (conditionLabelKey(); as condKey) {
+            {{ condKey | translate }}
+          } @else {
+            {{ raw }}
+          }
+        </span>
+      }
+      <span class="listing-card__view" aria-hidden="true">{{ 'listings.card.viewBtn' | translate }}</span>
+    </div>
+  </div>
 </article>

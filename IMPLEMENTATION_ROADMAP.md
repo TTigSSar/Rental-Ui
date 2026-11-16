@@ -100,7 +100,7 @@ Each phase = 1 focused sprint. One phase in flight at a time. No parallel redesi
 | ----- | ------ |
 | **Token gaps** | `--ui-space-20`, `--ui-space-6` used in components but missing from `styles.css` |
 | **Hardcoded colors** | Auth pages, some page titles use raw hex instead of CSS variables |
-| **Dual card styles** | `listing-card` vs homepage `product-card` / `featured-listing-tile` diverge |
+| **Dual card styles** | `listing-card` vs homepage `product-card` diverged (resolved: one shared `listing-card`, ADR-064) |
 | **Breakpoint sprawl** | 520, 560, 600, 640, 700, 900, 960, 1100px — needs consolidation per DESIGN_RULES |
 | **Mobile booking UX** | Panel flows below content; no sticky bottom CTA bar on mobile |
 | **Mobile navigation** | Burger drawer only; no bottom nav (planned in DESIGN_RULES) |
@@ -191,7 +191,7 @@ Higher perceived quality and trust; faster AI/human implementation with fewer on
 
 1. Add missing tokens to `src/styles.css`: `--ui-space-6`, `--ui-space-20`, semantic success/warning if needed
 2. Replace hardcoded hex in auth pages, listings page title, featured tile with CSS variables
-3. Align `product-card` / `featured-listing-tile` shadows and radius to `--ui-shadow-card` / `--ui-radius-md`
+3. Align `product-card` shadows and radius to `--ui-shadow-card` / `--ui-radius-md`
 4. Document canonical breakpoints in comments at top of `styles.css`
 5. Ensure all PrimeNG button/input overrides reference tokens only
 
@@ -208,7 +208,6 @@ Higher perceived quality and trust; faster AI/human implementation with fewer on
 | ----------- | ------ |
 | `src/styles.css` | Token additions |
 | `login-page`, `register-page` SCSS | Token migration |
-| `featured-listing-tile` | Shadow/radius alignment |
 | `listings-page` | Title color token |
 | `create-listing-form` | Spacing token cleanup |
 

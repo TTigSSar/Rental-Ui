@@ -124,7 +124,7 @@ test.describe('Listings — the home point as the default origin', () => {
     // The radius reads "Any distance" rather than a number the API is not
     // filtering by — the user-visible half of the same decision.
     await expect(sidebar.locator('.rof__radius-val')).toContainText('Any distance');
-    await expect(page.locator('.listing-card__distance-badge')).toHaveCount(0);
+    await expect(page.locator('.listing-card__distance')).toHaveCount(0);
 
     // Wait for the catalogue to have actually rendered, so "no request
     // carried the params" is a statement about a finished load and not about
@@ -153,16 +153,13 @@ test.describe('Listings — the home point as the default origin', () => {
     expect(params.get('originLat')).not.toContain('40.1876');
     expect(params.get('originLng')).not.toContain('44.5098');
 
-    // ── 3b. The badge appears, in the HOME variant ───────────────────
-    // "from your home" and "from you" are different claims; the orange
-    // home-icon pill is the one that may render here.
-    const badge = page.locator('.listing-card__distance-badge').first();
+    // ── 3b. The distance suffix appears, worded for the HOME origin ──
+    // "from your home" and "from you" are different claims; the
+    // tooltip is the one that may render here.
+    const badge = page.locator('.listing-card__distance').first();
     await expect(badge).toBeVisible();
-    await expect(badge).toContainText('from your home');
-    await expect(badge).toHaveClass(/listing-card__distance-badge--home/);
-    await expect(badge).not.toHaveClass(/listing-card__distance-badge--live/);
-    await expect(badge.locator('span.pi.pi-home')).toHaveCount(1);
-    await expect(badge.locator('span.pi-compass')).toHaveCount(0);
+    await expect(badge).toContainText('1.4 km');
+    await expect(badge).toHaveAttribute('title', /from your home/);
   });
 
   test('a signed-in renter with no home point sees no home row at all, and the filter behaves as before', async ({
@@ -207,6 +204,6 @@ test.describe('Listings — the home point as the default origin', () => {
     for (const url of listingsRequests) {
       expect(hasDistanceParams(url), `unexpected distance params in ${url}`).toBe(false);
     }
-    await expect(page.locator('.listing-card__distance-badge')).toHaveCount(0);
+    await expect(page.locator('.listing-card__distance')).toHaveCount(0);
   });
 });
