@@ -841,6 +841,20 @@ describe('ListingsPageComponent — AI search states', () => {
       expect(router.url).toContain('maxPrice=2000');
     });
 
+    it('sidebar category labels carry the full localized name as a native title', async () => {
+      const { el } = await navigateToListings('/listings', {
+        categories: [
+          { id: 'c1', name: 'Bikes' },
+          { id: 'c2', name: 'Puzzles' },
+        ],
+      });
+
+      const names = Array.from(el.querySelectorAll<HTMLElement>('.lp-sidebar__checkbox-name'));
+      const titled = names.filter((n) => n.getAttribute('title') === n.textContent!.trim());
+      expect(titled.length).toBe(names.length);
+      expect(names.map((n) => n.getAttribute('title'))).toEqual(expect.arrayContaining(['Bikes', 'Puzzles']));
+    });
+
     it('"Increase the budget" opens the filter sheet at the price on mobile (sidebar hidden)', async () => {
       const { harness, el } = await navigateToListings('/listings?ai=1', NO_RESULTS_OPTS);
 

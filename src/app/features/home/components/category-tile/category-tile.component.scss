@@ -57,6 +57,13 @@
   stroke-width: 1.8;
 }
 
+/* Phones/tablets: 1px smaller so long localized words (hy "Կոնստրուկտորներ") fit one line at 375. */
+@media (max-width: 768px) {
+  .category-tile__label {
+    font-size: 13px;
+  }
+}
+
 /* 1024-1279 grid uses the compact tile with a 15px label. */
 @media (min-width: 1024px) {
   .category-tile__label {

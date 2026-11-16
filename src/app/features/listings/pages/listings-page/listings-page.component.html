@@ -40,7 +40,7 @@
               [checked]="activeCategoryId() === cat.id"
               (change)="selectCategoryFromSidebar(cat.id)"
             />
-            <span class="lp-sidebar__checkbox-name">{{ categoryLabel(cat) }}</span>
+            <span class="lp-sidebar__checkbox-name" [attr.title]="categoryLabel(cat)">{{ categoryLabel(cat) }}</span>
           </label>
         }
       </div>
@@ -58,7 +58,7 @@
               [checked]="activeDistrictIds().includes(d.id)"
               (change)="selectDistrictFromSidebar(d.id)"
             />
-            <span class="lp-sidebar__checkbox-name">{{ d.label }}</span>
+            <span class="lp-sidebar__checkbox-name" [attr.title]="d.label">{{ d.label }}</span>
           </label>
         }
       </div>
