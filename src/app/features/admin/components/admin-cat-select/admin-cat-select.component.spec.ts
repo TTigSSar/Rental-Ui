@@ -5,7 +5,7 @@ import type { ListingCategoryOption } from '../../../listings/models/create-list
 import { AdminCatSelectComponent } from './admin-cat-select.component';
 
 function makeCategory(overrides: Partial<ListingCategoryOption> = {}): ListingCategoryOption {
-  return { id: 'cat-1', name: 'Wooden Toys', slug: 'wooden-toys', ...overrides };
+  return { id: 'cat-1', name: 'Wooden Toys', nameHy: 'Wooden Toys', nameRu: 'Wooden Toys', slug: 'wooden-toys', ...overrides };
 }
 
 describe('AdminCatSelectComponent', () => {

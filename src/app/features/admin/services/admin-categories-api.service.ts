@@ -46,6 +46,8 @@ function normalizeAdminCategory(raw: Record<string, unknown> & { id: string }): 
   return {
     id: raw['id'],
     name: typeof raw['name'] === 'string' ? raw['name'] : '',
+    nameHy: typeof raw['nameHy'] === 'string' ? raw['nameHy'] : '',
+    nameRu: typeof raw['nameRu'] === 'string' ? raw['nameRu'] : '',
     slug: typeof raw['slug'] === 'string' ? raw['slug'] : '',
     iconName: toNullableString(raw['iconName']),
     colorHex: toNullableString(raw['colorHex']),

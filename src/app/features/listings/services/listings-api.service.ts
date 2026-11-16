@@ -296,6 +296,8 @@ export class ListingsApiService {
                 .map((category) => ({
                   id: category.id,
                   name: typeof category.name === 'string' ? category.name : '',
+                  nameHy: typeof category.nameHy === 'string' ? category.nameHy : '',
+                  nameRu: typeof category.nameRu === 'string' ? category.nameRu : '',
                   slug: typeof category.slug === 'string' ? category.slug : '',
                   imageUrl: normalizeNonEmptyString(category.imageUrl),
                   iconName: normalizeNonEmptyString(category.iconName),
@@ -569,6 +571,8 @@ export class ListingsApiService {
         ? {
             id: rawCategory.id,
             name: rawCategory.name,
+            nameHy: typeof rawCategory.nameHy === 'string' ? rawCategory.nameHy : '',
+            nameRu: typeof rawCategory.nameRu === 'string' ? rawCategory.nameRu : '',
             slug: typeof rawCategory.slug === 'string' ? rawCategory.slug : '',
           }
         : null;

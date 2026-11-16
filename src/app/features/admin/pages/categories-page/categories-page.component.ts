@@ -247,7 +247,8 @@ export class CategoriesPageComponent implements OnInit {
           typeof crypto !== 'undefined' && 'randomUUID' in crypto
             ? crypto.randomUUID()
             : `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        request: { name, iconName: this.newIcon(), colorHex: this.newColor() },
+        // TEMP shim (ADR-062): reuse the English name until frontend-dev adds hy/ru inputs.
+        request: { name, nameHy: name, nameRu: name, iconName: this.newIcon(), colorHex: this.newColor() },
       }),
     );
   }
@@ -355,6 +356,9 @@ export class CategoriesPageComponent implements OnInit {
         id: category.id,
         newCategory: {
           name: newName.trim(),
+          // TEMP shim (ADR-062): reuse the English name until frontend-dev adds hy/ru inputs.
+          nameHy: newName.trim(),
+          nameRu: newName.trim(),
           iconName: DEFAULT_CATEGORY_ICON,
           colorHex: DEFAULT_CATEGORY_COLOR,
         },

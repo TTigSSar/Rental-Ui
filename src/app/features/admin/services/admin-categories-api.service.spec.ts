@@ -139,7 +139,7 @@ describe('AdminCategoriesApiService', () => {
     it('POSTs the request as-is and normalizes the created category', () => {
       let result: AdminCategory | undefined;
       service
-        .createCategory({ name: 'Outdoor', iconName: 'tree', colorHex: '#00AA00' })
+        .createCategory({ name: 'Outdoor', nameHy: 'Outdoor', nameRu: 'Outdoor', iconName: 'tree', colorHex: '#00AA00' })
         .subscribe((category) => (result = category));
 
       const req = httpMock.expectOne(toApiUrl(ApiContract.adminCategories.root));
@@ -156,10 +156,10 @@ describe('AdminCategoriesApiService', () => {
     });
 
     it('omits iconName/colorHex from the body when not supplied', () => {
-      service.createCategory({ name: 'Books' }).subscribe();
+      service.createCategory({ name: 'Books', nameHy: 'Books', nameRu: 'Books' }).subscribe();
 
       const req = httpMock.expectOne(toApiUrl(ApiContract.adminCategories.root));
-      expect(req.request.body).toEqual({ name: 'Books' });
+      expect(req.request.body).toEqual({ name: 'Books', nameHy: 'Books', nameRu: 'Books' });
       req.flush({ ...FULL_CATEGORY_RAW, id: 'cat-5', name: 'Books' });
     });
   });

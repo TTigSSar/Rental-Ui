@@ -46,7 +46,7 @@ describe('adminCategoriesReducer', () => {
         start,
         AdminCategoriesActions.createCategory({
           tempId: 'temp-1',
-          request: { name: 'Outdoor', iconName: 'glob', colorHex: '#D9F0EC' },
+          request: { name: 'Outdoor', nameHy: 'Outdoor', nameRu: 'Outdoor', iconName: 'glob', colorHex: '#D9F0EC' },
         }),
       );
       expect(next.items.map((i) => i.id)).toEqual(['c1', 'temp-1']);
@@ -65,7 +65,7 @@ describe('adminCategoriesReducer', () => {
         stateWith({ items: [] }),
         AdminCategoriesActions.createCategory({
           tempId: 'temp-1',
-          request: { name: 'Outdoor' },
+          request: { name: 'Outdoor', nameHy: 'Outdoor', nameRu: 'Outdoor' },
         }),
       );
       const confirmed = makeAdminCategory({ id: 'c-real', name: 'Outdoor' });
@@ -84,7 +84,7 @@ describe('adminCategoriesReducer', () => {
           items: [makeAdminCategory({ id: 'c1' })],
           summary: { totalCategories: 1, visibleCount: 1, totalListedToys: 0 },
         }),
-        AdminCategoriesActions.createCategory({ tempId: 'temp-1', request: { name: 'Outdoor' } }),
+        AdminCategoriesActions.createCategory({ tempId: 'temp-1', request: { name: 'Outdoor', nameHy: 'Outdoor', nameRu: 'Outdoor' } }),
       );
       const next = adminCategoriesReducer(
         start,

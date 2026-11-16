@@ -19,6 +19,9 @@
 export interface AdminCategory {
   id: string;
   name: string;
+  /** ADR-062 localized names (non-null on the wire; '' if absent). */
+  nameHy: string;
+  nameRu: string;
   slug: string;
   iconName: string | null;
   colorHex: string | null;
@@ -49,6 +52,9 @@ export interface AdminCategoryList {
  */
 export interface CreateAdminCategoryRequest {
   name: string;
+  /** Required, max 120; blank -> 400 admin.category_invalid_name. */
+  nameHy: string;
+  nameRu: string;
   iconName?: string;
   colorHex?: string;
 }
@@ -69,6 +75,9 @@ export interface CreateAdminCategoryRequest {
  */
 export interface UpdateAdminCategoryRequest {
   name?: string;
+  /** null/omitted = unchanged; blank -> 400 admin.category_invalid_name. */
+  nameHy?: string | null;
+  nameRu?: string | null;
   iconName?: string;
   colorHex?: string;
 }

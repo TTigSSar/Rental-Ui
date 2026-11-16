@@ -182,7 +182,7 @@ describe('CategoriesPageComponent', () => {
       expect(dispatchSpy).toHaveBeenCalledWith(
         AdminCategoriesActions.deleteCategoryToNewCategory({
           id: 'c1',
-          newCategory: expect.objectContaining({ name: 'Brand New' }),
+          newCategory: expect.objectContaining({ name: 'Brand New', nameHy: 'Brand New', nameRu: 'Brand New' }),
         }),
       );
     });
@@ -216,7 +216,7 @@ describe('CategoriesPageComponent', () => {
     expect(dispatchSpy).toHaveBeenCalledWith(
       AdminCategoriesActions.createCategory({
         tempId: expect.any(String),
-        request: { name: 'Outdoor', iconName: 'glob', colorHex: '#D9F0EC' },
+        request: { name: 'Outdoor', nameHy: 'Outdoor', nameRu: 'Outdoor', iconName: 'glob', colorHex: '#D9F0EC' },
       }),
     );
   });

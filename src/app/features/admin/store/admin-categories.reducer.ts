@@ -87,6 +87,8 @@ export const adminCategoriesReducer = createReducer(
     const placeholder: AdminCategory = {
       id: tempId,
       name: request.name,
+      nameHy: request.nameHy,
+      nameRu: request.nameRu,
       slug: '',
       iconName: request.iconName ?? null,
       colorHex: request.colorHex ?? null,

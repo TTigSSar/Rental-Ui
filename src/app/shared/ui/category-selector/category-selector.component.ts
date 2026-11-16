@@ -14,6 +14,8 @@ import { TranslatePipe } from '@ngx-translate/core';
 export interface CategoryOption {
   id: string;
   name: string;
+  nameHy?: string;
+  nameRu?: string;
   iconUrl?: string;
   listingCount?: number;
 }

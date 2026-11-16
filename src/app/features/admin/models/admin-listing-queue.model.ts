@@ -41,6 +41,9 @@ export interface AdminListingSummary {
 
   categoryId: string;
   categoryName: string;
+  /** ADR-062 localized category names; '' when absent. */
+  categoryNameHy: string;
+  categoryNameRu: string;
 
   title: string;
   description: string;
@@ -86,6 +89,8 @@ export interface AdminListingSummary {
    */
   suggestedCategoryId: string | null;
   suggestedCategoryName: string | null;
+  suggestedCategoryNameHy: string | null;
+  suggestedCategoryNameRu: string | null;
 }
 
 /**

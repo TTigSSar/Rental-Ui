@@ -77,7 +77,7 @@ describe('AdminCategoriesEffects', () => {
       });
       const result = collect(effects.createCategory$);
       harness.send(
-        AdminCategoriesActions.createCategory({ tempId: 't1', request: { name: 'Outdoor' } }),
+        AdminCategoriesActions.createCategory({ tempId: 't1', request: { name: 'Outdoor', nameHy: 'Outdoor', nameRu: 'Outdoor' } }),
       );
       harness.complete();
       expect(await result).toEqual([
@@ -91,7 +91,7 @@ describe('AdminCategoriesEffects', () => {
       });
       const result = collect(effects.createCategory$);
       harness.send(
-        AdminCategoriesActions.createCategory({ tempId: 't1', request: { name: 'Outdoor' } }),
+        AdminCategoriesActions.createCategory({ tempId: 't1', request: { name: 'Outdoor', nameHy: 'Outdoor', nameRu: 'Outdoor' } }),
       );
       harness.complete();
       expect(await result).toEqual([
@@ -129,11 +129,11 @@ describe('AdminCategoriesEffects', () => {
       harness.send(
         AdminCategoriesActions.deleteCategoryToNewCategory({
           id: 'old-cat',
-          newCategory: { name: 'Brand New' },
+          newCategory: { name: 'Brand New', nameHy: 'Brand New', nameRu: 'Brand New' },
         }),
       );
       harness.complete();
-      expect(createCategory).toHaveBeenCalledWith({ name: 'Brand New' });
+      expect(createCategory).toHaveBeenCalledWith({ name: 'Brand New', nameHy: 'Brand New', nameRu: 'Brand New' });
       expect(deleteCategory).toHaveBeenCalledWith('old-cat', 'new-cat');
       expect(await result).toEqual([
         AdminCategoriesActions.deleteCategorySuccess({ id: 'old-cat' }),
@@ -147,7 +147,7 @@ describe('AdminCategoriesEffects', () => {
       harness.send(
         AdminCategoriesActions.deleteCategoryToNewCategory({
           id: 'old-cat',
-          newCategory: { name: 'Brand New' },
+          newCategory: { name: 'Brand New', nameHy: 'Brand New', nameRu: 'Brand New' },
         }),
       );
       harness.complete();
@@ -169,7 +169,7 @@ describe('AdminCategoriesEffects', () => {
       harness.send(
         AdminCategoriesActions.deleteCategoryToNewCategory({
           id: 'old-cat',
-          newCategory: { name: 'Brand New' },
+          newCategory: { name: 'Brand New', nameHy: 'Brand New', nameRu: 'Brand New' },
         }),
       );
       harness.complete();
