@@ -333,55 +333,6 @@
           }
         </ol>
       </section>
-
-      <!-- FAQ section -->
-      <section class="home__faq" aria-labelledby="home-faq-heading">
-        <div class="home__faq-left">
-          <h2 id="home-faq-heading" class="home__faq-heading">
-            {{ 'home.faq.title' | translate }}
-          </h2>
-          <div class="home__faq-help">
-            <h3 class="home__faq-help-title">
-              {{ 'home.faq.helpTitle' | translate }}
-            </h3>
-            <p class="home__faq-help-text">
-              {{ 'home.faq.helpText' | translate }}
-            </p>
-            <a class="home__faq-help-cta" [href]="'mailto:' + ('home.faq.helpEmail' | translate)">
-              {{ 'home.faq.helpCta' | translate }}
-            </a>
-          </div>
-        </div>
-
-        <div class="home__faq-right">
-          @for (entry of faqEntries; track entry.id) {
-            <div class="home__faq-item" [class.home__faq-item--open]="expandedFaq() === entry.id">
-              <button
-                type="button"
-                class="home__faq-item-header"
-                [attr.aria-expanded]="expandedFaq() === entry.id"
-                [attr.aria-controls]="'home-faq-panel-' + entry.id"
-                (click)="toggleFaq(entry.id)"
-              >
-                <span class="home__faq-item-question">
-                  {{ entry.questionKey | translate }}
-                </span>
-                <i
-                  class="home__faq-item-chevron pi"
-                  [class.pi-chevron-down]="expandedFaq() !== entry.id"
-                  [class.pi-chevron-up]="expandedFaq() === entry.id"
-                  aria-hidden="true"
-                ></i>
-              </button>
-              @if (expandedFaq() === entry.id) {
-                <p class="home__faq-item-answer" [id]="'home-faq-panel-' + entry.id">
-                  {{ entry.answerKey | translate }}
-                </p>
-              }
-            </div>
-          }
-        </div>
-      </section>
     </div>
   </div>
 }

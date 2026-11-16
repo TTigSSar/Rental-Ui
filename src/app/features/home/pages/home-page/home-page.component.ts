@@ -64,12 +64,6 @@ import {
 
 type ProcessMode = 'renting' | 'lending';
 
-interface HomeFaqEntry {
-  readonly id: string;
-  readonly questionKey: string;
-  readonly answerKey: string;
-}
-
 interface HomeProcessStep {
   readonly id: string;
   readonly icon: string;
@@ -251,39 +245,6 @@ const HERO_SEARCH_ROOT_MARGIN = '-80px 0px 0px 0px';
 /** Matches the hero's own stack-to-row breakpoint (home-page.component.scss, 1024px). */
 const HERO_STACKED_QUERY = '(max-width: 1023.98px)';
 
-const FAQ_ENTRIES: readonly HomeFaqEntry[] = [
-  {
-    id: 'q1',
-    questionKey: 'home.faq.items.q1.question',
-    answerKey: 'home.faq.items.q1.answer',
-  },
-  {
-    id: 'q2',
-    questionKey: 'home.faq.items.q2.question',
-    answerKey: 'home.faq.items.q2.answer',
-  },
-  {
-    id: 'q3',
-    questionKey: 'home.faq.items.q3.question',
-    answerKey: 'home.faq.items.q3.answer',
-  },
-  {
-    id: 'q4',
-    questionKey: 'home.faq.items.q4.question',
-    answerKey: 'home.faq.items.q4.answer',
-  },
-  {
-    id: 'q5',
-    questionKey: 'home.faq.items.q5.question',
-    answerKey: 'home.faq.items.q5.answer',
-  },
-  {
-    id: 'q6',
-    questionKey: 'home.faq.items.q6.question',
-    answerKey: 'home.faq.items.q6.answer',
-  },
-];
-
 interface HomeSource {
   readonly categories: ListingCategoryOption[];
   readonly categoriesLoading: boolean;
@@ -372,7 +333,6 @@ export class HomePageComponent implements OnInit {
   protected readonly canScrollNext = signal(true);
 
   protected readonly processSteps = PROCESS_STEPS;
-  protected readonly faqEntries = FAQ_ENTRIES;
 
   protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
   protected readonly showAuthDialog = signal(false);
@@ -399,7 +359,6 @@ export class HomePageComponent implements OnInit {
   protected readonly headerSearchHidden = this.headerSearchVisibility.hidden;
 
   protected readonly processMode = signal<ProcessMode>('renting');
-  protected readonly expandedFaq = signal<string | null>('q1');
 
   protected readonly searchForm = this.fb.nonNullable.group({
     query: this.fb.nonNullable.control(''),
@@ -561,10 +520,6 @@ export class HomePageComponent implements OnInit {
 
   protected setProcessMode(mode: ProcessMode): void {
     this.processMode.set(mode);
-  }
-
-  protected toggleFaq(id: string): void {
-    this.expandedFaq.update((current) => (current === id ? null : id));
   }
 
   protected retryCategories(): void {
