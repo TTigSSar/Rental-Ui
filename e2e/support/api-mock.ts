@@ -710,6 +710,8 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
       const item = adminCategoriesState.find((c) => c['id'] === categoryDetailId);
       if (item) {
         if (typeof body['name'] === 'string' && body['name']) item['name'] = body['name'];
+        if (typeof body['nameHy'] === 'string' && body['nameHy']) item['nameHy'] = body['nameHy'];
+        if (typeof body['nameRu'] === 'string' && body['nameRu']) item['nameRu'] = body['nameRu'];
         if ('iconName' in body) item['iconName'] = body['iconName'] || null;
         if ('colorHex' in body) item['colorHex'] = body['colorHex'] || null;
       }

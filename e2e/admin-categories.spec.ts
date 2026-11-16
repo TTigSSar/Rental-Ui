@@ -156,10 +156,57 @@ test.describe('Admin categories', () => {
     await expect(sheet).toBeVisible();
     await expect(page.locator('.categories-page__edit-row')).toHaveCount(0);
 
-    await sheet.locator('.category-form-panel__name-input').fill('Wooden Blocks');
+    // ADR-062: the form has three name inputs (en/hy/ru); rename may change only English.
+    await expect(sheet.locator('.category-form-panel__name-input')).toHaveCount(3);
+    const patchRequest = page.waitForRequest(
+      (req) => req.url().endsWith('/api/admin/categories/cat-mobile') && req.method() === 'PATCH',
+    );
+    await sheet.locator('#category-form-panel-name-en').fill('Wooden Blocks');
     await sheet.locator('.category-edit-sheet__btn--confirm').click();
+    const patchBody = (await patchRequest).postDataJSON() as Record<string, string>;
+    expect(patchBody['name']).toBe('Wooden Blocks');
+    // PATCH carries only changed fields (the page diffs against the original).
+    expect(patchBody['nameHy']).toBeUndefined();
+    expect(patchBody['nameRu']).toBeUndefined();
 
     await expect(sheet).toHaveCount(0);
     await expect(page.getByText('Wooden Blocks')).toBeVisible();
+  });
+
+  test('creating a category requires all three names and sends en/hy/ru together', async ({
+    page,
+  }) => {
+    await mockApi(page, { me: e2eAdmin(), adminCategories: [] });
+    await page.goto('/admin/categories');
+
+    await page.locator('.categories-page__new-btn').click();
+    const panel = page.locator('.categories-page__create-panel');
+    await expect(panel).toBeVisible();
+
+    // Empty HY/RU: required errors show and no POST is sent.
+    let postCount = 0;
+    page.on('request', (req) => {
+      if (req.url().endsWith('/api/admin/categories') && req.method() === 'POST') postCount++;
+    });
+    await panel.locator('#category-form-panel-name-en').fill('Board Games');
+    await panel.locator('.categories-page__btn--confirm').click();
+    await expect(panel.locator('#category-form-panel-name-hy-required')).toBeVisible();
+    await expect(panel.locator('#category-form-panel-name-ru-required')).toBeVisible();
+    await expect(panel.locator('#category-form-panel-name-en-required')).toHaveCount(0);
+    expect(postCount).toBe(0);
+
+    // Filling all three sends one POST carrying every name.
+    await panel.locator('#category-form-panel-name-hy').fill('Սեղանի խաղեր');
+    await panel.locator('#category-form-panel-name-ru').fill('Настольные игры');
+    const postRequest = page.waitForRequest(
+      (req) => req.url().endsWith('/api/admin/categories') && req.method() === 'POST',
+    );
+    await panel.locator('.categories-page__btn--confirm').click();
+    const body = (await postRequest).postDataJSON() as Record<string, string>;
+    expect(body['name']).toBe('Board Games');
+    expect(body['nameHy']).toBe('Սեղանի խաղեր');
+    expect(body['nameRu']).toBe('Настольные игры');
+
+    await expect(page.getByText('Board Games')).toBeVisible();
   });
 });
