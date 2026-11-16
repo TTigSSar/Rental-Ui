@@ -144,6 +144,8 @@ export const adminCategoriesReducer = createReducer(
     const previous = state.items.find((item) => item.id === id) ?? null;
     const patch: Partial<AdminCategory> = {
       ...(request.name !== undefined ? { name: request.name } : {}),
+      ...(request.nameHy != null ? { nameHy: request.nameHy } : {}),
+      ...(request.nameRu != null ? { nameRu: request.nameRu } : {}),
       ...(request.iconName !== undefined
         ? { iconName: request.iconName === '' ? null : request.iconName }
         : {}),

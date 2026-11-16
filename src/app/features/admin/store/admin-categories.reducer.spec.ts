@@ -121,6 +121,28 @@ describe('adminCategoriesReducer', () => {
       expect(next.rollbacks['c1']).toBeDefined();
     });
 
+    it('patches nameHy/nameRu when present and leaves them unchanged when omitted', () => {
+      const start = stateWith({
+        items: [makeAdminCategory({ id: 'c1', nameHy: 'OldHy', nameRu: 'OldRu' })],
+      });
+      const both = adminCategoriesReducer(
+        start,
+        AdminCategoriesActions.updateCategory({
+          id: 'c1',
+          request: { nameHy: 'NewHy', nameRu: 'NewRu' },
+        }),
+      );
+      expect(both.items[0].nameHy).toBe('NewHy');
+      expect(both.items[0].nameRu).toBe('NewRu');
+
+      const none = adminCategoriesReducer(
+        start,
+        AdminCategoriesActions.updateCategory({ id: 'c1', request: { name: 'X' } }),
+      );
+      expect(none.items[0].nameHy).toBe('OldHy');
+      expect(none.items[0].nameRu).toBe('OldRu');
+    });
+
     it('restores the row and records the error code on failure', () => {
       const original = makeAdminCategory({ id: 'c1', name: 'Old' });
       const start = adminCategoriesReducer(
