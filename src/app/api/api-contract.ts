@@ -78,6 +78,13 @@ export const ApiContract = {
     // shape as `root` (see ListingsController.GetMapPins). Consumer:
     // features/listings/components/listings-map/ (Maps P2-2, in progress).
     mapPins: '/api/listings/map-pins',
+    // ADR-066. `root` and `mapPins` additionally take repeated `categoryIds` (max 50; legacy
+    // `categoryId` still accepted), `ageRanges` ("{from}-{to}", to may be empty, max 5),
+    // `conditions` (New|LikeNew|Good|Fair, max 4) and `sort` (newest|price_asc|price_desc|
+    // rating_desc|nearest; `nearest` needs originLat+originLng else 400). `mapPins` validates
+    // but ignores `sort` - do not send it. `facets`: [AllowAnonymous] GET -> `ListingFacetsResponse`,
+    // same filter params as `root` but NO sort/paging/bbox.
+    facets: '/api/listings/facets',
     // AI search (ADR-054). aiSearch: [Authorize] POST, rate limit 5/min/user -> 200
     // `AiSearchResponse` (model failure is a 200 with `aiUnavailable: true`, never 503);
     // 400 `ai_search.invalid_description`, 401 `ai_search.unauthenticated`, 429

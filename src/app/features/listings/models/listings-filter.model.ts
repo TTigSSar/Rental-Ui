@@ -1,3 +1,26 @@
+/**
+ * `sort` query value of `GET /api/listings` (ADR-066). Server default `newest`.
+ * `nearest` requires `originLat` + `originLng`, else 400. `map-pins` ignores
+ * (but validates) `sort` — do not send it there; `facets` must not get it either.
+ */
+export type ListingsSort = 'newest' | 'price_asc' | 'price_desc' | 'rating_desc' | 'nearest';
+
+/** `conditions` query values (repeated key, max 4). Narrower than `ToyCondition` — no `Poor`. */
+export type ListingConditionFilter = 'New' | 'LikeNew' | 'Good' | 'Fair';
+
+/** Server caps on the repeated filter keys (ADR-066); beyond these the API answers 400. */
+export const LISTINGS_FILTER_LIMITS = {
+  categoryIds: 50,
+  ageRanges: 5,
+  conditions: 4,
+} as const;
+
+/**
+ * `ageRanges` token: `"{fromMonths}-{toMonths}"`; `toMonths` may be empty for
+ * open-ended, e.g. `"72-"` (max 5 repeated keys).
+ */
+export type ListingAgeRangeParam = `${number}-${number | ''}`;
+
 export interface ListingsFilter {
   query: string | null;
   city: string | null;
