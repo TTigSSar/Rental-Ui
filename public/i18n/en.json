@@ -193,6 +193,7 @@
       }
     },
     "process": {
+      "title": "How it works",
       "modes": {
         "renting": "Renting a toy",
         "lending": "Listing a toy"

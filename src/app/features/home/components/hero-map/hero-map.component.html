@@ -24,7 +24,10 @@
     height="100%"
   >
     <span app-map-scroll-hint>{{ 'listings.details.location.scrollGateHint' | translate }}</span>
-    <span app-map-gate-hint>{{ 'listings.details.location.touchGateHint' | translate }}</span>
+    <span app-map-gate-hint class="hero-map__hint">
+      <i class="pi pi-arrows-alt" aria-hidden="true"></i>
+      {{ 'listings.details.location.touchGateHint' | translate }}
+    </span>
     <!-- Two chip forms, same top-left slot (the one corner free of the
          licence-mandated MapTiler logo and Leaflet attribution — see this
          file's SCSS and ADR-015). The home form is the design's two-line

@@ -1,0 +1,111 @@
+/* `--page-gutter` is defined on `.home` by the page (ADR-063). */
+:host {
+  display: block;
+}
+
+.row {
+  position: relative;
+  container-type: inline-size;
+}
+
+/* Full-bleed to the gutter edges. The 6px/10px padding plus the -4px block
+   margin nets out to the design's 2px / 6px, while leaving room inside the
+   scroll box for the card focus ring (which would otherwise be clipped). */
+.row__track {
+  display: flex;
+  gap: 12px;
+  margin-inline: calc(-1 * var(--page-gutter));
+  margin-block: -4px;
+  padding: 6px var(--page-gutter) 10px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--page-gutter);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.row__track::-webkit-scrollbar {
+  display: none;
+}
+
+.row__item {
+  flex: none;
+  width: 232px;
+  scroll-snap-align: start;
+}
+
+.row__arrow {
+  display: none;
+}
+
+/* Desktop: 4 cards fill the width between the gutters; the 5th peeks into the
+   right gutter (gutter − 16px gap = 54px at 70px). Percentages resolve against
+   the track's content box, i.e. the width between the gutters. */
+@media (min-width: 1024px) {
+  .row__track {
+    gap: 16px;
+  }
+
+  .row__item {
+    width: calc((100% - 3 * 16px) / 4);
+  }
+
+  .row__item--extra {
+    display: block;
+  }
+
+  .row__arrow {
+    position: absolute;
+    z-index: 3;
+    /* Centred on the image: half the image height (0.83 × card width), minus
+       half the arrow, plus the track's 2px net top offset. `cqw` is 1% of
+       `.row`'s width (it is the size container), which is the width between
+       the gutters, so the card width is (100cqw − 3 gaps) / 4. */
+    top: calc((100cqw - 3 * 16px) / 4 * 0.83 / 2 - 22px + 2px);
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid var(--ui-color-border-input);
+    border-radius: var(--ui-radius-pill);
+    background: var(--ui-color-surface);
+    color: var(--ui-color-text-primary);
+    box-shadow: var(--ui-shadow-card);
+    cursor: pointer;
+  }
+
+  .row__arrow--prev {
+    left: -22px;
+  }
+
+  .row__arrow--next {
+    right: -22px;
+  }
+
+  .row__arrow:focus-visible {
+    outline: 2px solid var(--ui-color-primary-strong);
+    outline-offset: 2px;
+  }
+
+  .row__arrow[aria-disabled='true'] {
+    background: var(--ui-color-surface-muted);
+    border-color: var(--ui-color-border);
+    box-shadow: none;
+    color: var(--ui-color-text-secondary);
+    cursor: default;
+  }
+}
+
+@media (min-width: 1024px) and (hover: hover) {
+  .row__arrow:hover:not([aria-disabled='true']) {
+    background: var(--ui-color-surface-muted);
+  }
+}
+
+/* Mobile skeleton rows show three cards, not five (no needless scroll). */
+@media (max-width: 1023.98px) {
+  .row__item--extra {
+    display: none;
+  }
+}

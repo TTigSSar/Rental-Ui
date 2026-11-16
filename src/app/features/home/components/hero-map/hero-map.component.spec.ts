@@ -279,6 +279,47 @@ describe('HomeHeroMapComponent', () => {
     });
   });
 
+  // Stage 1 locked state: the SAME gate overlay as before (shared `app-map`
+  // mechanism), restyled by this component — the dark hint pill carries a
+  // "move" icon plus the existing tap-to-move copy.
+  describe('touch-locked state', () => {
+    afterEach(() => {
+      vi.stubGlobal(
+        'matchMedia',
+        vi.fn(() => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() })),
+      );
+    });
+
+    it('renders the whole-panel gate with the tap hint, and the zoom stack beneath it, on a touch pointer', async () => {
+      vi.stubGlobal(
+        'matchMedia',
+        vi.fn((query: string) => ({
+          matches: query.includes('pointer: coarse'),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+        })),
+      );
+      const fixture = await createHost();
+
+      const gate: HTMLElement | null = fixture.nativeElement.querySelector('.app-map__gate');
+      expect(gate).not.toBeNull();
+      expect(gate!.querySelector('.hero-map__hint .pi-arrows-alt')).not.toBeNull();
+      expect(gate!.textContent).toContain('listings.details.location.touchGateHint');
+      expect(fixture.nativeElement.querySelector('.app-map__zoom-stack')).not.toBeNull();
+
+      // Tapping it unlocks the map for good — no second mechanism.
+      gate!.click();
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.app-map__gate')).toBeNull();
+    });
+
+    it('has no gate on a pointer-fine device', async () => {
+      const fixture = await createHost();
+
+      expect(fixture.nativeElement.querySelector('.app-map__gate')).toBeNull();
+    });
+  });
+
   describe('pill i18n key — the two branches must never share one string', () => {
     it('renders through the cityCount key while ungranted (userPin null, the default)', async () => {
       configure();

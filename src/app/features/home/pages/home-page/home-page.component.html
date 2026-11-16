@@ -158,7 +158,7 @@
             (ngSubmit)="onSearchSubmit()"
             [attr.aria-label]="'home.search.ariaLabel' | translate"
           >
-            <i class="pi pi-search home__hero-search-icon" aria-hidden="true"></i>
+            <app-icon class="home__hero-search-icon" name="search" [size]="18" />
             <input
               type="text"
               class="home__hero-search-input"
@@ -169,9 +169,9 @@
             <button
               type="submit"
               class="home__hero-search-filter"
-              [attr.aria-label]="'home.search.filterAria' | translate"
+              [attr.aria-label]="'home.search.submit' | translate"
             >
-              <i class="pi pi-chevron-right" aria-hidden="true"></i>
+              <app-icon name="search" [size]="20" />
             </button>
           </form>
         </div>
@@ -210,9 +210,25 @@
 
       <!-- Toy sections from backend (Most Recent, Popular, etc.) -->
       @if (vm.sectionsLoading) {
-        <section class="home__section">
-          <app-ui-loading-skeleton class="home__skeleton" [items]="4" />
-        </section>
+        <!-- The five section keys are known up front, so loading shows the
+             real titles over card-shaped skeletons (design `ToyCardSkel`). -->
+        @for (key of sectionKeys; track key) {
+          <section
+            class="home__section"
+            aria-busy="true"
+            [attr.aria-labelledby]="'home-section-' + key"
+          >
+            <app-ui-section-header
+              [title]="'home.sections.titles.' + key | translate"
+              [headingId]="'home-section-' + key"
+            >
+              <a actions [routerLink]="['/listings']" class="home__section-action">
+                {{ 'home.seeAll' | translate }}
+              </a>
+            </app-ui-section-header>
+            <app-home-toy-row [loading]="true" />
+          </section>
+        }
       } @else if (vm.sectionsError) {
         <section class="home__section">
           <div class="home__error" role="alert">
@@ -240,35 +256,11 @@
                   {{ 'home.seeAll' | translate }}
                 </a>
               </app-ui-section-header>
-              <div class="home__carousel-wrapper">
-                <button
-                  type="button"
-                  class="home__carousel-nav home__carousel-nav--prev"
-                  [attr.aria-label]="'home.featured.prevLabel' | translate"
-                  (click)="scrollCarousel(sectionCarousel, -1)"
-                >
-                  <i class="pi pi-chevron-left" aria-hidden="true"></i>
-                </button>
-                <div #sectionCarousel class="home__carousel home__carousel--sections">
-                  @for (item of section.items; track item.id) {
-                    <app-listing-card
-                      class="home__carousel-item home__carousel-item--section"
-                      [listing]="item"
-                      [isAuthenticated]="vm.isAuthenticated"
-                      [isOwner]="myListingIds().has(item.id)"
-                      (favoriteToggled)="onFavoriteToggle($event)"
-                    />
-                  }
-                </div>
-                <button
-                  type="button"
-                  class="home__carousel-nav home__carousel-nav--next"
-                  [attr.aria-label]="'home.featured.nextLabel' | translate"
-                  (click)="scrollCarousel(sectionCarousel, 1)"
-                >
-                  <i class="pi pi-chevron-right" aria-hidden="true"></i>
-                </button>
-              </div>
+              <app-home-toy-row
+                [items]="section.items"
+                [ownIds]="myListingIds()"
+                (favoriteToggled)="onFavoriteToggle($event)"
+              />
             </section>
           }
         }
@@ -276,17 +268,19 @@
 
       <!-- Process section (Renting / Lending toggle + steps) -->
       <section class="home__process" aria-labelledby="home-process-heading">
-        <h2 id="home-process-heading" class="home__sr-only">
-          {{ 'home.process.modes.' + processMode() | translate }}
+        <h2 id="home-process-heading" class="home__process-title">
+          {{ 'home.process.title' | translate }}
         </h2>
         <div
           class="home__process-toggle"
           role="tablist"
-          [attr.aria-label]="'home.process.modes.' + processMode() | translate"
+          [attr.aria-label]="'home.process.title' | translate"
         >
           <button
             type="button"
             role="tab"
+            id="home-process-tab-renting"
+            aria-controls="home-process-panel"
             class="home__process-toggle-btn"
             [class.home__process-toggle-btn--active]="processMode() === 'renting'"
             [attr.aria-selected]="processMode() === 'renting'"
@@ -297,6 +291,8 @@
           <button
             type="button"
             role="tab"
+            id="home-process-tab-lending"
+            aria-controls="home-process-panel"
             class="home__process-toggle-btn"
             [class.home__process-toggle-btn--active]="processMode() === 'lending'"
             [attr.aria-selected]="processMode() === 'lending'"
@@ -306,32 +302,38 @@
           </button>
         </div>
 
-        <ol class="home__process-steps">
-          @for (step of processSteps; track step.id; let isLast = $last) {
-            <li class="home__process-step">
-              <div class="home__process-step-media">
-                <span class="home__process-step-icon" aria-hidden="true">
-                  <i [class]="step.icon"></i>
-                </span>
+        <div
+          id="home-process-panel"
+          role="tabpanel"
+          [attr.aria-labelledby]="'home-process-tab-' + processMode()"
+        >
+          <ol class="home__process-steps">
+            @for (step of processSteps; track step.id; let isLast = $last) {
+              <li class="home__process-step">
                 @if (!isLast) {
                   <span class="home__process-step-line" aria-hidden="true"></span>
                 }
-              </div>
-              <h3 class="home__process-step-title">
-                {{
-                  (processMode() === 'renting' ? step.titleKeyRenting : step.titleKeyLending)
-                    | translate
-                }}
-              </h3>
-              <p class="home__process-step-text">
-                {{
-                  (processMode() === 'renting' ? step.descKeyRenting : step.descKeyLending)
-                    | translate
-                }}
-              </p>
-            </li>
-          }
-        </ol>
+                <span class="home__process-step-icon" aria-hidden="true">
+                  <i [class]="step.icon"></i>
+                </span>
+                <div class="home__process-step-body">
+                  <h3 class="home__process-step-title">
+                    {{
+                      (processMode() === 'renting' ? step.titleKeyRenting : step.titleKeyLending)
+                        | translate
+                    }}
+                  </h3>
+                  <p class="home__process-step-text">
+                    {{
+                      (processMode() === 'renting' ? step.descKeyRenting : step.descKeyLending)
+                        | translate
+                    }}
+                  </p>
+                </div>
+              </li>
+            }
+          </ol>
+        </div>
       </section>
     </div>
   </div>
