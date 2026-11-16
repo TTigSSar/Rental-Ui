@@ -756,6 +756,7 @@
       "reportLabel": "Report",
       "linkCopied": "Link copied to clipboard",
       "handoverLabel": "Handover",
+      "showLocationOnMap": "Show location on map",
       "bookingHeading": "Check availability",
       "bookingSubtitle": "Pick your rental dates and see the total before you send a rental request.",
       "bookingSubmitting": "Submitting rental request...",
@@ -773,18 +774,6 @@
       "eyebrow": {
         "overview": "Overview",
         "reviews": "Reviews"
-      },
-      "highlights": {
-        "hygieneSub": "Cleaning details from the owner",
-        "verifiedTitle": "Verified owner",
-        "verifiedSub": "Trusted DoRent member",
-        "deliveryAvailableTitle": "Delivery available",
-        "deliveryAvailableSub": "Owner can drop it off",
-        "pickupOnlyTitle": "Pickup only",
-        "pickupOnlySub": "Meet the owner to collect",
-        "minStayTitle": "{{count}}-day minimum",
-        "minStayPeriodTitle": "Min. {{period}}",
-        "minStaySub": "Shorter requests aren't accepted"
       },
       "badges": {
         "verifiedOwner": "Verified owner",
@@ -810,6 +799,7 @@
         "condition": "Condition",
         "hygieneNotes": "Hygiene & cleaning",
         "safetyNotes": "Safety notes",
+        "hygieneValue": "Cleaning details from the owner",
         "compensation": "Loss & damage compensation",
         "compensationValue": "Up to {{amount}}",
         "compensationNotSpecified": "Not specified"
@@ -838,8 +828,7 @@
         "seeAll": "See all {{count}} reviews"
       },
       "pickupDelivery": {
-        "heading": "Pickup & delivery",
-        "hygieneValue": "Provided by owner"
+        "heading": "Pickup & delivery"
       },
       "ownerStats": {
         "rating": "Rating",

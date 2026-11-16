@@ -186,14 +186,14 @@
             }
 
             <!-- Row 2: rendered in the visual order of each layout so Tab order matches it
-                 (design-notes 16, 19): desktop = sort, status, List/Map; mobile = status, List/Map, sort. -->
+                 (design-notes 16, 19): desktop = List/Map, status, sort; mobile = status, List/Map, sort. -->
             @if (isDesktop()) {
               <div class="lp-toolbar__row">
-                <div class="lp-toolbar__lead">
-                  <ng-container *ngTemplateOutlet="sortTpl" />
-                  <ng-container *ngTemplateOutlet="updatingTpl" />
-                </div>
                 <ng-container *ngTemplateOutlet="toggleTpl" />
+                <div class="lp-toolbar__lead">
+                  <ng-container *ngTemplateOutlet="updatingTpl" />
+                  <ng-container *ngTemplateOutlet="sortTpl" />
+                </div>
               </div>
             } @else {
               <ng-container *ngTemplateOutlet="updatingTpl" />

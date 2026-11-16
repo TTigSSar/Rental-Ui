@@ -267,7 +267,7 @@ describe('ListingsPageComponent — Maps P2-2 view toggle', () => {
   });
 
   describe.each([
-    { name: 'desktop', desktop: true, sortFirst: true },
+    { name: 'desktop', desktop: true, sortFirst: false },
     { name: 'mobile', desktop: false, sortFirst: false },
   ])('toolbar DOM order ($name, design-notes 16, 19)', ({ desktop, sortFirst }) => {
     // Not unstubAllGlobals(): other specs in this file stub IntersectionObserver globally.

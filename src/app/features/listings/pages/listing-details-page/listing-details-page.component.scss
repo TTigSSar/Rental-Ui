@@ -431,6 +431,33 @@
   }
 }
 
+/* Clickable variant (button reset + hover/focus affordance). */
+.detail-page__city--link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover span {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary-strong);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* Section headings are programmatic focus targets (tabindex="-1") — no ring on mouse/scroll. */
+#detail-pickup-heading:focus {
+  outline: none;
+}
+
 .detail-page__meta-sep {
   color: var(--ui-color-border-strong);
   font-size: 10px;
@@ -482,47 +509,48 @@
   color: var(--ui-color-text-secondary);
 }
 
-/* ── Highlights band — 2–4 real-data tiles, one row, no gap between cells;
-   dividers come from `border-left` on every cell after the first ───────── */
-.detail-page__highlights {
-  display: grid;
-  margin-top: var(--ui-space-16);
-  background: var(--ui-color-surface);
-  border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-card);
-  overflow: hidden;
+/* ── Divider — desktop only between major sections (mobile relies on
+   `.detail-page__sections` gap alone) ───────────────────────────────── */
+.detail-page__divider {
+  display: none;
 
-  @media (max-width: 1099px) {
-    grid-template-columns: repeat(2, 1fr) !important;
+  @media (min-width: 1100px) {
+    display: block;
+    height: 1px;
+    background: var(--ui-color-border);
+    margin: 0;
   }
 }
 
-.detail-page__highlight-cell {
+/* ── Details tiles: age / condition / hygiene — 1–3 cards in one row ───── */
+.detail-page__specquad {
+  display: grid;
+  /* Mobile: one card per row. From 640px the row is exactly as wide as the
+     tile count (1–3), so there are never empty columns. */
+  grid-template-columns: 1fr;
+  gap: var(--ui-space-12);
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(var(--specquad-cols, 3), minmax(0, 1fr));
+  }
+}
+
+.detail-page__specquad-cell {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 18px 20px;
-  border-left: 1px solid var(--ui-color-border);
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-card);
   min-width: 0;
-
-  &:first-child {
-    border-left: none;
-  }
 
   @media (max-width: 1099px) {
     padding: 12px;
-
-    &:nth-child(2n + 1) {
-      border-left: none;
-    }
-
-    &:nth-child(n + 3) {
-      border-top: 1px solid var(--ui-color-border);
-    }
   }
 }
 
-.detail-page__highlight-icon {
+.detail-page__specquad-icon {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -543,111 +571,10 @@
   }
 }
 
-.detail-page__highlight-text {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-
-  strong {
-    font-size: 13.5px;
-    font-weight: 700;
-    color: var(--ui-color-text-primary);
-    line-height: 1.3;
-  }
-
-  small {
-    font-size: 12px;
-    color: var(--ui-color-text-secondary);
-    line-height: 1.35;
-    /* Was `white-space: nowrap` + ellipsis — the design's subs are short
-       English ("DoRent verified member"); hy/ru run longer ("Հանդիպեք
-       տիրոջը՝ վերցնելու համար", "Более короткие запросы не принимаются")
-       and were being clipped mid-word. All cells in this single-row grid
-       already share one row height (grid default `align-items: stretch`),
-       so letting one cell's sub wrap just grows the row for all of them —
-       no jagged heights. */
-    overflow-wrap: break-word;
-    word-break: break-word;
-  }
-}
-
-/* ── Divider — desktop only between major sections (mobile relies on
-   `.detail-page__sections` gap alone) ───────────────────────────────── */
-.detail-page__divider {
-  display: none;
-
-  @media (min-width: 1100px) {
-    display: block;
-    height: 1px;
-    background: var(--ui-color-border);
-    margin: 0;
-  }
-}
-
-/* ── Specs quad: best age / condition / handover / minimum rental ─────── */
-.detail-page__specquad {
-  display: grid;
-  /* 2-up by default (also covers ≤1099px, unchanged/verified clean). 4-up
-     (the design's intended look) only kicks in at ≥1300px: a strict
-     `repeat(4, 1fr)` starting at 1100px squeezed the cells too narrow for
-     the longer hy/ru labels — measured overflow at 1100-1280px in hy/ru/en.
-     The ru label overflowed even at 1920px in a 4-up grid ("Рекомендуемый
-     возраст", scrollWidth 104 vs clientWidth 98), which the breakpoint
-     alone can't fix — see `.detail-page__specquad-label`'s `overflow-wrap`
-     below for that half of the fix. */
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--ui-space-12);
-
-  @media (min-width: 1300px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  @media (max-width: 1099px) {
-    gap: var(--ui-space-8);
-  }
-}
-
-.detail-page__specquad-cell {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: var(--ui-space-16);
-  background: var(--ui-color-surface);
-  border: 1px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-md);
-  min-width: 0;
-
-  @media (max-width: 1099px) {
-    padding: 10px 12px;
-  }
-}
-
-.detail-page__specquad-icon {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: var(--ui-radius-12);
-  background: var(--ui-color-surface-muted);
-  color: var(--ui-color-text-secondary);
-
-  @media (max-width: 1099px) {
-    width: 32px;
-    height: 32px;
-  }
-
-  i {
-    font-size: 1.05rem;
-  }
-}
-
 .detail-page__specquad-body {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 1px;
   min-width: 0;
 }
 
@@ -669,10 +596,10 @@
 }
 
 .detail-page__specquad-value {
-  font-size: 14.5px;
-  font-weight: 800;
+  font-size: 13.5px;
+  font-weight: 700;
   color: var(--ui-color-text-primary);
-  line-height: 1.25;
+  line-height: 1.3;
   /* Wraps like the label above so no tile value (handover "Самовывоз или
      курьер", minimum rental, ...) can exceed its cell at any width or
      language. */

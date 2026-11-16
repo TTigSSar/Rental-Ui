@@ -246,13 +246,11 @@ describe('ListingDetailsPageComponent — report affordance', () => {
 });
 
 /**
- * `deliveryTypes` (additive multi-select) and the minimum-rental chip labels
- * (extended to include month/year values) both need real-DOM coverage — the
- * `deliveryType`-only path is exercised by the older tests above via
- * `makeListingDetails`' defaults, so these focus specifically on the "both
- * handover methods offered" case and the new long-period chip labels.
+ * Details tiles (Age / Condition / Hygiene) and the rows beside the map
+ * (Handover / Minimum rental), plus the clickable "{district}, {city}" line.
+ * The highlights band is gone — each fact has exactly one home.
  */
-describe('ListingDetailsPageComponent — delivery types & min-rental labels', () => {
+describe('ListingDetailsPageComponent — details tiles, map rows & location line', () => {
   function setup(listingOverrides: Partial<ListingDetails>) {
     const listing = makeListingDetails({
       id: 'listing-1',
@@ -296,14 +294,14 @@ describe('ListingDetailsPageComponent — delivery types & min-rental labels', (
       'en',
       {
         listings: {
+          card: { hygieneProvided: 'Hygiene notes' },
           details: {
             handoverLabel: 'Handover',
-            highlights: {
-              pickupOnlyTitle: 'Pickup only',
-              pickupOnlySub: 'Meet the owner to collect',
-              minStayTitle: '{{count}}-day minimum',
-              minStayPeriodTitle: 'Min. {{period}}',
-              minStaySub: "Shorter requests aren't accepted",
+            showLocationOnMap: 'Show location on map',
+            toyDetails: {
+              ageRange: 'Recommended age',
+              condition: 'Condition',
+              hygieneValue: 'Cleaning details from the owner',
             },
           },
           createForm: {
@@ -315,6 +313,7 @@ describe('ListingDetailsPageComponent — delivery types & min-rental labels', (
             },
             minRental: {
               label: 'Minimum rental',
+              d1: '1 day',
               d365: '1 year',
             },
           },
@@ -330,104 +329,186 @@ describe('ListingDetailsPageComponent — delivery types & min-rental labels', (
     return TestBed.createComponent(ListingDetailsPageComponent);
   }
 
-  function specValues(fixture: ReturnType<typeof setup>): string[] {
-    const root = fixture.nativeElement as HTMLElement;
-    return Array.from(root.querySelectorAll<HTMLElement>('.detail-page__specquad-value')).map(
+  type Fixture = ReturnType<typeof setup>;
+
+  function texts(fixture: Fixture, selector: string): string[] {
+    return Array.from((fixture.nativeElement as HTMLElement).querySelectorAll(selector)).map(
       (el) => el.textContent?.trim() ?? '',
     );
   }
 
-  function pickupRowValues(fixture: ReturnType<typeof setup>): string[] {
-    const root = fixture.nativeElement as HTMLElement;
-    return Array.from(root.querySelectorAll<HTMLElement>('.detail-page__pickup-row-value')).map(
-      (el) => el.textContent?.trim() ?? '',
+  const tileLabels = (f: Fixture) => texts(f, '.detail-page__specquad-label');
+  const pickupRowLabels = (f: Fixture) => texts(f, '.detail-page__pickup-row-label');
+  const pickupRowValues = (f: Fixture) => texts(f, '.detail-page__pickup-row-value');
+
+  it('has no highlights band', () => {
+    const fixture = setup({
+      hygieneNotes: 'Wiped',
+      minRentalDays: 5,
+      deliveryTypes: ['Pickup', 'Courier'],
+    });
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.detail-page__highlights'),
+    ).toBeNull();
+  });
+
+  it('shows Age → Condition → Hygiene tiles when hygieneNotes is set', () => {
+    const fixture = setup({ hygieneNotes: 'Wiped with disinfectant' });
+    fixture.detectChanges();
+
+    expect(tileLabels(fixture)).toEqual(['Recommended age', 'Condition', 'Hygiene notes']);
+    expect(texts(fixture, '.detail-page__specquad-value').pop()).toBe(
+      'Cleaning details from the owner',
     );
-  }
-
-  function highlightTitles(fixture: ReturnType<typeof setup>): string[] {
-    const root = fixture.nativeElement as HTMLElement;
-    return Array.from(
-      root.querySelectorAll<HTMLElement>('.detail-page__highlight-cell strong'),
-    ).map((el) => el.textContent?.trim() ?? '');
-  }
-
-  it('renders the "both" handover label in the specs quad when Pickup and Courier are both offered', () => {
-    const fixture = setup({ deliveryTypes: ['Pickup', 'Courier'], deliveryType: 'Pickup' });
-    fixture.detectChanges();
-
-    expect(specValues(fixture)).toContain('Pickup or courier');
   });
 
-  it('renders the "both" hint in the pickup & delivery row when both handover methods are offered', () => {
-    const fixture = setup({ deliveryTypes: ['Pickup', 'Courier'], deliveryType: 'Pickup' });
+  it.each([[null], ['   ']])('omits the Hygiene tile when hygieneNotes is %j', (notes) => {
+    const fixture = setup({ hygieneNotes: notes });
     fixture.detectChanges();
 
-    expect(pickupRowValues(fixture)).toContain('Free pickup or courier delivery in Yerevan');
+    expect(tileLabels(fixture)).toEqual(['Recommended age', 'Condition']);
   });
 
-  it('still renders the single-type label when only deliveryType (legacy) is set', () => {
+  it('keeps Handover and Minimum rental out of the Details tiles', () => {
+    const fixture = setup({
+      hygieneNotes: 'Wiped',
+      minRentalDays: 365,
+      deliveryTypes: ['Pickup', 'Courier'],
+    });
+    fixture.detectChanges();
+
+    expect(tileLabels(fixture)).not.toContain('Handover');
+    expect(tileLabels(fixture)).not.toContain('Minimum rental');
+  });
+
+  it('shows Handover then Minimum rental beside the map, and no Hygiene row', () => {
+    const fixture = setup({
+      hygieneNotes: 'Wiped',
+      minRentalDays: 365,
+      deliveryTypes: ['Pickup', 'Courier'],
+      deliveryType: 'Pickup',
+    });
+    fixture.detectChanges();
+
+    expect(pickupRowLabels(fixture)).toEqual(['Handover', 'Minimum rental']);
+    expect(pickupRowValues(fixture)).toEqual([
+      'Free pickup or courier delivery in Yerevan',
+      '1 year',
+    ]);
+  });
+
+  it('renders the single-type handover hint when only legacy deliveryType is set', () => {
     const fixture = setup({ deliveryTypes: null, deliveryType: 'Pickup' });
     fixture.detectChanges();
 
-    expect(pickupRowValues(fixture)).toContain('Free · Meet at agreed spot');
-    expect(pickupRowValues(fixture)).not.toContain('Free pickup or courier delivery in Yerevan');
+    expect(pickupRowValues(fixture)).toEqual(['Free · Meet at agreed spot']);
   });
 
-  it('shows the "1 year" chip label (not "365 nights") for a 365-day minimum rental', () => {
-    const fixture = setup({ minRentalDays: 365, deliveryType: 'Pickup' });
+  it('shows a 1-day minimum rental row using the chip label', () => {
+    const fixture = setup({ minRentalDays: 1, deliveryType: 'Pickup' });
     fixture.detectChanges();
 
-    const tiles = specValues(fixture);
-    expect(tiles).toContain('1 year');
-    expect(tiles.some((t) => t.includes('365'))).toBe(false);
-    // Each fact has one home: minimum rental is a spec tile, not a pickup row.
-    expect(pickupRowValues(fixture)).not.toContain('1 year');
+    expect(pickupRowLabels(fixture)).toContain('Minimum rental');
+    expect(pickupRowValues(fixture)).toContain('1 day');
   });
 
-  it('falls back to the night count in the minimum-rental spec tile for a non-chip value', () => {
+  it('falls back to the night count for a non-chip minimum rental', () => {
     const fixture = setup({ minRentalDays: 5, deliveryType: 'Pickup' });
     fixture.detectChanges();
 
-    expect(specValues(fixture)).toContain('5 nights');
-    expect(pickupRowValues(fixture).some((t) => t.includes('5 nights'))).toBe(false);
+    expect(pickupRowValues(fixture)).toContain('5 nights');
   });
 
-  it('does not render a minimum-rental tile when minRentalDays is not set', () => {
+  it('has no minimum-rental row when minRentalDays is not set', () => {
     const fixture = setup({ minRentalDays: null, deliveryType: 'Pickup' });
     fixture.detectChanges();
 
-    const root = fixture.nativeElement as HTMLElement;
-    expect(root.textContent).not.toContain('Minimum rental');
+    expect(pickupRowLabels(fixture)).not.toContain('Minimum rental');
   });
 
-  it('orders the specs quad handover before minimum rental', () => {
-    const fixture = setup({ minRentalDays: 365, deliveryType: 'Pickup' });
-    fixture.detectChanges();
+  describe('location line', () => {
+    const district = {
+      id: 'd1',
+      code: 'KEN',
+      nameEn: 'Kentron',
+      nameHy: 'Կենտրոն',
+      nameRu: 'Кентрон',
+    };
 
-    const labels = Array.from(
-      (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLElement>(
-        '.detail-page__specquad-label',
-      ),
-    ).map((el) => el.textContent?.trim());
-    expect(labels.indexOf('Handover')).toBeGreaterThanOrEqual(0);
-    expect(labels.indexOf('Handover')).toBeLessThan(labels.indexOf('Minimum rental'));
-    expect(labels[labels.length - 1]).toBe('Minimum rental');
-  });
+    function locationEl(fixture: Fixture, selector: string): HTMLElement | null {
+      return (fixture.nativeElement as HTMLElement).querySelector(
+        `.detail-page__meta-row ${selector}`,
+      );
+    }
 
-  it('shows the "Min. 1 year" highlight tile (not the raw day count) for a 365-day minimum rental', () => {
-    const fixture = setup({ minRentalDays: 365, deliveryType: 'Pickup' });
-    fixture.detectChanges();
+    function clickWithMotionPreference(fixture: Fixture, reduce: boolean): void {
+      const original = window.matchMedia;
+      vi.stubGlobal('matchMedia', () => ({ matches: reduce }));
+      try {
+        (locationEl(fixture, 'button') as HTMLButtonElement).click();
+      } finally {
+        vi.stubGlobal('matchMedia', original);
+      }
+    }
 
-    const titles = highlightTitles(fixture);
-    expect(titles).toContain('Min. 1 year');
-    expect(titles.some((t) => t.includes('365'))).toBe(false);
-  });
+    it('shows "{district}, {city}" as a button when the listing has coordinates', () => {
+      const fixture = setup({ district, latitude: 40.18, longitude: 44.51 });
+      fixture.detectChanges();
 
-  it('falls back to the day-count highlight copy for a non-chip minimum rental', () => {
-    const fixture = setup({ minRentalDays: 5, deliveryType: 'Pickup' });
-    fixture.detectChanges();
+      const btn = locationEl(fixture, 'button.detail-page__city') as HTMLButtonElement;
+      expect(btn).not.toBeNull();
+      expect(btn.type).toBe('button');
+      expect(btn.textContent?.trim()).toBe('Kentron, Yerevan');
+      expect(btn.getAttribute('aria-label')).toBe('Show location on map: Kentron, Yerevan');
+    });
 
-    expect(highlightTitles(fixture)).toContain('5-day minimum');
+    it('shows the city only when there is no district', () => {
+      const fixture = setup({ district: null, latitude: 40.18, longitude: 44.51 });
+      fixture.detectChanges();
+
+      expect(locationEl(fixture, '.detail-page__city')?.textContent?.trim()).toBe('Yerevan');
+    });
+
+    it('renders plain text, not a button, when the listing has no coordinates', () => {
+      const fixture = setup({ district, latitude: null, longitude: null });
+      fixture.detectChanges();
+
+      expect(locationEl(fixture, 'button')).toBeNull();
+      expect(locationEl(fixture, 'span.detail-page__city')?.textContent?.trim()).toBe(
+        'Kentron, Yerevan',
+      );
+    });
+
+    it('smooth-scrolls to the pickup heading and focuses it on click', () => {
+      const fixture = setup({ district, latitude: 40.18, longitude: 44.51 });
+      fixture.detectChanges();
+      const heading = (fixture.nativeElement as HTMLElement).querySelector(
+        '#detail-pickup-heading',
+      ) as HTMLElement;
+      expect(heading.getAttribute('tabindex')).toBe('-1');
+      heading.scrollIntoView = vi.fn();
+      const focus = vi.spyOn(heading, 'focus');
+
+      clickWithMotionPreference(fixture, false);
+
+      expect(heading.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+      expect(focus).toHaveBeenCalled();
+    });
+
+    it('scrolls instantly under prefers-reduced-motion', () => {
+      const fixture = setup({ district, latitude: 40.18, longitude: 44.51 });
+      fixture.detectChanges();
+      const heading = (fixture.nativeElement as HTMLElement).querySelector(
+        '#detail-pickup-heading',
+      ) as HTMLElement;
+      heading.scrollIntoView = vi.fn();
+
+      clickWithMotionPreference(fixture, true);
+
+      expect(heading.scrollIntoView).toHaveBeenCalledWith({ behavior: 'auto', block: 'start' });
+    });
   });
 });
 

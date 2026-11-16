@@ -10,7 +10,7 @@ import {
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
-import { LangChangeEvent, TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';
@@ -37,6 +37,7 @@ import {
 } from '../../components/listing-gallery/listing-gallery.component';
 import { ListingLocationComponent } from '../../components/listing-location/listing-location.component';
 import { resolveConditionLabelKey } from '../../../../shared/utils/listing-condition.utils';
+import { districtDisplayName } from '../../models/district-ui.util';
 import type { ListingDetails } from '../../models/listing-details.model';
 import type { DeliveryType } from '../../models/create-listing.model';
 import * as ListingsActions from '../../store/listings.actions';
@@ -154,7 +155,7 @@ export function hasAnyToyDetail(listing: ListingDetails): boolean {
   );
 }
 
-/** One tile in the highlights band / specs quad / pickup & delivery rows —
+/** One tile in the details quad / pickup & delivery rows —
  *  every field driving these must trace back to a real listing/owner field. */
 export interface DetailTile {
   readonly id: string;
@@ -173,12 +174,6 @@ export interface DetailRow {
   readonly valueParams?: Record<string, unknown>;
   /** Pre-formatted value (e.g. currency via `dram`) instead of an i18n key. */
   readonly valueText?: string;
-}
-
-function deliveryLabelKey(type: DeliveryType): string {
-  return type === 'Courier'
-    ? 'listings.createForm.delivery.deliver'
-    : 'listings.createForm.delivery.pickup';
 }
 
 function deliveryHintKey(type: DeliveryType): string {
@@ -243,14 +238,6 @@ export class ListingDetailsPageComponent {
   private readonly messageService = inject(MessageService);
   private readonly translate = inject(TranslateService);
   private readonly dramPipe = inject(DramCurrencyPipe);
-
-  /** Read (not otherwise used) inside `highlightTiles` so that computed re-runs
-   *  `translate.instant()` for the min-stay chip label on language switch —
-   *  `translate.instant` itself is a one-shot call and won't re-trigger the
-   *  computed on its own the way the template's `| translate` pipe does. */
-  private readonly langChange = toSignal<LangChangeEvent | null>(this.translate.onLangChange, {
-    initialValue: null,
-  });
 
   protected readonly isAuthenticated = this.store.selectSignal(selectIsAuthenticated);
   private readonly currentUser = this.store.selectSignal(selectAuthUser);
@@ -564,83 +551,7 @@ export class ListingDetailsPageComponent {
     return badges;
   });
 
-  // ── Highlights band (2–4 real-data tiles) ────────────────────────────────
-  protected readonly highlightTiles = computed<DetailTile[]>(() => {
-    const listing = this.displayListing();
-    if (!listing) return [];
-    this.langChange(); // dependency only — re-run translate.instant() below on lang switch
-    const tiles: DetailTile[] = [];
-
-    if (listing.hygieneNotes) {
-      tiles.push({
-        id: 'hygiene',
-        icon: 'pi pi-shield',
-        titleKey: 'listings.card.hygieneProvided',
-        subKey: 'listings.details.highlights.hygieneSub',
-      });
-    }
-    if (this.ownerIsVerified()) {
-      tiles.push({
-        id: 'verified',
-        icon: 'pi pi-verified',
-        titleKey: 'listings.details.highlights.verifiedTitle',
-        subKey: 'listings.details.highlights.verifiedSub',
-      });
-    }
-    const deliveryTypes = resolveDeliveryTypes(listing);
-    if (deliveryTypes.length > 0) {
-      // Courier availability (whether offered alone or alongside Pickup) is
-      // the headline-worthy fact here — the delivery-available tile covers
-      // both cases; pickup-only gets its own, less exciting tile.
-      tiles.push(
-        deliveryTypes.includes('Courier')
-          ? {
-              id: 'delivery',
-              icon: 'pi pi-truck',
-              titleKey: 'listings.details.highlights.deliveryAvailableTitle',
-              subKey: 'listings.details.highlights.deliveryAvailableSub',
-            }
-          : {
-              id: 'delivery',
-              icon: 'pi pi-map-marker',
-              titleKey: 'listings.details.highlights.pickupOnlyTitle',
-              subKey: 'listings.details.highlights.pickupOnlySub',
-            },
-      );
-    }
-    // Only worth a highlight when it's a real constraint above the default.
-    if (typeof listing.minRentalDays === 'number' && listing.minRentalDays > 1) {
-      // One of the create/edit wizard's chip values reads better as "Min. 1
-      // year" than the raw "365-day minimum" — same readability upgrade the
-      // pickup/delivery row already applies via `minRentalChipLabelKey`.
-      const chipKey = minRentalChipLabelKey(listing.minRentalDays);
-      tiles.push(
-        chipKey
-          ? {
-              id: 'minRental',
-              icon: 'pi pi-calendar-clock',
-              titleKey: 'listings.details.highlights.minStayPeriodTitle',
-              titleParams: { period: this.translate.instant(chipKey) },
-              subKey: 'listings.details.highlights.minStaySub',
-            }
-          : {
-              id: 'minRental',
-              icon: 'pi pi-calendar-clock',
-              titleKey: 'listings.details.highlights.minStayTitle',
-              titleParams: { count: listing.minRentalDays },
-              subKey: 'listings.details.highlights.minStaySub',
-            },
-      );
-    }
-
-    // The design only ever draws 2–4 tiles in one even row; a lone tile has
-    // no graceful column layout, so hide the band rather than render it oddly.
-    return tiles.length >= 2 ? tiles.slice(0, 4) : [];
-  });
-
-  protected readonly highlightColumns = computed(() => this.highlightTiles().length);
-
-  // ── Specs quad (best age / condition / handover / minimum rental) ────────
+  // ── Details tiles (age / condition / hygiene) ─────────────────────────────
   protected readonly specTiles = computed<DetailTile[]>(() => {
     const listing = this.displayListing();
     if (!listing) return [];
@@ -665,30 +576,47 @@ export class ListingDetailsPageComponent {
         subKey: conditionKey ?? undefined,
       });
     }
-    const deliveryTypes = resolveDeliveryTypes(listing);
-    if (deliveryTypes.length > 0) {
-      const both = deliveryTypes.length >= 2;
+    if (typeof listing.hygieneNotes === 'string' && listing.hygieneNotes.trim().length > 0) {
       tiles.push({
-        id: 'delivery',
-        icon: deliveryTypes.includes('Courier') ? 'pi pi-truck' : 'pi pi-map-marker',
-        titleKey: 'listings.details.handoverLabel',
-        subKey: both ? 'listings.createForm.delivery.both' : deliveryLabelKey(deliveryTypes[0]),
-      });
-    }
-    if (typeof listing.minRentalDays === 'number' && listing.minRentalDays > 0) {
-      const chipKey = minRentalChipLabelKey(listing.minRentalDays);
-      tiles.push({
-        id: 'minRental',
-        icon: 'pi pi-calendar',
-        titleKey: 'listings.createForm.minRental.label',
-        subKey:
-          chipKey ??
-          (listing.minRentalDays === 1 ? 'listings.booking.night' : 'listings.booking.nights'),
-        subParams: chipKey ? undefined : { count: listing.minRentalDays },
+        id: 'hygiene',
+        icon: 'pi pi-shield',
+        titleKey: 'listings.card.hygieneProvided',
+        subKey: 'listings.details.toyDetails.hygieneValue',
       });
     }
     return tiles;
   });
+
+  // ── Location line under the title: "{district}, {city}" ──────────────────
+  // Reads `languageService.current()` (a signal) so it follows language switches.
+  protected readonly locationLabel = computed(() => {
+    const listing = this.displayListing();
+    if (!listing) return '';
+    const district = listing.district
+      ? districtDisplayName(listing.district, this.languageService.current().code)
+      : null;
+    return district ? `${district}, ${listing.city}` : listing.city;
+  });
+
+  /** Mirrors `ListingLocationComponent.hasCoordinates`: no coordinates → no map to scroll to. */
+  protected readonly hasMap = computed(() => {
+    const listing = this.displayListing();
+    return (
+      !!listing && typeof listing.latitude === 'number' && typeof listing.longitude === 'number'
+    );
+  });
+
+  /** Smooth-scrolls to the "Pickup & delivery" section (instant under reduced motion)
+   *  and moves focus to its heading. */
+  protected scrollToMap(): void {
+    const heading = document.getElementById('detail-pickup-heading');
+    if (!heading) return;
+    const reduce =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    heading.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    heading.focus({ preventScroll: true });
+  }
 
   protected readonly safetyNotes = computed(() => this.displayListing()?.safetyNotes ?? null);
 
@@ -708,12 +636,16 @@ export class ListingDetailsPageComponent {
         valueKey: both ? 'listings.createForm.delivery.bothHint' : deliveryHintKey(deliveryTypes[0]),
       });
     }
-    if (listing.hygieneNotes) {
+    if (typeof listing.minRentalDays === 'number' && listing.minRentalDays > 0) {
+      const chipKey = minRentalChipLabelKey(listing.minRentalDays);
       rows.push({
-        id: 'hygiene',
-        icon: 'pi pi-sparkles',
-        labelKey: 'listings.card.hygieneProvided',
-        valueKey: 'listings.details.pickupDelivery.hygieneValue',
+        id: 'minRental',
+        icon: 'pi pi-calendar',
+        labelKey: 'listings.createForm.minRental.label',
+        valueKey:
+          chipKey ??
+          (listing.minRentalDays === 1 ? 'listings.booking.night' : 'listings.booking.nights'),
+        valueParams: chipKey ? undefined : { count: listing.minRentalDays },
       });
     }
     return rows;

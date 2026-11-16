@@ -225,10 +225,24 @@
 
             <!-- Location + Rating row -->
             <div class="detail-page__meta-row">
-              <span class="detail-page__city">
-                <i class="pi pi-map-marker" aria-hidden="true"></i>
-                <span>{{ listing.city }}</span>
-              </span>
+              @if (hasMap()) {
+                <button
+                  type="button"
+                  class="detail-page__city detail-page__city--link"
+                  [attr.aria-label]="
+                    ('listings.details.showLocationOnMap' | translate) + ': ' + locationLabel()
+                  "
+                  (click)="scrollToMap()"
+                >
+                  <i class="pi pi-map-marker" aria-hidden="true"></i>
+                  <span>{{ locationLabel() }}</span>
+                </button>
+              } @else {
+                <span class="detail-page__city">
+                  <i class="pi pi-map-marker" aria-hidden="true"></i>
+                  <span>{{ locationLabel() }}</span>
+                </span>
+              }
               @if (ratingSummary(); as summary) {
                 @if (summary.reviewCount > 0) {
                   <span class="detail-page__meta-sep" aria-hidden="true">•</span>
@@ -249,36 +263,14 @@
               >
             </p>
 
-            <!-- Highlights band — only real, data-backed tiles; 2–4 columns -->
-            @if (highlightTiles().length > 0) {
-              <div
-                class="detail-page__highlights"
-                [style.grid-template-columns]="'repeat(' + highlightColumns() + ', 1fr)'"
-              >
-                @for (tile of highlightTiles(); track tile.id) {
-                  <div class="detail-page__highlight-cell">
-                    <span class="detail-page__highlight-icon">
-                      <i [class]="tile.icon" aria-hidden="true"></i>
-                    </span>
-                    <span class="detail-page__highlight-text">
-                      <strong>{{ tile.titleKey | translate: tile.titleParams }}</strong>
-                      @if (tile.subKey) {
-                        <small>{{ tile.subKey | translate: tile.subParams }}</small>
-                      }
-                    </span>
-                  </div>
-                }
-              </div>
-            }
-
             <div class="detail-page__sections">
-              <!-- 1. Specs quad: best age / condition / handover / minimum rental -->
+              <!-- 1. Details tiles: age / condition / hygiene -->
               @if (specTiles().length > 0) {
                 <section class="detail-page__section" aria-labelledby="detail-specs-heading">
                   <h2 id="detail-specs-heading" class="detail-page__section-title">
                     {{ 'listings.details.toyDetails.heading' | translate }}
                   </h2>
-                  <div class="detail-page__specquad">
+                  <div class="detail-page__specquad" [style.--specquad-cols]="specTiles().length">
                     @for (tile of specTiles(); track tile.id) {
                       <div class="detail-page__specquad-cell">
                         <span class="detail-page__specquad-icon">
@@ -326,7 +318,7 @@
 
               <!-- 3. Getting it / Pickup & delivery -->
               <section class="detail-page__section" aria-labelledby="detail-pickup-heading">
-                <h2 id="detail-pickup-heading" class="detail-page__section-title">
+                <h2 id="detail-pickup-heading" class="detail-page__section-title" tabindex="-1">
                   {{ 'listings.details.pickupDelivery.heading' | translate }}
                 </h2>
                 <app-listing-location

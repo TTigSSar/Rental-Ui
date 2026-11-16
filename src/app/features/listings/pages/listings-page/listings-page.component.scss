@@ -454,6 +454,8 @@
     gap: var(--ui-space-12);
     min-width: 0;
     flex: 1 1 auto;
+    /* List/Map toggle sits left; the status + sort cluster hugs the right edge. */
+    justify-content: flex-end;
   }
 }
 
@@ -628,12 +630,6 @@
   min-width: 200px;
   overflow: hidden;
   padding: 4px 0;
-
-  /* Desktop: the sort sits at the left edge of the toolbar, so the menu opens rightwards. */
-  @media (min-width: 961px) {
-    right: auto;
-    left: 0;
-  }
 }
 
 .lp-sort-menu__item {

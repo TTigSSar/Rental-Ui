@@ -5,7 +5,7 @@ import { e2eListingDetails, e2eListingImages, e2eToyReviewSummary } from './supp
 
 /**
  * The redesigned details page (breadcrumb, gallery mosaic + lightbox,
- * highlights band, specs quad, review summary with distribution bars) is
+ * details tiles, review summary with distribution bars) is
  * careful to only ever render real, data-backed content — this suite pins the
  * states most likely to regress that: a fabricated rating below the
  * review-aggregate threshold, mosaic layout at the edges of its 1–5+ photo
@@ -167,16 +167,14 @@ test.describe('Listing details — lightbox dismiss paths & a11y', () => {
 });
 
 test.describe('Listing details — blocks absent when their data is absent', () => {
-  test('highlights band stays hidden with only one data-backed tile', async ({ page }) => {
-    // hygieneNotes is the only highlight-eligible field set: deliveryType is
-    // null (no delivery tile), minRentalDays is 1 (no min-stay tile), and the
-    // owner-verified badge depends on an unseeded public profile (false). One
-    // real tile is not enough — the band only ever renders at 2–4.
+  test('the old highlights band is gone even when several facts are data-backed', async ({ page }) => {
+    // Hygiene, delivery and a >1-day minimum used to qualify for the band;
+    // they now live in the Details tiles / the rows beside the map.
     await mockApi(page, {
       listingDetails: e2eListingDetails({
         hygieneNotes: 'Washed with baby-safe detergent',
-        deliveryType: null,
-        minRentalDays: 1,
+        deliveryType: 'Courier',
+        minRentalDays: 5,
       }),
     });
 
