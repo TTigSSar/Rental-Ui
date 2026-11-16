@@ -64,6 +64,13 @@
   }
 }
 
+/* Narrow phones: trim horizontal padding so "Կոնստրուկտորներ" stays on one line. */
+@media (max-width: 400px) {
+  .category-tile {
+    padding-inline: 10px;
+  }
+}
+
 /* 1024-1279 grid uses the compact tile with a 15px label. */
 @media (min-width: 1024px) {
   .category-tile__label {
