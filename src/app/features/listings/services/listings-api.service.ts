@@ -65,6 +65,25 @@ export function normalizeListingPreview(
         : 0,
     ownerId: normalizeNonEmptyString(item.ownerId),
     distanceKm: normalizeFiniteNumber(item.distanceKm),
+    priceUnit: PRICE_UNITS.has(item.priceUnit as PriceUnit) ? item.priceUnit : undefined,
+    district: normalizeListingDistrict(item.district),
+  };
+}
+
+function normalizeListingDistrict(value: unknown): ListingDistrict | null {
+  if (value === null || typeof value !== 'object') {
+    return null;
+  }
+  const d = value as Record<string, unknown>;
+  if (typeof d['id'] !== 'string' || typeof d['code'] !== 'string') {
+    return null;
+  }
+  return {
+    id: d['id'],
+    code: d['code'],
+    nameEn: typeof d['nameEn'] === 'string' ? d['nameEn'] : '',
+    nameHy: typeof d['nameHy'] === 'string' ? d['nameHy'] : '',
+    nameRu: typeof d['nameRu'] === 'string' ? d['nameRu'] : '',
   };
 }
 

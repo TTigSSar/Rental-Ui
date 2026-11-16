@@ -1,3 +1,6 @@
+import type { PriceUnit } from './create-listing.model';
+import type { ListingDistrict } from './district.model';
+
 export interface ListingPreview {
   id: string;
   title: string;
@@ -26,6 +29,14 @@ export interface ListingPreview {
    * (`ListingCardComponent`) — never recomputed client-side.
    */
   distanceKm?: number | null;
+  /** Price unit (ADR-047); absent/unknown on the wire reads as undefined. */
+  priceUnit?: PriceUnit;
+  /**
+   * Listing district (ADR-064) — filled ONLY by `GET /api/home/sections`;
+   * null on `/api/listings`, `/api/favorites`, `/api/users/{id}/listings`
+   * and AI search items.
+   */
+  district?: ListingDistrict | null;
 }
 
 export interface ListingImage {
