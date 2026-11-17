@@ -254,13 +254,32 @@
 /* Mobile: List/Map and the sort control stay on ONE row; the sort label truncates (ellipsis). */
 @media (max-width: 960px) {
   .lp-toolbar {
+    flex-direction: column;
+    /* nowrap: a wrapping column sizes its line by the widest item's max-content, so the row
+       would ignore the container width and overflow instead of letting the sort label truncate. */
     flex-wrap: nowrap;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: var(--ui-space-4);
+  }
+  .lp-toolbar__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-10);
+    min-width: 0;
   }
   .lp-sort-wrapper {
     flex: 0 1 auto;
+    min-width: 0;
   }
-  .lp-toolbar__updating {
-    flex-shrink: 0;
+  /* The status (Re-rank button / "Updating the order") has its own slim row, left aligned,
+     so the List/Map + sort row never overflows in long languages (hy/ru). */
+  .lp-toolbar__updating,
+  .lp-toolbar__rerank {
+    align-self: flex-start;
+    max-width: 100%;
+    min-width: 0;
   }
 }
 
@@ -292,8 +311,9 @@
   }
 }
 
-/* Design `.tlink` (the chip row's "Clear all"). */
-.lp-toolbar__chips .tlink {
+/* Design `.tlink` (the chip row's "Clear all"; also the toolbar "Re-rank with AI" opt-in). */
+.lp-toolbar__chips .tlink,
+.lp-toolbar__rerank {
   display: inline-flex;
   align-items: center;
   min-height: 36px;
@@ -314,6 +334,18 @@
   &:focus-visible {
     outline: 2px solid var(--ui-color-primary-strong);
     outline-offset: 2px;
+  }
+}
+
+/* a11y: keep the 36px look, extend the hit area to 44px (same pattern as `.aisf__submit::before`).
+   The mobile toolbar gap (--ui-space-4 = 4px) equals the 4px extension, so it touches but never covers the row above. */
+.lp-toolbar__rerank {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
   }
 }
 
@@ -459,15 +491,19 @@
 .lp-toolbar__sort-prefix {
   color: var(--ui-color-text-secondary);
   font-weight: 500;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .lp-toolbar__sort-value {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .lp-toolbar__sort-chevron {
+  flex-shrink: 0;
   font-size: 0.75rem !important;
   color: var(--ui-color-text-secondary);
 }

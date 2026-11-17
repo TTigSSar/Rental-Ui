@@ -11,7 +11,7 @@ import type {
   ListingsOriginSource,
 } from '../models/listings-filter.model';
 
-/** `searching`: first search / sort back to relevance; `reranking`: a filter change re-orders the same description. */
+/** `searching`: first search / sort back to relevance; `reranking`: the explicit "Re-rank with AI" / sort-back-to-relevance request re-orders the same description. */
 export type ListingsAiBusy = 'idle' | 'searching' | 'reranking';
 
 /**
@@ -31,6 +31,11 @@ export interface ListingsAiState {
   /** The results are in AI order ("Most relevant first"); false once another sort is chosen. */
   orderActive: boolean;
   busy: ListingsAiBusy;
+  /**
+   * A filter/chip changed in AI mode: the results are the plain catalogue now and the explicit
+   * "Re-rank with AI" button is offered (ADR-054 amendment 2026-11-17: no automatic re-rank).
+   */
+  rerankOffered: boolean;
   ranked: boolean;
   /** Kept through re-ranks (a re-rank returns `intent: null`). */
   intent: string | null;
@@ -66,6 +71,7 @@ export const initialListingsAiState: ListingsAiState = {
   hasSearched: false,
   orderActive: false,
   busy: 'idle',
+  rerankOffered: false,
   ranked: false,
   intent: null,
   widenedDistrictIds: [],

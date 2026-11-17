@@ -154,10 +154,6 @@
   padding: 10px 8px 4px 0;
 }
 
-.aisf__field--typing .aisf__textarea {
-  min-height: 48px;
-}
-
 .aisf__field--typing .aisf__actions {
   margin: 0;
 }

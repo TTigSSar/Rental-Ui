@@ -15,7 +15,7 @@ import { ListingsApiService } from '../services/listings-api.service';
 import * as ListingsActions from './listings.actions';
 import { initialListingsAiState } from './listings.state';
 import * as AuthActions from '../../auth/store/auth.actions';
-import { AI_RERANK_DEBOUNCE_MS, ListingsEffects } from './listings.effects';
+import { ListingsEffects } from './listings.effects';
 import {
   selectAiNextPageContext,
   selectAiRequestContext,
@@ -147,20 +147,39 @@ describe('ListingsEffects — AI search (ADR-054)', () => {
       ]);
     });
 
-    it('a filter change re-ranks after 400 ms with the user filters (no re-parse); several quick changes cost one request', () => {
+    it('a filter change makes NO ai-search call (ADR-054 amendment): it loads the ordinary catalogue instead', () => {
+      const aiSearch = vi.fn().mockReturnValue(of(makeResponse()));
+      const { harness, effects } = setup({ aiSearch });
+      const ai = listen(effects.aiFirstPage$);
+      const catalogue = listen(effects.dropAiOrder$);
+
+      harness.send(ListingsActions.aiFiltersChanged({ filters: FILTERS }));
+      harness.send(ListingsActions.aiFiltersChanged({ filters: { ...FILTERS, maxPrice: 2000 } }));
+      vi.advanceTimersByTime(5000);
+
+      expect(aiSearch).not.toHaveBeenCalled();
+      expect(ai).toEqual([]);
+      expect(catalogue).toEqual([ListingsActions.loadListings(), ListingsActions.loadListings()]);
+    });
+
+    it('a filter change cancels an AI request in flight (a late response produces nothing)', () => {
+      const pending = new Subject<AiSearchResponse>();
+      const { harness, effects } = setup({ aiSearch: vi.fn().mockReturnValue(pending) });
+      const out = listen(effects.aiFirstPage$);
+
+      harness.send(ListingsActions.aiRerank());
+      harness.send(ListingsActions.aiFiltersChanged({ filters: FILTERS }));
+      pending.next(makeResponse());
+
+      expect(out).toEqual([]);
+    });
+
+    it('the explicit re-rank (button / sort back to relevance) sends the user filters (no re-parse) in exactly one call', () => {
       const aiSearch = vi.fn().mockReturnValue(of(makeResponse()));
       const { harness, effects } = setup({ aiSearch });
       const out = listen(effects.aiFirstPage$);
 
-      harness.send(ListingsActions.aiFiltersChanged({ filters: FILTERS }));
-      vi.advanceTimersByTime(AI_RERANK_DEBOUNCE_MS - 50);
-      expect(aiSearch).not.toHaveBeenCalled();
-
-      harness.send(ListingsActions.aiFiltersChanged({ filters: { ...FILTERS, maxPrice: 2000 } }));
-      vi.advanceTimersByTime(AI_RERANK_DEBOUNCE_MS - 50);
-      expect(aiSearch).not.toHaveBeenCalled();
-
-      vi.advanceTimersByTime(50);
+      harness.send(ListingsActions.aiRerank());
       expect(aiSearch).toHaveBeenCalledTimes(1);
       expect(aiSearch.mock.calls[0][0]).toMatchObject({
         description: 'a balance bike',
@@ -180,16 +199,6 @@ describe('ListingsEffects — AI search (ADR-054)', () => {
       });
       expect(out).toHaveLength(1);
       expect(out[0]).toMatchObject({ type: ListingsActions.aiSearchSuccess.type, kind: 'rerank' });
-    });
-
-    it('"Most relevant first" (aiRerank) re-ranks at once, with no debounce', () => {
-      const aiSearch = vi.fn().mockReturnValue(of(makeResponse()));
-      const { harness, effects } = setup({ aiSearch });
-      listen(effects.aiFirstPage$);
-
-      harness.send(ListingsActions.aiRerank());
-
-      expect(aiSearch).toHaveBeenCalledTimes(1);
     });
 
     it('a newer request cancels the one in flight (the latest wins)', () => {
@@ -423,6 +432,36 @@ describe('ListingsEffects — AI search (ADR-054)', () => {
       expect(getListings).not.toHaveBeenCalled();
       expect(out).toEqual([]);
     });
+  });
+
+  it('after a filter change (plain catalogue) "load more" pages the catalogue, not ai-search', () => {
+    const getListings = vi.fn().mockReturnValue(
+      of({ items: [makeListingPreview({ id: 'z' })], page: 2, pageSize: 20, hasMore: false }),
+    );
+    const aiSearch = vi.fn();
+    const { harness, store, effects } = setup({ getListings, aiSearch });
+    store.overrideSelector(selectAiResultsActive, false);
+    store.overrideSelector(selectAiNextPageContext, {
+      active: false,
+      busy: 'idle',
+      description: 'a balance bike',
+      epoch: 7,
+      appliedFilters: APPLIED,
+      excludeIds: ['a'],
+      page: 1,
+      pageSize: 20,
+      hasMore: true,
+    });
+    store.refreshState();
+    const catalogue = listen(effects.loadNextPage$);
+    const ai = listen(effects.loadAiNextPage$);
+
+    harness.send(ListingsActions.loadNextPage());
+
+    expect(getListings).toHaveBeenCalledTimes(1);
+    expect(aiSearch).not.toHaveBeenCalled();
+    expect(catalogue).toHaveLength(1);
+    expect(ai).toEqual([]);
   });
 
   it('dropAiOrder$ loads the ordinary catalogue', () => {

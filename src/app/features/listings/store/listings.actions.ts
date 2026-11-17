@@ -234,15 +234,15 @@ export const submitAiSearch = createAction(
 );
 
 /**
- * A filter/chip changed while AI results are showing. Items stay (dimmed); the effect
- * re-ranks after 400 ms with the same description and the edited filters (no re-parse).
+ * A filter/chip changed in AI mode. NO model call (ADR-054 amendment 2026-11-17): the ordinary
+ * catalogue reloads with the new filters and the "Re-rank with AI" button is offered.
  */
 export const aiFiltersChanged = createAction(
   '[Listings] AI Filters Changed',
   props<{ filters: ListingsFilter }>(),
 );
 
-/** Sort switched back to "Most relevant first": re-rank at once, no debounce. */
+/** Sort switched back to "Most relevant first" or the "Re-rank with AI" button: re-rank at once. */
 export const aiRerank = createAction('[Listings] AI Rerank');
 
 /** Another sort was chosen: the AI order is dropped and the ordinary catalogue loads. */

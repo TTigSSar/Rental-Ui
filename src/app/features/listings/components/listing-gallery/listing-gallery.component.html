@@ -292,27 +292,27 @@
   }
 </div>
 
-<!-- ══════════════════ Lightbox ══════════════════
+<!-- ══════════════════ Lightbox (fullscreen photo viewer) ══════════════════
+     `appendTo="body"` is load-bearing: the gallery sits inside the details
+     page's hero, which is its own stacking context (`z-index: 0`), so an
+     inline `position: fixed` mask would be trapped UNDER the later-painted
+     sheet, sticky booking bar and header. Portalled to <body> the viewer
+     stacks above all page chrome with no z-index tricks. `blockScroll` locks
+     the page behind it.
+
      `showHeader` stays true (with `closable: false`, since we use our own
      round close button) purely so PrimeNG wires its own `aria-labelledby` to
-     a real, rendered header element — with `showHeader: false` that id would
-     point at nothing, which is worse for screen readers than a small header
-     bar. The header text is the same "N / M" counter as our own visible
-     topbar below, but the header ITSELF is visually hidden (sr-only, see the
-     CSS) rather than "blended into the dark chrome": now that the lightbox
-     is a fullscreen viewer with its own always-visible counter in the
-     topbar, showing the PrimeNG header too would just be a duplicate.
+     a real, rendered header element; the header is visually hidden (sr-only,
+     see the CSS) because the viewer has its own visible counter.
 
      `closable="false"` also silently disables PrimeNG's own `closeOnEscape`
-     AND `dismissableMask` handling (see `ListingGalleryComponent`'s
-     `onWindowKeydown()` and `onWindowMousedown()` doc comments) — Escape and
-     mask clicks are each handled by their own `@HostListener` instead, so
-     `[closeOnEscape]`/`[dismissableMask]` below are left `true` only for
-     documentation/parity with the dialog's other affordances, not because
-     PrimeNG actually acts on either. -->
+     AND `dismissableMask` handling — Escape and backdrop clicks are handled
+     by `onWindowKeydown()` / `onWindowMousedown()` instead. -->
 <p-dialog
   [visible]="lightboxOpen()"
   (visibleChange)="onLightboxVisibleChange($event)"
+  appendTo="body"
+  [blockScroll]="true"
   [modal]="true"
   [dismissableMask]="true"
   [closeOnEscape]="true"
@@ -324,42 +324,53 @@
   [maskStyleClass]="lightboxMaskClass"
 >
   @if (lightboxOpen()) {
-    <!-- Fullscreen viewer: topbar (counter + close) anchored to the
-         viewport, a centred stage for the photo, and — for multi-photo
-         listings — a bottom filmstrip. Every top-level section here also
-         carries `lightboxBackdropClass` on its own empty area so clicking
-         "the dark chrome" anywhere still dismisses the lightbox, see
-         `onWindowMousedown()`. -->
-    <div class="listing-gallery__lightbox" [class]="lightboxBackdropClass">
-      <div class="listing-gallery__lightbox-topbar" [class]="lightboxBackdropClass">
-        <span class="listing-gallery__lightbox-counter" aria-hidden="true">
-          {{
-            'listings.gallery.counter'
-              | translate: { current: lightboxIndex() + 1, total: totalCount() }
-          }}
-        </span>
+    <!-- Pure #000 surface. Top row (counter + close), photo stage, and — for
+         multi-photo listings — arrows (desktop) and a thumbnail strip. Empty
+         areas carry `lightboxBackdropClass` so a tap on bare black still
+         dismisses, see `onWindowMousedown()`. The `--lb-*` custom properties
+         drive the swipe-down-to-close fade. -->
+    <div
+      class="listing-gallery__lightbox"
+      [class]="lightboxBackdropClass"
+      [class.listing-gallery__lightbox--single]="!hasMultipleImages()"
+      [class.listing-gallery__lightbox--dragging]="dragging()"
+      [style.--lb-bg]="dragBackdropOpacity()"
+      [style.--lb-chrome]="dragChromeOpacity()"
+    >
+      <div
+        class="listing-gallery__lightbox-topbar listing-gallery__lightbox-chrome"
+        [class]="lightboxBackdropClass"
+      >
+        @if (hasMultipleImages()) {
+          <span class="listing-gallery__lightbox-counter" aria-hidden="true">
+            {{
+              'listings.gallery.counter'
+                | translate: { current: lightboxIndex() + 1, total: totalCount() }
+            }}
+          </span>
+        } @else {
+          <span></span>
+        }
         <button
           type="button"
-          class="listing-gallery__lightbox-close"
+          class="listing-gallery__lightbox-close listing-gallery__lightbox-btn"
           (click)="closeLightbox()"
           [attr.aria-label]="'listings.gallery.closeLightbox' | translate"
         >
-          <i class="pi pi-times" aria-hidden="true"></i>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
         </button>
       </div>
 
-      <div class="listing-gallery__lightbox-stage" [class]="lightboxBackdropClass">
-        @if (hasMultipleImages()) {
-          <button
-            type="button"
-            class="listing-gallery__lightbox-nav listing-gallery__lightbox-nav--prev"
-            (click)="lightboxPrev()"
-            [attr.aria-label]="'listings.gallery.prev' | translate"
-          >
-            <span class="pi pi-chevron-left" aria-hidden="true"></span>
-          </button>
-        }
-
+      <div
+        class="listing-gallery__lightbox-stage"
+        [class]="lightboxBackdropClass"
+        (pointerdown)="onStagePointerDown($event)"
+        (pointermove)="onStagePointerMove($event)"
+        (pointerup)="onStagePointerUp($event)"
+        (pointercancel)="onStagePointerCancel($event)"
+      >
         @if (sortedImages()[lightboxIndex()]; as active) {
           <img
             class="listing-gallery__lightbox-img"
@@ -368,35 +379,47 @@
               'listings.gallery.photoAlt'
                 | translate: { index: lightboxIndex() + 1, total: totalCount() }
             "
+            draggable="false"
+            [style.transform]="dragPhotoTransform()"
           />
-        }
-
-        @if (hasMultipleImages()) {
-          <button
-            type="button"
-            class="listing-gallery__lightbox-nav listing-gallery__lightbox-nav--next"
-            (click)="lightboxNext()"
-            [attr.aria-label]="'listings.gallery.next' | translate"
-          >
-            <span class="pi pi-chevron-right" aria-hidden="true"></span>
-          </button>
         }
       </div>
 
       @if (hasMultipleImages()) {
+        @if (lightboxHasPrev()) {
+          <button
+            type="button"
+            class="listing-gallery__lightbox-nav listing-gallery__lightbox-nav--prev listing-gallery__lightbox-btn listing-gallery__lightbox-chrome"
+            (click)="lightboxPrev()"
+            [attr.aria-label]="'listings.gallery.prev' | translate"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+          </button>
+        }
+        @if (lightboxHasNext()) {
+          <button
+            type="button"
+            class="listing-gallery__lightbox-nav listing-gallery__lightbox-nav--next listing-gallery__lightbox-btn listing-gallery__lightbox-chrome"
+            (click)="lightboxNext()"
+            [attr.aria-label]="'listings.gallery.next' | translate"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+          </button>
+        }
+
         <div
-          class="listing-gallery__lightbox-thumbs"
+          class="listing-gallery__lightbox-thumbs listing-gallery__lightbox-chrome"
           [class]="lightboxBackdropClass"
-          role="list"
+          role="group"
           [attr.aria-label]="'listings.gallery.thumbnailsLabel' | translate"
         >
           @for (image of sortedImages(); track trackByImageId($index, image); let i = $index) {
             <button
               #lightboxThumbBtn
               type="button"
-              role="listitem"
               class="listing-gallery__lightbox-thumb"
               [class.listing-gallery__lightbox-thumb--active]="i === lightboxIndex()"
+              [attr.aria-current]="i === lightboxIndex() ? 'true' : null"
               (click)="lightboxSelectIndex(i)"
               [attr.aria-label]="'listings.gallery.dotLabel' | translate: { index: i + 1 }"
             >

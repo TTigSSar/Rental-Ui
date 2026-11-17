@@ -40,6 +40,8 @@ export const AI_DESCRIPTION_MAX_LENGTH = 500;
 export const AI_BUDGET_NOTE_MS = 5000;
 /** ~5 lines; the textarea scrolls inside beyond this. */
 const TEXTAREA_MAX_HEIGHT_PX = 120;
+/** Textarea line height; anything taller than 1.5 lines at the single-line width counts as wrapped. */
+const TEXTAREA_LINE_PX = 24;
 
 /**
  * The catalogue search field with the "AI" switch inside (ADR-054, design-notes 1-3, 8).
@@ -124,9 +126,25 @@ export class AiSearchFieldComponent {
       !this.editing() &&
       this.canSubmit(),
   );
-  /** Mobile typing state (text present): switch + round submit move to a bottom row inside the field. */
+  /**
+   * Mobile: the description wraps to 2+ lines. Measured in `autosize()` against the SINGLE-LINE
+   * width (the textarea width while switch + submit sit inline), so moving them to the bottom row
+   * (which widens the textarea) can never flip it back and forth.
+   */
+  readonly multiline = signal(false);
+  /** Textarea content width in the inline (single-line) layout; the reference for the wrap test. */
+  private singleLineWidth = 0;
+  /**
+   * Mobile typing state: only once the text wraps, switch + round submit move to a bottom row
+   * inside the field. A one-line description keeps the 44px inline look.
+   */
   protected readonly typing = computed(
-    () => this.layout() === 'bar' && this.aiMode() && this.focused() && this.canSubmit(),
+    () =>
+      this.layout() === 'bar' &&
+      this.aiMode() &&
+      this.focused() &&
+      this.canSubmit() &&
+      this.multiline(),
   );
 
   constructor() {
@@ -138,6 +156,17 @@ export class AiSearchFieldComponent {
       if (el) {
         queueMicrotask(() => this.autosize(el));
       }
+    });
+    // The layout switched (inline <-> bottom row): re-measure the height once it has rendered.
+    effect(() => {
+      this.typing();
+      afterNextRender(
+        () => {
+          const el = this.textarea()?.nativeElement;
+          if (el) this.autosize(el);
+        },
+        { injector: this.injector },
+      );
     });
     // After the user turns the switch on (or taps the collapsed line), put the caret in the field.
     effect(() => {
@@ -367,9 +396,29 @@ export class AiSearchFieldComponent {
     // so a placeholder that wraps (hy at 1280) is never clipped.
     const measurePlaceholder = el.value === '' && el.placeholder !== '';
     if (measurePlaceholder) el.value = el.placeholder;
+    if (this.layout() === 'bar') this.measureMultiline(el, measurePlaceholder);
     el.style.height = 'auto';
     const height = el.scrollHeight;
     if (measurePlaceholder) el.value = '';
     el.style.height = `${Math.min(height, TEXTAREA_MAX_HEIGHT_PX)}px`;
+  }
+
+  /**
+   * Sets `multiline` by measuring the text at the single-line width. While the wide (bottom-row)
+   * layout is on, the textarea is temporarily set to the remembered single-line width for the
+   * measurement (synchronous, never painted), so the verdict does not depend on the layout it drives.
+   */
+  private measureMultiline(el: HTMLTextAreaElement, isPlaceholder: boolean): void {
+    if (isPlaceholder) {
+      this.multiline.set(false);
+      return;
+    }
+    const wide = this.typing();
+    if (!wide) this.singleLineWidth = el.clientWidth;
+    if (wide && this.singleLineWidth > 0) el.style.width = `${this.singleLineWidth}px`;
+    el.style.height = 'auto';
+    const wrapped = el.scrollHeight > TEXTAREA_LINE_PX * 1.5;
+    el.style.width = '';
+    this.multiline.set(wrapped);
   }
 }

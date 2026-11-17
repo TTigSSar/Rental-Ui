@@ -389,6 +389,40 @@ describe('AiSearchFieldComponent', () => {
       expect(q(el, '.aisf__note')).toBeNull();
     });
 
+    it('mobile bar: the bottom-row layout appears only once the text wraps, measured at the single-line width', async () => {
+      const { harness, el } = await setup({ ai: { mode: true, description: 'bike' } });
+      const textarea = q(el, 'textarea') as HTMLTextAreaElement;
+      let scrollHeight = 24;
+      Object.defineProperty(textarea, 'clientWidth', { get: () => 200, configurable: true });
+      Object.defineProperty(textarea, 'scrollHeight', { get: () => scrollHeight, configurable: true });
+      textarea.dispatchEvent(new Event('focus'));
+
+      // one short line: stays the inline 44px look
+      textarea.dispatchEvent(new Event('input'));
+      harness.detectChanges();
+      expect(q(el, '.aisf__field--typing')).toBeNull();
+
+      // wraps to two lines: switch + submit move to the bottom row
+      scrollHeight = 48;
+      textarea.dispatchEvent(new Event('input'));
+      harness.detectChanges();
+      expect(q(el, '.aisf__field--typing')).not.toBeNull();
+
+      // the wide layout is measured at the remembered single-line width: still 2 lines there, no flip-back
+      let widthDuringMeasure = '';
+      Object.defineProperty(textarea, 'scrollHeight', {
+        get: () => {
+          widthDuringMeasure ||= textarea.style.width;
+          return 48;
+        },
+        configurable: true,
+      });
+      textarea.dispatchEvent(new Event('input'));
+      harness.detectChanges();
+      expect(widthDuringMeasure).toBe('200px');
+      expect(q(el, '.aisf__field--typing')).not.toBeNull();
+    });
+
     it('collapses to a one-line button after a search (mobile bar)', async () => {
       const { el } = await setup({ ai: { mode: true, description: 'bike', hasSearched: true } });
       expect(q(el, '.aisf__collapsed')?.textContent?.trim()).toBe('bike');

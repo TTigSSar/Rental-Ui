@@ -629,7 +629,7 @@ describe('ListingsPageComponent — AI search', () => {
     expect(dispatchedTypes(store)).toContain(ListingsActions.loadAiStatus.type);
   });
 
-  it('with AI results showing, a URL filter edit re-ranks instead of reloading the catalogue', async () => {
+  it('with AI results showing, a URL filter edit dispatches aiFiltersChanged (the effect loads the catalogue; no model call)', async () => {
     const { store } = await navigateToListings('/listings?ai=1&categoryId=abc-123', { ai: AI_RESULTS });
 
     const types = dispatchedTypes(store);
@@ -1284,7 +1284,7 @@ describe('ListingsPageComponent — price chips (design-notes 15)', () => {
     expect(router.url).toContain('categoryIds=c1');
   });
 
-  it('in AI mode, removing a price chip re-ranks instead of reloading the catalogue', async () => {
+  it('in AI mode, removing a price chip dispatches aiFiltersChanged and never an AI request', async () => {
     const { el, store, router } = await navigateToListings('/listings?ai=1&maxPrice=3000', {
       ai: AI_RESULTS,
       filters: { ...BASE_FILTERS, maxPrice: 3000 },
@@ -1299,6 +1299,49 @@ describe('ListingsPageComponent — price chips (design-notes 15)', () => {
     const types = dispatchedTypes(store);
     expect(types).toContain(ListingsActions.aiFiltersChanged.type);
     expect(types).not.toContain(ListingsActions.loadListings.type);
+    expect(types).not.toContain(ListingsActions.aiRerank.type);
+    expect(types).not.toContain(ListingsActions.submitAiSearch.type);
+  });
+
+  describe('"Re-rank with AI" button', () => {
+    const OFFERED = { ...AI_RESULTS, orderActive: false, ranked: false, rerankOffered: true };
+
+    async function settle(harness: RouterTestingHarness) {
+      harness.detectChanges();
+      await vi.advanceTimersByTimeAsync(0);
+      harness.detectChanges();
+    }
+
+    it('is offered after a filter change, shows the catalogue sort (not Relevance), and one click dispatches aiRerank', async () => {
+      const { harness, el, store } = await navigateToListings('/listings?ai=1&maxPrice=3000', {
+        ai: OFFERED,
+        filters: { ...BASE_FILTERS, maxPrice: 3000 },
+      });
+      await settle(harness);
+
+      const button = el.querySelector<HTMLButtonElement>('[data-testid="ai-rerank"]');
+      expect(button?.textContent).toContain('listings.ai.rerank');
+      expect(el.querySelector('.lp-toolbar__sort')?.textContent).not.toContain('listings.ai.sortRelevant');
+
+      button!.click();
+      expect(dispatchedTypes(store).filter((t) => t === ListingsActions.aiRerank.type)).toHaveLength(1);
+    });
+
+    it('is absent when AI results are showing in AI order', async () => {
+      const { harness, el } = await navigateToListings('/listings?ai=1', { ai: AI_RESULTS });
+      await settle(harness);
+      expect(el.querySelector('[data-testid="ai-rerank"]')).toBeNull();
+    });
+
+    it('is replaced by the "Updating the order" status while the re-rank runs', async () => {
+      const { harness, el } = await navigateToListings('/listings?ai=1', {
+        ai: { ...OFFERED, busy: 'reranking' },
+        items: [makeListingPreview({ id: 'a' })],
+      });
+      await settle(harness);
+      expect(el.querySelector('[data-testid="ai-rerank"]')).toBeNull();
+      expect(el.querySelector('.lp-toolbar__updating')).not.toBeNull();
+    });
   });
 });
 

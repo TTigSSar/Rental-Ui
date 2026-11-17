@@ -15,7 +15,6 @@ import {
   withLatestFrom,
   filter,
   tap,
-  timer,
 } from 'rxjs';
 
 import { ApiErrorMapper } from '../../../api/api-error-mapper';
@@ -42,9 +41,6 @@ import { getApiErrorCode } from '../../../api/api-error.model';
 
 /** Facets wait this long after the last filter/origin change, so quick edits cost one request. */
 export const FACETS_DEBOUNCE_MS = 200;
-
-/** A filter/chip change re-ranks after this long, so several quick edits cost one request. */
-export const AI_RERANK_DEBOUNCE_MS = 400;
 
 @Injectable()
 export class ListingsEffects {
@@ -162,8 +158,9 @@ export class ListingsEffects {
 
   /**
    * ADR-054. One stream for every page-1 AI request, so a newer search / re-rank cancels the
-   * older timer or request ("the latest one wins"). A filter change waits 400 ms first; the
-   * request context is read AFTER the wait so it carries the latest filters and epoch.
+   * older request ("the latest one wins"). A filter change does NOT call the model (ADR-054
+   * amendment 2026-11-17): it cancels any in-flight request and the ordinary catalogue loads
+   * (`aiFiltersChanged$`); the user re-ranks explicitly (`aiRerank`).
    * A first search sends `filters: null` (the server parses the description); a re-rank sends
    * the user's filters (no re-parse).
    */
@@ -180,21 +177,18 @@ export class ListingsEffects {
       // Switch-on is re-dispatched on every URL emission: it must not disturb a request in flight.
       filter((action) => !(action.type === ListingsActions.setAiMode.type && action.on)),
       switchMap((action) => {
-        // Switch-off, drop-order and logout cancel the in-flight request (and a pending re-rank
-        // timer) instead of letting a late response act on a state it no longer belongs to.
+        // Switch-off, drop-order, filter change and logout cancel the in-flight request instead of
+        // letting a late response act on a state it no longer belongs to.
         if (
           action.type === ListingsActions.setAiMode.type ||
           action.type === ListingsActions.dropAiOrder.type ||
+          action.type === ListingsActions.aiFiltersChanged.type ||
           action.type === AuthActions.logout.type
         ) {
           return EMPTY;
         }
         const isSearch = action.type === ListingsActions.submitAiSearch.type;
-        const wait$ =
-          action.type === ListingsActions.aiFiltersChanged.type
-            ? timer(AI_RERANK_DEBOUNCE_MS)
-            : of(0);
-        return wait$.pipe(
+        return of(0).pipe(
           switchMap(() => this.store.select(selectAiRequestContext).pipe(take(1))),
           switchMap((ctx) =>
             this.listingsApi
@@ -237,6 +231,7 @@ export class ListingsEffects {
         ListingsActions.loadNextPage,
         ListingsActions.setAiMode,
         ListingsActions.dropAiOrder,
+        ListingsActions.aiFiltersChanged,
         AuthActions.logout,
       ),
       filter((action) => !(action.type === ListingsActions.setAiMode.type && action.on)),
@@ -276,10 +271,13 @@ export class ListingsEffects {
     ),
   );
 
-  /** Choosing another sort drops the AI order: the ordinary catalogue loads with the same filters. */
+  /**
+   * Choosing another sort drops the AI order, and a filter/chip change in AI mode leaves it: in
+   * both cases the ordinary (free) catalogue loads with the current filters.
+   */
   readonly dropAiOrder$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(ListingsActions.dropAiOrder),
+      ofType(ListingsActions.dropAiOrder, ListingsActions.aiFiltersChanged),
       map(() => ListingsActions.loadListings()),
     ),
   );
