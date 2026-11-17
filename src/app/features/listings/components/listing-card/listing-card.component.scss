@@ -86,7 +86,6 @@
   left: 10px;
   max-width: calc(100% - 10px - 54px); /* clear of the 44px favourite button */
   overflow: hidden;
-  text-overflow: ellipsis;
   min-height: 24px;
   padding: 3px 10px;
   border-radius: var(--ui-radius-pill);
@@ -102,8 +101,14 @@
   bottom: 10px;
 }
 
+/* Status pill may wrap to 2 lines so long labels stay readable at ~170px cards. */
 .listing-card__badge {
   top: 10px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 /* Separate button, above the title link's ::after overlay (z-index 1). */

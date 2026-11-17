@@ -163,9 +163,15 @@ export class ListingCardComponent {
       : 'listings.card.distanceFromYou',
   );
 
-  /** The single top-left pill: the owner marker wins over the booking status. */
-  protected readonly badge = computed<{ readonly labelKey: string; readonly kind: 'owner' | 'booking' } | null>(
+  /** The single top-left pill: rented beats the owner marker, which beats the booking status. */
+  protected readonly badge = computed<{
+    readonly labelKey: string;
+    readonly kind: 'rented' | 'owner' | 'booking';
+  } | null>(
     () => {
+      if (this.listing().listingStatus === 'rented') {
+        return { labelKey: 'listings.card.statusRented', kind: 'rented' };
+      }
       if (this.isOwner()) {
         return { labelKey: 'listings.card.yourListing', kind: 'owner' };
       }

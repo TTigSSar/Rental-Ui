@@ -49,6 +49,7 @@ function createCard(inputs: CardInputs = {}) {
           viewBtn: 'View',
           toggleFavorite: 'Save to favorites',
           yourListing: 'Your listing',
+          statusRented: 'Rented',
           distanceFromHome: '{{distance}} from your home',
           distanceFromYou: '{{distance}} from you',
           bookingBadge: { approved: 'Approved', rentalRequested: 'Rental requested' },
@@ -216,6 +217,31 @@ describe('ListingCardComponent', () => {
 
       expect(el.querySelectorAll('.listing-card__badge').length).toBe(1);
       expect(text(el, '.listing-card__badge')).toBe('Your listing');
+    });
+
+    it('shows a Rented pill for a rented listing', () => {
+      const { el } = createCard({ listing: { listingStatus: 'rented' } });
+
+      expect(el.querySelectorAll('.listing-card__badge').length).toBe(1);
+      expect(text(el, '.listing-card__badge')).toBe('Rented');
+    });
+
+    it('shows no pill for an available listing', () => {
+      const { el } = createCard({ listing: { listingStatus: 'available' } });
+
+      expect(el.querySelector('.listing-card__badge')).toBeNull();
+    });
+
+    it('lets Rented beat owner and booking, with exactly one pill', () => {
+      const { el } = createCard({
+        listing: { listingStatus: 'rented' },
+        isOwner: true,
+        isAuthenticated: true,
+        bookingStatus: 'Approved',
+      });
+
+      expect(el.querySelectorAll('.listing-card__badge').length).toBe(1);
+      expect(text(el, '.listing-card__badge')).toBe('Rented');
     });
 
     it('hides the booking pill when signed out', () => {
