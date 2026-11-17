@@ -15,7 +15,7 @@ import { enText } from './support/i18n';
  * only; the real endpoint, its ranking and its limits are not exercised here.
  *
  * Desktop viewport: the page renders two copies of the field (mobile bar, hidden by CSS, and the
- * block above the results), so every locator is scoped to `.lp-ai-top`.
+ * block above the results), so every locator is scoped to `.lp-ai-top`. Browse Redesign Stage 1 (ADR-066): that field is now the single-line `.bsearch` toolbar (switch named by its visible text "Smart search", "Search" submit button).
  */
 
 const KENTRON_ID = e2eDistricts().find((d) => d.code === 'kentron')!.id;
@@ -84,7 +84,7 @@ function aiField(page: Page): Locator {
 }
 
 function aiSwitch(page: Page): Locator {
-  return aiField(page).getByRole('switch', { name: enText('listings.ai.switchAria') });
+  return aiField(page).getByRole('switch', { name: enText('listings.browse.smartSearch') });
 }
 
 function descriptionBox(page: Page): Locator {
@@ -101,7 +101,7 @@ async function switchOnAndSearch(page: Page): Promise<void> {
   await aiSwitch(page).click();
   await expect(aiSwitch(page)).toHaveAttribute('aria-checked', 'true');
   await descriptionBox(page).fill(DESCRIPTION);
-  await aiField(page).getByRole('button', { name: enText('listings.ai.submit') }).click();
+  await aiField(page).getByRole('button', { name: enText('listings.browse.search'), exact: true }).click();
 }
 
 test.describe('Listings — AI search', () => {
@@ -196,7 +196,7 @@ test.describe('Listings — AI search', () => {
     await expect(page).not.toHaveURL(/[?&]ai=1/);
     // Plain catalogue results are still on screen, and the field is back to the ordinary search box.
     await expect(page.getByText('E2E Wooden Train Set')).toBeVisible();
-    await expect(aiField(page).getByRole('searchbox')).toBeVisible();
+    await expect(aiField(page).getByRole('textbox', { name: enText('listings.filters.queryPlaceholder') })).toBeVisible();
 
     // The description survives for the next attempt: switching AI on again brings it back.
     await aiSwitch(page).click();
@@ -236,7 +236,7 @@ test.describe('Listings — AI search', () => {
 
     // Daily limit: its own text, and the per-minute text is gone.
     limit = { status: 429, errorCode: 'ai_search.daily_limit' };
-    await aiField(page).getByRole('button', { name: enText('listings.ai.submit') }).click();
+    await aiField(page).getByRole('button', { name: enText('listings.browse.search'), exact: true }).click();
     const daily = aiField(page).getByRole('status').filter({ hasText: enText('errors.aiSearchDailyLimit') });
     await expect(daily).toBeVisible();
     await expect(rate).toHaveCount(0);
@@ -245,7 +245,7 @@ test.describe('Listings — AI search', () => {
     await aiSwitch(page).click();
     await expect(aiSwitch(page)).toHaveAttribute('aria-checked', 'false');
     await expect(daily).toHaveCount(0);
-    const search = aiField(page).getByRole('searchbox');
+    const search = aiField(page).getByRole('textbox', { name: enText('listings.filters.queryPlaceholder') });
     await expect(search).toBeVisible();
     await expect(page.getByText('E2E Wooden Train Set')).toBeVisible();
     const queried = page.waitForRequest(
@@ -284,7 +284,7 @@ test.describe('Listings — AI search', () => {
     await page.goto('/listings');
     await aiSwitch(page).click();
     await descriptionBox(page).fill(DESCRIPTION);
-    await aiField(page).getByRole('button', { name: enText('listings.ai.submit') }).click();
+    await aiField(page).getByRole('button', { name: enText('listings.browse.search'), exact: true }).click();
 
     // A guest never reaches the endpoint; the existing sign-in dialog opens instead.
     const form = page.locator('form.auth-form');

@@ -198,6 +198,14 @@ export interface ApiSeed {
   aiSearch?: { status?: number; body?: unknown; bodyByPage?: Record<number, unknown> };
   /** Collects the parsed JSON body of every POST /api/listings/ai-search (for request assertions). */
   aiSearchLog?: unknown[];
+  /**
+   * GET /api/listings/facets (ADR-066) — override for the facet counts. Default is deterministic and
+   * consistent with the mock catalogue: every category in `categories` (or the default "Toys") counts
+   * `listings.length`, no district counts, and min/max price come from the listings' `pricePerDay`.
+   */
+  facets?: unknown;
+  /** Collects the full URL of every GET /api/listings/facets (for request assertions). */
+  facetsLog?: URL[];
   /** GET /api/listings/map-pins — items for the catalogue map view (Maps P2-2). */
   mapPins?: unknown[];
   /** GET /api/listings/map-pins — `isTruncated` flag on the same envelope. */
@@ -1008,6 +1016,22 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
       );
     }
 
+    // GET /api/listings/facets (ADR-066): counts for the filter panel. Checked BEFORE the
+    // singleListingId regex below, which would otherwise treat "facets" as a listing id.
+    if (pathname.endsWith('/api/listings/facets') && method === 'GET') {
+      seed.facetsLog?.push(new URL(request.url()));
+      if (seed.facets !== undefined) return json(route, 200, seed.facets);
+      const items = (seed.listings ?? []) as { pricePerDay?: number }[];
+      const prices = items.map((i) => i.pricePerDay).filter((p): p is number => typeof p === 'number');
+      const categories = (seed.categories ?? [{ id: 'cat-e2e-1' }]) as { id: string }[];
+      return json(route, 200, {
+        categories: items.length > 0 ? categories.map((c) => ({ categoryId: c.id, count: items.length })) : [],
+        districts: [],
+        minPricePerDay: prices.length > 0 ? Math.min(...prices) : null,
+        maxPricePerDay: prices.length > 0 ? Math.max(...prices) : null,
+      });
+    }
+
     // GET /api/listings/map-pins — Maps P2-2 catalogue map view. Must be
     // checked BEFORE the singleListingId regex below, which would otherwise
     // match "map-pins" as if it were a listing id (same reason "mine" is
@@ -1032,7 +1056,7 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
     // /api/listings/mine and /api/listings/map-pins, which have their own
     // (list-shaped) responses elsewhere.
     const singleListingId = pathname.match(/^\/api\/listings\/([^/]+)$/)?.[1];
-    if (singleListingId && singleListingId !== 'mine' && singleListingId !== 'map-pins' && method === 'GET') {
+    if (singleListingId && singleListingId !== 'mine' && singleListingId !== 'map-pins' && singleListingId !== 'facets' && method === 'GET') {
       return json(route, 200, seed.listingDetails ?? {});
     }
 

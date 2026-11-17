@@ -160,6 +160,9 @@ test.describe('Listings — map view (Maps P2-2)', () => {
   test('the popup stays open when the pointer moves from the ball onto it, past the close grace period', async ({
     page,
   }) => {
+    // The Browse Redesign toolbar pushes the 718px map lower; at the default 720px height the popup centre
+    // falls below the fold and a real mouse cannot reach it. A taller viewport keeps the whole popup on screen.
+    await page.setViewportSize({ width: 1280, height: 1000 });
     await mockTiles(page);
     await mockApi(page, {
       mapPins: [e2eMapPin({ id: 'listing-e2e-map-grace', title: 'Grace Period Toy' })],
@@ -212,17 +215,15 @@ test.describe('Listings — map view (Maps P2-2)', () => {
 
     await page.goto('/listings?view=map');
     await expect.poll(() => mapPinsRequests.length).toBeGreaterThan(0);
-    expect(mapPinsRequests.at(-1)!.searchParams.get('categoryId')).toBeNull();
+    expect(mapPinsRequests.at(-1)!.searchParams.getAll('categoryIds')).toEqual([]);
 
-    await page
-      .locator('.lp-sidebar__checkbox-row', { hasText: 'Toys' })
-      .locator('.lp-sidebar__checkbox')
-      .click();
+    await page.locator('.lp-sidebar').getByRole('checkbox', { name: /Toys/ }).click();
 
-    await expect(page).toHaveURL(/[?&]categoryId=cat-e2e-map-filter(&|$)/);
+    await expect(page).toHaveURL(/[?&]categoryIds=cat-e2e-map-filter(&|$)/);
     await expect
-      .poll(() => mapPinsRequests.at(-1)?.searchParams.get('categoryId'))
-      .toBe('cat-e2e-map-filter');
+      .poll(() => mapPinsRequests.at(-1)?.searchParams.getAll('categoryIds'))
+      .toEqual(['cat-e2e-map-filter']);
+    expect(mapPinsRequests.at(-1)!.searchParams.has('sort')).toBe(false);
     // The map surface itself must not have been abandoned by the filter change.
     await expect(page).toHaveURL(/[?&]view=map(&|$)/);
   });
