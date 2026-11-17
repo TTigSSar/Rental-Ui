@@ -479,9 +479,7 @@
 .lp-toolbar__sort-prefix {
   color: var(--ui-color-text-secondary);
   font-weight: 500;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  flex-shrink: 0;
   white-space: nowrap;
 }
 
