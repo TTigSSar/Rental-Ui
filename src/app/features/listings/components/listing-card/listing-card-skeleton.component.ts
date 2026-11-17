@@ -1,14 +1,14 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 /**
- * Card-shaped loading placeholder for the Home toy rows (the design's
+ * Card-shaped loading placeholder for the toy rows (the design's
  * `ToyCardSkel`): same box, image ratio and text slots as
- * `HomeToyCardComponent`, so the row does not jump when data arrives. It is
+ * `ListingCardComponent`, so the row does not jump when data arrives. It is
  * purely presentational and hidden from assistive tech — the row announces
  * its busy state (`aria-busy`) instead.
  */
 @Component({
-  selector: 'app-home-toy-card-skeleton',
+  selector: 'app-listing-card-skeleton',
   standalone: true,
   host: { 'aria-hidden': 'true' },
   template: `
@@ -29,7 +29,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
       </div>
     </div>
   `,
-  styleUrl: './home-toy-card-skeleton.component.scss',
+  styleUrl: './listing-card-skeleton.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HomeToyCardSkeletonComponent {}
+export class ListingCardSkeletonComponent {}

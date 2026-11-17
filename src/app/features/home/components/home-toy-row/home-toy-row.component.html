@@ -2,11 +2,11 @@
   <div #track class="row__track" role="list" (scroll)="updateArrows()">
     @if (loading()) {
       @for (i of skeletonItems; track i) {
-        <app-home-toy-card-skeleton class="row__item" role="listitem" [class.row__item--extra]="i >= 3" />
+        <app-listing-card-skeleton class="row__item" role="listitem" [class.row__item--extra]="i >= 3" />
       }
     } @else {
       @for (item of items(); track item.id) {
-        <app-home-toy-card
+        <app-listing-card
           class="row__item"
           role="listitem"
           [listing]="item"

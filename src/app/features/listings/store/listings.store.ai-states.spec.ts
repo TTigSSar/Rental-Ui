@@ -24,6 +24,9 @@ function makeResponse(overrides: Partial<AiSearchResponse> = {}): AiSearchRespon
     appliedFilters: {
       categoryId: null,
       ageGroup: null,
+      categoryIds: null,
+      ageRanges: null,
+      conditions: null,
       maxPrice: null,
       districtIds: null,
       nearHome: false,

@@ -32,9 +32,9 @@ export interface ListingPreview {
   /** Price unit (ADR-047); absent/unknown on the wire reads as undefined. */
   priceUnit?: PriceUnit;
   /**
-   * Listing district (ADR-064) — filled ONLY by `GET /api/home/sections`;
-   * null on `/api/listings`, `/api/favorites`, `/api/users/{id}/listings`
-   * and AI search items.
+   * Listing district (ADR-064, ADR-066) — filled by `GET /api/home/sections`,
+   * `GET /api/listings`, `GET /api/favorites` and `GET /api/users/{id}/listings`;
+   * still null on AI search items.
    */
   district?: ListingDistrict | null;
 }

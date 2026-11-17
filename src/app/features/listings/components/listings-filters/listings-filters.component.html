@@ -65,14 +65,24 @@
 
       <!-- Category -->
       <div class="lf-field">
-        <span class="lf-field__label">
+        <span class="lf-field__label" id="lf-categories-label">
           {{ 'listings.filters.categoryId' | translate }}
         </span>
-        <app-category-selector
-          [categories]="categoryOptions()"
-          [selectedCategoryId]="draftForm.controls.categoryId.value || null"
+        <p-multiSelect
+          formControlName="categoryIds"
+          [options]="categoryOptions()"
+          optionLabel="label"
+          optionValue="id"
+          display="chip"
+          [filter]="true"
+          [showToggleAll]="false"
+          [showClear]="true"
           [placeholder]="'listings.filters.categoryPlaceholder' | translate"
-          (categoryChange)="draftForm.controls.categoryId.setValue($event ?? '')"
+          inputId="lf-categories-input"
+          [ariaLabelledBy]="'lf-categories-label'"
+          styleClass="lf-field__input lf-field__multiselect"
+          appendTo="body"
+          (onClear)="onDraftCategoriesCleared()"
         />
       </div>
 
@@ -87,10 +97,28 @@
             <button
               type="button"
               class="lf-age-pill"
-              [class.lf-age-pill--active]="draftForm.controls.ageGroup.value === ag.value"
-              [attr.aria-pressed]="draftForm.controls.ageGroup.value === ag.value"
+              [class.lf-age-pill--active]="draftForm.controls.ageGroups.value.includes(ag.value)"
+              [attr.aria-pressed]="draftForm.controls.ageGroups.value.includes(ag.value)"
               (click)="toggleDraftAge(ag.value)"
             >{{ ag.labelKey | translate }}</button>
+          }
+        </div>
+      </div>
+
+      <!-- Condition (ADR-042 / ADR-066): multi-select chips -->
+      <div class="lf-field">
+        <span class="lf-field__label" id="lf-condition-label">
+          {{ 'listings.browse.sections.condition' | translate }}
+        </span>
+        <div class="lf-age-pills" role="group" aria-labelledby="lf-condition-label">
+          @for (c of conditionOptions; track c.value) {
+            <button
+              type="button"
+              class="lf-age-pill"
+              [class.lf-age-pill--active]="draftForm.controls.conditions.value.includes(c.value)"
+              [attr.aria-pressed]="draftForm.controls.conditions.value.includes(c.value)"
+              (click)="toggleDraftCondition(c.value)"
+            >{{ c.labelKey | translate }}</button>
           }
         </div>
       </div>

@@ -46,32 +46,32 @@ describe('HomeToyRowComponent', () => {
   it('renders one card per item', () => {
     const { el } = createRow({ items: ITEMS });
 
-    expect(el.querySelectorAll('app-home-toy-card').length).toBe(6);
-    expect(el.querySelector('app-home-toy-card-skeleton')).toBeNull();
+    expect(el.querySelectorAll('app-listing-card').length).toBe(6);
+    expect(el.querySelector('app-listing-card-skeleton')).toBeNull();
   });
 
   it('exposes the scroller as a list of listitems', () => {
     const { el } = createRow({ items: ITEMS });
 
     expect(el.querySelector('.row__track')!.getAttribute('role')).toBe('list');
-    const cards = Array.from(el.querySelectorAll('app-home-toy-card'));
+    const cards = Array.from(el.querySelectorAll('app-listing-card'));
     expect(cards.every((c) => c.getAttribute('role') === 'listitem')).toBe(true);
   });
 
   it('renders card-shaped skeletons, and no arrows, while loading', () => {
     const { el } = createRow({ loading: true });
 
-    expect(el.querySelectorAll('app-home-toy-card-skeleton').length).toBe(5);
-    expect(el.querySelector('app-home-toy-card')).toBeNull();
+    expect(el.querySelectorAll('app-listing-card-skeleton').length).toBe(5);
+    expect(el.querySelector('app-listing-card')).toBeNull();
     expect(el.querySelector('.row__arrow')).toBeNull();
   });
 
   it('hides the favourite button on the viewer’s own listing only', () => {
     const { el } = createRow({ items: ITEMS.slice(0, 2), ownIds: new Set(['toy-1']) });
-    const cards = Array.from(el.querySelectorAll('app-home-toy-card'));
+    const cards = Array.from(el.querySelectorAll('app-listing-card'));
 
-    expect(cards[0].querySelector('.tcard__fav')).toBeNull();
-    expect(cards[1].querySelector('.tcard__fav')).not.toBeNull();
+    expect(cards[0].querySelector('.listing-card__fav-btn')).toBeNull();
+    expect(cards[1].querySelector('.listing-card__fav-btn')).not.toBeNull();
   });
 
   it('re-emits a card’s favourite toggle', () => {
@@ -79,7 +79,7 @@ describe('HomeToyRowComponent', () => {
     const emitted: string[] = [];
     fixture.componentInstance.favoriteToggled.subscribe((id) => emitted.push(id));
 
-    el.querySelector<HTMLButtonElement>('.tcard__fav')!.click();
+    el.querySelector<HTMLButtonElement>('.listing-card__fav-btn')!.click();
 
     expect(emitted).toEqual(['toy-1']);
   });

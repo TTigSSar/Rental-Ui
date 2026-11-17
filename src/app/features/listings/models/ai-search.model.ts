@@ -1,4 +1,5 @@
 import type { ListingPreview } from './listing.model';
+import type { ListingAgeRangeParam, ListingConditionFilter } from './listings-filter.model';
 
 /**
  * AI search contract (ADR-054) — mirrors rental-api `AiSearchRequest`, `AiSearchFilters`,
@@ -11,8 +12,18 @@ import type { ListingPreview } from './listing.model';
 export type AiSearchAgeGroup = '0-12' | '12-36' | '36-72' | '72-120' | '120+';
 
 export interface AiSearchFilters {
+  /** Legacy single value. Out: filled only when exactly one category applies. */
   categoryId: string | null;
+  /** Legacy single value. Out: the group token (the group's range is also in `ageRanges`). */
   ageGroup: AiSearchAgeGroup | null;
+  /**
+   * ADR-066 lists (ADR-054 amendment 2026-11-17); null = none. `categoryIds` is OR-ed and
+   * merged with `categoryId`.
+   */
+  categoryIds: string[] | null;
+  /** "fromMonths-toMonths", upper bound may be empty ("120-"); OR-ed, merged with `ageGroup`. */
+  ageRanges: ListingAgeRangeParam[] | null;
+  conditions: ListingConditionFilter[] | null;
   maxPrice: number | null;
   districtIds: string[] | null;
   /** "Near me": the server resolves the signed-in user's home point; no coordinates here. */

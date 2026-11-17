@@ -98,6 +98,13 @@ describe('ApiErrorMapper', () => {
       expect(mapper.message(error)).toBe(leaf(en, key));
       expect(mapper.message(error)).not.toContain('English server text');
     });
+
+    it('maps the 400 ai_search.invalid_filters without leaking the server text', () => {
+      const error = problem(400, { errorCode: 'ai_search.invalid_filters', title: 'English server text' });
+      expect(resolveApiErrorKey(error)).toBe('errors.aiSearchInvalidFilters');
+      expect(mapper.message(error)).toBe(leaf(en, 'errors.aiSearchInvalidFilters'));
+      expect(mapper.message(error)).not.toContain('English server text');
+    });
   });
 
   describe('account deletion codes (ADR-056)', () => {

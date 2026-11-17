@@ -2,6 +2,7 @@ import { createFeatureSelector, createSelector } from '@ngrx/store';
 
 import type { ListingCategoryOption } from '../models/create-listing.model';
 import type { ListingDetails } from '../models/listing-details.model';
+import type { ListingFacets } from '../models/listing-facets.model';
 import type { ListingMapPin } from '../models/listing-map-pin.model';
 import type { ListingPreview } from '../models/listing.model';
 import type {
@@ -28,6 +29,11 @@ export const selectSelectedListing = createSelector(
 export const selectListingsFilters = createSelector(
   selectListingsState,
   (state: ListingsState): ListingsFilter => state.filters,
+);
+
+export const selectListingFacets = createSelector(
+  selectListingsState,
+  (state: ListingsState): ListingFacets | null => state.facets,
 );
 
 export const selectListingsOriginCoords = createSelector(

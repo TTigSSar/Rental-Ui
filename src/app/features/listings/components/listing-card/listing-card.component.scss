@@ -1,4 +1,4 @@
-/* Home Redesign Stage 1 toy card (ADR-064). Values are the design's `.tcard*`
+/* Shared toy card (ADR-064, amended 2026-11-17; from the Home Redesign Stage 1 ToyCard). Values are the design's `.listing-card*`
    rules; tokens are used wherever one matches, hex only where none does. */
 
 /* The host is the size container: the no-photo label appears only when the
@@ -8,7 +8,7 @@
   container-type: inline-size;
 }
 
-.tcard {
+.listing-card {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -21,12 +21,12 @@
 }
 
 /* Keyboard focus ring around the whole card: 2px brand-dark, offset 2 (ADR-031). */
-.tcard:has(.tcard__link:focus-visible) {
+.listing-card:has(.listing-card__link:focus-visible) {
   outline: 2px solid var(--ui-color-primary-strong);
   outline-offset: 2px;
 }
 
-.tcard__media {
+.listing-card__media {
   position: relative;
   flex: none;
   aspect-ratio: 1 / 0.86;
@@ -34,14 +34,14 @@
   overflow: hidden;
 }
 
-.tcard__img {
+.listing-card__img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.tcard__nophoto {
+.listing-card__nophoto {
   position: absolute;
   inset: 0;
   display: flex;
@@ -53,7 +53,7 @@
   background: var(--ui-color-surface-muted);
 }
 
-.tcard__nophoto-disc {
+.listing-card__nophoto-disc {
   display: grid;
   place-items: center;
   width: 56px;
@@ -64,7 +64,7 @@
   font-size: 26px;
 }
 
-.tcard__nophoto-label {
+.listing-card__nophoto-label {
   display: none;
   padding-inline: 8px;
   font-size: 13px;
@@ -75,15 +75,17 @@
 }
 
 @container (min-width: 250px) {
-  .tcard__nophoto-label {
+  .listing-card__nophoto-label {
     display: block;
   }
 }
 
-.tcard__age {
+/* Photo pills: age bottom-left, owner / booking status top-left. */
+.listing-card__pill {
   position: absolute;
   left: 10px;
-  bottom: 10px;
+  max-width: calc(100% - 10px - 54px); /* clear of the 44px favourite button */
+  overflow: hidden;
   min-height: 24px;
   padding: 3px 10px;
   border-radius: var(--ui-radius-pill);
@@ -95,8 +97,22 @@
   white-space: nowrap;
 }
 
+.listing-card__age {
+  bottom: 10px;
+}
+
+/* Status pill may wrap to 2 lines so long labels stay readable at ~170px cards. */
+.listing-card__badge {
+  top: 10px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
 /* Separate button, above the title link's ::after overlay (z-index 1). */
-.tcard__fav {
+.listing-card__fav-btn {
   position: absolute;
   top: 6px;
   right: 6px;
@@ -115,16 +131,16 @@
   cursor: pointer;
 }
 
-.tcard__fav:focus-visible {
+.listing-card__fav-btn:focus-visible {
   outline: 2px solid var(--ui-color-primary-strong);
   outline-offset: 2px;
 }
 
-.tcard__fav-icon--on {
+.listing-card__fav-icon--on {
   color: var(--ui-color-primary-strong);
 }
 
-.tcard__body {
+.listing-card__body {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -132,7 +148,7 @@
   padding: 10px;
 }
 
-.tcard__title {
+.listing-card__title {
   margin: 0;
   height: 36px;
   font-size: 14px;
@@ -145,24 +161,24 @@
   overflow-wrap: break-word;
 }
 
-.tcard__link {
+.listing-card__link {
   color: var(--ui-color-text-primary);
   text-decoration: none;
 }
 
 /* Whole card is the link. */
-.tcard__link::after {
+.listing-card__link::after {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 1;
 }
 
-.tcard__link:focus-visible {
-  outline: none; /* the ring is drawn around the card (see `.tcard:has`) */
+.listing-card__link:focus-visible {
+  outline: none; /* the ring is drawn around the card (see `.listing-card:has`) */
 }
 
-.tcard__line {
+.listing-card__line {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -175,39 +191,45 @@
   white-space: nowrap;
 }
 
-.tcard__line + .tcard__line {
+.listing-card__line + .listing-card__line {
   margin-top: 2px;
 }
 
-.tcard__line--hint {
+.listing-card__line--hint {
   color: var(--ui-color-text-hint);
 }
 
-.tcard__line-icon {
+.listing-card__line-icon {
   flex: none;
   font-size: 14px;
 }
 
-.tcard__ell {
+.listing-card__ell {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* "· 1.2 km" suffix on the location line; stays whole while the place ellipsises. */
+.listing-card__distance {
+  flex: none;
+  white-space: nowrap;
+}
+
 /* Orange is the non-text brand colour (icons) — ADR-031. */
-.tcard__star {
+.listing-card__star {
   flex: none;
   font-size: 14px;
   color: var(--ui-color-primary);
 }
 
-.tcard__rating-value {
+.listing-card__rating-value {
   font-weight: 700;
   color: var(--ui-color-text-primary);
 }
 
-.tcard__price {
+.listing-card__price {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -216,7 +238,7 @@
   margin-top: 6px;
 }
 
-.tcard__price-amount {
+.listing-card__price-amount {
   font-size: 16px;
   line-height: 22px;
   font-weight: 800;
@@ -224,13 +246,13 @@
   white-space: nowrap;
 }
 
-.tcard__price-suffix {
+.listing-card__price-suffix {
   font-size: 13px;
   line-height: 18px;
   color: var(--ui-color-text-secondary);
 }
 
-.tcard__foot {
+.listing-card__foot {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -240,7 +262,7 @@
   margin-top: 6px;
 }
 
-.tcard__chip {
+.listing-card__chip {
   display: inline-flex;
   align-items: center;
   min-height: 24px;
@@ -256,8 +278,9 @@
 }
 
 /* "View" pill: desktop only (>= 1024), decorative — the card itself is the link. */
-.tcard__view {
+.listing-card__view {
   display: none;
+  margin-left: auto; /* always the right end of the foot, with or without the condition chip */
   align-items: center;
   min-height: 32px;
   padding: 0 12px;
@@ -271,21 +294,21 @@
 }
 
 @media (min-width: 1024px) {
-  .tcard__media {
+  .listing-card__media {
     aspect-ratio: 1 / 0.83;
   }
 
-  .tcard__view {
+  .listing-card__view {
     display: inline-flex;
   }
 }
 
 @media (hover: hover) {
-  .tcard:hover .tcard__link {
+  .listing-card:hover .listing-card__link {
     text-decoration: underline;
   }
 
-  .tcard:hover .tcard__view {
+  .listing-card:hover .listing-card__view {
     background: #ffe1c4; /* design hover tint; no token */
   }
 }

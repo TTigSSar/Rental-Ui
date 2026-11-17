@@ -30,16 +30,21 @@ interface SheetAccess {
   onDraftOriginCleared(): void;
   onDraftDistrictsCleared(): void;
   toggleDraftAge(value: string): void;
-  removeChip(chip: { key: string; label: string; districtId?: string }): void;
+  toggleDraftCondition(value: string): void;
+  onDraftCategoriesCleared(): void;
+  removeChip(chip: { key: string; label: string; value?: string; districtId?: string }): void;
   readonly activeChips: () => ReadonlyArray<{
     key: string;
     label: string;
+    value?: string;
     districtId?: string;
   }>;
   readonly draftForm: {
     getRawValue(): {
       city: string;
-      categoryId: string;
+      categoryIds: string[];
+      ageGroups: string[];
+      conditions: string[];
       minPrice: number | null;
       maxPrice: number | null;
       radiusKm: number | null;
@@ -48,6 +53,7 @@ interface SheetAccess {
     patchValue(value: Record<string, unknown>): void;
     readonly controls: {
       readonly districtIds: { setValue(value: unknown): void };
+      readonly categoryIds: { setValue(value: unknown): void };
     };
   };
 }
@@ -57,7 +63,7 @@ interface SheetAccess {
  * with `queryParamsHandling: 'replace'` and a `toQueryParams()` that only
  * ever emitted its own six keys — so applying/clearing the sheet silently
  * stripped ANY param it had no concept of, known or not (confirmed live:
- * `/listings?ageGroup=0-12&maxDistance=5` at 375px, tap "Apply" with zero
+ * `/listings?ageGroups=0-12&maxDistance=5` at 375px, tap "Apply" with zero
  * changes, URL became a bare `/listings`). Fixed by switching to `'merge'`.
  *
  * The radius filter (Maps P2 "location + radius" design) changed WHICH keys
@@ -126,21 +132,21 @@ describe('ListingsFiltersComponent — cross-surface query param preservation', 
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  it('tapping Apply with no changes preserves ageGroup (not sheet-owned) AND radiusKm (sheet-owned, round-tripped unchanged)', async () => {
+  it('tapping Apply with no changes preserves ageGroups AND radiusKm (both sheet-owned, round-tripped unchanged)', async () => {
     const { component, router } = await navigateToListings(
-      '/listings?ageGroup=0-12&radiusKm=5',
+      '/listings?ageGroups=0-12&radiusKm=5',
     );
 
     component.openSheet();
     component.applySheet();
     await vi.advanceTimersByTimeAsync(350); // flush the form's debounceTime(300)
 
-    expect(router.url).toBe('/listings?ageGroup=0-12&radiusKm=5');
+    expect(router.url).toBe('/listings?ageGroups=0-12&radiusKm=5');
   });
 
   it('tapping Clear resets the sheet-owned radiusKm and ageGroup (the sheet owns age since AI search) but keeps unknown params', async () => {
     const { component, router } = await navigateToListings(
-      '/listings?ageGroup=0-12&radiusKm=5&view=map',
+      '/listings?ageGroups=0-12&radiusKm=5&view=map',
     );
 
     component.openSheet();
@@ -148,14 +154,14 @@ describe('ListingsFiltersComponent — cross-surface query param preservation', 
     await vi.advanceTimersByTimeAsync(350);
 
     const url = router.url;
-    expect(url).not.toContain('ageGroup=');
+    expect(url).not.toContain('ageGroups=');
     expect(url).not.toContain('radiusKm=');
     expect(url).toContain('view=map');
   });
 
   it('applying a sheet-owned filter (city) still merges in alongside ageGroup and an existing radiusKm', async () => {
     const { component, router } = await navigateToListings(
-      '/listings?ageGroup=0-12&radiusKm=5',
+      '/listings?ageGroups=0-12&radiusKm=5',
     );
 
     component.openSheet();
@@ -164,14 +170,14 @@ describe('ListingsFiltersComponent — cross-surface query param preservation', 
     await vi.advanceTimersByTimeAsync(350);
 
     const url = router.url;
-    expect(url).toContain('ageGroup=0-12');
+    expect(url).toContain('ageGroups=0-12');
     expect(url).toContain('radiusKm=5');
     expect(url).toContain('city=Yerevan');
   });
 
   it('clearing a sheet-owned filter actually removes its own param from the URL (merge still deletes what it owns)', async () => {
     const { component, router } = await navigateToListings(
-      '/listings?view=map&radiusKm=5&city=Yerevan&categoryId=abc&ageGroup=0-12',
+      '/listings?view=map&radiusKm=5&city=Yerevan&categoryIds=abc&ageGroups=0-12',
     );
 
     component.openSheet();
@@ -181,9 +187,9 @@ describe('ListingsFiltersComponent — cross-surface query param preservation', 
     const url = router.url;
     // Sheet-owned filters actually cleared out of the URL...
     expect(url).not.toContain('city=');
-    expect(url).not.toContain('categoryId=');
+    expect(url).not.toContain('categoryIds=');
     expect(url).not.toContain('radiusKm=');
-    expect(url).not.toContain('ageGroup=');
+    expect(url).not.toContain('ageGroups=');
     // ...while a param the sheet doesn't know about survives untouched.
     expect(url).toContain('view=map');
   });
@@ -195,23 +201,23 @@ describe('ListingsFiltersComponent — cross-surface query param preservation', 
     component.toggleDraftAge('36-72');
     component.applySheet();
     await vi.advanceTimersByTimeAsync(350);
-    expect(router.url).toContain('ageGroup=36-72');
+    expect(router.url).toContain('ageGroups=36-72');
 
     component.openSheet();
     component.toggleDraftAge('36-72');
     component.applySheet();
     await vi.advanceTimersByTimeAsync(350);
-    expect(router.url).not.toContain('ageGroup=');
+    expect(router.url).not.toContain('ageGroups=');
   });
 
   it('an age set from the URL (e.g. by the AI search) counts as an active chip for the filter-button badge', async () => {
-    const { component } = await navigateToListings('/listings?ageGroup=12-36');
+    const { component } = await navigateToListings('/listings?ageGroups=12-36');
 
     expect(component.activeChips().map((c) => c.key)).toContain('ageGroup');
   });
 
   it('adjusting the radius in the sheet and applying commits the new value to the URL, merged with ageGroup', async () => {
-    const { component, router } = await navigateToListings('/listings?ageGroup=0-12');
+    const { component, router } = await navigateToListings('/listings?ageGroups=0-12');
 
     component.openSheet();
     component.onDraftRadiusMetersChange(3000); // 3 km
@@ -219,19 +225,19 @@ describe('ListingsFiltersComponent — cross-surface query param preservation', 
     await vi.advanceTimersByTimeAsync(350);
 
     const url = router.url;
-    expect(url).toContain('ageGroup=0-12');
+    expect(url).toContain('ageGroups=0-12');
     expect(url).toContain('radiusKm=3');
   });
 
   it('closing the sheet without applying (Cancel) never touches the URL at all', async () => {
-    const { component, router } = await navigateToListings('/listings?ageGroup=0-12&radiusKm=5');
+    const { component, router } = await navigateToListings('/listings?ageGroups=0-12&radiusKm=5');
 
     component.openSheet();
     component.onDraftRadiusMetersChange(10000); // 10 km, drafted but not applied
     component.closeSheet();
     await vi.advanceTimersByTimeAsync(350);
 
-    expect(router.url).toBe('/listings?ageGroup=0-12&radiusKm=5');
+    expect(router.url).toBe('/listings?ageGroups=0-12&radiusKm=5');
   });
 });
 
@@ -246,7 +252,7 @@ describe('ListingsFiltersComponent — clearing the origin (Trello #80)', () => 
   afterEach(() => vi.useRealTimers());
 
   it('onDraftOriginCleared() nulls the draft AND immediately removes radiusKm from the URL', async () => {
-    const { component, router } = await navigateToListings('/listings?ageGroup=0-12&radiusKm=5');
+    const { component, router } = await navigateToListings('/listings?ageGroups=0-12&radiusKm=5');
 
     component.openSheet();
     component.onDraftOriginCleared();
@@ -255,8 +261,8 @@ describe('ListingsFiltersComponent — clearing the origin (Trello #80)', () => 
     expect(component.draftForm.getRawValue().radiusKm).toBeNull();
     const url = router.url;
     expect(url).not.toContain('radiusKm=');
-    // ageGroup (not sheet-owned) still survives the merge-navigate.
-    expect(url).toContain('ageGroup=0-12');
+    // The age list still survives the merge-navigate.
+    expect(url).toContain('ageGroups=0-12');
   });
 
   it('onDraftOriginCleared() commits even if the sheet is then cancelled (no inert radiusKm left behind)', async () => {
@@ -323,7 +329,7 @@ describe('ListingsFiltersComponent — districts multiselect clear (PrimeNG null
 
   it('applySheet() with a null districtIds draft (PrimeNG clear before onClear fires) does not throw, drops districtIds from the URL, and preserves other params', async () => {
     const { component, router } = await navigateToListings(
-      '/listings?ageGroup=0-12&districtIds=d1,d2',
+      '/listings?ageGroups=0-12&districtIds=d1,d2',
     );
 
     component.openSheet();
@@ -334,7 +340,7 @@ describe('ListingsFiltersComponent — districts multiselect clear (PrimeNG null
 
     const url = router.url;
     expect(url).not.toContain('districtIds=');
-    expect(url).toContain('ageGroup=0-12');
+    expect(url).toContain('ageGroups=0-12');
   });
 });
 
@@ -506,27 +512,130 @@ describe('ListingsFiltersComponent — category labels follow the UI language (A
   ];
 
   it('switches the category chip label and selector options live, without refetching', async () => {
-    const { component, store } = await navigateToListings('/listings?categoryId=c1', {
+    const { component, store } = await navigateToListings('/listings?categoryIds=c1', {
       categories: CATEGORIES,
     });
     const language = TestBed.inject(LanguageService);
     const chipLabel = () => component.activeChips().find((c) => c.key === 'categoryId')?.label;
-    const optionNames = () =>
-      (component as unknown as { categoryOptions(): { name: string }[] }).categoryOptions();
+    const optionLabels = () =>
+      (component as unknown as { categoryOptions(): { id: string; label: string }[] }).categoryOptions();
 
     expect(chipLabel()).toBe('Role play');
+    expect(optionLabels()[0]).toEqual({ id: 'c1', label: 'Role play' });
     vi.mocked(store.dispatch).mockClear();
 
     language.current.set(language.languages.find((l) => l.code === 'hy')!);
     expect(chipLabel()).toBe('Դերախաղեր');
+    expect(optionLabels()[0].label).toBe('Դերախաղեր');
 
     language.current.set(language.languages.find((l) => l.code === 'ru')!);
     expect(chipLabel()).toBe('Сюжетно-ролевые игры');
-
-    // The selector receives all three names and localizes itself.
-    expect(optionNames()[0]).toEqual(
-      expect.objectContaining({ nameHy: 'Դերախաղեր', nameRu: 'Сюжетно-ролевые игры' }),
-    );
+    expect(optionLabels()[0].label).toBe('Сюжетно-ролевые игры');
     expect(store.dispatch).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * ADR-066: the sheet gets the same new controls as the desktop panel (multi category, multi age,
+ * conditions). Legacy single-value links keep working, a PrimeNG clear writes `null` (M-040), and
+ * the sheet never owns `sort` (the toolbar does), so a no-op Apply must not touch it (M-021).
+ */
+describe('ListingsFiltersComponent — ADR-066 multi-select controls', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  it('parses a legacy ?categoryId=&ageGroup= link into the new lists and rewrites it on Apply', async () => {
+    const { component, router } = await navigateToListings('/listings?categoryId=c1&ageGroup=12-36');
+
+    expect(component.activeChips().map((c) => `${c.key}:${c.value}`)).toEqual([
+      'categoryId:c1',
+      'ageGroup:12-36',
+    ]);
+
+    component.openSheet();
+    component.applySheet();
+    await vi.advanceTimersByTimeAsync(350);
+
+    const url = router.url;
+    expect(url).toContain('categoryIds=c1');
+    expect(url).toContain('ageGroups=12-36');
+    expect(url).not.toContain('categoryId=');
+    expect(url).not.toContain('ageGroup=');
+  });
+
+  it('writes several categories, ages and conditions comma-joined and leaves sort alone', async () => {
+    const { component, router } = await navigateToListings('/listings?sort=price_asc');
+
+    component.openSheet();
+    component.draftForm.patchValue({ categoryIds: ['c1', 'c2'] });
+    component.toggleDraftAge('0-12');
+    component.toggleDraftAge('120+');
+    component.toggleDraftCondition('New');
+    component.toggleDraftCondition('Fair');
+    component.applySheet();
+    await vi.advanceTimersByTimeAsync(350);
+
+    const url = router.url;
+    expect(url).toContain('categoryIds=c1,c2');
+    expect(url).toContain('ageGroups=0-12,120%2B'); // `+` is percent-encoded by the router
+    expect(url).toContain('conditions=New,Fair');
+    expect(url).toContain('sort=price_asc');
+  });
+
+  it('tapping an active condition pill clears it again', async () => {
+    const { component, router } = await navigateToListings('/listings?conditions=Good');
+
+    component.openSheet();
+    component.toggleDraftCondition('Good');
+    component.applySheet();
+    await vi.advanceTimersByTimeAsync(350);
+
+    expect(router.url).not.toContain('conditions=');
+  });
+
+  it('applySheet() with a null categoryIds draft (PrimeNG clear before onClear fires) does not throw and drops the key (M-040)', async () => {
+    const { component, router } = await navigateToListings('/listings?categoryIds=c1,c2&view=map');
+
+    component.openSheet();
+    component.draftForm.controls.categoryIds.setValue(null);
+
+    expect(() => component.applySheet()).not.toThrow();
+    await vi.advanceTimersByTimeAsync(350);
+
+    expect(router.url).not.toContain('categoryIds=');
+    expect(router.url).toContain('view=map');
+  });
+
+  it('onDraftCategoriesCleared() normalises the control back to []', async () => {
+    const { component } = await navigateToListings('/listings?categoryIds=c1');
+
+    component.openSheet();
+    component.draftForm.controls.categoryIds.setValue(null);
+    component.onDraftCategoriesCleared();
+
+    expect(component.draftForm.getRawValue().categoryIds).toEqual([]);
+  });
+
+  it('removing one category chip keeps the others; a condition chip removes just that value', async () => {
+    const { component, router } = await navigateToListings(
+      '/listings?categoryIds=c1,c2&conditions=New,Good',
+      { categories: [] },
+    );
+
+    const chip = (key: string, value: string) =>
+      component.activeChips().find((c) => c.key === key && c.value === value)!;
+
+    component.removeChip(chip('categoryId', 'c1'));
+    component.removeChip(chip('condition', 'New'));
+    await vi.advanceTimersByTimeAsync(350);
+
+    expect(router.url).toContain('categoryIds=c2');
+    expect(router.url).toContain('conditions=Good');
+  });
+
+  it('shows one chip per selected condition with its ADR-042 label key (never "Excellent")', async () => {
+    const { component } = await navigateToListings('/listings?conditions=LikeNew,Excellent');
+
+    expect(component.activeChips().map((c) => c.value)).toEqual(['LikeNew']);
   });
 });

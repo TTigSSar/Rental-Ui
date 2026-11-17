@@ -12,14 +12,14 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import type { ListingPreview } from '../../../listings/models/listing.model';
-import { HomeToyCardSkeletonComponent } from '../home-toy-card/home-toy-card-skeleton.component';
-import { HomeToyCardComponent } from '../home-toy-card/home-toy-card.component';
+import { ListingCardSkeletonComponent } from '../../../listings/components/listing-card/listing-card-skeleton.component';
+import { ListingCardComponent } from '../../../listings/components/listing-card/listing-card.component';
 
 /** Skeleton cards per loading row: four cards plus the peeking fifth (desktop). */
 const SKELETON_COUNT = 5;
 
 /**
- * One Home toy row (Stage 1): a horizontal scroller of `app-home-toy-card`s.
+ * One Home toy row (Stage 1): a horizontal scroller of `app-listing-card`s.
  *
  * Below 1024px it is a touch scroller — 232px cards, snap, no arrows. From
  * 1024px it shows four cards plus the peek of the fifth that sits in the
@@ -30,7 +30,7 @@ const SKELETON_COUNT = 5;
 @Component({
   selector: 'app-home-toy-row',
   standalone: true,
-  imports: [HomeToyCardComponent, HomeToyCardSkeletonComponent, IconComponent, TranslatePipe],
+  imports: [ListingCardComponent, ListingCardSkeletonComponent, IconComponent, TranslatePipe],
   templateUrl: './home-toy-row.component.html',
   styleUrl: './home-toy-row.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

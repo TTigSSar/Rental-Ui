@@ -27,20 +27,19 @@ import { Subject, catchError, debounce, merge, of, startWith, timer } from 'rxjs
 
 import { LanguageService } from '../../../../shared/services/language.service';
 import { categoryDisplayName } from '../../../../shared/utils/category-name.utils';
-import {
-  CategorySelectorComponent,
-  type CategoryOption,
-} from '../../../../shared/ui/category-selector/category-selector.component';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import { AGE_GROUPS } from '../../models/age-groups.const';
 import type { ListingCategoryOption } from '../../models/create-listing.model';
 import { districtDisplayName } from '../../models/district-ui.util';
 import type { ListingDistrict } from '../../models/district.model';
 import {
-  parseDistrictIdsParam,
-  parseRadiusKmParam,
+  LISTING_CONDITION_FILTERS,
+  parseConditionsParam,
+  parseListingsFilterFromParams,
   serializeDistrictIdsParam,
+  serializeListParam,
   serializeRadiusKmParam,
+  type ListingConditionFilter,
   type ListingsFilter,
 } from '../../models/listings-filter.model';
 import {
@@ -71,18 +70,34 @@ interface DistrictOption {
 }
 
 interface ActiveChip {
-  readonly key: 'city' | 'categoryId' | 'ageGroup' | 'minPrice' | 'maxPrice' | 'districtId' | 'radiusKm';
+  readonly key:
+    | 'city'
+    | 'categoryId'
+    | 'ageGroup'
+    | 'condition'
+    | 'minPrice'
+    | 'maxPrice'
+    | 'districtId'
+    | 'radiusKm';
   readonly label: string;
-  /** Only set for `key: 'districtId'` — identifies which district this chip removes. */
+  /** Identifies which value a multi-value chip removes (category id / age token / condition / district id). */
+  readonly value?: string;
+  /** Only set for `key: 'districtId'` — kept for the chip's track key; same as `value`. */
   readonly districtId?: string;
 }
+
+const CONDITION_LABEL_KEYS: Record<ListingConditionFilter, string> = {
+  New: 'listings.details.conditionValues.new',
+  LikeNew: 'listings.details.conditionValues.likeNew',
+  Good: 'listings.details.conditionValues.good',
+  Fair: 'listings.details.conditionValues.fair',
+};
 
 @Component({
   selector: 'app-listings-filters',
   standalone: true,
   imports: [
     AiSearchFieldComponent,
-    CategorySelectorComponent,
     InputNumberModule,
     MultiSelectModule,
     RadiusOriginFilterComponent,
@@ -121,6 +136,10 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
   readonly authRequired = output<void>();
 
   protected readonly ageGroups = AGE_GROUPS;
+  protected readonly conditionOptions = LISTING_CONDITION_FILTERS.map((value) => ({
+    value,
+    labelKey: CONDITION_LABEL_KEYS[value],
+  }));
 
   /** When false, the active-filter chip row is suppressed (parent renders chips instead). */
   readonly showChips = input(true);
@@ -130,12 +149,11 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     { initialValue: [] as ListingCategoryOption[] },
   );
 
-  protected readonly categoryOptions = computed((): CategoryOption[] =>
+  /** Options for the multi-select: id is the value, `label` the name in the UI language. */
+  protected readonly categoryOptions = computed((): DistrictOption[] =>
     this.categories().map((c) => ({
       id: c.id,
-      name: c.name,
-      nameHy: c.nameHy,
-      nameRu: c.nameRu,
+      label: categoryDisplayName(c, this.languageService.current().code),
     })),
   );
 
@@ -165,8 +183,9 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
   readonly filterForm = this.fb.group({
     query: this.fb.nonNullable.control(''),
     city: this.fb.nonNullable.control(''),
-    categoryId: this.fb.nonNullable.control(''),
-    ageGroup: this.fb.nonNullable.control(''),
+    categoryIds: this.fb.nonNullable.control<string[]>([]),
+    ageGroups: this.fb.nonNullable.control<string[]>([]),
+    conditions: this.fb.nonNullable.control<string[]>([]),
     minPrice: this.fb.control<number | null>(null),
     maxPrice: this.fb.control<number | null>(null),
     radiusKm: this.fb.control<number | null>(null),
@@ -175,8 +194,9 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
 
   readonly draftForm = this.fb.group({
     city: this.fb.nonNullable.control(''),
-    categoryId: this.fb.nonNullable.control(''),
-    ageGroup: this.fb.nonNullable.control(''),
+    categoryIds: this.fb.nonNullable.control<string[]>([]),
+    ageGroups: this.fb.nonNullable.control<string[]>([]),
+    conditions: this.fb.nonNullable.control<string[]>([]),
     minPrice: this.fb.control<number | null>(null),
     maxPrice: this.fb.control<number | null>(null),
     radiusKm: this.fb.control<number | null>(null),
@@ -238,12 +258,25 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
    * control.
    */
   protected toggleDraftAge(value: string): void {
-    const control = this.draftForm.controls.ageGroup;
-    control.setValue(control.value === value ? '' : value);
+    this.toggleDraft(this.draftForm.controls.ageGroups, value);
+  }
+
+  protected toggleDraftCondition(value: string): void {
+    this.toggleDraft(this.draftForm.controls.conditions, value);
+  }
+
+  private toggleDraft(control: { value: string[]; setValue(v: string[]): void }, value: string): void {
+    const current = control.value ?? [];
+    control.setValue(current.includes(value) ? current.filter((v) => v !== value) : [...current, value]);
   }
 
   protected onDraftDistrictsCleared(): void {
     this.draftForm.controls.districtIds.setValue([]);
+  }
+
+  /** Same PrimeNG `clear()` -> `null` hazard as districts (M-040): normalise back to `[]`. */
+  protected onDraftCategoriesCleared(): void {
+    this.draftForm.controls.categoryIds.setValue([]);
   }
 
   private readonly localeTag = computed(() =>
@@ -262,18 +295,20 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
   protected readonly activeChips = computed((): readonly ActiveChip[] => {
     const v = this.formValues();
     const chips: ActiveChip[] = [];
-    if (v.categoryId) {
-      const cat = this.categories().find((c) => c.id === v.categoryId);
+    for (const id of v.categoryIds) {
+      const cat = this.categories().find((c) => c.id === id);
       chips.push({
         key: 'categoryId',
-        label: cat ? categoryDisplayName(cat, this.languageService.current().code) : v.categoryId,
+        value: id,
+        label: cat ? categoryDisplayName(cat, this.languageService.current().code) : id,
       });
     }
-    if (v.ageGroup) {
-      const ag = AGE_GROUPS.find((a) => a.value === v.ageGroup);
+    for (const token of v.ageGroups) {
+      const ag = AGE_GROUPS.find((a) => a.value === token);
       chips.push({
         key: 'ageGroup',
-        label: ag ? this.translate.instant(ag.labelKey) : v.ageGroup,
+        value: token,
+        label: ag ? this.translate.instant(ag.labelKey) : token,
       });
     }
     if (v.minPrice != null) {
@@ -306,7 +341,11 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     }
     for (const districtId of v.districtIds) {
       const district = this.districtOptions().find((d) => d.id === districtId);
-      chips.push({ key: 'districtId', label: district?.label ?? districtId, districtId });
+      chips.push({ key: 'districtId', value: districtId, label: district?.label ?? districtId, districtId });
+    }
+    for (const condition of v.conditions) {
+      const key = CONDITION_LABEL_KEYS[condition as ListingConditionFilter];
+      chips.push({ key: 'condition', value: condition, label: key ? this.translate.instant(key) : condition });
     }
     return chips;
   });
@@ -315,8 +354,9 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     const v = this.formValues();
     return !!(
       v.city.trim() ||
-      v.categoryId ||
-      v.ageGroup ||
+      v.categoryIds.length > 0 ||
+      v.ageGroups.length > 0 ||
+      v.conditions.length > 0 ||
       v.minPrice != null ||
       v.maxPrice != null ||
       v.radiusKm != null ||
@@ -363,24 +403,19 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     this.route.queryParamMap
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((params) => {
-        const minPriceStr = params.get('minPrice');
-        const maxPriceStr = params.get('maxPrice');
+        // One shared URL parser (legacy `categoryId` / `ageGroup` links included).
+        const parsed = parseListingsFilterFromParams(params);
         this.filterForm.patchValue(
           {
             query: params.get('q') ?? '',
             city: params.get('city') ?? '',
-            categoryId: params.get('categoryId') ?? '',
-            ageGroup: params.get('ageGroup') ?? '',
-            minPrice:
-              minPriceStr != null && !Number.isNaN(Number(minPriceStr))
-                ? Number(minPriceStr)
-                : null,
-            maxPrice:
-              maxPriceStr != null && !Number.isNaN(Number(maxPriceStr))
-                ? Number(maxPriceStr)
-                : null,
-            radiusKm: parseRadiusKmParam(params.get('radiusKm')),
-            districtIds: parseDistrictIdsParam(params.get('districtIds')),
+            categoryIds: parsed.categoryIds,
+            ageGroups: parsed.ageGroups,
+            conditions: parsed.conditions,
+            minPrice: parsed.minPrice,
+            maxPrice: parsed.maxPrice,
+            radiusKm: parsed.radiusKm,
+            districtIds: parsed.districtIds,
           },
           { emitEvent: false },
         );
@@ -400,8 +435,9 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     const v = this.filterForm.getRawValue();
     this.draftForm.setValue({
       city: v.city,
-      categoryId: v.categoryId,
-      ageGroup: v.ageGroup,
+      categoryIds: v.categoryIds,
+      ageGroups: v.ageGroups,
+      conditions: v.conditions,
       minPrice: v.minPrice,
       maxPrice: v.maxPrice,
       radiusKm: v.radiusKm,
@@ -449,8 +485,10 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     const draft = this.draftForm.getRawValue();
     this.filterForm.patchValue({
       city: draft.city,
-      categoryId: draft.categoryId,
-      ageGroup: draft.ageGroup,
+      // Defensive (M-040): a PrimeNG clear can leave a raw `null` in an array control.
+      categoryIds: draft.categoryIds ?? [],
+      ageGroups: draft.ageGroups ?? [],
+      conditions: draft.conditions ?? [],
       minPrice: draft.minPrice,
       maxPrice: draft.maxPrice,
       radiusKm: draft.radiusKm,
@@ -470,8 +508,9 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     this.filterForm.setValue({
       query: currentQuery,
       city: '',
-      categoryId: '',
-      ageGroup: '',
+      categoryIds: [],
+      ageGroups: [],
+      conditions: [],
       minPrice: null,
       maxPrice: null,
       radiusKm: null,
@@ -487,10 +526,19 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
         this.filterForm.patchValue({ city: '' });
         break;
       case 'categoryId':
-        this.filterForm.patchValue({ categoryId: '' });
+        this.filterForm.patchValue({
+          categoryIds: this.filterForm.getRawValue().categoryIds.filter((id) => id !== chip.value),
+        });
         break;
       case 'ageGroup':
-        this.filterForm.patchValue({ ageGroup: '' });
+        this.filterForm.patchValue({
+          ageGroups: this.filterForm.getRawValue().ageGroups.filter((t) => t !== chip.value),
+        });
+        break;
+      case 'condition':
+        this.filterForm.patchValue({
+          conditions: this.filterForm.getRawValue().conditions.filter((c) => c !== chip.value),
+        });
         break;
       case 'minPrice':
         this.filterForm.patchValue({ minPrice: null });
@@ -515,17 +563,23 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     this.flush$.next();
   }
 
+  /**
+   * The filter set the sheet owns. `sort` is not a sheet field (the toolbar owns it) and is never
+   * written from here: with `queryParamsHandling: 'merge'` an absent key is left alone (M-021).
+   */
   private toListingsFilter(): ListingsFilter {
     const raw = this.filterForm.getRawValue();
     return {
       query: raw.query.trim() || null,
       city: raw.city.trim() || null,
-      categoryId: raw.categoryId.trim() || null,
+      categoryIds: raw.categoryIds ?? [],
       minPrice: raw.minPrice,
       maxPrice: raw.maxPrice,
-      ageGroup: raw.ageGroup.trim() || null,
+      ageGroups: raw.ageGroups ?? [],
+      conditions: parseConditionsParam(serializeListParam(raw.conditions ?? [])),
+      sort: 'newest',
       radiusKm: raw.radiusKm,
-      districtIds: raw.districtIds,
+      districtIds: raw.districtIds ?? [],
     };
   }
 
@@ -533,8 +587,12 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     return {
       q: filter.query,
       city: filter.city,
-      categoryId: filter.categoryId,
-      ageGroup: filter.ageGroup,
+      categoryIds: serializeListParam(filter.categoryIds),
+      // The legacy single-value keys are always cleared next to the lists that replace them.
+      categoryId: null,
+      ageGroups: serializeListParam(filter.ageGroups),
+      ageGroup: null,
+      conditions: serializeListParam(filter.conditions),
       minPrice: filter.minPrice != null ? String(filter.minPrice) : null,
       maxPrice: filter.maxPrice != null ? String(filter.maxPrice) : null,
       radiusKm: serializeRadiusKmParam(filter.radiusKm),

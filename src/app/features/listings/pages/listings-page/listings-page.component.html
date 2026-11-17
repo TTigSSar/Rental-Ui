@@ -17,128 +17,34 @@
   <!-- ── Page layout: sidebar (desktop) + main content ─────────── -->
   <div class="lp-layout">
 
-    <!-- ── Desktop filter sidebar ──────────────────────────────── -->
-    <aside #sidebar class="lp-sidebar" aria-label="Filters">
-
-      <div class="lp-sidebar__header">
-        <h2 class="lp-sidebar__title">{{ 'listings.filters.sidebar.title' | translate }}</h2>
-        @if (hasSidebarFilters()) {
-          <button type="button" class="lp-sidebar__clear" (click)="clearFilters()">
-            {{ 'listings.filters.sidebar.clearAll' | translate }}
-          </button>
-        }
-      </div>
-
-      <!-- Category -->
-      <div class="lp-sidebar__section">
-        <p class="lp-sidebar__section-label">{{ 'listings.filters.sidebar.category' | translate }}</p>
-        @for (cat of categoriesSignal(); track cat.id) {
-          <label class="lp-sidebar__checkbox-row">
-            <input
-              type="checkbox"
-              class="lp-sidebar__checkbox"
-              [checked]="activeCategoryId() === cat.id"
-              (change)="selectCategoryFromSidebar(cat.id)"
-            />
-            <span class="lp-sidebar__checkbox-name" [attr.title]="categoryLabel(cat)">{{ categoryLabel(cat) }}</span>
-          </label>
-        }
-      </div>
-
-      <div class="lp-sidebar__divider"></div>
-
-      <!-- Districts -->
-      <div #districtSection class="lp-sidebar__section">
-        <p class="lp-sidebar__section-label">{{ 'listings.filters.sidebar.districts' | translate }}</p>
-        @for (d of districtOptions(); track d.id) {
-          <label class="lp-sidebar__checkbox-row">
-            <input
-              type="checkbox"
-              class="lp-sidebar__checkbox"
-              [checked]="activeDistrictIds().includes(d.id)"
-              (change)="selectDistrictFromSidebar(d.id)"
-            />
-            <span class="lp-sidebar__checkbox-name" [attr.title]="d.label">{{ d.label }}</span>
-          </label>
-        }
-      </div>
-
-      <div class="lp-sidebar__divider"></div>
-
-      <!-- Age -->
-      <div class="lp-sidebar__section">
-        <p class="lp-sidebar__section-label">{{ 'listings.filters.sidebar.age' | translate }}</p>
-        <div class="lp-sidebar__pills">
-          @for (ag of ageGroups; track ag.value) {
-            <button
-              type="button"
-              class="lp-sidebar__pill"
-              [class.lp-sidebar__pill--active]="activeAgeGroup() === ag.value"
-              (click)="selectAgeGroup(ag.value)"
-            >{{ ag.labelKey | translate }}</button>
-          }
-        </div>
-      </div>
-
-      <div class="lp-sidebar__divider"></div>
-
-      <!-- Price per day -->
-      <div class="lp-sidebar__section">
-        <p class="lp-sidebar__section-label">{{ 'listings.filters.sidebar.pricePerDay' | translate }}</p>
-        <div class="lp-sidebar__price-row">
-          <div class="lp-sidebar__price-wrap" [class.lp-sidebar__price-wrap--set]="activeMinPrice() != null">
-            <span class="lp-sidebar__price-prefix">{{ dramSymbol }}</span>
-            <input
-              type="number"
-              class="lp-sidebar__price-input"
-              [value]="activeMinPrice() ?? ''"
-              placeholder="0"
-              min="0"
-              (change)="setMinPrice($event)"
-            />
-          </div>
-          <div class="lp-sidebar__price-wrap" [class.lp-sidebar__price-wrap--set]="activeMaxPrice() != null">
-            <span class="lp-sidebar__price-prefix">{{ dramSymbol }}</span>
-            <input
-              #maxPriceInput
-              type="number"
-              class="lp-sidebar__price-input"
-              [value]="activeMaxPrice() ?? ''"
-              placeholder="10,000"
-              min="0"
-              (change)="setMaxPrice($event)"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div class="lp-sidebar__divider"></div>
-
-      <!-- Distance -->
-      <div class="lp-sidebar__section">
-        <p class="lp-sidebar__section-label">{{ 'listings.filters.sidebar.distance' | translate }}</p>
-        <app-radius-origin-filter
-          [radiusMeters]="activeRadiusMeters()"
-          (radiusMetersChange)="onRadiusMetersChange($event)"
-          (originCleared)="onOriginCleared()"
-        />
-      </div>
-
-    </aside>
+    <!-- ── Desktop filter sidebar (Browse Redesign Stage 1) ─────── -->
+    <app-browse-filters-panel
+      class="lp-sidebar"
+      [filters]="filters()"
+      [categories]="categoriesSignal()"
+      [districts]="districts()"
+      [facets]="facets()"
+      [radiusMeters]="activeRadiusMeters()"
+      [distanceActive]="distanceActive()"
+      (patch)="patchFilters($event)"
+      (clearAll)="clearAllFilters()"
+      (radiusMetersChange)="onRadiusMetersChange($event)"
+      (originCleared)="onOriginCleared()"
+    />
 
     <!-- ── Main content area ──────────────────────────────────── -->
     <div class="lp-main">
 
-      <!-- Desktop: the search field with the "AI" switch sits above the results; the header
+      <!-- Desktop: the search bar with the "Smart search" switch sits above the results; the header
            search is hidden on this page (mobile uses the sticky bar above). -->
       <div class="lp-ai-top">
         <app-ai-search-field
-          layout="block"
+          layout="browse"
           [query]="activeQuery()"
           (queryChange)="onDesktopQueryChange($event)"
           (authRequired)="onAiAuthRequired()"
         />
-        <app-ai-example />
+        <app-ai-example [panel]="true" />
       </div>
 
       <!-- Persistent live regions (always in the DOM, text only changes) so screen readers announce
@@ -165,126 +71,134 @@
           </div>
         }
 
-        <!-- Results toolbar: count + active chips + sort dropdown -->
-        @if (!v.showInitialSkeleton && !aiSkeleton() && (v.items.length > 0 || v.hasMore)) {
-          <div class="lp-toolbar">
-            <!-- Active filter chips (desktop only) -->
-            @if (activeFilterChips().length > 0) {
-            <div class="lp-toolbar__chips" role="list" aria-label="Active filters">
-              @for (chip of activeFilterChips(); track chip.key + (chip.districtId ?? '')) {
-                <button
-                  type="button"
-                  class="lp-active-chip"
-                  role="listitem"
-                  (click)="removeFilterChip(chip)"
-                >
+        <!-- Results toolbar: active chips, then List/Map (left) + Sort (right) — no count line (ai-search note 14) -->
+        <div class="lp-toolbar">
+          <!-- Active filter chips (desktop only): one per selected value + Clear all -->
+          @if (activeFilterChips().length > 0) {
+            <div class="lp-toolbar__chips" role="list" [attr.aria-label]="'listings.page.activeFiltersAria' | translate">
+              @for (chip of activeFilterChips(); track chip.key + (chip.value ?? '')) {
+                <span class="achip" role="listitem">
                   {{ chip.label }}
-                  <i class="pi pi-times lp-active-chip__icon" aria-hidden="true"></i>
-                </button>
-              }
-            </div>
-            }
-
-            <!-- Row 2: rendered in the visual order of each layout so Tab order matches it
-                 (design-notes 16, 19): desktop = List/Map, status, sort; mobile = status, List/Map, sort. -->
-            @if (isDesktop()) {
-              <div class="lp-toolbar__row">
-                <ng-container *ngTemplateOutlet="toggleTpl" />
-                <div class="lp-toolbar__lead">
-                  <ng-container *ngTemplateOutlet="updatingTpl" />
-                  <ng-container *ngTemplateOutlet="sortTpl" />
-                </div>
-              </div>
-            } @else {
-              <ng-container *ngTemplateOutlet="updatingTpl" />
-              <ng-container *ngTemplateOutlet="toggleTpl" />
-              <ng-container *ngTemplateOutlet="sortTpl" />
-            }
-
-            <ng-template #toggleTpl>
-              <!-- List/Map toggle (Maps P2-2) -->
-              <div class="lp-view-toggle" role="group" [attr.aria-label]="'listings.map.viewToggle.groupLabel' | translate">
-                <button
-                  type="button"
-                  class="lp-view-toggle__btn"
-                  [class.lp-view-toggle__btn--active]="viewMode() === 'list'"
-                  [attr.aria-pressed]="viewMode() === 'list'"
-                  [attr.aria-label]="'listings.map.viewToggle.list' | translate"
-                  (click)="setViewMode('list')"
-                >
-                  <i class="pi pi-list" aria-hidden="true"></i>
-                  <span class="lp-view-toggle__label">{{ 'listings.map.viewToggle.list' | translate }}</span>
-                </button>
-                <button
-                  type="button"
-                  class="lp-view-toggle__btn"
-                  [class.lp-view-toggle__btn--active]="viewMode() === 'map'"
-                  [attr.aria-pressed]="viewMode() === 'map'"
-                  [attr.aria-label]="'listings.map.viewToggle.map' | translate"
-                  (click)="setViewMode('map')"
-                >
-                  <i class="pi pi-map" aria-hidden="true"></i>
-                  <span class="lp-view-toggle__label">{{ 'listings.map.viewToggle.map' | translate }}</span>
-                </button>
-              </div>
-            </ng-template>
-            <ng-template #sortTpl>
-                <div class="lp-sort-wrapper">
-                  @if (sortMenuOpen()) {
-                    <div class="lp-sort-backdrop" aria-hidden="true" (click)="sortMenuOpen.set(false)"></div>
-                  }
                   <button
                     type="button"
-                    class="lp-toolbar__sort"
-                    [class.lp-toolbar__sort--active]="sortBy() !== '' && sortBy() !== 'relevance'"
-                    [attr.aria-label]="'listings.page.sortLabel' | translate"
-                    [attr.aria-expanded]="sortMenuOpen()"
-                    (click)="toggleSortMenu()"
+                    [attr.aria-label]="'listings.browse.removeChip' | translate: { label: chip.label }"
+                    (click)="removeFilterChip(chip)"
                   >
-                    <span>
-                      @if (activeSortOption(); as opt) {
-                        {{ 'listings.page.sortBy' | translate }}&nbsp;{{ opt.labelKey | translate }}
-                      } @else {
-                        {{ 'listings.page.sortBy' | translate }}&nbsp;{{ 'listings.page.sortNearest' | translate }}
-                      }
-                    </span>
-                    <i class="pi pi-chevron-down lp-toolbar__sort-chevron" aria-hidden="true"></i>
+                    <i class="pi pi-times" aria-hidden="true"></i>
                   </button>
+                </span>
+              }
+              <button type="button" class="tlink" data-testid="chips-clear-all" (click)="clearAllFilters()">
+                {{ 'listings.filters.sidebar.clearAll' | translate }}
+              </button>
+            </div>
+          }
 
-                  @if (sortMenuOpen()) {
-                    <div class="lp-sort-menu" role="listbox" [attr.aria-label]="'listings.page.sortLabel' | translate">
-                      @for (opt of sortOptions(); track opt.value) {
-                        <button
-                          type="button"
-                          class="lp-sort-menu__item"
-                          [class.lp-sort-menu__item--active]="sortBy() === opt.value"
-                          role="option"
-                          [attr.aria-selected]="sortBy() === opt.value"
-                          (click)="selectSort(opt.value)"
-                        >
-                          <i [class]="opt.icon" aria-hidden="true"></i>
-                          <span>{{ opt.labelKey | translate }}</span>
-                          @if (sortBy() === opt.value) {
-                            <i class="pi pi-check lp-sort-menu__check" aria-hidden="true"></i>
+          <!-- Row 2: rendered in the visual order of each layout so Tab order matches it
+               (design-notes 16, 19): desktop = List/Map left, status + sort right; mobile = status, List/Map, sort. -->
+          @if (isDesktop()) {
+            <div class="lp-toolbar__row">
+              <ng-container *ngTemplateOutlet="toggleTpl" />
+              <div class="lp-toolbar__lead">
+                <ng-container *ngTemplateOutlet="updatingTpl" />
+                <ng-container *ngTemplateOutlet="sortTpl" />
+              </div>
+            </div>
+          } @else {
+            <ng-container *ngTemplateOutlet="updatingTpl" />
+            <ng-container *ngTemplateOutlet="toggleTpl" />
+            <ng-container *ngTemplateOutlet="sortTpl" />
+          }
+
+          <ng-template #toggleTpl>
+            <!-- List/Map toggle (Maps P2-2; design `.vswitch`, role=tablist) -->
+            <div class="lp-view-toggle" role="tablist" [attr.aria-label]="'listings.map.viewToggle.groupLabel' | translate">
+              <button
+                type="button"
+                role="tab"
+                class="lp-view-toggle__btn"
+                [class.lp-view-toggle__btn--active]="viewMode() === 'list'"
+                [attr.aria-selected]="viewMode() === 'list'"
+                [attr.aria-label]="'listings.map.viewToggle.list' | translate"
+                (click)="setViewMode('list')"
+              >
+                <i class="pi pi-th-large" aria-hidden="true"></i>
+                <span class="lp-view-toggle__label">{{ 'listings.map.viewToggle.list' | translate }}</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                class="lp-view-toggle__btn"
+                [class.lp-view-toggle__btn--active]="viewMode() === 'map'"
+                [attr.aria-selected]="viewMode() === 'map'"
+                [attr.aria-label]="'listings.map.viewToggle.map' | translate"
+                (click)="setViewMode('map')"
+              >
+                <i class="pi pi-map-marker" aria-hidden="true"></i>
+                <span class="lp-view-toggle__label">{{ 'listings.map.viewToggle.map' | translate }}</span>
+              </button>
+            </div>
+          </ng-template>
+          <ng-template #sortTpl>
+            <div class="lp-sort-wrapper">
+              @if (sortMenuOpen()) {
+                <div class="lp-sort-backdrop" aria-hidden="true" (click)="sortMenuOpen.set(false)"></div>
+              }
+              <button
+                type="button"
+                class="lp-toolbar__sort"
+                aria-haspopup="listbox"
+                [attr.aria-label]="('listings.page.sortLabel' | translate) + ': ' + (activeSortOption().labelKey | translate)"
+                [attr.aria-expanded]="sortMenuOpen()"
+                (click)="onSortTriggerClick($event)"
+                (keydown)="onSortTriggerKeydown($event)"
+              >
+                <span class="lp-toolbar__sort-prefix">{{ 'listings.page.sortLabel' | translate }}</span>
+                <span class="lp-toolbar__sort-value">{{ activeSortOption().labelKey | translate }}</span>
+                <i class="pi pi-chevron-down lp-toolbar__sort-chevron" aria-hidden="true"></i>
+              </button>
+
+              @if (sortMenuOpen()) {
+                <ul class="lp-sort-menu" role="listbox" [attr.aria-label]="'listings.page.sortLabel' | translate" (keydown)="onSortMenuKeydown($event)">
+                  @for (opt of sortOptions(); track opt.value) {
+                    <li role="presentation">
+                      <button
+                        type="button"
+                        class="lp-sort-menu__item"
+                        [class.lp-sort-menu__item--disabled]="opt.disabled"
+                        role="option"
+                        [attr.aria-selected]="sortBy() === opt.value"
+                        [attr.aria-disabled]="opt.disabled ? 'true' : null"
+                        [attr.title]="opt.disabled ? ('listings.browse.sortNearestHint' | translate) : null"
+                        (click)="onSortOptionClick($event, opt.value)"
+                      >
+                        <span class="lp-sort-menu__label">
+                          {{ opt.labelKey | translate }}
+                          @if (opt.disabled) {
+                            <small class="lp-sort-menu__hint">{{ 'listings.browse.sortNearestHint' | translate }}</small>
                           }
-                        </button>
-                      }
-                    </div>
+                        </span>
+                        @if (sortBy() === opt.value) {
+                          <i class="pi pi-check lp-sort-menu__check" aria-hidden="true"></i>
+                        }
+                      </button>
+                    </li>
                   }
-                </div>
-            </ng-template>
-            <ng-template #updatingTpl>
-                @if (aiBusy() === 'reranking') {
-                  <!-- No count line anywhere (design-notes 14); during a re-rank "Updating the order" shows here
-                       (announced by the persistent .lp-sr-live region). -->
-                  <span class="lp-toolbar__updating" aria-hidden="true">
-                    <i class="pi pi-spinner lp-toolbar__updating-icon" aria-hidden="true"></i>
-                    <span>{{ 'listings.ai.updating' | translate }}</span>
-                  </span>
-                }
-            </ng-template>
-          </div>
-        }
+                </ul>
+              }
+            </div>
+          </ng-template>
+          <ng-template #updatingTpl>
+            @if (aiBusy() === 'reranking') {
+              <!-- No count line anywhere (design-notes 14); during a re-rank "Updating the order" shows here
+                   (announced by the persistent .lp-sr-live region). -->
+              <span class="lp-toolbar__updating" aria-hidden="true">
+                <i class="pi pi-spinner lp-toolbar__updating-icon" aria-hidden="true"></i>
+                <span>{{ 'listings.ai.updating' | translate }}</span>
+              </span>
+            }
+          </ng-template>
+        </div>
 
         <!-- Results region: busy while a search / re-rank is in flight. -->
         <div #resultsRegion class="lp-results" tabindex="-1" [attr.aria-busy]="aiBusy() !== 'idle'">
@@ -469,9 +383,11 @@
             }
           }
         } @else {
-          <app-listings-map class="listings-page__map">
-            <span app-map-gate-hint>{{ 'listings.details.location.touchGateHint' | translate }}</span>
-          </app-listings-map>
+          <div class="listings-page__map">
+            <app-listings-map [height]="'100%'">
+              <span app-map-gate-hint>{{ 'listings.details.location.touchGateHint' | translate }}</span>
+            </app-listings-map>
+          </div>
         }
         </div><!-- /lp-results -->
       }

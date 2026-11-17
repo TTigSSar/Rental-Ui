@@ -3,45 +3,45 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  EventEmitter,
   inject,
   input,
-  Output,
+  output,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { LanguageService } from '../../../../shared/services/language.service';
-import { ImageContainerComponent } from '../../../../shared/ui/image-container/image-container.component';
-import { resolveConditionLabelKey } from '../../../../shared/utils/listing-condition.utils';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
+import { resolveConditionLabelKey } from '../../../../shared/utils/listing-condition.utils';
 import type { BookingStatus } from '../../../bookings/models/booking.model';
+import type { PriceUnit } from '../../models/create-listing.model';
+import { districtDisplayName } from '../../models/district-ui.util';
 import type { ListingPreview } from '../../models/listing.model';
 import type { ListingsOriginSource } from '../../models/listings-filter.model';
-import { formatDistanceMeters, kmToMeters, localeTagForLanguage } from '../../models/radius-scale.util';
+import {
+  formatDistanceMeters,
+  kmToMeters,
+  localeTagForLanguage,
+} from '../../models/radius-scale.util';
 
-interface BookingBadgeConfig {
-  readonly labelKey: string;
-  readonly modifier: 'pending' | 'approved' | 'active' | 'completed' | 'declined';
-}
-
-function resolveBookingBadge(status: BookingStatus | null | undefined): BookingBadgeConfig | null {
+/** Label key for the booking pill (same keys the card has always used). */
+function resolveBookingLabelKey(status: BookingStatus | null | undefined): string | null {
   switch (status) {
     case 'PendingApproval':
     case 'Pending':
-      return { labelKey: 'listings.card.bookingBadge.rentalRequested', modifier: 'pending' };
+      return 'listings.card.bookingBadge.rentalRequested';
     case 'Approved':
-      return { labelKey: 'listings.card.bookingBadge.approved', modifier: 'approved' };
+      return 'listings.card.bookingBadge.approved';
     case 'Active':
-      return { labelKey: 'listings.card.bookingBadge.currentlyRenting', modifier: 'active' };
+      return 'listings.card.bookingBadge.currentlyRenting';
     case 'ReturnMarked':
-      return { labelKey: 'listings.card.bookingBadge.awaitingCompletion', modifier: 'pending' };
+      return 'listings.card.bookingBadge.awaitingCompletion';
     case 'Completed':
-      return { labelKey: 'listings.card.bookingBadge.previouslyRented', modifier: 'completed' };
+      return 'listings.card.bookingBadge.previouslyRented';
     case 'Rejected':
-      return { labelKey: 'listings.card.bookingBadge.requestDeclined', modifier: 'declined' };
+      return 'listings.card.bookingBadge.requestDeclined';
     case 'Cancelled':
-      return { labelKey: 'listings.card.bookingBadge.cancelled', modifier: 'declined' };
+      return 'listings.card.bookingBadge.cancelled';
     default:
       return null;
   }
@@ -55,13 +55,12 @@ interface AgeRangeDisplay {
   readonly params: { from?: number; to?: number };
 }
 
-function resolveAgeRangeDisplay(
+function resolveAgeRange(
   fromMonths: number | null | undefined,
   toMonths: number | null | undefined,
 ): AgeRangeDisplay | null {
   const hasFrom = typeof fromMonths === 'number' && Number.isFinite(fromMonths);
   const hasTo = typeof toMonths === 'number' && Number.isFinite(toMonths);
-
   if (hasFrom && hasTo) {
     return {
       key: 'listings.details.toyDetails.ageRangeFromTo',
@@ -69,32 +68,41 @@ function resolveAgeRangeDisplay(
     };
   }
   if (hasFrom) {
-    return {
-      key: 'listings.details.toyDetails.ageRangeFromOnly',
-      params: { from: fromMonths },
-    };
+    return { key: 'listings.details.toyDetails.ageRangeFromOnly', params: { from: fromMonths } };
   }
   if (hasTo) {
-    return {
-      key: 'listings.details.toyDetails.ageRangeToOnly',
-      params: { to: toMonths },
-    };
+    return { key: 'listings.details.toyDetails.ageRangeToOnly', params: { to: toMonths } };
   }
   return null;
 }
 
+/** Price suffix per unit (ADR-047). Daily — and an unknown unit — keep the "per day" wording. */
+const PRICE_UNIT_SUFFIX_KEYS: Readonly<Partial<Record<PriceUnit, string>>> = {
+  Hourly: 'listings.createForm.perUnit.hourly',
+  Weekly: 'listings.createForm.perUnit.weekly',
+  Monthly: 'listings.createForm.perUnit.monthly',
+  Yearly: 'listings.createForm.perUnit.yearly',
+};
+const PER_DAY_SUFFIX_KEY = 'listings.booking.priceSuffix';
+
+/**
+ * The single shared toy card (ADR-064, amended 2026-11-17): Home rows, the
+ * catalogue, favourites and public profiles all render it. The parent sets the
+ * width; the image ratio (0.86 mobile / 0.83 desktop) and the "View" pill are
+ * viewport-only CSS, and the no-photo label follows the card's own width
+ * through a container query.
+ *
+ * The whole card is the link: the title anchor stretches over the card with a
+ * `::after` overlay. The favourite button is a SIBLING of that anchor (never
+ * nested in it) stacked above the overlay, so it stays independently focusable
+ * and clickable.
+ */
 @Component({
   selector: 'app-listing-card',
   standalone: true,
-  imports: [
-    DramCurrencyPipe,
-    DecimalPipe,
-    ImageContainerComponent,
-    RouterLink,
-    TranslatePipe,
-  ],
+  imports: [DecimalPipe, DramCurrencyPipe, RouterLink, TranslatePipe],
   templateUrl: './listing-card.component.html',
-  styleUrl: './listing-card.component.css',
+  styleUrl: './listing-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListingCardComponent {
@@ -102,103 +110,98 @@ export class ListingCardComponent {
   private readonly translate = inject(TranslateService);
 
   readonly listing = input.required<ListingPreview>();
+  /** Gates the booking pill: a signed-out viewer never sees booking state. */
   readonly isAuthenticated = input<boolean>(false);
   readonly bookingStatus = input<BookingStatus | null | undefined>(undefined);
+  /** The viewer's own listing: owner pill, owner link, no favourite button, no distance. */
   readonly isOwner = input<boolean>(false);
 
   /**
-   * Which origin the backend measured `listing.distanceKm` FROM — decides the
-   * badge's whole treatment (approved design section (b)): `'home'` renders
-   * the orange home-icon "{d} km from your home" pill, everything else the
-   * blue location-arrow "{d} km from you" one. The two must stay easy to
-   * tell apart at a glance; a renter who has both a home point and a live
-   * fix needs to know which number they are looking at.
-   *
-   * Set by the catalogue surfaces that actually requested a distance
-   * (`ListingsPageComponent`, `ListingsFiltersComponent`'s result grid) from
-   * `ListingsState.originSource`. Everywhere else it stays `null`, which is
-   * harmless because `distanceKm` is itself only populated on a request that
-   * carried an origin (favorites, my-listings and the Home sections never
-   * send one), so there is no badge to label.
+   * Which origin the backend measured `listing.distanceKm` FROM. It no longer
+   * changes the look (the distance is a suffix on the location line); it picks
+   * the wording of the suffix's tooltip: "from your home" vs "from you".
    */
   readonly distanceOrigin = input<ListingsOriginSource | null>(null);
 
-  @Output() readonly favoriteToggled = new EventEmitter<string>();
+  readonly favoriteToggled = output<string>();
+
+  protected readonly cardLink = computed(() =>
+    this.isOwner() ? ['/my-listings', this.listing().id] : ['/listings', this.listing().id],
+  );
+
+  /** "City, District" (district in the UI language); the city alone without a district. */
+  protected readonly locationLabel = computed(() => {
+    const listing = this.listing();
+    const district = listing.district
+      ? districtDisplayName(listing.district, this.languageService.current().code)
+      : '';
+    return [listing.city, district].filter((part) => part.trim().length > 0).join(', ');
+  });
 
   /**
-   * `.distbadge` pill (Maps P2 "location + radius" design) — only populated
-   * when `GET /api/listings` was called with `originLat`/`originLng`
-   * (`ListingPreview.distanceKm`'s own doc comment), so this is `null`/hidden
-   * everywhere else (favorites, my-listings, unfiltered browse). Distance is
-   * never recomputed client-side — always the backend's haversine value.
-   *
-   * **Suppressed for the viewer's OWN listing.** `isOwner` already replaces
-   * this badge with the "Your listing" one in the template, but the
-   * suppression lives here too so the rule holds for any future caller that
-   * renders the badge without that branch: "0.3 km from your home" about a
-   * toy that is AT your home is noise at best, and on a shared screen it is
-   * the owner's own address being narrated back at them.
+   * Backend haversine distance, formatted — populated when the request carried an origin
+   * (a radius filter or sort=nearest; ADR-064 amendment). Shown whenever `distanceKm` is non-null. Never shown on the viewer's own
+   * listing (it would narrate their own address back at them).
    */
   protected readonly distanceLabel = computed(() => {
     if (this.isOwner()) return null;
     const km = this.listing().distanceKm;
     if (km == null) return null;
-    return formatDistanceMeters(kmToMeters(km), localeTagForLanguage(this.languageService.current().code), {
-      meters: this.translate.instant('listings.filters.distance.unitMeters'),
-      kilometers: this.translate.instant('listings.filters.distance.unitKilometers'),
-    });
+    return formatDistanceMeters(
+      kmToMeters(km),
+      localeTagForLanguage(this.languageService.current().code),
+      {
+        meters: this.translate.instant('listings.filters.distance.unitMeters'),
+        kilometers: this.translate.instant('listings.filters.distance.unitKilometers'),
+      },
+    );
   });
 
-  /** `true` when `distanceKm` was measured from the renter's home point —
-   *  the orange home-icon badge variant (approved design section (b)). */
-  protected readonly distanceFromHome = computed(() => this.distanceOrigin() === 'home');
-
-  /** i18n key for the badge text, interpolating the formatted distance.
-   *  Two keys, not one with a swapped noun: "from your home" and "from you"
-   *  are different claims and each language declines them differently. */
-  protected readonly distanceLabelKey = computed(() =>
-    this.distanceFromHome()
+  protected readonly distanceTitleKey = computed(() =>
+    this.distanceOrigin() === 'home'
       ? 'listings.card.distanceFromHome'
       : 'listings.card.distanceFromYou',
   );
 
-  protected readonly cardLink = computed(() =>
-    this.isOwner()
-      ? ['/my-listings', this.listing().id]
-      : ['/listings', this.listing().id],
-  );
-
-  protected readonly bookingBadge = computed(() =>
-    this.isAuthenticated() ? resolveBookingBadge(this.bookingStatus()) : null,
+  /** The single top-left pill: rented beats the owner marker, which beats the booking status. */
+  protected readonly badge = computed<{
+    readonly labelKey: string;
+    readonly kind: 'rented' | 'owner' | 'booking';
+  } | null>(
+    () => {
+      if (this.listing().listingStatus === 'rented') {
+        return { labelKey: 'listings.card.statusRented', kind: 'rented' };
+      }
+      if (this.isOwner()) {
+        return { labelKey: 'listings.card.yourListing', kind: 'owner' };
+      }
+      const labelKey = this.isAuthenticated() ? resolveBookingLabelKey(this.bookingStatus()) : null;
+      return labelKey ? { labelKey, kind: 'booking' } : null;
+    },
   );
 
   protected readonly ageRange = computed(() => {
     const listing = this.listing();
-    return resolveAgeRangeDisplay(listing.ageFromMonths, listing.ageToMonths);
+    return resolveAgeRange(listing.ageFromMonths, listing.ageToMonths);
+  });
+
+  protected readonly hasRating = computed(() => this.listing().rating != null);
+
+  protected readonly priceSuffixKey = computed(() => {
+    const unit = this.listing().priceUnit;
+    return (unit && PRICE_UNIT_SUFFIX_KEYS[unit]) || PER_DAY_SUFFIX_KEY;
   });
 
   protected readonly conditionLabelKey = computed(() =>
     resolveConditionLabelKey(this.listing().condition),
   );
 
-  protected readonly hasHygieneNotes = computed(() => {
-    const notes = this.listing().hygieneNotes;
-    return typeof notes === 'string' && notes.trim().length > 0;
-  });
-
-  protected readonly hasCondition = computed(() => {
+  protected readonly conditionRaw = computed(() => {
     const condition = this.listing().condition;
-    return typeof condition === 'string' && condition.trim().length > 0;
+    return typeof condition === 'string' && condition.trim().length > 0 ? condition : null;
   });
 
-  // Age is shown in the image overlay; condition + hygiene in the trust footer row.
-  protected readonly showTrustFooter = computed(
-    () => this.hasCondition() || this.hasHygieneNotes(),
-  );
-
-  protected onFavoriteClick(event: MouseEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
+  protected onFavoriteClick(): void {
     this.favoriteToggled.emit(this.listing().id);
   }
 }

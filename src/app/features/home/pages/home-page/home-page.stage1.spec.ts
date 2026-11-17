@@ -99,13 +99,13 @@ describe('HomePageComponent hero search (Stage 1)', () => {
 });
 
 describe('HomePageComponent toy rows (Stage 1)', () => {
-  it('renders Home-only toy cards, not the shared listing card', () => {
+  it('renders the shared listing card in the rows', () => {
     const { el } = render({
       sections: [{ key: 'popular', title: 'Popular', items: [makeListingPreview()] }],
     });
 
-    expect(el.querySelectorAll('app-home-toy-card').length).toBe(1);
-    expect(el.querySelector('app-listing-card')).toBeNull();
+    expect(el.querySelectorAll('app-listing-card').length).toBe(1);
+    expect(el.querySelector('app-home-toy-card')).toBeNull();
   });
 
   it('shows the five titled sections with card skeletons while loading', () => {
@@ -120,7 +120,7 @@ describe('HomePageComponent toy rows (Stage 1)', () => {
       'home-section-baby-toys',
       'home-section-outdoor-toys',
     ]);
-    expect(el.querySelectorAll('app-home-toy-card-skeleton').length).toBe(25);
+    expect(el.querySelectorAll('app-listing-card-skeleton').length).toBe(25);
     expect(el.querySelector('app-ui-loading-skeleton')).toBeNull();
   });
 

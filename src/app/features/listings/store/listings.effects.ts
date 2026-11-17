@@ -5,6 +5,7 @@ import { Store } from '@ngrx/store';
 import {
   catchError,
   concatMap,
+  debounceTime,
   distinctUntilChanged,
   EMPTY,
   map,
@@ -38,6 +39,9 @@ import {
 } from './listings.selectors';
 import { initialListingsState } from './listings.state';
 import { getApiErrorCode } from '../../../api/api-error.model';
+
+/** Facets wait this long after the last filter/origin change, so quick edits cost one request. */
+export const FACETS_DEBOUNCE_MS = 200;
 
 /** A filter/chip change re-ranks after this long, so several quick edits cost one request. */
 export const AI_RERANK_DEBOUNCE_MS = 400;
@@ -87,6 +91,35 @@ export class ListingsEffects {
               }),
             ),
           ),
+        ),
+      ),
+    ),
+  );
+
+  /**
+   * ADR-066 facets: re-fetched whenever what the catalogue shows changes (a catalogue load, an AI
+   * result applying its filters, the origin set/cleared), debounced so it follows the listing load
+   * with one request. The request carries the same filters, but never sort, paging or bbox (the API
+   * service builds it from the shared filter params only). A failure just drops the counts.
+   */
+  readonly loadFacets$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(
+        ListingsActions.loadListings,
+        ListingsActions.setOriginCoords,
+        ListingsActions.clearOrigin,
+        ListingsActions.aiSearchSuccess,
+      ),
+      filter((action) => action.type !== ListingsActions.aiSearchSuccess.type || action.kind !== 'page'),
+      debounceTime(FACETS_DEBOUNCE_MS),
+      withLatestFrom(
+        this.store.select(selectListingsFilters),
+        this.store.select(selectListingsOriginCoords),
+      ),
+      switchMap(([, filters, originCoords]) =>
+        this.listingsApi.getFacets(filters, originCoords).pipe(
+          map((facets) => ListingsActions.loadFacetsSuccess({ facets })),
+          catchError(() => of(ListingsActions.loadFacetsFailure())),
         ),
       ),
     ),

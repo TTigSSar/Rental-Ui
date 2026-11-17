@@ -202,3 +202,185 @@
 .aisf__input[type='search']::-webkit-search-cancel-button {
   display: none;
 }
+
+/* ── Browse Redesign Stage 1 `.bsearch` (layout="browse") ──────────────────────────────
+   Values are the design's; hex mapped to tokens where one exists. */
+.aisf--browse {
+  gap: 0;
+}
+
+.bsearch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 64px;
+  padding: 0 8px 0 22px;
+  background: var(--ui-color-surface);
+  border: 1.5px solid var(--ui-color-border-input);
+  border-radius: var(--ui-radius-pill);
+  box-shadow: var(--ui-shadow-card);
+  min-width: 0;
+}
+
+.bsearch:focus-within {
+  border-color: var(--ui-color-primary-strong);
+}
+
+/* Smart search on: the ring (design #FF9A5C border + 4px soft halo; no token for the border). */
+.bsearch--ai,
+.bsearch--ai:focus-within {
+  border-color: #ff9a5c;
+  box-shadow: 0 0 0 4px var(--ui-color-primary-soft), 0 8px 24px rgba(20, 15, 5, 0.06);
+}
+
+.bsearch__icon {
+  flex: none;
+  color: var(--ui-color-text-secondary);
+}
+
+.bsearch__icon--ai {
+  color: var(--ui-color-primary-strong);
+}
+
+.bsearch__input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 16px;
+  color: var(--ui-color-text-primary);
+  text-overflow: ellipsis;
+}
+
+.bsearch__input::placeholder {
+  color: var(--ui-color-text-hint);
+}
+
+.bsearch__clear {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border: 0;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface-muted);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  /* design #4A4A55: no token */
+  color: #4a4a55;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.bsearch__clear:hover {
+  background: var(--ui-color-border);
+}
+
+.aitg {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px 0 10px;
+  border-radius: var(--ui-radius-pill);
+  border: 1px solid var(--ui-color-border);
+  background: var(--ui-color-background);
+  color: var(--ui-color-text-primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  flex: none;
+  cursor: pointer;
+}
+
+.aitg__sw {
+  width: 34px;
+  height: 20px;
+  border-radius: var(--ui-radius-pill);
+  /* design #C9C5BC switch track: no token */
+  background: #c9c5bc;
+  position: relative;
+  transition: background 0.15s;
+}
+
+.aitg__sw::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--ui-color-surface);
+  transition: left 0.15s;
+}
+
+.aitg.on {
+  background: var(--ui-color-primary-soft);
+  /* design #FFD3AE; --ui-color-primary-wash-border (#ffd9bd) is the nearest token */
+  border-color: var(--ui-color-primary-wash-border);
+  color: var(--ui-color-primary-strong);
+}
+
+.aitg.on .aitg__sw {
+  background: var(--ui-color-primary-strong);
+}
+
+.aitg.on .aitg__sw::after {
+  left: 16px;
+}
+
+.aitg--dis {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.bsearch__submit {
+  flex: none;
+  min-height: 48px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-primary-strong);
+  color: var(--ui-color-on-primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.bsearch__submit:hover {
+  background: var(--ui-color-primary-strong-hover);
+}
+
+.bsearch__clear:focus-visible,
+.aitg:focus-visible,
+.bsearch__submit:focus-visible {
+  outline: 2px solid var(--ui-color-primary-strong);
+  outline-offset: 2px;
+}
+
+.aihint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 0 22px;
+  font-size: 13px;
+  line-height: 18px;
+  color: #4a4a55;
+}
+
+.aihint app-icon {
+  color: var(--ui-color-primary-strong);
+}
+
+@media (max-width: 1100px) {
+  /* Narrow desktop: the switch keeps its label but the bar must not overflow. */
+  .bsearch {
+    gap: 8px;
+    padding-left: 16px;
+  }
+}

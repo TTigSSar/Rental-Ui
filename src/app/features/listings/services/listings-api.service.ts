@@ -32,7 +32,12 @@ import type {
 import type { ListingMapPin, ListingMapPinsResult } from '../models/listing-map-pin.model';
 import type { MapPinsBounds } from '../models/map-pins-bounds.model';
 import type { ListingsFilter, ListingsOriginCoords } from '../models/listings-filter.model';
-import { clampRadiusKm, parseAgeGroupToMonths } from '../models/listings-filter.model';
+import {
+  LISTINGS_FILTER_LIMITS,
+  ageGroupToRangeParam,
+  clampRadiusKm,
+} from '../models/listings-filter.model';
+import type { ListingFacets } from '../models/listing-facets.model';
 import type { PagedResult } from '../models/paged-result.model';
 import type { PriceUnit } from '../models/create-listing.model';
 
@@ -227,6 +232,9 @@ export class ListingsApiService {
       appliedFilters: {
         categoryId: applied?.categoryId ?? null,
         ageGroup: applied?.ageGroup ?? null,
+        categoryIds: Array.isArray(applied?.categoryIds) ? applied.categoryIds : null,
+        ageRanges: Array.isArray(applied?.ageRanges) ? applied.ageRanges : null,
+        conditions: Array.isArray(applied?.conditions) ? applied.conditions : null,
         maxPrice: applied?.maxPrice ?? null,
         districtIds: Array.isArray(applied?.districtIds) ? applied.districtIds : null,
         nearHome: applied?.nearHome === true,
@@ -400,6 +408,32 @@ export class ListingsApiService {
   }
 
   /**
+   * ADR-066 `GET /api/listings/facets`: counts per category / district and the price bounds for the
+   * current filters. Same shared filter params as the catalogue, never `sort`, paging or bbox.
+   * Arrays are never null on the wire; tolerated here anyway.
+   */
+  getFacets(
+    filter: ListingsFilter,
+    originCoords: ListingsOriginCoords | null,
+  ): Observable<ListingFacets> {
+    const params = this.buildSharedFilterParams(filter, originCoords);
+    return this.http
+      .get<Partial<ListingFacets>>(toApiUrl(ApiContract.listings.facets), { params })
+      .pipe(
+        map((result) => ({
+          categories: (Array.isArray(result?.categories) ? result.categories : []).filter(
+            (c) => typeof c?.categoryId === 'string' && typeof c.count === 'number',
+          ),
+          districts: (Array.isArray(result?.districts) ? result.districts : []).filter(
+            (d) => typeof d?.districtId === 'string' && typeof d.count === 'number',
+          ),
+          minPricePerDay: normalizeFiniteNumber(result?.minPricePerDay),
+          maxPricePerDay: normalizeFiniteNumber(result?.maxPricePerDay),
+        })),
+      );
+  }
+
+  /**
    * Maps P2-2: viewport pins for the catalog map view, same `ListingsFilter`
    * shape as `getListings` minus paging. `bounds` is sent all-or-nothing
    * (`minLat`/`maxLat`/`minLng`/`maxLng`) — the backend only applies the box
@@ -471,9 +505,10 @@ export class ListingsApiService {
       params = params.set('city', city);
     }
 
-    const categoryId = filter.categoryId?.trim();
-    if (categoryId) {
-      params = params.set('categoryId', categoryId);
+    // ADR-066: repeated keys (`categoryIds=a&categoryIds=b`), `.append` not `.set`; capped at the
+    // server limits so a hand-edited URL cannot turn into a 400.
+    for (const categoryId of filter.categoryIds.slice(0, LISTINGS_FILTER_LIMITS.categoryIds)) {
+      params = params.append('categoryIds', categoryId);
     }
 
     if (filter.minPrice !== null) {
@@ -483,13 +518,16 @@ export class ListingsApiService {
       params = params.set('maxPrice', String(filter.maxPrice));
     }
 
-    const ageGroup = filter.ageGroup?.trim();
-    const ageBounds = ageGroup ? parseAgeGroupToMonths(ageGroup) : null;
-    if (ageBounds) {
-      params = params.set('ageFromMonths', String(ageBounds.ageFromMonths));
-      if (ageBounds.ageToMonths !== null) {
-        params = params.set('ageToMonths', String(ageBounds.ageToMonths));
+    // `ageRanges`: "from-to" months, open-ended "120-" (an AGE_GROUPS "120+" token is mapped).
+    for (const token of filter.ageGroups.slice(0, LISTINGS_FILTER_LIMITS.ageRanges)) {
+      const range = ageGroupToRangeParam(token);
+      if (range) {
+        params = params.append('ageRanges', range);
       }
+    }
+
+    for (const condition of filter.conditions.slice(0, LISTINGS_FILTER_LIMITS.conditions)) {
+      params = params.append('conditions', condition);
     }
 
     // Repeating query key, NOT a single comma-joined value — the backend reads
@@ -536,16 +574,35 @@ export class ListingsApiService {
     return params;
   }
 
-  /** Adds paging on top of `buildSharedFilterParams` for the paged search call. */
+  /**
+   * Adds sort and paging on top of `buildSharedFilterParams` for the paged search call — the only
+   * request that takes them (`map-pins` and `facets` must not get `sort`, paging or bbox).
+   *
+   * `sort=newest` is the server default and is omitted. `sort=nearest` needs an origin or the API
+   * answers 400: without one it is omitted too (the UI disables the option and falls back to
+   * newest). Choosing "Nearest" is the renter asking for distance ordering, so it also carries the
+   * origin (rounded like every outbound origin) when no radius filter already did.
+   */
   private buildListingsQueryParams(
     filter: ListingsFilter,
     page: number,
     pageSize: number,
     originCoords: ListingsOriginCoords | null,
   ): HttpParams {
-    return this.buildSharedFilterParams(filter, originCoords)
-      .set('page', String(page))
-      .set('pageSize', String(pageSize));
+    let params = this.buildSharedFilterParams(filter, originCoords);
+    if (filter.sort === 'nearest') {
+      if (originCoords !== null) {
+        if (!params.has('originLat')) {
+          params = params
+            .set('originLat', String(roundCoordForApi(originCoords.lat)))
+            .set('originLng', String(roundCoordForApi(originCoords.lng)));
+        }
+        params = params.set('sort', 'nearest');
+      }
+    } else if (filter.sort !== 'newest') {
+      params = params.set('sort', filter.sort);
+    }
+    return params.set('page', String(page)).set('pageSize', String(pageSize));
   }
 
   private normalizePagedResult<T>(

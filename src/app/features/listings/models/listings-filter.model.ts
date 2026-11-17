@@ -1,10 +1,47 @@
+/**
+ * `sort` query value of `GET /api/listings` (ADR-066). Server default `newest`.
+ * `nearest` requires `originLat` + `originLng`, else 400. `map-pins` ignores
+ * (but validates) `sort` — do not send it there; `facets` must not get it either.
+ */
+export type ListingsSort = 'newest' | 'price_asc' | 'price_desc' | 'rating_desc' | 'nearest';
+
+/** `conditions` query values (repeated key, max 4). Narrower than `ToyCondition` — no `Poor`. */
+export type ListingConditionFilter = 'New' | 'LikeNew' | 'Good' | 'Fair';
+
+/** Server caps on the repeated filter keys (ADR-066); beyond these the API answers 400. */
+export const LISTINGS_FILTER_LIMITS = {
+  categoryIds: 50,
+  ageRanges: 5,
+  conditions: 4,
+} as const;
+
+/**
+ * `ageRanges` token: `"{fromMonths}-{toMonths}"`; `toMonths` may be empty for
+ * open-ended, e.g. `"72-"` (max 5 repeated keys).
+ */
+export type ListingAgeRangeParam = `${number}-${number | ''}`;
+
 export interface ListingsFilter {
   query: string | null;
   city: string | null;
-  categoryId: string | null;
+  /**
+   * Selected category ids (ADR-066 multi-select). Always an array; sent as one
+   * repeated `categoryIds` key per id. URL: comma-joined `categoryIds`; a legacy
+   * `categoryId=<id>` link is parsed into this list.
+   */
+  categoryIds: string[];
   minPrice: number | null;
   maxPrice: number | null;
-  ageGroup: string | null;
+  /**
+   * Selected `AGE_GROUPS` tokens (`"0-12"`, `"120+"`; ADR-066 multi-select, max 5).
+   * Sent as repeated `ageRanges` (`"from-to"`, open-ended `"120-"`). URL: comma-joined
+   * `ageGroups`; a legacy `ageGroup=<token>` link is parsed into this list.
+   */
+  ageGroups: string[];
+  /** ADR-042 condition filter (ADR-066), repeated `conditions` key. URL: comma-joined `conditions`. */
+  conditions: ListingConditionFilter[];
+  /** Server-side sort (ADR-066). `newest` is the default and is never written to the URL. */
+  sort: ListingsSort;
   /**
    * Search radius in fractional kilometres (0.2–20), clamped by
    * `clampRadiusKm` below to match the backend's own clamp range (see
@@ -144,6 +181,112 @@ export function parseAgeGroupToMonths(token: string): AgeGroupMonthRange | null 
   }
 
   return { ageFromMonths, ageToMonths };
+}
+
+/** `AGE_GROUPS` token -> the `ageRanges` wire token: `"12-36"` stays, open-ended `"120+"` becomes `"120-"`. */
+export function ageGroupToRangeParam(token: string): ListingAgeRangeParam | null {
+  const bounds = parseAgeGroupToMonths(token.trim());
+  if (!bounds) {
+    return null;
+  }
+  return `${bounds.ageFromMonths}-${bounds.ageToMonths ?? ''}` as ListingAgeRangeParam;
+}
+
+export const LISTING_CONDITION_FILTERS: readonly ListingConditionFilter[] = [
+  'New',
+  'LikeNew',
+  'Good',
+  'Fair',
+];
+
+const SORT_VALUES: readonly ListingsSort[] = [
+  'newest',
+  'price_asc',
+  'price_desc',
+  'rating_desc',
+  'nearest',
+];
+
+function splitCsv(value: string | null | undefined): string[] {
+  if (!value) return [];
+  return value
+    .split(',')
+    .map((segment) => segment.trim())
+    .filter((segment) => segment.length > 0);
+}
+
+function uniqueCapped<T>(values: readonly T[], limit: number): T[] {
+  return [...new Set(values)].slice(0, limit);
+}
+
+/**
+ * `categoryIds` URL param (comma-joined) plus the legacy single `categoryId` link
+ * (Home tiles, old bookmarks), merged into one de-duplicated list capped at the API limit.
+ */
+export function parseCategoryIdsParam(value: string | null, legacyCategoryId: string | null): string[] {
+  return uniqueCapped(
+    [...splitCsv(value), ...splitCsv(legacyCategoryId)],
+    LISTINGS_FILTER_LIMITS.categoryIds,
+  );
+}
+
+/** `ageGroups` URL param plus the legacy single `ageGroup`; unknown tokens are dropped. */
+export function parseAgeGroupsParam(value: string | null, legacyAgeGroup: string | null): string[] {
+  return uniqueCapped(
+    [...splitCsv(value), ...splitCsv(legacyAgeGroup)].filter((t) => ageGroupToRangeParam(t) !== null),
+    LISTINGS_FILTER_LIMITS.ageRanges,
+  );
+}
+
+/** `conditions` URL param; anything outside the ADR-042 filter set is dropped. */
+export function parseConditionsParam(value: string | null): ListingConditionFilter[] {
+  return uniqueCapped(
+    splitCsv(value).filter((c): c is ListingConditionFilter =>
+      (LISTING_CONDITION_FILTERS as readonly string[]).includes(c),
+    ),
+    LISTINGS_FILTER_LIMITS.conditions,
+  );
+}
+
+export function parseSortParam(value: string | null): ListingsSort {
+  const trimmed = value?.trim() ?? '';
+  return (SORT_VALUES as readonly string[]).includes(trimmed) ? (trimmed as ListingsSort) : 'newest';
+}
+
+/** Comma-joins a list for the URL, `null` when empty (key omitted / cleared under `merge`). */
+export function serializeListParam(values: readonly string[] | null | undefined): string | null {
+  return values && values.length > 0 ? values.join(',') : null;
+}
+
+/** `newest` is the default: `null` clears the `sort` key instead of writing `sort=newest`. */
+export function serializeSortParam(sort: ListingsSort): string | null {
+  return sort === 'newest' ? null : sort;
+}
+
+/** Minimal shape of Angular's `ParamMap` — keeps this model free of router imports. */
+export interface QueryParamReader {
+  get(name: string): string | null;
+}
+
+/**
+ * The single URL -> filter parser for `/listings`. Tolerant: garbage degrades to "no filter",
+ * and the legacy `categoryId` / `ageGroup` keys keep working (ADR-066 §4).
+ */
+export function parseListingsFilterFromParams(params: QueryParamReader): ListingsFilter {
+  const toPrice = (raw: string | null): number | null =>
+    raw != null && raw.trim() !== '' && !Number.isNaN(Number(raw)) ? Number(raw) : null;
+  return {
+    query: params.get('q')?.trim() || null,
+    city: params.get('city')?.trim() || null,
+    categoryIds: parseCategoryIdsParam(params.get('categoryIds'), params.get('categoryId')),
+    minPrice: toPrice(params.get('minPrice')),
+    maxPrice: toPrice(params.get('maxPrice')),
+    ageGroups: parseAgeGroupsParam(params.get('ageGroups'), params.get('ageGroup')),
+    conditions: parseConditionsParam(params.get('conditions')),
+    sort: parseSortParam(params.get('sort')),
+    radiusKm: parseRadiusKmParam(params.get('radiusKm')),
+    districtIds: parseDistrictIdsParam(params.get('districtIds')),
+  };
 }
 
 const GUID_PATTERN =
