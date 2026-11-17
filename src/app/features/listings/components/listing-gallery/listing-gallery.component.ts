@@ -16,6 +16,21 @@ import { DialogModule } from 'primeng/dialog';
 
 import type { ListingImage } from '../../models/listing.model';
 
+/** Same numbers as the bottom sheets' swipe-down-to-close (ADR-061, settings-sheet.component.ts). */
+const CLOSE_DISTANCE_PX = 100;
+const CLOSE_FRACTION = 0.25;
+const FLICK_VELOCITY_PX_MS = 0.6;
+const FLICK_MIN_DISTANCE_PX = 30;
+/** Pointer travel before the gesture locks to one axis. */
+const DIRECTION_LOCK_PX = 10;
+/** Horizontal swipe distance that changes photo (a flick needs less). */
+const SWIPE_DISTANCE_PX = 50;
+/** Downward drag at which the photo reaches its final scale / the backdrop and chrome their final fade. */
+const DRAG_FULL_EFFECT_PX = 120;
+const DRAG_END_SCALE = 0.88;
+const DRAG_END_BACKDROP = 0.55;
+const DRAG_END_CHROME = 0.2;
+
 export type GalleryBadgeTone = 'success' | 'info';
 
 /** Trust badge overlaid on the desktop mosaic's first tile — real data only. */
@@ -44,6 +59,32 @@ export class ListingGalleryComponent {
   protected readonly activeIndex = signal(0);
   protected readonly lightboxOpen = signal(false);
   protected readonly lightboxIndex = signal(0);
+
+  /** Swipe-down-to-close drag distance (px, >= 0) while a vertical gesture is live. */
+  protected readonly dragOffset = signal(0);
+  /** True while a finger is down; false = spring-back transitions are allowed. */
+  protected readonly dragging = signal(false);
+  protected readonly dragProgress = computed(() =>
+    Math.min(1, this.dragOffset() / DRAG_FULL_EFFECT_PX),
+  );
+  protected readonly dragPhotoTransform = computed(() => {
+    const offset = this.dragOffset();
+    if (offset === 0) return null;
+    const scale = 1 - (1 - DRAG_END_SCALE) * this.dragProgress();
+    return `translateY(${offset}px) scale(${scale})`;
+  });
+  protected readonly dragBackdropOpacity = computed(
+    () => 1 - (1 - DRAG_END_BACKDROP) * this.dragProgress(),
+  );
+  protected readonly dragChromeOpacity = computed(
+    () => 1 - (1 - DRAG_END_CHROME) * this.dragProgress(),
+  );
+
+  private dragPointerId: number | null = null;
+  private dragStartX = 0;
+  private dragStartY = 0;
+  private dragStartTime = 0;
+  private dragAxis: 'x' | 'y' | null = null;
 
   /** The lightbox `<p-dialog>`'s `[maskStyleClass]` (template) — also read by
    *  `onWindowMousedown()` below to recognise a click on the mask itself, as
@@ -172,6 +213,7 @@ export class ListingGalleryComponent {
     const safe = ((index % length) + length) % length;
     this.lastFocusedElement = document.activeElement as HTMLElement | null;
     this.lightboxIndex.set(safe);
+    this.resetDrag();
     this.lightboxOpen.set(true);
   }
 
@@ -194,16 +236,101 @@ export class ListingGalleryComponent {
     }
   }
 
+  /** No wrap-around in the viewer: the arrows are hidden at the ends and
+   *  ←/→ and swipes stop there (the inline hero carousel still wraps). */
+  protected lightboxHasPrev(): boolean {
+    return this.lightboxIndex() > 0;
+  }
+
+  protected lightboxHasNext(): boolean {
+    return this.lightboxIndex() < this.sortedImages().length - 1;
+  }
+
   protected lightboxPrev(): void {
-    const length = this.sortedImages().length;
-    if (length === 0) return;
-    this.lightboxIndex.update((i) => (((i - 1) % length) + length) % length);
+    if (this.lightboxHasPrev()) this.lightboxIndex.update((i) => i - 1);
   }
 
   protected lightboxNext(): void {
-    const length = this.sortedImages().length;
-    if (length === 0) return;
-    this.lightboxIndex.update((i) => (i + 1) % length);
+    if (this.lightboxHasNext()) this.lightboxIndex.update((i) => i + 1);
+  }
+
+  /**
+   * Gestures on the photo stage (touch/pen only; a mouse keeps arrows, keys and
+   * the close button). Direction locks on the first move past
+   * `DIRECTION_LOCK_PX`: horizontal swipes change photo, a downward drag
+   * closes through the same path as X/Esc (same thresholds as ADR-061 sheets).
+   */
+  protected onStagePointerDown(event: PointerEvent): void {
+    if (event.pointerType === 'mouse' || this.dragPointerId !== null) return;
+    this.dragPointerId = event.pointerId;
+    this.dragStartX = event.clientX;
+    this.dragStartY = event.clientY;
+    this.dragStartTime = event.timeStamp;
+    this.dragAxis = null;
+    this.dragging.set(true);
+  }
+
+  protected onStagePointerMove(event: PointerEvent): void {
+    if (event.pointerId !== this.dragPointerId) return;
+    const dx = event.clientX - this.dragStartX;
+    const dy = event.clientY - this.dragStartY;
+    if (this.dragAxis === null) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) <= DIRECTION_LOCK_PX) return;
+      this.dragAxis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+    }
+    if (this.dragAxis === 'y') {
+      this.dragOffset.set(Math.max(0, dy));
+    }
+  }
+
+  protected onStagePointerUp(event: PointerEvent): void {
+    if (event.pointerId !== this.dragPointerId) return;
+    const dx = event.clientX - this.dragStartX;
+    const dy = event.clientY - this.dragStartY;
+    const elapsed = Math.max(1, event.timeStamp - this.dragStartTime);
+    const axis = this.dragAxis;
+    this.dragPointerId = null;
+    this.dragAxis = null;
+    this.dragging.set(false);
+
+    if (axis === 'y') {
+      const offset = Math.max(0, dy);
+      const pastThreshold =
+        offset >
+        Math.min(
+          CLOSE_DISTANCE_PX,
+          (window.innerHeight || 0) * CLOSE_FRACTION || CLOSE_DISTANCE_PX,
+        );
+      const flick = offset > FLICK_MIN_DISTANCE_PX && offset / elapsed > FLICK_VELOCITY_PX_MS;
+      if (pastThreshold || flick) {
+        this.closeLightbox();
+      } else {
+        // Springs back: `dragging` is already false, so the CSS transition runs.
+        this.dragOffset.set(0);
+      }
+    } else if (axis === 'x') {
+      const distance = Math.abs(dx);
+      const flick = distance > FLICK_MIN_DISTANCE_PX && distance / elapsed > FLICK_VELOCITY_PX_MS;
+      if (distance > SWIPE_DISTANCE_PX || flick) {
+        if (dx < 0) this.lightboxNext();
+        else this.lightboxPrev();
+      }
+    }
+  }
+
+  protected onStagePointerCancel(event: PointerEvent): void {
+    if (event.pointerId !== this.dragPointerId) return;
+    this.dragPointerId = null;
+    this.dragAxis = null;
+    this.dragging.set(false);
+    this.dragOffset.set(0);
+  }
+
+  private resetDrag(): void {
+    this.dragPointerId = null;
+    this.dragAxis = null;
+    this.dragging.set(false);
+    this.dragOffset.set(0);
   }
 
   /** Jump straight to a photo via its thumbnail in the lightbox's own

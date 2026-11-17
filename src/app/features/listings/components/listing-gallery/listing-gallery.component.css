@@ -570,64 +570,98 @@
   color: transparent;
 }
 
+/* No mask tint: the viewer paints its own pure-black surface so the swipe-down
+   gesture can fade it to reveal the page behind. */
 ::ng-deep .p-dialog-mask.listing-gallery__lightbox-mask {
-  background: rgba(10, 10, 14, 0.92);
+  background: transparent;
 }
 
+/* ══ Viewer surface (mobile-first; ≥1100px overrides at the bottom) ══ */
 .listing-gallery__lightbox {
   position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
   height: 100%;
+  padding-top: env(safe-area-inset-top);
+  background: rgba(0, 0, 0, var(--lb-bg, 1));
+  overflow: hidden;
 }
 
-/* ── Topbar: counter (left) + close (right), inset from the viewport ──── */
+.listing-gallery__lightbox-chrome {
+  opacity: var(--lb-chrome, 1);
+}
+
+.listing-gallery__lightbox:not(.listing-gallery__lightbox--dragging) {
+  transition: background-color 200ms ease;
+}
+
+.listing-gallery__lightbox:not(.listing-gallery__lightbox--dragging)
+  .listing-gallery__lightbox-chrome {
+  transition: opacity 200ms ease;
+}
+
+/* ── Top row: counter pill (left) + close (right) ── */
 .listing-gallery__lightbox-topbar {
-  flex: 0 0 auto;
+  flex: 0 0 60px;
+  height: 60px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 18px 20px;
+  padding: 0 12px;
 }
 
 .listing-gallery__lightbox-counter {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(26, 27, 38, 0.78);
   color: #fff;
-  font-size: 0.875rem;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  line-height: 20px;
+  font-variant-numeric: tabular-nums;
 }
 
-.listing-gallery__lightbox-close {
+/* White-disc round buttons (close, arrows) — mirrors the hero back button. */
+.listing-gallery__lightbox-btn {
   flex: 0 0 auto;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
   border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.94);
-  color: #111217;
+  border: 1px solid rgba(26, 27, 38, 0.1);
+  background: rgba(255, 255, 255, 0.86);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow: 0 2px 8px rgba(16, 18, 30, 0.18);
+  color: #1a1b26;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-  transition:
-    background-color 140ms ease,
-    transform 140ms ease;
 }
 
-.listing-gallery__lightbox-close:hover {
-  background: #fff;
-  transform: scale(1.05);
+.listing-gallery__lightbox-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.listing-gallery__lightbox-close:focus-visible {
-  outline: 2px solid #fff;
+.listing-gallery__lightbox-btn:focus-visible,
+.listing-gallery__lightbox-thumb:focus-visible {
+  outline: 2px solid #c24600;
   outline-offset: 2px;
+  box-shadow: 0 0 0 2px #fff;
 }
 
-/* ── Stage: the photo, centred, contained, never clipped/upscaled ─────── */
+/* ── Photo stage: contained, centred, never cropped ── */
 .listing-gallery__lightbox-stage {
   position: relative;
   flex: 1 1 auto;
@@ -635,7 +669,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 84px 12px;
+  /* The browser must not scroll/zoom the page during a swipe. */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.listing-gallery__lightbox--single .listing-gallery__lightbox-stage {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .listing-gallery__lightbox-img {
@@ -644,133 +685,143 @@
   width: auto;
   height: auto;
   object-fit: contain;
-  border-radius: 8px;
+  -webkit-user-drag: none;
 }
 
-/* Arrows: vertically centred on the stage, anchored a fixed inset from the
-   viewport's left/right edges (the stage spans the full viewport width, so
-   `left`/`right` here ARE viewport-relative) — never pinned to the photo. */
+.listing-gallery__lightbox:not(.listing-gallery__lightbox--dragging)
+  .listing-gallery__lightbox-img {
+  transition: transform 200ms ease;
+}
+
+/* ── Arrows: desktop only ── */
 .listing-gallery__lightbox-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.94);
-  color: #111217;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-  transition:
-    background-color 140ms ease,
-    transform 140ms ease;
-  z-index: 3;
+  display: none;
 }
 
-.listing-gallery__lightbox-nav:hover {
-  background: #fff;
-  transform: translateY(-50%) scale(1.05);
-}
-
-.listing-gallery__lightbox-nav:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 2px;
-}
-
-.listing-gallery__lightbox-nav--prev {
-  left: 20px;
-}
-
-.listing-gallery__lightbox-nav--next {
-  right: 20px;
-}
-
-/* ── Filmstrip: horizontally scrollable thumbnail row ──────────────────
-   Visual language reused from `.listing-gallery__thumb` above (same border/
-   radius/active treatment), sized down for a filmstrip context. */
+/* ── Thumbnail strip ── */
 .listing-gallery__lightbox-thumbs {
   flex: 0 0 auto;
+  box-sizing: content-box;
+  height: 88px;
+  padding: 0 16px env(safe-area-inset-bottom);
   display: flex;
   align-items: center;
+  justify-content: safe center;
   gap: 8px;
-  padding: 12px 20px 20px;
   overflow-x: auto;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  touch-action: pan-x;
 }
 
 .listing-gallery__lightbox-thumb {
   flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
   padding: 0;
-  border: 2px solid transparent;
-  border-radius: 8px;
+  border: none;
+  border-radius: 6px;
   overflow: hidden;
   background: transparent;
   cursor: pointer;
-  opacity: 0.6;
-  transition:
-    border-color 140ms ease,
-    opacity 140ms ease;
-}
-
-.listing-gallery__lightbox-thumb:hover {
-  opacity: 0.85;
+  opacity: 0.5;
 }
 
 .listing-gallery__lightbox-thumb--active {
-  border-color: var(--ui-color-primary);
   opacity: 1;
+  box-shadow:
+    0 0 0 2px #000,
+    0 0 0 4px #fff;
 }
 
-.listing-gallery__lightbox-thumb:focus-visible {
-  outline: 2px solid var(--ui-color-primary-strong);
-  outline-offset: 2px;
+/* Focus keeps the active ring visible: halo sits outside the ring. */
+.listing-gallery__lightbox-thumb--active:focus-visible {
+  box-shadow:
+    0 0 0 2px #000,
+    0 0 0 4px #fff,
+    0 0 0 6px #fff;
 }
 
 .listing-gallery__lightbox-thumb-img {
   display: block;
-  width: 64px;
-  height: 64px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
-@media (max-width: 700px) {
+/* ══ Desktop (≥1100px): absolutely laid-out stage, arrows and filmstrip ══ */
+@media (min-width: 1100px) {
+  .listing-gallery__lightbox {
+    padding-top: 0;
+  }
+
   .listing-gallery__lightbox-topbar {
-    padding: 12px;
+    position: absolute;
+    top: 16px;
+    left: 0;
+    right: 0;
+    height: 64px;
+    padding: 0 24px;
+    z-index: 2;
   }
 
   .listing-gallery__lightbox-close {
-    width: 36px;
-    height: 36px;
+    width: 52px;
+    height: 52px;
+  }
+
+  .listing-gallery__lightbox-close svg {
+    width: 22px;
+    height: 22px;
   }
 
   .listing-gallery__lightbox-stage {
-    padding: 0 52px 8px;
+    position: absolute;
+    top: 88px;
+    bottom: 120px;
+    left: 112px;
+    right: 112px;
+  }
+
+  .listing-gallery__lightbox--single .listing-gallery__lightbox-stage {
+    bottom: 24px;
+    padding-bottom: 0;
   }
 
   .listing-gallery__lightbox-nav {
-    width: 36px;
-    height: 36px;
+    display: inline-flex;
+    position: absolute;
+    top: calc(88px + (100% - 208px) / 2);
+    width: 52px;
+    height: 52px;
+    margin-top: -26px;
+    z-index: 2;
+  }
+
+  .listing-gallery__lightbox-nav svg {
+    width: 24px;
+    height: 24px;
   }
 
   .listing-gallery__lightbox-nav--prev {
-    left: 8px;
+    left: 32px;
   }
 
   .listing-gallery__lightbox-nav--next {
-    right: 8px;
+    right: 32px;
   }
 
   .listing-gallery__lightbox-thumbs {
-    gap: 6px;
-    padding: 8px 12px 14px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 112px;
+    padding: 0 24px;
+    box-sizing: border-box;
   }
 
-  .listing-gallery__lightbox-thumb-img {
-    width: 48px;
-    height: 48px;
+  .listing-gallery__lightbox-thumb {
+    width: 64px;
+    height: 64px;
   }
 }
