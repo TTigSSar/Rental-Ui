@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 
 import { mockApi } from './support/api-mock';
@@ -302,5 +304,118 @@ test.describe('Listings — AI search', () => {
     expect(requests[0]).toMatchObject({ description: DESCRIPTION, filters: null, page: 1 });
     await expect(descriptionBox(page)).toHaveValue(DESCRIPTION);
     await expect(aiSwitch(page)).toHaveAttribute('aria-checked', 'true');
+  });
+
+  test('filter/chip change in AI mode loads the plain catalogue with no ai-search call; Re-rank with AI sends exactly one, with the current filters', async ({
+    page,
+  }) => {
+    const requests: unknown[] = [];
+    await mockTiles(page);
+    await mockApi(page, {
+      me: e2eUser(),
+      myListings: [],
+      listings: [e2eListing()],
+      aiSearchLog: requests,
+      aiSearch: {
+        body: response({
+          items: RANKED,
+          totalCount: 3,
+          ranked: true,
+          appliedFilters: filters({ maxPrice: 3000, districtIds: [KENTRON_ID] }),
+        }),
+      },
+    });
+    await signIn(page);
+    let plainGets = 0;
+    let counting = false;
+    page.on('request', (req) => {
+      if (counting && req.method() === 'GET' && new URL(req.url()).pathname.endsWith('/api/listings')) plainGets++;
+    });
+
+    await page.goto('/listings');
+    await switchOnAndSearch(page);
+    await expect(page.getByText('AI Ranked Tricycle')).toBeVisible();
+    await expect.poll(() => requests.length).toBe(1);
+
+    // Drop the price chip: the ordinary catalogue is requested, the AI endpoint is not.
+    counting = true;
+    const chips = page.getByRole('list', { name: 'Active filters' });
+    await chips.getByRole('button', { name: /Remove Up to/ }).click();
+    await expect.poll(() => plainGets).toBeGreaterThan(0);
+    await expect(page.getByTestId('ai-rerank')).toBeVisible();
+    // Longer than the retired 400 ms re-rank debounce, so a late call cannot hide (stated reason for the wait).
+    await page.waitForTimeout(600);
+    expect(requests).toHaveLength(1);
+
+    // Explicit re-rank: exactly one more request, carrying the current (price-less) filters.
+    await page.getByTestId('ai-rerank').click();
+    await expect.poll(() => requests.length).toBe(2);
+    await page.waitForTimeout(600);
+    expect(requests).toHaveLength(2);
+    expect((requests[1] as { filters: Record<string, unknown> }).filters).toMatchObject({
+      maxPrice: null,
+      districtIds: [KENTRON_ID],
+    });
+  });
+
+  test.describe('hy, 360x800', () => {
+    test.use({ locale: 'hy-AM', viewport: { width: 360, height: 800 } });
+
+    const hy = JSON.parse(readFileSync(join(process.cwd(), 'public/i18n/hy.json'), 'utf8').replace(/^﻿/, '')) as {
+      listings: { filters: { filterBtn: string; filterSheet: { apply: string } }; ai: { switchAria: string; fieldAria: string; submit: string; sortRelevant: string; updating: string } };
+    };
+
+    test('mobile AI toolbar does not overflow the page, after a search and while "Updating the order" shows', async ({
+      page,
+    }) => {
+      await mockTiles(page);
+      await mockApi(page, {
+        me: e2eUser(),
+        myListings: [],
+        listings: [e2eListing()],
+        aiSearch: {
+          body: response({
+            items: RANKED,
+            totalCount: 3,
+            ranked: true,
+            appliedFilters: filters({ maxPrice: 3000, districtIds: [KENTRON_ID] }),
+          }),
+        },
+      });
+      // Registered after mockApi, so it runs first: the 1st POST passes, the 2nd waits for `release`.
+      let release!: () => void;
+      const gate = new Promise<void>((resolve) => (release = resolve));
+      let posts = 0;
+      await page.route('**/api/listings/ai-search', async (route) => {
+        if (route.request().method() !== 'POST') return route.fallback();
+        if (++posts === 2) await gate;
+        return route.fallback();
+      });
+      await signIn(page);
+
+      const overflow = () => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      const field = page.locator('app-ai-search-field:visible');
+
+      await page.goto('/listings');
+      await field.getByRole('switch', { name: hy.listings.ai.switchAria }).click();
+      await field.getByRole('textbox', { name: hy.listings.ai.fieldAria }).fill(DESCRIPTION);
+      await field.getByRole('button', { name: hy.listings.ai.submit, exact: true }).click();
+      await expect(page.getByText('AI Ranked Tricycle')).toBeVisible();
+      await expect(page.locator('.lp-toolbar__sort-value')).toContainText(hy.listings.ai.sortRelevant);
+      expect(await overflow()).toBeLessThanOrEqual(0);
+
+      // Filter change shows Re-rank; clicking it makes the gated POST hold the "Updating the order" state.
+      // (the chip row is desktop-only, so the change goes through the mobile filter sheet: pick an age group)
+      await page.getByRole('button', { name: hy.listings.filters.filterBtn }).click();
+      const sheet = page.getByRole('dialog');
+      await sheet.getByRole('group').first().getByRole('button').nth(2).click();
+      await sheet.getByRole('button', { name: hy.listings.filters.filterSheet.apply }).click();
+      await page.getByTestId('ai-rerank').click();
+      await expect(page.locator('.lp-toolbar__updating')).toContainText(hy.listings.ai.updating);
+      expect(await overflow()).toBeLessThanOrEqual(0);
+      release();
+      await expect(page.locator('.lp-toolbar__updating')).toHaveCount(0);
+      expect(await overflow()).toBeLessThanOrEqual(0);
+    });
   });
 });
