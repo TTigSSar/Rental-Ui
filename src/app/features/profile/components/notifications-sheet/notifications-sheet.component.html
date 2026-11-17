@@ -37,6 +37,9 @@
         <div class="ns__body">
           <span class="ns__label">{{ 'profile.settings.browser.label' | translate }}</span>
           <span class="ns__hint">{{ 'profile.settings.browser.unsupported' | translate }}</span>
+          @if (iosInstallHint) {
+            <span class="ns__hint">{{ 'profile.settings.browser.iosInstallHint' | translate }}</span>
+          }
         </div>
       </div>
     } @else {
@@ -45,10 +48,13 @@
         <div class="ns__body">
           <span class="ns__label">{{ 'profile.settings.browser.label' | translate }}</span>
           <span class="ns__hint">{{ 'profile.settings.browser.hint' | translate }}</span>
-          @if (permission() === 'granted') {
+          @if (permission() === 'granted' && !pushOff()) {
             <span class="ns__offhint">
               <i class="pi pi-cog" aria-hidden="true"></i>{{ 'profile.settings.browser.offHint' | translate }}
             </span>
+            <button type="button" class="ns__btn ns__btn--secondary" (click)="turnOffBrowser()">
+              {{ 'profile.settings.browser.turnOff' | translate }}
+            </button>
           } @else if (permission() === 'denied') {
             <div class="ns__note" role="status">
               <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
@@ -56,7 +62,7 @@
             </div>
           }
         </div>
-        @if (permission() === 'default') {
+        @if (permission() === 'default' || (permission() === 'granted' && pushOff())) {
           <button type="button" class="ns__btn" (click)="enableBrowser()">
             {{ 'profile.settings.browser.enable' | translate }}
           </button>

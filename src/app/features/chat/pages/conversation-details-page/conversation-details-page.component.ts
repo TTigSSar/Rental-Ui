@@ -23,8 +23,9 @@ import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, filter, map } from 'rxjs';
 
-import { selectHomePoint } from '../../../auth/store/auth.selectors';
+import { selectAuthUser, selectHomePoint } from '../../../auth/store/auth.selectors';
 import { BrowserNotificationService } from '../../../notifications/services/browser-notification.service';
+import { PushSubscriptionService } from '../../../notifications/services/push-subscription.service';
 import { DeletedUserAvatarComponent, DeletedUserNameComponent } from '../../../../shared/ui/deleted-user';
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
@@ -363,6 +364,8 @@ export class ConversationDetailsPageComponent implements OnInit {
   private readonly dates = inject(UiDateService);
   private readonly actions$ = inject(Actions);
   private readonly browserNotifications = inject(BrowserNotificationService);
+  private readonly push = inject(PushSubscriptionService);
+  private readonly authUser = this.store.selectSignal(selectAuthUser);
   private readonly routeConversationId$ = this.route.paramMap.pipe(
     map((params) => params.get('conversationId')),
     distinctUntilChanged(),
@@ -553,7 +556,12 @@ export class ConversationDetailsPageComponent implements OnInit {
 
   protected async enableNotifications(): Promise<void> {
     this.browserNotifications.dismissPrompt();
-    await this.browserNotifications.requestPermission();
+    const permission = await this.browserNotifications.requestPermission();
+    const userId = this.authUser()?.id ?? null;
+    if (permission === 'granted' && userId !== null) {
+      this.push.clearOff(userId);
+      await this.push.ensureSubscribed(userId);
+    }
   }
 
   protected dismissNotificationPrompt(): void {

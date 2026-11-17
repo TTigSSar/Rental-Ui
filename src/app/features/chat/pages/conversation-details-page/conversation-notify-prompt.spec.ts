@@ -7,6 +7,7 @@ import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subject, of } from 'rxjs';
 
+import { PushSubscriptionService } from '../../../notifications/services/push-subscription.service';
 import { BrowserNotificationService } from '../../../notifications/services/browser-notification.service';
 import type { ChatConversationDetails, ChatMessage } from '../../models/chat.model';
 import * as ChatActions from '../../store/chat.actions';
@@ -33,6 +34,10 @@ describe('ConversationDetailsPageComponent soft notification prompt', () => {
         {
           provide: BrowserNotificationService,
           useValue: { canPrompt, dismissPrompt, requestPermission },
+        },
+        {
+          provide: PushSubscriptionService,
+          useValue: { clearOff: vi.fn(), ensureSubscribed: vi.fn().mockResolvedValue(undefined) },
         },
         {
           provide: ActivatedRoute,

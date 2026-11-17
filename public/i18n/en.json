@@ -1328,7 +1328,9 @@
         "on": "On",
         "offHint": "Turn off in browser settings",
         "blocked": "Notifications are blocked in your browser. To turn them on, open the site settings (the lock icon next to the address) and allow notifications.",
-        "unsupported": "This browser does not support notifications."
+        "unsupported": "This browser does not support notifications.",
+        "turnOff": "Turn off on this device",
+        "iosInstallHint": "Add DoRent to your Home Screen to get notifications"
       },
       "deleteAccount": "Delete account"
     },

@@ -6,6 +6,7 @@ import { OwnerRequestsBadgeService } from '../../bookings/services/owner-request
 import { ChatBadgeService } from '../../chat/services/chat-badge.service';
 import { ChatRealtimeService } from '../../chat/services/chat-realtime.service';
 import { NotificationBadgeService } from '../../notifications/services/notification-badge.service';
+import { PushSubscriptionService } from '../../notifications/services/push-subscription.service';
 import { selectAuthUser, selectIsAuthenticated } from '../store/auth.selectors';
 
 /**
@@ -22,6 +23,8 @@ export class SessionLifecycleService {
   private readonly chatBadge = inject(ChatBadgeService);
   private readonly chatRealtime = inject(ChatRealtimeService);
   private readonly ownerRequestsBadge = inject(OwnerRequestsBadgeService);
+  private readonly push = inject(PushSubscriptionService);
+  private previousUserId: string | null = null;
 
   /** Current session user id (null = signed out). Subscribe with `takeUntilDestroyed`. */
   readonly sessionUserId$: Observable<string | null> = this.sessionUserId();
@@ -32,7 +35,14 @@ export class SessionLifecycleService {
     this.chatBadge.stop();
     this.chatRealtime.stop();
     this.ownerRequestsBadge.stop();
+    // ADR-067 §13: drop the push subscription only on a REAL transition (A -> null, A -> B),
+    // never on the unconditional teardown of a page load that restores the same user.
+    if (this.previousUserId !== null && userId !== this.previousUserId) {
+      void this.push.onSessionEnded();
+    }
+    this.previousUserId = userId;
     if (userId !== null) {
+      void this.push.ensureSubscribed(userId);
       this.notificationBadge.start();
       this.chatBadge.start();
       this.chatRealtime.start();
