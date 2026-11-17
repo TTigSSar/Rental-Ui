@@ -245,6 +245,7 @@ export type KnownApiErrorCode =
   // not an ai_search.* one. Model failure is NOT an error: it is a 200 with `aiUnavailable: true`.
   | 'ai_search.unauthenticated'
   | 'ai_search.invalid_description'
+  | 'ai_search.invalid_filters' // 400: filter lists over the catalogue caps / invalid values
   | 'ai_search.rate_limited'
   | 'ai_search.daily_limit'
   // account.* — account deletion (ADR-056): DELETE /api/auth/me

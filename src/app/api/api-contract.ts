@@ -87,7 +87,7 @@ export const ApiContract = {
     facets: '/api/listings/facets',
     // AI search (ADR-054). aiSearch: [Authorize] POST, rate limit 5/min/user -> 200
     // `AiSearchResponse` (model failure is a 200 with `aiUnavailable: true`, never 503);
-    // 400 `ai_search.invalid_description`, 401 `ai_search.unauthenticated`, 429
+    // 400 `ai_search.invalid_description`, 400 `ai_search.invalid_filters`, 401 `ai_search.unauthenticated`, 429
     // `ai_search.rate_limited` (wait seconds in the `Retry-After` header only), 429
     // `ai_search.daily_limit` (50 AI searches/user/day, page 1 only, NO `Retry-After`),
     // 403 `auth.user_blocked` (blocked caller; page 1, re-rank and page 2+).
