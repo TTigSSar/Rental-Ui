@@ -61,6 +61,7 @@
     "bookingNotCompleted": "You can leave a review once the rental is completed.",
     "reviewAlreadySubmitted": "You've already reviewed this booking.",
     "aiSearchInvalidDescription": "Describe what you are looking for in 1 to 500 characters.",
+    "aiSearchInvalidFilters": "Some of the filters you chose are not valid. Change them and try again.",
     "aiSearchRateLimited": "Too many searches. Please wait a minute and try again.",
     "aiSearchDailyLimit": "You've used today's AI searches. Regular search still works.",
     "invalidLanguage": "Choose a supported language: English, Russian or Armenian.",

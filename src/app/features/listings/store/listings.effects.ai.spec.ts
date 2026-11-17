@@ -45,6 +45,9 @@ const FILTERS: ListingsFilter = {
 const APPLIED: AiSearchFilters = {
   categoryId: 'cat-1',
   ageGroup: '36-72',
+  categoryIds: null,
+  ageRanges: null,
+  conditions: null,
   maxPrice: 3000,
   districtIds: ['d-1'],
   nearHome: false,
@@ -164,8 +167,11 @@ describe('ListingsEffects — AI search (ADR-054)', () => {
         page: 1,
         excludeIds: null,
         filters: {
-          categoryId: 'cat-1',
-          ageGroup: '36-72',
+          categoryId: null,
+          ageGroup: null,
+          categoryIds: ['cat-1'],
+          ageRanges: ['36-72'],
+          conditions: null,
           maxPrice: 3000,
           districtIds: ['d-1'],
           nearHome: false,

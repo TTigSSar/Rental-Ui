@@ -23,6 +23,9 @@ const EMPTY: ListingsFilter = {
 const APPLIED: AiSearchFilters = {
   categoryId: 'cat-1',
   ageGroup: '36-72',
+  categoryIds: null,
+  ageRanges: null,
+  conditions: null,
   maxPrice: 3000,
   districtIds: ['d-1', 'd-2'],
   nearHome: false,
@@ -55,11 +58,38 @@ describe('fromAiSearchFilters', () => {
   });
 });
 
+describe('fromAiSearchFilters - ADR-066 lists', () => {
+  it('reads the lists first and merges the legacy singles without duplicates', () => {
+    const f = fromAiSearchFilters({
+      ...APPLIED,
+      categoryId: 'cat-1',
+      categoryIds: ['cat-1', 'cat-2'],
+      ageGroup: '36-72',
+      ageRanges: ['36-72', '120-'],
+      conditions: ['New', 'Good'],
+    });
+    expect(f.categoryIds).toEqual(['cat-1', 'cat-2']);
+    expect(f.ageGroups).toEqual(['36-72', '120+']);
+    expect(f.conditions).toEqual(['New', 'Good']);
+  });
+
+  it('keeps an age range outside the five groups as its own token, so the chip is honest', () => {
+    expect(fromAiSearchFilters({ ...APPLIED, ageGroup: null, ageRanges: ['6-18'] }).ageGroups).toEqual(['6-18']);
+  });
+
+  it('drops an unparseable age range (no chip, nothing to apply)', () => {
+    expect(fromAiSearchFilters({ ...APPLIED, ageGroup: null, ageRanges: ['x-y' as never] }).ageGroups).toEqual([]);
+  });
+});
+
 describe('toAiSearchFilters', () => {
   it('sends the user-edited filters back; empty districts become null', () => {
     expect(toAiSearchFilters(EMPTY, null)).toEqual({
       categoryId: null,
       ageGroup: null,
+      categoryIds: null,
+      ageRanges: null,
+      conditions: null,
       maxPrice: null,
       districtIds: null,
       nearHome: false,
@@ -74,18 +104,34 @@ describe('toAiSearchFilters', () => {
     expect(toAiSearchFilters(f, null)).toMatchObject({ nearHome: false, radiusKm: null });
   });
 
-  it('sends only the first category and the first known age group (the AI endpoint takes one of each)', () => {
-    const f = { ...EMPTY, categoryIds: ['c1', 'c2'], ageGroups: ['teen', '12-36', '36-72'] };
-    expect(toAiSearchFilters(f, null)).toMatchObject({ categoryId: 'c1', ageGroup: '12-36' });
+  it('sends every category, age range and condition as lists, never the legacy singles', () => {
+    const f: ListingsFilter = {
+      ...EMPTY,
+      categoryIds: ['c1', 'c2'],
+      ageGroups: ['12-36', '120+'],
+      conditions: ['New', 'Fair'],
+    };
+    expect(toAiSearchFilters(f, null)).toMatchObject({
+      categoryId: null,
+      ageGroup: null,
+      categoryIds: ['c1', 'c2'],
+      ageRanges: ['12-36', '120-'],
+      conditions: ['New', 'Fair'],
+    });
   });
 
-  it('drops an age group the AI endpoint does not know', () => {
-    expect(toAiSearchFilters({ ...EMPTY, ageGroups: ['teen'] }, null).ageGroup).toBeNull();
-    expect(toAiSearchFilters({ ...EMPTY, ageGroups: ['120+'] }, null).ageGroup).toBe('120+');
+  it('does not send an age token that is not a range', () => {
+    expect(toAiSearchFilters({ ...EMPTY, ageGroups: ['teen'] }, null).ageRanges).toBeNull();
   });
 
   it('round-trips with fromAiSearchFilters', () => {
-    const filters = fromAiSearchFilters({ ...APPLIED, nearHome: true, radiusKm: 1 });
+    const filters = fromAiSearchFilters({
+      ...APPLIED,
+      nearHome: true,
+      radiusKm: 1,
+      conditions: ['Good'],
+      categoryIds: ['cat-1', 'cat-9'],
+    });
     expect(fromAiSearchFilters(toAiSearchFilters(filters, 'home'))).toEqual(filters);
   });
 });

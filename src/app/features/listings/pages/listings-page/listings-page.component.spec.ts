@@ -508,6 +508,57 @@ describe('ListingsPageComponent — clearing the origin (Trello #80)', () => {
   });
 });
 
+describe('ListingsPageComponent — Clear all under sort=nearest (#271 review)', () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+
+  async function setup() {
+    const ctx = await navigateToListings('/listings?sort=nearest&radiusKm=1&categoryId=abc-123&view=map', {
+      filters: { ...BASE_FILTERS, sort: 'nearest', radiusKm: 1, categoryIds: ['abc-123'] },
+      originCoords: { lat: 40.18, lng: 44.51 },
+      originSource: 'manual',
+    });
+    // The real reducer drops the origin on `clearOrigin`; the mock store needs it told.
+    (ctx.store.dispatch as ReturnType<typeof vi.fn>).mockImplementation((action: { type: string }) => {
+      if (action.type === ListingsActions.clearOrigin.type) {
+        ctx.store.overrideSelector(selectListingsOriginCoords, null);
+        ctx.store.refreshState();
+      }
+    });
+    return ctx;
+  }
+
+  it('"Clear all" lands on ONE consistent URL: filters and sort=nearest gone, view kept', async () => {
+    const { el, router, harness } = await setup();
+
+    el.querySelector<HTMLButtonElement>('.lp-sidebar [data-testid="clear-all"]')!.click();
+    harness.detectChanges();
+    await vi.advanceTimersByTimeAsync(100);
+    harness.detectChanges();
+    await vi.advanceTimersByTimeAsync(100);
+
+    expect(router.url).toContain('view=map');
+    expect(router.url).not.toContain('categoryId');
+    expect(router.url).not.toContain('radiusKm');
+    expect(router.url).not.toContain('sort=');
+  });
+
+  it('the radius chip x under Nearest drops radius and sort in one navigation, keeping siblings', async () => {
+    const { el, router, harness } = await setup();
+
+    const chips = el.querySelectorAll<HTMLElement>('.achip');
+    chips[chips.length - 1].querySelector('button')!.click();
+    harness.detectChanges();
+    await vi.advanceTimersByTimeAsync(100);
+    harness.detectChanges();
+    await vi.advanceTimersByTimeAsync(100);
+
+    expect(router.url).not.toContain('radiusKm');
+    expect(router.url).not.toContain('sort=');
+    expect(router.url).toContain('categoryId=abc-123');
+  });
+});
+
 describe('ListingsPageComponent — sort menu', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());

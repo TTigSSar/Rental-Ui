@@ -62,10 +62,17 @@
     </div>
 
     @if (hasRating()) {
-      <div class="listing-card__line listing-card__rating">
+      <div
+        class="listing-card__line listing-card__rating"
+        [attr.aria-label]="'reviews.summary.ariaRating' | translate: { rating: listing().rating }"
+      >
         <i class="pi pi-star-fill listing-card__star" aria-hidden="true"></i>
         <b class="listing-card__rating-value">{{ listing().rating | number: '1.1-1' }}</b>
         <span>({{ listing().reviewCount ?? 0 }})</span>
+      </div>
+    } @else if (listing().reviewCount === 1) {
+      <div class="listing-card__line listing-card__line--hint">
+        {{ 'reviews.summary.oneReview' | translate }}
       </div>
     } @else {
       <div class="listing-card__line listing-card__line--hint">

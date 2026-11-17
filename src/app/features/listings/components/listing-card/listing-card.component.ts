@@ -139,8 +139,8 @@ export class ListingCardComponent {
   });
 
   /**
-   * Backend haversine distance, formatted — only populated when the request
-   * carried an origin and a radius (ADR-024). Never shown on the viewer's own
+   * Backend haversine distance, formatted — populated when the request carried an origin
+   * (a radius filter or sort=nearest; ADR-064 amendment). Shown whenever `distanceKm` is non-null. Never shown on the viewer's own
    * listing (it would narrate their own address back at them).
    */
   protected readonly distanceLabel = computed(() => {

@@ -232,6 +232,9 @@ export class ListingsApiService {
       appliedFilters: {
         categoryId: applied?.categoryId ?? null,
         ageGroup: applied?.ageGroup ?? null,
+        categoryIds: Array.isArray(applied?.categoryIds) ? applied.categoryIds : null,
+        ageRanges: Array.isArray(applied?.ageRanges) ? applied.ageRanges : null,
+        conditions: Array.isArray(applied?.conditions) ? applied.conditions : null,
         maxPrice: applied?.maxPrice ?? null,
         districtIds: Array.isArray(applied?.districtIds) ? applied.districtIds : null,
         nearHome: applied?.nearHome === true,

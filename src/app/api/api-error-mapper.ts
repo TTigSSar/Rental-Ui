@@ -157,7 +157,7 @@ export const API_ERROR_MESSAGE_KEYS: Readonly<Record<KnownApiErrorCode, string>>
   // ai_search.*
   'ai_search.unauthenticated': 'errors.sessionExpired',
   'ai_search.invalid_description': 'errors.aiSearchInvalidDescription',
-  'ai_search.invalid_filters': 'errors.validation',
+  'ai_search.invalid_filters': 'errors.aiSearchInvalidFilters',
   'ai_search.rate_limited': 'errors.aiSearchRateLimited',
   'ai_search.daily_limit': 'errors.aiSearchDailyLimit',
   // account.* (ADR-056). The delete dialog picks the password-vs-email text for

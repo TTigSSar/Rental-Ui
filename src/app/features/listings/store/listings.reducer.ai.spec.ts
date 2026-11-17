@@ -15,6 +15,9 @@ function makeResponse(overrides: Partial<AiSearchResponse> = {}): AiSearchRespon
     appliedFilters: {
       categoryId: 'cat-1',
       ageGroup: '36-72',
+      categoryIds: null,
+      ageRanges: null,
+      conditions: null,
       maxPrice: 3000,
       districtIds: ['d-1', 'd-2'],
       nearHome: false,

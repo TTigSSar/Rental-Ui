@@ -92,6 +92,7 @@ describe('ApiErrorMapper', () => {
     it.each([
       ['ai_search.rate_limited', 'errors.aiSearchRateLimited'],
       ['ai_search.daily_limit', 'errors.aiSearchDailyLimit'],
+      ['ai_search.invalid_filters', 'errors.aiSearchInvalidFilters'],
     ])('maps %s to %s without leaking the server text', (code, key) => {
       const error = problem(429, { errorCode: code, title: 'English server text' });
       expect(resolveApiErrorKey(error)).toBe(key);

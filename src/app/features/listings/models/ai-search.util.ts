@@ -1,11 +1,14 @@
-import type { AiSearchAgeGroup, AiSearchFilters } from './ai-search.model';
-import { AGE_GROUPS } from './age-groups.const';
+import type { AiSearchFilters } from './ai-search.model';
 import {
+  ageGroupToRangeParam,
+  LISTINGS_FILTER_LIMITS,
+  parseAgeGroupToMonths,
   clampRadiusKm,
   serializeDistrictIdsParam,
   serializeListParam,
   serializeRadiusKmParam,
   serializeSortParam,
+  type ListingAgeRangeParam,
   type ListingsFilter,
   type ListingsOriginSource,
 } from './listings-filter.model';
@@ -13,27 +16,27 @@ import {
 /** "From your home" default radius when the AI says "near me" without a number. */
 export const AI_DEFAULT_NEAR_HOME_RADIUS_KM = 1;
 
-/** The AI endpoint takes ONE age group: the first selected token it knows. */
-function toAiAgeGroup(values: readonly string[]): AiSearchAgeGroup | null {
-  const match = values.find((v) => AGE_GROUPS.some((g) => g.value === v));
-  return match ? (match as AiSearchAgeGroup) : null;
-}
-
 /**
- * The catalogue filters as the AI endpoint takes them (re-rank / page 2+).
- * `AiSearchFilters` has no `minPrice` and no arbitrary origin, so only a radius
- * measured from the user's HOME is expressible (`nearHome`) — see ADR-054. The endpoint also
- * takes a single category and age group, and has no conditions: with several selected only the
- * first category / first known age group goes out, and conditions are not sent.
+ * The catalogue filters as the AI endpoint takes them (re-rank / page 2+). ADR-054 amendment
+ * (ADR-066 lists): the multi-select lists go out whole (`categoryIds`, `ageRanges`, `conditions`);
+ * the legacy single `categoryId` / `ageGroup` stay null (the server merges them, so sending both
+ * would double-count). `AiSearchFilters` has no `minPrice` and no arbitrary origin, so only a
+ * radius measured from the user's HOME is expressible (`nearHome`).
  */
 export function toAiSearchFilters(
   filters: ListingsFilter,
   originSource: ListingsOriginSource | null,
 ): AiSearchFilters {
   const nearHome = filters.radiusKm != null && originSource === 'home';
+  const ageRanges = filters.ageGroups
+    .map((token) => ageGroupToRangeParam(token))
+    .filter((r): r is ListingAgeRangeParam => r !== null);
   return {
-    categoryId: filters.categoryIds[0] ?? null,
-    ageGroup: toAiAgeGroup(filters.ageGroups),
+    categoryId: null,
+    ageGroup: null,
+    categoryIds: filters.categoryIds.length > 0 ? [...filters.categoryIds] : null,
+    ageRanges: ageRanges.length > 0 ? ageRanges : null,
+    conditions: filters.conditions.length > 0 ? [...filters.conditions] : null,
     maxPrice: filters.maxPrice,
     districtIds: filters.districtIds.length > 0 ? [...filters.districtIds] : null,
     nearHome,
@@ -41,20 +44,42 @@ export function toAiSearchFilters(
   };
 }
 
+/** `"120-"` (wire) -> `"120+"` (the UI token); a bounded range keeps its text. Null when not a range. */
+function rangeToAgeGroupToken(range: string): string | null {
+  const token = range.endsWith('-') ? `${range.slice(0, -1)}+` : range;
+  return parseAgeGroupToMonths(token) ? token : null;
+}
+
+function unique<T>(values: readonly T[]): T[] {
+  return [...new Set(values)];
+}
+
 /**
  * Inverse: what the server actually applied becomes the page's filters, so the
  * existing controls, chips and badge show it. `appliedFilters` is the truth —
- * `minPrice`/`query`/`city` are not part of it and are cleared.
+ * `minPrice`/`query`/`city` are not part of it and are cleared. The lists win; the legacy single
+ * values are merged in (deduped). An age range outside the five `AGE_GROUPS` stays as its own
+ * token, so the chip shows exactly what was applied; an unparseable one is dropped.
  */
 export function fromAiSearchFilters(applied: AiSearchFilters): ListingsFilter {
+  const categoryIds = unique([
+    ...(applied.categoryIds ?? []),
+    ...(applied.categoryId ? [applied.categoryId] : []),
+  ]).slice(0, LISTINGS_FILTER_LIMITS.categoryIds);
+  const ageGroups = unique([
+    ...(applied.ageRanges ?? [])
+      .map((r) => rangeToAgeGroupToken(r))
+      .filter((t): t is string => t !== null),
+    ...(applied.ageGroup ? [applied.ageGroup] : []),
+  ]).slice(0, LISTINGS_FILTER_LIMITS.ageRanges);
   return {
     query: null,
     city: null,
-    categoryIds: applied.categoryId ? [applied.categoryId] : [],
+    categoryIds,
     minPrice: null,
     maxPrice: applied.maxPrice,
-    ageGroups: applied.ageGroup ? [applied.ageGroup] : [],
-    conditions: [],
+    ageGroups,
+    conditions: unique(applied.conditions ?? []),
     sort: 'newest',
     radiusKm: applied.nearHome
       ? clampRadiusKm(applied.radiusKm ?? AI_DEFAULT_NEAR_HOME_RADIUS_KM)

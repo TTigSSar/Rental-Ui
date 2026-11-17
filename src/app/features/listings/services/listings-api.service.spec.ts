@@ -752,7 +752,7 @@ describe('ListingsApiService — AI search (ADR-054)', () => {
       pageSize: 20,
       totalCount: 1,
       hasMore: false,
-      appliedFilters: { categoryId: 'c', ageGroup: '36-72', maxPrice: 3000, districtIds: ['d'], nearHome: false, radiusKm: null },
+      appliedFilters: { categoryId: 'c', ageGroup: '36-72', categoryIds: ['c', 'c2'], ageRanges: ['36-72'], conditions: ['New'], maxPrice: 3000, districtIds: ['d'], nearHome: false, radiusKm: null },
       ranked: true,
       intent: '  Picked for outdoor play ',
       widenedDistrictIds: ['d2'],
@@ -766,6 +766,11 @@ describe('ListingsApiService — AI search (ADR-054)', () => {
     expect(result?.intent).toBe('Picked for outdoor play');
     expect(result?.widenedDistrictIds).toEqual(['d2']);
     expect(result?.ranked).toBe(true);
+    expect(result?.appliedFilters).toMatchObject({
+      categoryIds: ['c', 'c2'],
+      ageRanges: ['36-72'],
+      conditions: ['New'],
+    });
   });
 
   it('tolerates a sparse response: null intent, no flags, empty lists', () => {
@@ -782,7 +787,7 @@ describe('ListingsApiService — AI search (ADR-054)', () => {
       intent: null,
       widenedDistrictIds: [],
       aiUnavailable: false,
-      appliedFilters: { categoryId: null, ageGroup: null, maxPrice: null, districtIds: null, nearHome: false, radiusKm: null },
+      appliedFilters: { categoryId: null, ageGroup: null, categoryIds: null, ageRanges: null, conditions: null, maxPrice: null, districtIds: null, nearHome: false, radiusKm: null },
     });
   });
 

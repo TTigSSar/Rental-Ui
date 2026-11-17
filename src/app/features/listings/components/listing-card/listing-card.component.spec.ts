@@ -60,7 +60,9 @@ function createCard(inputs: CardInputs = {}) {
           toyDetails: { ageRangeFromTo: '{{from}}–{{to}} months' },
         },
       },
-      reviews: { summary: { noReviews: 'No reviews yet' } },
+      reviews: {
+        summary: { noReviews: 'No reviews yet', oneReview: '1 review', ariaRating: 'Rated {{rating}} out of 5' },
+      },
     },
     true,
   );
@@ -103,6 +105,20 @@ describe('ListingCardComponent', () => {
 
       expect(el.querySelector('.listing-card__star')).toBeNull();
       expect(text(el, '.listing-card__line--hint')).toBe('No reviews yet');
+    });
+
+    it('shows "1 review" with no star and no number for exactly one review (ADR-014)', () => {
+      const { el } = createCard({ listing: { rating: null, reviewCount: 1 } });
+
+      expect(el.querySelector('.listing-card__star')).toBeNull();
+      expect(text(el, '.listing-card__line--hint')).toBe('1 review');
+      expect(el.textContent).not.toContain('No reviews yet');
+    });
+
+    it('labels the rating line for assistive tech', () => {
+      const { el } = createCard({ listing: { rating: 4.8, reviewCount: 12 } });
+
+      expect(el.querySelector('.listing-card__rating')?.getAttribute('aria-label')).toBe('Rated 4.8 out of 5');
     });
 
     it('treats a missing rating the same as null', () => {

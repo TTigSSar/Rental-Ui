@@ -17,14 +17,13 @@ export interface AiSearchFilters {
   /** Legacy single value. Out: the group token (the group's range is also in `ageRanges`). */
   ageGroup: AiSearchAgeGroup | null;
   /**
-   * ADR-066 lists (ADR-054 amendment 2026-11-17). Always sent by the server (null = none); optional
-   * here only so existing request builders keep compiling until frontend-dev adopts them.
-   * `categoryIds` is OR-ed and merged with `categoryId`.
+   * ADR-066 lists (ADR-054 amendment 2026-11-17); null = none. `categoryIds` is OR-ed and
+   * merged with `categoryId`.
    */
-  categoryIds?: string[] | null;
+  categoryIds: string[] | null;
   /** "fromMonths-toMonths", upper bound may be empty ("120-"); OR-ed, merged with `ageGroup`. */
-  ageRanges?: ListingAgeRangeParam[] | null;
-  conditions?: ListingConditionFilter[] | null;
+  ageRanges: ListingAgeRangeParam[] | null;
+  conditions: ListingConditionFilter[] | null;
   maxPrice: number | null;
   districtIds: string[] | null;
   /** "Near me": the server resolves the signed-in user's home point; no coordinates here. */

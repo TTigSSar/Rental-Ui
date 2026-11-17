@@ -48,6 +48,9 @@ describe('AI search selectors', () => {
     const applied = {
       categoryId: null,
       ageGroup: null,
+      categoryIds: null,
+      ageRanges: null,
+      conditions: null,
       maxPrice: 3000,
       districtIds: null,
       nearHome: false,

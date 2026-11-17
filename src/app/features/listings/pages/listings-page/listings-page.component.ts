@@ -632,7 +632,9 @@ export class ListingsPageComponent {
       untracked(() => {
         if (sort === 'nearest') {
           if (hadOrigin && !hasOrigin) {
-            this.setSort('newest');
+            // A clear that already carries `sort: null` owns this reset: a second merge-navigation
+            // in the same tick would supersede it and bring the cleared filters back.
+            if (!this.nearestResetInFlight) this.setSort('newest');
           } else if (!hadOrigin && hasOrigin && !this.aiResultsActive()) {
             this.store.dispatch(ListingsActions.loadListings());
           }
@@ -731,6 +733,27 @@ export class ListingsPageComponent {
     'city',
   ] as const;
 
+  /** True while a clear-navigation that also drops `sort=nearest` is pending (see the Nearest effect). */
+  private nearestResetInFlight = false;
+
+  /**
+   * One merge-navigation for a clear that removes the origin. If the order is Nearest it goes out
+   * in the same URL change (`sort: null`): Nearest has no meaning without an origin, and a
+   * second navigation from the Nearest effect would supersede this one.
+   */
+  private navigateClearingOrigin(queryParams: Record<string, null>): void {
+    const dropNearest = this.filtersSignal().sort === 'nearest';
+    if (dropNearest) {
+      queryParams['sort'] = null;
+      this.nearestResetInFlight = true;
+    }
+    void this.router
+      .navigate([], { relativeTo: this.route, queryParams, queryParamsHandling: 'merge' })
+      .finally(() => {
+        if (dropNearest) this.nearestResetInFlight = false;
+      });
+  }
+
   private clearFilterParams(includeQuery: boolean): void {
     // Also clears the session-only origin point (Trello #80, M-039): previously nothing ever unset
     // it, so the radius widget kept looking "active" after every other filter was gone.
@@ -738,13 +761,10 @@ export class ListingsPageComponent {
     const queryParams: Record<string, null> = {};
     for (const key of ListingsPageComponent.FILTER_PARAM_KEYS) queryParams[key] = null;
     if (includeQuery) queryParams['q'] = null;
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams,
-      // `merge` + explicit nulls: `view`, `ai` and `sort` survive ("Clear all" in map view must not
-      // bounce back to list view; clearing filters is not leaving AI mode or changing the order).
-      queryParamsHandling: 'merge',
-    });
+    // `merge` + explicit nulls: `view`, `ai` and `sort` survive ("Clear all" in map view must not
+    // bounce back to list view; clearing filters is not leaving AI mode or changing the order) -
+    // except Nearest, which cannot outlive the origin it was measured from.
+    this.navigateClearingOrigin(queryParams);
   }
 
   /** The panel's / chip row's "Clear all": every filter, but the text in the search bar stays. */
@@ -762,11 +782,7 @@ export class ListingsPageComponent {
    *  radius half of the filter (merge-navigate, same commit pattern as
    *  `onRadiusMetersChange`). */
   protected onOriginCleared(): void {
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { radiusKm: null },
-      queryParamsHandling: 'merge',
-    });
+    this.navigateClearingOrigin({ radiusKm: null });
   }
 
   /** A guest submitted in AI mode: remember it, open the EXISTING sign-in dialog. */
@@ -976,11 +992,7 @@ export class ListingsPageComponent {
         // The chip reads "1 km · from you" — its × removes the whole location
         // filter, not just the radius number (Trello #80).
         this.store.dispatch(ListingsActions.clearOrigin());
-        void this.router.navigate([], {
-          relativeTo: this.route,
-          queryParams: { radiusKm: null },
-          queryParamsHandling: 'merge',
-        });
+        this.navigateClearingOrigin({ radiusKm: null });
         return;
     }
   }
