@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 
 import { ApiContract, toApiUrl } from '../../../api/api-contract';
+import { AuthTokenService } from '../../auth/services/auth-token.service';
 import { PushSubscriptionService, pushOffKey } from './push-subscription.service';
 
 const KEY_URL = toApiUrl(ApiContract.push.publicKey);
@@ -26,7 +27,7 @@ describe('PushSubscriptionService', () => {
     subscribe: ReturnType<typeof vi.fn>;
   };
   let register: ReturnType<typeof vi.fn>;
-  let originals: { sw: unknown; pm: unknown; notif: unknown };
+  let token: string | null;
 
   const makeSub = () => ({
     endpoint: 'https://push.example/abc',
@@ -38,12 +39,6 @@ describe('PushSubscriptionService', () => {
   });
 
   function setup(permission = 'granted') {
-    const g = globalThis as Record<string, unknown>;
-    originals = {
-      sw: Object.getOwnPropertyDescriptor(navigator, 'serviceWorker'),
-      pm: g['PushManager'],
-      notif: g['Notification'],
-    };
     pushManager = {
       getSubscription: vi.fn(async () => existing),
       subscribe: vi.fn(async () => {
@@ -56,10 +51,17 @@ describe('PushSubscriptionService', () => {
       value: { register, getRegistration: vi.fn(async () => ({ pushManager })) },
       configurable: true,
     });
-    g['PushManager'] = class {};
-    g['Notification'] = Object.assign(function () {}, { permission });
+    vi.stubGlobal('PushManager', class {});
+    vi.stubGlobal(
+      'Notification',
+      Object.assign(function () {}, { permission }),
+    );
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: AuthTokenService, useValue: { getToken: () => token } },
+      ],
     });
     return {
       service: TestBed.inject(PushSubscriptionService),
@@ -70,16 +72,20 @@ describe('PushSubscriptionService', () => {
   beforeEach(() => {
     order.length = 0;
     existing = null;
-    localStorage.clear();
+    token = 'jwt-A';
+    // Node's experimental localStorage is unusable in the test runner: use an in-memory one.
+    const data = new Map<string, string>();
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => data.get(k) ?? null,
+      setItem: (k: string, v: string) => void data.set(k, String(v)),
+      removeItem: (k: string) => void data.delete(k),
+      clear: () => data.clear(),
+    } as unknown as Storage);
   });
 
   afterEach(() => {
-    const g = globalThis as Record<string, unknown>;
+    vi.unstubAllGlobals();
     delete (navigator as unknown as Record<string, unknown>)['serviceWorker'];
-    if (originals.pm === undefined) delete g['PushManager'];
-    else g['PushManager'] = originals.pm;
-    if (originals.notif === undefined) delete g['Notification'];
-    else g['Notification'] = originals.notif;
   });
 
   it('subscribes: registers /sw.js, fetches the key, subscribes, PUTs the keys', async () => {
@@ -177,5 +183,41 @@ describe('PushSubscriptionService', () => {
     const { service } = setup();
     register.mockRejectedValue(new Error('boom'));
     await expect(service.ensureSubscribed('u1')).resolves.toBeUndefined();
+  });
+
+  it('logout DELETE carries the token captured at subscribe time, even when the store token is gone', async () => {
+    const { service, http } = setup();
+    existing = makeSub();
+    const sub = service.ensureSubscribed('u1');
+    await flush();
+    http.expectOne(SUB_URL).flush(null, { status: 204, statusText: 'No Content' });
+    await sub;
+
+    token = null; // clearTokenOnLogout$ already ran
+    const done = service.onSessionEnded();
+    await flush();
+
+    expect(order).toEqual(['unsubscribe']);
+    const del = http.expectOne(SUB_URL);
+    expect(del.request.method).toBe('DELETE');
+    expect(del.request.headers.get('Authorization')).toBe('Bearer jwt-A');
+    del.flush(null, { status: 500, statusText: 'Server Error' });
+    await expect(done).resolves.toBeUndefined();
+  });
+
+  it('turnOff uses the normal interceptor path (no explicit Authorization header)', async () => {
+    const { service, http } = setup();
+    existing = makeSub();
+    const sub = service.ensureSubscribed('u1');
+    await flush();
+    http.expectOne(SUB_URL).flush(null, { status: 204, statusText: 'No Content' });
+    await sub;
+
+    const done = service.turnOff('u1');
+    await flush();
+    const del = http.expectOne(SUB_URL);
+    expect(del.request.headers.has('Authorization')).toBe(false);
+    del.flush(null, { status: 204, statusText: 'No Content' });
+    await done;
   });
 });

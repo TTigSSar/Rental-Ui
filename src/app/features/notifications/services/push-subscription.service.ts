@@ -1,8 +1,9 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
 import { ApiContract, toApiUrl } from '../../../api/api-contract';
+import { AuthTokenService } from '../../auth/services/auth-token.service';
 import type {
   PushPublicKeyResponse,
   PushSubscriptionRequest,
@@ -21,6 +22,9 @@ export const pushOffKey = (userId: string): string => `dorent.push.off:${userId}
 @Injectable({ providedIn: 'root' })
 export class PushSubscriptionService {
   private readonly http = inject(HttpClient);
+  private readonly tokens = inject(AuthTokenService);
+  /** Token used by the last successful PUT (memory only): lets the logout DELETE authenticate. */
+  private capturedToken: string | null = null;
 
   /** serviceWorker + PushManager + Notification are all present. */
   readonly supported = signal<boolean>(detectSupported()).asReadonly();
@@ -82,6 +86,7 @@ export class PushSubscriptionService {
         auth: json.keys?.['auth'] ?? '',
       };
       await firstValueFrom(this.http.put<void>(toApiUrl(ApiContract.push.subscription), body));
+      this.capturedToken = (this.tokens.getToken() ?? '').trim() || null;
       this.activeSignal.set(true);
     });
   }
@@ -94,12 +99,12 @@ export class PushSubscriptionService {
       /* storage blocked: the flag lasts nothing, the unsubscribe below still happens */
     }
     this.flagTick.update((n) => n + 1);
-    return this.enqueue(() => this.dropSubscription());
+    return this.enqueue(() => this.dropSubscription(false));
   }
 
   /** Real session end (logout or account switch). Needs no token. */
   onSessionEnded(): Promise<void> {
-    return this.enqueue(() => this.dropSubscription());
+    return this.enqueue(() => this.dropSubscription(true));
   }
 
   /** Permission was (re)granted explicitly: forget "Turn off". */
@@ -112,8 +117,10 @@ export class PushSubscriptionService {
     this.flagTick.update((n) => n + 1);
   }
 
-  private async dropSubscription(): Promise<void> {
+  private async dropSubscription(useCapturedToken: boolean): Promise<void> {
     this.activeSignal.set(false);
+    const captured = this.capturedToken;
+    this.capturedToken = null;
     if (!this.supported()) {
       return;
     }
@@ -128,7 +135,13 @@ export class PushSubscriptionService {
     const body: PushUnsubscribeRequest = { endpoint };
     try {
       await firstValueFrom(
-        this.http.request<void>('DELETE', toApiUrl(ApiContract.push.subscription), { body }),
+        this.http.request<void>('DELETE', toApiUrl(ApiContract.push.subscription), {
+          body,
+          headers:
+            useCapturedToken && captured !== null
+              ? new HttpHeaders({ Authorization: `Bearer ${captured}` })
+              : undefined,
+        }),
       );
     } catch {
       /* best effort */

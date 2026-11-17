@@ -26,7 +26,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
-  if (token === '') {
+  // An explicit Authorization header wins (PushSubscriptionService sends the logout DELETE
+  // with the token captured at subscribe time, after the store token is gone or replaced).
+  if (token === '' || req.headers.has('Authorization')) {
     return next(req);
   }
 
