@@ -337,6 +337,18 @@
   }
 }
 
+/* a11y: keep the 36px look, extend the hit area to 44px (same pattern as `.aisf__submit::before`).
+   The mobile toolbar gap (--ui-space-4 = 4px) equals the 4px extension, so it touches but never covers the row above. */
+.lp-toolbar__rerank {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+  }
+}
+
 /* Design `.achip`: soft-orange pill, one per selected value, own x. */
 .achip {
   display: inline-flex;
