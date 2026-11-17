@@ -254,15 +254,29 @@
 /* Mobile: List/Map and the sort control stay on ONE row; the sort label truncates (ellipsis). */
 @media (max-width: 960px) {
   .lp-toolbar {
-    flex-wrap: nowrap;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: var(--ui-space-4);
+  }
+  .lp-toolbar__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-10);
+    min-width: 0;
   }
   .lp-sort-wrapper {
     flex: 0 1 auto;
+    min-width: 0;
   }
+  /* The status (Re-rank button / "Updating the order") has its own slim row, left aligned,
+     so the List/Map + sort row never overflows in long languages (hy/ru). */
   .lp-toolbar__updating,
   .lp-toolbar__rerank {
-    flex-shrink: 0;
-    white-space: nowrap;
+    align-self: flex-start;
+    max-width: 100%;
+    min-width: 0;
   }
 }
 
