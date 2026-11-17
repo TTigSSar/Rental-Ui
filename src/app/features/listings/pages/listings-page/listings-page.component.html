@@ -150,6 +150,7 @@
                 type="button"
                 class="lp-toolbar__sort"
                 aria-haspopup="listbox"
+                [attr.title]="('listings.page.sortLabel' | translate) + ': ' + (activeSortOption().labelKey | translate)"
                 [attr.aria-label]="('listings.page.sortLabel' | translate) + ': ' + (activeSortOption().labelKey | translate)"
                 [attr.aria-expanded]="sortMenuOpen()"
                 (click)="onSortTriggerClick($event)"

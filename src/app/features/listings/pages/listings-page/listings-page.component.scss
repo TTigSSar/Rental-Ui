@@ -255,6 +255,9 @@
 @media (max-width: 960px) {
   .lp-toolbar {
     flex-direction: column;
+    /* nowrap: a wrapping column sizes its line by the widest item's max-content, so the row
+       would ignore the container width and overflow instead of letting the sort label truncate. */
+    flex-wrap: nowrap;
     align-items: stretch;
     justify-content: flex-start;
     gap: var(--ui-space-4);
@@ -476,15 +479,21 @@
 .lp-toolbar__sort-prefix {
   color: var(--ui-color-text-secondary);
   font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .lp-toolbar__sort-value {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .lp-toolbar__sort-chevron {
+  flex-shrink: 0;
   font-size: 0.75rem !important;
   color: var(--ui-color-text-secondary);
 }
