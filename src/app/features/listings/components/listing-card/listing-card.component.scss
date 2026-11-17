@@ -280,6 +280,7 @@
 /* "View" pill: desktop only (>= 1024), decorative — the card itself is the link. */
 .listing-card__view {
   display: none;
+  margin-left: auto; /* always the right end of the foot, with or without the condition chip */
   align-items: center;
   min-height: 32px;
   padding: 0 12px;

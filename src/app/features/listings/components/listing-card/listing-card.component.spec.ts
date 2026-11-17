@@ -118,7 +118,10 @@ describe('ListingCardComponent', () => {
     it('labels the rating line for assistive tech', () => {
       const { el } = createCard({ listing: { rating: 4.8, reviewCount: 12 } });
 
-      expect(el.querySelector('.listing-card__rating')?.getAttribute('aria-label')).toBe('Rated 4.8 out of 5');
+      const rating = el.querySelector('.listing-card__rating');
+      expect(rating?.getAttribute('aria-label')).toBe('Rated 4.8 out of 5');
+      // aria-label is only valid on a role that can be named (a bare div is generic).
+      expect(rating?.getAttribute('role')).toBe('img');
     });
 
     it('treats a missing rating the same as null', () => {

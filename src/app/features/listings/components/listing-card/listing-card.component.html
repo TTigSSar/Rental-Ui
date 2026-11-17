@@ -64,6 +64,7 @@
     @if (hasRating()) {
       <div
         class="listing-card__line listing-card__rating"
+        role="img"
         [attr.aria-label]="'reviews.summary.ariaRating' | translate: { rating: listing().rating }"
       >
         <i class="pi pi-star-fill listing-card__star" aria-hidden="true"></i>

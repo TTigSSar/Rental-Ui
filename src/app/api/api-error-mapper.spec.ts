@@ -92,11 +92,17 @@ describe('ApiErrorMapper', () => {
     it.each([
       ['ai_search.rate_limited', 'errors.aiSearchRateLimited'],
       ['ai_search.daily_limit', 'errors.aiSearchDailyLimit'],
-      ['ai_search.invalid_filters', 'errors.aiSearchInvalidFilters'],
     ])('maps %s to %s without leaking the server text', (code, key) => {
       const error = problem(429, { errorCode: code, title: 'English server text' });
       expect(resolveApiErrorKey(error)).toBe(key);
       expect(mapper.message(error)).toBe(leaf(en, key));
+      expect(mapper.message(error)).not.toContain('English server text');
+    });
+
+    it('maps the 400 ai_search.invalid_filters without leaking the server text', () => {
+      const error = problem(400, { errorCode: 'ai_search.invalid_filters', title: 'English server text' });
+      expect(resolveApiErrorKey(error)).toBe('errors.aiSearchInvalidFilters');
+      expect(mapper.message(error)).toBe(leaf(en, 'errors.aiSearchInvalidFilters'));
       expect(mapper.message(error)).not.toContain('English server text');
     });
   });

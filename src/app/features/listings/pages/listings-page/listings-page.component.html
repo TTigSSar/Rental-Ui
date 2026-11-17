@@ -150,7 +150,8 @@
                 aria-haspopup="listbox"
                 [attr.aria-label]="('listings.page.sortLabel' | translate) + ': ' + (activeSortOption().labelKey | translate)"
                 [attr.aria-expanded]="sortMenuOpen()"
-                (click)="toggleSortMenu()"
+                (click)="onSortTriggerClick($event)"
+                (keydown)="onSortTriggerKeydown($event)"
               >
                 <span class="lp-toolbar__sort-prefix">{{ 'listings.page.sortLabel' | translate }}</span>
                 <span class="lp-toolbar__sort-value">{{ activeSortOption().labelKey | translate }}</span>
@@ -158,7 +159,7 @@
               </button>
 
               @if (sortMenuOpen()) {
-                <ul class="lp-sort-menu" role="listbox" [attr.aria-label]="'listings.page.sortLabel' | translate">
+                <ul class="lp-sort-menu" role="listbox" [attr.aria-label]="'listings.page.sortLabel' | translate" (keydown)="onSortMenuKeydown($event)">
                   @for (opt of sortOptions(); track opt.value) {
                     <li role="presentation">
                       <button
@@ -169,7 +170,7 @@
                         [attr.aria-selected]="sortBy() === opt.value"
                         [attr.aria-disabled]="opt.disabled ? 'true' : null"
                         [attr.title]="opt.disabled ? ('listings.browse.sortNearestHint' | translate) : null"
-                        (click)="selectSort(opt.value)"
+                        (click)="onSortOptionClick($event, opt.value)"
                       >
                         <span class="lp-sort-menu__label">
                           {{ opt.labelKey | translate }}

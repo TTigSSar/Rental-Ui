@@ -847,8 +847,95 @@ export class ListingsPageComponent {
     }
   }
 
-  protected toggleSortMenu(): void {
+  /** `keyboard` = opened by Enter/Space/Arrow: the selected option takes focus (a pointer open does not). */
+  protected toggleSortMenu(trigger?: HTMLElement, keyboard = false): void {
     this.sortMenuOpen.update(v => !v);
+    if (keyboard && this.sortMenuOpen() && trigger) this.focusSortOption(trigger, 'selected');
+  }
+
+  /** Trigger click: a keyboard-initiated click (Enter/Space) reports `detail === 0`. */
+  protected onSortTriggerClick(event: MouseEvent): void {
+    this.toggleSortMenu(event.currentTarget as HTMLElement, event.detail === 0);
+  }
+
+  protected onSortTriggerKeydown(event: KeyboardEvent): void {
+    const trigger = event.currentTarget as HTMLElement;
+    if (event.key === 'Escape' && this.sortMenuOpen()) {
+      event.preventDefault();
+      this.sortMenuOpen.set(false);
+    } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (this.sortMenuOpen()) {
+        this.focusSortOption(trigger, 'selected');
+      } else {
+        this.toggleSortMenu(trigger, true);
+      }
+    }
+  }
+
+  /** Listbox keyboard model (roving focus over real buttons): arrows/Home/End skip aria-disabled
+   *  options; Enter/Space activate natively via click; Escape and Tab close and return to the trigger. */
+  protected onSortMenuKeydown(event: KeyboardEvent): void {
+    const menu = event.currentTarget as HTMLElement;
+    const trigger = this.sortTrigger(menu);
+    switch (event.key) {
+      case 'ArrowDown':
+      case 'ArrowUp': {
+        event.preventDefault();
+        const items = this.enabledSortItems(menu);
+        if (!items.length) return;
+        const i = items.indexOf(document.activeElement as HTMLElement);
+        const next = event.key === 'ArrowDown' ? Math.min(i + 1, items.length - 1) : i < 0 ? 0 : Math.max(i - 1, 0);
+        items[next].focus();
+        return;
+      }
+      case 'Home':
+      case 'End': {
+        event.preventDefault();
+        const items = this.enabledSortItems(menu);
+        items[event.key === 'Home' ? 0 : items.length - 1]?.focus();
+        return;
+      }
+      case 'Escape':
+        event.preventDefault();
+        this.sortMenuOpen.set(false);
+        trigger?.focus();
+        return;
+      case 'Tab':
+        this.sortMenuOpen.set(false);
+        trigger?.focus();
+        return;
+    }
+  }
+
+  /** Option click: after a keyboard selection the focused option is gone, so focus returns to the trigger. */
+  protected onSortOptionClick(event: MouseEvent, value: SortValue): void {
+    const trigger = this.sortTrigger(event.currentTarget as HTMLElement);
+    this.selectSort(value);
+    if (event.detail === 0 && !this.sortMenuOpen()) trigger?.focus();
+  }
+
+  private sortTrigger(inner: HTMLElement): HTMLElement | null {
+    return inner.closest('.lp-sort-wrapper')?.querySelector<HTMLElement>('.lp-toolbar__sort') ?? null;
+  }
+
+  private enabledSortItems(menu: HTMLElement): HTMLElement[] {
+    return Array.from(menu.querySelectorAll<HTMLElement>('[role="option"]:not([aria-disabled="true"])'));
+  }
+
+  private focusSortOption(trigger: HTMLElement, which: 'selected'): void {
+    afterNextRender(
+      () => {
+        const menu = trigger.closest('.lp-sort-wrapper')?.querySelector<HTMLElement>('[role="listbox"]');
+        if (!menu) return;
+        const target =
+          which === 'selected'
+            ? (menu.querySelector<HTMLElement>('[role="option"][aria-selected="true"]') ?? this.enabledSortItems(menu)[0])
+            : null;
+        target?.focus();
+      },
+      { injector: this.injector },
+    );
   }
 
   /** The open menu (z-index 50) would otherwise slide over the sticky

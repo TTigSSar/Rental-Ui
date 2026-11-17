@@ -543,6 +543,27 @@ describe('ListingsPageComponent — Clear all under sort=nearest (#271 review)',
     expect(router.url).not.toContain('sort=');
   });
 
+  it('the Distance widget\'s own clear under Nearest drops radius and sort in one navigation, keeping siblings', async () => {
+    const { el, router, harness } = await setup();
+    const navigate = vi.spyOn(router, 'navigate');
+
+    el.querySelector<HTMLButtonElement>('.rof__edit--remove')!.click();
+    harness.detectChanges();
+    await vi.advanceTimersByTimeAsync(100);
+    harness.detectChanges();
+    await vi.advanceTimersByTimeAsync(100);
+
+    expect(navigate).toHaveBeenCalledTimes(1);
+    const extras = navigate.mock.calls[0][1]!;
+    expect(extras.queryParams).toEqual({ radiusKm: null, sort: null });
+    expect(extras.queryParamsHandling).toBe('merge');
+    expect(router.url).not.toContain('radiusKm');
+    expect(router.url).not.toContain('sort=');
+    // Filters are not resurrected or dropped: the sibling filter and view survive.
+    expect(router.url).toContain('categoryId=abc-123');
+    expect(router.url).toContain('view=map');
+  });
+
   it('the radius chip x under Nearest drops radius and sort in one navigation, keeping siblings', async () => {
     const { el, router, harness } = await setup();
 
@@ -1390,6 +1411,98 @@ describe('ListingsPageComponent — Browse redesign toolbar and sort (ADR-066)',
     nearest.click();
     await vi.advanceTimersByTimeAsync(50);
     expect(router.url).not.toContain('sort=');
+  });
+
+  describe('sort menu keyboard model', () => {
+    const key = (target: Element, k: string) =>
+      target.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true }));
+    const trigger = (el: HTMLElement) => el.querySelector<HTMLButtonElement>('.lp-toolbar__sort')!;
+    const menu = (el: HTMLElement) => el.querySelector<HTMLElement>('.lp-sort-menu')!;
+    const flush = async (harness: RouterTestingHarness) => {
+      harness.detectChanges();
+      await vi.advanceTimersByTimeAsync(0);
+      harness.detectChanges();
+    };
+
+    it('ArrowDown on the trigger opens the menu and focuses the selected option', async () => {
+      const { harness, el } = await navigateToListings('/listings?sort=price_desc', {
+        filters: { ...BASE_FILTERS, sort: 'price_desc' },
+      });
+      trigger(el).focus();
+      key(trigger(el), 'ArrowDown');
+      await flush(harness);
+
+      expect(menu(el)).not.toBeNull();
+      expect(document.activeElement).toBe(itemFor(el, 'sortPriceDesc'));
+    });
+
+    it('keyboard-initiated click (Enter/Space) on the trigger focuses the selected option; a pointer click does not', async () => {
+      const { harness, el } = await navigateToListings('/listings');
+      trigger(el).dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+      await flush(harness);
+      expect(document.activeElement).not.toBe(itemFor(el, 'sortNewest'));
+
+      trigger(el).dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 })); // close
+      harness.detectChanges();
+      trigger(el).dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 0 }));
+      await flush(harness);
+      expect(document.activeElement).toBe(itemFor(el, 'sortNewest'));
+    });
+
+    it('arrows move focus, Home/End jump, and the disabled Nearest option is skipped', async () => {
+      const { harness, el } = await navigateToListings('/listings');
+      trigger(el).dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 0 }));
+      await flush(harness);
+
+      key(menu(el), 'ArrowDown');
+      expect(document.activeElement).toBe(itemFor(el, 'sortPriceAsc'));
+      key(menu(el), 'End');
+      expect(document.activeElement).toBe(itemFor(el, 'sortHighestRated')); // not the disabled Nearest
+      key(menu(el), 'ArrowDown');
+      expect(document.activeElement).toBe(itemFor(el, 'sortHighestRated'));
+      key(menu(el), 'ArrowUp');
+      expect(document.activeElement).toBe(itemFor(el, 'sortPriceDesc'));
+      key(menu(el), 'Home');
+      expect(document.activeElement).toBe(itemFor(el, 'sortNewest'));
+    });
+
+    it('Nearest is reachable by arrows once an origin exists', async () => {
+      const { harness, el } = await navigateToListings('/listings', {
+        originCoords: { lat: 40.18, lng: 44.51 },
+        originSource: 'home',
+      });
+      trigger(el).dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 0 }));
+      await flush(harness);
+
+      key(menu(el), 'End');
+      expect(document.activeElement).toBe(itemFor(el, 'sortNearest'));
+    });
+
+    it('Escape closes the menu and returns focus to the trigger', async () => {
+      const { harness, el } = await navigateToListings('/listings');
+      trigger(el).dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 0 }));
+      await flush(harness);
+
+      key(menu(el), 'Escape');
+      harness.detectChanges();
+      expect(el.querySelector('.lp-sort-menu')).toBeNull();
+      expect(document.activeElement).toBe(trigger(el));
+    });
+
+    it('selecting with the keyboard applies the sort and returns focus to the trigger', async () => {
+      const { harness, el, router } = await navigateToListings('/listings');
+      trigger(el).dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 0 }));
+      await flush(harness);
+
+      key(menu(el), 'ArrowDown');
+      (document.activeElement as HTMLElement).dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 0 }));
+      await vi.advanceTimersByTimeAsync(50);
+      harness.detectChanges();
+
+      expect(router.url).toContain('sort=price_asc');
+      expect(el.querySelector('.lp-sort-menu')).toBeNull();
+      expect(document.activeElement).toBe(trigger(el));
+    });
   });
 
   it('Nearest can be chosen once an origin exists', async () => {
