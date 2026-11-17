@@ -259,8 +259,10 @@
   .lp-sort-wrapper {
     flex: 0 1 auto;
   }
-  .lp-toolbar__updating {
+  .lp-toolbar__updating,
+  .lp-toolbar__rerank {
     flex-shrink: 0;
+    white-space: nowrap;
   }
 }
 
@@ -292,8 +294,9 @@
   }
 }
 
-/* Design `.tlink` (the chip row's "Clear all"). */
-.lp-toolbar__chips .tlink {
+/* Design `.tlink` (the chip row's "Clear all"; also the toolbar "Re-rank with AI" opt-in). */
+.lp-toolbar__chips .tlink,
+.lp-toolbar__rerank {
   display: inline-flex;
   align-items: center;
   min-height: 36px;

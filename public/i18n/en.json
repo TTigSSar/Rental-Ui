@@ -475,6 +475,7 @@
       "submit": "Search",
       "sortRelevant": "Relevance",
       "updating": "Updating the order",
+      "rerank": "Re-rank with AI",
       "moreListings": "More listings matching your criteria",
       "status": "Finding toys that match your description",
       "purposeNote": "Not many exact matches, so the purpose was read more broadly.",

@@ -214,18 +214,57 @@ describe('listingsReducer — AI search (ADR-054)', () => {
     });
   });
 
-  it('aiFiltersChanged keeps the cards (dimmed) and starts the re-rank', () => {
+  it('aiFiltersChanged leaves the AI order (no re-rank), applies the filters and offers "Re-rank with AI"', () => {
     const state: ListingsState = {
-      ...aiOn({ hasSearched: true, orderActive: true }),
+      ...aiOn({ hasSearched: true, orderActive: true, ranked: true, rankedIds: ['a'], description: 'bike' }),
       items: [makeListingPreview({ id: 'a' })],
     };
     const filters = { ...initialListingsState.filters, maxPrice: 2000 };
     const next = listingsReducer(state, ListingsActions.aiFiltersChanged({ filters }));
 
-    expect(next.items).toHaveLength(1);
+    expect(next.items).toEqual([]);
     expect(next.filters.maxPrice).toBe(2000);
-    expect(next.ai.busy).toBe('reranking');
+    expect(next.ai).toMatchObject({
+      mode: true,
+      hasSearched: true,
+      description: 'bike',
+      busy: 'idle',
+      orderActive: false,
+      ranked: false,
+      rankedIds: [],
+      rerankOffered: true,
+    });
     expect(next.ai.epoch).toBe(state.ai.epoch + 1);
+  });
+
+  it('the offer stays until AI results are back, and a failed re-rank leaves the catalogue (not AI order)', () => {
+    const offered = listingsReducer(
+      aiOn({ hasSearched: true, orderActive: true }),
+      ListingsActions.aiFiltersChanged({ filters: initialListingsState.filters }),
+    );
+    const busy = listingsReducer(offered, ListingsActions.aiRerank());
+    expect(busy.ai).toMatchObject({ rerankOffered: true, busy: 'reranking', orderActive: true });
+
+    const failed = listingsReducer(
+      busy,
+      ListingsActions.aiSearchFailure({ error: 'x', errorCode: null, epoch: busy.ai.epoch }),
+    );
+    expect(failed.ai).toMatchObject({ rerankOffered: true, busy: 'idle', orderActive: false });
+
+    const ok = listingsReducer(
+      busy,
+      ListingsActions.aiSearchSuccess({ kind: 'rerank', response: makeResponse(), epoch: busy.ai.epoch }),
+    );
+    expect(ok.ai).toMatchObject({ rerankOffered: false, orderActive: true });
+  });
+
+  it('a new search hides the offer', () => {
+    const offered = listingsReducer(
+      aiOn({ hasSearched: true }),
+      ListingsActions.aiFiltersChanged({ filters: initialListingsState.filters }),
+    );
+    const next = listingsReducer(offered, ListingsActions.submitAiSearch({ description: 'x' }));
+    expect(next.ai.rerankOffered).toBe(false);
   });
 
   it('dropAiOrder leaves AI order behind: ordinary catalogue, no ranked flags, intent kept for a later return', () => {

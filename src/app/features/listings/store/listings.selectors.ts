@@ -232,6 +232,12 @@ export const selectAiResultsActive = createSelector(
   (ai): boolean => ai.mode && ai.hasSearched && ai.orderActive,
 );
 
+/** A filter/chip changed in AI mode: the plain catalogue shows and "Re-rank with AI" is offered. */
+export const selectAiRerankOffered = createSelector(
+  selectListingsAi,
+  (ai): boolean => ai.mode && ai.hasSearched && ai.rerankOffered,
+);
+
 /** Explanation line: the intent, only while the order is ranked. */
 export const selectAiExplanation = createSelector(selectListingsAi, (ai): string | null =>
   ai.mode && ai.hasSearched && ai.orderActive && ai.ranked ? ai.intent : null,

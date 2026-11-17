@@ -376,6 +376,7 @@ export const listingsReducer = createReducer(
       description,
       submittedDescription: description,
       busy: 'searching',
+      rerankOffered: false,
       error: null,
       errorCode: null,
       fallbackNotice: false,
@@ -383,13 +384,29 @@ export const listingsReducer = createReducer(
       epoch: state.ai.epoch + 1,
     }),
   ),
+  // No model call: the AI order is left behind (like dropAiOrder), the new filters apply to the
+  // ordinary catalogue (the effect loads it) and the explicit "Re-rank with AI" button is offered.
   on(ListingsActions.aiFiltersChanged, (state, { filters }): ListingsState => ({
-    ...withAi(state, { busy: 'reranking', error: null, errorCode: null, epoch: state.ai.epoch + 1 }),
+    ...withAi(state, {
+      orderActive: false,
+      rerankOffered: true,
+      busy: 'idle',
+      ranked: false,
+      rankedIds: [],
+      error: null,
+      errorCode: null,
+      epoch: state.ai.epoch + 1,
+    }),
     filters: { ...filters },
+    items: [],
+    page: 1,
+    hasMore: false,
   })),
   on(ListingsActions.aiRerank, (state): ListingsState =>
     withAi(state, {
       orderActive: true,
+      // `rerankOffered` stays until AI results are back (the button is hidden while busy, and
+      // offered again if the request fails).
       busy: 'reranking',
       error: null,
       errorCode: null,
@@ -464,6 +481,7 @@ export const listingsReducer = createReducer(
         ...state.ai,
         hasSearched: true,
         orderActive: true,
+        rerankOffered: false,
         busy: 'idle',
         ranked: response.ranked,
         intent: response.intent ?? (kind === 'rerank' ? state.ai.intent : null),
@@ -485,7 +503,16 @@ export const listingsReducer = createReducer(
     if (epoch !== state.ai.epoch) {
       return state;
     }
-    return { ...withAi(state, { busy: 'idle', error, errorCode }), isLoading: false };
+    return {
+      ...withAi(state, {
+        busy: 'idle',
+        error,
+        errorCode,
+        // A failed explicit re-rank leaves the plain catalogue on screen: not AI order.
+        orderActive: state.ai.rerankOffered ? false : state.ai.orderActive,
+      }),
+      isLoading: false,
+    };
   }),
   on(ListingsActions.loadAiStatusSuccess, (state, { status }): ListingsState =>
     withAi(state, { aiStatus: status }),

@@ -88,6 +88,7 @@ import {
   selectAiRankedCount,
   selectAiDailyLimited,
   selectAiRateLimited,
+  selectAiRerankOffered,
   selectAiResultsActive,
   selectListingCategories,
   selectListingFacets,
@@ -322,6 +323,7 @@ export class ListingsPageComponent {
   protected readonly aiHasSearched = this.store.selectSignal(selectAiHasSearched);
   /** The visible results are in AI order. */
   protected readonly aiResultsActive = this.store.selectSignal(selectAiResultsActive);
+  protected readonly aiRerankOffered = this.store.selectSignal(selectAiRerankOffered);
   protected readonly aiRanked = this.store.selectSignal(selectAiRanked);
   protected readonly aiRankedCount = this.store.selectSignal(selectAiRankedCount);
   protected readonly aiNotes = this.store.selectSignal(selectAiNotes);
@@ -544,17 +546,20 @@ export class ListingsPageComponent {
       .pipe(takeUntilDestroyed())
       .subscribe((params) => {
         const filters = parseListingsFilterFromParams(params);
-        // Read BEFORE mirroring `?ai` into the store: true only if the URL still says AI AND AI
-        // results are showing. In that case the URL change is a user filter/chip edit (or the echo
-        // of the filters the AI itself just applied): re-rank, don't reload the catalogue.
-        const aiActive = params.get('ai') === '1' && this.aiResultsActive();
+        // Read BEFORE mirroring `?ai` into the store: true only if the URL still says AI AND a
+        // search has produced results. A change of the filters/chips then is a user edit: NO model
+        // call (ADR-054 amendment 2026-11-17) - the ordinary catalogue reloads and "Re-rank with
+        // AI" is offered. A sort-only change is the sort control's own `dropAiOrder` path.
+        const aiResults = params.get('ai') === '1' && this.aiHasSearched();
+        const aiActive = aiResults && this.aiResultsActive();
+        const current = this.filtersSignal();
         this.store.dispatch(ListingsActions.setAiMode({ on: params.get('ai') === '1' }));
-        if (aiActive) {
-          if (!sameFilters(filters, this.filtersSignal())) {
-            this.store.dispatch(ListingsActions.aiFiltersChanged({ filters }));
-          }
+        if (aiResults && !sameFilters({ ...filters, sort: current.sort }, current)) {
+          this.store.dispatch(ListingsActions.aiFiltersChanged({ filters }));
           return;
         }
+        // The echo of the filters the AI itself just applied: nothing to do.
+        if (aiActive) return;
         this.store.dispatch(ListingsActions.updateFilters({ filters }));
         this.store.dispatch(ListingsActions.loadListings());
       });
@@ -972,6 +977,11 @@ export class ListingsPageComponent {
       this.store.dispatch(ListingsActions.dropAiOrder());
     }
     this.setSort(value);
+  }
+
+  /** The explicit, paid opt-in: re-rank the current results with the current filters (no re-parse). */
+  protected rerankWithAi(): void {
+    this.store.dispatch(ListingsActions.aiRerank());
   }
 
   /** Plain-text search from the desktop field above the results (switch off). */
