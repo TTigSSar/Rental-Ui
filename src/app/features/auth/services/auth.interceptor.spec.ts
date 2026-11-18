@@ -84,4 +84,16 @@ describe('authInterceptor', () => {
     req.flush({});
     httpMock.verify();
   });
+
+  it('leaves an explicit Authorization header untouched', () => {
+    const { http, httpMock } = configure('jwt-new');
+    http
+      .delete(`${API}/api/push/subscription`, { headers: { Authorization: 'Bearer jwt-old' } })
+      .subscribe();
+
+    const req = httpMock.expectOne(`${API}/api/push/subscription`);
+    expect(req.request.headers.get('Authorization')).toBe('Bearer jwt-old');
+    req.flush(null);
+    httpMock.verify();
+  });
 });

@@ -442,6 +442,15 @@ export async function mockApi(page: Page, seed: ApiSeed = {}): Promise<void> {
       return json(route, status, seed.external?.body ?? { token: 'e2e-jwt-token' });
     }
 
+    // Web Push (ADR-067): public key defaults to 404 push.not_configured so journeys keep
+    // their in-tab notifications; subscribe / unsubscribe are 204.
+    if (pathname.endsWith('/api/push/public-key') && method === 'GET') {
+      return json(route, 404, { errorCode: 'push.not_configured' });
+    }
+    if (pathname.endsWith('/api/push/subscription') && (method === 'PUT' || method === 'DELETE')) {
+      return route.fulfill({ status: 204 });
+    }
+
     // PUT /api/auth/me/name and /api/auth/me/phone — 204, patching the working `me`.
     if (pathname.endsWith('/api/auth/me/name') && method === 'PUT') {
       const status = seed.updateName?.status ?? 204;

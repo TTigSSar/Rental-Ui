@@ -6,6 +6,7 @@ import { OwnerRequestsBadgeService } from '../../bookings/services/owner-request
 import { ChatBadgeService } from '../../chat/services/chat-badge.service';
 import { ChatRealtimeService } from '../../chat/services/chat-realtime.service';
 import { NotificationBadgeService } from '../../notifications/services/notification-badge.service';
+import { PushSubscriptionService } from '../../notifications/services/push-subscription.service';
 import * as AuthActions from '../store/auth.actions';
 import { authFeatureKey, authReducer } from '../store/auth.reducer';
 import { sessionResetMetaReducers } from '../store/session-reset.meta-reducer';
@@ -23,6 +24,10 @@ function setup() {
     hub: fake('hub'),
     owner: fake('owner'),
   };
+  const push = {
+    onSessionEnded: vi.fn(() => Promise.resolve()),
+    ensureSubscribed: vi.fn(() => Promise.resolve()),
+  };
   TestBed.configureTestingModule({
     providers: [
       provideStore({ [authFeatureKey]: authReducer }, { metaReducers: sessionResetMetaReducers }),
@@ -30,12 +35,13 @@ function setup() {
       { provide: ChatBadgeService, useValue: services.chat },
       { provide: ChatRealtimeService, useValue: services.hub },
       { provide: OwnerRequestsBadgeService, useValue: services.owner },
+      { provide: PushSubscriptionService, useValue: push },
     ],
   });
   const store = TestBed.inject(Store);
   const lifecycle = TestBed.inject(SessionLifecycleService);
   lifecycle.sessionUserId$.subscribe((id) => lifecycle.apply(id));
-  return { store, services, calls };
+  return { store, services, calls, push, lifecycle };
 }
 
 type Services = ReturnType<typeof setup>['services'];
@@ -91,5 +97,36 @@ describe('SessionLifecycleService', () => {
     store.dispatch(AuthActions.logout());
     expect(started(services)).toEqual(startsBefore);
     expect(stopped(services)).toEqual(stopsBefore.map((n) => n + 1));
+  });
+
+  describe('push subscription (ADR-067 section 13)', () => {
+    it('page load restoring the same user never unsubscribes, and (re)subscribes', () => {
+      const { lifecycle, push } = setup();
+      lifecycle.apply('a');
+      lifecycle.apply('a');
+      expect(push.onSessionEnded).not.toHaveBeenCalled();
+      expect(push.ensureSubscribed).toHaveBeenCalledWith('a');
+    });
+
+    it('A -> null unsubscribes', () => {
+      const { store, push } = setup();
+      signIn(store, 'ta', 'a');
+      store.dispatch(AuthActions.logout());
+      expect(push.onSessionEnded).toHaveBeenCalledTimes(1);
+    });
+
+    it('A -> B unsubscribes then subscribes B', () => {
+      const { store, push } = setup();
+      signIn(store, 'ta', 'a');
+      signIn(store, 'tb', 'b');
+      expect(push.onSessionEnded).toHaveBeenCalledTimes(1);
+      expect(push.ensureSubscribed).toHaveBeenLastCalledWith('b');
+    });
+
+    it('null -> A (first sign-in) does not unsubscribe', () => {
+      const { store, push } = setup();
+      signIn(store, 'ta', 'a');
+      expect(push.onSessionEnded).not.toHaveBeenCalled();
+    });
   });
 });

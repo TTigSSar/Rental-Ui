@@ -5,6 +5,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 import { selectAuthUser } from '../../auth/store/auth.selectors';
 import { BrowserNotificationService } from '../../notifications/services/browser-notification.service';
+import { PushSubscriptionService } from '../../notifications/services/push-subscription.service';
 import type { ChatRealtimeMessage } from '../models/chat.model';
 import { ChatBrowserNotifier } from './chat-browser-notifier.service';
 
@@ -35,15 +36,22 @@ describe('ChatBrowserNotifier', () => {
   let hidden: boolean;
   let permission: string;
   let navigate: ReturnType<typeof vi.fn>;
+  let pushActive: boolean;
+  let pushOff: boolean;
 
   function setup(user: { id: string } | null = { id: 'me' }) {
     show = vi.fn().mockReturnValue(close);
     navigate = vi.fn().mockResolvedValue(true);
+    const navigateByUrl = navigate;
     TestBed.configureTestingModule({
       imports: [TranslateModule.forRoot()],
       providers: [
         provideMockStore(),
-        { provide: Router, useValue: { navigate } },
+        { provide: Router, useValue: { navigate, navigateByUrl } },
+        {
+          provide: PushSubscriptionService,
+          useValue: { active: () => pushActive, isOff: () => pushOff },
+        },
         {
           provide: BrowserNotificationService,
           useValue: {
@@ -68,6 +76,8 @@ describe('ChatBrowserNotifier', () => {
 
   beforeEach(() => {
     hidden = true;
+    pushActive = false;
+    pushOff = false;
     permission = 'granted';
     close.mockClear();
   });
@@ -135,5 +145,34 @@ describe('ChatBrowserNotifier', () => {
     expect(close).toHaveBeenCalledOnce();
     notifier.closeAll();
     expect(close).toHaveBeenCalledOnce();
+  });
+
+  it('stays silent while a push subscription is active', () => {
+    pushActive = true;
+    setup().notify(msg());
+    expect(show).not.toHaveBeenCalled();
+  });
+
+  it('stays silent after "Turn off on this device"', () => {
+    pushOff = true;
+    setup().notify(msg());
+    expect(show).not.toHaveBeenCalled();
+  });
+
+  it('opens the chat when the service worker posts dorent-push-navigate', () => {
+    const listeners: ((e: MessageEvent) => void)[] = [];
+    const sw = { addEventListener: (_: string, l: (e: MessageEvent) => void) => listeners.push(l) };
+    Object.defineProperty(navigator, 'serviceWorker', { value: sw, configurable: true });
+    try {
+      setup();
+      listeners[0]({ data: { type: 'dorent-push-navigate', url: '/chat/c9' } } as MessageEvent);
+      listeners[0]({
+        data: { type: 'dorent-push-navigate', url: 'https://evil.test/' },
+      } as MessageEvent);
+      expect(navigate).toHaveBeenCalledTimes(1);
+      expect(navigate).toHaveBeenCalledWith('/chat/c9');
+    } finally {
+      delete (navigator as unknown as Record<string, unknown>)['serviceWorker'];
+    }
   });
 });

@@ -260,4 +260,13 @@ export const ApiContract = {
       `/api/notifications/${encodeURIComponent(notificationId)}/read`,
     markAllRead: '/api/notifications/read-all',
   },
+  // Web Push (ADR-067). publicKey: [AllowAnonymous] GET -> 200 `PushPublicKeyResponse`;
+  // 404 `push.not_configured`. subscription (same path, verb differs): [Authorize]
+  // PUT body `PushSubscriptionRequest` -> 204 (400 `push.invalid_subscription`,
+  // 401 `push.unauthenticated`, 403 `push.user_blocked`); DELETE JSON body
+  // `PushUnsubscribeRequest` -> 204, idempotent (400 `push.invalid_subscription`, 401).
+  push: {
+    publicKey: '/api/push/public-key',
+    subscription: '/api/push/subscription',
+  },
 } as const;

@@ -10,9 +10,24 @@ import {
   BrowserNotificationService,
   type BrowserNotificationPermission,
 } from '../../../notifications/services/browser-notification.service';
+import { PushSubscriptionService } from '../../../notifications/services/push-subscription.service';
 import { NotificationsSheetComponent } from './notifications-sheet.component';
 
-function setup(permission: BrowserNotificationPermission = 'default', enabled = true) {
+function setup(
+  permission: BrowserNotificationPermission = 'default',
+  enabled = true,
+  pushOff = false,
+) {
+  const off = signal(pushOff);
+  const push = {
+    isOff: () => off(),
+    turnOff: vi.fn(() => {
+      off.set(true);
+      return Promise.resolve();
+    }),
+    clearOff: vi.fn(() => off.set(false)),
+    ensureSubscribed: vi.fn().mockResolvedValue(undefined),
+  };
   const permissionSignal = signal<BrowserNotificationPermission>(permission);
   const browser = {
     permission: permissionSignal.asReadonly(),
@@ -24,6 +39,7 @@ function setup(permission: BrowserNotificationPermission = 'default', enabled = 
     providers: [
       provideStore({ [authFeatureKey]: authReducer }),
       { provide: BrowserNotificationService, useValue: browser },
+      { provide: PushSubscriptionService, useValue: push },
     ],
   });
   const store = TestBed.inject(Store);
@@ -31,12 +47,13 @@ function setup(permission: BrowserNotificationPermission = 'default', enabled = 
     AuthActions.loadCurrentUserSuccess({ user: makeUser({ chatEmailsEnabled: enabled }) }),
   );
   const dispatch = vi.spyOn(store, 'dispatch');
-  const fixture: ComponentFixture<NotificationsSheetComponent> =
-    TestBed.createComponent(NotificationsSheetComponent);
+  const fixture: ComponentFixture<NotificationsSheetComponent> = TestBed.createComponent(
+    NotificationsSheetComponent,
+  );
   fixture.detectChanges();
   // The shared shell portals itself (and the projected content) to document.body.
   const el = document.body.querySelector<HTMLElement>('app-settings-sheet')!;
-  return { fixture, el, store, dispatch, browser, permissionSignal };
+  return { fixture, el, store, dispatch, browser, permissionSignal, push };
 }
 
 const switchOf = (el: HTMLElement) => el.querySelector<HTMLButtonElement>('[role="switch"]')!;
@@ -130,7 +147,7 @@ describe('NotificationsSheetComponent', () => {
       await fixture.whenStable();
       fixture.detectChanges();
 
-      expect(el.querySelector('.ns__btn')).toBeNull();
+      expect(el.querySelector('.ns__btn:not(.ns__btn--secondary)')).toBeNull();
       expect(document.activeElement).toBe(el.querySelector('.ns__close'));
     });
 
@@ -141,8 +158,62 @@ describe('NotificationsSheetComponent', () => {
       expect(el.querySelector('.ns__offhint')?.textContent).toContain(
         'profile.settings.browser.offHint',
       );
-      expect(el.querySelector('.ns__btn')).toBeNull();
+      expect(el.querySelector('.ns__btn:not(.ns__btn--secondary)')).toBeNull();
       expect(el.querySelectorAll('[role="switch"]').length).toBe(1);
+    });
+
+    it('granted: offers a keyboard-reachable "Turn off on this device" button', () => {
+      const { fixture, el, push } = setup('granted');
+
+      const btn = el.querySelector<HTMLButtonElement>('.ns__btn')!;
+      expect(btn.type).toBe('button');
+      expect(btn.textContent).toContain('profile.settings.browser.turnOff');
+      btn.click();
+      fixture.detectChanges();
+
+      expect(push.turnOff).toHaveBeenCalledWith(expect.any(String));
+      // Off flag set: back to the not-asked style "Enable" button, no On pill.
+      expect(el.querySelector('.ns__pill')).toBeNull();
+      expect(el.querySelector('.ns__btn')?.textContent).toContain(
+        'profile.settings.browser.enable',
+      );
+    });
+
+    it('granted + off flag: Enable clears the flag and re-subscribes', async () => {
+      const { el, push } = setup('granted', true, true);
+
+      el.querySelector<HTMLButtonElement>('.ns__btn')!.click();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(push.clearOff).toHaveBeenCalledWith(expect.any(String));
+      expect(push.ensureSubscribed).toHaveBeenCalledWith(expect.any(String));
+    });
+
+    it('default: granting the permission subscribes', async () => {
+      const { el, push } = setup('default');
+
+      el.querySelector<HTMLButtonElement>('.ns__btn')!.click();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(push.ensureSubscribed).toHaveBeenCalledTimes(1);
+    });
+
+    it('unsupported on an iOS browser tab: adds the Home Screen hint line', () => {
+      const ua = vi
+        .spyOn(navigator, 'userAgent', 'get')
+        .mockReturnValue(
+          'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Safari/604.1',
+        );
+      try {
+        const { el } = setup('unsupported');
+        expect(el.querySelector('.ns__row--muted')?.textContent).toContain(
+          'profile.settings.browser.iosInstallHint',
+        );
+      } finally {
+        ua.mockRestore();
+      }
     });
 
     it('denied: shows the re-enable note and no button', () => {
