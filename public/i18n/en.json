@@ -1323,7 +1323,7 @@
       },
       "browser": {
         "label": "Browser notifications",
-        "hint": "Get a notification on this device while DoRent is open in another tab.",
+        "hint": "Get a notification on this device when someone messages you.",
         "enable": "Enable",
         "on": "On",
         "offHint": "Turn off in browser settings",
