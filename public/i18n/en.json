@@ -308,7 +308,6 @@
       "welcomeTitle": "Welcome back!",
       "welcomeSubtitle": "Sign in to manage your toy rentals and listings.",
       "errorTitle": "Couldn't sign you in",
-      "trustNote": "Your account is secured and your personal data stays private.",
       "emailNotVerifiedTitle": "Email not confirmed",
       "emailNotVerifiedBody": "Check your inbox (and spam folder) for the confirmation link, or send a new one.",
       "forgotPassword": "Forgot password?"
@@ -377,8 +376,7 @@
       "generic": "We couldn't confirm your email. Please try again.",
       "noTokenTitle": "Open the link from your email again",
       "noToken": "This page needs the link from your confirmation email. If you reloaded the page, open the link from the email again.",
-      "resendLead": "Or enter your email and we'll send a new link.",
-      "trustNote": "Your password is only used to check that it is you."
+      "resendLead": "Or enter your email and we'll send a new link."
     },
     "forgot": {
       "reqT": "Reset your password",
