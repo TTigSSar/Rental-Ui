@@ -60,29 +60,6 @@
   }
 }
 
-.auth-form__trust {
-  display: flex;
-  align-items: center;
-  gap: var(--ui-space-8);
-  margin-top: var(--ui-space-16);
-  padding: var(--ui-space-12) var(--ui-space-16);
-  background: var(--ui-color-surface-muted);
-  border-radius: var(--ui-radius-md);
-  border: 1px solid var(--ui-color-border);
-
-  .pi {
-    flex-shrink: 0;
-    color: var(--ui-color-success);
-    font-size: 1rem;
-  }
-
-  span {
-    font-size: 0.75rem;
-    color: var(--ui-color-text-secondary);
-    line-height: 1.45;
-  }
-}
-
 
 /* ── Two-step sign-up (home-point model) ─────────────────────────── */
 .auth-steps {
