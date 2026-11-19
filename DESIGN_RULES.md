@@ -597,7 +597,7 @@ Use `app-ui-empty-state` wrapped in `.ui-card-surface` pattern.
 
 ### Footer (global)
 
-- Links: About, FAQ, Terms, Privacy, Partnership, All Categories, social
+- Links: About, FAQ, Terms, Privacy, Delete account, social
 - Hidden on `/listings/:id` via `showFooter` signal in app shell
 
 ### CTA placement
