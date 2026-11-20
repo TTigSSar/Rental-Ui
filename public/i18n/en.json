@@ -1059,7 +1059,6 @@
         "d90": "3 months",
         "d180": "6 months",
         "d365": "1 year",
-        "hint": "Shortest booking a renter can make.",
         "preview": "min {{period}}"
       },
       "delivery": {
