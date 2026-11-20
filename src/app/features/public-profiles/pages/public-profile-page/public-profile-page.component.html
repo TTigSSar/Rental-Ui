@@ -83,8 +83,8 @@
                 <i class="pi pi-map-marker" aria-hidden="true"></i>
                 {{ owner.location }}
               </span>
+              <span class="pub-profile__meta-item pub-profile__meta-sep" aria-hidden="true">·</span>
             }
-            <span class="pub-profile__meta-item pub-profile__meta-sep" aria-hidden="true">·</span>
             <span class="pub-profile__meta-item"
               >{{ 'publicProfile.since' | translate }} {{ memberYear() }}</span
             >
@@ -134,26 +134,8 @@
             </button>
           }
         </div>
-
-        <!-- Desktop CTA (hidden on mobile) -->
-        @if (userIdSignal(); as uid) {
-          <a class="pub-profile__desktop-cta" [routerLink]="['/users', uid, 'listings']">
-            <i class="pi pi-th-large" aria-hidden="true"></i>
-            {{ 'publicProfile.viewAllToys' | translate }}
-          </a>
-        }
       </div>
     </div>
-
-    <!-- ── Mobile CTA ──────────────────────────────────────────────────────────── -->
-    @if (userIdSignal(); as uid) {
-      <div class="pub-profile__mobile-cta">
-        <a class="pub-profile__mobile-cta-btn" [routerLink]="['/users', uid, 'listings']">
-          <i class="pi pi-th-large" aria-hidden="true"></i>
-          {{ 'publicProfile.viewAllToys' | translate }}
-        </a>
-      </div>
-    }
 
     <!-- ── Tab switcher ────────────────────────────────────────────────────────── -->
     <div class="pub-profile__tabs-wrap">
@@ -409,15 +391,6 @@
     <div class="pub-profile__listings-section page-container">
       <div class="pub-profile__listings-header">
         <h3 class="pub-profile__section-title">{{ 'publicProfile.postedItems' | translate }}</h3>
-        @if (userIdSignal(); as uid) {
-          <a class="pub-profile__see-all" [routerLink]="['/users', uid, 'listings']">
-            @if (listingCount() > 0) {
-              {{ 'publicProfile.viewAllCount' | translate: { count: listingCount() } }}
-            } @else {
-              {{ 'publicProfile.viewAll' | translate }}
-            }
-          </a>
-        }
       </div>
 
       @if (userListingsLoading()) {

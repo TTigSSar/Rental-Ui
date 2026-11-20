@@ -28,36 +28,6 @@
   color: var(--ui-color-text-primary);
 }
 
-.pi-card__edit {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ui-space-6);
-  /* 44px minimum touch target - DESIGN_RULES.md section 3. */
-  min-height: 44px;
-  padding: 0 var(--ui-space-14);
-  border: 1.5px solid var(--ui-color-border);
-  border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-surface);
-  font-family: inherit;
-  font-size: var(--ui-font-size-caption);
-  font-weight: var(--ui-font-weight-bold);
-  color: var(--ui-color-text-primary);
-  cursor: pointer;
-
-  .pi {
-    font-size: 0.9375rem;
-  }
-
-  &:hover {
-    background: var(--ui-color-surface-muted);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--ui-color-primary-strong);
-    outline-offset: 2px;
-  }
-}
-
 /* ── View rows ───────────────────────────────────────────────── */
 .pi-card__rows {
   margin: 0;

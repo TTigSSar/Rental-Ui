@@ -6,6 +6,7 @@ import type { ListingCategoryOption } from '../../../listings/models/create-list
 import { LanguageService } from '../../../../shared/services/language.service';
 import { flatCategoryDisplayName } from '../../../../shared/utils/category-name.utils';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
+import { AgeRangePipe } from '../../../../shared/utils/age-range.pipe';
 import { DeletedUserAvatarComponent, DeletedUserNameComponent } from '../../../../shared/ui/deleted-user';
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
@@ -33,6 +34,7 @@ import type {
   selector: 'app-review-card',
   standalone: true,
   imports: [
+    AgeRangePipe,
     AdminCatSelectComponent,
     AdminStatusBadgeComponent,
     AvatarComponent,

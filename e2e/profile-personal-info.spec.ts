@@ -37,7 +37,7 @@ test.describe('Profile - Personal info card', () => {
     const identityName = page.locator('.profile-page__identity-name');
     await expect(identityName).toHaveText('Ada Lovelace');
 
-    await card.getByTestId('personal-info-edit').click();
+    await page.locator('[data-testid="personal-info-edit"]:visible').click();
     const inputs = card.locator('input.uii-native');
     await expect(inputs.nth(0)).toHaveValue('Ada');
     await expect(inputs.nth(1)).toHaveValue('Lovelace');
@@ -66,7 +66,7 @@ test.describe('Profile - Personal info card', () => {
     await page.goto('/profile');
 
     const card = page.getByTestId('personal-info-card');
-    await card.getByTestId('personal-info-edit').click();
+    await page.locator('[data-testid="personal-info-edit"]:visible').click();
     await card.locator('input.uii-native').nth(0).fill('Grace');
     await card.getByRole('button', { name: 'Save', exact: true }).click();
 
@@ -85,7 +85,7 @@ test.describe('Profile - Personal info card', () => {
     await page.goto('/profile');
 
     const card = page.getByTestId('personal-info-card');
-    await card.getByTestId('personal-info-edit').click();
+    await page.locator('[data-testid="personal-info-edit"]:visible').click();
     await card.locator('input.uii-native').nth(2).fill('abc');
     await card.getByRole('button', { name: 'Save', exact: true }).click();
 

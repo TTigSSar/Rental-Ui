@@ -5,6 +5,7 @@ import {
   DestroyRef,
   ElementRef,
   OnInit,
+  computed,
   effect,
   signal,
   inject,
@@ -66,8 +67,8 @@ type ProcessMode = 'renting' | 'lending';
 interface HomeProcessStep {
   readonly id: string;
   readonly icon: string;
-  readonly titleKeyRenting: string;
-  readonly descKeyRenting: string;
+  readonly titleKeyRenting: string | null;
+  readonly descKeyRenting: string | null;
   readonly titleKeyLending: string;
   readonly descKeyLending: string;
 }
@@ -211,24 +212,24 @@ const PROCESS_STEPS: readonly HomeProcessStep[] = [
   {
     id: 'step4',
     icon: 'pi pi-send',
-    titleKeyRenting: 'home.process.renting.step4.title',
-    descKeyRenting: 'home.process.renting.step4.text',
+    titleKeyRenting: null,
+    descKeyRenting: null,
     titleKeyLending: 'home.process.lending.step4.title',
     descKeyLending: 'home.process.lending.step4.text',
   },
   {
     id: 'step5',
     icon: 'pi pi-check',
-    titleKeyRenting: 'home.process.renting.step5.title',
-    descKeyRenting: 'home.process.renting.step5.text',
+    titleKeyRenting: 'home.process.renting.step4.title',
+    descKeyRenting: 'home.process.renting.step4.text',
     titleKeyLending: 'home.process.lending.step5.title',
     descKeyLending: 'home.process.lending.step5.text',
   },
   {
     id: 'step6',
     icon: 'pi pi-clock',
-    titleKeyRenting: 'home.process.renting.step6.title',
-    descKeyRenting: 'home.process.renting.step6.text',
+    titleKeyRenting: 'home.process.renting.step5.title',
+    descKeyRenting: 'home.process.renting.step5.text',
     titleKeyLending: 'home.process.lending.step6.title',
     descKeyLending: 'home.process.lending.step6.text',
   },
@@ -339,7 +340,12 @@ export class HomePageComponent implements OnInit {
   protected readonly canScrollPrev = signal(false);
   protected readonly canScrollNext = signal(true);
 
-  protected readonly processSteps = PROCESS_STEPS;
+  /** "See all" links on the home sections stay hidden until the all-toys feature exists. */
+  protected readonly showSectionSeeAll = false;
+
+  protected readonly processSteps = computed(() =>
+    PROCESS_STEPS.filter((step) => this.processMode() === 'lending' || step.titleKeyRenting !== null),
+  );
 
   /** The API's section keys (ADR-041), known up front so loading can show the real titles. */
   protected readonly sectionKeys = HOME_SECTION_KEYS;

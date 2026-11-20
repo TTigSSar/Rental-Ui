@@ -10,7 +10,6 @@ import { makeListingDetails, makeUser } from '../../../../../testing/fixtures';
 import {
   ListingDetailsPageComponent,
   hasAnyToyDetail,
-  resolveAgeRangeDisplay,
 } from './listing-details-page.component';
 import type { ListingDetails } from '../../models/listing-details.model';
 import { authFeatureKey } from '../../../auth/store/auth.reducer';
@@ -40,35 +39,6 @@ function baseListing(overrides: Partial<ListingDetails> = {}): ListingDetails {
     ...overrides,
   };
 }
-
-describe('resolveAgeRangeDisplay', () => {
-  it('returns the from-to key when both bounds are present', () => {
-    expect(resolveAgeRangeDisplay(6, 24)).toEqual({
-      key: 'listings.details.toyDetails.ageRangeFromTo',
-      params: { from: 6, to: 24 },
-    });
-  });
-
-  it('returns the from-only key when only the lower bound is present', () => {
-    expect(resolveAgeRangeDisplay(6, null)).toEqual({
-      key: 'listings.details.toyDetails.ageRangeFromOnly',
-      params: { from: 6 },
-    });
-  });
-
-  it('returns the to-only key when only the upper bound is present', () => {
-    expect(resolveAgeRangeDisplay(undefined, 36)).toEqual({
-      key: 'listings.details.toyDetails.ageRangeToOnly',
-      params: { to: 36 },
-    });
-  });
-
-  it('returns null when neither bound is a finite number', () => {
-    expect(resolveAgeRangeDisplay(null, null)).toBeNull();
-    expect(resolveAgeRangeDisplay(undefined, undefined)).toBeNull();
-    expect(resolveAgeRangeDisplay(Number.NaN, Number.POSITIVE_INFINITY)).toBeNull();
-  });
-});
 
 describe('hasAnyToyDetail', () => {
   it('is false when the listing carries no toy-trust fields', () => {

@@ -32,6 +32,12 @@ export interface CreateListingRequest {
   pricePerDay: number;
   priceUnit: PriceUnit;
   addressLine: string | null;
+  /**
+   * REQUIRED (ADR-040 amendment, 2026-11-20): missing/null/blank -> 400
+   * "Condition is required." keyed `condition`. Max 50 chars, free string
+   * server-side (the UI offers the ToyCondition set).
+   */
+  condition: ToyCondition;
 
   // BREAKING (home-point model): `latitude`, `longitude`, `districtId`, `city`
   // and `country` were REMOVED from this payload — the backend deleted them from
@@ -47,7 +53,6 @@ export interface CreateListingRequest {
   // Optional toy-specific fields. Only sent when the owner fills them in.
   ageFromMonths?: number | null;
   ageToMonths?: number | null;
-  condition?: ToyCondition | null;
   hygieneNotes?: string | null;
   safetyNotes?: string | null;
   /**

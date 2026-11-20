@@ -1,7 +1,10 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
+  Injector,
   ViewEncapsulation,
+  afterNextRender,
   computed,
   effect,
   inject,
@@ -54,6 +57,8 @@ export class PersonalInfoCardComponent {
   private readonly fb = inject(FormBuilder);
   private readonly messageService = inject(MessageService);
   private readonly translate = inject(TranslateService);
+  private readonly host: ElementRef<HTMLElement> = inject(ElementRef);
+  private readonly injector = inject(Injector);
 
   protected readonly user = this.store.selectSignal(selectAuthUser);
   private readonly nameSaving = this.store.selectSignal(selectNameSaving);
@@ -62,7 +67,7 @@ export class PersonalInfoCardComponent {
   private readonly nameErrorCode = this.store.selectSignal(selectNameErrorCode);
   private readonly phoneError = this.store.selectSignal(selectPhoneError);
 
-  protected readonly editing = signal(false);
+  readonly editing = signal(false);
   private readonly stage = signal<SaveStage>('idle');
   protected readonly saving = computed(() => this.stage() !== 'idle');
 
@@ -136,7 +141,11 @@ export class PersonalInfoCardComponent {
     });
   }
 
-  protected edit(): void {
+  /** Opens the in-place editor. Triggered from the profile header card's edit button. */
+  edit(): void {
+    if (this.editing() || this.saving()) {
+      return;
+    }
     const u = this.user();
     this.form.reset({
       firstName: u?.firstName ?? '',
@@ -147,6 +156,14 @@ export class PersonalInfoCardComponent {
     this.phoneInvalid.set(false);
     this.store.dispatch(AuthActions.clearProfileWriteError());
     this.editing.set(true);
+    afterNextRender(
+      () => {
+        const root = this.host.nativeElement;
+        root.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+        root.querySelector<HTMLInputElement>('input')?.focus({ preventScroll: true });
+      },
+      { injector: this.injector },
+    );
   }
 
   protected cancel(): void {

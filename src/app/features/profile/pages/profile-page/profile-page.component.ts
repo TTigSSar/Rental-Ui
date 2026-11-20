@@ -8,6 +8,7 @@ import {
   effect,
   inject,
   signal,
+  viewChild,
 } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -216,6 +217,17 @@ export class ProfilePageComponent implements OnInit {
       showEmpty: !isLoading && profile === null && error === null,
     })),
   );
+
+  /** The single live personal-info card (mobile and desktop copies are mutually exclusive). */
+  private readonly personalInfoCard = viewChild(PersonalInfoCardComponent);
+
+  protected readonly personalInfoEditing = computed(
+    () => this.personalInfoCard()?.editing() ?? false,
+  );
+
+  protected editPersonalInfo(): void {
+    this.personalInfoCard()?.edit();
+  }
 
   constructor() {
     if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {

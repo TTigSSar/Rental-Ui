@@ -367,6 +367,7 @@ async function completeListingWizard(page: Page, title: string): Promise<void> {
   await page
     .getByLabel('Description')
     .fill('QA real-stack regression fixture — proves a listing inherits its owner home point.');
+  await page.getByRole('button', { name: 'Gently used' }).click();
   await page.getByRole('button', { name: 'Continue to pricing' }).click();
 
   // Step 3's location block is a READ-ONLY card now: no city input, no
@@ -696,6 +697,7 @@ test.describe('Home point — the single source of every listing location (real 
             'QA real-stack regression fixture — the second listing, so the move is proven to be a fan-out.',
           pricePerDay: 1500,
           compensationAmount: 20000,
+          condition: 'Good',
         },
       });
       expect(res.ok(), `POST /api/listings (listing B) must succeed (${res.status()})`).toBe(true);
@@ -1060,6 +1062,7 @@ test.describe('Home point — the single source of every listing location (real 
           'QA real-stack regression fixture — publishing without a home point must be refused.',
         pricePerDay: 1500,
         compensationAmount: 20000,
+        condition: 'Good',
       },
       failOnStatusCode: false,
     });

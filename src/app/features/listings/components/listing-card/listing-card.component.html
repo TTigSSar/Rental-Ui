@@ -21,8 +21,10 @@
       >
     }
 
-    @if (ageRange(); as age) {
-      <span class="listing-card__pill listing-card__age">{{ age.key | translate: age.params }}</span>
+    @if (hasAgeRange()) {
+      <span class="listing-card__pill listing-card__age">{{
+        listing().ageFromMonths | ageRange: listing().ageToMonths
+      }}</span>
     }
 
     @if (!isOwner()) {

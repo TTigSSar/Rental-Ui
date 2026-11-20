@@ -20,11 +20,15 @@ export interface UpdateListingRequest {
   // JSON members are ignored), so nothing is applied — which is exactly why
   // none of them may live here.
   // ADR-040 — clearable optionals: absent = unchanged, null = clear, value = set.
-  // Blank condition/hygieneNotes/safetyNotes also clear. Ranges: age 0–600 months,
+  // Blank hygieneNotes/safetyNotes also clear. Ranges: age 0–600 months,
   // condition max 50, notes max 1000, minRentalDays 1–365.
   ageFromMonths?: number | null;
   ageToMonths?: number | null;
-  condition?: string | null;
+  /**
+   * NOT clearable (ADR-040 amendment, 2026-11-20): absent = unchanged; explicit
+   * null or blank is rejected with 400 "Condition is required." — hence no `| null`.
+   */
+  condition?: string;
   hygieneNotes?: string | null;
   safetyNotes?: string | null;
   /**

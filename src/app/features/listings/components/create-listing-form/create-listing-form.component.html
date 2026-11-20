@@ -97,7 +97,7 @@
       <button
         type="button"
         class="wizard__back-btn"
-        (click)="goBack()"
+        (click)="onHeaderBack()"
         [attr.aria-label]="'listings.createForm.backAria' | translate"
       >
         <i class="pi pi-arrow-left" aria-hidden="true"></i>
@@ -579,21 +579,22 @@
                 <span class="wizard-field__req" aria-hidden="true">*</span>
               </label>
               <app-age-range-slider [value]="ageYears()" (valueChange)="onAgeChange($event)" />
-              <p class="wizard-field__note">
-                <i class="pi pi-info-circle" aria-hidden="true"></i>
-                {{ 'listings.createForm.ageHint' | translate }}
-              </p>
             </div>
 
             <!-- Condition chips -->
             <div class="wizard-field">
-              <span class="wizard-field__label">{{
-                'listings.createForm.condition' | translate
-              }}</span>
+              <span class="wizard-field__label">
+                {{ 'listings.createForm.condition' | translate }}
+                <span class="wizard-field__req" aria-hidden="true">*</span>
+              </span>
               <div
                 class="wizard-chips"
+                id="wz-condition"
                 role="group"
+                tabindex="-1"
                 [attr.aria-label]="'listings.createForm.condition' | translate"
+                [attr.aria-invalid]="hasError('condition') ? 'true' : null"
+                [attr.aria-describedby]="hasError('condition') ? 'wz-condition-error' : null"
               >
                 @for (chip of conditionChips; track chip.value) {
                   <button
@@ -606,6 +607,11 @@
                   </button>
                 }
               </div>
+              @if (hasError('condition')) {
+                <small class="wizard-field__error" id="wz-condition-error" role="alert">
+                  {{ 'listings.createForm.validation.conditionRequired' | translate }}
+                </small>
+              }
             </div>
 
             <!-- Description -->
@@ -753,10 +759,7 @@
 
             <!-- Loss & damage compensation: its own bordered sub-card so it
                  never reads as part of the owner's earnings above. -->
-            <div
-              class="comp-card"
-              [class.comp-card--error]="hasError('compensationAmount')"
-            >
+            <div class="comp-card" [class.comp-card--error]="hasError('compensationAmount')">
               <div class="comp-card__header">
                 <span class="comp-card__icon" aria-hidden="true">
                   <i class="pi pi-shield"></i>
@@ -818,14 +821,9 @@
                 <i class="pi pi-sparkles" aria-hidden="true"></i>
                 <span>{{ 'listings.createForm.compensation.tip' | translate }}</span>
               </div>
-
-              <p class="comp-card__footnote">
-                {{ 'listings.createForm.compensation.footnote' | translate }}
-              </p>
             </div>
 
             <div class="wizard-divider"></div>
-
 
             <!-- Row B: Minimum rental, full width on its own row (not in a
                  `.wizard-2col`) — the half column at ≥1024px was only ~326px,
@@ -856,9 +854,6 @@
                   </button>
                 }
               </div>
-              <p class="wizard-field__note">
-                {{ 'listings.createForm.minRental.hint' | translate }}
-              </p>
             </div>
 
             <!-- Pickup area — READ-ONLY in both modes (home-point model): a

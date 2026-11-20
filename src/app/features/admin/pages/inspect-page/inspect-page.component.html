@@ -91,11 +91,8 @@
               </span>
               <span>
                 <app-icon name="user" [size]="14" />
-                @if (listing.ageFromMonths !== null && listing.ageToMonths !== null) {
-                  {{
-                    'admin.pendingListings.card.ageFromTo'
-                      | translate: { from: listing.ageFromMonths, to: listing.ageToMonths }
-                  }}
+                @if (listing.ageFromMonths !== null || listing.ageToMonths !== null) {
+                  {{ listing.ageFromMonths | ageRange: listing.ageToMonths }}
                 } @else {
                   {{ 'admin.pendingListings.common.notAvailable' | translate }}
                 }
@@ -385,10 +382,7 @@
               <span>{{ 'admin.review.card.perDay' | translate }}</span>
             </span>
             @if (listing.ageFromMonths !== null && listing.ageToMonths !== null) {
-              <span>{{
-                'admin.pendingListings.card.ageFromTo'
-                  | translate: { from: listing.ageFromMonths, to: listing.ageToMonths }
-              }}</span>
+              <span>{{ listing.ageFromMonths | ageRange: listing.ageToMonths }}</span>
             }
             <span><app-icon name="pin" [size]="12" /> {{ listing.city }}</span>
           </div>

@@ -22,6 +22,8 @@ import { DeletedUserAvatarComponent, DeletedUserNameComponent } from '../../../.
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import { LanguageService } from '../../../../shared/services/language.service';
+import { AgeRangePipe } from '../../../../shared/utils/age-range.pipe';
+import { resolveAgeRange } from '../../../../shared/utils/age-range.utils';
 import { categoryDisplayName } from '../../../../shared/utils/category-name.utils';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import { isCompensationAmountSet } from '../../../../shared/utils/compensation-amount.utils';
@@ -95,42 +97,6 @@ const PROTECTION_BULLET_KEYS: readonly string[] = [
   'listings.details.protection.bullet3',
 ];
 
-export interface AgeRangeDisplay {
-  readonly key:
-    | 'listings.details.toyDetails.ageRangeFromTo'
-    | 'listings.details.toyDetails.ageRangeFromOnly'
-    | 'listings.details.toyDetails.ageRangeToOnly';
-  readonly params: { from?: number; to?: number };
-}
-
-export function resolveAgeRangeDisplay(
-  fromMonths: number | null | undefined,
-  toMonths: number | null | undefined,
-): AgeRangeDisplay | null {
-  const hasFrom = typeof fromMonths === 'number' && Number.isFinite(fromMonths);
-  const hasTo = typeof toMonths === 'number' && Number.isFinite(toMonths);
-
-  if (hasFrom && hasTo) {
-    return {
-      key: 'listings.details.toyDetails.ageRangeFromTo',
-      params: { from: fromMonths, to: toMonths },
-    };
-  }
-  if (hasFrom) {
-    return {
-      key: 'listings.details.toyDetails.ageRangeFromOnly',
-      params: { from: fromMonths },
-    };
-  }
-  if (hasTo) {
-    return {
-      key: 'listings.details.toyDetails.ageRangeToOnly',
-      params: { to: toMonths },
-    };
-  }
-  return null;
-}
-
 /**
  * Values the create/edit wizard's minimum-rental chips offer (see
  * `MIN_RENTAL_DAYS` in `create-listing-form.component.ts`). When a listing's
@@ -148,7 +114,7 @@ function minRentalChipLabelKey(days: number): string | null {
  *  for this rebuild) which still imports this helper directly. */
 export function hasAnyToyDetail(listing: ListingDetails): boolean {
   return (
-    resolveAgeRangeDisplay(listing.ageFromMonths, listing.ageToMonths) !== null ||
+    resolveAgeRange(listing.ageFromMonths, listing.ageToMonths) !== null ||
     (typeof listing.condition === 'string' && listing.condition.trim().length > 0) ||
     (typeof listing.hygieneNotes === 'string' && listing.hygieneNotes.trim().length > 0) ||
     (typeof listing.safetyNotes === 'string' && listing.safetyNotes.trim().length > 0)
@@ -164,6 +130,8 @@ export interface DetailTile {
   readonly titleParams?: Record<string, unknown>;
   readonly subKey?: string;
   readonly subParams?: Record<string, unknown>;
+  /** Age range in months, rendered through the ADR-068 `ageRange` pipe. */
+  readonly subAge?: { readonly from: number | null | undefined; readonly to: number | null | undefined };
 }
 
 export interface DetailRow {
@@ -198,6 +166,7 @@ function resolveDeliveryTypes(listing: ListingDetails): DeliveryType[] {
   selector: 'app-listing-details-page',
   standalone: true,
   imports: [
+    AgeRangePipe,
     AuthDialogComponent,
     AvatarComponent,
     DeletedUserAvatarComponent,
@@ -295,7 +264,6 @@ export class ListingDetailsPageComponent {
   private readonly myBookingsSignal = this.store.selectSignal(selectMyBookings);
 
   protected readonly resolveConditionLabelKey = resolveConditionLabelKey;
-  protected readonly resolveAgeRangeDisplay = resolveAgeRangeDisplay;
   protected readonly protectionEyebrowKey = PROTECTION_EYEBROW_KEY;
   protected readonly protectionTitleKey = PROTECTION_TITLE_KEY;
   protected readonly protectionPillKey = PROTECTION_PILL_KEY;
@@ -573,14 +541,12 @@ export class ListingDetailsPageComponent {
     if (!listing) return [];
     const tiles: DetailTile[] = [];
 
-    const ageRange = resolveAgeRangeDisplay(listing.ageFromMonths, listing.ageToMonths);
-    if (ageRange) {
+    if (resolveAgeRange(listing.ageFromMonths, listing.ageToMonths)) {
       tiles.push({
         id: 'age',
         icon: 'pi pi-user',
         titleKey: 'listings.details.toyDetails.ageRange',
-        subKey: ageRange.key,
-        subParams: ageRange.params,
+        subAge: { from: listing.ageFromMonths, to: listing.ageToMonths },
       });
     }
     if (listing.condition) {

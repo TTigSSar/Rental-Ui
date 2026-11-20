@@ -60,6 +60,7 @@ test.describe('Phone gate', () => {
     await page
       .getByLabel('Description')
       .fill('A sturdy wooden train set with all pieces present and freshly cleaned.');
+    await page.getByRole('button', { name: 'Gently used' }).click();
     await page.getByRole('button', { name: 'Continue to pricing' }).click();
     await page.locator('#wz-price').fill('25');
     await page.locator('#wz-compensation').fill('45000');
@@ -225,6 +226,7 @@ test.describe('Phone gate', () => {
     await page
       .getByLabel('Description')
       .fill('A sturdy wooden train set with all pieces present and freshly cleaned.');
+    await page.getByRole('button', { name: 'Gently used' }).click();
     await page.getByRole('button', { name: 'Continue to pricing' }).click();
     await page.locator('#wz-price').fill('25');
     await page.locator('#wz-compensation').fill('45000');

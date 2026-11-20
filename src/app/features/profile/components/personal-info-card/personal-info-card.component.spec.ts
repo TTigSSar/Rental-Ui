@@ -53,7 +53,7 @@ describe('PersonalInfoCardComponent (ADR-030 board 3)', () => {
   async function startEditing(phone: string | null = '+374 91 234 567'): Promise<void> {
     store.setState(authState({}, phone));
     await settle();
-    q('[data-testid="personal-info-edit"]')!.click();
+    fixture.componentInstance.edit();
     await settle();
   }
 
@@ -73,7 +73,7 @@ describe('PersonalInfoCardComponent (ADR-030 board 3)', () => {
   });
 
   describe('view', () => {
-    it('shows only the phone (with the privacy note) and the read-only email (with its note) - no name row', async () => {
+    it('shows only the phone (with the privacy note) and the read-only email (no email note in view mode) - no name row', async () => {
       await settle();
 
       const text = el().textContent ?? '';
@@ -83,7 +83,7 @@ describe('PersonalInfoCardComponent (ADR-030 board 3)', () => {
       expect(text).toContain('+374 91 234 567');
       expect(text).toContain('anna.p@gmail.com');
       expect(text).toContain('auth.phoneStep.privacy');
-      expect(text).toContain('profile.personal.emailNote');
+      expect(text).not.toContain('profile.personal.emailNote');
     });
 
     it('shows "Not added" for an empty phone (and no phone number)', async () => {
@@ -107,13 +107,25 @@ describe('PersonalInfoCardComponent (ADR-030 board 3)', () => {
       expect(email.hasAttribute('readonly')).toBe(true);
     });
 
+    it('edit() is a no-op while the editor is open (re-entry keeps typed input), and focuses the first input on open', async () => {
+      await startEditing();
+      const [first] = inputs();
+      expect(document.activeElement).toBe(first);
+
+      type(first, 'Changed');
+      fixture.componentInstance.edit();
+      await settle();
+
+      expect(inputs()[0].value).toBe('Changed');
+    });
+
     it('Cancel discards the changes and goes back to the view', async () => {
       await startEditing();
       type(inputs()[0], 'Changed');
       q<HTMLButtonElement>('.pi-card__cancel')!.click();
       await settle();
 
-      expect(q('[data-testid="personal-info-edit"]')).not.toBeNull();
+      expect(q('.pi-card__rows')).not.toBeNull();
       expect(el().textContent).toContain('+374 91 234 567');
       expect(dispatched(AuthActions.updateName.type)).toHaveLength(0);
     });
@@ -174,7 +186,7 @@ describe('PersonalInfoCardComponent (ADR-030 board 3)', () => {
         severity: 'success',
         summary: 'profile.personal.saved',
       });
-      expect(q('[data-testid="personal-info-edit"]')).not.toBeNull();
+      expect(q('.pi-card__rows')).not.toBeNull();
     });
 
     it('PUTs the phone after the name, only because it changed, trimmed', async () => {
@@ -199,7 +211,7 @@ describe('PersonalInfoCardComponent (ADR-030 board 3)', () => {
       await settle();
 
       expect(messageService.add).toHaveBeenCalledTimes(1);
-      expect(q('[data-testid="personal-info-edit"]')).not.toBeNull();
+      expect(q('.pi-card__rows')).not.toBeNull();
     });
 
     it('an empty phone that was empty stays empty: it is never sent', async () => {

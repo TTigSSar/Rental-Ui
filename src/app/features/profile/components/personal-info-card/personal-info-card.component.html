@@ -3,10 +3,6 @@
     <!-- View -->
     <div class="pi-card__head">
       <h2 class="pi-card__title" id="pi-card-title">{{ 'profile.personal.title' | translate }}</h2>
-      <button type="button" class="pi-card__edit" data-testid="personal-info-edit" (click)="edit()">
-        <i class="pi pi-pencil" aria-hidden="true"></i>
-        {{ 'profile.edit' | translate }}
-      </button>
     </div>
 
     <!-- Plain blocks, not a <dl>: each row has an icon plus a wrapper around its label and
@@ -31,10 +27,6 @@
         <div class="pi-card__row-body">
           <div class="pi-card__label">{{ 'profile.infoLabel.email' | translate }}</div>
           <div class="pi-card__value pi-card__value--wrap">{{ user()?.email }}</div>
-          <div class="pi-card__sub">
-            <i class="pi pi-lock" aria-hidden="true"></i>
-            {{ 'profile.personal.emailNote' | translate }}
-          </div>
         </div>
       </div>
     </div>

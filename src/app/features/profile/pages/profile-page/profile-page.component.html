@@ -223,7 +223,14 @@
                     }
                   </div>
 
-                  <button type="button" class="profile-page__m-edit-btn" disabled>
+                  <button
+                    type="button"
+                    class="profile-page__edit-btn profile-page__m-edit-btn"
+                    data-testid="personal-info-edit"
+                    [disabled]="personalInfoEditing()"
+                    (click)="editPersonalInfo()"
+                  >
+                    <i class="pi pi-pencil" aria-hidden="true"></i>
                     {{ 'profile.edit' | translate }}
                   </button>
                 </div>
@@ -251,9 +258,10 @@
                    two pickers portalled to <body>, two confirmation dialogs,
                    and two success toasts for one save. -->
               @if (!isDesktop()) {
-                <app-home-point-card />
-                <!-- Personal info (ADR-030): same one-instance-only rule as the home point card. -->
+                <!-- Personal info (ADR-030): same one-instance-only rule as the home point card.
+                     Mobile order: directly under the profile card, above the home point. -->
                 <app-personal-info-card />
+                <app-home-point-card />
               }
 
               <!-- Navigation menu -->
@@ -338,7 +346,6 @@
                 </button>
               </div>
 
-              <p class="profile-page__version" aria-hidden="true">DoRent</p>
             </div>
 
             <!-- ── DESKTOP LAYOUT ─────────────────────────────────── -->
@@ -352,7 +359,15 @@
                 <div class="profile-page__identity-info">
                   <p class="profile-page__identity-name">{{ profile.firstName }} {{ profile.lastName }}</p>
                 </div>
-                <button type="button" class="profile-page__edit-btn" disabled [attr.aria-label]="('profile.edit' | translate) + ' – ' + ('app.shell.nav.profile' | translate)">
+                <button
+                  type="button"
+                  class="profile-page__edit-btn"
+                  data-testid="personal-info-edit"
+                  [disabled]="personalInfoEditing()"
+                  [attr.aria-label]="('profile.edit' | translate) + ' – ' + ('app.shell.nav.profile' | translate)"
+                  (click)="editPersonalInfo()"
+                >
+                  <i class="pi pi-pencil" aria-hidden="true"></i>
                   {{ 'profile.edit' | translate }}
                 </button>
               </div>
@@ -405,19 +420,12 @@
               </button>
             </div>
 
-            <p class="profile-page__version profile-page__desktop-only" aria-hidden="true">DoRent</p>
-
-            <!-- Rating summary -->
-            @if (ratingSummary(); as summary) {
-              @if (summary.reviewCount > 0) {
-                <div class="profile-page__menu-card profile-page__section-card">
-                  <h2 class="profile-page__section-title">{{ 'profile.rating.heading' | translate }}</h2>
-                  <app-rating-summary [summary]="summary" variant="full" />
-                </div>
-              }
-            }
-
-            <!-- Reviews -->
+            <!-- Reviews received: ONE card — rating summary on top, review list below.
+                 The API's `reviewCount` counts every review (rating-only ones too) while
+                 `comments` holds only reviews with text, and the aggregate is withheld until
+                 enough reviews exist (`hasAggregate`). So: show the summary only when the
+                 aggregate is real (otherwise it would claim "No reviews yet"), and the
+                 empty message only when there are really no reviews. -->
             <div class="profile-page__menu-card profile-page__section-card">
               <h2 class="profile-page__section-title">
                 {{ 'profile.reviews.heading' | translate }}
@@ -427,6 +435,14 @@
                   }
                 }
               </h2>
+
+              @if (ratingSummary(); as summary) {
+                @if (summary.reviewCount > 0 && summary.hasAggregate) {
+                  <div class="profile-page__rating-summary">
+                    <app-rating-summary [summary]="summary" variant="full" />
+                  </div>
+                }
+              }
 
               @if (reviewsLoading()) {
                 <div class="profile-page__reviews-skeleton">
@@ -439,9 +455,11 @@
                   {{ 'profile.reviews.error' | translate }}
                 </p>
               } @else if (reviews().length === 0) {
-                <p class="profile-page__reviews-empty">
-                  {{ 'profile.reviews.empty' | translate }}
-                </p>
+                @if ((ratingSummary()?.reviewCount ?? 0) === 0) {
+                  <p class="profile-page__reviews-empty">
+                    {{ 'profile.reviews.empty' | translate }}
+                  </p>
+                }
               } @else {
                 <div class="profile-page__reviews-list">
                   @for (review of reviews(); track review.id) {
@@ -450,6 +468,10 @@
                 </div>
               }
             </div>
+
+            <!-- Version label: once, at the very end of the page (it used to sit
+                 above the reviews cards and overlapped them). -->
+            <p class="profile-page__version" aria-hidden="true">DoRent</p>
 
           } <!-- end @if (!isChildRouteActive()) -->
 

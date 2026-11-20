@@ -83,15 +83,8 @@
           }}</span>
         </span>
         <span class="review-card__age">
-          @if (item().ageFromMonths !== null && item().ageToMonths !== null) {
-            {{
-              'admin.pendingListings.card.ageFromTo'
-                | translate: { from: item().ageFromMonths, to: item().ageToMonths }
-            }}
-          } @else if (item().ageFromMonths !== null) {
-            {{ 'admin.pendingListings.card.ageFrom' | translate: { months: item().ageFromMonths } }}
-          } @else if (item().ageToMonths !== null) {
-            {{ 'admin.pendingListings.card.ageTo' | translate: { months: item().ageToMonths } }}
+          @if (item().ageFromMonths !== null || item().ageToMonths !== null) {
+            {{ item().ageFromMonths | ageRange: item().ageToMonths }}
           } @else {
             {{ 'admin.pendingListings.common.notAvailable' | translate }}
           }

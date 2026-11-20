@@ -112,6 +112,7 @@ test.describe('Create listing — photo upload (real stack)', () => {
       await page
         .getByLabel('Description')
         .fill('QA real-stack regression fixture — proves wizard photos reach the listing.');
+      await page.getByRole('button', { name: 'Gently used' }).click();
       await page.getByRole('button', { name: 'Continue to pricing' }).click();
     });
 

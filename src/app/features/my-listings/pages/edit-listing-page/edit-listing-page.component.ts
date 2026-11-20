@@ -223,7 +223,7 @@ export class EditListingPageComponent implements OnInit {
       // longer change any of them.
       ageFromMonths: p.ageFromMonths ?? null,
       ageToMonths:   p.ageToMonths ?? null,
-      condition:     p.condition ?? null,
+      condition:     p.condition,
       hygieneNotes:  p.hygieneNotes ?? null,
       safetyNotes:   p.safetyNotes ?? null,
       // ADR-040: compensation cannot be cleared — omit the key rather than send null.

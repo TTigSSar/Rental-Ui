@@ -197,7 +197,7 @@ const AGE_MAX_YEARS = 12;
 
 const STEP_CONTROLS: readonly string[][] = [
   [], // 1 Photos (gated on photo count)
-  ['title', 'categoryId', 'description'], // 2 Basics
+  ['title', 'categoryId', 'condition', 'description'], // 2 Basics
   // `city` is gone: the home-point model derives a listing's city (and
   // district, and coordinates) from the owner's home point, so there is
   // nothing on this step for the owner to type or for validation to gate on.
@@ -525,7 +525,9 @@ export class CreateListingFormComponent implements OnInit {
       // never applied.
       ageFromMonths: this.fb.control<number | null>(24, [Validators.min(0)]),
       ageToMonths: this.fb.control<number | null>(60, [Validators.min(0)]),
-      condition: this.fb.nonNullable.control<'' | ConditionChip['value']>(''),
+      condition: this.fb.nonNullable.control<'' | ConditionChip['value']>('', [
+        Validators.required,
+      ]),
       hygieneNotes: this.fb.nonNullable.control(''),
       safetyNotes: this.fb.nonNullable.control(''),
       // Shortest bookable period in days; one of MIN_RENTAL_DAYS.
@@ -539,6 +541,15 @@ export class CreateListingFormComponent implements OnInit {
   // ── Navigation ────────────────────────────────────────────────
   goBack(): void {
     this.location.back();
+  }
+
+  /** Header arrow: previous wizard step; on step 1 leave the wizard. */
+  onHeaderBack(): void {
+    if (this.currentStep() > 1) {
+      this.goToPrevStep();
+    } else {
+      this.goBack();
+    }
   }
 
   goToNextStep(): void {
@@ -647,6 +658,9 @@ export class CreateListingFormComponent implements OnInit {
         return;
       case 'pricePerDay':
         document.getElementById('wz-price')?.focus();
+        return;
+      case 'condition':
+        document.getElementById('wz-condition')?.focus();
         return;
       case 'compensationAmount':
         document.getElementById('wz-compensation')?.focus();
@@ -1252,7 +1266,7 @@ export class CreateListingFormComponent implements OnInit {
       // forget to drop.
       ageFromMonths: raw.ageFromMonths,
       ageToMonths: raw.ageToMonths,
-      condition: raw.condition === '' ? null : raw.condition,
+      condition: raw.condition as ConditionChip['value'],
       hygieneNotes,
       safetyNotes: this.toNullStr(raw.safetyNotes),
       minRentalDays: raw.minRentalDays,

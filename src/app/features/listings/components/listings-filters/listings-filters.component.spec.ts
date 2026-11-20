@@ -24,6 +24,7 @@ interface SheetAccess {
   applySheet(): void;
   clearSheet(): void;
   closeSheet(): void;
+  cancelSheet(): void;
   openSheet(): void;
   openSheetAt(section: 'price' | 'districts'): void;
   onDraftRadiusMetersChange(meters: number): void;
@@ -238,6 +239,65 @@ describe('ListingsFiltersComponent — cross-surface query param preservation', 
     await vi.advanceTimersByTimeAsync(350);
 
     expect(router.url).toBe('/listings?ageGroups=0-12&radiusKm=5');
+  });
+
+  it('cancelSheet() restores the origin the sheet opened with when the widget switched it', async () => {
+    const { component, router, store } = await navigateToListings('/listings?radiusKm=5');
+    const home = { lat: 40.18, lng: 44.51 };
+    store.overrideSelector(selectListingsOriginCoords, home);
+    store.overrideSelector(selectListingsOriginSource, 'home');
+    store.refreshState();
+
+    component.openSheet();
+    // The radius widget writes the origin to the store immediately.
+    store.overrideSelector(selectListingsOriginCoords, { lat: 40.2, lng: 44.4 });
+    store.overrideSelector(selectListingsOriginSource, 'geo');
+    store.refreshState();
+    component.onDraftRadiusMetersChange(10000);
+    component.cancelSheet();
+    await vi.advanceTimersByTimeAsync(350);
+
+    expect(store.dispatch).toHaveBeenCalledWith(
+      ListingsActions.setOriginCoords({ coords: home, source: 'home' }),
+    );
+    expect(router.url).toBe('/listings?radiusKm=5');
+  });
+
+  it('cancelSheet() clears an origin that was set while the sheet was open and had none before', async () => {
+    const { component, store } = await navigateToListings('/listings');
+
+    component.openSheet();
+    store.overrideSelector(selectListingsOriginCoords, { lat: 40.2, lng: 44.4 });
+    store.overrideSelector(selectListingsOriginSource, 'geo');
+    store.refreshState();
+    component.cancelSheet();
+    await vi.advanceTimersByTimeAsync(350);
+
+    expect(store.dispatch).toHaveBeenCalledWith(ListingsActions.clearOrigin());
+  });
+
+  it('cancelSheet() restores the radius that onDraftOriginCleared() committed, and applies nothing else', async () => {
+    const { component, router, store } = await navigateToListings('/listings?radiusKm=5');
+    const home = { lat: 40.18, lng: 44.51 };
+    store.overrideSelector(selectListingsOriginCoords, home);
+    store.overrideSelector(selectListingsOriginSource, 'home');
+    store.refreshState();
+
+    component.openSheet();
+    component.onDraftOriginCleared();
+    await vi.advanceTimersByTimeAsync(350);
+    expect(router.url).not.toContain('radiusKm=');
+    store.overrideSelector(selectListingsOriginCoords, null);
+    store.overrideSelector(selectListingsOriginSource, null);
+    store.refreshState();
+
+    component.cancelSheet();
+    await vi.advanceTimersByTimeAsync(350);
+
+    expect(store.dispatch).toHaveBeenCalledWith(
+      ListingsActions.setOriginCoords({ coords: home, source: 'home' }),
+    );
+    expect(router.url).toBe('/listings?radiusKm=5');
   });
 });
 

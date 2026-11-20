@@ -132,12 +132,12 @@ describe('HomePageComponent toy rows (Stage 1)', () => {
     expect(el.querySelector('app-home-toy-row')).toBeNull();
   });
 
-  it('links "see all" to /listings', () => {
+  it('hides the "see all" links while the target feature is not implemented', () => {
     const { el } = render({
       sections: [{ key: 'recent', title: 'Recent', items: [makeListingPreview()] }],
     });
 
-    expect(el.querySelector('.home__section-action')!.getAttribute('href')).toBe('/listings');
+    expect(el.querySelector('.home__section-action')).toBeNull();
   });
 });
 
@@ -176,18 +176,17 @@ describe('HomePageComponent how it works (Stage 1)', () => {
     );
   });
 
-  it('lists six steps with a connector after every step but the last', () => {
+  it('lists five renting steps with a connector after every step but the last', () => {
     const { el } = render();
 
-    expect(el.querySelectorAll('.home__process-step').length).toBe(6);
-    expect(el.querySelectorAll('.home__process-step-line').length).toBe(5);
+    expect(el.querySelectorAll('.home__process-step').length).toBe(5);
+    expect(el.querySelectorAll('.home__process-step-line').length).toBe(4);
     expect(
       Array.from(el.querySelectorAll('.home__process-step-icon i')).map((i) => i.className),
     ).toEqual([
       'pi pi-user',
       'pi pi-search',
       'pi pi-calendar',
-      'pi pi-send',
       'pi pi-check',
       'pi pi-clock',
     ]);

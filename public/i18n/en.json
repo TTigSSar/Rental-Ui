@@ -201,25 +201,21 @@
       "renting": {
         "step1": {
           "title": "Log in or Sign up",
-          "text": "Create a parent account to start renting toys."
+          "text": "Create an account to start renting toys."
         },
         "step2": {
           "title": "Find the right toy",
-          "text": "Browse toys by name, category, and age range."
+          "text": "Browse toys by name, category, and age range. Or switch on AI search and describe the toy in your own words — in any language."
         },
         "step3": {
           "title": "Choose dates",
-          "text": "Pick rental dates and check availability instantly."
+          "text": "Pick your rental dates and send a request."
         },
         "step4": {
-          "title": "Send a request",
-          "text": "Send a rental request to the owner in a few clicks."
+          "title": "Pick up & play",
+          "text": "Meet the owner, pick up the toy, and delight your little one with a new toy."
         },
         "step5": {
-          "title": "Pick up & play",
-          "text": "Meet the owner, collect the toy, and let your child enjoy."
-        },
-        "step6": {
           "title": "Return on time",
           "text": "Return the toy clean and on time, then rent the next one."
         }
@@ -308,7 +304,6 @@
       "welcomeTitle": "Welcome back!",
       "welcomeSubtitle": "Sign in to manage your toy rentals and listings.",
       "errorTitle": "Couldn't sign you in",
-      "trustNote": "Your account is secured and your personal data stays private.",
       "emailNotVerifiedTitle": "Email not confirmed",
       "emailNotVerifiedBody": "Check your inbox (and spam folder) for the confirmation link, or send a new one.",
       "forgotPassword": "Forgot password?"
@@ -328,7 +323,6 @@
       "stepVerification": "Verification",
       "stepSuccess": "Success",
       "stepsAriaLabel": "Registration progress",
-      "trustNote": "Your account is secured. We never share your personal information.",
       "stepHomePoint": "Home point",
       "continue": "Continue",
       "back": "Back",
@@ -378,8 +372,7 @@
       "generic": "We couldn't confirm your email. Please try again.",
       "noTokenTitle": "Open the link from your email again",
       "noToken": "This page needs the link from your confirmation email. If you reloaded the page, open the link from the email again.",
-      "resendLead": "Or enter your email and we'll send a new link.",
-      "trustNote": "Your password is only used to check that it is you."
+      "resendLead": "Or enter your email and we'll send a new link."
     },
     "forgot": {
       "reqT": "Reset your password",
@@ -458,6 +451,52 @@
     }
   },
   "listings": {
+    "ageRange": {
+      "fromOnly": "From {{bound}}",
+      "toOnly": "Up to {{bound}}",
+      "unit": {
+        "month": {
+          "plain": {
+            "one": "month",
+            "few": "months",
+            "many": "months",
+            "other": "months"
+          },
+          "from": {
+            "one": "month",
+            "few": "months",
+            "many": "months",
+            "other": "months"
+          },
+          "to": {
+            "one": "month",
+            "few": "months",
+            "many": "months",
+            "other": "months"
+          }
+        },
+        "year": {
+          "plain": {
+            "one": "year",
+            "few": "years",
+            "many": "years",
+            "other": "years"
+          },
+          "from": {
+            "one": "year",
+            "few": "years",
+            "many": "years",
+            "other": "years"
+          },
+          "to": {
+            "one": "year",
+            "few": "years",
+            "many": "years",
+            "other": "years"
+          }
+        }
+      }
+    },
     "ai": {
       "switchAria": "Search by description",
       "fieldAria": "Describe the toy you are looking for",
@@ -628,7 +667,6 @@
         "originPickSubtitle": "Choose any point",
         "originGroupAria": "Measure distance from",
         "anyDistance": "Any distance",
-        "radiusHint": "Pick a radius to filter",
         "withinHome": "Within {{distance}} of home"
       },
       "locationPicker": {
@@ -796,9 +834,6 @@
       "toyDetails": {
         "heading": "Details",
         "ageRange": "Recommended age",
-        "ageRangeFromTo": "{{from}}–{{to}} months",
-        "ageRangeFromOnly": "From {{from}} months",
-        "ageRangeToOnly": "Up to {{to}} months",
         "condition": "Condition",
         "hygieneNotes": "Hygiene & cleaning",
         "safetyNotes": "Safety notes",
@@ -1018,10 +1053,6 @@
       "submit": "List toy",
       "toySection": "Toy details (optional)",
       "toySectionHint": "These fields help parents decide if the toy fits their child.",
-      "ageFromMonths": "Min age (months)",
-      "ageFromMonthsPlaceholder": "e.g. 12",
-      "ageToMonths": "Max age (months)",
-      "ageToMonthsPlaceholder": "e.g. 36",
       "condition": "Condition",
       "conditionPlaceholder": "Select condition",
       "conditionOptions": {
@@ -1040,8 +1071,7 @@
         "label": "Loss & damage compensation (֏)",
         "placeholder": "e.g. 45,000",
         "helper": "What the renter pays you if the toy is lost, seriously damaged or not returned. Nothing is charged upfront.",
-        "tip": "Tip: use roughly what it would cost to buy this toy new.",
-        "footnote": "Kept separate from the price you earn. DoRent never collects or holds this money."
+        "tip": "Tip: use roughly what it would cost to buy this toy new."
       },
       "pickupArea": {
         "label": "Pickup area",
@@ -1067,7 +1097,6 @@
         "d90": "3 months",
         "d180": "6 months",
         "d365": "1 year",
-        "hint": "Shortest booking a renter can make.",
         "preview": "min {{period}}"
       },
       "delivery": {
@@ -1112,6 +1141,7 @@
         "required": "This field is required.",
         "titleTooShort": "Toy name must be at least 3 characters.",
         "titleTooLong": "Toy name must be at most 200 characters.",
+        "conditionRequired": "Select the toy condition.",
         "descriptionTooShort": "Description must be at least 20 characters.",
         "descriptionTooLong": "Description must be at most 4000 characters.",
         "priceGreaterThanZero": "Price must be greater than 0.",
@@ -1127,7 +1157,6 @@
       "ageYearsShort": "yr",
       "ageMinAria": "Minimum age",
       "ageMaxAria": "Maximum age",
-      "ageHint": "Renters filter by age — drag both handles to set the range this toy suits best.",
       "ageBand": {
         "babies": "Babies",
         "toddlers": "Toddlers",
@@ -1292,9 +1321,6 @@
     },
     "common": {
       "notAvailable": "Not available"
-    },
-    "rating": {
-      "heading": "Your rating"
     },
     "reviews": {
       "heading": "Reviews received",
@@ -1547,8 +1573,6 @@
         "description": "Description",
         "pricePerDay": "Price per day (֏)",
         "city": "City",
-        "ageFromMonths": "Age from (months)",
-        "ageToMonths": "Age to (months)",
         "condition": "Condition",
         "conditionNone": "Not specified",
         "hygieneNotes": "Hygiene notes",
@@ -1786,9 +1810,6 @@
         "createdAt": "Created",
         "toyDetails": "Toy details",
         "ageRange": "Age",
-        "ageFromTo": "{{from}}–{{to}} months",
-        "ageFrom": "From {{months}} months",
-        "ageTo": "Up to {{months}} months",
         "condition": "Condition",
         "hygieneNotes": "Hygiene notes",
         "safetyNotes": "Safety notes",
@@ -2459,7 +2480,6 @@
   "favorites": {
     "page": {
       "title": "Saved toys",
-      "subtitle": "Browse all toys you have saved.",
       "errorTitle": "Unable to load favorites",
       "emptyTitle": "No saved toys yet",
       "empty": "Tap the heart on any toy to save it here for later.",
@@ -2803,8 +2823,6 @@
     "emailPhone": "Email & phone",
     "reportUser": "Report user",
     "verifiedBadgeAria": "Verified user",
-    "viewAllToys": "View all toys",
-    "viewAllToysAria": "View all toys from this owner",
     "asOwner": "As Owner",
     "asRenter": "As Renter",
     "rentingFrom": "Renting from {{name}}",
@@ -2827,8 +2845,6 @@
     "reviewsEmpty": "No reviews yet",
     "reviewsError": "Unable to load reviews",
     "postedItems": "Posted items",
-    "viewAll": "View all",
-    "viewAllCount": "View all {{count}} items",
     "noListings": "No toys listed yet.",
     "ratingHeading": "Rating",
     "reviewsHeading": "Reviews",
@@ -2941,8 +2957,6 @@
       "pageTitle": "FAQ",
       "title": "Frequently asked questions",
       "heroLead": "Find answers to the most common questions about renting and listing toys.",
-      "breadcrumbHome": "Home",
-      "breadcrumbLabel": "Breadcrumb",
       "helpTitle": "Still have questions?",
       "helpText": "Write to us and we'll reply as soon as we can.",
       "helpCta": "Write to us",
