@@ -41,6 +41,8 @@ import {
   serializeRadiusKmParam,
   type ListingConditionFilter,
   type ListingsFilter,
+  type ListingsOriginCoords,
+  type ListingsOriginSource,
 } from '../../models/listings-filter.model';
 import {
   formatDistanceMeters,
@@ -431,8 +433,24 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     this.doc.body.classList.remove('body--sheet-open');
   }
 
+  /**
+   * The applied state captured when the sheet opened, so "Cancel" can put back what the radius
+   * widget changes OUTSIDE the draft form: it writes the origin to the store at once, and
+   * clearing it commits `radiusKm` immediately (`onDraftOriginCleared`).
+   */
+  private sheetSnapshot: {
+    readonly coords: ListingsOriginCoords | null;
+    readonly source: ListingsOriginSource | null;
+    readonly radiusKm: number | null;
+  } | null = null;
+
   protected openSheet(): void {
     const v = this.filterForm.getRawValue();
+    this.sheetSnapshot = {
+      coords: this.originCoords(),
+      source: this.originSource(),
+      radiusKm: v.radiusKm,
+    };
     this.draftForm.setValue({
       city: v.city,
       categoryIds: v.categoryIds,
@@ -481,7 +499,37 @@ export class ListingsFiltersComponent implements OnInit, OnDestroy {
     this.doc.body.classList.remove('body--sheet-open');
   }
 
+  /** Cancel / backdrop: discard the draft and restore the applied origin + radius from open time. */
+  protected cancelSheet(): void {
+    const snap = this.sheetSnapshot;
+    if (snap) {
+      const coords = this.originCoords();
+      const source = this.originSource();
+      if (snap.coords === null) {
+        if (coords !== null) this.store.dispatch(ListingsActions.clearOrigin());
+      } else if (
+        coords === null ||
+        coords.lat !== snap.coords.lat ||
+        coords.lng !== snap.coords.lng ||
+        source !== snap.source
+      ) {
+        this.store.dispatch(
+          ListingsActions.setOriginCoords({
+            coords: snap.coords,
+            source: snap.source ?? 'manual',
+          }),
+        );
+      }
+      if (this.filterForm.getRawValue().radiusKm !== snap.radiusKm) {
+        this.filterForm.patchValue({ radiusKm: snap.radiusKm });
+        this.flush$.next();
+      }
+    }
+    this.closeSheet();
+  }
+
   protected applySheet(): void {
+    this.sheetSnapshot = null;
     const draft = this.draftForm.getRawValue();
     this.filterForm.patchValue({
       city: draft.city,
