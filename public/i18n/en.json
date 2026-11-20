@@ -1104,6 +1104,7 @@
         "required": "This field is required.",
         "titleTooShort": "Toy name must be at least 3 characters.",
         "titleTooLong": "Toy name must be at most 200 characters.",
+        "conditionRequired": "Select the toy condition.",
         "descriptionTooShort": "Description must be at least 20 characters.",
         "descriptionTooLong": "Description must be at most 4000 characters.",
         "priceGreaterThanZero": "Price must be greater than 0.",

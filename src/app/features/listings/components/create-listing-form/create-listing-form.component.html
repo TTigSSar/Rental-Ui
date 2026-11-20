@@ -587,9 +587,10 @@
 
             <!-- Condition chips -->
             <div class="wizard-field">
-              <span class="wizard-field__label">{{
-                'listings.createForm.condition' | translate
-              }}</span>
+              <span class="wizard-field__label">
+                {{ 'listings.createForm.condition' | translate }}
+                <span class="wizard-field__req" aria-hidden="true">*</span>
+              </span>
               <div
                 class="wizard-chips"
                 role="group"
@@ -606,6 +607,11 @@
                   </button>
                 }
               </div>
+              @if (hasError('condition')) {
+                <small class="wizard-field__error" role="alert">
+                  {{ 'listings.createForm.validation.conditionRequired' | translate }}
+                </small>
+              }
             </div>
 
             <!-- Description -->
@@ -753,10 +759,7 @@
 
             <!-- Loss & damage compensation: its own bordered sub-card so it
                  never reads as part of the owner's earnings above. -->
-            <div
-              class="comp-card"
-              [class.comp-card--error]="hasError('compensationAmount')"
-            >
+            <div class="comp-card" [class.comp-card--error]="hasError('compensationAmount')">
               <div class="comp-card__header">
                 <span class="comp-card__icon" aria-hidden="true">
                   <i class="pi pi-shield"></i>
@@ -825,7 +828,6 @@
             </div>
 
             <div class="wizard-divider"></div>
-
 
             <!-- Row B: Minimum rental, full width on its own row (not in a
                  `.wizard-2col`) — the half column at ≥1024px was only ~326px,
