@@ -1292,6 +1292,37 @@
   padding-bottom: max(var(--ui-space-12), env(safe-area-inset-bottom));
 }
 
+/* Mobile / tablet (<1024px): the footer is rendered inside the padded,
+   max-width `.wizard__layout`, which made it an inset box. Pin it to the
+   viewport instead — a full-bleed bar like the listing details page's sticky
+   CTA. The layout's own bottom padding (80px + safe area) keeps the last
+   field clear of it. Desktop (≥1024px) puts it back in flow (desktop.scss). */
+@media (max-width: 1023.98px) {
+  .wizard__layout .wizard__footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    padding: 10px var(--ui-space-16) calc(10px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -4px 16px rgba(20, 15, 5, 0.08);
+  }
+
+  .wizard__layout .wizard__btn {
+    height: 3rem;
+  }
+
+  .wizard__layout .wizard__btn--back {
+    flex: 0 0 auto;
+    min-width: 0;
+    padding: 0 var(--ui-space-16);
+  }
+
+  .wizard__layout .wizard__btn--primary {
+    flex: 1 1 auto;
+  }
+}
+
 .wizard__footer-inner {
   display: flex;
   align-items: center;
