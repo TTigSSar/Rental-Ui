@@ -147,6 +147,7 @@ function fillValidBasics(component: CreateListingFormComponent): void {
     description: 'A lovely wooden train set in great condition for toddlers.',
     categoryId: 'cat-123',
     pricePerDay: 9,
+    condition: 'Good',
     // Loss & damage compensation is required (1,000–10,000,000 ֏) — see the
     // dedicated describe block below for the field's own validation tests.
     compensationAmount: 10000,
@@ -332,7 +333,7 @@ describe('CreateListingFormComponent — Step-3 payload (min rental + delivery)'
       priceUnit: 'Daily',
       ageFromMonths: 24,
       ageToMonths: 60,
-      condition: null,
+      condition: 'Good',
       hygieneNotes: null,
       safetyNotes: null,
       // Required for submit to proceed at all; this test is about the
@@ -692,6 +693,7 @@ describe('CreateListingFormComponent — loss & damage compensation (step 3)', (
       description: 'A lovely wooden train set in great condition for toddlers.',
       categoryId: 'cat-123',
       pricePerDay: 9,
+      condition: 'Good',
     });
   }
 
@@ -755,7 +757,7 @@ describe('CreateListingFormComponent — loss & damage compensation (step 3)', (
       priceUnit: 'Daily',
       ageFromMonths: 24,
       ageToMonths: 60,
-      condition: null,
+      condition: 'Good',
       hygieneNotes: null,
       safetyNotes: null,
       compensationAmount: null,
@@ -796,7 +798,7 @@ describe('CreateListingFormComponent — loss & damage compensation (step 3)', (
       priceUnit: 'Daily',
       ageFromMonths: 24,
       ageToMonths: 60,
-      condition: null,
+      condition: 'Good',
       hygieneNotes: null,
       safetyNotes: null,
       compensationAmount: null,
@@ -1029,5 +1031,24 @@ describe('CreateListingFormComponent - phone step', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     expect(stepOpen()).toBe(true);
+  });
+});
+
+describe('CreateListingFormComponent — condition is required (step 2)', () => {
+  it('blocks Next on step 2 until a condition is chosen, then sends it in the payload', () => {
+    const { component } = createComponent('create');
+    fillValidBasics(component);
+    component.createListingForm.patchValue({ condition: '' });
+    component.currentStep.set(2);
+
+    component.goToNextStep();
+
+    expect(component.currentStep()).toBe(2);
+    expect(component.createListingForm.controls.condition.hasError('required')).toBe(true);
+
+    component.selectCond({ value: 'LikeNew', labelKey: 'x' });
+    component.goToNextStep();
+
+    expect(component.currentStep()).toBe(3);
   });
 });
