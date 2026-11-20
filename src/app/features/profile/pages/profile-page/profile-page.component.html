@@ -251,9 +251,10 @@
                    two pickers portalled to <body>, two confirmation dialogs,
                    and two success toasts for one save. -->
               @if (!isDesktop()) {
-                <app-home-point-card />
-                <!-- Personal info (ADR-030): same one-instance-only rule as the home point card. -->
+                <!-- Personal info (ADR-030): same one-instance-only rule as the home point card.
+                     Mobile order: directly under the profile card, above the home point. -->
                 <app-personal-info-card />
+                <app-home-point-card />
               }
 
               <!-- Navigation menu -->
