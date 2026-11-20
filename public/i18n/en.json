@@ -3510,7 +3510,6 @@
   "homePoint": {
     "city": "Yerevan",
     "privacyNote": "Renters see only the district and a ~100 m circle.",
-    "onlyYou": "Only you see the exact pin.",
     "map": {
       "moveHint": "Move the map so the pin sits on your pickup spot",
       "useMyLocation": "Use my location",
