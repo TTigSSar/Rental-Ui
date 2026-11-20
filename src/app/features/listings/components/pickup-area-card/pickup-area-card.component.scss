@@ -10,6 +10,9 @@
 
 .pickup-card__map {
   position: relative;
+  /* Seal the badge's z-index (1003, above Leaflet's panes) inside the map box,
+     so it can no longer paint over the wizard's sticky footer (z-index 10). */
+  isolation: isolate;
   border-radius: var(--ui-radius-12);
   border: 1px solid var(--ui-color-border);
   overflow: hidden;
