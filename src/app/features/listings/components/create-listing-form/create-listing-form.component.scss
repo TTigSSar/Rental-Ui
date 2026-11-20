@@ -753,7 +753,8 @@
 }
 
 .wizard-photo__drag-hint {
-  display: flex;
+  /* Drag-to-reorder is a pointer gesture: desktop only. */
+  display: none;
   align-items: center;
   gap: var(--ui-space-6);
   margin: 0;
@@ -765,6 +766,12 @@
     font-size: 0.75rem;
     flex-shrink: 0;
     color: var(--ui-color-primary);
+  }
+}
+
+@media (min-width: 1024px) {
+  .wizard-photo__drag-hint {
+    display: flex;
   }
 }
 
