@@ -73,7 +73,7 @@ describe('PersonalInfoCardComponent (ADR-030 board 3)', () => {
   });
 
   describe('view', () => {
-    it('shows only the phone (with the privacy note) and the read-only email (with its note) - no name row', async () => {
+    it('shows only the phone (with the privacy note) and the read-only email (no email note in view mode) - no name row', async () => {
       await settle();
 
       const text = el().textContent ?? '';
@@ -83,7 +83,7 @@ describe('PersonalInfoCardComponent (ADR-030 board 3)', () => {
       expect(text).toContain('+374 91 234 567');
       expect(text).toContain('anna.p@gmail.com');
       expect(text).toContain('auth.phoneStep.privacy');
-      expect(text).toContain('profile.personal.emailNote');
+      expect(text).not.toContain('profile.personal.emailNote');
     });
 
     it('shows "Not added" for an empty phone (and no phone number)', async () => {
