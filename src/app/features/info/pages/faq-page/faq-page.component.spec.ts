@@ -33,8 +33,6 @@ function setup(): HTMLElement {
       faq: {
         title: 'FAQ_TITLE',
         heroLead: 'HERO_LEAD',
-        breadcrumbHome: 'HOME',
-        breadcrumbLabel: 'CRUMBS',
         helpTitle: 'HELP_TITLE',
         helpText: 'HELP_TEXT',
         helpCta: 'HELP_CTA',
@@ -52,14 +50,11 @@ function setup(): HTMLElement {
 }
 
 describe('FaqPageComponent', () => {
-  it('renders the title, breadcrumb link to home and all group headings', () => {
+  it('renders the title and all group headings', () => {
     const el = setup();
 
     expect(el.querySelector('h1')?.textContent).toContain('FAQ_TITLE');
     expect(el.querySelector('.faq-hero__lead')?.textContent).toContain('HERO_LEAD');
-    const crumb = el.querySelector('nav a') as HTMLAnchorElement;
-    expect(crumb.getAttribute('href')).toBe('/');
-    expect(el.querySelector('nav')?.getAttribute('aria-label')).toBe('CRUMBS');
     const text = el.textContent ?? '';
     for (const g of GROUP_IDS) {
       expect(text).toContain(`H_${g}`);

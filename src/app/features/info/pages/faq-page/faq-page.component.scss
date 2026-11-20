@@ -12,13 +12,6 @@
   padding: 72px 0 64px;
   background: linear-gradient(135deg, var(--ui-color-secondary) 0%, #3d3f5a 100%);
   color: var(--ui-color-on-primary);
-  /* translucent white on the dark gradient: no token exists for these alphas */
-  --faq-hero-link: rgba(255, 255, 255, 0.72);
-}
-
-/* Reuses `.page-container` so the crumb shares the content's left edge. */
-.faq-hero__crumb-row {
-  padding-top: 0;
 }
 
 .faq-hero__body {
@@ -80,43 +73,6 @@
   grid-template-columns: minmax(0, 1fr);
   padding-top: 32px;
   padding-bottom: 48px;
-}
-
-/* ---- Breadcrumb (on the dark hero) ---- */
-.faq__crumbs {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  min-height: 44px;
-  font-size: 14px;
-  line-height: 20px;
-  color: var(--faq-hero-link);
-}
-
-.faq__crumb-link {
-  color: inherit;
-  text-decoration: none;
-
-  &:hover {
-    color: var(--ui-color-on-primary);
-    text-decoration: underline;
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--ui-color-on-primary);
-    outline-offset: 2px;
-    border-radius: 2px;
-  }
-}
-
-.faq__crumb-sep {
-  font-size: 14px;
-  color: var(--faq-hero-link);
-}
-
-.faq__crumb-current {
-  color: var(--ui-color-on-primary);
 }
 
 /* ---- Groups ---- */

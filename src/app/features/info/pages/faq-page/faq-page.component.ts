@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
 interface FaqItem {
@@ -120,7 +119,7 @@ const FAQ_GROUPS: readonly FaqGroup[] = [
 @Component({
   selector: 'app-faq-page',
   standalone: true,
-  imports: [RouterLink, TranslatePipe],
+  imports: [TranslatePipe],
   templateUrl: './faq-page.component.html',
   styleUrl: './faq-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
