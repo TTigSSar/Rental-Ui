@@ -315,6 +315,9 @@
 
 /* PrimeNG MultiSelect (districts) in sheet */
 .lf-field__multiselect.p-multiselect {
+  /* Must beat `.lf-field__input { display: block }`, which would drop the dropdown chevron onto its own line. */
+  display: flex;
+  align-items: center;
   width: 100%;
   min-height: 2.75rem;
   border-radius: var(--ui-radius-input);
