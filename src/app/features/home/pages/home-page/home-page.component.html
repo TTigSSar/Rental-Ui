@@ -308,7 +308,7 @@
           [attr.aria-labelledby]="'home-process-tab-' + processMode()"
         >
           <ol class="home__process-steps">
-            @for (step of processSteps; track step.id; let isLast = $last) {
+            @for (step of processSteps(); track step.id; let isLast = $last) {
               <li class="home__process-step">
                 @if (!isLast) {
                   <span class="home__process-step-line" aria-hidden="true"></span>
@@ -319,13 +319,13 @@
                 <div class="home__process-step-body">
                   <h3 class="home__process-step-title">
                     {{
-                      (processMode() === 'renting' ? step.titleKeyRenting : step.titleKeyLending)
+                      (processMode() === 'renting' ? step.titleKeyRenting! : step.titleKeyLending)
                         | translate
                     }}
                   </h3>
                   <p class="home__process-step-text">
                     {{
-                      (processMode() === 'renting' ? step.descKeyRenting : step.descKeyLending)
+                      (processMode() === 'renting' ? step.descKeyRenting! : step.descKeyLending)
                         | translate
                     }}
                   </p>

@@ -209,17 +209,13 @@
         },
         "step3": {
           "title": "Choose dates",
-          "text": "Pick rental dates and check availability instantly."
+          "text": "Pick your rental dates and send a request."
         },
         "step4": {
-          "title": "Send a request",
-          "text": "Send a rental request to the owner in a few clicks."
+          "title": "Pick up & play",
+          "text": "Meet the owner, pick up the toy, and delight your little one with a new toy."
         },
         "step5": {
-          "title": "Pick up & play",
-          "text": "Meet the owner, collect the toy, and let your child enjoy."
-        },
-        "step6": {
           "title": "Return on time",
           "text": "Return the toy clean and on time, then rent the next one."
         }
