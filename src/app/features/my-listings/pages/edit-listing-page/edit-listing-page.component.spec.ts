@@ -316,15 +316,14 @@ describe('EditListingPageComponent — home point -> PATCH payload', () => {
 
   // ADR-040: on PATCH an ABSENT key means "unchanged", so an owner who empties
   // an optional field must produce a key present with `null` — not an omitted key.
-  it('sends explicit null (key present) for condition / safetyNotes / hygieneNotes the owner emptied', () => {
+  it('sends explicit null (key present) for safetyNotes / hygieneNotes the owner emptied, condition keeps its value', () => {
     const { fixture, updateCalls } = createSaveFixture();
     const form = fixture.debugElement.query(By.directive(CreateListingFormComponent))
       .componentInstance as CreateListingFormComponent;
 
-    // Real handlers: toggling the active condition chip off, and the safety /
-    // hygiene controls emptied the way the textarea's input event does.
-    const goodChip = form.conditionChips.find((c) => c.value === 'Good')!;
-    form.selectCond(goodChip);
+    // Condition is required (ADR-040 amendment): it is never sent as null.
+    const conditionBefore = form.createListingForm.controls.condition.value;
+    expect(conditionBefore).toBeTruthy();
     form.createListingForm.controls.safetyNotes.setValue('');
     form.createListingForm.controls.hygieneNotes.setValue('');
     form.editGallery.set([{ url: EXISTING_IMAGE.url, existingId: EXISTING_IMAGE.id, file: null }]);
@@ -332,11 +331,27 @@ describe('EditListingPageComponent — home point -> PATCH payload', () => {
 
     expect(updateCalls).toHaveLength(1);
     const { request } = updateCalls[0];
-    for (const key of ['condition', 'safetyNotes', 'hygieneNotes']) {
+    for (const key of ['safetyNotes', 'hygieneNotes']) {
       expect(Object.prototype.hasOwnProperty.call(request, key), `${key} must be present`).toBe(true);
       expect(request[key], key).toBeNull();
     }
+    expect(request['condition']).toBe(conditionBefore);
     expect(Object.keys(request).sort()).toEqual([...LISTING_UPDATE_WRITABLE_FIELDS].sort());
+  });
+
+  it('blocks the update when the owner empties the required condition', () => {
+    const { fixture, updateCalls } = createSaveFixture();
+    const form = fixture.debugElement.query(By.directive(CreateListingFormComponent))
+      .componentInstance as CreateListingFormComponent;
+
+    // Toggle the active condition chip off, as the real handler does.
+    const active = form.conditionChips.find((c) => c.value === form.createListingForm.controls.condition.value)!;
+    form.selectCond(active);
+    expect(form.createListingForm.controls.condition.value).toBeFalsy();
+    form.editGallery.set([{ url: EXISTING_IMAGE.url, existingId: EXISTING_IMAGE.id, file: null }]);
+    (form as unknown as { onSubmit(): void }).onSubmit();
+
+    expect(updateCalls).toHaveLength(0);
   });
 
   it('sends explicit null for cleared age and minimum-rental values', () => {
