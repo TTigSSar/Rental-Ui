@@ -43,6 +43,7 @@ test.describe('Create listing — location comes from the home point', () => {
     await page
       .getByLabel('Description')
       .fill('A sturdy wooden train set with all pieces present and freshly cleaned.');
+    await page.getByRole('button', { name: 'Gently used' }).click();
     await page.getByRole('button', { name: 'Continue to pricing' }).click();
 
     // ── Step 3 — Pricing & Location ──
@@ -88,6 +89,7 @@ test.describe('Create listing — location comes from the home point', () => {
     await page
       .getByLabel('Description')
       .fill('A sturdy wooden train set with all pieces present and freshly cleaned.');
+    await page.getByRole('button', { name: 'Gently used' }).click();
     await page.getByRole('button', { name: 'Continue to pricing' }).click();
 
     // Step 3's location block is now a read-only card: no city input, no

@@ -99,7 +99,9 @@ test.describe('Listings — clearing the radius/origin filter (Trello #80)', () 
     await expect(page).toHaveURL('/');
 
     const returnLoad = page.waitForRequest(isListingsGet);
-    await page.getByRole('link', { name: 'All toy categories' }).click();
+    // The home "See all" links are hidden; an empty hero-search submit is the
+    // in-app route to /listings (router.navigate, so the NgRx store survives).
+    await page.locator('.home__hero-search-filter').click();
     const returnReq = await returnLoad;
     await expect(page).toHaveURL(/\/listings/);
 
