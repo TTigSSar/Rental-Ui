@@ -36,7 +36,8 @@ export function resolveAgeRange(
   fromMonths: number | null | undefined,
   toMonths: number | null | undefined,
 ): AgeRange | null {
-  const hasFrom = isFiniteNumber(fromMonths);
+  // A lower bound of 0 means "no lower limit": it is dropped (ADR-068 amendment).
+  const hasFrom = isFiniteNumber(fromMonths) && fromMonths > 0;
   const hasTo = isFiniteNumber(toMonths);
   if (hasFrom && hasTo) {
     return { kind: 'fromTo', from: toAgeBound(fromMonths), to: toAgeBound(toMonths) };
@@ -46,23 +47,24 @@ export function resolveAgeRange(
   return null;
 }
 
-function unitWord(bound: AgeBound, form: 'plain' | 'bound', lang: string, t: AgeTranslate): string {
+function unitWord(bound: AgeBound, form: 'plain' | 'from' | 'to', lang: string, t: AgeTranslate): string {
   const category = new Intl.PluralRules(uiLocaleId(lang)).select(bound.value);
   const base = `listings.ageRange.unit.${bound.unit}`;
   return t(`${base}.${form}.${category}`);
 }
 
-function numberText(bound: AgeBound, lang: string): string {
-  return new Intl.NumberFormat(uiLocaleId(lang)).format(bound.value);
+/** The decimal separator is always a dot, in every locale (ADR-068 amendment). */
+function numberText(bound: AgeBound): string {
+  return String(bound.value);
 }
 
 function boundText(
   bound: AgeBound,
-  form: 'plain' | 'bound',
+  form: 'plain' | 'from' | 'to',
   lang: string,
   t: AgeTranslate,
 ): string {
-  return `${numberText(bound, lang)} ${unitWord(bound, form, lang, t)}`;
+  return `${numberText(bound)} ${unitWord(bound, form, lang, t)}`;
 }
 
 /** Renders the range in `lang`, e.g. "6 months – 3 years", "1.5–5 years", "From 2 years". */
@@ -77,11 +79,11 @@ export function formatAgeRange(
   switch (range.kind) {
     case 'fromTo':
       return range.from.unit === range.to.unit
-        ? `${numberText(range.from, lang)}–${boundText(range.to, 'plain', lang, t)}`
+        ? `${numberText(range.from)}–${boundText(range.to, 'plain', lang, t)}`
         : `${boundText(range.from, 'plain', lang, t)} – ${boundText(range.to, 'plain', lang, t)}`;
     case 'fromOnly':
-      return t('listings.ageRange.fromOnly', { bound: boundText(range.from, 'bound', lang, t) });
+      return t('listings.ageRange.fromOnly', { bound: boundText(range.from, 'from', lang, t) });
     case 'toOnly':
-      return t('listings.ageRange.toOnly', { bound: boundText(range.to, 'bound', lang, t) });
+      return t('listings.ageRange.toOnly', { bound: boundText(range.to, 'to', lang, t) });
   }
 }

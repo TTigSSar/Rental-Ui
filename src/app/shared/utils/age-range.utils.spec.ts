@@ -69,7 +69,9 @@ describe('formatAgeRange (en)', () => {
     expect(fmt(6, 36)).toBe('6 months – 3 years');
     expect(fmt(12, 36)).toBe('1–3 years');
     expect(fmt(18, 60)).toBe('1.5–5 years');
-    expect(fmt(0, 6)).toBe('0–6 months');
+    expect(fmt(0, 6)).toBe('Up to 6 months');
+    expect(fmt(0, 12)).toBe('Up to 1 year');
+    expect(fmt(0, null)).toBe('');
     expect(fmt(6, 11)).toBe('6–11 months');
   });
 
@@ -98,10 +100,14 @@ describe('formatAgeRange (ru)', () => {
     expect(fmt(6, 36, 'ru')).toBe('6 мес. – 3 года');
   });
 
-  it('uses a decimal comma and the genitive singular for half years', () => {
-    expect(fmt(12, 18, 'ru')).toBe('1–1,5 года');
-    expect(fmt(18, 60, 'ru')).toBe('1,5–5 лет');
-    expect(fmt(null, 18, 'ru')).toBe('до 1,5 года');
+  it('drops a zero lower bound', () => {
+    expect(fmt(0, 12, 'ru')).toBe('до 1 года');
+  });
+
+  it('uses a decimal dot and the genitive singular for half years', () => {
+    expect(fmt(12, 18, 'ru')).toBe('1–1.5 года');
+    expect(fmt(18, 60, 'ru')).toBe('1.5–5 лет');
+    expect(fmt(null, 18, 'ru')).toBe('до 1.5 года');
   });
 
   it('uses the genitive after от / до', () => {
@@ -112,9 +118,20 @@ describe('formatAgeRange (ru)', () => {
 });
 
 describe('formatAgeRange (hy)', () => {
-  it('formats with the locale decimal separator', () => {
-    expect(fmt(18, 60, 'hy')).toBe('1,5–5 տարի');
+  it('formats with a decimal dot', () => {
+    expect(fmt(18, 60, 'hy')).toBe('1.5–5 տարի');
     expect(fmt(6, 36, 'hy')).toBe('6 ամիս – 3 տարի');
-    expect(fmt(24, null, 'hy')).toBe('Սկսած 2 տարի');
+    expect(fmt(9, 18, 'hy')).toBe('9 ամիս – 1.5 տարի');
+  });
+
+  it('uses the age adjective for open-ended forms', () => {
+    expect(fmt(24, null, 'hy')).toBe('2 տարեկանից');
+    expect(fmt(null, 120, 'hy')).toBe('Մինչև 10 տարեկան');
+    expect(fmt(6, null, 'hy')).toBe('6 ամսականից');
+    expect(fmt(null, 9, 'hy')).toBe('Մինչև 9 ամսական');
+  });
+
+  it('drops a zero lower bound', () => {
+    expect(fmt(0, 12, 'hy')).toBe('Մինչև 1 տարեկան');
   });
 });

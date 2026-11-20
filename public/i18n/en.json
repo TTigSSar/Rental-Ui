@@ -462,7 +462,13 @@
             "many": "months",
             "other": "months"
           },
-          "bound": {
+          "from": {
+            "one": "month",
+            "few": "months",
+            "many": "months",
+            "other": "months"
+          },
+          "to": {
             "one": "month",
             "few": "months",
             "many": "months",
@@ -476,7 +482,13 @@
             "many": "years",
             "other": "years"
           },
-          "bound": {
+          "from": {
+            "one": "year",
+            "few": "years",
+            "many": "years",
+            "other": "years"
+          },
+          "to": {
             "one": "year",
             "few": "years",
             "many": "years",
