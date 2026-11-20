@@ -132,12 +132,12 @@ describe('HomePageComponent toy rows (Stage 1)', () => {
     expect(el.querySelector('app-home-toy-row')).toBeNull();
   });
 
-  it('links "see all" to /listings', () => {
+  it('hides the "see all" links while the target feature is not implemented', () => {
     const { el } = render({
       sections: [{ key: 'recent', title: 'Recent', items: [makeListingPreview()] }],
     });
 
-    expect(el.querySelector('.home__section-action')!.getAttribute('href')).toBe('/listings');
+    expect(el.querySelector('.home__section-action')).toBeNull();
   });
 });
 

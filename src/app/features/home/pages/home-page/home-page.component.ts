@@ -340,6 +340,9 @@ export class HomePageComponent implements OnInit {
   protected readonly canScrollPrev = signal(false);
   protected readonly canScrollNext = signal(true);
 
+  /** "See all" links on the home sections stay hidden until the all-toys feature exists. */
+  protected readonly showSectionSeeAll = false;
+
   protected readonly processSteps = computed(() =>
     PROCESS_STEPS.filter((step) => this.processMode() === 'lending' || step.titleKeyRenting !== null),
   );

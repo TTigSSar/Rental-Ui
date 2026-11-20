@@ -222,9 +222,11 @@
               [title]="'home.sections.titles.' + key | translate"
               [headingId]="'home-section-' + key"
             >
-              <a actions [routerLink]="['/listings']" class="home__section-action">
-                {{ 'home.seeAll' | translate }}
-              </a>
+              @if (showSectionSeeAll) {
+                <a actions [routerLink]="['/listings']" class="home__section-action">
+                  {{ 'home.seeAll' | translate }}
+                </a>
+              }
             </app-ui-section-header>
             <app-home-toy-row [loading]="true" />
           </section>
@@ -252,9 +254,11 @@
                 [title]="translatedTitle === titleKey ? section.title : translatedTitle"
                 [headingId]="'home-section-' + section.key"
               >
-                <a actions [routerLink]="['/listings']" class="home__section-action">
-                  {{ 'home.seeAll' | translate }}
-                </a>
+                @if (showSectionSeeAll) {
+                  <a actions [routerLink]="['/listings']" class="home__section-action">
+                    {{ 'home.seeAll' | translate }}
+                  </a>
+                }
               </app-ui-section-header>
               <app-home-toy-row
                 [items]="section.items"
