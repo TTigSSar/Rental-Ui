@@ -107,6 +107,18 @@ describe('PersonalInfoCardComponent (ADR-030 board 3)', () => {
       expect(email.hasAttribute('readonly')).toBe(true);
     });
 
+    it('edit() is a no-op while the editor is open (re-entry keeps typed input), and focuses the first input on open', async () => {
+      await startEditing();
+      const [first] = inputs();
+      expect(document.activeElement).toBe(first);
+
+      type(first, 'Changed');
+      fixture.componentInstance.edit();
+      await settle();
+
+      expect(inputs()[0].value).toBe('Changed');
+    });
+
     it('Cancel discards the changes and goes back to the view', async () => {
       await startEditing();
       type(inputs()[0], 'Changed');

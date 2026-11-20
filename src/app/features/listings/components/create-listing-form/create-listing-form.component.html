@@ -589,8 +589,12 @@
               </span>
               <div
                 class="wizard-chips"
+                id="wz-condition"
                 role="group"
+                tabindex="-1"
                 [attr.aria-label]="'listings.createForm.condition' | translate"
+                [attr.aria-invalid]="hasError('condition') ? 'true' : null"
+                [attr.aria-describedby]="hasError('condition') ? 'wz-condition-error' : null"
               >
                 @for (chip of conditionChips; track chip.value) {
                   <button
@@ -604,7 +608,7 @@
                 }
               </div>
               @if (hasError('condition')) {
-                <small class="wizard-field__error" role="alert">
+                <small class="wizard-field__error" id="wz-condition-error" role="alert">
                   {{ 'listings.createForm.validation.conditionRequired' | translate }}
                 </small>
               }

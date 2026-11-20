@@ -659,6 +659,9 @@ export class CreateListingFormComponent implements OnInit {
       case 'pricePerDay':
         document.getElementById('wz-price')?.focus();
         return;
+      case 'condition':
+        document.getElementById('wz-condition')?.focus();
+        return;
       case 'compensationAmount':
         document.getElementById('wz-compensation')?.focus();
         return;

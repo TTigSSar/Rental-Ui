@@ -221,6 +221,10 @@ export class ProfilePageComponent implements OnInit {
   /** The single live personal-info card (mobile and desktop copies are mutually exclusive). */
   private readonly personalInfoCard = viewChild(PersonalInfoCardComponent);
 
+  protected readonly personalInfoEditing = computed(
+    () => this.personalInfoCard()?.editing() ?? false,
+  );
+
   protected editPersonalInfo(): void {
     this.personalInfoCard()?.edit();
   }

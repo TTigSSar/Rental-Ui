@@ -227,6 +227,7 @@
                     type="button"
                     class="profile-page__edit-btn profile-page__m-edit-btn"
                     data-testid="personal-info-edit"
+                    [disabled]="personalInfoEditing()"
                     (click)="editPersonalInfo()"
                   >
                     <i class="pi pi-pencil" aria-hidden="true"></i>
@@ -362,6 +363,8 @@
                   type="button"
                   class="profile-page__edit-btn"
                   data-testid="personal-info-edit"
+                  [disabled]="personalInfoEditing()"
+                  [attr.aria-label]="('profile.edit' | translate) + ' – ' + ('app.shell.nav.profile' | translate)"
                   (click)="editPersonalInfo()"
                 >
                   <i class="pi pi-pencil" aria-hidden="true"></i>
