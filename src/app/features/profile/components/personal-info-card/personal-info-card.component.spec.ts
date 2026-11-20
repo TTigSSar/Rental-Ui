@@ -53,7 +53,7 @@ describe('PersonalInfoCardComponent (ADR-030 board 3)', () => {
   async function startEditing(phone: string | null = '+374 91 234 567'): Promise<void> {
     store.setState(authState({}, phone));
     await settle();
-    q('[data-testid="personal-info-edit"]')!.click();
+    fixture.componentInstance.edit();
     await settle();
   }
 
@@ -113,7 +113,7 @@ describe('PersonalInfoCardComponent (ADR-030 board 3)', () => {
       q<HTMLButtonElement>('.pi-card__cancel')!.click();
       await settle();
 
-      expect(q('[data-testid="personal-info-edit"]')).not.toBeNull();
+      expect(q('.pi-card__rows')).not.toBeNull();
       expect(el().textContent).toContain('+374 91 234 567');
       expect(dispatched(AuthActions.updateName.type)).toHaveLength(0);
     });
@@ -174,7 +174,7 @@ describe('PersonalInfoCardComponent (ADR-030 board 3)', () => {
         severity: 'success',
         summary: 'profile.personal.saved',
       });
-      expect(q('[data-testid="personal-info-edit"]')).not.toBeNull();
+      expect(q('.pi-card__rows')).not.toBeNull();
     });
 
     it('PUTs the phone after the name, only because it changed, trimmed', async () => {
@@ -199,7 +199,7 @@ describe('PersonalInfoCardComponent (ADR-030 board 3)', () => {
       await settle();
 
       expect(messageService.add).toHaveBeenCalledTimes(1);
-      expect(q('[data-testid="personal-info-edit"]')).not.toBeNull();
+      expect(q('.pi-card__rows')).not.toBeNull();
     });
 
     it('an empty phone that was empty stays empty: it is never sent', async () => {

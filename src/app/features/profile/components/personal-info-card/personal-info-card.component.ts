@@ -136,7 +136,8 @@ export class PersonalInfoCardComponent {
     });
   }
 
-  protected edit(): void {
+  /** Opens the in-place editor. Triggered from the profile header card's edit button. */
+  edit(): void {
     const u = this.user();
     this.form.reset({
       firstName: u?.firstName ?? '',

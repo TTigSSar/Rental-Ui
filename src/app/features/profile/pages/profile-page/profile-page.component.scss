@@ -128,18 +128,36 @@
   text-overflow: ellipsis;
 }
 
+/* Outlined pencil button in the header card — opens the personal-details editor. */
 .profile-page__edit-btn {
-  height: 2rem;
-  padding: 0 var(--ui-space-12);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-6);
+  /* 44px minimum touch target - DESIGN_RULES.md section 3. */
+  min-height: 44px;
+  padding: 0 var(--ui-space-14);
   border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-surface-muted);
-  color: var(--ui-color-text-secondary);
-  border: 1px solid var(--ui-color-border);
-  font-size: 0.75rem;
+  background: var(--ui-color-surface);
+  color: var(--ui-color-text-primary);
+  border: 1.5px solid var(--ui-color-border);
+  font-family: inherit;
+  font-size: var(--ui-font-size-caption);
   font-weight: 700;
   flex-shrink: 0;
-  opacity: 0.5;
-  cursor: default;
+  cursor: pointer;
+
+  .pi {
+    font-size: 0.9375rem;
+  }
+
+  &:hover {
+    background: var(--ui-color-surface-muted);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ui-color-primary-strong);
+    outline-offset: 2px;
+  }
 }
 
 /* ── Info rows ── */
@@ -451,17 +469,6 @@
 }
 
 .profile-page__m-edit-btn {
-  height: 2rem;
-  padding: 0 var(--ui-space-12);
-  border-radius: var(--ui-radius-pill);
-  background: var(--ui-color-surface-muted);
-  color: var(--ui-color-text-secondary);
-  border: 1px solid var(--ui-color-border);
-  font-size: 0.75rem;
-  font-weight: 700;
-  font-family: inherit;
-  cursor: default;
-  flex-shrink: 0;
   align-self: flex-start;
 }
 

@@ -223,7 +223,13 @@
                     }
                   </div>
 
-                  <button type="button" class="profile-page__m-edit-btn" disabled>
+                  <button
+                    type="button"
+                    class="profile-page__edit-btn profile-page__m-edit-btn"
+                    data-testid="personal-info-edit"
+                    (click)="editPersonalInfo()"
+                  >
+                    <i class="pi pi-pencil" aria-hidden="true"></i>
                     {{ 'profile.edit' | translate }}
                   </button>
                 </div>
@@ -353,7 +359,13 @@
                 <div class="profile-page__identity-info">
                   <p class="profile-page__identity-name">{{ profile.firstName }} {{ profile.lastName }}</p>
                 </div>
-                <button type="button" class="profile-page__edit-btn" disabled [attr.aria-label]="('profile.edit' | translate) + ' – ' + ('app.shell.nav.profile' | translate)">
+                <button
+                  type="button"
+                  class="profile-page__edit-btn"
+                  data-testid="personal-info-edit"
+                  (click)="editPersonalInfo()"
+                >
+                  <i class="pi pi-pencil" aria-hidden="true"></i>
                   {{ 'profile.edit' | translate }}
                 </button>
               </div>
