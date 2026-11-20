@@ -13,6 +13,7 @@ import { BadgeComponent } from '../../../../shared/ui/badge/badge.component';
 import { MyListingCardComponent } from '../../components/my-listing-card/my-listing-card.component';
 import type { MyListing, MyListingStatus } from '../../models/my-listing.model';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
+import { AgeRangePipe } from '../../../../shared/utils/age-range.pipe';
 import {
   mapListingStatusLabelKey,
   mapListingStatusTone,
@@ -63,6 +64,7 @@ const selectMyListingsPageViewModel = createSelector(
   selector: 'app-my-listings-page',
   standalone: true,
   imports: [
+    AgeRangePipe,
     BadgeComponent,
     ButtonModule,
     DramCurrencyPipe,
@@ -165,12 +167,4 @@ export class MyListingsPageComponent implements OnInit {
     return mapListingStatusTone(status);
   }
 
-  protected formatAge(listing: MyListing): string {
-    const from = listing.ageFromMonths != null ? Math.floor(listing.ageFromMonths / 12) : null;
-    const to = listing.ageToMonths != null ? Math.floor(listing.ageToMonths / 12) : null;
-    if (from != null && to != null) return `${from}–${to} yr`;
-    if (from != null) return `${from}+ yr`;
-    if (to != null) return `0–${to} yr`;
-    return '';
-  }
 }

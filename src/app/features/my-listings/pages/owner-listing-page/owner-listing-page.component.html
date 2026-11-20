@@ -140,10 +140,10 @@
                 {{ 'listings.details.toyDetails.heading' | translate }}
               </h2>
               <dl class="owner-page__specs">
-                @if (resolveAgeRangeDisplay(listing.ageFromMonths, listing.ageToMonths); as ageRange) {
+                @if (listing.ageFromMonths != null || listing.ageToMonths != null) {
                   <div class="owner-page__spec">
                     <dt>{{ 'listings.details.toyDetails.ageRange' | translate }}</dt>
-                    <dd>{{ ageRange.key | translate: ageRange.params }}</dd>
+                    <dd>{{ listing.ageFromMonths | ageRange: listing.ageToMonths }}</dd>
                   </div>
                 }
                 @if (listing.condition; as condition) {

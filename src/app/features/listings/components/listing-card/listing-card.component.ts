@@ -11,6 +11,8 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { LanguageService } from '../../../../shared/services/language.service';
+import { AgeRangePipe } from '../../../../shared/utils/age-range.pipe';
+import { resolveAgeRange } from '../../../../shared/utils/age-range.utils';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
 import { resolveConditionLabelKey } from '../../../../shared/utils/listing-condition.utils';
 import type { BookingStatus } from '../../../bookings/models/booking.model';
@@ -47,35 +49,6 @@ function resolveBookingLabelKey(status: BookingStatus | null | undefined): strin
   }
 }
 
-interface AgeRangeDisplay {
-  readonly key:
-    | 'listings.details.toyDetails.ageRangeFromTo'
-    | 'listings.details.toyDetails.ageRangeFromOnly'
-    | 'listings.details.toyDetails.ageRangeToOnly';
-  readonly params: { from?: number; to?: number };
-}
-
-function resolveAgeRange(
-  fromMonths: number | null | undefined,
-  toMonths: number | null | undefined,
-): AgeRangeDisplay | null {
-  const hasFrom = typeof fromMonths === 'number' && Number.isFinite(fromMonths);
-  const hasTo = typeof toMonths === 'number' && Number.isFinite(toMonths);
-  if (hasFrom && hasTo) {
-    return {
-      key: 'listings.details.toyDetails.ageRangeFromTo',
-      params: { from: fromMonths, to: toMonths },
-    };
-  }
-  if (hasFrom) {
-    return { key: 'listings.details.toyDetails.ageRangeFromOnly', params: { from: fromMonths } };
-  }
-  if (hasTo) {
-    return { key: 'listings.details.toyDetails.ageRangeToOnly', params: { to: toMonths } };
-  }
-  return null;
-}
-
 /** Price suffix per unit (ADR-047). Daily — and an unknown unit — keep the "per day" wording. */
 const PRICE_UNIT_SUFFIX_KEYS: Readonly<Partial<Record<PriceUnit, string>>> = {
   Hourly: 'listings.createForm.perUnit.hourly',
@@ -100,7 +73,7 @@ const PER_DAY_SUFFIX_KEY = 'listings.booking.priceSuffix';
 @Component({
   selector: 'app-listing-card',
   standalone: true,
-  imports: [DecimalPipe, DramCurrencyPipe, RouterLink, TranslatePipe],
+  imports: [AgeRangePipe, DecimalPipe, DramCurrencyPipe, RouterLink, TranslatePipe],
   templateUrl: './listing-card.component.html',
   styleUrl: './listing-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -180,9 +153,9 @@ export class ListingCardComponent {
     },
   );
 
-  protected readonly ageRange = computed(() => {
+  protected readonly hasAgeRange = computed(() => {
     const listing = this.listing();
-    return resolveAgeRange(listing.ageFromMonths, listing.ageToMonths);
+    return resolveAgeRange(listing.ageFromMonths, listing.ageToMonths) !== null;
   });
 
   protected readonly hasRating = computed(() => this.listing().rating != null);

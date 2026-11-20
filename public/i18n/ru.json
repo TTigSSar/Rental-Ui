@@ -451,6 +451,40 @@
     }
   },
   "listings": {
+    "ageRange": {
+      "fromOnly": "от {{bound}}",
+      "toOnly": "до {{bound}}",
+      "unit": {
+        "month": {
+          "plain": {
+            "one": "мес.",
+            "few": "мес.",
+            "many": "мес.",
+            "other": "мес."
+          },
+          "bound": {
+            "one": "мес.",
+            "few": "мес.",
+            "many": "мес.",
+            "other": "мес."
+          }
+        },
+        "year": {
+          "plain": {
+            "one": "год",
+            "few": "года",
+            "many": "лет",
+            "other": "года"
+          },
+          "bound": {
+            "one": "года",
+            "few": "лет",
+            "many": "лет",
+            "other": "года"
+          }
+        }
+      }
+    },
     "ai": {
       "switchAria": "Поиск по описанию",
       "fieldAria": "Опишите игрушку, которую вы ищете",
@@ -788,9 +822,6 @@
       "toyDetails": {
         "heading": "Об игрушке",
         "ageRange": "Рекомендуемый возраст",
-        "ageRangeFromTo": "{{from}}–{{to}} мес.",
-        "ageRangeFromOnly": "от {{from}} мес.",
-        "ageRangeToOnly": "до {{to}} мес.",
         "condition": "Состояние",
         "hygieneNotes": "Уход и гигиена",
         "safetyNotes": "Безопасность",
@@ -1010,10 +1041,6 @@
       "submit": "Опубликовать игрушку",
       "toySection": "Детали игрушки (необязательно)",
       "toySectionHint": "Эти поля помогают родителям понять, подходит ли игрушка их ребёнку.",
-      "ageFromMonths": "Мин. возраст (мес.)",
-      "ageFromMonthsPlaceholder": "напр. 12",
-      "ageToMonths": "Макс. возраст (мес.)",
-      "ageToMonthsPlaceholder": "напр. 36",
       "condition": "Состояние",
       "conditionPlaceholder": "Выберите состояние",
       "conditionOptions": {
@@ -1529,8 +1556,6 @@
         "description": "Описание",
         "pricePerDay": "Цена за день (֏)",
         "city": "Город",
-        "ageFromMonths": "Возраст от (мес.)",
-        "ageToMonths": "Возраст до (мес.)",
         "condition": "Состояние",
         "conditionNone": "Не указано",
         "hygieneNotes": "Уход и гигиена",
@@ -1773,9 +1798,6 @@
         "createdAt": "Создано",
         "toyDetails": "Детали игрушки",
         "ageRange": "Возраст",
-        "ageFromTo": "{{from}}–{{to}} мес.",
-        "ageFrom": "От {{months}} мес.",
-        "ageTo": "До {{months}} мес.",
         "condition": "Состояние",
         "hygieneNotes": "Гигиена",
         "safetyNotes": "Безопасность",

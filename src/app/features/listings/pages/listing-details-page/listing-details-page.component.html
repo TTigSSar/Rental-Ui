@@ -297,7 +297,11 @@
                             <span class="detail-page__specquad-label">{{
                               tile.titleKey | translate
                             }}</span>
-                            @if (tile.subKey) {
+                            @if (tile.subAge; as age) {
+                              <span class="detail-page__specquad-value">{{
+                                age.from | ageRange: age.to
+                              }}</span>
+                            } @else if (tile.subKey) {
                               <span class="detail-page__specquad-value">{{
                                 tile.subKey | translate: tile.subParams
                               }}</span>

@@ -26,12 +26,12 @@ import {
   selectSelectedListing,
 } from '../../../listings/store/listings.selectors';
 import {
-  resolveAgeRangeDisplay,
   hasAnyToyDetail,
 } from '../../../listings/pages/listing-details-page/listing-details-page.component';
 import { PageHeaderComponent } from '../../../../shared/ui/page-header/page-header.component';
 import { resolveConditionLabelKey } from '../../../../shared/utils/listing-condition.utils';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
+import { AgeRangePipe } from '../../../../shared/utils/age-range.pipe';
 import { ReviewCardComponent } from '../../../reviews/components/review-card/review-card.component';
 import * as ReviewsActions from '../../../reviews/store/reviews.actions';
 import {
@@ -52,6 +52,7 @@ import { OwnerListingService } from '../../services/owner-listing.service';
   selector: 'app-owner-listing-page',
   standalone: true,
   imports: [
+    AgeRangePipe,
     ButtonModule,
     CommonModule,
     DramCurrencyPipe,
@@ -76,7 +77,6 @@ export class OwnerListingPageComponent {
   private readonly ownerService = inject(OwnerListingService);
 
   protected readonly resolveConditionLabelKey = resolveConditionLabelKey;
-  protected readonly resolveAgeRangeDisplay = resolveAgeRangeDisplay;
   protected readonly hasAnyToyDetail = hasAnyToyDetail;
 
   private readonly routeId$ = this.route.paramMap.pipe(

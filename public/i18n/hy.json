@@ -451,6 +451,40 @@
     }
   },
   "listings": {
+    "ageRange": {
+      "fromOnly": "Սկսած {{bound}}",
+      "toOnly": "Մինչև {{bound}}",
+      "unit": {
+        "month": {
+          "plain": {
+            "one": "ամիս",
+            "few": "ամիս",
+            "many": "ամիս",
+            "other": "ամիս"
+          },
+          "bound": {
+            "one": "ամիս",
+            "few": "ամիս",
+            "many": "ամիս",
+            "other": "ամիս"
+          }
+        },
+        "year": {
+          "plain": {
+            "one": "տարի",
+            "few": "տարի",
+            "many": "տարի",
+            "other": "տարի"
+          },
+          "bound": {
+            "one": "տարի",
+            "few": "տարի",
+            "many": "տարի",
+            "other": "տարի"
+          }
+        }
+      }
+    },
     "ai": {
       "switchAria": "Որոնում նկարագրությամբ",
       "fieldAria": "Նկարագրեք խաղալիքը, որը փնտրում եք",
@@ -788,9 +822,6 @@
       "toyDetails": {
         "heading": "Մանրամասներ",
         "ageRange": "Առաջարկվող տարիք",
-        "ageRangeFromTo": "{{from}}–{{to}} ամիս",
-        "ageRangeFromOnly": "{{from}} ամսից",
-        "ageRangeToOnly": "մինչև {{to}} ամիս",
         "condition": "Վիճակ",
         "hygieneNotes": "Մաքրում և հիգիենա",
         "safetyNotes": "Անվտանգություն",
@@ -1010,10 +1041,6 @@
       "submit": "Տեղադրել խաղալիքը",
       "toySection": "Խաղալիքի մանրամասներ (ընտրովի)",
       "toySectionHint": "Այս դաշտերը օգնում են ծնողներին՝ որոշելու, արդյոք խաղալիքը հարմար է իրենց երեխայի համար։",
-      "ageFromMonths": "Նվազագույն տարիքը (ամիս)",
-      "ageFromMonthsPlaceholder": "օր. 12",
-      "ageToMonths": "Առավ. տարիք (ամիս)",
-      "ageToMonthsPlaceholder": "օր. 36",
       "condition": "Վիճակ",
       "conditionPlaceholder": "Ընտրեք վիճակը",
       "conditionOptions": {
@@ -1529,8 +1556,6 @@
         "description": "Նկարագրություն",
         "pricePerDay": "Օրական գին (֏)",
         "city": "Քաղաք",
-        "ageFromMonths": "Տարիք (ամիս, սկսած)",
-        "ageToMonths": "Տարիք (ամիս, մինչև)",
         "condition": "Վիճակ",
         "conditionNone": "Նշված չէ",
         "hygieneNotes": "Հիգիենա",
@@ -1773,9 +1798,6 @@
         "createdAt": "Ստեղծվել է",
         "toyDetails": "Խաղալիքի մանրամասներ",
         "ageRange": "Տարիք",
-        "ageFromTo": "{{from}}–{{to}} ամիս",
-        "ageFrom": "{{months}} ամսից",
-        "ageTo": "Մինչև {{months}} ամիս",
         "condition": "Վիճակ",
         "hygieneNotes": "Հիգիենա",
         "safetyNotes": "Անվտանգություն",

@@ -163,8 +163,10 @@
                   }
                   <div class="my-listings-page__row-info">
                     <span class="my-listings-page__row-title">{{ listing.title }}</span>
-                    @if (formatAge(listing)) {
-                      <span class="my-listings-page__row-age">{{ formatAge(listing) }}</span>
+                    @if (listing.ageFromMonths != null || listing.ageToMonths != null) {
+                      <span class="my-listings-page__row-age">{{
+                        listing.ageFromMonths | ageRange: listing.ageToMonths
+                      }}</span>
                     }
                   </div>
                 </td>

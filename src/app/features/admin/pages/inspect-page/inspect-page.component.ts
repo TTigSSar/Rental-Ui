@@ -21,6 +21,7 @@ import { distinctUntilChanged, filter, map } from 'rxjs';
 import { LanguageService } from '../../../../shared/services/language.service';
 import { flatCategoryDisplayName } from '../../../../shared/utils/category-name.utils';
 import { DramCurrencyPipe } from '../../../../shared/utils/dram-currency.pipe';
+import { AgeRangePipe } from '../../../../shared/utils/age-range.pipe';
 import { isCompensationAmountSet } from '../../../../shared/utils/compensation-amount.utils';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 import * as ListingsActions from '../../../listings/store/listings.actions';
@@ -64,6 +65,7 @@ import { UiDatePipe } from '../../../../shared/utils/ui-date.pipe';
   selector: 'app-inspect-page',
   standalone: true,
   imports: [
+    AgeRangePipe,
     AdminCatSelectComponent,
     AdminStatusBadgeComponent,
     UiDatePipe,

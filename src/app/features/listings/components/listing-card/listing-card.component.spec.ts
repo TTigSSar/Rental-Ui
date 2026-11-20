@@ -57,7 +57,10 @@ function createCard(inputs: CardInputs = {}) {
         filters: { distance: { unitMeters: 'm', unitKilometers: 'km' } },
         details: {
           conditionValues: { likeNew: 'Like new' },
-          toyDetails: { ageRangeFromTo: '{{from}}–{{to}} months' },
+          toyDetails: {},
+        },
+        ageRange: {
+          unit: { month: { plain: { one: 'month', other: 'months' } }, year: { plain: { one: 'year', other: 'years' } } },
         },
       },
       reviews: {
@@ -370,10 +373,10 @@ describe('ListingCardComponent', () => {
       expect(el.querySelector('.listing-card__img')!.getAttribute('src')).toBe('/uploads/a.jpg');
     });
 
-    it('renders the age pill through the shared age-range keys, and omits it without an age', () => {
+    it('renders the age pill through the shared ADR-068 formatter, and omits it without an age', () => {
       expect(
         text(createCard({ listing: { ageFromMonths: 6, ageToMonths: 18 } }).el, '.listing-card__age'),
-      ).toBe('6–18 months');
+      ).toBe('6 months – 1.5 years');
       TestBed.resetTestingModule();
       expect(
         createCard({ listing: { ageFromMonths: null, ageToMonths: null } }).el.querySelector(

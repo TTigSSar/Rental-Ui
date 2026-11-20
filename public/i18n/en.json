@@ -451,6 +451,40 @@
     }
   },
   "listings": {
+    "ageRange": {
+      "fromOnly": "From {{bound}}",
+      "toOnly": "Up to {{bound}}",
+      "unit": {
+        "month": {
+          "plain": {
+            "one": "month",
+            "few": "months",
+            "many": "months",
+            "other": "months"
+          },
+          "bound": {
+            "one": "month",
+            "few": "months",
+            "many": "months",
+            "other": "months"
+          }
+        },
+        "year": {
+          "plain": {
+            "one": "year",
+            "few": "years",
+            "many": "years",
+            "other": "years"
+          },
+          "bound": {
+            "one": "year",
+            "few": "years",
+            "many": "years",
+            "other": "years"
+          }
+        }
+      }
+    },
     "ai": {
       "switchAria": "Search by description",
       "fieldAria": "Describe the toy you are looking for",
@@ -788,9 +822,6 @@
       "toyDetails": {
         "heading": "Details",
         "ageRange": "Recommended age",
-        "ageRangeFromTo": "{{from}}–{{to}} months",
-        "ageRangeFromOnly": "From {{from}} months",
-        "ageRangeToOnly": "Up to {{to}} months",
         "condition": "Condition",
         "hygieneNotes": "Hygiene & cleaning",
         "safetyNotes": "Safety notes",
@@ -1010,10 +1041,6 @@
       "submit": "List toy",
       "toySection": "Toy details (optional)",
       "toySectionHint": "These fields help parents decide if the toy fits their child.",
-      "ageFromMonths": "Min age (months)",
-      "ageFromMonthsPlaceholder": "e.g. 12",
-      "ageToMonths": "Max age (months)",
-      "ageToMonthsPlaceholder": "e.g. 36",
       "condition": "Condition",
       "conditionPlaceholder": "Select condition",
       "conditionOptions": {
@@ -1534,8 +1561,6 @@
         "description": "Description",
         "pricePerDay": "Price per day (֏)",
         "city": "City",
-        "ageFromMonths": "Age from (months)",
-        "ageToMonths": "Age to (months)",
         "condition": "Condition",
         "conditionNone": "Not specified",
         "hygieneNotes": "Hygiene notes",
@@ -1773,9 +1798,6 @@
         "createdAt": "Created",
         "toyDetails": "Toy details",
         "ageRange": "Age",
-        "ageFromTo": "{{from}}–{{to}} months",
-        "ageFrom": "From {{months}} months",
-        "ageTo": "Up to {{months}} months",
         "condition": "Condition",
         "hygieneNotes": "Hygiene notes",
         "safetyNotes": "Safety notes",
