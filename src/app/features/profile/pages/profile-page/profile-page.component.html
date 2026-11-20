@@ -345,7 +345,6 @@
                 </button>
               </div>
 
-              <p class="profile-page__version" aria-hidden="true">DoRent</p>
             </div>
 
             <!-- ── DESKTOP LAYOUT ─────────────────────────────────── -->
@@ -418,19 +417,12 @@
               </button>
             </div>
 
-            <p class="profile-page__version profile-page__desktop-only" aria-hidden="true">DoRent</p>
-
-            <!-- Rating summary -->
-            @if (ratingSummary(); as summary) {
-              @if (summary.reviewCount > 0) {
-                <div class="profile-page__menu-card profile-page__section-card">
-                  <h2 class="profile-page__section-title">{{ 'profile.rating.heading' | translate }}</h2>
-                  <app-rating-summary [summary]="summary" variant="full" />
-                </div>
-              }
-            }
-
-            <!-- Reviews -->
+            <!-- Reviews received: ONE card — rating summary on top, review list below.
+                 The API's `reviewCount` counts every review (rating-only ones too) while
+                 `comments` holds only reviews with text, and the aggregate is withheld until
+                 enough reviews exist (`hasAggregate`). So: show the summary only when the
+                 aggregate is real (otherwise it would claim "No reviews yet"), and the
+                 empty message only when there are really no reviews. -->
             <div class="profile-page__menu-card profile-page__section-card">
               <h2 class="profile-page__section-title">
                 {{ 'profile.reviews.heading' | translate }}
@@ -440,6 +432,14 @@
                   }
                 }
               </h2>
+
+              @if (ratingSummary(); as summary) {
+                @if (summary.reviewCount > 0 && summary.hasAggregate) {
+                  <div class="profile-page__rating-summary">
+                    <app-rating-summary [summary]="summary" variant="full" />
+                  </div>
+                }
+              }
 
               @if (reviewsLoading()) {
                 <div class="profile-page__reviews-skeleton">
@@ -452,9 +452,11 @@
                   {{ 'profile.reviews.error' | translate }}
                 </p>
               } @else if (reviews().length === 0) {
-                <p class="profile-page__reviews-empty">
-                  {{ 'profile.reviews.empty' | translate }}
-                </p>
+                @if ((ratingSummary()?.reviewCount ?? 0) === 0) {
+                  <p class="profile-page__reviews-empty">
+                    {{ 'profile.reviews.empty' | translate }}
+                  </p>
+                }
               } @else {
                 <div class="profile-page__reviews-list">
                   @for (review of reviews(); track review.id) {
@@ -463,6 +465,10 @@
                 </div>
               }
             </div>
+
+            <!-- Version label: once, at the very end of the page (it used to sit
+                 above the reviews cards and overlapped them). -->
+            <p class="profile-page__version" aria-hidden="true">DoRent</p>
 
           } <!-- end @if (!isChildRouteActive()) -->
 

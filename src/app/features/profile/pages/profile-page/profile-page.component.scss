@@ -320,6 +320,10 @@
   color: var(--ui-color-text-primary);
 }
 
+.profile-page__rating-summary {
+  margin-bottom: var(--ui-space-16);
+}
+
 .profile-page__reviews-count {
   font-size: 1rem;
   font-weight: 400;
