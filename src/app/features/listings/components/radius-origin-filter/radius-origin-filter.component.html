@@ -227,9 +227,7 @@
       <span class="rof__radius-caption">
         @if (locked()) {
           {{ 'listings.filters.distance.setPointFirst' | translate }}
-        } @else if (noRadiusChosen()) {
-          {{ 'listings.filters.distance.radiusHint' | translate }}
-        } @else {
+        } @else if (!noRadiusChosen()) {
           {{ 'listings.filters.distance.searchRadius' | translate }}
         }
       </span>

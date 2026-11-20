@@ -621,7 +621,6 @@
         "originPickSubtitle": "Choose any point",
         "originGroupAria": "Measure distance from",
         "anyDistance": "Any distance",
-        "radiusHint": "Pick a radius to filter",
         "withinHome": "Within {{distance}} of home"
       },
       "locationPicker": {

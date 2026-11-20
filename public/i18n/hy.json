@@ -621,7 +621,6 @@
         "originPickSubtitle": "Ցանկացած կետ քարտեզին",
         "originGroupAria": "Որտեղից հաշվել հեռավորությունը",
         "anyDistance": "Ցանկացած հեռավորություն",
-        "radiusHint": "Ընտրեք շառավիղ՝ զտելու համար",
         "withinHome": "Տնից {{distance}} շառավղում"
       },
       "locationPicker": {

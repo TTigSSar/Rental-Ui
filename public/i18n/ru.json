@@ -621,7 +621,6 @@
         "originPickSubtitle": "Любая точка на карте",
         "originGroupAria": "Откуда считать расстояние",
         "anyDistance": "Любое расстояние",
-        "radiusHint": "Выберите радиус, чтобы отфильтровать",
         "withinHome": "В пределах {{distance}} от дома"
       },
       "locationPicker": {
