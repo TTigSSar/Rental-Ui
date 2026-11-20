@@ -77,7 +77,7 @@ function render(sections: HomeSectionResponse[]) {
   });
   const translate = TestBed.inject(TranslateService);
   translate.setTranslation('hy', {
-    home: { sections: { titles: { popular: 'Հանրաճանաչ խաղալիքներ' } } },
+    home: { sections: { titles: { popular: 'Պահանջված խաղալիքներ' } } },
   });
   translate.use('hy');
   const fixture = TestBed.createComponent(HomePageComponent);
@@ -93,7 +93,7 @@ function headingText(fixture: ReturnType<typeof render>, key: string): string {
 describe('HomePageComponent section titles', () => {
   it('shows the translated title for a known section key', () => {
     const fixture = render([{ key: 'popular', title: 'Popular Toys', items: [item] }]);
-    expect(headingText(fixture, 'popular')).toBe('Հանրաճանաչ խաղալիքներ');
+    expect(headingText(fixture, 'popular')).toBe('Պահանջված խաղալիքներ');
   });
 
   it('falls back to the server title for an unknown section key', () => {

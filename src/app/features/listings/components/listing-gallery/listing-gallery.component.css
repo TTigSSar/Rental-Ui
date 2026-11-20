@@ -462,15 +462,10 @@
     box-shadow: none;
   }
 
-  /* Replaces the whole-photo darkening with a top-only scrim. */
+  /* No scrim: the photo starts at the very top and the page's floating back
+     button sits directly on it (no grey gradient strip under the status bar). */
   .listing-gallery--immersive .listing-gallery__hero:not(.listing-gallery__hero--empty)::after {
-    inset: 0 0 auto 0;
-    height: calc(env(safe-area-inset-top) + 72px);
-    background: linear-gradient(
-      rgba(16, 18, 30, 0.38),
-      rgba(16, 18, 30, 0.12) 55%,
-      rgba(16, 18, 30, 0)
-    );
+    content: none;
   }
 
   /* The details page's content sheet overlaps the hero's bottom 20px, so the
