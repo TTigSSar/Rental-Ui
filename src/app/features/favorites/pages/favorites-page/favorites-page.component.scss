@@ -13,6 +13,36 @@
   animation: fav-fade-in 180ms ease-out both;
 }
 
+/* ── Header: same as the Messages (chat list) header — large left-aligned bold
+   title on the white band, full-bleed on mobile (page header is mobile-only). ── */
+.fav-page__header {
+  display: none;
+}
+
+.fav-page__title {
+  margin: 0;
+  min-width: 0;
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 960px) {
+  .fav-page {
+    padding-top: 0;
+  }
+
+  .fav-page__header {
+    display: flex;
+    align-items: center;
+    margin-inline: calc(-1 * var(--page-gutter));
+    padding: 1.5rem 1rem 0.75rem;
+    background: var(--ui-color-surface);
+  }
+}
+
 /* ── Meta line ── */
 .fav-page__meta {
   display: flex;

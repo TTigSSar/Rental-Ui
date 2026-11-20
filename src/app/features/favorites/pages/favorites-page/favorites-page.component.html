@@ -1,10 +1,7 @@
 <section class="fav-page page-container section-stack">
-  <app-ui-page-header
-    [title]="'favorites.page.title' | translate"
-    [subtitle]="'favorites.page.subtitle' | translate"
-    backLink="/profile"
-    [hideOnDesktop]="true"
-  />
+  <header class="fav-page__header">
+    <h1 class="fav-page__title">{{ 'favorites.page.title' | translate }}</h1>
+  </header>
 
   @if (viewModel$ | async; as vm) {
 

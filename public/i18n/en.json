@@ -2451,7 +2451,6 @@
   "favorites": {
     "page": {
       "title": "Saved toys",
-      "subtitle": "Browse all toys you have saved.",
       "errorTitle": "Unable to load favorites",
       "emptyTitle": "No saved toys yet",
       "empty": "Tap the heart on any toy to save it here for later.",
