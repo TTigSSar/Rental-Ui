@@ -1552,10 +1552,12 @@
   box-shadow: var(--ui-shadow-booking-cta);
 }
 
-/* Clear the fixed mobile action bar (shown ≤ 1099px) */
+/* Clear the fixed mobile action bar (shown ≤ 1099px): the bar is ~74px tall at
+   minimum (10+10 padding, 3.25rem button, border) and grows with the two-line
+   price/rating block and localized text, so reserve extra room + safe area. */
 @media (max-width: 1099px) {
   .detail-page {
-    padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
   }
 }
 
