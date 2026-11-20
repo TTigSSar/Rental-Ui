@@ -156,8 +156,6 @@ export class PublicProfilePageComponent {
     return new Date(p.memberSince).getFullYear().toString();
   });
 
-  protected readonly listingCount = computed(() => this.userListings()?.length ?? 0);
-
   protected readonly ownerReviewCount = computed(
     () => this.ownerSummary()?.reviewCount ?? this.profile()?.ownerReviewCount ?? 0,
   );

@@ -353,81 +353,6 @@
     }
   }
 
-  &__desktop-cta {
-    display: none;
-    align-items: center;
-    gap: var(--ui-space-8);
-    align-self: center;
-    flex-shrink: 0;
-    padding: 0 var(--ui-space-24);
-    height: 42px;
-    border-radius: var(--ui-radius-pill);
-    background: var(--ui-color-primary-strong);
-    color: #fff;
-    font-size: 0.9375rem;
-    font-weight: 700;
-    text-decoration: none;
-    box-shadow: var(--ui-shadow-primary-button);
-    transition: background var(--ui-duration-fast) ease;
-    white-space: nowrap;
-
-    &:hover {
-      background: var(--ui-color-primary-strong-hover);
-    }
-    &:focus-visible {
-      outline: none;
-      box-shadow: var(--ui-focus-ring);
-    }
-
-    .pi {
-      font-size: 1rem;
-    }
-
-    @media (min-width: 900px) {
-      display: flex;
-    }
-  }
-
-  // ── Mobile CTA ────────────────────────────────────────────────────────────
-
-  &__mobile-cta {
-    padding: var(--ui-space-12) var(--ui-space-16);
-    background: var(--ui-color-primary-wash);
-
-    @media (min-width: 900px) {
-      display: none;
-    }
-  }
-
-  &__mobile-cta-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--ui-space-8);
-    width: 100%;
-    height: 52px;
-    border-radius: var(--ui-radius-pill);
-    background: var(--ui-color-primary-strong);
-    color: #fff;
-    font-size: 0.9375rem;
-    font-weight: 700;
-    text-decoration: none;
-    box-shadow: var(--ui-shadow-booking-cta);
-    transition: background var(--ui-duration-fast) ease;
-
-    &:hover {
-      background: var(--ui-color-primary-strong-hover);
-    }
-    &:focus-visible {
-      outline: none;
-      box-shadow: var(--ui-focus-ring);
-    }
-
-    .pi {
-      font-size: 1rem;
-    }
-  }
-
   // ── Tab switcher (segmented control) ─────────────────────────────────────
 
   &__tabs-wrap {
@@ -632,27 +557,29 @@
 
   // ── Stats row ─────────────────────────────────────────────────────────────
 
+  // Equal-width tiles that always fill the row, whether there are 1, 2 or 3
+  // (same look as the owner stats on the listing details page).
   &__stats-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    background: var(--ui-color-surface);
-    border: 1px solid var(--ui-color-border);
-    border-radius: var(--ui-radius-card);
-    overflow: hidden;
+    display: flex;
+    gap: var(--ui-space-12);
+
+    @media (max-width: 559px) {
+      gap: var(--ui-space-8);
+    }
   }
 
   &__stat {
+    flex: 1 1 0;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: var(--ui-space-4);
-    padding: var(--ui-space-14) var(--ui-space-8);
+    gap: 2px;
+    padding: 14px var(--ui-space-8);
     text-align: center;
-
-    &:not(:last-child) {
-      border-right: 1px solid var(--ui-color-border);
-    }
+    background: var(--ui-color-surface-muted);
+    border-radius: var(--ui-radius-12);
 
     &--accent &-value {
       color: #16a34a;
