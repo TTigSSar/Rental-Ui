@@ -1032,8 +1032,7 @@
         "label": "Loss & damage compensation (֏)",
         "placeholder": "e.g. 45,000",
         "helper": "What the renter pays you if the toy is lost, seriously damaged or not returned. Nothing is charged upfront.",
-        "tip": "Tip: use roughly what it would cost to buy this toy new.",
-        "footnote": "Kept separate from the price you earn. DoRent never collects or holds this money."
+        "tip": "Tip: use roughly what it would cost to buy this toy new."
       },
       "pickupArea": {
         "label": "Pickup area",
