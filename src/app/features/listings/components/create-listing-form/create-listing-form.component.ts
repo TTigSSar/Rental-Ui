@@ -543,6 +543,15 @@ export class CreateListingFormComponent implements OnInit {
     this.location.back();
   }
 
+  /** Header arrow: previous wizard step; on step 1 leave the wizard. */
+  onHeaderBack(): void {
+    if (this.currentStep() > 1) {
+      this.goToPrevStep();
+    } else {
+      this.goBack();
+    }
+  }
+
   goToNextStep(): void {
     const step = this.currentStep();
     if (step === 1 && !this.photosValid()) {
