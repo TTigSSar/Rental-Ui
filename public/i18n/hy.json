@@ -255,7 +255,8 @@
       "deleteAccount": "Ջնջել հաշիվը",
       "findUs": "Մեզ կգտնե՛ք սոց․ ցանցերում՝",
       "instagram": "Instagram",
-      "facebook": "Facebook"
+      "facebook": "Facebook",
+      "rightsReserved": "© {{year}} DoRent. Բոլոր իրավունքները պաշտպանված են։"
     }
   },
   "auth": {

@@ -255,7 +255,8 @@
       "deleteAccount": "Delete account",
       "findUs": "You can find us in:",
       "instagram": "Instagram",
-      "facebook": "Facebook"
+      "facebook": "Facebook",
+      "rightsReserved": "© {{year}} DoRent. All rights reserved."
     }
   },
   "auth": {

@@ -255,7 +255,8 @@
       "deleteAccount": "Удалить аккаунт",
       "findUs": "Мы в соцсетях:",
       "instagram": "Instagram",
-      "facebook": "Facebook"
+      "facebook": "Facebook",
+      "rightsReserved": "© {{year}} DoRent. Все права защищены."
     }
   },
   "auth": {
