@@ -255,7 +255,9 @@
       "deleteAccount": "Delete account",
       "findUs": "You can find us in:",
       "instagram": "Instagram",
-      "facebook": "Facebook"
+      "facebook": "Facebook",
+      "email": "Email support",
+      "phone": "Call support"
     }
   },
   "auth": {

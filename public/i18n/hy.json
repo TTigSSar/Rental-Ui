@@ -255,7 +255,9 @@
       "deleteAccount": "Ջնջել հաշիվը",
       "findUs": "Մեզ կգտնե՛ք սոց․ ցանցերում՝",
       "instagram": "Instagram",
-      "facebook": "Facebook"
+      "facebook": "Facebook",
+      "email": "Գրել աջակցությանը",
+      "phone": "Զանգահարել աջակցությանը"
     }
   },
   "auth": {
