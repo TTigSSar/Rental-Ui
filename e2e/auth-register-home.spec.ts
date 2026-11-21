@@ -111,7 +111,7 @@ test.describe('Sign-up — home point step', () => {
     expect(await page.evaluate(() => window.localStorage.getItem('auth_token'))).toBeNull();
   });
 
-  test('"Skip for now" creates the account with NEITHER coordinate', async ({ page }) => {
+  test('"Skip" creates the account with NEITHER coordinate', async ({ page }) => {
     await mockTiles(page);
     await mockApi(page);
 
@@ -121,7 +121,7 @@ test.describe('Sign-up — home point step', () => {
 
     // Skip is enabled from the start — renting needs no home point, so this
     // step must never be a dead end.
-    const skip = page.getByRole('button', { name: /Skip for now/ });
+    const skip = page.getByRole('button', { name: 'Skip', exact: true });
     await expect(skip).toBeEnabled();
 
     const [request] = await Promise.all([
@@ -162,7 +162,7 @@ test.describe('Sign-up — home point step', () => {
     await page.getByRole('button', { name: 'Continue', exact: true }).click();
     await expect(page.locator('app-home-point-map')).toBeVisible();
 
-    await page.getByRole('button', { name: /Skip for now/ }).click();
+    await page.getByRole('button', { name: 'Skip', exact: true }).click();
 
     // Back on step 1, with the email flagged...
     await expect(page.locator('app-home-point-map')).toBeHidden();
@@ -191,7 +191,7 @@ test.describe('Sign-up — home point step', () => {
 
     await fillStepOne(page);
     await page.getByRole('button', { name: 'Continue', exact: true }).click();
-    await page.getByRole('button', { name: /Skip for now/ }).click();
+    await page.getByRole('button', { name: 'Skip', exact: true }).click();
 
     await expect(page.getByText('Too many confirmation emails for this address. Please try again later.')).toBeVisible();
     await expect(page.getByTestId('check-email-step')).toBeHidden();
@@ -213,7 +213,7 @@ test.describe('Sign-up — home point step', () => {
 
     await fillStepOne(page);
     await page.getByRole('button', { name: 'Continue', exact: true }).click();
-    await page.getByRole('button', { name: /Skip for now/ }).click();
+    await page.getByRole('button', { name: 'Skip', exact: true }).click();
 
     await expect(page.getByText('Registration is temporarily unavailable.')).toBeVisible();
   });
@@ -226,7 +226,7 @@ test.describe('Sign-up — home point step', () => {
 
     await fillStepOne(page);
     await page.getByRole('button', { name: 'Continue', exact: true }).click();
-    await page.getByRole('button', { name: /Skip for now/ }).click();
+    await page.getByRole('button', { name: 'Skip', exact: true }).click();
 
     const step = page.getByTestId('check-email-step');
     await expect(step).toBeVisible();

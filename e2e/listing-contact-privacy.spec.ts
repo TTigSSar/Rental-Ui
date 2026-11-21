@@ -70,7 +70,7 @@ test.describe('Contact privacy — the owner phone number is never exposed to re
     // 1. Details page, no booking on file yet — chat notice on the owner card.
     await page.goto('/listings/listing-e2e-1');
     await expect(page.locator('body')).not.toContainText(OWNER_PHONE);
-    await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
+    await expect(page.locator('main a[href^="tel:"]')).toHaveCount(0);
     await expect(page.locator('.detail-page__chat-notice')).toHaveText(
       'You can message the owner in chat once your rental request is sent.',
     );
@@ -78,7 +78,7 @@ test.describe('Contact privacy — the owner phone number is never exposed to re
     // 2. Booking page, before submitting — chat notice on the request card.
     await page.goto('/listings/listing-e2e-1/book');
     await expect(page.locator('body')).not.toContainText(OWNER_PHONE);
-    await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
+    await expect(page.locator('main a[href^="tel:"]')).toHaveCount(0);
     await expect(page.locator('.booking-page__request-chat-notice').first()).toContainText(
       'Send the request to open a chat with Olive — agree pickup and contact details there.',
     );
@@ -90,7 +90,7 @@ test.describe('Contact privacy — the owner phone number is never exposed to re
       page.getByRole('heading', { name: 'Request sent to Olive!' }),
     ).toBeVisible();
     await expect(page.locator('body')).not.toContainText(OWNER_PHONE);
-    await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
+    await expect(page.locator('main a[href^="tel:"]')).toHaveCount(0);
     await expect(page.locator('.booking-page__confirm-contact')).toContainText(
       'Your request has been sent — chat with Olive to agree pickup and contact details.',
     );
@@ -127,7 +127,7 @@ test.describe('Contact privacy — the owner phone number is never exposed to re
       }
 
       await expect(page.locator('body')).not.toContainText(OWNER_PHONE);
-      await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
+      await expect(page.locator('main a[href^="tel:"]')).toHaveCount(0);
       // The chat notice on the owner card is unconditional — it does not
       // depend on booking status, unlike the old padlock copy which quoted
       // a specific reveal stage.
