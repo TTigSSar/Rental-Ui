@@ -238,13 +238,6 @@
   margin: 0;
 }
 
-.booking-page__hero-subtitle {
-  font-size: 0.9375rem;
-  color: var(--ui-color-text-secondary);
-  line-height: 1.5;
-  margin: 6px 0 0;
-}
-
 /* Step indicator ✓ Item —— 2 Booking */
 .booking-page__steps {
   display: flex;
@@ -326,6 +319,12 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ui-color-primary-strong);
+}
+
+/* Eyebrow styling used as the dates card heading (h2): larger, no margin */
+.booking-page__eyebrow--heading {
+  margin: 0;
+  font-size: 1.125rem;
 }
 
 /* Item summary strip (mobile only) */
@@ -1077,20 +1076,6 @@
     flex-shrink: 0;
     margin-top: 2px;
     font-size: 0.8125rem;
-  }
-}
-
-.booking-page__request-charge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin: 0;
-  font-size: 0.75rem;
-  color: var(--ui-color-text-secondary);
-
-  .pi {
-    font-size: 0.6875rem;
   }
 }
 

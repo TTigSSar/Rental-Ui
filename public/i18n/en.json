@@ -1220,10 +1220,8 @@
       "title": "Request to rent",
       "mobileTitle": "Booking details",
       "stepLabel": "Step 2 of 2",
-      "heroSubtitle": "Pick your dates and add a note for {{name}}. They'll review and confirm — you're not charged yet.",
       "stepItem": "Item",
       "stepBooking": "Booking",
-      "reserveEyebrow": "Reserve",
       "datesSectionHeading": "Choose your dates",
       "quickBook": "Quick book",
       "quick": {
@@ -1247,9 +1245,8 @@
         "chip4": "First time renting — any tips welcome!"
       },
       "yourRequestEyebrow": "Your request",
-      "chatAfterRequest": "Send the request to open a chat with {{name}} — agree pickup and contact details there.",
+      "chatAfterRequest": "Once you send the request, a chat will open where you can discuss the rental details and agree on all the important points.",
       "chatAfterRequestSent": "Your request has been sent — chat with {{name}} to agree pickup and contact details.",
-      "notCharged": "You won't be charged until {{name}} confirms.",
       "notChargedShort": "You're not charged yet",
       "summaryTotal": "Total",
       "selectDatesHint": "Choose dates to see the total price",

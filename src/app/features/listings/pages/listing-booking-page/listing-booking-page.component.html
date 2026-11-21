@@ -67,9 +67,6 @@
       <div class="booking-page__hero">
         <div class="booking-page__hero-text">
           <h1 class="booking-page__hero-title">{{ 'listings.bookingPage.title' | translate }}</h1>
-          <p class="booking-page__hero-subtitle">
-            {{ 'listings.bookingPage.heroSubtitle' | translate: { name: ownerFirstName() } }}
-          </p>
         </div>
         <ol class="booking-page__steps" aria-hidden="true">
           <li class="booking-page__step booking-page__step--done">
@@ -117,8 +114,7 @@
 
           <!-- Section 1: Choose dates -->
           <section class="booking-page__section" aria-labelledby="dates-heading">
-            <span class="booking-page__eyebrow">{{ 'listings.bookingPage.reserveEyebrow' | translate }}</span>
-            <h2 id="dates-heading" class="booking-page__section-title">
+            <h2 id="dates-heading" class="booking-page__eyebrow booking-page__eyebrow--heading">
               {{ 'listings.bookingPage.datesSectionHeading' | translate }}
             </h2>
 
@@ -358,7 +354,7 @@
               <p class="booking-page__request-chat-notice">
                 <i class="pi pi-comments" aria-hidden="true"></i>
                 <span>
-                  {{ 'listings.bookingPage.chatAfterRequest' | translate: { name: ownerFirstName() } }}
+                  {{ 'listings.bookingPage.chatAfterRequest' | translate }}
                 </span>
               </p>
             </div>
@@ -439,7 +435,7 @@
                 <p class="booking-page__request-chat-notice">
                   <i class="pi pi-comments" aria-hidden="true"></i>
                   <span>
-                    {{ 'listings.bookingPage.chatAfterRequest' | translate: { name: ownerFirstName() } }}
+                    {{ 'listings.bookingPage.chatAfterRequest' | translate }}
                   </span>
                 </p>
               }
@@ -463,11 +459,6 @@
                   <span>{{ err }}</span>
                 </p>
               }
-
-              <p class="booking-page__request-charge">
-                <i class="pi pi-lock" aria-hidden="true"></i>
-                {{ 'listings.bookingPage.notCharged' | translate: { name: ownerFirstName() } }}
-              </p>
             </div>
           </div>
         </aside>

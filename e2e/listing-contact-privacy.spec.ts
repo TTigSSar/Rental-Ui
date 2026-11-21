@@ -80,7 +80,7 @@ test.describe('Contact privacy — the owner phone number is never exposed to re
     await expect(page.locator('body')).not.toContainText(OWNER_PHONE);
     await expect(page.locator('main a[href^="tel:"]')).toHaveCount(0);
     await expect(page.locator('.booking-page__request-chat-notice').first()).toContainText(
-      'Send the request to open a chat with Olive — agree pickup and contact details there.',
+      'Once you send the request, a chat will open where you can discuss the rental details and agree on all the important points.',
     );
 
     // 3. Confirmation, immediately after submitting (server returns Pending).
