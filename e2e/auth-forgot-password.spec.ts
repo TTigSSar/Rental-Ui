@@ -31,6 +31,10 @@ test.describe('Forgot password (ADR-035)', () => {
     const dialog = page.getByRole('dialog');
     await dialog.locator('input[type="email"]').fill('anna.p@gmail.com');
     await dialog.getByRole('button', { name: 'Forgot password?' }).click();
+    // The Request step swaps in under the pointer; the primary button lifts 1px on :hover, so a
+    // cursor parked on its bottom edge toggles hover forever and Playwright never sees it "stable".
+    // Park the pointer away from the dialog first.  (App-side jitter reported separately.)
+    await page.mouse.move(0, 0);
 
     // Request step: the typed address is carried over, the tabs are gone.
     await expect(dialog.getByRole('heading', { name: 'Reset your password' })).toBeVisible();
