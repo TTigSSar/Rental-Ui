@@ -1,6 +1,6 @@
 .ui-avatar {
-  width: 2rem;
-  height: 2rem;
+  width: var(--ui-avatar-size, 2rem);
+  height: var(--ui-avatar-size, 2rem);
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
@@ -14,16 +14,40 @@
     var(--ui-color-primary) 0%,
     var(--ui-color-secondary) 100%
   );
+  overflow: hidden;
 }
 
 .ui-avatar--md {
-  width: 2.25rem;
-  height: 2.25rem;
+  width: var(--ui-avatar-size, 2.25rem);
+  height: var(--ui-avatar-size, 2.25rem);
   font-size: 0.8125rem;
 }
 
 .ui-avatar--lg {
-  width: 2.75rem;
-  height: 2.75rem;
+  width: var(--ui-avatar-size, 2.75rem);
+  height: var(--ui-avatar-size, 2.75rem);
   font-size: 1rem;
+}
+
+// ADR-070 design decision 8: initials in primary-strong on primary-wash (4.6:1), bold, 38% of the circle.
+.ui-avatar--soft {
+  background: var(--ui-color-primary-wash);
+  color: var(--ui-color-primary-strong);
+  font-size: calc(var(--ui-avatar-size, 2rem) * 0.38);
+  line-height: 1;
+}
+
+.ui-avatar--soft.ui-avatar--md {
+  font-size: calc(var(--ui-avatar-size, 2.25rem) * 0.38);
+}
+
+.ui-avatar--soft.ui-avatar--lg {
+  font-size: calc(var(--ui-avatar-size, 2.75rem) * 0.38);
+}
+
+.ui-avatar__img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
 }

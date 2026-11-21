@@ -46,7 +46,7 @@
           [attr.aria-expanded]="accountMenuOpen()"
           [attr.aria-label]="'admin.console.chrome.account.triggerAria' | translate"
         >
-          <app-ui-avatar [name]="userDisplayName()" size="md" />
+          <app-ui-avatar [name]="userDisplayName()" [src]="userAvatarUrl()" size="md" />
           <div class="admin-topbar__user-meta">
             <span class="admin-topbar__user-name">{{ userDisplayName() }}</span>
             <span class="admin-topbar__user-role">{{
@@ -183,7 +183,7 @@
           [attr.aria-expanded]="accountMenuOpen()"
           [attr.aria-label]="'admin.console.chrome.account.triggerAria' | translate"
         >
-          <app-ui-avatar [name]="userDisplayName()" size="sm" />
+          <app-ui-avatar [name]="userDisplayName()" [src]="userAvatarUrl()" size="sm" />
         </button>
         <p-menu
           #accountMenu

@@ -94,3 +94,46 @@ describe('HeaderSearchVisibilityService', () => {
     expect(service.hidden()).toBe(false);
   });
 });
+
+describe('AppHeaderComponent account avatar (ADR-070, F-U30)', () => {
+  function authed(avatarUrl: string | null) {
+    const fixture = createFixture();
+    fixture.componentRef.setInput('isAuthenticated', true);
+    fixture.componentRef.setInput('userDisplayName', 'Ada Lovelace');
+    fixture.componentRef.setInput('userAvatarUrl', avatarUrl);
+    fixture.detectChanges();
+    return { fixture, host: fixture.nativeElement as HTMLElement };
+  }
+
+  it('shows the initials when the user has no picture', () => {
+    const { host } = authed(null);
+    const avatar = host.querySelector('.nh__user-trigger .ui-avatar')!;
+    expect(avatar.textContent?.trim()).toBe('AL');
+    expect(host.querySelector('.nh__user-trigger img')).toBeNull();
+  });
+
+  it('shows the photo in the trigger and, once the menu opens, in the dropdown head', () => {
+    const { fixture, host } = authed('/uploads/avatars/u1/abc.jpg');
+    expect(host.querySelector('.nh__user-trigger img')?.getAttribute('src')).toBe('/uploads/avatars/u1/abc.jpg');
+
+    host.querySelector('.nh__user')!.dispatchEvent(new Event('mouseenter'));
+    fixture.detectChanges();
+    expect(host.querySelector('.nh__dd-user-head img')?.getAttribute('src')).toBe('/uploads/avatars/u1/abc.jpg');
+  });
+
+  it('falls back to the initials when the picture fails to load', () => {
+    const { fixture, host } = authed('/uploads/avatars/u1/gone.jpg');
+    host.querySelector('.nh__user-trigger img')!.dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+
+    expect(host.querySelector('.nh__user-trigger img')).toBeNull();
+    expect(host.querySelector('.nh__user-trigger .ui-avatar')?.textContent?.trim()).toBe('AL');
+  });
+
+  it('keeps the trigger a plain account-menu button (the header never edits the photo)', () => {
+    const { host } = authed('/uploads/avatars/u1/abc.jpg');
+    const trigger = host.querySelector('.nh__user-trigger')!;
+    expect(trigger.getAttribute('aria-haspopup')).toBe('true');
+    expect(trigger.querySelector('input[type="file"]')).toBeNull();
+  });
+});

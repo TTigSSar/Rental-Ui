@@ -10,6 +10,7 @@ import {
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { AvatarComponent } from '../avatar/avatar.component';
 import { DorentSymbolComponent } from '../dorent-symbol/dorent-symbol.component';
 import { LanguageSelectorComponent } from '../language-selector/language-selector.component';
 
@@ -17,6 +18,7 @@ import { LanguageSelectorComponent } from '../language-selector/language-selecto
   selector: 'app-header',
   standalone: true,
   imports: [
+    AvatarComponent,
     DorentSymbolComponent,
     LanguageSelectorComponent,
     RouterLink,
@@ -45,6 +47,8 @@ export class AppHeaderComponent {
   readonly isAuthPending   = input(false);
   readonly userDisplayName = input<string | null>(null);
   readonly userInitials    = input<string | null>(null);
+  /** ADR-070: `selectCurrentUserAvatarUrl` - a Google URL or a managed `/uploads/...` path. */
+  readonly userAvatarUrl   = input<string | null>(null);
   readonly unreadNotifCount = input(0);
   readonly unreadChatCount = input(0);
   readonly myToysCount     = input(0);

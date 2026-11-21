@@ -8,7 +8,7 @@ import { MenuModule } from 'primeng/menu';
 import { filter } from 'rxjs';
 
 import * as AuthActions from '../../../auth/store/auth.actions';
-import { selectAuthUser } from '../../../auth/store/auth.selectors';
+import { selectAuthUser, selectCurrentUserAvatarUrl } from '../../../auth/store/auth.selectors';
 import { LanguageService } from '../../../../shared/services/language.service';
 import { AvatarComponent } from '../../../../shared/ui/avatar/avatar.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
@@ -132,6 +132,8 @@ export class AdminShellComponent {
   protected readonly navItems = NAV_ITEMS;
 
   private readonly user = this.store.selectSignal(selectAuthUser);
+  /** ADR-070: the same single source the header and the profile page read. */
+  protected readonly userAvatarUrl = this.store.selectSignal(selectCurrentUserAvatarUrl);
 
   protected readonly userDisplayName = computed(() => {
     const user = this.user();

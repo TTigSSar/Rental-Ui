@@ -438,20 +438,10 @@ app-ui-dorent-symbol {
 }
 
 .nh__user-avatar {
+  /* app-ui-avatar (tone soft, 36px - HeaderAvatar design). */
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--ui-color-primary) 0%, var(--ui-color-secondary) 100%);
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
   flex-shrink: 0;
-  border: 2px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 1px 4px rgba(16, 18, 30, 0.12);
+  line-height: 0;
 }
 
 .nh__user-name {
@@ -512,22 +502,10 @@ app-ui-dorent-symbol {
 }
 
 .nh__dd-avatar {
+  /* app-ui-avatar (tone soft, 44px - HeaderAvatar design). */
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.875rem;
-  height: 2.875rem;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--ui-color-primary) 0%, var(--ui-color-secondary) 100%);
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
   flex-shrink: 0;
-  box-shadow:
-    0 2px 6px rgba(255, 96, 8, 0.2),
-    0 0 0 2.5px rgba(255, 255, 255, 0.9),
-    0 0 0 4px rgba(255, 96, 8, 0.15);
+  line-height: 0;
 }
 
 .nh__dd-user-info {

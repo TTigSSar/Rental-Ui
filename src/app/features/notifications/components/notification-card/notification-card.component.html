@@ -28,15 +28,15 @@
         <span class="notif-card__system-chip" aria-hidden="true">
           <i class="pi pi-{{ n.actor.systemIcon ?? 'bell' }}"></i>
         </span>
-      } @else if (n.actor.avatarUrl) {
-        <img
-          class="notif-card__avatar-img"
-          [src]="n.actor.avatarUrl"
-          [alt]="n.actor.name"
-          loading="lazy"
-        />
       } @else {
-        <app-ui-avatar [name]="n.actor.name" size="md" />
+        <!-- A stale snapshot URL (the actor replaced/removed their picture, ADR-070) 404s: the
+             avatar falls back to initials instead of a broken image. -->
+        <app-ui-avatar
+          class="notif-card__avatar-face"
+          [name]="n.actor.name"
+          [src]="n.actor.avatarUrl"
+          size="md"
+        />
       }
       <span class="notif-card__kind-badge" aria-hidden="true">
         <i class="pi pi-{{ k.icon }}"></i>

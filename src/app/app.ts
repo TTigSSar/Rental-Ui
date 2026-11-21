@@ -18,6 +18,7 @@ import * as AuthActions from './features/auth/store/auth.actions';
 import {
   selectAuthInitializing,
   selectAuthUser,
+  selectCurrentUserAvatarUrl,
   selectIsAuthenticated,
 } from './features/auth/store/auth.selectors';
 import { AuthDialogComponent } from './features/auth/components/auth-dialog/auth-dialog.component';
@@ -51,6 +52,7 @@ interface AppShellViewModel {
   readonly userDisplayName: string | null;
   readonly userEmail: string | null;
   readonly userInitials: string | null;
+  readonly userAvatarUrl: string | null;
 }
 
 function isListingDetailsUrl(url: string): boolean {
@@ -246,8 +248,9 @@ export class App {
     isAuthenticated: this.store.select(selectIsAuthenticated),
     isAuthInitializing: this.store.select(selectAuthInitializing),
     user: this.store.select(selectAuthUser),
+    avatarUrl: this.store.select(selectCurrentUserAvatarUrl),
   }).pipe(
-    map(({ isAuthenticated, isAuthInitializing, user }): AppShellViewModel => {
+    map(({ isAuthenticated, isAuthInitializing, user, avatarUrl }): AppShellViewModel => {
       const isAdmin = user?.roles.includes('Admin') ?? false;
 
       const isAuthPending = isAuthInitializing;
@@ -264,6 +267,7 @@ export class App {
           user === null
             ? null
             : ((user.firstName?.[0] ?? '') + (user.lastName?.[0] ?? '')).toUpperCase() || null,
+        userAvatarUrl: user === null ? null : avatarUrl,
       };
     }),
   );

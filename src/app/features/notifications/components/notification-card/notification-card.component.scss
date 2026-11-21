@@ -63,15 +63,16 @@
   height: 2.875rem;
 }
 
-.notif-card__avatar-img,
 .notif-card__system-chip {
   width: 2.875rem;
   height: 2.875rem;
-  object-fit: cover;
 }
 
-.notif-card__avatar-img {
-  border-radius: 999px;
+/* The photo/initials avatar fills the same 46px box the old <img> did. */
+.notif-card__avatar-face {
+  --ui-avatar-size: 2.875rem;
+  display: block;
+  line-height: 0;
 }
 
 .notif-card__system-chip {

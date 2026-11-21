@@ -4,7 +4,8 @@ import { MockStore, provideMockStore } from '@ngrx/store/testing';
 import { TranslateModule } from '@ngx-translate/core';
 
 import * as AuthActions from '../../../auth/store/auth.actions';
-import { makeAdminMessageThread, makeAdminOverview } from '../../../../../testing/fixtures';
+import { makeAdminMessageThread, makeAdminOverview, makeUser } from '../../../../../testing/fixtures';
+import { initialAuthState } from '../../../auth/store/auth.state';
 import { adminMessagesFeatureKey } from '../../store/admin-messages.reducer';
 import {
   initialAdminMessagesState,
@@ -36,6 +37,7 @@ function createFixture(
   adminModerationOverrides: Partial<typeof initialAdminModerationState> = {},
   adminOverviewOverrides: Partial<AdminOverviewState> = {},
   adminMessagesOverrides: Partial<AdminMessagesState> = {},
+  extraState: Record<string, unknown> = {},
 ): ComponentFixture<AdminShellComponent> {
   TestBed.configureTestingModule({
     imports: [AdminShellComponent, TranslateModule.forRoot()],
@@ -55,6 +57,7 @@ function createFixture(
             ...initialAdminMessagesState,
             ...adminMessagesOverrides,
           },
+          ...extraState,
         },
       }),
     ],
@@ -363,5 +366,33 @@ describe('AdminShellComponent — account menu (ADR-016 §1 follow-up)', () => {
     expect(items[1].routerLink).toBe('/');
     expect(items[2].separator).toBe(true);
     expect(typeof items[3].command).toBe('function');
+  });
+});
+
+describe('AdminShellComponent account avatar (ADR-070, F-U31)', () => {
+  it('passes the signed-in user picture to the account avatar and falls back to initials on error', () => {
+    mockMatchMedia(true);
+    const fixture = createFixture({}, {}, {}, {
+      auth: {
+        ...initialAuthState,
+        isAuthenticated: true,
+        user: makeUser({
+          firstName: 'Ada',
+          lastName: 'Admin',
+          roles: ['Admin'],
+          avatarUrl: '/uploads/avatars/a1/abc.jpg',
+        }),
+      },
+    });
+    fixture.detectChanges();
+
+    const host: HTMLElement = fixture.nativeElement;
+    const img = host.querySelector('.admin-topbar__user img');
+    expect(img?.getAttribute('src')).toBe('/uploads/avatars/a1/abc.jpg');
+
+    img!.dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+    expect(host.querySelector('.admin-topbar__user img')).toBeNull();
+    expect(host.querySelector('.admin-topbar__user .ui-avatar')?.textContent?.trim()).toBe('AA');
   });
 });

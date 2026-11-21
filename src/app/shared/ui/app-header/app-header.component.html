@@ -115,7 +115,16 @@
             [attr.aria-expanded]="profileOpen()"
             aria-haspopup="true"
           >
-            <span class="nh__user-avatar" aria-hidden="true">{{ userInitials() ?? 'U' }}</span>
+            <!-- ADR-070: photo when the user has one, initials otherwise (and on a failed load).
+                 The header never edits the photo - the trigger only opens the account menu. -->
+            <app-ui-avatar
+              class="nh__user-avatar"
+              aria-hidden="true"
+              [name]="userDisplayName()"
+              [src]="userAvatarUrl()"
+              size="md"
+              tone="soft"
+            />
             <span class="nh__user-name">{{ userFirstName() }}</span>
             <span class="nh__sr"> – {{ 'app.shell.userMenuToggleAria' | translate }}</span>
             <i
@@ -135,7 +144,14 @@
             >
               <!-- User header ────────────────────────────────────────── -->
               <div class="nh__dd-user-head">
-                <span class="nh__dd-avatar" aria-hidden="true">{{ userInitials() ?? 'U' }}</span>
+                <app-ui-avatar
+                  class="nh__dd-avatar"
+                  aria-hidden="true"
+                  [name]="userDisplayName()"
+                  [src]="userAvatarUrl()"
+                  size="lg"
+                  tone="soft"
+                />
                 <div class="nh__dd-user-info">
                   <p class="nh__dd-user-name">
                     {{ userDisplayName() ?? ('app.shell.header.defaultUserName' | translate) }}
