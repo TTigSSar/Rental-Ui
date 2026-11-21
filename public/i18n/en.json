@@ -1115,7 +1115,9 @@
         "coverLabel": "Cover",
         "setCoverTitle": "Set as cover photo",
         "dragHint": "Drag photos to reorder · Drop on the cover zone to set as cover",
-        "countHint": "{{current}} of {{min}}–{{max}} photos added",
+        "counterNeedMore": "Add {{n}} more to continue",
+        "counterEnough": "Enough · you can add {{n}} more",
+        "counterMax": "Maximum reached",
         "tipClear": "3+ clear photos",
         "tipWear": "Show any wear or damage",
         "tipPieces": "Include all pieces / packaging"

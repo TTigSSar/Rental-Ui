@@ -793,6 +793,34 @@
   color: var(--ui-color-success, var(--ui-color-primary));
 }
 
+.wizard-photo__counter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: -12px;
+  font-size: var(--ui-font-size-caption);
+  color: var(--ui-color-text-secondary);
+}
+.wizard-photo__counter-chip,
+.wizard-photo__counter-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.wizard-photo__counter-chip {
+  padding: 4px 12px;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-primary);
+}
+.wizard-photo__counter-chip--ok {
+  background: var(--ui-color-success-surface);
+}
+.wizard-photo__counter-status .pi {
+  color: var(--ui-color-success);
+}
+
 /* Tips row */
 .wizard-photo__tips {
   display: flex;

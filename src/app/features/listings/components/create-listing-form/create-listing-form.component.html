@@ -248,21 +248,32 @@
                 </button>
               }
             } @else {
-              <p
-                class="wizard-photo__count-hint"
-                [class.wizard-photo__count-hint--ok]="photosValid()"
-              >
-                <i
-                  class="pi"
-                  [class.pi-check-circle]="photosValid()"
-                  [class.pi-info-circle]="!photosValid()"
-                  aria-hidden="true"
-                ></i>
-                {{
-                  'listings.createForm.photos.countHint'
-                    | translate: { current: photoCount(), min: minPhotos, max: maxPhotos }
-                }}
-              </p>
+              <div class="wizard-photo__counter">
+                <span
+                  class="wizard-photo__counter-chip"
+                  [class.wizard-photo__counter-chip--ok]="photosValid()"
+                >
+                  <i class="pi pi-camera" aria-hidden="true"></i>
+                  <strong>{{ photoCount() }} / {{ maxPhotos }}</strong>
+                </span>
+                <span class="wizard-photo__counter-status" aria-live="polite">
+                  @if (photoCount() < minPhotos) {
+                    {{
+                      'listings.createForm.photos.counterNeedMore'
+                        | translate: { n: minPhotos - photoCount() }
+                    }}
+                  } @else if (photoCount() < maxPhotos) {
+                    <i class="pi pi-check-circle" aria-hidden="true"></i>
+                    {{
+                      'listings.createForm.photos.counterEnough'
+                        | translate: { n: maxPhotos - photoCount() }
+                    }}
+                  } @else {
+                    <i class="pi pi-check-circle" aria-hidden="true"></i>
+                    {{ 'listings.createForm.photos.counterMax' | translate }}
+                  }
+                </span>
+              </div>
 
               @if (photoError()) {
                 <small class="wizard-field__error" role="alert">{{
