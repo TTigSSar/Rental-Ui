@@ -85,14 +85,14 @@ const OWNER_PHONE = '+374 99 100 002';
 
 /**
  * Asserts the owner's phone number is not exposed on the given page by any
- * means: not as literal text, and not as a `tel:` affordance (the pattern the
+ * means: not as literal text, and not as a `tel:` affordance inside `main` (the global footer carries the public support phone) (the pattern the
  * admin-only surfaces use — see `admin-users.spec.ts`'s admin-visibility
  * pin). Two checks because either alone would miss a regression that used
  * the other rendering path.
  */
 async function assertPhoneNeverExposed(page: Page): Promise<void> {
   await expect(page.getByText(OWNER_PHONE)).toHaveCount(0);
-  await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
+  await expect(page.locator('main a[href^="tel:"]')).toHaveCount(0);
 }
 
 const MONTHS_AHEAD = 2;
