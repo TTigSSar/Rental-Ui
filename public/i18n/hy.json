@@ -2866,8 +2866,6 @@
   },
   "allReviews": {
     "backToProfile": "Վերադառնալ պրոֆիլ",
-    "subtitleOwner": "Ինչ են ասում վարձակողները {{name}}-ի մասին",
-    "subtitleRenter": "Ինչ են ասում սեփականատերերն {{name}}-ին վարձ տալուց հետո",
     "tabOwner": "Որպես սեփականատեր",
     "tabRenter": "Որպես վարձակող",
     "oneReview": "կարծիք",

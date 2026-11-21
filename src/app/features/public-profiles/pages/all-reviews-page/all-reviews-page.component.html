@@ -41,19 +41,11 @@
               {{ 'publicProfile.reviewsFromOwners' | translate }}
             }
           </h1>
-          <p class="ar__subtitle">
-            @if (activeTab() === 'owner') {
-              {{ 'allReviews.subtitleOwner' | translate: { name: firstName() } }}
-            } @else {
-              {{ 'allReviews.subtitleRenter' | translate: { name: firstName() } }}
-            }
-          </p>
         </div>
       } @else if (profileLoading()) {
         <p-skeleton width="64px" height="64px" shape="circle" />
         <div class="ar__identity-info">
           <p-skeleton width="14rem" height="1.75rem" />
-          <p-skeleton width="10rem" height="1rem" styleClass="mt-2" />
         </div>
       }
     </div>

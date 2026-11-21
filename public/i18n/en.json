@@ -2866,8 +2866,6 @@
   },
   "allReviews": {
     "backToProfile": "Back to profile",
-    "subtitleOwner": "What renters say about {{name}} as an owner",
-    "subtitleRenter": "What owners say about lending to {{name}}",
     "tabOwner": "As owner",
     "tabRenter": "As renter",
     "oneReview": "review",
