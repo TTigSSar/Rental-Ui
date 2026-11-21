@@ -47,15 +47,6 @@
   }
 }
 
-.hp-status--warn {
-  border-color: color-mix(in srgb, var(--ui-color-warning) 26%, transparent);
-  background: var(--ui-color-warning-surface);
-
-  .pi {
-    color: var(--ui-color-warning);
-  }
-}
-
 .hp-status--error {
   border-color: var(--ui-color-error-border);
   background: var(--ui-color-error-surface);

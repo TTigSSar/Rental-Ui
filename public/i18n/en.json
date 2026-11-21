@@ -213,7 +213,7 @@
         },
         "step4": {
           "title": "Pick up & play",
-          "text": "Meet the owner, pick up the toy, and delight your little one with a new toy."
+          "text": "Pick up the toy and delight your little one with a new toy."
         },
         "step5": {
           "title": "Return on time",
@@ -223,7 +223,7 @@
       "lending": {
         "step1": {
           "title": "List your toy",
-          "text": "Add photos, age range, condition, and a daily price in minutes."
+          "text": "Add photos, age range, condition, and a price in minutes."
         },
         "step2": {
           "title": "Receive rental requests",
@@ -235,7 +235,7 @@
         },
         "step4": {
           "title": "Hand over the toy",
-          "text": "Meet the renter and hand over the toy clean and safe."
+          "text": "Hand over the toy clean and safe."
         },
         "step5": {
           "title": "Get the toy back",
@@ -2866,8 +2866,6 @@
   },
   "allReviews": {
     "backToProfile": "Back to profile",
-    "subtitleOwner": "What renters say about {{name}} as an owner",
-    "subtitleRenter": "What owners say about lending to {{name}}",
     "tabOwner": "As owner",
     "tabRenter": "As renter",
     "oneReview": "review",
@@ -3520,8 +3518,6 @@
     "status": {
       "outsideTitle": "For now DoRent works only in Yerevan",
       "outsideBody": "Move the pin inside the city to continue.",
-      "lowAccuracyTitle": "Your location is approximate — check the pin",
-      "lowAccuracyBody": "Accuracy ~{{meters}} m. Move the map if the pin is off.",
       "deniedTitle": "Location access is off",
       "deniedBody": "No problem — move the map to your area instead."
     },

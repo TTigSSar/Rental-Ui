@@ -3,7 +3,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 
 import type { HomePointSelection } from './home-point-map.model';
 
-type StatusTone = 'none' | 'info' | 'warn' | 'error';
+type StatusTone = 'none' | 'info' | 'error';
 
 /**
  * The inline message + privacy note that sit under (mobile) or beside (desktop)
@@ -13,8 +13,9 @@ type StatusTone = 'none' | 'info' | 'warn' | 'error';
  * identical everywhere.
  *
  * Exactly one message can show at a time, in this order: the blocking
- * "outside Yerevan" error, then the low-accuracy warning, then the
- * permission-denied note. The privacy line is always rendered (unless a host
+ * "outside Yerevan" error, then the permission-denied note. A low-accuracy fix
+ * shows NO card (ADR-069); the map's accuracy circle is its only hedge (M-027).
+ * The privacy line is always rendered (unless a host
  * opts out), because the boards show it BEFORE the user confirms, not after —
  * people should know about the ~100 m circle while deciding, not once it is
  * saved.
@@ -43,14 +44,7 @@ export class HomePointStatusComponent {
     const s = this.selection();
     if (s === null) return 'none';
     if (s.outsideYerevan) return 'error';
-    if (s.lowAccuracyMeters !== null) return 'warn';
     if (s.geoState === 'denied') return 'info';
     return 'none';
   });
-
-  /** Interpolated into the low-accuracy caption as a plain string — a translate
-   *  param cannot run a pipe of its own. */
-  protected readonly accuracyParam = computed(() => ({
-    meters: this.selection()?.lowAccuracyMeters ?? 0,
-  }));
 }
