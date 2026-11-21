@@ -328,7 +328,7 @@
       "back": "Back",
       "home": {
         "title": "Where do your toys live?",
-        "skip": "Skip for now — I just want to rent",
+        "skip": "Skip",
         "later": "A home point is needed to list toys. You can add it later in your profile."
       },
       "checkEmail": {

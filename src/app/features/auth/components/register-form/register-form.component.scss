@@ -186,6 +186,7 @@ app-google-sign-in-block + app-register-form .auth-steps {
   align-items: center;
   justify-content: space-between;
   gap: var(--ui-space-8);
+  margin-top: var(--ui-space-12);
 
   @media (max-width: 360px) {
     flex-direction: column;
