@@ -71,7 +71,7 @@ describe('HomePointStatusComponent', () => {
     expect(el.classList.contains('hp-status--error')).toBe(true);
   });
 
-  it('prefers the blocking error over the low-accuracy warning', () => {
+  it('still shows the blocking error when the fix is also low-accuracy', () => {
     const fixture = setup({
       ...BASE,
       district: null,
@@ -82,15 +82,13 @@ describe('HomePointStatusComponent', () => {
 
     const el = fixture.nativeElement.querySelector('.hp-status');
     expect(el.classList.contains('hp-status--error')).toBe(true);
-    expect(el.classList.contains('hp-status--warn')).toBe(false);
   });
 
-  it('warns (not errors) about a low-accuracy fix', () => {
+  it('shows NO status card for a low-accuracy fix (ADR-069)', () => {
     const fixture = setup({ ...BASE, lowAccuracyMeters: 820 });
 
-    const el = fixture.nativeElement.querySelector('.hp-status');
-    expect(el.classList.contains('hp-status--warn')).toBe(true);
-    expect(el.getAttribute('role')).toBe('status');
+    expect(fixture.nativeElement.querySelector('.hp-status')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.hp-status__privacy')).toBeTruthy();
   });
 
   it('shows a soft info note when the browser refused to share a location', () => {

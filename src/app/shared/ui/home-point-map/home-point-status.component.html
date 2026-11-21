@@ -2,7 +2,6 @@
   <div
     class="hp-status"
     [class.hp-status--info]="tone() === 'info'"
-    [class.hp-status--warn]="tone() === 'warn'"
     [class.hp-status--error]="tone() === 'error'"
     [attr.role]="tone() === 'error' ? 'alert' : 'status'"
   >
@@ -16,9 +15,6 @@
       @if (tone() === 'error') {
         <b>{{ 'homePoint.status.outsideTitle' | translate }}</b>
         <span>{{ 'homePoint.status.outsideBody' | translate }}</span>
-      } @else if (tone() === 'warn') {
-        <b>{{ 'homePoint.status.lowAccuracyTitle' | translate }}</b>
-        <span>{{ 'homePoint.status.lowAccuracyBody' | translate: accuracyParam() }}</span>
       } @else {
         <b>{{ 'homePoint.status.deniedTitle' | translate }}</b>
         <span>{{ 'homePoint.status.deniedBody' | translate }}</span>

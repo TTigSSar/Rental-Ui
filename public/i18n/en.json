@@ -3518,8 +3518,6 @@
     "status": {
       "outsideTitle": "For now DoRent works only in Yerevan",
       "outsideBody": "Move the pin inside the city to continue.",
-      "lowAccuracyTitle": "Your location is approximate — check the pin",
-      "lowAccuracyBody": "Accuracy ~{{meters}} m. Move the map if the pin is off.",
       "deniedTitle": "Location access is off",
       "deniedBody": "No problem — move the map to your area instead."
     },
