@@ -183,18 +183,20 @@
         <!-- Always enabled, even in the error states: renting needs no home
              point, and refusing to let someone finish because their map pin is
              in the wrong city would be absurd. -->
-        <button
-          type="button"
-          class="auth-home__skip"
-          [disabled]="(isLoading$ | async) ?? false"
-          (click)="submitWithoutHomePoint()"
-        >
-          {{ 'auth.register.home.skip' | translate }}
-        </button>
-        <button type="button" class="auth-home__back" (click)="backToAccount()">
-          <i class="pi pi-chevron-left" aria-hidden="true"></i>
-          {{ 'auth.register.back' | translate }}
-        </button>
+        <div class="auth-home__secondary">
+          <button type="button" class="auth-home__back" (click)="backToAccount()">
+            <i class="pi pi-chevron-left" aria-hidden="true"></i>
+            {{ 'auth.register.back' | translate }}
+          </button>
+          <button
+            type="button"
+            class="auth-home__skip"
+            [disabled]="(isLoading$ | async) ?? false"
+            (click)="submitWithoutHomePoint()"
+          >
+            {{ 'auth.register.home.skip' | translate }}
+          </button>
+        </div>
       </div>
 
       <p class="auth-home__later">
