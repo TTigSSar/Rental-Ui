@@ -72,6 +72,11 @@
   list-style: none;
 }
 
+/* Breathing room under the Google block's "or" divider (step 1 only; the block is hidden on step 2). */
+app-google-sign-in-block + app-register-form .auth-steps {
+  margin-top: var(--ui-space-16);
+}
+
 .auth-steps__step {
   display: inline-flex;
   align-items: center;
