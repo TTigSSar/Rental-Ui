@@ -255,7 +255,8 @@
       "deleteAccount": "Delete account",
       "findUs": "You can find us in:",
       "instagram": "Instagram",
-      "facebook": "Facebook"
+      "facebook": "Facebook",
+      "rightsReserved": "© {{year}} DoRent. All rights reserved."
     }
   },
   "auth": {
@@ -320,7 +321,6 @@
       "passwordHint": "Use at least 8 characters for better security.",
       "stepAccount": "Account",
       "stepDetails": "Details",
-      "stepVerification": "Verification",
       "stepSuccess": "Success",
       "stepsAriaLabel": "Registration progress",
       "stepHomePoint": "Home point",
@@ -328,7 +328,6 @@
       "back": "Back",
       "home": {
         "title": "Where do your toys live?",
-        "lead": "Renters only see your district and an approximate area, never your address.",
         "skip": "Skip for now — I just want to rent",
         "later": "A home point is needed to list toys. You can add it later in your profile."
       },

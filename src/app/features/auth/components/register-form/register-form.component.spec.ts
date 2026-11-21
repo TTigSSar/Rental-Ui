@@ -192,6 +192,22 @@ describe('RegisterFormComponent — two-step sign-up (home-point model)', () => 
     expect(dispatchedRegister(dispatchSpy)).toBeUndefined();
   });
 
+  it('step 2 shows the privacy note as the lead and no bottom privacy line', () => {
+    const { fixture } = setup();
+    const component = fixture.componentInstance;
+
+    fillValidForm(component, 'Password1!');
+    component['continueToHomePoint']();
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.auth-home__lead')?.textContent).toContain('homePoint.privacyNote');
+    expect(el.textContent).not.toContain('auth.register.home.lead');
+    expect(el.querySelector('.hp-status__privacy')).toBeNull();
+    // The note appears exactly once (the lead), never twice.
+    expect(el.textContent?.split('homePoint.privacyNote').length).toBe(2);
+  });
+
   it('"Continue" stays on step 1 when the account fields are invalid', () => {
     const { fixture } = setup();
     const component = fixture.componentInstance;

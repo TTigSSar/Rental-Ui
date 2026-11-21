@@ -184,6 +184,7 @@ export class App {
   // while authenticated (see OwnerRequestsBadgeService). Drives both the header's
   // Requests icon and the profile dropdown's "Incoming requests" count.
   protected readonly requestsCount = this.ownerRequestsBadge.count;
+  protected readonly currentYear = new Date().getFullYear();
   protected readonly scrolled = signal(false);
   protected readonly showFooter = signal(
     !isListingDetailsUrl(this.router.url) &&
