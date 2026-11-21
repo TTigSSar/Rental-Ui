@@ -2745,11 +2745,11 @@
       "commentPlaceholder": "Կիսվեք, թե ինչպիսին էր խաղալիքը…"
     },
     "owner": {
-      "communication": "Հաղորդակցում",
+      "communication": "Հաղորդակցություն",
       "communicationHint": "Պատասխաններ, հստակություն, օգնություն",
-      "pickup": "Հանձնում և ստացում",
+      "pickup": "Ստացում և հանձնում",
       "pickupHint": "Սահուն, ժամանակին, հեշտ գտնելի",
-      "friendliness": "Բարյացակամություն",
+      "friendliness": "Սիրալիրություն",
       "friendlinessHint": "Ջերմ և հյուրընկալ",
       "commentPlaceholder": "Կիսվեք սեփականատիրոջ մասին…"
     },
