@@ -72,6 +72,7 @@ describe('AuthApiService.updatePreferredLanguage', () => {
       // user who has not set one (home-point model).
       homePoint: null,
       chatEmailsEnabled: true,
+      avatarUrl: null,
     });
   });
 
@@ -455,5 +456,74 @@ describe('AuthApiService.deleteAccount (ADR-056)', () => {
     req.flush(null, { status: 204, statusText: 'No Content' });
 
     expect(done).toBe(true);
+  });
+});
+
+describe('AuthApiService — avatar (ADR-070)', () => {
+  let service: AuthApiService;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(AuthApiService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  const userBody = (avatarUrl?: unknown) => ({
+    id: 'u1',
+    email: 'a@b.c',
+    firstName: 'A',
+    lastName: 'B',
+    homePoint: null,
+    ...(avatarUrl === undefined ? {} : { avatarUrl }),
+  });
+
+  it('uploadAvatar PUTs FormData with a single `file` part and normalizes the user', () => {
+    let result: CurrentUser | undefined;
+    const blob = new Blob(['x'], { type: 'image/jpeg' });
+    service.uploadAvatar(blob).subscribe((user) => (result = user));
+
+    const req = httpMock.expectOne(toApiUrl(ApiContract.auth.meAvatar));
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body instanceof FormData).toBe(true);
+    const form = req.request.body as FormData;
+    expect(Array.from(form.keys())).toEqual(['file']);
+    expect((form.get('file') as File).name).toBe('avatar.jpg');
+    req.flush(userBody('/uploads/avatars/u1/a.jpg'));
+
+    expect(result!.avatarUrl).toBe('/uploads/avatars/u1/a.jpg');
+  });
+
+  it('removeAvatar DELETEs the endpoint and maps a null avatarUrl', () => {
+    let result: CurrentUser | undefined;
+    service.removeAvatar().subscribe((user) => (result = user));
+
+    const req = httpMock.expectOne(toApiUrl(ApiContract.auth.meAvatar));
+    expect(req.request.method).toBe('DELETE');
+    req.flush(userBody(null));
+
+    expect(result!.avatarUrl).toBeNull();
+  });
+
+  it.each([[undefined], [''], [42]])('normalizes avatarUrl %p to null', (value) => {
+    let result: CurrentUser | undefined;
+    service.removeAvatar().subscribe((user) => (result = user));
+    httpMock.expectOne(toApiUrl(ApiContract.auth.meAvatar)).flush(userBody(value));
+    expect(result!.avatarUrl).toBeNull();
+  });
+
+  it('keeps a Google picture URL as-is', () => {
+    let result: CurrentUser | undefined;
+    service.removeAvatar().subscribe((user) => (result = user));
+    httpMock
+      .expectOne(toApiUrl(ApiContract.auth.meAvatar))
+      .flush(userBody('https://lh3.googleusercontent.com/a/x'));
+    expect(result!.avatarUrl).toBe('https://lh3.googleusercontent.com/a/x');
   });
 });

@@ -51,6 +51,7 @@ export function makeUser(overrides: Partial<CurrentUser> = {}): CurrentUser {
     hasPassword: true,
     homePoint: null,
     chatEmailsEnabled: true,
+    avatarUrl: null,
     ...overrides,
   };
 }

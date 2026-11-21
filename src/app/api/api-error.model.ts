@@ -147,6 +147,14 @@ export type KnownApiErrorCode =
   // status) — a listing with no location would be unplaceable, so the owner has to
   // remove their listings first.
   | 'auth.home_point_in_use'
+  // ADR-070 avatar (PUT/DELETE /api/auth/me/avatar): 400 missing/empty/invalid_type/too_large,
+  // 409 conflict (also an ambiguous commit), 503 busy (Retry-After: 5).
+  | 'auth.avatar_missing'
+  | 'auth.avatar_empty'
+  | 'auth.avatar_invalid_type'
+  | 'auth.avatar_too_large'
+  | 'auth.avatar_conflict'
+  | 'auth.avatar_busy'
   // booking.* — BookingsService
   | 'booking.unauthenticated'
   | 'booking.user_blocked'

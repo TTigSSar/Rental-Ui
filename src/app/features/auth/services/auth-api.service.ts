@@ -251,6 +251,33 @@ export class AuthApiService {
   }
 
   /**
+   * `PUT /api/auth/me/avatar` (ADR-070) — multipart/form-data with exactly one `file` part;
+   * 200 refreshed `CurrentUserResponse`. The Content-Type header is deliberately NOT set so the
+   * browser adds the multipart boundary. Errors: 400 `auth.avatar_missing` | `auth.avatar_empty` |
+   * `auth.avatar_invalid_type` | `auth.avatar_too_large` (400 WITHOUT errorCode for multipart
+   * limit violations), 401, 403 `auth.user_blocked`, 409 `auth.avatar_conflict`, 413 (bare),
+   * 415 (non-multipart), 429 (bare), 503 `auth.avatar_busy` (Retry-After: 5), 500.
+   */
+  uploadAvatar(file: Blob): Observable<CurrentUser> {
+    const form = new FormData();
+    form.append('file', file, 'avatar.jpg');
+    return this.http
+      .put<Record<string, unknown>>(toApiUrl(ApiContract.auth.meAvatar), form)
+      .pipe(map((raw) => this.normalizeCurrentUser(raw)));
+  }
+
+  /**
+   * `DELETE /api/auth/me/avatar` (ADR-070) — idempotent; 200 refreshed `CurrentUserResponse`.
+   * Errors: 401, 403 `auth.user_blocked`, 409 `auth.avatar_conflict`, 429 (bare),
+   * 503 `auth.avatar_busy` (Retry-After: 5), 500.
+   */
+  removeAvatar(): Observable<CurrentUser> {
+    return this.http
+      .delete<Record<string, unknown>>(toApiUrl(ApiContract.auth.meAvatar))
+      .pipe(map((raw) => this.normalizeCurrentUser(raw)));
+  }
+
+  /**
    * `PUT /api/auth/me/password` (ADR-055) — 200 `AuthResponse`. The server revokes the old
    * token (TokenVersion bump), so the caller MUST store the returned token.
    */
@@ -303,6 +330,10 @@ export class AuthApiService {
       hasPassword: raw['hasPassword'] !== false,
       homePoint: normalizeHomePoint(raw['homePoint']),
       chatEmailsEnabled: raw['chatEmailsEnabled'] !== false,
+      avatarUrl:
+        typeof raw['avatarUrl'] === 'string' && raw['avatarUrl'].length > 0
+          ? raw['avatarUrl']
+          : null,
     };
   }
 

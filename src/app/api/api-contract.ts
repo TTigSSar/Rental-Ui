@@ -45,6 +45,9 @@ export const ApiContract = {
     externalNonce: '/api/auth/external/nonce',
     meName: '/api/auth/me/name',
     mePhone: '/api/auth/me/phone',
+    // meAvatar (ADR-070): [Authorize], rate policy `avatar-update`. PUT multipart/form-data, exactly
+    // one `file` part -> 200 `CurrentUserResponse`; DELETE -> 200 `CurrentUserResponse` (idempotent).
+    meAvatar: '/api/auth/me/avatar',
     // Email verification (ADR-028). register now answers 201 `RegisterResponse` (no token).
     // verify-email: anonymous, body { token, password } -> 200 AuthResponse.
     // resend-verification: anonymous, body { email } -> 202 empty body, always.

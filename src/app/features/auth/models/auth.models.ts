@@ -176,6 +176,11 @@ export interface CurrentUser {
   homePoint: HomePoint | null;
   /** ADR-059: unread-chat-message emails on/off. Non-null; the backend default is true. */
   chatEmailsEnabled: boolean;
+  /**
+   * ADR-070: a Google picture URL (absolute) or a managed upload path
+   * (`/uploads/avatars/{userId}/{guid}.jpg`, relative to the API origin). Null = no picture.
+   */
+  avatarUrl?: string | null;
 }
 
 /** Body of `PUT /api/auth/me/chat-emails` (ADR-059) — mirrors `UpdateChatEmailsRequest`; `enabled` is required (400 if missing). */

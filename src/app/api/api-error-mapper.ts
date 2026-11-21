@@ -75,6 +75,12 @@ export const API_ERROR_MESSAGE_KEYS: Readonly<Record<KnownApiErrorCode, string>>
   'auth.password_too_long': 'profile.security.errors.passwordTooLong',
   'auth.home_point_outside_yerevan': 'homePoint.status.outsideTitle',
   'auth.home_point_in_use': 'profile.homePoint.errorInUse',
+  'auth.avatar_missing': 'profile.avatar.errorGeneric',
+  'auth.avatar_empty': 'profile.avatar.errorGeneric',
+  'auth.avatar_invalid_type': 'profile.avatar.errorUnsupported',
+  'auth.avatar_too_large': 'profile.avatar.errorTooLarge',
+  'auth.avatar_conflict': 'profile.avatar.errorGeneric',
+  'auth.avatar_busy': 'profile.avatar.errorBusy',
   // booking.*
   'booking.unauthenticated': 'errors.sessionExpired',
   'booking.user_blocked': 'errors.userBlocked',

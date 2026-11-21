@@ -1428,6 +1428,12 @@
         "success": "Գաղտնաբառը թարմացվել է"
       }
     },
+    "avatar": {
+      "errorUnsupported": "Նկարի այս ձևաչափը չի աջակցվում։ Ընտրեք այլ նկար։ iPhone-ում՝ Settings → Camera → Formats → Most Compatible։",
+      "errorTooLarge": "Նկարը չափազանց մեծ է։ Ընտրեք այլ նկար։",
+      "errorBusy": "Ծառայությունը հիմա զբաղված է։ Փորձեք մի փոքր ուշ։",
+      "errorGeneric": "Չհաջողվեց թարմացնել նկարը։ Փորձեք կրկին։"
+    },
     "homePoint": {
       "sectionLabel": "Տան կետ",
       "emptyTitle": "Ավելացրեք տան կետը",

@@ -107,6 +107,22 @@ describe('ApiErrorMapper', () => {
     });
   });
 
+  describe('avatar codes (ADR-070)', () => {
+    it.each([
+      ['auth.avatar_missing', 400, 'profile.avatar.errorGeneric'],
+      ['auth.avatar_empty', 400, 'profile.avatar.errorGeneric'],
+      ['auth.avatar_invalid_type', 400, 'profile.avatar.errorUnsupported'],
+      ['auth.avatar_too_large', 400, 'profile.avatar.errorTooLarge'],
+      ['auth.avatar_conflict', 409, 'profile.avatar.errorGeneric'],
+      ['auth.avatar_busy', 503, 'profile.avatar.errorBusy'],
+    ])('maps %s (%i) to %s without leaking the server text', (code, status, key) => {
+      const error = problem(status, { errorCode: code, title: 'English server text' });
+      expect(resolveApiErrorKey(error)).toBe(key);
+      expect(mapper.message(error)).toBe(leaf(en, key));
+      expect(mapper.message(error)).not.toContain('English server text');
+    });
+  });
+
   describe('account deletion codes (ADR-056)', () => {
     it.each([
       ['account.invalid_confirmation', 'profile.deleteAccount.errors.invalidPassword'],
