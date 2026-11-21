@@ -19,6 +19,8 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { combineLatest, distinctUntilChanged, filter, map, of, startWith, switchMap } from 'rxjs';
 
 import { HomePointCardComponent } from '../../components/home-point-card/home-point-card.component';
+import { ProfileAvatarEditComponent } from '../../components/profile-avatar-edit/profile-avatar-edit.component';
+import { ProfileAvatarFeedbackComponent } from '../../components/profile-avatar-feedback/profile-avatar-feedback.component';
 import { PersonalInfoCardComponent } from '../../components/personal-info-card/personal-info-card.component';
 import { IconComponent } from '../../../../shared/ui/icon/icon.component';
 
@@ -61,6 +63,8 @@ const PROFILE_DESKTOP_QUERY = '(min-width: 961px)';
     IconComponent,
     MessageModule,
     PersonalInfoCardComponent,
+    ProfileAvatarEditComponent,
+    ProfileAvatarFeedbackComponent,
     RatingSummaryComponent,
     ReviewCardComponent,
     RouterLink,
@@ -255,9 +259,5 @@ export class ProfilePageComponent implements OnInit {
 
   protected logout(): void {
     this.store.dispatch(AuthActions.logout());
-  }
-
-  protected initials(firstName: string, lastName: string): string {
-    return ((firstName[0] ?? '') + (lastName[0] ?? '')).toUpperCase();
   }
 }

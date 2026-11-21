@@ -1428,6 +1428,17 @@
       }
     },
     "avatar": {
+      "sheetTitle": "Profile photo",
+      "upload": "Upload photo",
+      "change": "Change photo",
+      "remove": "Remove photo",
+      "cancel": "Cancel",
+      "buttonChange": "Change profile photo",
+      "buttonAdd": "Add profile photo",
+      "uploading": "Uploading photo…",
+      "confirmTitle": "Remove profile photo?",
+      "confirmBody": "Your initials will show instead.",
+      "confirmButton": "Remove",
       "errorUnsupported": "This photo format isn’t supported. Choose another photo. On iPhone, set Camera → Formats → Most Compatible.",
       "errorTooLarge": "This photo is too large. Choose another one.",
       "errorBusy": "We’re busy right now. Try again shortly.",

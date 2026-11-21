@@ -1,0 +1,431 @@
+/* ADR-070 profile-picture control. Values follow knowledge/specs/profile-avatar/design
+   (README.md, AvatarButton, PhotoActionSheet, PhotoMenu, RemovePhotoConfirm, bundle.css).
+   ViewEncapsulation.None (the menu and dialog are portalled to <body>): every selector is
+   namespaced `pae*`. */
+
+app-profile-avatar-edit {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+/* -- Avatar as one button ------------------------------------------------ */
+.pae {
+  --pae-size: 56px;
+  --pae-badge: 22px;
+
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--pae-size);
+  height: var(--pae-size);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-pill);
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hit area: the circle plus 6px all round (never below the 44px target). */
+.pae::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+}
+
+.pae:focus-visible {
+  outline: 2px solid var(--ui-color-focus-ring);
+  outline-offset: 3px;
+}
+
+.pae__face {
+  --ui-avatar-size: var(--pae-size);
+  position: absolute;
+  inset: 0;
+  display: block;
+  line-height: 0;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+/* Pressed: the face dims 6%, the badge turns primary-soft. */
+.pae:active:not(.pae--busy) .pae__face {
+  filter: brightness(0.94);
+}
+
+/* -- Camera badge (mobile) ----------------------------------------------- */
+.pae__badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: grid;
+  place-items: center;
+  width: var(--pae-badge);
+  height: var(--pae-badge);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  box-shadow: var(--ui-shadow-card);
+  color: var(--ui-color-primary-strong);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.pae--xl .pae__badge {
+  right: 0;
+  bottom: 0;
+  font-size: 14px;
+}
+
+.pae:active:not(.pae--busy) .pae__badge {
+  background: var(--ui-color-primary-soft);
+}
+
+.pae--busy .pae__badge {
+  opacity: 0.45;
+}
+
+/* -- Scrim: desktop hover/focus/press (option 2) and uploading ------------ */
+.pae__scrim {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: inherit;
+  background: var(--ui-color-scrim);
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+.pae__scrim-icon {
+  font-size: 24px;
+}
+
+.pae--desktop:hover .pae__scrim,
+.pae--desktop:focus-visible .pae__scrim {
+  opacity: 1;
+}
+
+.pae--desktop:active .pae__scrim {
+  opacity: 1;
+  background: rgba(26, 27, 38, 0.62);
+}
+
+.pae--busy {
+  cursor: progress;
+}
+
+.pae--busy .pae__scrim {
+  opacity: 1;
+  background: var(--ui-color-scrim);
+}
+
+.pae__spinner {
+  width: calc(var(--pae-size) * 0.42);
+  height: calc(var(--pae-size) * 0.42);
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  animation: pae-spin 0.8s linear infinite;
+}
+
+@keyframes pae-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pae__spinner {
+    animation-duration: 2.4s;
+  }
+}
+
+/* The hidden picker input. */
+.pae__file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* -- Buttons shared by the sheet and the confirmation -------------------- */
+.pae-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: var(--ui-radius-md);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.pae-btn:focus-visible {
+  outline: 2px solid var(--ui-color-focus-ring);
+  outline-offset: 2px;
+}
+
+.pae-btn--primary {
+  background: var(--ui-color-primary-strong);
+  color: #fff;
+}
+
+.pae-btn--secondary {
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-primary);
+}
+
+.pae-btn--danger {
+  background: var(--ui-color-danger);
+  color: #fff;
+}
+
+.pae-btn--quiet-danger {
+  background: transparent;
+  color: var(--ui-color-danger);
+}
+
+.pae-btn--quiet-danger:hover {
+  background: var(--ui-color-danger-surface);
+}
+
+/* -- Action sheet content (inside the settings-sheet shell) -------------- */
+.pae-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Cancel sits 8px clear of the actions (the sheet gap) - it is the last row. */
+
+/* -- Desktop popup menu --------------------------------------------------- */
+.p-menu.pae-menu {
+  min-width: 232px;
+  max-width: 320px;
+  margin-top: 8px;
+  padding: 6px;
+  background: var(--ui-color-surface);
+  border: 1px solid var(--ui-color-border);
+  border-radius: var(--ui-radius-md);
+  box-shadow: var(--ui-shadow-pop);
+}
+
+.p-menu.pae-menu .p-menu-list {
+  padding: 0;
+  gap: 0;
+}
+
+.p-menu.pae-menu .p-menu-submenu-label {
+  padding: 8px 10px 6px;
+  background: transparent;
+  color: var(--ui-color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.p-menu.pae-menu .p-menu-item-link {
+  min-height: 44px;
+  padding: 10px;
+  gap: 10px;
+  border-radius: 10px;
+  color: var(--ui-color-text-primary);
+  font-size: 15px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.p-menu.pae-menu .p-menu-item-icon {
+  color: var(--ui-color-primary-strong);
+  font-size: 20px;
+}
+
+.p-menu.pae-menu .p-menu-item-label {
+  color: inherit;
+}
+
+.p-menu.pae-menu .p-menu-item:hover > .p-menu-item-content,
+.p-menu.pae-menu .p-menu-item.p-focus > .p-menu-item-content {
+  background: var(--ui-color-primary-wash);
+}
+
+.p-menu.pae-menu .p-menu-item.p-focus > .p-menu-item-content {
+  outline: 2px solid var(--ui-color-focus-ring);
+  outline-offset: -2px;
+  border-radius: 10px;
+}
+
+.p-menu.pae-menu .pae-menu__danger .p-menu-item-link,
+.p-menu.pae-menu .pae-menu__danger .p-menu-item-icon,
+.p-menu.pae-menu .pae-menu__danger .p-menu-item-label {
+  color: var(--ui-color-danger);
+}
+
+.p-menu.pae-menu .p-menu-separator {
+  height: 1px;
+  margin: 6px 4px;
+  border: 0;
+  background: var(--ui-color-border);
+}
+
+/* -- Remove confirmation: bottom sheet on mobile, 400px dialog on desktop ---
+   Same single-p-dialog technique as the home-point card's change sheet. */
+.p-dialog.pae-remove {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  max-width: 100vw;
+  margin: 0;
+  border-radius: var(--ui-radius-lg) var(--ui-radius-lg) 0 0;
+  box-shadow: 0 -10px 30px -14px rgba(20, 15, 5, 0.35);
+}
+
+/* PrimeNG's header is visually hidden but rendered: it carries the dialog's accessible name. */
+.p-dialog.pae-remove .p-dialog-header {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.p-dialog.pae-remove .p-dialog-content {
+  padding: 0;
+  background: var(--ui-color-surface);
+}
+
+.pae-remove__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px 16px;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+
+.pae-remove__grab {
+  width: 36px;
+  height: 4px;
+  margin-bottom: 12px;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-border);
+}
+
+.pae-remove__icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin: 4px 0 16px;
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-danger-surface);
+  color: var(--ui-color-danger);
+}
+
+.pae-remove__icon .pi {
+  font-size: 24px;
+}
+
+.pae-remove__title {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 24px;
+  color: var(--ui-color-text-primary);
+}
+
+.pae-remove__lead {
+  margin: 0 0 20px;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--ui-color-text-secondary);
+}
+
+.pae-remove__actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.pae-remove__actions .pae-btn {
+  flex: 1;
+  width: auto;
+}
+
+/* Desktop-only 44px close button (design RemovePhotoConfirm); last in DOM order so focus starts on Cancel. */
+.pae-remove__close {
+  display: none;
+  place-items: center;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-pill);
+  background: transparent;
+  color: var(--ui-color-text-secondary);
+  cursor: pointer;
+}
+
+.pae-remove__close:hover {
+  background: var(--ui-color-surface-muted);
+}
+
+.pae-remove__close:focus-visible {
+  outline: 2px solid var(--ui-color-focus-ring);
+  outline-offset: 2px;
+}
+
+@media (min-width: 961px) {
+  .p-dialog.pae-remove {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: 400px;
+    max-width: calc(100vw - 32px);
+    border-radius: var(--ui-radius-lg);
+    box-shadow: var(--ui-shadow-pop);
+  }
+
+  .pae-remove__grab {
+    display: none;
+  }
+
+  .pae-remove__body {
+    position: relative;
+    padding: 24px;
+  }
+
+  .pae-remove__close {
+    display: grid;
+  }
+}

@@ -1,0 +1,34 @@
+/* Design AvatarStates D (caption) and PhotoError (panel). */
+:host {
+  display: block;
+}
+
+.paf__status {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ui-color-text-secondary);
+}
+
+.paf__error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-color-error-surface);
+  border: 1px solid var(--ui-color-error-border);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ui-color-text-primary);
+  text-align: left;
+}
+
+.paf__error-icon {
+  flex: none;
+  margin-top: 0;
+  font-size: 20px;
+  line-height: 20px;
+  color: var(--ui-color-danger);
+}

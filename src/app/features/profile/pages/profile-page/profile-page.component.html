@@ -44,13 +44,22 @@
 
           <!-- Identity card -->
           <div class="profile-page__sidebar-identity">
-            <div class="profile-page__sidebar-avatar-wrap" aria-hidden="true">
-              <div class="profile-page__sidebar-avatar">
-                {{ initials(profile.firstName, profile.lastName) }}
-              </div>
-              <span class="profile-page__sidebar-camera-badge">
-                <app-icon name="camera" [size]="11" />
-              </span>
+            <!-- ADR-070: the avatar is the photo button. Desktop-only markup: the sidebar stays in
+                 the DOM below 961px (hidden by CSS), so the control is behind `isDesktop()` to keep
+                 a single live set of popups per layout. The status/error panel lives under the
+                 identity card's avatar row; the sidebar repeats it only while that card is not on
+                 screen (a child route is active), so it is never announced twice. -->
+            <div class="profile-page__sidebar-avatar-block">
+              @if (isDesktop()) {
+                <app-profile-avatar-edit
+                  [name]="profile.firstName + ' ' + profile.lastName"
+                  [size]="72"
+                  [desktop]="true"
+                />
+                @if (isChildRouteActive()) {
+                  <app-profile-avatar-feedback />
+                }
+              }
             </div>
             <div class="profile-page__sidebar-name-row">
               <span class="profile-page__sidebar-name">{{ profile.firstName }} {{ profile.lastName }}</span>
@@ -191,15 +200,14 @@
 
               <!-- Profile card -->
               <div class="profile-page__m-card">
+                <div class="profile-page__m-card-top">
                 <div class="profile-page__m-card-header">
-                  <div class="profile-page__m-avatar-wrap" aria-hidden="true">
-                    <div class="profile-page__avatar">
-                      {{ initials(profile.firstName, profile.lastName) }}
-                    </div>
-                    <span class="profile-page__m-camera-badge">
-                      <app-icon name="camera" [size]="11" />
-                    </span>
-                  </div>
+                  @if (!isDesktop()) {
+                    <app-profile-avatar-edit
+                      [name]="profile.firstName + ' ' + profile.lastName"
+                      [size]="56"
+                    />
+                  }
 
                   <div class="profile-page__m-card-info">
                     <div class="profile-page__m-name-row">
@@ -233,6 +241,8 @@
                     <i class="pi pi-pencil" aria-hidden="true"></i>
                     {{ 'profile.edit' | translate }}
                   </button>
+                </div>
+                  <app-profile-avatar-feedback />
                 </div>
 
                 <div class="profile-page__m-stats">
@@ -352,10 +362,15 @@
 
             <!-- Identity card -->
             <div class="profile-page__identity-card profile-page__desktop-only">
+              <div class="profile-page__identity-top">
               <div class="profile-page__identity-header">
-                <div class="profile-page__avatar" aria-hidden="true">
-                  {{ initials(profile.firstName, profile.lastName) }}
-                </div>
+                @if (isDesktop()) {
+                  <app-profile-avatar-edit
+                    [name]="profile.firstName + ' ' + profile.lastName"
+                    [size]="96"
+                    [desktop]="true"
+                  />
+                }
                 <div class="profile-page__identity-info">
                   <p class="profile-page__identity-name">{{ profile.firstName }} {{ profile.lastName }}</p>
                 </div>
@@ -370,6 +385,10 @@
                   <i class="pi pi-pencil" aria-hidden="true"></i>
                   {{ 'profile.edit' | translate }}
                 </button>
+              </div>
+                @if (isDesktop()) {
+                  <app-profile-avatar-feedback />
+                }
               </div>
 
               <div class="profile-page__info-rows">

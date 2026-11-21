@@ -1428,6 +1428,17 @@
       }
     },
     "avatar": {
+      "sheetTitle": "Պրոֆիլի նկար",
+      "upload": "Վերբեռնել նկար",
+      "change": "Փոխել նկարը",
+      "remove": "Հեռացնել նկարը",
+      "cancel": "Չեղարկել",
+      "buttonChange": "Փոխել պրոֆիլի նկարը",
+      "buttonAdd": "Ավելացնել պրոֆիլի նկար",
+      "uploading": "Նկարը վերբեռնվում է…",
+      "confirmTitle": "Հեռացնե՞լ պրոֆիլի նկարը",
+      "confirmBody": "Դրա փոխարեն կերևան ձեր սկզբնատառերը։",
+      "confirmButton": "Հեռացնել",
       "errorUnsupported": "Նկարի այս ձևաչափը չի աջակցվում։ Ընտրեք այլ նկար։ iPhone-ում՝ Settings → Camera → Formats → Most Compatible։",
       "errorTooLarge": "Նկարը չափազանց մեծ է։ Ընտրեք այլ նկար։",
       "errorBusy": "Ծառայությունը հիմա զբաղված է։ Փորձեք մի փոքր ուշ։",

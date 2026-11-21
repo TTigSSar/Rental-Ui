@@ -1,0 +1,128 @@
+<!-- ADR-070 / design AvatarButton: the whole circle is ONE button; the photo/initials and the
+     camera cue are decorative, the button name carries the meaning. `aria-disabled` (not
+     `disabled`) while a mutation runs: the button keeps focus and only the avatar is inert. -->
+<button
+  #trigger
+  type="button"
+  class="pae"
+  [class.pae--desktop]="desktop()"
+  [class.pae--busy]="busy()"
+  [class.pae--xl]="size() >= 96"
+  [style.--pae-size.px]="size()"
+  [style.--pae-badge.px]="badgePx()"
+  [attr.aria-label]="(hasPhoto() ? 'profile.avatar.buttonChange' : 'profile.avatar.buttonAdd') | translate"
+  [attr.aria-haspopup]="desktop() ? 'menu' : 'dialog'"
+  [attr.aria-disabled]="busy() ? 'true' : null"
+  [attr.aria-busy]="busy() ? 'true' : null"
+  data-testid="profile-avatar-button"
+  (click)="open($event)"
+>
+  <app-ui-avatar
+    class="pae__face"
+    aria-hidden="true"
+    [name]="name()"
+    [src]="avatarUrl()"
+    size="lg"
+    tone="soft"
+  />
+  @if (desktop() || uploading()) {
+    <span class="pae__scrim" aria-hidden="true">
+      @if (uploading()) {
+        <span class="pae__spinner"></span>
+      } @else {
+        <i class="pi pi-camera pae__scrim-icon"></i>
+      }
+    </span>
+  }
+  @if (!desktop()) {
+    <span class="pae__badge" aria-hidden="true"><i class="pi pi-camera"></i></span>
+  }
+</button>
+
+<input
+  #fileInput
+  type="file"
+  class="pae__file"
+  [attr.accept]="accept"
+  tabindex="-1"
+  aria-hidden="true"
+  data-testid="profile-avatar-input"
+  (change)="onFilePicked($event)"
+/>
+
+@if (sheetOpen()) {
+  <app-settings-sheet
+    [title]="'profile.avatar.sheetTitle' | translate"
+    initialFocus=".pae-sheet__primary"
+    (closed)="closeSheet()"
+  >
+    <div class="pae-sheet">
+      <button type="button" class="pae-btn pae-btn--primary pae-sheet__primary" (click)="pickFromSheet()">
+        <i class="pi" [class.pi-camera]="hasPhoto()" [class.pi-upload]="!hasPhoto()" aria-hidden="true"></i>
+        {{ (hasPhoto() ? 'profile.avatar.change' : 'profile.avatar.upload') | translate }}
+      </button>
+      @if (hasPhoto()) {
+        <button type="button" class="pae-btn pae-btn--quiet-danger" (click)="removeFromSheet()">
+          <i class="pi pi-trash" aria-hidden="true"></i>
+          {{ 'profile.avatar.remove' | translate }}
+        </button>
+      }
+      <button type="button" class="pae-btn pae-btn--secondary pae-sheet__cancel" (click)="closeSheet()">
+        {{ 'profile.avatar.cancel' | translate }}
+      </button>
+    </div>
+  </app-settings-sheet>
+}
+
+@if (desktop()) {
+  <p-menu
+    [popup]="true"
+    [model]="menuItems()"
+    appendTo="body"
+    styleClass="pae-menu"
+    [ariaLabel]="'profile.avatar.sheetTitle' | translate"
+    (onHide)="onMenuHidden()"
+  />
+}
+
+<!-- Remove confirmation, home-point remove style: a bottom sheet on mobile, a 400px dialog on
+     desktop (one p-dialog, restyled at the page's 961px breakpoint). `[header]` names the dialog
+     (visually hidden by the stylesheet); `role="alertdialog"`; focus starts on Cancel, the first
+     focusable element. -->
+<p-dialog
+  [visible]="confirmOpen()"
+  (visibleChange)="$event === false && cancelRemove()"
+  (onHide)="onConfirmHidden()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="false"
+  role="alertdialog"
+  [header]="'profile.avatar.confirmTitle' | translate"
+  styleClass="pae-remove"
+  [maskStyleClass]="removeMaskClass"
+  appendTo="body"
+>
+  <div class="pae-remove__body">
+    <span class="pae-remove__grab" aria-hidden="true"></span>
+    <span class="pae-remove__icon" aria-hidden="true"><i class="pi pi-trash"></i></span>
+    <h2 class="pae-remove__title">{{ 'profile.avatar.confirmTitle' | translate }}</h2>
+    <p class="pae-remove__lead">{{ 'profile.avatar.confirmBody' | translate }}</p>
+    <div class="pae-remove__actions">
+      <button type="button" class="pae-btn pae-btn--secondary" autofocus (click)="cancelRemove()">
+        {{ 'profile.avatar.cancel' | translate }}
+      </button>
+      <button type="button" class="pae-btn pae-btn--danger" data-testid="avatar-remove-confirm" (click)="confirmRemove()">
+        {{ 'profile.avatar.confirmButton' | translate }}
+      </button>
+    </div>
+    <button
+      type="button"
+      class="pae-remove__close"
+      [attr.aria-label]="'common.close' | translate"
+      (click)="cancelRemove()"
+    >
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </div>
+</p-dialog>

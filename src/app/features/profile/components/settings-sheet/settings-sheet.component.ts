@@ -29,8 +29,8 @@ const FOCUSABLE_SELECTOR =
  * under 961px, a 560px centred dialog above. Owns the backdrop, handle, header (title + 44px
  * close), focus trap, focus restore, body portal and Esc-to-close. Content is projected; an
  * optional footer (`[sheetFooter]`, enabled with `pinnedFooter`) stays pinned under the
- * scrolling body. Scoped to the profile Settings sheets only — other sheets in the app keep
- * their own shells. Same idiom as `CategoryEditSheetComponent` / `RejectSheetComponent`.
+ * scrolling body. Scoped to the profile page's sheets only (the Settings sheets and, ADR-070, the
+ * profile-photo action sheet) — other sheets in the app keep their own shells. Same idiom as `CategoryEditSheetComponent` / `RejectSheetComponent`.
  */
 @Component({
   selector: 'app-settings-sheet',

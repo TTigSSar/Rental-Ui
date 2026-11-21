@@ -81,35 +81,30 @@
   display: flex;
   align-items: center;
   gap: var(--ui-space-12);
+}
+
+/* Header row + the photo status/error panel (ADR-070). The 16px gap to the info rows lives on this
+   wrapper, so an empty panel adds no space. */
+.profile-page__identity-top {
   margin-bottom: var(--ui-space-16);
 }
 
-.profile-page__avatar {
-  width: 3.5rem;
-  height: 3.5rem;
-  border-radius: 50%;
-  background: var(--ui-color-primary-soft);
-  color: var(--ui-color-primary-strong-hover);
-  font-size: 1.25rem;
-  font-weight: 800;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  letter-spacing: 0.02em;
-  user-select: none;
+/* Mobile card: avatar row + status/error panel; the card's flex gap sits below this wrapper. */
+.profile-page__m-card-top {
+  display: flex;
+  flex-direction: column;
 }
 
-.profile-page__avatar--xl {
-  width: 5rem;
-  height: 5rem;
-  font-size: 1.625rem;
-  background: linear-gradient(
-    135deg,
-    var(--ui-color-primary-soft) 0%,
-    var(--ui-color-primary) 100%
-  );
-  color: #fff;
-  box-shadow: 0 4px 14px rgba(255, 96, 8, 0.22);
+/* Sidebar avatar + (child-route only) status/error panel, one flex item of the identity column. */
+.profile-page__sidebar-avatar-block {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 72px;
+}
+
+.profile-page__sidebar-avatar-block > app-profile-avatar-edit {
+  align-self: center;
 }
 
 .profile-page__identity-info {
@@ -416,28 +411,6 @@
   min-width: 0;
 }
 
-.profile-page__m-avatar-wrap {
-  position: relative;
-  width: 3.5rem;
-  height: 3.5rem;
-  flex-shrink: 0;
-}
-
-.profile-page__m-camera-badge {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--ui-color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid var(--ui-color-surface);
-  color: #fff;
-}
-
 .profile-page__m-name-row {
   display: flex;
   align-items: center;
@@ -630,42 +603,6 @@
 }
 
 /* ── Sidebar child styles (only visible on desktop) ── */
-.profile-page__sidebar-avatar-wrap {
-  position: relative;
-  width: 72px;
-  height: 72px;
-}
-
-.profile-page__sidebar-avatar {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--ui-color-primary-soft) 0%, var(--ui-color-primary) 100%);
-  color: #fff;
-  font-size: 1.625rem;
-  font-weight: 800;
-  display: grid;
-  place-items: center;
-  letter-spacing: 0.02em;
-  user-select: none;
-  box-shadow: 0 4px 14px rgba(255, 96, 8, 0.22);
-}
-
-.profile-page__sidebar-camera-badge {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--ui-color-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #fff;
-  color: #fff;
-}
-
 /* ── Mobile tweaks ── */
 @media (max-width: 560px) {
   .profile-page {
