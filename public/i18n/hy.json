@@ -925,7 +925,7 @@
       }
     },
     "createPage": {
-      "title": "Տրամադրել խաղալիք",
+      "title": "Տեղադրել խաղալիք",
       "subtitle": "Կիսվեք ձեր երեխայի համար մեծ դարձած խաղալիքներով և թույլ տվեք այլ ընտանիքներին վարձակալել դրանք։",
       "adminReviewNotice": "Ձեր հայտարարությունը կստուգվի մեր թիմի կողմից, մինչ այն տեսանելի կդառնա այլ ծնողների համար։",
       "loadingCategories": "Կատեգորիաները բեռնվում են...",
@@ -2876,7 +2876,7 @@
     "breakdown": "Վարկանիշ",
     "breakdownCommunication": "Հաղորդակցություն",
     "breakdownPickup": "Ստացում և հանձնում",
-    "breakdownFriendliness": "Բարյացակամություն",
+    "breakdownFriendliness": "Սիրալիրություն",
     "breakdownReturnedOnTime": "Վերադարձ ժամանակին",
     "breakdownCareOfToy": "Խաղալիքի խնամք",
     "breakdownWouldRentAgain": "Կվարձակալեի կրկին",
