@@ -158,7 +158,7 @@
       <h3 class="auth-home__title">{{ 'auth.register.home.title' | translate }}</h3>
       <p class="auth-home__lead">
         <i class="pi pi-shield" aria-hidden="true"></i>
-        <span>{{ 'auth.register.home.lead' | translate }}</span>
+        <span>{{ 'homePoint.privacyNote' | translate }}</span>
       </p>
 
       <div class="auth-home__map">
@@ -168,6 +168,7 @@
       <app-home-point-status
         [selection]="homeSelection()"
         [serverOutsideYerevan]="serverOutsideYerevan()"
+        [showPrivacyNote]="false"
       />
 
       <div class="auth-home__actions">
