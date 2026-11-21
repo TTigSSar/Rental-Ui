@@ -214,9 +214,6 @@
                           {{ 'listings.details.toyDetails.compensationNotSpecified' | translate }}
                         }
                       </span>
-                      <span class="booking-page__comp-not-total">
-                        {{ 'listings.booking.compensationNotPartOfTotal' | translate }}
-                      </span>
                     </dd>
                   </div>
                   <div class="booking-page__breakdown-row booking-page__breakdown-row--total">
@@ -247,10 +244,6 @@
                 {{ 'listings.bookingPage.ownerSeesThis' | translate }}
               </span>
             </div>
-            <p class="booking-page__note-intro">
-              {{ 'listings.bookingPage.noteIntro' | translate: { name: ownerFirstName() } }}
-              <span class="booking-page__note-optional">{{ 'listings.bookingPage.optional' | translate }}</span>
-            </p>
 
             <form [formGroup]="form" class="booking-page__note-form">
               <div class="booking-page__note-field">

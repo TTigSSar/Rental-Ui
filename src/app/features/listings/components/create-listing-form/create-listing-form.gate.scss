@@ -101,19 +101,31 @@
     height: 440px;
   }
 
-  .wizard__footer-inner--gate {
+  /* Gate footer content lines up with the gate body above (same 1100px
+     container + 32px gutter), see the ≥641px rule below. */
+  .wizard__footer .wizard__footer-inner--gate {
+    padding-inline: var(--ui-space-32);
+  }
+}
+
+/* ≥641px: both buttons grouped and right-aligned inside the same centred
+   container as the gate body (primary rightmost; DOM order is primary first,
+   so row-reverse + flex-start packs them to the right). Selectors carry two
+   classes so they beat `.wizard__footer-inner` in desktop.scss (loaded later).
+   ≤640px keeps the stacked, full-width column (primary on top). */
+@media (min-width: 641px) {
+  .wizard__footer .wizard__footer-inner--gate {
     flex-direction: row-reverse;
     align-items: center;
     justify-content: flex-start;
+    gap: var(--ui-space-12);
+    max-width: 1100px;
+    margin-inline: auto;
   }
 
-  .wizard__footer-inner--gate .wizard__btn--full {
+  .wizard__footer .wizard__footer-inner--gate .wizard__btn--full {
+    flex: 0 0 auto;
     width: auto;
     min-width: 240px;
-    margin-left: auto;
-  }
-
-  .wizard-gate__later {
-    margin-right: auto;
   }
 }

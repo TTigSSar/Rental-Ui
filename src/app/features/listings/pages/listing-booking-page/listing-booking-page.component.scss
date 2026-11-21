@@ -674,12 +674,6 @@
   text-align: right;
 }
 
-.booking-page__comp-not-total {
-  font-size: 0.6875rem;
-  font-weight: 400;
-  color: var(--ui-color-text-hint);
-}
-
 .booking-page__breakdown-total-note {
   margin: 0;
   font-size: 0.75rem;
@@ -710,18 +704,6 @@
   .pi {
     font-size: 0.6875rem;
   }
-}
-
-.booking-page__note-intro {
-  margin: -6px 0 0;
-  font-size: 0.875rem;
-  color: var(--ui-color-text-secondary);
-  line-height: 1.5;
-}
-
-.booking-page__note-optional {
-  color: var(--ui-color-primary-strong);
-  font-weight: 600;
 }
 
 .booking-page__note-form {
