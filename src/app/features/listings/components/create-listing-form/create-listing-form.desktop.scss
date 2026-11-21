@@ -144,35 +144,6 @@
     font-weight: 800;
   }
 
-  .wizard-stepper__note {
-    margin-top: 18px;
-    padding: 14px;
-    border-radius: 14px;
-    background: var(--ui-color-primary-soft);
-    border: 1px solid color-mix(in srgb, var(--ui-color-primary) 13%, transparent);
-  }
-
-  .wizard-stepper__note-title {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.78rem;
-    font-weight: 800;
-    color: var(--ui-color-text-primary);
-
-    .pi {
-      color: var(--ui-color-primary);
-      font-size: 0.8rem;
-    }
-  }
-
-  .wizard-stepper__note-sub {
-    margin-top: 4px;
-    font-size: 0.72rem;
-    color: var(--ui-color-text-secondary);
-    line-height: 1.5;
-  }
-
   /* Content head — title first (loud, primary), eyebrow "STEP N OF 5" below
      it in muted text-primary (listing-desktop.jsx's `<h1>` then step-count
      div, in that order — a prior pass here had them swapped and mis-coloured). */

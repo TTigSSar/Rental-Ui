@@ -686,14 +686,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--ui-space-12);
+  flex-wrap: wrap;
+  gap: var(--ui-space-8) var(--ui-space-12);
 }
 
 .booking-page__owner-sees {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  flex-shrink: 0;
+  max-width: 100%;
   padding: 4px 10px;
   border-radius: var(--ui-radius-pill);
   background: var(--ui-color-primary-soft);
