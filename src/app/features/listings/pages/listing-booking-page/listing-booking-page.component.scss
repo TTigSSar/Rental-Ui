@@ -1133,6 +1133,10 @@
     flex: 1 1 auto;
     display: block;
     max-width: 60%;
+
+    &:only-child {
+      max-width: none;
+    }
   }
 }
 
@@ -1154,17 +1158,4 @@
 .booking-page__mobile-days {
   font-size: 0.75rem;
   color: var(--ui-color-text-secondary);
-}
-
-.booking-page__mobile-charge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.75rem;
-  color: var(--ui-color-text-secondary);
-  max-width: 9rem;
-
-  .pi {
-    font-size: 0.6875rem;
-  }
 }

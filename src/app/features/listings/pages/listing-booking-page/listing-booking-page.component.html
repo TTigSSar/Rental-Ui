@@ -460,19 +460,14 @@
 
       <!-- Mobile sticky action bar — replaces the global bottom nav -->
       <div class="booking-page__mobile-bar">
-        <div class="booking-page__mobile-info">
-          @if (totalPrice() !== null) {
+        @if (totalPrice() !== null) {
+          <div class="booking-page__mobile-info">
             <span class="booking-page__mobile-total">{{ totalPrice() | dram }}</span>
             <span class="booking-page__mobile-days">
               {{ rentalDays() }}&nbsp;{{ 'listings.bookingPage.daysLabel' | translate }}
             </span>
-          } @else {
-            <span class="booking-page__mobile-charge">
-              <i class="pi pi-lock" aria-hidden="true"></i>
-              {{ 'listings.bookingPage.notChargedShort' | translate }}
-            </span>
-          }
-        </div>
+          </div>
+        }
         <p-button
           type="button"
           styleClass="booking-page__submit-btn"

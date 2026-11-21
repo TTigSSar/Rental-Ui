@@ -1244,7 +1244,6 @@
       "yourRequestEyebrow": "Your request",
       "chatAfterRequest": "Once you send the request, a chat will open where you can discuss the rental details and agree on all the important points.",
       "chatAfterRequestSent": "Your request has been sent — chat with {{name}} to agree pickup and contact details.",
-      "notChargedShort": "You're not charged yet",
       "summaryTotal": "Total",
       "selectDatesHint": "Choose dates to see the total price",
       "daysLabel": "days",
