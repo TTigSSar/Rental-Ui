@@ -213,7 +213,7 @@
         },
         "step4": {
           "title": "Pick up & play",
-          "text": "Meet the owner, pick up the toy, and delight your little one with a new toy."
+          "text": "Pick up the toy and delight your little one with a new toy."
         },
         "step5": {
           "title": "Return on time",
@@ -223,7 +223,7 @@
       "lending": {
         "step1": {
           "title": "List your toy",
-          "text": "Add photos, age range, condition, and a daily price in minutes."
+          "text": "Add photos, age range, condition, and a price in minutes."
         },
         "step2": {
           "title": "Receive rental requests",
@@ -235,7 +235,7 @@
         },
         "step4": {
           "title": "Hand over the toy",
-          "text": "Meet the renter and hand over the toy clean and safe."
+          "text": "Hand over the toy clean and safe."
         },
         "step5": {
           "title": "Get the toy back",
