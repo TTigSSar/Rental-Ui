@@ -13,6 +13,9 @@ export interface ExternalAuthError {
 /** Feedback line under the chat-emails switch (Settings > Notifications). */
 export type ChatEmailsSaveState = 'idle' | 'saving' | 'saved' | 'failed';
 
+/** Profile-picture mutation in flight (ADR-070 §13). One status for upload AND remove. */
+export type AvatarStatus = 'idle' | 'uploading' | 'removing';
+
 export interface AuthState {
   user: CurrentUser | null;
   /** True once `user` was read with the CURRENT token (`loadCurrentUserSuccess`). The identity-bearing
@@ -58,6 +61,9 @@ export interface AuthState {
   chatEmailsSaveState: ChatEmailsSaveState;
   /** Last server-confirmed value, captured before the first optimistic flip of a burst. */
   chatEmailsConfirmed: boolean | null;
+  avatarStatus: AvatarStatus;
+  /** `profile.avatar.error*` key of the last failed upload/remove; null otherwise. */
+  avatarError: string | null;
 }
 
 export const initialAuthState: AuthState = {
@@ -83,4 +89,6 @@ export const initialAuthState: AuthState = {
   phoneErrorCode: null,
   chatEmailsSaveState: 'idle',
   chatEmailsConfirmed: null,
+  avatarStatus: 'idle',
+  avatarError: null,
 };

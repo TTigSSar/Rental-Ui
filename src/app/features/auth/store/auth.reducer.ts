@@ -289,4 +289,44 @@ export const authReducer = createReducer(
     ...state,
     chatEmailsSaveState: 'idle',
   })),
+
+  // ── Profile picture (ADR-070): one status for upload AND remove ──
+  // A request while another is running is ignored here AND dropped by the effect's exhaustMap;
+  // the UI also disables the avatar while busy.
+  on(AuthActions.uploadAvatar, (state): AuthState =>
+    state.avatarStatus !== 'idle'
+      ? state
+      : { ...state, avatarStatus: 'uploading', avatarError: null },
+  ),
+
+  on(AuthActions.removeAvatar, (state): AuthState =>
+    state.avatarStatus !== 'idle'
+      ? state
+      : { ...state, avatarStatus: 'removing', avatarError: null },
+  ),
+
+  // The answer is the whole refreshed user: it replaces `user` (the single source of the avatar).
+  on(
+    AuthActions.uploadAvatarSuccess,
+    AuthActions.removeAvatarSuccess,
+    (state, { user }): AuthState => ({
+      ...state,
+      user,
+      avatarStatus: 'idle',
+      avatarError: null,
+    }),
+  ),
+
+  // Always back to idle, old face kept (user untouched).
+  on(
+    AuthActions.uploadAvatarFailure,
+    AuthActions.removeAvatarFailure,
+    (state, { errorKey }): AuthState => ({
+      ...state,
+      avatarStatus: 'idle',
+      avatarError: errorKey,
+    }),
+  ),
+
+  on(AuthActions.clearAvatarError, (state): AuthState => ({ ...state, avatarError: null })),
 );

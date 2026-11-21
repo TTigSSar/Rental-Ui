@@ -3,7 +3,7 @@ import { createFeatureSelector, createSelector } from '@ngrx/store';
 import type { ApiErrorCode } from '../../../api/api-error.model';
 import type { CurrentUser, HomePoint } from '../models/auth.models';
 import { authFeatureKey } from './auth.reducer';
-import type { AuthState, ChatEmailsSaveState, ExternalAuthError } from './auth.state';
+import type { AuthState, AvatarStatus, ChatEmailsSaveState, ExternalAuthError } from './auth.state';
 
 export const selectAuthState = createFeatureSelector<AuthState>(authFeatureKey);
 
@@ -163,4 +163,24 @@ export const selectChatEmailsEnabled = createSelector(
 export const selectChatEmailsSaveState = createSelector(
   selectAuthState,
   (state: AuthState | undefined): ChatEmailsSaveState => state?.chatEmailsSaveState ?? 'idle',
+);
+
+/**
+ * ADR-070 §13: THE single source of the signed-in user's picture. The header, the three profile
+ * surfaces and the admin shell all read this; the profile slice's copy is not read by any avatar.
+ */
+export const selectCurrentUserAvatarUrl = createSelector(
+  selectAuthUser,
+  (user: CurrentUser | null): string | null => user?.avatarUrl ?? null,
+);
+
+export const selectAvatarStatus = createSelector(
+  selectAuthState,
+  (state: AuthState | undefined): AvatarStatus => state?.avatarStatus ?? 'idle',
+);
+
+/** `profile.avatar.error*` i18n key of the last failed upload/remove, or null. */
+export const selectAvatarError = createSelector(
+  selectAuthState,
+  (state: AuthState | undefined): string | null => state?.avatarError ?? null,
 );

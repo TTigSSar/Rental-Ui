@@ -263,3 +263,38 @@ export const updateChatEmailsFailure = createAction(
 
 /** Clears the "Saved" / failure line without a request (settings sheet opened). */
 export const resetChatEmailsSaveState = createAction('[Auth] Reset Chat Emails Save State');
+
+// ── Profile picture (ADR-070) ──────────────────────────────────────
+// `auth.user.avatarUrl` is the single source of truth for every avatar surface. Upload and remove
+// share ONE effect (exhaustMap) and one `avatarStatus`, so the two can never overlap.
+
+/** The PICKED file (raw). The effect prepares the 512x512 JPEG, then `PUT /api/auth/me/avatar`. */
+export const uploadAvatar = createAction('[Auth] Upload Avatar', props<{ file: Blob }>());
+
+/** `DELETE /api/auth/me/avatar` (idempotent). */
+export const removeAvatar = createAction('[Auth] Remove Avatar');
+
+/** Both routes answer 200 with the full refreshed `CurrentUserResponse`. */
+export const uploadAvatarSuccess = createAction(
+  '[Auth] Upload Avatar Success',
+  props<{ user: CurrentUser }>(),
+);
+
+export const removeAvatarSuccess = createAction(
+  '[Auth] Remove Avatar Success',
+  props<{ user: CurrentUser }>(),
+);
+
+/** `errorKey` is a `profile.avatar.error*` i18n key (never a server string), translated by the view. */
+export const uploadAvatarFailure = createAction(
+  '[Auth] Upload Avatar Failure',
+  props<{ errorKey: string }>(),
+);
+
+export const removeAvatarFailure = createAction(
+  '[Auth] Remove Avatar Failure',
+  props<{ errorKey: string }>(),
+);
+
+/** Drops the inline avatar error without a request (e.g. a new pick starts). */
+export const clearAvatarError = createAction('[Auth] Clear Avatar Error');

@@ -6,14 +6,18 @@ import { Store } from '@ngrx/store';
 import {
   EMPTY,
   catchError,
+  defer,
   distinctUntilChanged,
+  exhaustMap,
   filter,
+  from,
   map,
   mergeMap,
   of,
   pairwise,
   switchMap,
   take,
+  takeUntil,
   tap,
   withLatestFrom,
 } from 'rxjs';
@@ -21,11 +25,13 @@ import {
 import { ApiErrorMapper } from '../../../api/api-error-mapper';
 import { getApiErrorCode } from '../../../api/api-error.model';
 import { LanguageService } from '../../../shared/services/language.service';
+import { prepareAvatarImage } from '../../../shared/utils/avatar-image.utils';
 import { AuthRedirectService } from '../services/auth-redirect.service';
 import { AuthApiService } from '../services/auth-api.service';
 import { ExternalAuthProviderService } from '../services/external-auth-provider.service';
 import { AuthTokenService } from '../services/auth-token.service';
 import * as AuthActions from './auth.actions';
+import { avatarErrorKey } from './avatar-error-key';
 import { selectAuthToken, selectAuthUser, selectIsAuthenticated } from './auth.selectors';
 
 @Injectable()
@@ -366,6 +372,46 @@ export class AuthEffects {
           ),
         ),
       ),
+    ),
+  );
+
+  /**
+   * Profile picture upload AND remove (ADR-070 §13, plan §4.2): ONE effect, `exhaustMap`, so a
+   * request that arrives while another is running is dropped (the reducer ignores it too) and the
+   * two can never overlap. The inner pipe is deferred so that a client-side preparation error, an
+   * HTTP error and an unexpected throw all end as a `...Failure` - `avatarStatus` always returns to
+   * `idle`. `takeUntil(logout)` ends the inner observable when the session goes away; the logout
+   * reset sets `idle`, and a late response is never delivered.
+   */
+  readonly mutateAvatar$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AuthActions.uploadAvatar, AuthActions.removeAvatar),
+      exhaustMap((action) => {
+        const uploading = action.type === AuthActions.uploadAvatar.type;
+        const request$ = defer(() =>
+          action.type === AuthActions.uploadAvatar.type
+            ? from(prepareAvatarImage(action.file)).pipe(
+                switchMap((jpeg) => this.authApi.uploadAvatar(jpeg)),
+              )
+            : this.authApi.removeAvatar(),
+        );
+        return request$.pipe(
+          map((user) =>
+            uploading
+              ? AuthActions.uploadAvatarSuccess({ user })
+              : AuthActions.removeAvatarSuccess({ user }),
+          ),
+          catchError((error: unknown) => {
+            const errorKey = avatarErrorKey(error);
+            return of(
+              uploading
+                ? AuthActions.uploadAvatarFailure({ errorKey })
+                : AuthActions.removeAvatarFailure({ errorKey }),
+            );
+          }),
+          takeUntil(this.actions$.pipe(ofType(AuthActions.logout))),
+        );
+      }),
     ),
   );
 

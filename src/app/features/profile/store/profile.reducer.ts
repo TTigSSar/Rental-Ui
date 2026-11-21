@@ -42,6 +42,16 @@ export const profileReducer = createReducer(
       profile: state.profile === null ? null : { ...state.profile, phoneNumber },
     }),
   ),
+  // ADR-070: the picture is owned by auth.user (selectCurrentUserAvatarUrl feeds every avatar
+  // surface); this copy is patched from the same refreshed user only so it cannot diverge.
+  on(
+    AuthActions.uploadAvatarSuccess,
+    AuthActions.removeAvatarSuccess,
+    (state, { user }): ProfileState => ({
+      ...state,
+      profile: state.profile === null ? null : { ...state.profile, avatarUrl: user.avatarUrl ?? null },
+    }),
+  ),
   on(
     ProfileActions.loadProfileFailure,
     (state, { error }): ProfileState => ({

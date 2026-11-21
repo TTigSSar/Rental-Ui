@@ -11,8 +11,8 @@ import { ProfileApiService } from '../services/profile-api.service';
 import * as ProfileActions from './profile.actions';
 
 // Fallback used when GET /api/auth/me fails but the auth store already has a
-// CurrentUser (e.g. from login). CurrentUser doesn't carry avatarUrl/createdAt/
-// isBlocked, so those fall back to null/false here rather than being fabricated.
+// CurrentUser (e.g. from login). CurrentUser doesn't carry createdAt/isBlocked, so those fall
+// back to null/false here rather than being fabricated; avatarUrl IS carried (ADR-070).
 function mapAuthUserToProfile(user: CurrentUser): UserProfile {
   return {
     id: user.id,
@@ -21,7 +21,7 @@ function mapAuthUserToProfile(user: CurrentUser): UserProfile {
     email: user.email,
     phoneNumber: user.phoneNumber,
     preferredLanguage: null,
-    avatarUrl: null,
+    avatarUrl: user.avatarUrl ?? null,
     createdAt: null,
     isBlocked: false,
     roles: [...user.roles],
